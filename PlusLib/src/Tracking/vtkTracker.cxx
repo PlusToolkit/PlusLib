@@ -651,22 +651,22 @@ std::string vtkTracker::ConvertTrackerStatusToString(TrackerStatus status)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
-                                                      std::map<std::string, std::string> &toolsBufferMatrices, 
-                                                      std::map<std::string, std::string> &toolsStatuses,
-                                                      bool calibratedTransform /*= false*/)
+PlusStatus vtkTracker::GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame )
 {
-  toolsBufferMatrices.clear();  
-  toolsStatuses.clear(); 
+  int numberOfErrors(0); 
 
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 
-    vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    TrackerStatus trackerStatus = TR_OK; 
-
+    if ( ! toolTransformName.IsValid() )
+    {
+      LOG_ERROR("Tool transform name is invalid!"); 
+      numberOfErrors++; 
+      continue; 
+    }
+    
     TrackerBufferItem bufferItem; 
-    if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform ) != ITEM_OK )
+    if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED ) != ITEM_OK )
     {
       double latestTimestamp(0); 
       if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
@@ -681,37 +681,34 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
       }
 
       LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
-      return PLUS_FAIL; 
+      numberOfErrors++; 
+      continue; 
     }
 
     vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     if (bufferItem.GetMatrix(dMatrix)!=PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get dMatrix"); 
-      return PLUS_FAIL;
+      LOG_ERROR("Failed to get matrix from buffer item for tool " << it->second->GetToolName() ); 
+      numberOfErrors++; 
+      continue; 
     }
 
-    std::ostringstream strToolTransform; 
-    for ( int r = 0; r < 4; ++r )
+    if ( aTrackedFrame->SetCustomFrameTransform(toolTransformName, dMatrix) != PLUS_SUCCESS )
     {
-      for ( int c = 0; c < 4; ++c )
-      {
-        strToolTransform << dMatrix->GetElement(r,c) << " ";
-      }
+      LOG_ERROR("Failed to set transform for tool " << it->second->GetToolName() ); 
+      numberOfErrors++; 
+      continue; 
     }
 
-    std::string strToolTransformName; 
-    if ( toolTransformName.GetTransformName(strToolTransformName) != PLUS_SUCCESS )
+    if ( aTrackedFrame->SetCustomFrameTransformStatus(toolTransformName, vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Invalid tool transform name!"); 
-      return PLUS_FAIL; 
+      LOG_ERROR("Failed to set transform status for tool " << it->second->GetToolName() ); 
+      numberOfErrors++; 
+      continue; 
     }
-
-    toolsBufferMatrices[ strToolTransformName ] = strToolTransform.str(); 
-    toolsStatuses[ strToolTransformName ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
   }
 
-  return PLUS_SUCCESS; 
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
 
 //----------------------------------------------------------------------------

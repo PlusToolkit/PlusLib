@@ -25,6 +25,7 @@ class vtkDataArray;
 class vtkDoubleArray;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
+class TrackedFrame; 
 
 typedef std::map<std::string, vtkTrackerTool*> ToolContainerType;
 typedef ToolContainerType::const_iterator ToolIteratorType; 
@@ -93,11 +94,8 @@ public:
   //TODO: the return value should be PLusStatus and the result should be got using parameter by reference
   static std::string ConvertTrackerStatusToString(TrackerStatus status); 
 
-  /*! Get the buffer element values of each tool in a string list by timestamp. */
-  virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
-    std::map<std::string, std::string> &toolsBufferMatrices, 
-    std::map<std::string, std::string> &toolsStatuses,
-    bool calibratedTransform = false); 
+  /*! Get all transforms from buffer element values of each tool by timestamp. */
+  virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
 
   /*! Get the calibration matrices for all tools in a string */
   virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 

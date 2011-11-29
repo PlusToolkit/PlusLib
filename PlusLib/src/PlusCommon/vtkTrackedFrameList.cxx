@@ -10,6 +10,7 @@
 #include <math.h>
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtksys/RegularExpression.hxx"
 #include "vtkXMLUtilities.h"
 
 #include "itkImageFileReader.h"
@@ -163,6 +164,9 @@ PlusStatus TrackedFrame::GetCustomFrameTransform(PlusTransformName& frameTransfo
     return PLUS_FAIL; 
   }
   
+  // Append Transform to the end of the transform name
+  transformName.append("Transform"); 
+
   const char* frameTransformStr = GetCustomFrameField(transformName.c_str());
   if (frameTransformStr == NULL )
   {
@@ -202,7 +206,7 @@ PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameT
     return PLUS_FAIL; 
   }
   
-  std::string toolStatusFrameFieldName = transformName + std::string("Status");
+  std::string toolStatusFrameFieldName = transformName + std::string("TransformStatus");
   const char* strStatus = this->GetCustomFrameField(toolStatusFrameFieldName.c_str()); 
   if (strStatus == NULL )
   {
@@ -218,15 +222,16 @@ PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameT
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, std::string status)
 {
-  std::string transformName; 
-  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
+  std::string transformStatusName; 
+  if ( frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to set custom transform status, transform name is wrong!"); 
     return PLUS_FAIL; 
   }
   
-  std::string toolStatusFrameFieldName = transformName + std::string("Status");
-  this->SetCustomFrameField(toolStatusFrameFieldName, status ); 
+  // Append TransformStatus to the end of the transform name
+  transformStatusName.append("TransformStatus");
+  this->SetCustomFrameField(transformStatusName, status ); 
 
   return PLUS_SUCCESS; 
 }
@@ -245,6 +250,9 @@ PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransfo
     LOG_ERROR("Unable to get custom transform, transform name is wrong!"); 
     return PLUS_FAIL; 
   }
+
+  // Append Transform to the end of the transform name
+  transformName.append("Transform"); 
 
   SetCustomFrameField(transformName, strTransform.str());
 
@@ -351,6 +359,21 @@ void TrackedFrame::GetCustomFrameFieldNameList(std::vector<std::string> &fieldNa
   }  
 }
 
+//----------------------------------------------------------------------------
+void TrackedFrame::GetCustomFrameTransformNameList(std::vector<PlusTransformName> &transformNames)
+{
+  transformNames.clear();
+  for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++) 
+  {
+    vtksys::RegularExpression isTransform("(.*)Transform$"); 
+    if ( isTransform.find(it->first) )
+    {
+      PlusTransformName trName; 
+      trName.SetTransformName(isTransform.match(1).c_str()); 
+      transformNames.push_back(trName); 
+    }
+  }
+}
 
 //----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************

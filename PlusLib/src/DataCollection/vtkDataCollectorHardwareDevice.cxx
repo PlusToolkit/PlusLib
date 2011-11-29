@@ -1473,33 +1473,15 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
 
   if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )
   {
-    // Get tracker buffer values 
-    std::map<std::string, std::string> toolsBufferMatrices; 
-    std::map<std::string, std::string> toolsStatuses; 
-
     if ( !this->GetVideoEnabled() )
     {
       synchronizedTime = time;  
     }
 
-    if ( this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsStatuses, calibratedTransform) != PLUS_SUCCESS )
+    if ( this->GetTracker()->GetAllTransforms(synchronizedTime, trackedFrame ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tracker tool buffer stringlist: " << std::fixed << synchronizedTime ); 
+      LOG_ERROR("Failed to get all transforms from tracker at: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
-    }
-
-    for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
-    {
-      // Set tool buffer values 
-      trackedFrame->SetCustomFrameField(it->first, it->second); 
-    }
-
-    for ( std::map<std::string, std::string>::iterator it = toolsStatuses.begin(); it != toolsStatuses.end(); it++ )
-    {
-      // Set tool buffer statuses 
-      std::ostringstream statusName; 
-      statusName << it->first << "Status"; 
-      trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
     }
   }
 
