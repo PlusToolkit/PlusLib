@@ -437,7 +437,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   for ( bufferIndex; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
   {
     TrackerBufferItem bufferItem; 
-    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false) != ITEM_OK ) 
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem) != ITEM_OK ) 
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       return PLUS_FAIL; 
@@ -539,7 +539,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
   while ( !diffFound && bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() )
   {
     TrackerBufferItem bufferItem;
-    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false ) != ITEM_OK )
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       bufferIndex++; 
@@ -588,7 +588,7 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
   {
 
     TrackerBufferItem baseItem; 
-    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(baseIndex, &baseItem, false) != ITEM_OK )
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(baseIndex, &baseItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << baseIndex ); 
       baseIndex = baseIndex + 1; 
@@ -605,7 +605,7 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
     }
 
     TrackerBufferItem currentItem; 
-    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(currentIndex, &currentItem, false) != ITEM_OK )
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(currentIndex, &currentItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << currentIndex ); 
       baseIndex = baseIndex + 1; 
@@ -1038,7 +1038,7 @@ double vtkDataCollectorSynchronizer::GetPositionAcquisitionFrameRate(double& mea
   for ( BufferItemUidType bufferIndex = this->GetTrackerBuffer()->GetOldestItemUidInBuffer() ; bufferIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer(); ++bufferIndex )
   {
     TrackerBufferItem bufferItem; 
-    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false ) != ITEM_OK )
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       continue; 

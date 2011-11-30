@@ -44,9 +44,6 @@ public:
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
-  /*! Write main configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
-
   /*! Set tool name. Tool name is used to identify the tool among all the tools provided by the tracker device 
   therefore it must be unique and can be set only once */
   PlusStatus SetToolName(const char* toolName);
@@ -67,11 +64,6 @@ public:
   /*! Get the frame number (some devices has frame numbering, otherwise just increment if new frame received) */
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
-
-  // TODO: remove it! 
-  /*! Set a calibration matrix.  The raw tool transform will be pre-multiplied by this to provide this->Transform. */
-  vtkSetObjectMacro(CalibrationMatrix, vtkMatrix4x4); 
-  vtkGetObjectMacro(CalibrationMatrix, vtkMatrix4x4); 
 
   /*! 
   Set the states of the LEDs on the tool.  If the tracking system is not in tracking mode, the state will not be realized until
@@ -131,26 +123,11 @@ public:
   /*! Set name of the file containing the 3D model of this tool */
   vtkSetStringMacro(Tool3DModelFileName); 
 
-  /*! Set calibration matrix name */
-  vtkSetStringMacro(CalibrationMatrixName); 
-  /*! Get calibration matrix name */
-  vtkGetStringMacro(CalibrationMatrixName); 
-
-  /*! Set calibration date */
-  vtkSetStringMacro(CalibrationDate); 
-  /*! Get calibration date */
-  vtkGetStringMacro(CalibrationDate); 
-
   /*! Set the tool 'SendTo' link for OpenIGTLink broadcasting */
   vtkSetStringMacro(SendToLink);
   /*! Get the tool 'SendTo' link for OpenIGTLink broadcasting */
   vtkGetStringMacro(SendToLink);
   
-  /*! Set calibration error */
-  vtkSetMacro(CalibrationError, double); 
-  /*! Get calibration error */
-  vtkGetMacro(CalibrationError, double); 
-
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkTrackerTool *tool);
 
@@ -161,8 +138,6 @@ protected:
   vtkTracker *Tracker;
 
   char *PortName;
-
-  vtkMatrix4x4 *CalibrationMatrix;
 
   unsigned long FrameNumber; 
 
@@ -175,15 +150,12 @@ protected:
   char *ToolPartNumber;
   char *ToolManufacturer;
   char *ToolName; 
-  char *CalibrationMatrixName; 
-  char *CalibrationDate; 
+
   char *SendToLink;
   char *ToolModel;
 
   char *Tool3DModelFileName;
   vtkTransform *ModelToToolTransform;
-
-  double CalibrationError; 
 
   vtkTrackerBuffer *Buffer;
 

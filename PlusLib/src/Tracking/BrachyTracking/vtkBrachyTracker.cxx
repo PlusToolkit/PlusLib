@@ -33,6 +33,7 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->ModelSerialNumber = NULL; 
   this->CalibrationAlgorithmVersion = NULL; 
   this->CalibrationDate = NULL; 
+  this->IsBrachyTrackerCompensationDefined = false; 
 
   this->SetSerialPort(1);
   this->BaudRate = 19200;
@@ -468,16 +469,16 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
       this->ProbeRotationEncoderScale = probeRotationEncoderScale; 
     }
 
-    this->TrackerCalibratedOn(); 
+    this->IsBrachyTrackerCompensationDefined = true; 
   }
 
-  if ( this->TrackerCalibrated )
+  if ( this->IsBrachyTrackerCompensationDefined )
   {
-    LOG_INFO("BrachyTracker is calibrated (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
+    LOG_INFO("BrachyTracker compensation parameters are defined (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
   }
   else
   {
-    LOG_INFO("BrachyTracker is uncalibrated"); 
+    LOG_INFO("BrachyTracker compensation parameters are undefined "); 
   }
 
   return PLUS_SUCCESS;
@@ -520,7 +521,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   trackerConfig->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
   trackerConfig->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
 
-  if ( this->GetTrackerCalibrated() )
+  if ( this->IsBrachyTrackerCompensationDefined )
   {
     // Save stepper calibration results to file
   	vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
@@ -681,13 +682,6 @@ PlusStatus vtkBrachyTracker::GetAllTransforms(double timestamp, TrackedFrame* aT
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices)
-{
-  toolsCalibrationMatrices.clear(); 
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
   std::string encoderToolName = this->GetBrachyToolName(RAW_ENCODER_VALUES); 
@@ -736,7 +730,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
   }
 
   TrackerBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
     return PLUS_FAIL; 
@@ -785,7 +779,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status )
 {
   if ( probeHomeToProbeMatrix == NULL )
   {
@@ -808,7 +802,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
   }
 
   TrackerBufferItem bufferItem; 
-  if ( probeTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, calibratedTransform) != ITEM_OK )
+  if ( probeTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -825,7 +819,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status)
 {
   std::string probeToolName = this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM); 
   if ( probeToolName.empty() )
@@ -848,11 +842,11 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtk
     PLUS_FAIL; 
   }
 
-  return this->GetProbeHomeToProbeTransform(uid, probeHomeToProbeMatrix, status, calibratedTransform); 
+  return this->GetProbeHomeToProbeTransform(uid, probeHomeToProbeMatrix, status); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status )
 {
   if ( templateHomeToTemplateMatrix == NULL )
   {
@@ -875,7 +869,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
   }
 
   TrackerBufferItem bufferItem; 
-  if ( templateTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, calibratedTransform) != ITEM_OK )
+  if ( templateTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -892,7 +886,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status )
 {
   std::string templateToolName = this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM); 
   if ( templateToolName.empty() )
@@ -915,7 +909,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestam
     return PLUS_FAIL; 
   }
 
-  return this->GetTemplateHomeToTemplateTransform(uid, templateHomeToTemplateMatrix, status, calibratedTransform); 
+  return this->GetTemplateHomeToTemplateTransform(uid, templateHomeToTemplateMatrix, status); 
 }
 
 //----------------------------------------------------------------------------
@@ -942,7 +936,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
   }
 
   TrackerBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
     return PLUS_FAIL;

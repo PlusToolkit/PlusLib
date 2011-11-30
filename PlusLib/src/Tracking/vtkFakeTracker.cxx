@@ -458,26 +458,9 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       phantomReferenceToPhantomTransform->Identity();
       phantomReferenceToPhantomTransform->Translate(-75, -50, -150);
 
-      // Apply inverse calibration so that when applying calibration during acquisition, the position is right
-      vtkSmartPointer<vtkTransform> stylustipToStylusTransform = vtkSmartPointer<vtkTransform>::New();
-      stylustipToStylusTransform->Identity();
-      vtkTrackerTool * stylus = NULL; 
-      if ( this->GetTool("Stylus", stylus) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get tool: Stylus"); 
-        return PLUS_FAIL; 
-      }
-
-      stylustipToStylusTransform->SetMatrix(stylus->GetCalibrationMatrix());
-      stylustipToStylusTransform->Inverse();
-      stylustipToStylusTransform->Modified();
-
       vtkSmartPointer<vtkTransform> phantomReferenceToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomReferenceToLandmarkTransform->Identity();
-
       phantomReferenceToLandmarkTransform->Concatenate(phantomReferenceToPhantomTransform);
       phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
-      phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);
 
       this->ToolTimeStampedUpdate("Stylus", phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }

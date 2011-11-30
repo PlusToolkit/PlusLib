@@ -34,11 +34,9 @@ vtkStandardNewMacro(vtkTracker);
 vtkTracker::vtkTracker()
 {
   this->Tracking = 0;
-  this->WorldCalibrationMatrix = vtkMatrix4x4::New();
-  this->LastUpdateTime = 0;
+    this->LastUpdateTime = 0;
   this->InternalUpdateRate = 0;
   this->Frequency = 50; 
-  this->TrackerCalibratedOff(); 
   this->ToolReferenceFrameName = NULL; 
 
   // for threaded capture of transformations
@@ -62,8 +60,6 @@ vtkTracker::~vtkTracker()
     it->second->Delete(); 
   }
 
-  this->WorldCalibrationMatrix->Delete();
-
   this->Threader->Delete();
   this->UpdateMutex->Delete();
   this->RequestUpdateMutex->Delete();
@@ -73,9 +69,6 @@ vtkTracker::~vtkTracker()
 void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
-
-  os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
-  this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
   os << indent << "Tracking: " << this->Tracking << "\n";
 }
 
@@ -402,8 +395,6 @@ PlusStatus vtkTracker::Disconnect()
 void vtkTracker::DeepCopy(vtkTracker *tracker)
 {
   LOG_TRACE("vtkTracker::DeepCopy"); 
-  this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
-
   for ( ToolIteratorType it = tracker->ToolContainer.begin(); it != tracker->ToolContainer.end(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
@@ -423,10 +414,8 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
     tool->DeepCopy( it->second ); 
   }
 
-  this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
   this->InternalUpdateRate = tracker->GetInternalUpdateRate();
   this->SetFrequency(tracker->GetFrequency()); 
-  this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
 }
 
 //-----------------------------------------------------------------------------
@@ -434,7 +423,7 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
   if ( config == NULL )
   {
-    LOG_ERROR("Unable to write calibration result: xml data element is NULL!"); 
+    LOG_ERROR("Unable to write configuration: xml data element is NULL!"); 
     return PLUS_FAIL;
   }
 
@@ -711,34 +700,6 @@ PlusStatus vtkTracker::GetAllTransforms(double timestamp, TrackedFrame* aTracked
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkTracker::GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices)
-{
-  toolsCalibrationMatrices.clear();  
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-  {
-    const char* matrixName = it->second->GetCalibrationMatrixName(); 
-    if ( matrixName == NULL )
-    {
-      LOG_DEBUG("Matrix name was not defined for tool " << it->second->GetToolName() ); 
-      continue; 
-    }
-
-    vtkMatrix4x4* toolCalibrationMatrix = it->second->GetCalibrationMatrix(); 
-    std::ostringstream strToolCalibMatrix; 
-    for ( int r = 0; r < 4; ++r )
-    {
-      for ( int c = 0; c < 4; ++c )
-      {
-        strToolCalibMatrix << toolCalibrationMatrix->GetElement(r,c)  << " ";
-      }
-    }
-    toolsCalibrationMatrices[ matrixName ] = strToolCalibMatrix.str(); 
-  }
-
-  return PLUS_SUCCESS; 
-}
-
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
@@ -874,19 +835,6 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
   // Get the first tool
   vtkTrackerTool* firstActiveTool = this->ToolContainer.begin()->second; 
 
-  // Write calibration matrices into the trackedframelist
-  std::map<std::string, std::string> toolsCalibrationMatrices; 
-  if ( GetTrackerToolCalibrationMatrixStringList(toolsCalibrationMatrices) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to get tracker tool calibration matrix stringlist"); 
-    return PLUS_FAIL; 
-  }
-  for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
-  {
-    // Set tool calibration values 
-    trackedFrameList->SetCustomString(it->first.c_str(), it->second.c_str()); 
-  }
-
   // Set default transform name
   PlusTransformName defaultFrameTransformName(firstActiveTool->GetToolName(), this->ToolReferenceFrameName ); 
   trackedFrameList->SetDefaultFrameTransformName(defaultFrameTransformName); 
@@ -919,7 +867,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     TrackerBufferItem bufferItem; 
     BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
 
-    if ( firstActiveTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+    if ( firstActiveTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
       continue; 
@@ -947,7 +895,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
     {
       TrackerBufferItem toolBufferItem; 
-      if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkTrackerBuffer::EXACT_TIME, false ) != ITEM_OK )
+      if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkTrackerBuffer::EXACT_TIME ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
         continue; 

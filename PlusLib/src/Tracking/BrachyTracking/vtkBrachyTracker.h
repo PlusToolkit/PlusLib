@@ -65,9 +65,6 @@ public:
    /*! Get all transforms from buffer element values of each tool by timestamp. */
   virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
 
-  /*! Get the calibration matrices for all tools in a string */
-  virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
-
   /*! Get stepper encoder values from the buffer by UID */
   PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
@@ -78,16 +75,16 @@ public:
   PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
   /*! Get probe home to probe transform from the buffer by UID */
-  PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
+  PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status); 
 
   /*! Get probe home to probe transform in a particular timestamp */
-  PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
+  PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status); 
 
   /*! Get template home to template transform from the buffer by UID */
-  PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
+  PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status); 
 
   /*! Get template home to template transform in a particular timestamp */
-  PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false );
+  PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status);
 
   /*! Get raw encoder values transform from the buffer */
   PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status ); 
@@ -219,6 +216,9 @@ protected:
   unsigned long BaudRate;
 
   //========== Stepper calibration ==================
+
+  /* Flag used to define brachy tracker compensation parameters are ready, intenal only */ 
+  bool IsBrachyTrackerCompensationDefined; 
 
   /*! Enable/diasable stepper compensation */
   bool CompensationEnabled; 

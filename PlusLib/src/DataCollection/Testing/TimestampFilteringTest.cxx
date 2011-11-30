@@ -88,7 +88,7 @@ int main(int argc, char **argv)
   for ( BufferItemUidType item = trackerBuffer->GetOldestItemUidInBuffer(); item <= trackerBuffer->GetLatestItemUidInBuffer(); ++item )
   {
     TrackerBufferItem bufferItem; 
-    if ( trackerBuffer->GetTrackerBufferItem(item, &bufferItem, false) != ITEM_OK )
+    if ( trackerBuffer->GetTrackerBufferItem(item, &bufferItem) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item ); 
       numberOfErrors++; 
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
   for ( BufferItemUidType item = trackerBuffer->GetOldestItemUidInBuffer(); item < trackerBuffer->GetLatestItemUidInBuffer(); ++item )
   {
     TrackerBufferItem bufferItem_1; 
-    if ( trackerBuffer->GetTrackerBufferItem(item, &bufferItem_1, false) != ITEM_OK )
+    if ( trackerBuffer->GetTrackerBufferItem(item, &bufferItem_1) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item ); 
       numberOfErrors++; 
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     }
 
     TrackerBufferItem bufferItem_2; 
-    if ( trackerBuffer->GetTrackerBufferItem(item + 1, &bufferItem_2, false) != ITEM_OK )
+    if ( trackerBuffer->GetTrackerBufferItem(item + 1, &bufferItem_2) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item + 1 ); 
       numberOfErrors++; 

@@ -92,17 +92,14 @@ public:
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp);
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
 
-  /*! 
-  Get tracker item from buffer.  
-  If calibratedItem true, it returns the calibrated tracker item ( apply ToolCalibrationMatrix and WorldCalibrationMatrix to tool calibration matrix)
-  */
-  virtual ItemStatus GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem, bool calibratedItem = false);
+  /*! Get tracker item from buffer.  */
+  virtual ItemStatus GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem);
   
   /*! Get the latest tracker buffer item */
-  virtual ItemStatus GetLatestTrackerBufferItem(TrackerBufferItem* bufferItem, bool calibratedItem = false) { return this->GetTrackerBufferItem( this->GetLatestItemUidInBuffer(), bufferItem, calibratedItem); }; 
+  virtual ItemStatus GetLatestTrackerBufferItem(TrackerBufferItem* bufferItem) { return this->GetTrackerBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
   
   /*! Get the oldest tracker buffer item */
-  virtual ItemStatus GetOldestTrackerBufferItem(TrackerBufferItem* bufferItem, bool calibratedItem = false) { return this->GetTrackerBufferItem( this->GetOldestItemUidInBuffer(), bufferItem, calibratedItem); }; 
+  virtual ItemStatus GetOldestTrackerBufferItem(TrackerBufferItem* bufferItem) { return this->GetTrackerBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
 
   /*! Tracker item temporal interpolation type */
   enum TrackerItemTemporalInterpolationType
@@ -111,8 +108,8 @@ public:
     INTERPOLATED /*!< returns interpolated transform (requires valid transform at the requested timestamp) */
   };
 
-  /*! Get interpolated tracker item from buffer by time. If calibratedItem true, it returns the calibrated tracker item ( apply ToolCalibrationMatrix and WorldCalibrationMatrix to tool calibration matrix) */
-  virtual ItemStatus GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation, bool calibratedItem = false); 
+  /*! Get interpolated tracker item from buffer by time. */
+  virtual ItemStatus GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation); 
 
   /*! Get latest timestamp in the buffer */
   virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp ); 
@@ -131,13 +128,6 @@ public:
   
   /*! Get buffer item unique ID from time */
   virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->TrackerBuffer->GetItemUidFromTime(time, uid); }
-
-  /*! Set a calibration matrices to be applied when GetMatrix() is called. */
-  // TODO: remove it from buffer 
-  vtkSetObjectMacro(ToolCalibrationMatrix,vtkMatrix4x4);
-  vtkGetObjectMacro(ToolCalibrationMatrix,vtkMatrix4x4);
-  vtkSetObjectMacro(WorldCalibrationMatrix,vtkMatrix4x4);
-  vtkGetObjectMacro(WorldCalibrationMatrix,vtkMatrix4x4);
 
   /*! Set maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   vtkSetMacro(MaxAllowedTimeDifference, double); 
@@ -188,24 +178,20 @@ protected:
   ~vtkTrackerBuffer();
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
-  PlusStatus GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem);
+  PlusStatus GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB);
 
   /*! 
   Interpolate the matrix for the given timestamp from the two nearest transforms in the buffer.
   The rotation is interpolated with SLERP interpolation, and the position is interpolated with linear interpolation.
   The flags correspond to the closest element.
   */
-  virtual ItemStatus GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem); 
+  virtual ItemStatus GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem); 
 
   /*! Get tracker buffer item from an exact timestamp */
-  virtual ItemStatus GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem); 
+  virtual ItemStatus GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem); 
   
   /*! Get tracker buffer item from the closest timestamp */
-  virtual ItemStatus GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem);
-
-  // TODO: remove it, we wont store calibrated matrices in the buffer  
-  vtkMatrix4x4 *ToolCalibrationMatrix;
-  vtkMatrix4x4 *WorldCalibrationMatrix;
+  virtual ItemStatus GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem);
 
   /*! Circular buffer container */
   typedef vtkTimestampedCircularBuffer<TrackerBufferItem> TrackerBufferType;

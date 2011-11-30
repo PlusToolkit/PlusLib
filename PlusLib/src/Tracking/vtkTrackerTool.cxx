@@ -19,7 +19,6 @@ vtkStandardNewMacro(vtkTrackerTool);
 vtkTrackerTool::vtkTrackerTool()
 {  
 	this->Tracker = 0;
-	this->CalibrationMatrix = vtkMatrix4x4::New();
 
 	this->LED1 = 0;
 	this->LED2 = 0;
@@ -36,20 +35,14 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolModel = 0;
 	this->Tool3DModelFileName = 0;
 
-	this->CalibrationMatrixName = 0; 
-	this->CalibrationDate = 0; 
-	this->CalibrationError = 0.0; 
-
 	this->SendToLink = 0; 
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ModelToToolTransform->Identity();
 	this->SetTool3DModelFileName("");
 	this->SetToolModel("");
-	this->SetCalibrationDate("");
 
 	this->Buffer = vtkTrackerBuffer::New();
-	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
 	  
 	this->FrameNumber = 0;
 }
@@ -57,8 +50,7 @@ vtkTrackerTool::vtkTrackerTool()
 //----------------------------------------------------------------------------
 vtkTrackerTool::~vtkTrackerTool()
 {
-	this->CalibrationMatrix->Delete();
-  
+ 
   if ( this->ToolName != NULL )
   {
     delete [] this->ToolName; 
@@ -136,11 +128,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
   if ( this->ToolSerialNumber )
   {
 	  os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
-  }
-  if ( this->CalibrationMatrix )
-  {
-    os << indent << "CalibrationMatrix: \n";
-    this->CalibrationMatrix->PrintSelf(os, indent.GetNextIndent()); 
   }
   if ( this->Buffer )
   {
@@ -236,14 +223,12 @@ void vtkTrackerTool::SetTracker(vtkTracker *tracker)
 
 	if (this->Tracker)
 	{
-		this->Buffer->SetWorldCalibrationMatrix(NULL);
 		this->Tracker = NULL;
 	}
 
 	if (tracker)
 	{
 		this->Tracker = tracker;
-		this->Buffer->SetWorldCalibrationMatrix(tracker->GetWorldCalibrationMatrix());
 	}
 	else
 	{
@@ -257,8 +242,6 @@ void vtkTrackerTool::SetTracker(vtkTracker *tracker)
 void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 {
 	LOG_TRACE("vtkTrackerTool::DeepCopy"); 
-
-	this->CalibrationMatrix->DeepCopy( tool->GetCalibrationMatrix() ); 
 
 	this->SetLED1( tool->GetLED1() );
 	this->SetLED2( tool->GetLED2() );
@@ -275,11 +258,6 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetToolName( tool->GetToolName() ); 
 
 	this->ModelToToolTransform->DeepCopy( tool->GetModelToToolTransform() );
-
-	this->SetCalibrationMatrix( tool->GetCalibrationMatrix() ); 
-	this->SetCalibrationMatrixName( tool->GetCalibrationMatrixName() ); 
-	this->SetCalibrationDate( tool->GetCalibrationDate() ); 
-	this->SetCalibrationError( tool->GetCalibrationError() ); 
 
 	this->Buffer->DeepCopy( tool->GetBuffer() );
 
@@ -321,46 +299,10 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-	const char* sendToLink = config->GetAttribute("SendTo"); 
+  const char* sendToLink = config->GetAttribute("SendTo"); 
 	if ( sendToLink != NULL ) 
 	{
 		this->SetSendToLink(sendToLink); 
-	}
-
-	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
-	if ( toolCalibrationDataElement != NULL ) 
-	{
-		const char* matrixName = toolCalibrationDataElement->GetAttribute("MatrixName"); 
-		if ( matrixName != NULL ) 
-		{
-			this->SetCalibrationMatrixName(matrixName); 
-		}
-
-		const char* calibrationDate = toolCalibrationDataElement->GetAttribute("Date"); 
-		if ( calibrationDate != NULL ) 
-		{
-			this->SetCalibrationDate(calibrationDate); 
-		}
-
-    if ((calibrationDate != NULL) && (STRCASECMP(calibrationDate, "") != 0)) {
-		  double calibrationMatrixValue[16] = {0}; 
-		  if ( toolCalibrationDataElement->GetVectorAttribute("MatrixValue", 16, calibrationMatrixValue ) )
-		  {
-			  this->CalibrationMatrix->DeepCopy(calibrationMatrixValue); 
-		  }
-
-      double calibrationError(0); 
-		  if ( toolCalibrationDataElement->GetScalarAttribute("Error", calibrationError) )
-		  {
-			  this->SetCalibrationError(calibrationError); 
-		  }
-    }
-    else
-    {
-      this->CalibrationMatrix->Identity();
-
-      LOG_INFO("Tool calibration matrix cannot be loaded with no date entered - using identity matrix");
-    }
 	}
 
 	vtkXMLDataElement* modelDataElement = config->FindNestedElementWithName("Model"); 
@@ -387,62 +329,3 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	return PLUS_SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
-PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
-{
-	LOG_TRACE("vtkTrackerTool::WriteConfiguration"); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to write calibration result: xml data element is NULL!"); 
-    return PLUS_FAIL;
-  }
-
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if ( trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
-  }
-	
-  // Find tracker tool with toolName
-  vtkXMLDataElement* trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Name", this->GetToolName() );
-	if (trackerTool == NULL) 
-  {
-    LOG_ERROR("Unable to find tracker tool configuration file for tool: " << this->GetToolName());
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* calibration = trackerTool->FindNestedElementWithName("Calibration"); 
-	if ( calibration == NULL ) 
-  {
-    // create new element and add to trackerTool 
-    calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    calibration->SetName("Calibration"); 
-    calibration->SetParent(trackerTool); 
-    trackerTool->AddNestedElement(calibration); 
-  }
-
-  // Set matrix name 
-  calibration->SetAttribute("MatrixName", this->GetCalibrationMatrixName()); 
-
-  // Set calibration matrix value
-  double matrixValue[16] = {0}; 
-  vtkMatrix4x4::DeepCopy(matrixValue, this->GetCalibrationMatrix() ); 
-  calibration->SetVectorAttribute("MatrixValue",16, matrixValue); 
-
-  // Set calibration date
-  calibration->SetAttribute("Date", this->GetCalibrationDate()); 
-
-  // Set calibration date
-  calibration->SetDoubleAttribute("Error", this->GetCalibrationError()); 
-
-  return PLUS_SUCCESS; 
-}
