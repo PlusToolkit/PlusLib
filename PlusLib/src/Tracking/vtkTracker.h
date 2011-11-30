@@ -192,7 +192,7 @@ public:
 
 protected:
   vtkTracker();
-  ~vtkTracker();
+  virtual ~vtkTracker();
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses

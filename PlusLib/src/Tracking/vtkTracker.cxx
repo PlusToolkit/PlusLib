@@ -27,6 +27,7 @@
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 vtkStandardNewMacro(vtkTracker);
 

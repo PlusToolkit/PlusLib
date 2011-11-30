@@ -17,6 +17,7 @@ See License.txt for details.
 #include "vtkSmartPointer.h"
 #include "PlusVideoFrame.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"

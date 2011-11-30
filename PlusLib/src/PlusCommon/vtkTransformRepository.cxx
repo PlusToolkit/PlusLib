@@ -8,7 +8,7 @@
 #include "vtkTransformRepository.h"
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
-#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtksys/SystemTools.hxx" 
 
 vtkStandardNewMacro(vtkTransformRepository);

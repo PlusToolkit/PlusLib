@@ -13,6 +13,7 @@ See License.txt for details.
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkDataCollectorHardwareDevice.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkFakeTracker.h"
 #include "vtkTransformRepository.h"
 

@@ -14,6 +14,7 @@
 
 #include "vtkVolumeReconstructor.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 int main (int argc, char* argv[])
 { 

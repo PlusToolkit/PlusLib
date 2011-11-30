@@ -8,6 +8,7 @@
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"

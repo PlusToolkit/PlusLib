@@ -21,6 +21,7 @@ See License.txt for details.
 #include "vtkAccurateTimer.h"
 #include "vtkXMLDataElement.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 vtkStandardNewMacro(vtkBrachyTracker);
 

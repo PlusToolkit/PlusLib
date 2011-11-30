@@ -13,6 +13,7 @@
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkDataCollector.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkTransformRepository.h"
 
 #include "vtkSmartPointer.h"

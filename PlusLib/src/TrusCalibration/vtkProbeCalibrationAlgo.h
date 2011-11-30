@@ -8,11 +8,9 @@
 #define __vtkProbeCalibrationAlgo_h
 
 #include "vtkObject.h"
-#include "vtkTrackedFrameList.h"
+
 #include "vtkTransform.h"
-#include "vtkMatrix4x4.h"
-#include "vtkImageData.h"
-#include "vtkXMLDataElement.h"
+
 
 #include "itkImage.h"
 #include "vnl/vnl_matrix.h"
@@ -24,6 +22,9 @@
 
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
+class TrackedFrame; 
+class vtkTrackedFrameList; 
+class vtkXMLDataElement; 
 struct NWire;
 
 /*!

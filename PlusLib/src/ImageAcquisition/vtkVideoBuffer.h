@@ -25,6 +25,7 @@ Authors include: Danielle Pace
 
 class vtkImageData; 
 class vtkTrackedFrameList;
+class TrackedFrame; 
 
 /*!
   \class VideoBufferItem 

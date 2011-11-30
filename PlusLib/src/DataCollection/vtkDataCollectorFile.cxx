@@ -8,6 +8,7 @@ See License.txt for details.
 
 #include "vtkXMLUtilities.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"

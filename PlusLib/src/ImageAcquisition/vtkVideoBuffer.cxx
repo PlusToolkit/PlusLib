@@ -12,6 +12,7 @@
 #include "vtkCriticalSection.h"
 #include "vtkImageData.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 vtkCxxRevisionMacro(vtkVideoBuffer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkVideoBuffer);

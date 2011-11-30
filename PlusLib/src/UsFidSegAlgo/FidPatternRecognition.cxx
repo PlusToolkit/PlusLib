@@ -9,6 +9,9 @@
 #include "vtkPoints.h"
 #include "vtkLine.h"
 
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
+
 static const float DOT_STEPS  = 4.0;
 static const float DOT_RADIUS = 6.0;
 
