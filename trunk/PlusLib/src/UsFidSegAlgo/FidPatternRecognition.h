@@ -12,9 +12,10 @@
 #include "FidLineFinder.h"
 #include "FidLabeling.h"
 
-#include "vtkTrackedFrameList.h"
-
 #include "vtkXMLDataElement.h"
+
+class TrackedFrame; 
+class vtkTrackedFrameList; 
 
 /*!
   \class FidPatternRecognition

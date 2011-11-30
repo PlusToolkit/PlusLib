@@ -16,6 +16,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 vtkStandardNewMacro(vtkSavedDataTracker);
 

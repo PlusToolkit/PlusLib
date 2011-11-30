@@ -25,6 +25,7 @@
 #include "vtkPasteSliceIntoVolume.h"
 #include "vtkFillHolesInVolume.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructor);

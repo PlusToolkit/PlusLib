@@ -16,6 +16,8 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtkSmartPointer.h"
+#include "TrackedFrame.h"
+#include "vtkTrackedFrameList.h"
 
 ///////////////////////////////////////////////////////////////////
 // Other constants

@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkVideoBuffer.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"

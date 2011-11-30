@@ -1,6 +1,7 @@
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "PlusVideoFrame.h"
 #include <iostream>
 #include <itkHoughTransform2DLinesImageFilter.h>

@@ -16,6 +16,7 @@
 #include "vtkDirectory.h"
 #include "vtkImageImport.h"
 #include "vtkXMLUtilities.h"
+#include "vtkXMLDataElement.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -29,7 +30,10 @@
 #include "vtksys/SystemTools.hxx"
 #include "PlusVideoFrame.h"
 #include "FidPatternRecognitionCommon.h"
+#include "vtkPoints.h" 
 
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 

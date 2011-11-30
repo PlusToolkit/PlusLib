@@ -12,6 +12,7 @@ SET (PlusCommon_SRCS
   vtkTransformRepository.cxx
   PlusVideoFrame.cxx
   vtkTrackedFrameList.cxx
+  TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
   )
 
@@ -30,6 +31,7 @@ if (WIN32)
     PlusMath.h
     vtkTransformRepository.h
     vtkTrackedFrameList.h
+    TrackedFrame.h
     PlusVideoFrame.h
     vtkMetaImageSequenceIO.h
     )

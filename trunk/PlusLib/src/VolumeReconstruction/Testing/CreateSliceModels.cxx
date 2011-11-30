@@ -27,6 +27,7 @@
 #include "vtkXMLUtilities.h"
 
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkVolumeReconstructor.h"
 
 

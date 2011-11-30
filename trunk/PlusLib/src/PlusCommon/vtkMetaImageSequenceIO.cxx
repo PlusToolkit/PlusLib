@@ -16,6 +16,7 @@
 #include "vtksys/SystemTools.hxx"  
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 static const int MAX_LINE_LENGTH=1000;
 

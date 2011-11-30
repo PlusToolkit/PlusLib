@@ -13,6 +13,7 @@
 #include "vtkTimestampedCircularBuffer.h"
 
 class vtkTrackedFrameList;
+class TrackedFrame; 
 
 /*!
 \class TrackerBufferItem 

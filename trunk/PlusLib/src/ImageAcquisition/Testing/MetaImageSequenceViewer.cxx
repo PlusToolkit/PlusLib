@@ -31,6 +31,7 @@
 
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 ///////////////////////////////////////////////////////////////////
 

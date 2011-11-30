@@ -15,6 +15,8 @@
 #include "itkImage.h"
 
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
+
 
 ///////////////////////////////////////////////////////////////////
 

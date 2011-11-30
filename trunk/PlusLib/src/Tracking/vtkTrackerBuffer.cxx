@@ -15,6 +15,7 @@
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
 

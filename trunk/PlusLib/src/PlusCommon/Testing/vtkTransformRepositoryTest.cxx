@@ -13,7 +13,7 @@
 
 #include "PlusMath.h"
 #include "vtkTransformRepository.h"
-#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkXMLUtilities.h"
 
 int main(int argc, char **argv)
