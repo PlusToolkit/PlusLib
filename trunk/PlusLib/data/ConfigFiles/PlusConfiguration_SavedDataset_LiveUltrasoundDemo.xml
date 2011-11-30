@@ -3,70 +3,41 @@
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Saved dataset for both (fCal) - LiveUltrasoundDemo" 
-      Description="Configuration file for Saved dataset + fCal 1.0 - used in live ultrasound demo
-The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
-      />
+        Name="Saved dataset for both (fCal) - LiveUltrasoundDemo" 
+        Description="Configuration file for Saved dataset + fCal 1.0 - used in live ultrasound demo
+      The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
+        />
 
     <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
-    SequenceMetafile=""
-    ReplayEnabled="TRUE"
-    >
-
-      <!-- PROBE -->
-      <Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
-        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
-        
+        SequenceMetafile=""
+        ReplayEnabled="TRUE"
+        >
+      <Tool Name="Probe" PortName="0" Model="L14-5_38"  SendTo="127.0.0.1:1111">
         <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
         <Model
-          File="L14-5_38_ProbeModel.stl"
-          ModelToToolTransform="
-            1 0 0 29.2
-            0 1 0 0
-            0 0 1 14.2
-            0 0 0 1"
-        />
-                  
-        <!-- Calibration transform -->
-        <Calibration
-          MatrixName="ImageToProbe" 
-          MatrixValue="
-            1 0 0 0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          Date="2011.07.28 21:42:34"
-          Error="0.0" />
-      </Tool>
-      
-      <!-- REFERENCE -->
-      <Tool Type="Reference" Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
+            File="L14-5_38_ProbeModel.stl"
+            ModelToToolTransform="
+          1 0 0 29.2
+          0 1 0 0
+          0 0 1 14.2
+          0 0 0 1"
+            />
       </Tool>
 
-      <!-- STYLUS -->
-      <Tool PortName="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
-        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
-        
+      <Tool Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
+      </Tool>
+
+      <Tool Name="Stylus" PortName="2" Model="Example" SendTo="127.0.0.1:1112">
+
         <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
         <Model
-          File="Stylus_Example.stl"
-          ModelToToolTransform="
-            1 0 0 -210.0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-        />
-        
-        <!-- Calibration transform -->
-        <Calibration
-          MatrixName="StylusTipToStylus" 
-          MatrixValue="
-            1 0 0 210.0474
-            0 1 0 -0.0521
-            0 0 1 -0.0000
-            0 0 0 1"
-          Date="2011.07.29 17:22:12"
-          Error="0.561812" /> 
+            File="Stylus_Example.stl"
+            ModelToToolTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+            />
       </Tool>
 
     </Tracker>
@@ -101,7 +72,7 @@ The desired file name with path needs to be added to this XML file as values Seq
   <USCalibration>
     <CalibrationController>
       <ProbeCalibration />
-      
+
       <SegmentationParameters
           ApproximateSpacingMmPerPixel="0.078"
           MorphologicalOpeningCircleRadiusMm="0.47"
@@ -114,7 +85,7 @@ The desired file name with path needs to be added to this XML file as values Seq
           MaxAngleDifferenceDegrees="11"
           MinThetaDegrees="-70"
           MaxThetaDegrees="70"
-          
+
           AngleToleranceDegrees="10"
 
           ThresholdImagePercent="10.0"
@@ -126,26 +97,26 @@ The desired file name with path needs to be added to this XML file as values Seq
       </SegmentationParameters>
     </CalibrationController>
   </USCalibration>
-  
+
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-      Name="fCAL"
-      Type="Double-N"
-      Version="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+        Name="fCAL"
+        Type="Double-N"
+        Version="1.0"
+        Institution="Queen's University PerkLab"
+        />
+
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
-      File="FCal_1.0.stl"
-      ModelToPhantomTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
-        0 0 0 1"
-    />
+        File="FCal_1.0.stl"
+        ModelToPhantomTransform="
+      1 0 0 -15.0
+      0 1 0 10.0
+      0 0 1 -5.0
+      0 0 0 1"
+        />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -166,28 +137,28 @@ The desired file name with path needs to be added to this XML file as values Seq
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-        
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
+
       <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="
-          0.9968 0.0075 -0.0795 -35.6089
-          0.0794 0.0055 0.9968 -124.9852
-          0.0079 -1.0000 0.0049 -16.7
-          0 0 0 1" 
-        Date="2011.07.20 15:09:35"
-        Error="-1.0" />
+          MatrixName="PhantomToPhantomReference" 
+          MatrixValue="
+        0.9968 0.0075 -0.0795 -35.6089
+        0.0794 0.0055 0.9968 -124.9852
+        0.0079 -1.0000 0.0049 -16.7
+        0 0 0 1" 
+          Date="2011.07.20 15:09:35"
+          Error="-1.0" />
     </Geometry>
   </PhantomDefinition>
 
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-                        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-                        Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
+      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
 
 </PlusConfiguration>

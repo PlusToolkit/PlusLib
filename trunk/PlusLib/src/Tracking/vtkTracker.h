@@ -97,9 +97,6 @@ public:
   /*! Get all transforms from buffer element values of each tool by timestamp. */
   virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
 
-  /*! Get the calibration matrices for all tools in a string */
-  virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
-
   /*! Add generated html report from tracking data acquisition to the existing html report. htmlReport and plotter arguments has to be defined by the caller function */
   virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
 
@@ -193,24 +190,6 @@ public:
   /*! Get the acquisition frequency */
   vtkGetMacro(Frequency, double);
 
-  /*! Flag to store tracker calibrated state */
-  vtkSetMacro(TrackerCalibrated, bool);
-  /*! Flag to store tracker calibrated state */
-  vtkGetMacro(TrackerCalibrated, bool);
-  /*! Flag to store tracker calibrated state */
-  vtkBooleanMacro(TrackerCalibrated, bool); 
-
-  /*! 
-  Set the transformation matrix between tracking-system coordinates
-  and the desired world coordinate system.  You can use 
-  vtkLandmarkTransform to create this matrix from a set of 
-  registration points.  Warning: the matrix is copied,
-  not referenced.
-  */
-  vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
-  /*! Get the transformation matrix between tracking-system coordinates and the desired world coordinate system. */
-  vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
-
 protected:
   vtkTracker();
   ~vtkTracker();
@@ -235,11 +214,8 @@ protected:
   virtual PlusStatus InternalSetToolLED(const char* portName, int led, int state) { return PLUS_SUCCESS; };
 
 protected:
-  /*! Transformation matrix between tracking-system coordinates and the desired world coordinate system */
-  vtkMatrix4x4 *WorldCalibrationMatrix;
 
   /*! Tracker tools */
-  //vtkTrackerTool **Tools;
   ToolContainerType ToolContainer; 
 
   /*! Flag to strore tracking state of the class */
@@ -256,9 +232,6 @@ protected:
 
   /*! Tracking frequency */
   double Frequency; 
-
-  /*! Flag used for identifying tracker calibration state */
-  bool TrackerCalibrated; 
 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 

@@ -9,40 +9,30 @@
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST Volume reconstruction test" 
-      Description="" 
-      />
+        Name="TEST Volume reconstruction test" 
+        Description="" 
+        />
 
     <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
-      
+
       <!-- PROBE -->
       <Tool PortName="0" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
       </Tool>
     </Tracker>
   </DataCollection>
-  
 
-  
+
+
   <CoordinateFrameDefinitions>
-  
     <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
-  
-    <Transform From="Image" To="Probe"
-      Matrix="
-            0.191647 0.00743877 0.0242208 -65.3006 
-            -0.00410587 0.183884 -0.00547576 -86.7768 
-            -0.0249356 0.0044197 0.187056 160.661 
-            0 0 0 1"
-          Date="2011.07.28 21:42:34"
-          Error="0.0" />
-
+    <Transform From="Image" To="Probe" Matrix="0.191647 0.00743877 0.0242208 -65.3006 -0.00410587 0.183884 -0.00547576 -86.7768 -0.0249356 0.0044197 0.187056 160.661 0 0 0 1" Date="2011.07.28 21:42:34" Error="0.0" />
   </CoordinateFrameDefinitions>
 
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction ImageCoordinateFrame="Image"
-                        ReferenceCoordinateFrame="Phantom"
-                        OutputSpacing="0.3 0.3 0.3" 
-                        FanAngles="-45 45" FanOrigin="320 465" FanDepth="300" 
-                        Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
+      ReferenceCoordinateFrame="Phantom"
+      OutputSpacing="0.3 0.3 0.3" 
+      FanAngles="-45 45" FanOrigin="320 465" FanDepth="300" 
+      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
 
 </PlusConfiguration>

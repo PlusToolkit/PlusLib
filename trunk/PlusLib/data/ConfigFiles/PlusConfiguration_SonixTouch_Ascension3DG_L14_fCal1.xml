@@ -1,112 +1,75 @@
 <PlusConfiguration version="1.3">
-
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
-    
     <DeviceSet 
-    Name="SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus"
-    Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
-    />
+        Name="SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus"
+        Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+        />
 
-    <Tracker
-    Type="Ascension3DG"
-    BufferSize="500"
-    Frequency="20"
-    LocalTimeOffset="0.0"
-    AveragedItemsForFiltering="20"
-    >
-      
-    <Tool
-      Name="Probe"
-      Type="Probe"
-      PortName="0"
-      SendTo="localhost:18944">
-      <Model
-        File="L14-5_38_ProbeModel.stl"
-        ModelToToolTransform="
+    <Tracker Type="Ascension3DG" BufferSize="500" Frequency="20" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
+
+      <Tool Name="Probe" PortName="0" SendTo="localhost:18944">
+        <Model
+            File="L14-5_38_ProbeModel.stl"
+            ModelToToolTransform="
           0 -1 0  15.4           
           1  0 0  -17.4     
           0  0 1  -17.4           
           0  0 0  1"
-      />
-      <Calibration
-        MatrixName="ImageToProbe" 
-        MatrixValue="
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-        Date=""
-        Error="0.0" />      
-    </Tool>
-    
-    <Tool
-      Name="Reference"
-      Type="Reference"
-      PortName="1">
-    </Tool>
-    
-    <Tool
-      Name="Stylus"
-      Type="Stylus"
-      PortName="2">
-      <Model
-        File="Stylus_Example.stl"
-        ModelToToolTransform="
+            />
+      </Tool>
+
+      <Tool Name="Reference" PortName="1"/>
+
+      <Tool Name="Stylus" PortName="2">
+        <Model
+            File="Stylus_Example.stl"
+            ModelToToolTransform="
           1 0 0 -210.0
           0 1 0 0
           0 0 1 0
           0 0 0 1"
-      />
-      <Calibration
-        MatrixName="StylusTipToStylus" 
-        MatrixValue="
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-        Date=""
-        Error="0.0" />
-    </Tool>
-    
+            />
+      </Tool>
+
     </Tracker>
 
     <ImageAcquisition
-      Type="SonixVideo" 
-      BufferSize="500" 
-      FrameSize="820 616" 
-      UsImageOrientation="UF"
-      FrameRate="30" 
-      AveragedItemsForFiltering="20" 
-      LocalTimeOffset="-0.2976"
-      IP="130.15.7.20" 
-      ImagingMode="BMode"
-      AcquisitionDataType="BPost" 
-      Depth="-1" 
-      Sector="-1" 
-      Gain="-1" 
-      DynRange="-1" 
-      Zoom="-1" 
-      Frequency="-1" 
-      Timeout="-1" 
-      CompressionStatus="0" 
-    />
+        Type="SonixVideo" 
+        BufferSize="500" 
+        FrameSize="820 616" 
+        UsImageOrientation="UF"
+        FrameRate="30" 
+        AveragedItemsForFiltering="20" 
+        LocalTimeOffset="-0.2976"
+        IP="130.15.7.20" 
+        ImagingMode="BMode"
+        AcquisitionDataType="BPost" 
+        Depth="-1" 
+        Sector="-1" 
+        Gain="-1" 
+        DynRange="-1" 
+        Zoom="-1" 
+        Frequency="-1" 
+        Timeout="-1" 
+        CompressionStatus="0" 
+        />
 
     <Synchronization
-      Type="ChangeDetection" 
-      SynchronizationTimeLength="30" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
+        Type="ChangeDetection" 
+        SynchronizationTimeLength="30" 
+        MinNumOfSyncSteps="5" 
+        ThresholdMultiplier="5"
 
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
+        NumberOfAveragedTransforms="20" 
+        MinTransformThreshold="2.0" 
+        MaxTransformDifference="2.0" 
 
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="200.0" 
-      MaxFrameDifference="10.0" 
-    />
-    
+        NumberOfAveragedFrames="6" 
+        MinFrameThreshold="200.0" 
+        MaxFrameDifference="10.0" 
+        />
+
   </DataCollection>
 
 
@@ -128,7 +91,7 @@
           MaxAngleDifferenceDegrees="11"
           MinThetaDegrees="-70"
           MaxThetaDegrees="70"
-          
+
           ThresholdImagePercent="10.0"
 
           CollinearPointsMaxDistanceFromLineMm="0.41"
@@ -138,26 +101,26 @@
       </SegmentationParameters>
     </CalibrationController>
   </USCalibration>
-  
+
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-      Name="fCAL"
-      Type="Double-N"
-      Version="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+        Name="fCAL"
+        Type="Double-N"
+        Version="1.0"
+        Institution="Queen's University PerkLab"
+        />
+
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
-      File="FCal_1.0.stl"
-      ModelToPhantomTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
-        0 0 0 1"
-    />
+        File="FCal_1.0.stl"
+        ModelToPhantomTransform="
+      1 0 0 -15.0
+      0 1 0 10.0
+      0 0 1 -5.0
+      0 0 0 1"
+        />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -178,42 +141,42 @@
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-        
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
+
       <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1" 
-        Date=""
-        Error="0.0" />
+          MatrixName="PhantomToPhantomReference" 
+          MatrixValue="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1" 
+          Date=""
+          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-                        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-                        Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
+      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+      />
 
   <fCal NumberOfCalibrationImagesToAcquire="200"
-        NumberOfValidationImagesToAcquire="100"
-        NumberOfStylusCalibrationPointsToAcquire="200"
-        RecordingIntervalMs="100"
-        MaxTimeSpentWithProcessingMs="70"
-  >
+      NumberOfValidationImagesToAcquire="100"
+      NumberOfStylusCalibrationPointsToAcquire="200"
+      RecordingIntervalMs="100"
+      MaxTimeSpentWithProcessingMs="70"
+      >
     <TrackerToolNames
-      Reference="Reference"
-      Probe="Probe"
-      Stylus="Stylus"
-    />
+        Reference="Reference"
+        Probe="Probe"
+        Stylus="Stylus"
+        />
   </fCal>
 
 </PlusConfiguration>

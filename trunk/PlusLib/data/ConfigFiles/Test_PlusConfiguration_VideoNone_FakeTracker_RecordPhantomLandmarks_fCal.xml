@@ -3,27 +3,25 @@
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST Simulation mode for Phantom registration" 
-      Description="No Video with Fake tracker in Record phantom landmarks mode
-vtkPhantomRegistrationTest uses this configuration" 
-      />
+        Name="TEST Simulation mode for Phantom registration" 
+        Description="No Video with Fake tracker in Record phantom landmarks mode
+      vtkPhantomRegistrationTest uses this configuration" 
+        />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0"></Tool> 
-			<!-- STYLUS -->
-			<Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111">
-				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File="Stylus_Example.stl"
-					ModelToToolTransform="
-						1 0 0 -210.0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-				/>
-			</Tool>
-		</Tracker>
+      <Tool Name="Reference" PortName="0"/> 
+      <Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111">
+        <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+        <Model
+            File="Stylus_Example.stl"
+            ModelToToolTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+            />
+      </Tool>
+    </Tracker>
 
     <ImageAcquisition Type="None" />
     <Synchronization Type="None" />
@@ -32,26 +30,26 @@ vtkPhantomRegistrationTest uses this configuration"
   <CoordinateDefinitions>
     <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
   </CoordinateDefinitions>
-  
-	<!-- PHANTOM -->
-	<PhantomDefinition version="1.1">
-		<!-- Supported types are: Double-N, U-Shaped-N -->
-		<Description
-			Name="fCAL"
-			Type="Double-N"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-		<Model
-			File="FCal_1.0.stl"
-			ModelToPhantomTransform="
-				1 0 0 -15.0
-				0 1 0 10.0
-				0 0 1 -5.0
-				0 0 0 1"
-		/>
+
+  <!-- PHANTOM -->
+  <PhantomDefinition version="1.1">
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+        Name="fCAL"
+        Type="Double-N"
+        Version="1.0"
+        Institution="Queen's University PerkLab"
+        />
+
+    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
+    <Model
+        File="FCal_1.0.stl"
+        ModelToPhantomTransform="
+      1 0 0 -15.0
+      0 1 0 10.0
+      0 0 1 -5.0
+      0 0 0 1"
+        />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -72,30 +70,30 @@ vtkPhantomRegistrationTest uses this configuration"
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-        
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
+
       <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="1 0 0 0 
-               0 1 0 0 
-               0 0 1 0
-               0 0 0 1" 
-        Date=""
-        Error="0.0" />
+          MatrixName="PhantomToPhantomReference" 
+          MatrixValue="1 0 0 0 
+        0 1 0 0 
+        0 0 1 0
+        0 0 0 1" 
+          Date=""
+          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 
   <fCal NumberOfCalibrationImagesToAcquire="100">
     <TrackerToolNames
-      Reference="Reference"
-      Probe="Probe"
-      Stylus="Stylus"
-    />
+        Reference="Reference"
+        Probe="Probe"
+        Stylus="Stylus"
+        />
   </fCal>
-  
+
 </PlusConfiguration>

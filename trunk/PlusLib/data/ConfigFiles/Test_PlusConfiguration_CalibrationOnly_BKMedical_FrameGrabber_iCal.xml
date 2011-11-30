@@ -1,9 +1,7 @@
 <PlusConfiguration version="1.3">
-
   <USCalibration>
     <CalibrationController>
       <ProbeCalibration />
-
       <SegmentationParameters
           ApproximateSpacingMmPerPixel="0.23"
           MorphologicalOpeningCircleRadiusMm="0.55"

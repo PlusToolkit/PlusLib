@@ -1,29 +1,19 @@
 <PlusConfiguration version="1.3">
 
-    <DataCollection version="2.0" StartupDelaySec="1.0">
-      <DeviceSet 
+  <DataCollection version="2.0" StartupDelaySec="1.0">
+    <DeviceSet 
         Name="Terason through FrameGrabber TRUS + CIVCO Stepper + iCAL 1.0 + 70mm depth" 
         Description="Configuration file for Terason through FrameGrabber TRUS + CIVCO + iCal 1.0 + 70mm depth
-        Connect the framegrabber via USB. Plug in the US Digital ED2 digital display through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel (0 will search for the device)." 
+      Connect the framegrabber via USB. Plug in the US Digital ED2 digital display through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel (0 will search for the device)." 
         />
 
-      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="0" BaudRate="19200" BrachyStepperType="Civco" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
-      
-          <StepperCalibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
-          <Tool PortName="0" Type="Probe" Name="Probe" SendTo="127.0.0.1:1111">
-              <Calibration 
-                  MatrixName="ImageToProbe" 
-                  MatrixValue="1 0 0 0 
-                               0 1 0 0 
-                               0 0 1 0
-                               0 0 0 1" 
-                  Date="2011.05.02"
-                  Error="0.0"
-              /> 
-          </Tool>
-      </Tracker>
+    <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="0" BaudRate="19200" BrachyStepperType="Civco" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
 
-      <ImageAcquisition Type="ICCapturing" 
+      <StepperCalibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
+      <Tool Name="Probe" PortName="0" SendTo="127.0.0.1:1111"/>
+    </Tracker>
+
+    <ImageAcquisition Type="ICCapturing" 
         BufferSize="100" 
         FrameSize="640 480" 
         UsImageOrientation="MF"
@@ -39,7 +29,7 @@
         ICBufferSize="50"
         />
 
-        <Synchronization Type="ChangeDetection" 
+    <Synchronization Type="ChangeDetection" 
         SynchronizationTimeLength="15" 
         MinNumOfSyncSteps="5" 
         ThresholdMultiplier="5"
@@ -51,13 +41,13 @@
         NumberOfAveragedFrames="6" 
         MinFrameThreshold="10.0" 
         MaxFrameDifference="10.0" 
-      />
+        />
   </DataCollection>
 
   <USCalibration>
     <CalibrationController>
       <ProbeCalibration />
-      
+
       <SegmentationParameters
           ApproximateSpacingMmPerPixel="0.33"
           MorphologicalOpeningCircleRadiusMm="0.47"
@@ -70,9 +60,9 @@
           MaxAngleDifferenceDegrees="11"
           MinThetaDegrees="-70"
           MaxThetaDegrees="70"
-          
+
           AngleToleranceDegrees="10"
-          
+
           ThresholdImagePercent="10.0"
 
           CollinearPointsMaxDistanceFromLineMm="1.75"
@@ -84,30 +74,30 @@
   </USCalibration>
 
   <iCal version="1.0" NumberOfImagesForValidation="100" RecordingIntervalMs="200" MaxTimeSpentWithProcessingMs="170" >
-     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="5.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0"/>
-     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
-     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
-     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="300" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+    <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="5.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0"/>
+    <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+    <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+    <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="300" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
   </iCal>
-    
+
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-      Name="iCAL"
-      Type="Double-N"
-      Version="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+        Name="iCAL"
+        Type="Double-N"
+        Version="1.0"
+        Institution="Queen's University PerkLab"
+        />
+
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
-      File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
-      ModelToPhantomTransform="
-            1 0 0  0.7
-            0 0 -1 48.6
-            0 1 0  51.3
-            0 0 0  1"
-    />
+        File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
+        ModelToPhantomTransform="
+      1 0 0  0.7
+      0 0 -1 48.6
+      0 1 0  51.3
+      0 0 0  1"
+        />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -129,37 +119,37 @@
       </Landmarks>
 
       <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="1 0 0 0 
-               0 1 0 0 
-               0 0 1 0
-               0 0 0 1" 
-        Date="2011.05.17"
-        Error="0.0" />
+          MatrixName="PhantomToPhantomReference" 
+          MatrixValue="1 0 0 0 
+        0 1 0 0 
+        0 0 1 0
+        0 0 0 1" 
+          Date="2011.05.17"
+          Error="0.0" />
     </Geometry>
 
     <CustomTransforms TemplateHolderToPhantomTransform="
-          1 0 0 5
-          0 1 0 63.5
-          0 0 1 0
-          0 0 0 1" />
+      1 0 0 5
+      0 1 0 63.5
+      0 0 1 0
+      0 0 0 1" />
 
   </PhantomDefinition>
-    
-    <!-- VOLUME RECONSTRUCTION -->
+
+  <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-                        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-                      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
+      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
 
   <TemplateModel version="1.0" 
-    TemplateHolderToTemplateTransform="1 0 0 5
-                                       0 1 0 63.5
-                                       0 0 1 0
-                                       0 0 0 1" >
+      TemplateHolderToTemplateTransform="1 0 0 5
+    0 1 0 63.5
+    0 0 1 0
+    0 0 0 1" >
     <TemplateHole Representation="Sphere" Radius="0.2"/>
     <!--TemplateHole Representation="Disk" Radius="0.6"/-->
     <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
-    
+
     <LetterPositions>
       <Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
       <Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
@@ -174,7 +164,7 @@
       <Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
       <Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
       <Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
-      
+
       <Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
       <Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
       <Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
@@ -204,7 +194,7 @@
       <Hole ID="F7" PositionXYZ="50 0 0"/>
       <Hole ID="f7" PositionXYZ="55 0 0"/>
       <Hole ID="G7" PositionXYZ="60 0 0"/>
-      
+
       <Hole ID="A6.5" PositionXYZ="0  5 0"/>
       <Hole ID="a6.5" PositionXYZ="5  5 0"/>
       <Hole ID="B6.5" PositionXYZ="10 5 0"/>
@@ -218,7 +208,7 @@
       <Hole ID="F6.5" PositionXYZ="50 5 0"/>
       <Hole ID="f6.5" PositionXYZ="55 5 0"/>
       <Hole ID="G6.5" PositionXYZ="60 5 0"/>
-      
+
       <Hole ID="A6" PositionXYZ="0  10 0"/>
       <Hole ID="a6" PositionXYZ="5  10 0"/>
       <Hole ID="B6" PositionXYZ="10 10 0"/>
@@ -274,7 +264,7 @@
       <Hole ID="F4.5" PositionXYZ="50 25 0"/>
       <Hole ID="f4.5" PositionXYZ="55 25 0"/>
       <Hole ID="G4.5" PositionXYZ="60 25 0"/>
-      
+
       <Hole ID="A4" PositionXYZ="0  30 0"/>
       <Hole ID="a4" PositionXYZ="5  30 0"/>
       <Hole ID="B4" PositionXYZ="10 30 0"/>
@@ -288,7 +278,7 @@
       <Hole ID="F4" PositionXYZ="50 30 0"/>
       <Hole ID="f4" PositionXYZ="55 30 0"/>
       <Hole ID="G4" PositionXYZ="60 30 0"/>
-      
+
       <Hole ID="A3.5" PositionXYZ="0  35 0"/>
       <Hole ID="a3.5" PositionXYZ="5  35 0"/>
       <Hole ID="B3.5" PositionXYZ="10 35 0"/>
@@ -302,7 +292,7 @@
       <Hole ID="F3.5" PositionXYZ="50 35 0"/>
       <Hole ID="f3.5" PositionXYZ="55 35 0"/>
       <Hole ID="G3.5" PositionXYZ="60 35 0"/>
-      
+
       <Hole ID="A3" PositionXYZ="0  40 0"/>
       <Hole ID="a3" PositionXYZ="5  40 0"/>
       <Hole ID="B3" PositionXYZ="10 40 0"/>
@@ -316,7 +306,7 @@
       <Hole ID="F3" PositionXYZ="50 40 0"/>
       <Hole ID="f3" PositionXYZ="55 40 0"/>
       <Hole ID="G3" PositionXYZ="60 40 0"/>
-      
+
       <Hole ID="A2.5" PositionXYZ="0  45 0"/>
       <Hole ID="a2.5" PositionXYZ="5  45 0"/>
       <Hole ID="B2.5" PositionXYZ="10 45 0"/>
@@ -330,7 +320,7 @@
       <Hole ID="F2.5" PositionXYZ="50 45 0"/>
       <Hole ID="f2.5" PositionXYZ="55 45 0"/>
       <Hole ID="G2.5" PositionXYZ="60 45 0"/>
-      
+
       <Hole ID="A2" PositionXYZ="0  50 0"/>
       <Hole ID="a2" PositionXYZ="5  50 0"/>
       <Hole ID="B2" PositionXYZ="10 50 0"/>
@@ -344,7 +334,7 @@
       <Hole ID="F2" PositionXYZ="50 50 0"/>
       <Hole ID="f2" PositionXYZ="55 50 0"/>
       <Hole ID="G2" PositionXYZ="60 50 0"/>
-      
+
       <Hole ID="A1.5" PositionXYZ="0  55 0"/>
       <Hole ID="a1.5" PositionXYZ="5  55 0"/>
       <Hole ID="B1.5" PositionXYZ="10 55 0"/>
@@ -358,7 +348,7 @@
       <Hole ID="F1.5" PositionXYZ="50 55 0"/>
       <Hole ID="f1.5" PositionXYZ="55 55 0"/>
       <Hole ID="G1.5" PositionXYZ="60 55 0"/>
-      
+
       <Hole ID="A1" PositionXYZ="0  60 0"/>
       <Hole ID="a1" PositionXYZ="5  60 0"/>
       <Hole ID="B1" PositionXYZ="10 60 0"/>

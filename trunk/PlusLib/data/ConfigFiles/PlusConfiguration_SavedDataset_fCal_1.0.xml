@@ -3,70 +3,45 @@
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Saved dataset for both video and tracking (fCal)" 
-      Description="Configuration file for Saved dataset + fCal 1.0
-It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
-      />
+        Name="Saved dataset for both video and tracking (fCal)" 
+        Description="Configuration file for Saved dataset + fCal 1.0
+      It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
+        />
 
     <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
-    SequenceMetafile="fCal_Test_Calibration.mha"
-    ReplayEnabled="TRUE"
-    >
+        SequenceMetafile="fCal_Test_Calibration.mha"
+        ReplayEnabled="TRUE"
+        >
 
       <!-- PROBE -->
-      <Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
-        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
-        
+      <Tool PortName="0" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
         <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
         <Model
-          File="L14-5_38_ProbeModel.stl"
-          ModelToToolTransform="
-            0.107721 0.979858 0.168146 -115.733132
-            -0.993248 0.113395 -0.024487 13.708913
-            -0.043061 -0.164373 0.985458 -107.578262
-            0 0 0 1"
-        />
-                  
-        <!-- Calibration transform -->
-        <Calibration
-          MatrixName="ImageToProbe" 
-          MatrixValue="
-            1 0 0 0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          Date=""
-          Error="0.0" />
+            File="L14-5_38_ProbeModel.stl"
+            ModelToToolTransform="
+          0.107721 0.979858 0.168146 -115.733132
+          -0.993248 0.113395 -0.024487 13.708913
+          -0.043061 -0.164373 0.985458 -107.578262
+          0 0 0 1"
+            />
       </Tool>
-      
+
       <!-- REFERENCE -->
-      <Tool Type="Reference" Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
+      <Tool Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
       </Tool>
 
       <!-- STYLUS -->
-      <Tool PortName="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
-        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
-        
+      <Tool PortName="2" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+
         <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
         <Model
-          File="Stylus_Example.stl"
-          ModelToToolTransform="
-            1 0 0 -210.0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-        />
-        
-        <!-- Calibration transform -->
-        <Calibration
-          MatrixName="StylusTipToStylus" 
-          MatrixValue="
-            1 0 0 0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          Date=""
-          Error="0.0" /> 
+            File="Stylus_Example.stl"
+            ModelToToolTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+            />
       </Tool>
 
     </Tracker>
@@ -125,26 +100,26 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       </SegmentationParameters>
     </CalibrationController>
   </USCalibration>
-  
+
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-      Name="fCAL"
-      Type="Double-N"
-      Version="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+        Name="fCAL"
+        Type="Double-N"
+        Version="1.0"
+        Institution="Queen's University PerkLab"
+        />
+
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
-      File="FCal_1.0.stl"
-      ModelToPhantomTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
-        0 0 0 1"
-    />
+        File="FCal_1.0.stl"
+        ModelToPhantomTransform="
+      1 0 0 -15.0
+      0 1 0 10.0
+      0 0 1 -5.0
+      0 0 0 1"
+        />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -165,42 +140,42 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-        
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
+
       <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="
-          0.9968 0.0075 -0.0795 -35.6089
-          0.0794 0.0055 0.9968 -124.9852
-          0.0079 -1.0000 0.0049 -16.7
-          0 0 0 1"        
-        Date="2011.07.29 17:22:12"
-        Error="0.0" />
+          MatrixName="PhantomToPhantomReference" 
+          MatrixValue="
+        0.9968 0.0075 -0.0795 -35.6089
+        0.0794 0.0055 0.9968 -124.9852
+        0.0079 -1.0000 0.0049 -16.7
+        0 0 0 1"        
+          Date="2011.07.29 17:22:12"
+          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-                        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-                        Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
+      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+      />
 
   <fCal NumberOfCalibrationImagesToAcquire="200"
-        NumberOfValidationImagesToAcquire="100"
-        NumberOfStylusCalibrationPointsToAcquire="200"
-        RecordingIntervalMs="100"
-        MaxTimeSpentWithProcessingMs="70"
-  >
+      NumberOfValidationImagesToAcquire="100"
+      NumberOfStylusCalibrationPointsToAcquire="200"
+      RecordingIntervalMs="100"
+      MaxTimeSpentWithProcessingMs="70"
+      >
     <TrackerToolNames
-      Reference="PhantomReference"
-      Probe="Probe"
-      Stylus="Stylus"
-    />
+        Reference="PhantomReference"
+        Probe="Probe"
+        Stylus="Stylus"
+        />
   </fCal>
 
 </PlusConfiguration>

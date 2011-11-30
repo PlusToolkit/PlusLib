@@ -117,8 +117,6 @@ PlusStatus TrackerBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
 vtkTrackerBuffer::vtkTrackerBuffer()
 {
   this->TrackerBuffer = vtkTimestampedCircularBuffer<TrackerBufferItem>::New(); 
-  this->ToolCalibrationMatrix = NULL;
-  this->WorldCalibrationMatrix = NULL;
   this->SetMaxAllowedTimeDifference(0.5); 
   this->SetBufferSize(500); 
 }
@@ -129,16 +127,11 @@ void vtkTrackerBuffer::DeepCopy(vtkTrackerBuffer *buffer)
   LOG_TRACE("vtkTrackerBuffer::DeepCopy");
   this->SetBufferSize(buffer->GetBufferSize());
   this->TrackerBuffer->DeepCopy( buffer->TrackerBuffer ); 
-  this->SetToolCalibrationMatrix( buffer->GetToolCalibrationMatrix() ); 
-  this->SetWorldCalibrationMatrix(buffer->GetWorldCalibrationMatrix());
 }
 
 //----------------------------------------------------------------------------
 vtkTrackerBuffer::~vtkTrackerBuffer()
 {
-  this->SetToolCalibrationMatrix(NULL); 
-  this->SetWorldCalibrationMatrix(NULL); 
-
   if ( this->TrackerBuffer != NULL )
   {
     this->TrackerBuffer->Delete(); 
@@ -156,18 +149,6 @@ void vtkTrackerBuffer::PrintSelf(ostream& os, vtkIndent indent)
   {
     this->TrackerBuffer->PrintSelf(os,indent.GetNextIndent());
   }
-
-  os << indent << "ToolCalibrationMatrix: " << this->ToolCalibrationMatrix << "\n";
-  if (this->ToolCalibrationMatrix)
-  {
-    this->ToolCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
-  }  
-  os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
-  if (this->WorldCalibrationMatrix)
-  {
-    this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
-  }
-
 }
 
 //----------------------------------------------------------------------------
@@ -283,7 +264,7 @@ ItemStatus vtkTrackerBuffer::GetTimeStamp( BufferItemUidType uid, double& timest
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem, bool calibratedItem /*= false*/)
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem)
 {
   if ( bufferItem == NULL )
   {
@@ -317,29 +298,6 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
     return ITEM_UNKNOWN_ERROR; 
   }
 
-  // Apply Tool calibration and World calibration matrix to tool matrix if desired 
-  if ( calibratedItem ) 
-  {
-
-    vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    if (trackerItem->GetMatrix(toolMatrix)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to get toolMatrix"); 
-      return ITEM_UNKNOWN_ERROR;
-    }
-
-    if (this->ToolCalibrationMatrix)
-    {
-      vtkMatrix4x4::Multiply4x4(toolMatrix, this->ToolCalibrationMatrix, toolMatrix);
-    }
-
-    if (this->WorldCalibrationMatrix)
-    {
-      vtkMatrix4x4::Multiply4x4(this->WorldCalibrationMatrix, toolMatrix, toolMatrix);
-    }
-    bufferItem->SetMatrix(toolMatrix); 
-  }
-
   // Check the status again to make sure the writer didn't change it
   return this->TrackerBuffer->GetFrameStatus(uid); 
 }
@@ -347,7 +305,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
 //----------------------------------------------------------------------------
 // Returns the two buffer items that are closest previous and next buffer items relative to the specified time.
 // itemA is the closest item
-PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem /*= false*/)
+PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB)
 {
   PlusLockGuard<TrackerBufferType> trackerBufferGuardedLock(this->TrackerBuffer);
 
@@ -366,7 +324,7 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
     LOG_DEBUG("vtkTrackerBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
     return PLUS_FAIL;
   }
-  status = this->GetTrackerBufferItem(itemAuid, &itemA, calibratedItem); 
+  status = this->GetTrackerBufferItem(itemAuid, &itemA); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemAuid );
@@ -438,7 +396,7 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
     return PLUS_FAIL;
   }
   // Get the item
-  status = this->GetTrackerBufferItem(itemBuid, &itemB, calibratedItem); 
+  status = this->GetTrackerBufferItem(itemBuid, &itemB); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemBuid ); 
@@ -455,14 +413,14 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation, bool calibratedItem /*= false*/)
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation)
 {
   switch (interpolation)
   {
   case EXACT_TIME:
-    return GetTrackerBufferItemFromExactTime(time, bufferItem, calibratedItem); 
+    return GetTrackerBufferItemFromExactTime(time, bufferItem); 
   case INTERPOLATED:
-    return GetInterpolatedTrackerBufferItemFromTime(time, bufferItem, calibratedItem); 
+    return GetInterpolatedTrackerBufferItemFromTime(time, bufferItem); 
   default:
     LOG_ERROR("Unknown interpolation type: " <<interpolation);
     return ITEM_UNKNOWN_ERROR;
@@ -470,9 +428,9 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
 }
 
 //---------------------------------------------------------------------------- 
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem)
 {
-  ItemStatus status=GetTrackerBufferItemFromClosestTime(time, bufferItem, calibratedItem);
+  ItemStatus status=GetTrackerBufferItemFromClosestTime(time, bufferItem);
   if ( status != ITEM_OK )
   {
     LOG_WARNING("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<")" ); 
@@ -499,7 +457,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromExactTime( double time, Tra
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem)
 {
   PlusLockGuard<TrackerBufferType> trackerBufferGuardedLock(this->TrackerBuffer);
 
@@ -511,7 +469,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromClosestTime( double time, T
     return status;
   }
 
-  status = this->GetTrackerBufferItem(itemUid, bufferItem, calibratedItem); 
+  status = this->GetTrackerBufferItem(itemUid, bufferItem); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemUid );
@@ -529,16 +487,16 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromClosestTime( double time, T
 // The rotation is interpolated with SLERP interpolation, and the
 // position is interpolated with linear interpolation.
 // The flags correspond to the closest element.
-ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
+ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem)
 {
   TrackerBufferItem itemA; 
   TrackerBufferItem itemB; 
 
-  if (GetPrevNextBufferItemFromTime(time, itemA, itemB, calibratedItem)!=PLUS_SUCCESS)
+  if (GetPrevNextBufferItemFromTime(time, itemA, itemB)!=PLUS_SUCCESS)
   {
     // cannot get two neighbors, so cannot do interpolation
     // it may be normal (e.g., when tracker out of view), so don't return with an error   
-    ItemStatus status = GetTrackerBufferItemFromClosestTime(time, bufferItem, calibratedItem);
+    ItemStatus status = GetTrackerBufferItemFromClosestTime(time, bufferItem);
     if ( status != ITEM_OK )
     {
       LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time << ")" ); 

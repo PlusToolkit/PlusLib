@@ -1,5 +1,4 @@
 <PlusConfiguration version="1.2">
-
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
@@ -7,36 +6,17 @@
         Description="Test mode for vtkDataCollectorTest with SonixTouch and GPStracker. The SonixTouch US device should be in research mode." 
         />
 
-        <Tracker
-        Type="Ascension3DG"
-        BufferSize="500"
-        Frequency="20"
-        LocalTimeOffset="0.0"
-        AveragedItemsForFiltering="20"
-        >
-            <Tool
-      Name="Probe"
-      Type="Probe"
-      PortName="0"
-      SendTo="localhost:18944">
-      <Model
-        File="L14-5_38_ProbeModel.stl"
-        ModelToToolTransform="
+    <Tracker Type="Ascension3DG" BufferSize="500" Frequency="20" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
+      <Tool Name="Probe" PortName="0" SendTo="localhost:18944">
+        <Model
+            File="L14-5_38_ProbeModel.stl"
+            ModelToToolTransform="
           0.107721 0.979858 0.168146 -115.733132
           -0.993248 0.113395 -0.024487 13.708913
           -0.043061 -0.164373 0.985458 -107.578262
           0 0 0 1"
-      />
-      <Calibration
-        MatrixName="ImageToProbe" 
-        MatrixValue="
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-        Date=""
-        Error="0.0" />      
-    </Tool>
+            />
+      </Tool>
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
@@ -46,7 +26,7 @@
         AveragedItemsForFiltering="20" 
         IP="137.82.56.185" 
         ImagingMode="BMode"
-                AcquisitionDataType="BPost" 
+        AcquisitionDataType="BPost" 
         Depth="-1" 
         Sector="-1" 
         Gain="-1" 

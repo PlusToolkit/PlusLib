@@ -1576,7 +1576,7 @@ int vtkDataCollectorHardwareDevice::RequestData( vtkInformation* vtkNotUsed( req
       }
 
       TrackerBufferItem bufferItem; 
-      if ( it->second->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
+      if ( it->second->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem) != ITEM_OK )
       {
         LOG_ERROR("Failed to get latest tracker buffer item!"); 
         return 1; 
