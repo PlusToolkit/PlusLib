@@ -14,6 +14,7 @@
 #include "PlusMath.h"
 #include "vtkTransformRepository.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkXMLUtilities.h"
 
 int main(int argc, char **argv)
 {
@@ -43,11 +44,15 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkTransformRepository> transformRepository=vtkSmartPointer<vtkTransformRepository>::New();
 
+  double dProbeToTrackerError(0.1235); 
   vtkSmartPointer<vtkMatrix4x4> mxProbeToTracker=vtkSmartPointer<vtkMatrix4x4>::New();  
   mxProbeToTracker->Element[0][3]=15;
   mxProbeToTracker->Element[0][0]=-0.5;
   mxProbeToTracker->Element[1][1]=-0.8;
-  transformRepository->SetTransform(PlusTransformName("Probe", "Tracker"), mxProbeToTracker, false );
+  PlusTransformName tnProbeToTracker("Probe", "Tracker"); 
+  transformRepository->SetTransform(tnProbeToTracker, mxProbeToTracker, false );
+  transformRepository->SetTransformPersistent(tnProbeToTracker, true); 
+  transformRepository->SetTransformError(tnProbeToTracker, dProbeToTrackerError); 
 
   TrackedFrame trackedFrame; 
   vtkSmartPointer<vtkMatrix4x4> mxStylusToTracker=vtkSmartPointer<vtkMatrix4x4>::New();  
@@ -211,6 +216,63 @@ int main(int argc, char **argv)
   if (transformRepository->SetTransform(PlusTransformName("Probe", "Phantom"), mxProbeToPhantom)==PLUS_SUCCESS)
   {
     LOG_ERROR("Circular reference between transforms is not detected");
+    return EXIT_FAILURE;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Check write configuration 
+  vtkSmartPointer<vtkXMLDataElement> xmlData=vtkSmartPointer<vtkXMLDataElement>::New();  
+  xmlData->SetName("PlusConfiguration"); 
+  xmlData->SetAttribute("version", "1.0"); 
+  if (transformRepository->WriteConfiguration(xmlData)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to write persistent transforms to CoordinateDefinitions");
+    return EXIT_FAILURE;
+  }
+  xmlData->PrintXML("CoordinateDefinitions.xml"); 
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Check read configuration 
+  vtkSmartPointer<vtkXMLDataElement> xmlReadData = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile("CoordinateDefinitions.xml") );
+  if (xmlReadData == NULL)
+  {  
+    LOG_ERROR("Unable to read configuration file!"); 
+    return EXIT_FAILURE;
+  }
+  if (transformRepository->ReadConfiguration(xmlReadData)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to read persistent transforms from CoordinateDefinitions");
+    return EXIT_FAILURE;
+  }
+  double readProbeToTrackerError(0); 
+  bool isProbeToTrackerValid(false), isProbeToTrackerPersistent(false); 
+  vtkSmartPointer<vtkMatrix4x4> mxProbeToTrackerRead = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  transformRepository->GetTransform(tnProbeToTracker, mxProbeToTrackerRead, &isProbeToTrackerValid ); 
+  transformRepository->GetTransformPersistent(tnProbeToTracker, isProbeToTrackerPersistent ); 
+  transformRepository->GetTransformError(tnProbeToTracker, readProbeToTrackerError ); 
+
+  posDiff=PlusMath::GetPositionDifference(mxProbeToTracker, mxProbeToTrackerRead); 
+  orientDiff=PlusMath::GetOrientationDifference(mxProbeToTracker, mxProbeToTrackerRead); 
+  LOG_INFO("Position difference: "<< posDiff);
+  LOG_INFO("Orientation difference: "<< orientDiff);
+  if (fabs(posDiff)>0.001 || fabs(orientDiff)>0.001)
+  {
+    LOG_ERROR("Mismatch between transforms read by transformRepository and original");
+    return EXIT_FAILURE;
+  }
+  if ( !isProbeToTrackerValid )
+  {
+    LOG_ERROR("ProbeToTracker should be valid");
+    return EXIT_FAILURE;
+  }
+  if ( !isProbeToTrackerPersistent )
+  {
+    LOG_ERROR("ProbeToTracker should be persistent");
+    return EXIT_FAILURE;
+  }
+  if ( fabs(dProbeToTrackerError-readProbeToTrackerError)>0.001 )
+  {
+    LOG_ERROR("Mismatch between transforms error value read by transformRepository and original");
     return EXIT_FAILURE;
   }
 

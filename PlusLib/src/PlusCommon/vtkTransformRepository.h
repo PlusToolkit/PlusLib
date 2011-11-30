@@ -71,6 +71,18 @@ public:
   */
   virtual PlusStatus SetTransformPersistent(PlusTransformName& aTransformName, bool isPersistent);
 
+  /*! Set the computation error of the transform matrix between two coordinate frames. */
+  virtual PlusStatus SetTransformError(PlusTransformName& aTransformName, double aError);
+  
+  /*! Get the computation error of the transform matrix between two coordinate frames. */
+  virtual PlusStatus GetTransformError(PlusTransformName& aTransformName, double &aError);
+
+  /*! Set the computation date of the transform matrix between two coordinate frames. */
+  virtual PlusStatus SetTransformDate(PlusTransformName& aTransformName, const char* aDate);
+  
+  /*! Get the computation date of the transform matrix between two coordinate frames. */
+  virtual PlusStatus GetTransformDate(PlusTransformName& aTransformName, std::string& aDate);
+
   /*! 
     Read all transformations from XML data CoordinateDefinitions element and add them to the transforms with 
     persistent and valid status. The method fails if any of the transforms
