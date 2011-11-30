@@ -27,37 +27,17 @@ vtkStylusCalibrationTest uses this configuration"
             0 0 0 1"
         />
         
-        <!-- Calibration transform -->
-        <Calibration
-          MatrixName="StylusTipToStylus" 
-          MatrixValue="
-            1 0 0 0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          Date=""
-          Error="0.0" />
       </Tool>
     </Tracker>
 
     <ImageAcquisition Type="None" />
-
-    <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
-
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
-
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
-        MaxFrameDifference="10.0" 
-        />
+    <Synchronization Type="None" />
   </DataCollection>
 
-  <fCal NumberOfCalibrationImagesToAcquire="200">
+  <CoordinateDefinitions>
+  </CoordinateDefinitions>
+
+  <fCal NumberOfStylusCalibrationPointsToAcquire="200">
     <TrackerToolNames
       Reference="Reference"
       Probe="Probe"

@@ -26,24 +26,11 @@ vtkPhantomRegistrationTest uses this configuration"
 		</Tracker>
 
     <ImageAcquisition Type="None" />
-
-    <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
-
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
-
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
-        MaxFrameDifference="10.0" 
-        />
+    <Synchronization Type="None" />
   </DataCollection> 
 
   <CoordinateDefinitions>
-    <Transform From="ToolTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
+    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
   </CoordinateDefinitions>
   
 	<!-- PHANTOM -->
@@ -103,7 +90,7 @@ vtkPhantomRegistrationTest uses this configuration"
     </Geometry>
   </PhantomDefinition>
 
-  <fCal NumberOfCalibrationImagesToAcquire="200">
+  <fCal NumberOfCalibrationImagesToAcquire="100">
     <TrackerToolNames
       Reference="Reference"
       Probe="Probe"
