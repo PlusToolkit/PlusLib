@@ -9,13 +9,10 @@
 
 		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
 			
-			<Tool Type="Reference" Name="Reference" PortNumber="0" SendTo="127.0.0.1:1111">
-			</Tool>
+			<Tool Name="Reference" PortName="0" SendTo="127.0.0.1:1111"></Tool>
 
 			<!-- STYLUS -->
-			<Tool PortNumber="1" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1111">
-				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
-				
+			<Tool PortName="1" Model="Example" Name="Stylus" SendTo="127.0.0.1:1111">				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
 				<Model
 					File="Stylus_Example.stl"
@@ -24,37 +21,18 @@
 						0 1 0 0
 						0 0 1 0
 						0 0 0 1"
-				/>
-				
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="StylusTipToStylus" 
-					MatrixValue="
-						1 0 0 210.0474
-						0 1 0 -0.0521
-						0 0 1 -0.0000
-						0 0 0 1"
-					Date="2011.07.29 17:22:12"
-					Error="0.561812" />
+				/>				
 			</Tool>
 		</Tracker>
 
 		<ImageAcqusition Type="None" />
-
-		<Synchronization Type="ChangeDetection" 
-				SynchronizationTimeLength="30" 
-				MinNumOfSyncSteps="5" 
-				ThresholdMultiplier="5"
-
-				NumberOfAveragedTransforms="20" 
-				MinTransformThreshold="2.0" 
-				MaxTransformDifference="2.0" 
-
-				NumberOfAveragedFrames="6" 
-				MinFrameThreshold="200.0" 
-				MaxFrameDifference="10.0" 
-				/>
+		<Synchronization Type="None" />
 	</USDataCollection> 
+  
+  <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
+    <Transform From="Phantom" To="PhantomReference" Matrix="-0.564415 0.519323 0.641669 -385.234 -0.656792 -0.753391 0.0320257 182.398 0.50006 -0.403368 0.766312 -898.499 0 0 0 1" Date="2011.11.30 13:42:01"/> 
+  </CoordinateDefinitions>
 
 	<!-- PHANTOM -->
 	<PhantomDefinition version="1.0">

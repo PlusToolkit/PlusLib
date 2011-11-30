@@ -1,11 +1,11 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This test runs a phantom registration on a recorded data set and compares the results to a baseline
+\file This test runs a phantom registration on a recorded data set and compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"
@@ -29,9 +29,9 @@
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////
-const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
+const double ERROR_THRESHOLD = 0.0001; // error threshold  
 
-int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName); 
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName); 
 
 int main (int argc, char* argv[])
 { 
@@ -118,32 +118,10 @@ int main (int argc, char* argv[])
   }
 
   // Read stylus calibration
-  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition("StylusTip", stylusToolName, stylusTipToStylusCalibrationMatrix) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read 'StylusTip' to '" << stylusToolName << "' pivot calibration result from configuration file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-    exit(EXIT_FAILURE);
-  }
- 
-  // Create and initialize transform repository
-  TrackedFrame trackedFrame;
-  dataCollector->GetTrackedFrame(&trackedFrame);
-
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
-
-  PlusTransformName stylusTipToStylusTransformName("StylusTip", stylusToolName);
-  transformRepository->SetTransform(stylusTipToStylusTransformName, stylusTipToStylusCalibrationMatrix);
-
-  transformRepository->SetTransforms(trackedFrame);
-
-  // Check stylus tool
-  PlusTransformName stylusToReferenceTransformName(stylusToolName, referenceToolName);
-  vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMAtrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid = false;
-  transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransformMAtrix, &valid);
-  if (!valid)
+  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
-    LOG_ERROR("No valid transform found between stylus to reference!");
+    LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     exit(EXIT_FAILURE);
   }
 
@@ -173,9 +151,9 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
+  TrackedFrame trackedFrame;
   PlusTransformName stylusTipToReferenceTransformName("StylusTip", referenceToolName);
-  PlusTransformName stylusToTrackerTransformName(stylusToolName, "Tracker");
-
+  
   for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
@@ -186,27 +164,23 @@ int main (int argc, char* argv[])
     dataCollector->GetTrackedFrame(&trackedFrame);
     transformRepository->SetTransforms(trackedFrame);
 
-    TrackerStatus status = TR_MISSING;
-    if ( trackedFrame.GetCustomFrameTransformStatus(stylusToTrackerTransformName, status) == PLUS_SUCCESS
-      && status == TR_OK )
+    bool valid(false); 
+    if ( transformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceMatrix, &valid) != PLUS_SUCCESS )
     {
-      transformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceMatrix, &valid);
+      LOG_ERROR("No valid transform found between stylus tip to reference!");
+      continue; 
+    }
 
-      if (valid)
-      {
-        // Compute point position from matrix
-        double elements[16];
-        double stylusTipPosition[4];
-        for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = stylusTipToReferenceMatrix->GetElement(i,j);
-        double origin[4] = {0.0, 0.0, 0.0, 1.0};
-        vtkMatrix4x4::PointMultiply(elements, origin, stylusTipPosition);
+    if (valid)
+    {
+      // Compute point position from matrix
+      double stylusTipPosition[3]={stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
+      
+      // Add recorded point to algorithm
+      phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
+      phantomRegistration->GetRecordedLandmarks()->Modified();
 
-        // Add recorded point to algorithm
-        phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-        phantomRegistration->GetRecordedLandmarks()->Modified();
-
-        vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
-      }
+      vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
     }
   }
 
@@ -219,12 +193,20 @@ int main (int argc, char* argv[])
   vtkPlusLogger::PrintProgressbar(100); 
 
   // Save result
+  PlusTransformName tnPhantomToPhantomReference("Phantom", "PhantomReference"); 
+  transformRepository->SetTransform(tnPhantomToPhantomReference, phantomRegistration->GetPhantomToPhantomReferenceTransform()->GetMatrix() ); 
+  transformRepository->SetTransformPersistent(tnPhantomToPhantomReference, true); 
+  transformRepository->SetTransformError(tnPhantomToPhantomReference, phantomRegistration->GetRegistrationError() ); 
+  transformRepository->WriteConfiguration(configRootElement); 
+
+  // TODO: remove vtkPhantomRegistrationAlgo::WriteConfiguration class and remove Registration part from PhantomDefinition/Geometry xml data
   phantomRegistration->WriteConfiguration(configRootElement);
+
   vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
   configRootElement->PrintXML(registrationResultFileName.c_str());
 
-  if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) !=0 )
+  if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Comparison of calibration data to baseline failed");
     std::cout << "Exit failure!!!" << std::endl; 
@@ -238,81 +220,83 @@ int main (int argc, char* argv[])
 //-----------------------------------------------------------------------------
 
 // return the number of differences
-int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName)
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName)
 {
   int numberOfFailures=0;
 
-  double* transformCurrent = new double[16]; 
-  double* transformBaseline = new double[16]; 
-  for (int i=0; i<16; ++i) {
-    transformCurrent[i] = 0.0;
-    transformBaseline[i] = 0.0;
+  if ( baselineFileName == NULL )
+  {
+    LOG_ERROR("Unable to read the baseline configuration file - filename is NULL"); 
+    return PLUS_FAIL;
   }
+
+  if ( currentResultFileName == NULL )
+  {
+    LOG_ERROR("Unable to read the current configuration file - filename is NULL"); 
+    return PLUS_FAIL;
+  }
+
+  PlusTransformName tnPhantomToPhantomReference("Phantom", "PhantomReference"); 
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
-  if (currentRootElem == NULL) {  
+  if (currentRootElem == NULL) 
+  {  
     LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
-    return ++numberOfFailures;
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* phantomDefinitionCurrent = currentRootElem->LookupElementWithName("PhantomDefinition");
-  if (phantomDefinitionCurrent == NULL) {
-    LOG_ERROR("No phantom definition section is found in test result!");
-    return ++numberOfFailures;
+
+  vtkSmartPointer<vtkTransformRepository> currentTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName); 
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* geometryCurrent = phantomDefinitionCurrent->FindNestedElementWithName("Geometry"); 
-  if (geometryCurrent == NULL) {
-    LOG_ERROR("Phantom geometry information not found in test result!");
-    return ++numberOfFailures;
-  }
-  vtkXMLDataElement* registrationCurrent = geometryCurrent->FindNestedElementWithName("Registration"); 
-  if (registrationCurrent == NULL) {
-    LOG_ERROR("Registration element not found in test result!");
-    return ++numberOfFailures;
-  } else {
-    registrationCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
+
+  vtkSmartPointer<vtkMatrix4x4> currentMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( currentTransformRepository->GetTransform(tnPhantomToPhantomReference, currentMatrix) != PLUS_SUCCESS )
+  {
+    std::string strTransformName; 
+    tnPhantomToPhantomReference.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << currentResultFileName); 
+    return PLUS_FAIL;
   }
 
   // Load baseline phantom registration
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(baselineFileName));
-  if (baselineFileName == NULL) {  
+  if (baselineFileName == NULL) 
+  {  
     LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
-    return ++numberOfFailures;
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* phantomDefinitionBaseline = baselineRootElem->LookupElementWithName("PhantomDefinition");
-  if (phantomDefinitionBaseline == NULL) {
-    LOG_ERROR("No phantom definition section is found in baseline!");
-    return ++numberOfFailures;
+
+  vtkSmartPointer<vtkTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName); 
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* geometryBaseline = phantomDefinitionBaseline->FindNestedElementWithName("Geometry"); 
-  if (geometryBaseline == NULL) {
-    LOG_ERROR("Phantom geometry information not found in baseline!");
-    return ++numberOfFailures;
-  }
-  vtkXMLDataElement* registrationBaseline = geometryBaseline->FindNestedElementWithName("Registration"); 
-  if (registrationBaseline == NULL) {
-    LOG_ERROR("Registration element not found in baseline!");
-    return ++numberOfFailures;
-  } else {
-    registrationBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
+
+  vtkSmartPointer<vtkMatrix4x4> baselineMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( baselineTransformRepository->GetTransform(tnPhantomToPhantomReference, baselineMatrix) != PLUS_SUCCESS )
+  {
+    std::string strTransformName; 
+    tnPhantomToPhantomReference.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << baselineFileName); 
+    return PLUS_FAIL;
   }
 
   // Compare the transforms
-  for (int i=0; i<16; ++i) {
-    double ratio = 1.0 * transformCurrent[i] / transformBaseline[i];
-    double diff = fabs(transformCurrent[i] - transformBaseline[i]);
+  double posDiff=PlusMath::GetPositionDifference(currentMatrix, baselineMatrix); 
+  double orientDiff=PlusMath::GetOrientationDifference(currentMatrix, baselineMatrix); 
 
-    if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (diff > 10.0 * ERROR_THRESHOLD) ) // error has to be greater than 5% and also greater than 0.5mm
-    {
-      LOG_ERROR("Transform element (" << i << ") mismatch: current=" << transformCurrent[i]<< ", baseline=" << transformBaseline[i]);
-      numberOfFailures++;
-    }
+  if ( fabs(posDiff) > ERROR_THRESHOLD || fabs(orientDiff) > ERROR_THRESHOLD )
+  {
+    LOG_ERROR("Transform mismatch (position difference: " << posDiff << "  orientation difference: " << orientDiff);
+    return PLUS_FAIL; 
   }
 
-  delete[] transformCurrent;
-  delete[] transformBaseline;
-
-  return numberOfFailures;
+  return PLUS_SUCCESS; 
 }
