@@ -17,6 +17,7 @@
 #include "vtkRenderer.h"
 #include "vtkImageActor.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include <stdlib.h>
 #include <sstream>

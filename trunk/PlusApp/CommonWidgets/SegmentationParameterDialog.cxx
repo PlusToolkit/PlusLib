@@ -38,6 +38,7 @@
 #include "vtkTextProperty.h"
 #include "vtkImageData.h" 
 #include "vtkPlusVideoSource.h"
+#include "TrackedFrame.h"
 
 //----------------------------------------------------------------------
 

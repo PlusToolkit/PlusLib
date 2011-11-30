@@ -17,6 +17,7 @@
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkFakeTracker.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include <QFileDialog>
 
@@ -135,8 +136,9 @@ void PhantomRegistrationToolbox::Initialize()
         return;
       }
 
-      stylusDisplayable->GetTool()->SetCalibrationMatrix(stylusTipToStylusCalibrationMatrix);
-      stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(stylusTipToStylusCalibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
+      LOG_ERROR("Use TransformRepository to get the tooltip to stylus transform!"); 
+      //stylusDisplayable->GetTool()->SetCalibrationMatrix(stylusTipToStylusCalibrationMatrix);
+      //stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(stylusTipToStylusCalibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
 
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();

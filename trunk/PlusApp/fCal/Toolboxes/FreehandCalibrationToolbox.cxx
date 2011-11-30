@@ -11,6 +11,8 @@ See License.txt for details.
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
 #include "vtkDataCollectorHardwareDevice.h"
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include "PhantomRegistrationToolbox.h"
 #include "ConfigFileSaverDialog.h"

@@ -8,6 +8,7 @@
 
 #include "vtkDataCollector.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include <QGridLayout>
 

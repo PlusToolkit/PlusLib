@@ -17,6 +17,7 @@
 #include <QTimer>
 
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkPlusVideoSource.h"
 
 #include "vtksys/SystemTools.hxx"

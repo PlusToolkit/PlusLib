@@ -9,6 +9,7 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include "vtkPivotCalibrationAlgo.h"
 #include "ConfigFileSaverDialog.h"
@@ -317,10 +318,6 @@ void StylusCalibrationToolbox::Start()
     return;
   }
 
-  vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
-  initialTransform->Identity();
-  stylusDisplayable->GetTool()->SetCalibrationMatrix(initialTransform->GetMatrix());
-
   // Set state to in progress
   SetState(ToolboxState_InProgress);
 
@@ -353,7 +350,8 @@ void StylusCalibrationToolbox::Stop()
       return;
     }
 
-    stylusDisplayable->GetTool()->SetCalibrationMatrix(m_PivotCalibration->GetTooltipToToolTransform()->GetMatrix());
+    // TODO: Add pivot calibration result to TransformRepository
+    LOG_ERROR("TEMPORARY ISSUE: Add pivot calibration result to TransformRepository");
 
     // Set result point
     double stylustipPosition[3];

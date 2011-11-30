@@ -16,6 +16,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkMath.h"
 #include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 #include "vtkMetaImageSequenceIO.h"
 
 #include "itkImage.h"

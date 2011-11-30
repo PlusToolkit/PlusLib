@@ -734,9 +734,13 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
       toolModelToPhantomReferenceTransform->Identity();
       toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
 
+      // TODO: Get transforms from Transform repo
+      LOG_ERROR("TEMPORARY ISSUE: get toolModelToPhantomReferenceTransform from TransformRepository");
+
       if (toolName.compare(this->ProbeToolName) != 0)
       {
-        toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
+        // TODO: Remove it!
+        //toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
       }
       toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetModelToToolTransform());
       toolModelToPhantomReferenceTransform->Modified();

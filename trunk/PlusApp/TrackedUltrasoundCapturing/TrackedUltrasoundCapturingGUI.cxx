@@ -447,7 +447,7 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 
       vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
       TrackerBufferItem bufferItem; 
-      if ( trackerBuffer->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
+      if ( trackerBuffer->GetLatestTrackerBufferItem(&bufferItem) != ITEM_OK )
       {
         LOG_WARNING("Failed to get latest tracker item from buffer!"); 
       }
