@@ -9,6 +9,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
 #include "vtkTrackedFrameList.h"
+#include "vtksys/SystemTools.hxx" 
 
 vtkStandardNewMacro(vtkTransformRepository);
 
@@ -19,7 +20,7 @@ vtkTransformRepository::TransformInfo::TransformInfo()
   m_IsValid=true;
   m_IsComputed=false;
   m_IsPersistent=false; 
-  m_Error=0.0; 
+  m_Error=-1.0; 
 }
 
 //----------------------------------------------------------------------------
@@ -317,6 +318,64 @@ PlusStatus vtkTransformRepository::GetTransformPersistent(PlusTransformName& aTr
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::SetTransformError(PlusTransformName& aTransformName, double aError)
+{
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    fromToTransformInfo->m_Error = aError; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot set computation error value.");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::GetTransformError(PlusTransformName& aTransformName, double &aError)
+{
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    aError = fromToTransformInfo->m_Error; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot get computation error value.");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::SetTransformDate(PlusTransformName& aTransformName, const char* aDate)
+{
+  if ( aDate == NULL )
+  {
+    LOG_ERROR("Cannot set computation date if it's NULL.");
+    return PLUS_FAIL;
+  }
+
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    fromToTransformInfo->m_Date = aDate; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot set computation date.");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::GetTransformDate(PlusTransformName& aTransformName, std::string& aDate)
+{
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    aDate = fromToTransformInfo->m_Date; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot get computation date.");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
@@ -400,14 +459,175 @@ void vtkTransformRepository::Clear()
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRootElement)
 {
-  LOG_WARNING("Not yet implemented!"); 
-  return PLUS_SUCCESS; 
+  if ( configRootElement == NULL )
+  {
+    LOG_ERROR("Failed read transform from CoordinateDefinitions - config root element is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* coordinateDefinitions = configRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  if ( coordinateDefinitions == NULL )
+  {
+    LOG_DEBUG("Couldn't read transform from CoordinateDefinitions - CoordinateDefinitions element not found"); 
+    return PLUS_FAIL;  
+  }
+
+  // Clear the transforms
+  this->Clear(); 
+
+  int numberOfErrors(0); 
+  for ( int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex )
+  {
+    vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex); 
+    if ( STRCASECMP(nestedElement->GetName(), "Transform" ) != 0 )
+    {
+      // Not a transform element, skip it
+      continue; 
+    }
+
+    const char* fromAttribute = nestedElement->GetAttribute("From"); 
+    const char* toAttribute = nestedElement->GetAttribute("To"); 
+
+    if ( !fromAttribute || !toAttribute )
+    {
+      LOG_ERROR("Failed to read transform of CoordinateDefinitions (nested element index: " << nestedElementIndex << ") - check 'From' and 'To' attributes in the configuration file!"); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    PlusTransformName transformName(fromAttribute, toAttribute); 
+    if ( !transformName.IsValid() )
+    {
+      LOG_ERROR("Invalid transform name (From: '" <<  fromAttribute << "'  To: '" << toAttribute << "')"); 
+      numberOfErrors++; 
+      continue;  
+    }
+
+    vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    double vectorMatrix[16]={0}; 
+    if ( nestedElement->GetVectorAttribute("Matrix", 16, vectorMatrix) )
+    {
+      transformMatrix->DeepCopy(vectorMatrix); 
+    }
+    else
+    {
+      LOG_ERROR("Unable to find 'Matrix' attribute of '" << fromAttribute << "' to '" << toAttribute << "' transform among the CoordinateDefinitions in the configuration file"); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    if ( this->SetTransform(transformName, transformMatrix) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to set transform: '" << fromAttribute << "' to '" << toAttribute << "' transform"); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    if ( this->SetTransformPersistent(transformName, true) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to set transform to persistent: '" << fromAttribute << "' to '" << toAttribute << "' transform"); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    double error(0); 
+    if ( nestedElement->GetScalarAttribute("Error", error) )
+    {
+      if ( this->SetTransformError(transformName, error) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to set transform error: '" << fromAttribute << "' to '" << toAttribute << "' transform"); 
+        numberOfErrors++; 
+        continue; 
+      }
+    }
+
+    const char* date =  nestedElement->GetAttribute("Date"); 
+    if ( date != NULL )
+    {
+      if ( this->SetTransformDate(transformName, date) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to set transform date: '" << fromAttribute << "' to '" << toAttribute << "' transform"); 
+        numberOfErrors++; 
+        continue; 
+      }
+    }
+  }
+
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configRootElement)
 {
-  LOG_WARNING("Not yet implemented!"); 
-  return PLUS_SUCCESS; 
+  
+  if ( configRootElement == NULL )
+  {
+    LOG_ERROR("Failed to write transforms to CoordinateDefinitions - config root element is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> coordinateDefinitions = configRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  if ( coordinateDefinitions != NULL )
+  {
+    coordinateDefinitions->RemoveAllNestedElements(); 
+  }
+  else
+  {
+    coordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    coordinateDefinitions->SetName("CoordinateDefinitions"); 
+    configRootElement->AddNestedElement(coordinateDefinitions); 
+  }
+
+  int numberOfErrors(0); 
+  for (CoordFrameToCoordFrameToTransformMapType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
+  {
+    for (CoordFrameToTransformMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
+    {
+      if ( transformInfo->second.m_IsPersistent && !transformInfo->second.m_IsComputed )
+      {
+        std::string fromCoordinateFrame = coordFrame->first; 
+        std::string toCoordinateFrame = transformInfo->first; 
+
+        if ( transformInfo->second.m_Transform == NULL )
+        {
+          LOG_ERROR("Transformation matrix is NULL between '" << fromCoordinateFrame << "' to '" << toCoordinateFrame << "' coordinate frames."); 
+          numberOfErrors++; 
+          continue; 
+        }
+
+        if ( !transformInfo->second.m_IsValid )
+        {
+          LOG_WARNING("Invalid transform saved to CoordinateDefinitions from  '" << fromCoordinateFrame << "' to '" << toCoordinateFrame << "' coordinate frame." ); 
+        }
+      
+        double vectorMatrix[16]={0}; 
+        vtkMatrix4x4::DeepCopy(vectorMatrix,transformInfo->second.m_Transform->GetMatrix() ); 
+
+        vtkSmartPointer<vtkXMLDataElement> newTransformElement = vtkSmartPointer<vtkXMLDataElement>::New();
+        newTransformElement->SetName("Transform"); 
+        newTransformElement->SetAttribute("From", fromCoordinateFrame.c_str()); 
+        newTransformElement->SetAttribute("To", toCoordinateFrame.c_str()); 
+        newTransformElement->SetVectorAttribute("Matrix", 16, vectorMatrix); 
+
+        if ( transformInfo->second.m_Error > 0 ) 
+        {
+          newTransformElement->SetDoubleAttribute("Error", transformInfo->second.m_Error); 
+        }
+
+        if ( !transformInfo->second.m_Date.empty() )
+        {
+          newTransformElement->SetAttribute("Date", transformInfo->second.m_Date.c_str() ); 
+        }
+        else // Add current date if it was not explicitly specified
+        {
+          newTransformElement->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str() );
+        }
+
+        coordinateDefinitions->AddNestedElement(newTransformElement); 
+
+      }
+    }
+  }
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
 
