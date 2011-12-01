@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkFakeTracker_h
 
 #include "vtkTracker.h"
+#include "vtkTransformRepository.h"
 
 /*! Fake tracker modes */
 enum FakeTrackerMode
@@ -56,6 +57,11 @@ public:
   /*! Set counter value used for translating landmark points */
   vtkSetMacro(Counter, int);
 
+  /*! Set transform repository */
+  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  /*! Get transform repository */
+  vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+
 protected:
   /*! Start the tracking system. */
   PlusStatus InternalStartTracking();
@@ -78,6 +84,9 @@ protected:
 
   /*! Stores the selected fake tracker mode */
   FakeTrackerMode Mode;
+
+  /*! Transform repository object (some modes need some more transforms to simulate properly) */
+  vtkTransformRepository* TransformRepository;
 
   /*! Constant seed used for random generator */
   int RandomSeed;

@@ -30,7 +30,7 @@ See License.txt for details.
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////
-const double ERROR_THRESHOLD = 0.0001; // error threshold  
+const double ERROR_THRESHOLD = 0.001; // error threshold  
 
 PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName); 
 
@@ -151,6 +151,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Invalid tracker object!");
     exit(EXIT_FAILURE);
   }
+  fakeTracker->SetTransformRepository(transformRepository);
 
   TrackedFrame trackedFrame;
   PlusTransformName stylusTipToReferenceTransformName("StylusTip", referenceToolName);
@@ -158,7 +159,7 @@ int main (int argc, char* argv[])
   for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
-    vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
+    vtkAccurateTimer::Delay(2.1 / fakeTracker->GetFrequency());
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -193,15 +194,14 @@ int main (int argc, char* argv[])
 
   vtkPlusLogger::PrintProgressbar(100); 
 
+  LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
+
   // Save result
-  PlusTransformName tnPhantomToPhantomReference("Phantom", "PhantomReference"); 
-  transformRepository->SetTransform(tnPhantomToPhantomReference, phantomRegistration->GetPhantomToPhantomReferenceTransform()->GetMatrix() ); 
+  PlusTransformName tnPhantomToPhantomReference("Phantom", "Reference"); 
+  transformRepository->SetTransform(tnPhantomToPhantomReference, phantomRegistration->GetPhantomToReferenceTransformMatrix() ); 
   transformRepository->SetTransformPersistent(tnPhantomToPhantomReference, true); 
   transformRepository->SetTransformError(tnPhantomToPhantomReference, phantomRegistration->GetRegistrationError() ); 
   transformRepository->WriteConfiguration(configRootElement); 
-
-  // TODO: remove vtkPhantomRegistrationAlgo::WriteConfiguration class and remove Registration part from PhantomDefinition/Geometry xml data
-  phantomRegistration->WriteConfiguration(configRootElement);
 
   vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
@@ -237,7 +237,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  PlusTransformName tnPhantomToPhantomReference("Phantom", "PhantomReference"); 
+  PlusTransformName tnPhantomToPhantomReference("Phantom", "Reference"); 
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(

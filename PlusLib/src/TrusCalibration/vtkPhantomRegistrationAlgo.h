@@ -10,7 +10,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
-#include "vtkTransform.h"
+#include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 
 class vtkXMLDataElement;
@@ -43,13 +43,6 @@ public:
 	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
 	/*!
-	  Save result to XML data element
-	  \param aConfig XML data element containing the stylus calibration
-	  \return Success flag
-	*/
-	PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
-
-	/*!
 	  Gets defined landmark name
 	  \param aIndex Index of the landmark
 	  \return Name string
@@ -58,11 +51,15 @@ public:
 
 	vtkGetMacro(RegistrationError, double);
 
-  vtkGetObjectMacro(PhantomToPhantomReferenceTransform, vtkTransform); 
-  vtkSetObjectMacro(PhantomToPhantomReferenceTransform, vtkTransform);
+  vtkGetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4); 
+  vtkSetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4);
 
   vtkGetObjectMacro(DefinedLandmarks, vtkPoints);
   vtkGetObjectMacro(RecordedLandmarks, vtkPoints);
+
+protected:
+  /*! Compute the registration error */
+  PlusStatus ComputeError();
 
 protected:
   /*! Sets the known landmark points positions (defined in the Phantom coordinate system) */
@@ -85,8 +82,8 @@ protected:
 	/*! Point array holding the recorded landmarks */
 	vtkPoints*								RecordedLandmarks;
 
-  /*! Phantom to phantom reference transform - the result of the registration */
-	vtkTransform*							PhantomToPhantomReferenceTransform;
+  /*! Phantom to reference transform matrix - the result of the registration */
+	vtkMatrix4x4*							PhantomToReferenceTransformMatrix;
 
 	/*! The mean error of the landmark registration in mm */
 	double									  RegistrationError;
