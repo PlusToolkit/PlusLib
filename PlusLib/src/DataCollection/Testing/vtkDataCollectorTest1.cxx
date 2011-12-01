@@ -54,8 +54,7 @@ public:
       ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
     }
 
-LOG_INFO("TEMPORARY ISSUE: fix here too");
-PlusTransformName transformName(ToolName.c_str(), "Reference");
+    PlusTransformName transformName(ToolName.c_str(), this->DataCollector->GetTracker()->GetToolReferenceFrameName());
     if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, transformName) == PLUS_SUCCESS )
     {
       this->Viewer->SetInput(this->RealtimeImage); 
@@ -262,7 +261,7 @@ int main(int argc, char **argv)
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor; 
     call->RealtimeImage=realtimeImage; 
-    call->Broadcaster=broadcaster; 
+    call->Broadcaster=broadcaster;
 
     iren->AddObserver(vtkCommand::TimerEvent, call);
     iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
