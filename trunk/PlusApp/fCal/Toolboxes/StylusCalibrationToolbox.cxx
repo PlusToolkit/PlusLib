@@ -19,6 +19,8 @@ See License.txt for details.
 
 #include "vtkMath.h"
 
+static std::string stylusTipName = "StylusTip";
+
 //-----------------------------------------------------------------------------
 
 StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
@@ -350,18 +352,19 @@ void StylusCalibrationToolbox::Stop()
       return;
     }
 
-    // TODO: Add pivot calibration result to TransformRepository
-    LOG_ERROR("TEMPORARY ISSUE: Add pivot calibration result to TransformRepository");
+    // Add pivot calibration result to transform repository
+    PlusTransformName stylusCalibrationMatrixName(stylusTipName.c_str(), m_StylusToolName.c_str());
+    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransform(stylusCalibrationMatrixName, m_PivotCalibration->GetTooltipToToolTransformMatrix());
 
     // Set result point
     double stylustipPosition[3];
     m_PivotCalibration->GetTooltipPosition(stylustipPosition);
     vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->GetPoints();
-    points->InsertPoint(0, stylustipPosition[0], stylustipPosition[1], stylustipPosition[2]);
+    points->InsertPoint(0, stylustipPosition);
     points->Modified();
 
     // Write result in configuration
-    if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("ToolTip", m_StylusToolName.c_str(), m_PivotCalibration->GetTooltipToToolTransform()->GetMatrix(), 
+    if ( vtkPlusConfig::WriteTransformToCoordinateDefinition(stylusTipName.c_str(), m_StylusToolName.c_str(), m_PivotCalibration->GetTooltipToToolTransformMatrix(), 
       m_PivotCalibration->GetCalibrationError() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
@@ -400,18 +403,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusToReferenceMatrix) == TR_OK)
   {
-    // Compute the new position - TODO: find other way
-    double stylusPosition[4];
-    double elements[16];
-    double origin[4] = {0.0, 0.0, 0.0, 1.0};
-
-    for (int i=0; i<4; ++i) {
-      for (int j=0; j<4; ++j) {
-        elements[4*j+i] = stylusToReferenceMatrix->GetElement(i,j);
-      }
-    }
-
-    vtkMatrix4x4::PointMultiply(elements, origin, stylusPosition);
+    double stylusPosition[4]={stylusToReferenceMatrix->GetElement(0,3), stylusToReferenceMatrix->GetElement(1,3), stylusToReferenceMatrix->GetElement(2,3), 1.0 };
 
     // Assemble position string for toolbox
     char stylusPositionChars[32];
@@ -422,7 +414,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints();
 
-    double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds with the guys
+    double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds
     double distance_highThreshold_mm = 1000.0;
     double distance = -1.0;
     if (m_CurrentPointNumber < 1)

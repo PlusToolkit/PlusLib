@@ -16,7 +16,7 @@
 #include "vtkImageActor.h"
 #include "vtkPolyData.h"
 #include "vtkCamera.h"
-#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 
 #include <QObject>
 
@@ -264,6 +264,8 @@ public:
 	vtkGetObjectMacro(DataCollector, vtkDataCollector); 
 	vtkSetObjectMacro(DataCollector, vtkDataCollector); 
 
+	vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+
 	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
@@ -288,6 +290,7 @@ protected:
 	vtkSetObjectMacro(ResultPolyData, vtkPolyData);
 	vtkSetObjectMacro(VolumeActor, vtkActor);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);
+	vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
 
 	vtkSetMacro(ImageMode, bool); 
 	vtkBooleanMacro(ImageMode, bool); 
@@ -304,22 +307,25 @@ protected:
 	virtual ~vtkToolVisualizer();	
 
 protected:
-	//! Data collector object
+	/*! Data collector object */
 	vtkDataCollector*	DataCollector;
 
-  //! List of displayable tools (structures holding the tool objects and actors)
+  /*! List of displayable tools (structures holding the tool objects and actors) */
   std::map<std::string, vtkDisplayableTool*> DisplayableTools;
 
-  //! Timer for acquisition
+  /*! Transform repository to store and handle all transforms */
+  vtkTransformRepository* TransformRepository;
+
+  /*! Timer for acquisition */
 	QTimer*	AcquisitionTimer;
 
-  //! Initialization flag
+  /*! Initialization flag */
 	bool Initialized;
 
-  //! Flag indicating if the cisualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on)
+  /*! Flag indicating if the cisualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on) */
   bool ImageMode;
 
-	//! Desired frame rate of synchronized recording
+	/*! Desired frame rate of synchronized recording */
 	int AcquisitionFrameRate;
 
   /*! Name of the tool (which must be a probe) that acquires the images to display */
@@ -328,31 +334,31 @@ protected:
   /*! Name of the reference tool */
   char* ReferenceToolName;
 
-  //! Renderer for the canvas
+  /*! Renderer for the canvas */
 	vtkRenderer* CanvasRenderer; 
 
-  //! Canvas image actor
+  /*! Canvas image actor */
   vtkImageActor* ImageActor;
 
-	//! Polydata holding the input points
+	/*! Polydata holding the input points */
 	vtkPolyData* InputPolyData;
 
-	//! Actor for displaying the input points in 3D
+	/*! Actor for displaying the input points in 3D */
 	vtkActor* InputActor;
 
-	//! Polydata holding the result points (eg. stylus tip, segmented points)
+	/*! Polydata holding the result points (eg. stylus tip, segmented points) */
 	vtkPolyData* ResultPolyData;
 
-	//! Actor for displaying the result points (eg. stylus tip, segmented points)
+	/*! Actor for displaying the result points (eg. stylus tip, segmented points) */
 	vtkActor* ResultActor;
 
-	//! Actor for displaying a volume
+	/*! Actor for displaying a volume */
 	vtkActor* VolumeActor;
 
-  //! Camera of the scene
+  /*! Camera of the scene */
 	vtkCamera* ImageCamera;
 
-  //! Image to probe transform (probe calibration result)
+  /*! Image to probe transform (probe calibration result) */
   vtkTransform* ImageToProbeTransform;
 };
 

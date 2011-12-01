@@ -8,7 +8,9 @@
 
 #include "vtkToolVisualizer.h"
 
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollectorHardwareDevice.h" //TODO
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
@@ -45,6 +47,7 @@ vtkStandardNewMacro(vtkToolVisualizer);
 vtkToolVisualizer::vtkToolVisualizer()
 {
   this->DataCollector = NULL;
+  this->TransformRepository = NULL;
   this->AcquisitionFrameRate = 20;
   this->InitializedOff();
   this->ImageModeOff();
@@ -86,6 +89,8 @@ vtkToolVisualizer::~vtkToolVisualizer()
     this->DataCollector->Disconnect();
   }
   this->SetDataCollector(NULL);
+
+  this->SetTransformRepository(NULL);
 
   this->SetInputActor(NULL);
   this->SetInputPolyData(NULL);
@@ -135,6 +140,10 @@ PlusStatus vtkToolVisualizer::Initialize()
     LOG_ERROR("Initializing visualization failed!");
     return PLUS_FAIL;
   }
+
+  // Create transform repository
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  this->SetTransformRepository(transformRepository);
 
   // Initialize timer
   this->AcquisitionTimer = new QTimer();
@@ -562,25 +571,9 @@ std::string vtkToolVisualizer::GetToolPositionString(const char* aToolName, bool
   TrackerStatus status = AcquireTrackerPositionForToolByName(aToolName, toolToReferenceMatrix, aCalibrated);
   if (status == TR_OK)
   {
-    // Compute the new position - TODO: find other way
-    double toolPosition[4];
-    double elements[16];
-    double origin[4] = {0.0, 0.0, 0.0, 1.0};
-
-    for (int i=0; i<4; ++i)
-    {
-      for (int j=0; j<4; ++j)
-      {
-        elements[4*j+i] = toolToReferenceMatrix->GetElement(i,j);
-      }
-    }
-
-    vtkMatrix4x4::PointMultiply(elements, origin, toolPosition);
-
     // Assemble position string
     char toolPositionChars[32];
-
-    sprintf_s(toolPositionChars, 32, "%.1lf X %.1lf X %.1lf", toolPosition[0], toolPosition[1], toolPosition[2]);
+    sprintf_s(toolPositionChars, 32, "%.1lf X %.1lf X %.1lf", toolToReferenceMatrix->GetElement(0,3), toolToReferenceMatrix->GetElement(1,3), toolToReferenceMatrix->GetElement(2,3));
     return std::string(toolPositionChars);
   }
   else
@@ -1017,6 +1010,9 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   this->SetDataCollector(dataCollector);
 
+  // Reset transform repository
+  this->TransformRepository->Clear();
+
   // Read configuration
   if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
@@ -1038,6 +1034,13 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
     LOG_ERROR("Unable to initialize DataCollector!"); 
     return PLUS_FAIL;
   }
+
+  // Fill up transform repository
+  this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  TrackedFrame trackedFrame;
+  this->DataCollector->GetTrackedFrame(&trackedFrame);
+  this->TransformRepository->SetTransforms(trackedFrame);
 
   return PLUS_SUCCESS;
 }
