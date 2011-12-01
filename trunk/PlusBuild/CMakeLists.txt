@@ -78,7 +78,7 @@ OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
-#OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) #Not yet supported 
+OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
@@ -93,6 +93,9 @@ IF (PLUS_USE_VFW_VIDEO)
 ENDIF()
 IF (PLUS_USE_POLARIS)
   MESSAGE("Provide support for the NDI POLARIS and AURORA option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/336")
+ENDIF()
+IF (PLUS_USE_USBECGBOX)
+  MESSAGE("Provide support for the USB ECG box option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/396")
 ENDIF()
 
 #-----------------------------------------------------------------------------
