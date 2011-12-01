@@ -78,7 +78,7 @@ OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
-OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
+#OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) #Not yet supported 
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
