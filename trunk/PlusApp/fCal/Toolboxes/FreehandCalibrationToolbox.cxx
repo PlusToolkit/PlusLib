@@ -600,7 +600,11 @@ void FreehandCalibrationToolbox::StartSpatial()
   if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL))
   {
     m_Calibration->Initialize();
-    m_Calibration->SetPhantomToReferenceTransform(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
+
+    vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+    phantomToReferenceTransform->Identity();
+    phantomToReferenceTransform->Concatenate(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToReferenceTransformMatrix());
+    m_Calibration->SetPhantomToReferenceTransform(phantomToReferenceTransform);
   }
   else
   {
@@ -807,7 +811,10 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
     if ( (phantomRegistrationToolbox->GetState() == ToolboxState_Done)
       || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) )
     {
-      m_ParentMainWindow->GetToolVisualizer()->SetPhantomToPhantomReferenceTransform(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
+      vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+      phantomToReferenceTransform->Identity();
+      phantomToReferenceTransform->Concatenate(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToReferenceTransformMatrix());
+      m_ParentMainWindow->GetToolVisualizer()->SetPhantomToReferenceTransform(phantomToReferenceTransform);
     }
     else
     {

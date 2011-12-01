@@ -474,9 +474,9 @@ PlusStatus vtkToolVisualizer::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-void vtkToolVisualizer::SetPhantomToPhantomReferenceTransform(vtkTransform* aTransform)
+void vtkToolVisualizer::SetPhantomToReferenceTransform(vtkTransform* aTransform)
 {
-  LOG_TRACE("vtkToolVisualizer::SetPhantomToPhantomReferenceTransform");
+  LOG_TRACE("vtkToolVisualizer::SetPhantomToReferenceTransform");
 
   if (this->DisplayableTools.find(this->ReferenceToolName) == this->DisplayableTools.end())
   {
@@ -869,10 +869,10 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
     double* transform = new double[16]; 
     if (registration->GetVectorAttribute("MatrixValue", 16, transform))
     {
-      vtkSmartPointer<vtkTransform> phantomToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomToPhantomReferenceTransform->Identity();
-      phantomToPhantomReferenceTransform->SetMatrix(transform);
-      this->SetPhantomToPhantomReferenceTransform(phantomToPhantomReferenceTransform);
+      vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+      phantomToReferenceTransform->Identity();
+      phantomToReferenceTransform->SetMatrix(transform);
+      this->SetPhantomToReferenceTransform(phantomToReferenceTransform);
     }
     else
     {
