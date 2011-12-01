@@ -116,7 +116,11 @@ IF(PLUSBUILD_BUILD_PLUSAPP)
         "../Qt/4.7.3/bin"
         "../../Qt/4.7.3/bin"
       )
-    FIND_PACKAGE(Qt4 REQUIRED)
+    FIND_PACKAGE(Qt4 QUIET)
+    IF ( NOT QT4_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires Qt4 for building PlusApp. One of these components is missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+    ENDIF()  
+    
     SET(QT_USE_QT3SUPPORT TRUE) 
     INCLUDE(${QT_USE_FILE})
 ENDIF(PLUSBUILD_BUILD_PLUSAPP) 
