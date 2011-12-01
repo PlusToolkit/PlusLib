@@ -7,7 +7,7 @@
 #include "vtkPivotCalibrationAlgo.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx" 
 
@@ -20,7 +20,7 @@ vtkStandardNewMacro(vtkPivotCalibrationAlgo);
 
 vtkPivotCalibrationAlgo::vtkPivotCalibrationAlgo()
 {
-	this->TooltipToToolTransform = NULL;
+	this->TooltipToToolTransformMatrix = NULL;
 	this->CalibrationError = -1.0;
   this->Minimizer = NULL;
   this->CalibrationArray = NULL;
@@ -43,7 +43,7 @@ vtkPivotCalibrationAlgo::vtkPivotCalibrationAlgo()
 
 vtkPivotCalibrationAlgo::~vtkPivotCalibrationAlgo()
 {
-  this->SetTooltipToToolTransform(NULL);
+  this->SetTooltipToToolTransformMatrix(NULL);
   this->SetCalibrationArray(NULL);
   this->SetMinimizer(NULL);
 }
@@ -100,21 +100,19 @@ PlusStatus vtkPivotCalibrationAlgo::DoTooltipCalibration()
 	resultMatrix->SetElement(1,3,y);
 	resultMatrix->SetElement(2,3,z);
 
-  vtkSmartPointer<vtkTransform> tooltipToToolTransform = vtkSmartPointer<vtkTransform>::New();
-  tooltipToToolTransform->SetMatrix(resultMatrix);
-	this->SetTooltipToToolTransform(tooltipToToolTransform);
+	this->SetTooltipToToolTransformMatrix(resultMatrix);
 
   // Compute a tooltip position based on the first acquired position
 	double firstInputMatrixElements[16];
   this->CalibrationArray->GetTuple(0, firstInputMatrixElements);
 
-  vtkSmartPointer<vtkTransform> firstInputTransform = vtkSmartPointer<vtkTransform>::New();
-  firstInputTransform->SetMatrix(firstInputMatrixElements);
+  vtkSmartPointer<vtkMatrix4x4> firstInputTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  firstInputTransformMatrix->DeepCopy(firstInputMatrixElements);
 
   vtkSmartPointer<vtkTransform> tooltipToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   tooltipToReferenceTransform->Identity();
-  tooltipToReferenceTransform->Concatenate(firstInputTransform);
-  tooltipToReferenceTransform->Concatenate(this->TooltipToToolTransform);
+  tooltipToReferenceTransform->Concatenate(firstInputTransformMatrix);
+  tooltipToReferenceTransform->Concatenate(this->TooltipToToolTransformMatrix);
 
   tooltipToReferenceTransform->GetPosition(this->TooltipPosition);
 
@@ -127,16 +125,13 @@ std::string vtkPivotCalibrationAlgo::GetTooltipToToolTranslationString()
 {
 	//LOG_TRACE("vtkPivotCalibrationAlgo::GetTooltipToToolTranslationString");
 
-  if (this->TooltipToToolTransform == NULL) {
+  if (this->TooltipToToolTransformMatrix == NULL) {
     LOG_ERROR("Tooltip to tool transform is not initialized!");
     return "";
   }
 
-	vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-	this->TooltipToToolTransform->GetMatrix(transform);
-
 	char stylustipToStylusTranslationChars[32];
-	sprintf_s(stylustipToStylusTranslationChars, 32, "%.2lf X %.2lf X %.2lf", transform->GetElement(0,3), transform->GetElement(1,3), transform->GetElement(2,3));
+	sprintf_s(stylustipToStylusTranslationChars, 32, "%.2lf X %.2lf X %.2lf", this->TooltipToToolTransformMatrix->GetElement(0,3), this->TooltipToToolTransformMatrix->GetElement(1,3), this->TooltipToToolTransformMatrix->GetElement(2,3));
 	std::string stylustipToStylusTranslationString(stylustipToStylusTranslationChars);
 
 	return stylustipToStylusTranslationString;

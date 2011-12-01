@@ -12,8 +12,7 @@ See License.txt for details.
 #include "vtkObject.h"
 #include "vtkAmoebaMinimizer.h"
 #include "vtkDoubleArray.h"
-#include "vtkTransform.h"
-#include "vtkTracker.h"
+#include "vtkMatrix4x4.h"
 
 class vtkXMLDataElement;
 
@@ -53,13 +52,13 @@ public:
 
 	vtkGetMacro(CalibrationError, double);
 
-  vtkGetObjectMacro(TooltipToToolTransform, vtkTransform); 
+  vtkGetObjectMacro(TooltipToToolTransformMatrix, vtkMatrix4x4); 
 
   vtkGetVector3Macro(TooltipPosition, double);
 
 protected:
 
-  vtkSetObjectMacro(TooltipToToolTransform, vtkTransform);
+  vtkSetObjectMacro(TooltipToToolTransformMatrix, vtkMatrix4x4);
 
   vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
 
@@ -78,7 +77,7 @@ protected:
   double              TooltipPosition[3];
 
 	/*! Tooltip to tool transform - the result of the calibration */
-	vtkTransform*				TooltipToToolTransform;
+	vtkMatrix4x4*				TooltipToToolTransformMatrix;
 
 	/*! Uncertainty (standard deviation), error of the calibration result in mm */
 	double							CalibrationError;
