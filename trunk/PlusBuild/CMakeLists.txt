@@ -251,7 +251,7 @@ ENDIF()
 IF ( PLUS_USE_ULTRASONIX_VIDEO )
     FIND_PACKAGE (ULTRASONIX_SDK)
     IF ( NOT ULTRASONIX_SDK_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
+        MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK ${ULTRASONIX_SDK_VERSION} for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
     ENDIF()
 ENDIF() 
 
