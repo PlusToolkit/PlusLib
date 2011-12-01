@@ -112,16 +112,6 @@
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
-      <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="
-          0.9955 -0.0286 -0.0898 -35.8654
-          0.0902 0.0125 0.9958 -125.0523
-          -0.0273 -0.9995 0.0150 -15.0
-          0 0 0 1"
-        Date="2011.08.03 14:20:09"
-        Error="-1"/>
 
     </Geometry>
   </PhantomDefinition>

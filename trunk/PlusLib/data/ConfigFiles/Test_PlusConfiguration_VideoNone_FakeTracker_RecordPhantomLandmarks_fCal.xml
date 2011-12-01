@@ -8,19 +8,9 @@
 vtkPhantomRegistrationTest uses this configuration" 
         />
 
-    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0"/> 
-      <Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111">
-        <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-        <Model
-            File="Stylus_Example.stl"
-            ModelToToolTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-            />
-      </Tool>
+    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="20" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
+      <Tool Name="Reference" PortName="0" /> 
+			<Tool Name="Stylus" PortName="1" />
     </Tracker>
 
     <ImageAcquisition Type="None" />
@@ -28,7 +18,8 @@ vtkPhantomRegistrationTest uses this configuration"
   </DataCollection> 
 
   <CoordinateDefinitions>
-    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
+    <Transform From="Reference" To="Tracker" Matrix="0 -1 0 300.0  1 0 0 400.0  0 0 1 700.0  0 0 0 1" Date="2011.12.01 11:57:00"/>
+    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0  0 1 0 0  0 0 1 0  0 0 0 1" Date="2011.12.01 17:22:12"/>
   </CoordinateDefinitions>
 
   <!-- PHANTOM -->
@@ -76,15 +67,6 @@ vtkPhantomRegistrationTest uses this configuration"
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
-      <Registration
-          MatrixName="PhantomToPhantomReference" 
-          MatrixValue="1 0 0 0 
-        0 1 0 0 
-        0 0 1 0
-        0 0 0 1" 
-          Date=""
-          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 

@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkPlusConfig.h"
 #include "PlusMath.h"
 #include "vtkProbeCalibrationAlgo.h"
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkTransformRepository.h"
 #include "FidPatternRecognition.h"
 
 #include "vtkSmartPointer.h"
@@ -45,7 +45,7 @@ int main (int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  std::string inputProbeToReferenceTransformName("ProbeToReference"); 
+  std::string phantomName("Phantom"); 
 
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
@@ -61,7 +61,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
   cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 
-  cmdargs.AddArgument("--input-probe-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeToReferenceTransformName, "Name of the probe to reference transform (Default: ProbeToTracker)");
+  cmdargs.AddArgument("--input-phantom-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &phantomName, "Name of the phantom (Default: Phantom)");
 
   cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
   cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
@@ -78,8 +78,7 @@ int main (int argc, char* argv[])
   LOG_INFO("Initialize"); 
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
@@ -89,22 +88,58 @@ int main (int argc, char* argv[])
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  // Load phantom definition and registration
-  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
-  if (phantomRegistration == NULL) {
-    LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+  // Probe and reference tool names
+  vtkXMLDataElement* fCalElement = configRootElement->FindNestedElementWithName("fCal"); 
+  if (fCalElement == NULL)
+  {
+    LOG_ERROR("Unable to find fCal element in XML tree!"); 
     exit(EXIT_FAILURE);
   }
-  if (phantomRegistration->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
-    LOG_ERROR("Unable to read phantom definition!");
+
+  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+  if (trackerToolNames == NULL)
+  {
+    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
     exit(EXIT_FAILURE);
+  }
+  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
+  if (probeToolName == NULL)
+  {
+    LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
+    exit(EXIT_FAILURE);
+  }
+  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
+  if (referenceToolName == NULL)
+  {
+    LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
+    exit(EXIT_FAILURE);
+  }
+
+  // Read phantom registration
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read CoordinateDefinitions!"); 
+    exit(EXIT_FAILURE);
+  }
+
+  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  PlusTransformName phantomToReferenceTransformName(phantomName, referenceToolName);
+  bool valid = false;
+  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  {
+    LOG_ERROR("No valid transform found between phantom to reference!");
   }
 
   vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
 
   freehandCalibration->Initialize();
-  freehandCalibration->SetPhantomToReferenceTransform(phantomRegistration->GetPhantomToPhantomReferenceTransform());
+
+  vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+  phantomToReferenceTransform->Identity();
+  phantomToReferenceTransform->Concatenate(phantomToReferenceTransformMatrix);
+  freehandCalibration->SetPhantomToReferenceTransform(phantomToReferenceTransform);
 
   FidPatternRecognition patternRecognition;
   patternRecognition.ReadConfiguration(configRootElement);
@@ -143,12 +178,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
-  PlusTransformName probeToReferenceTransformName; 
-  if ( probeToReferenceTransformName.SetTransformName( inputProbeToReferenceTransformName.c_str() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << inputProbeToReferenceTransformName ); 
-    return EXIT_FAILURE; 
-  }
+  PlusTransformName probeToReferenceTransformName(probeToolName, referenceToolName);
 
   // Calibrate
   if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)

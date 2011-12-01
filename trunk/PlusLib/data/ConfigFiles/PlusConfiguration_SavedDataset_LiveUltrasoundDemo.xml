@@ -24,7 +24,7 @@ The desired file name with path needs to be added to this XML file as values Seq
             />
       </Tool>
 
-      <Tool Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
+      <Tool Name="Reference" PortName="1" SendTo="127.0.0.1:1111">
       </Tool>
 
       <Tool Name="Stylus" PortName="2" Model="Example" SendTo="127.0.0.1:1112">
@@ -67,6 +67,10 @@ The desired file name with path needs to be added to this XML file as values Seq
         MaxFrameDifference="10.0" 
         />
   </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Phantom" To="Reference" Matrix="0.9968 0.0075 -0.0795 -35.6089    0.0794 0.0055 0.9968 -124.9852    0.0079 -1.0000 0.0049 -16.7    0 0 0 1" Date="2011.12.01 17:57:00" Error="0.0"/>
+  </CoordinateDefinitions> 
 
   <!-- CALIBRATION -->
   <USCalibration>
@@ -112,10 +116,10 @@ The desired file name with path needs to be added to this XML file as values Seq
     <Model
         File="FCal_1.0.stl"
         ModelToPhantomTransform="
-      1 0 0 -15.0
-      0 1 0 10.0
-      0 0 1 -5.0
-      0 0 0 1"
+          1 0 0 -15.0
+          0 1 0 10.0
+          0 0 1 -5.0
+          0 0 0 1"
         />
 
     <Geometry>
@@ -143,16 +147,6 @@ The desired file name with path needs to be added to this XML file as values Seq
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
-      <Registration
-          MatrixName="PhantomToPhantomReference" 
-          MatrixValue="
-        0.9968 0.0075 -0.0795 -35.6089
-        0.0794 0.0055 0.9968 -124.9852
-        0.0079 -1.0000 0.0049 -16.7
-        0 0 0 1" 
-          Date="2011.07.20 15:09:35"
-          Error="-1.0" />
     </Geometry>
   </PhantomDefinition>
 

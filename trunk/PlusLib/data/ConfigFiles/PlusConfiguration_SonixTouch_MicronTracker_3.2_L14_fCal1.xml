@@ -150,16 +150,6 @@
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
-      <Registration
-          MatrixName="PhantomToPhantomReference" 
-          MatrixValue="
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" 
-          Date=""
-          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 

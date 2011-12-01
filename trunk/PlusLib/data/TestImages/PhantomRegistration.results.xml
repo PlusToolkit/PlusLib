@@ -7,22 +7,10 @@
 			Description="vtkPhantomRegistrationTest uses this configuration" 
 			/>
 
-		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
+		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="20" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
 			
-			<Tool Name="Reference" PortName="0" SendTo="127.0.0.1:1111"></Tool>
-
-			<!-- STYLUS -->
-			<Tool PortName="1" Model="Example" Name="Stylus" SendTo="127.0.0.1:1111">				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File="Stylus_Example.stl"
-					ModelToToolTransform="
-						1 0 0 -210.0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-				/>				
-			</Tool>
+			<Tool Name="Reference" PortName="0" />
+			<Tool Name="Stylus" PortName="1" />
 		</Tracker>
 
 		<ImageAcqusition Type="None" />
@@ -30,8 +18,9 @@
 	</USDataCollection> 
   
   <CoordinateDefinitions>
-    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
-    <Transform From="Phantom" To="PhantomReference" Matrix="-0.564415 0.519323 0.641669 -385.234 -0.656792 -0.753391 0.0320257 182.398 0.50006 -0.403368 0.766312 -898.499 0 0 0 1" Date="2011.11.30 13:42:01"/> 
+    <Transform From="Reference" To="Tracker" Matrix="0 -1 0 300.0  1 0 0 400.0  0 0 1 700.0  0 0 0 1" Date="2011.12.01 11:57:00"/>
+    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0  0 1 0 0  0 0 1 0  0 0 0 1" Date="2011.12.01 17:22:12"/>
+    <Transform From="Phantom" To="Reference" Matrix="1 0 0 -75.0000  0 1 0 -50.0000  0 0 1 -150.0  0 0 0 1" Date="2011.11.30 13:42:01"/> 
   </CoordinateDefinitions>
 
 	<!-- PHANTOM -->
@@ -79,16 +68,15 @@
 				<Landmark Name="#7" Position="-25.0 0.0 0.0" />
 				<Landmark Name="#8" Position="-25.0 40.0 0.0" />
 			</Landmarks>
-			
-			<Registration
-				MatrixName="PhantomToPhantomReference" 
-				MatrixValue="1 0 0 -75.0000 
-							 0 1 0 -50.0000 
-							 0 0 1 -150.0
-							 0 0 0 1" 
-				Date="2011.07.29 18:18:49"
-				Error="-1.0" />
 		</Geometry>
 	</PhantomDefinition>
 
+  <fCal NumberOfCalibrationImagesToAcquire="100">
+    <TrackerToolNames
+        Reference="Reference"
+        Probe="Probe"
+        Stylus="Stylus"
+        />
+  </fCal>
+  
 </PlusConfiguration>

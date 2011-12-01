@@ -11,7 +11,6 @@
           MorphologicalOpeningCircleRadiusMm="0.55"
           MorphologicalOpeningBarSizeMm="2.0"
 
-          
           RegionOfInterest="50 140 600 440"
 
           MaxLinePairDistanceErrorPercent="10.0"
@@ -70,15 +69,6 @@
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
-
-      <Registration
-        MatrixName="PhantomToPhantomReference" 
-        MatrixValue="1 0 0 0 
-               0 1 0 0 
-               0 0 1 0
-               0 0 0 1" 
-        Date="2011.05.17"
-        Error="0.0" />
     </Geometry>
 
     <CustomTransforms TemplateHolderToPhantomTransform="

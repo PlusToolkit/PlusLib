@@ -21,6 +21,7 @@ vtkFakeTracker::vtkFakeTracker()
   this->InternalTransform = vtkTransform::New();
   this->Mode = FakeTrackerMode_Undefined;
   this->Counter = -1;
+  this->TransformRepository = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -360,12 +361,12 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
       // create stationary position for reference (tool 0)
-      vtkSmartPointer<vtkTransform> trackerToReferenceToolTransform = vtkSmartPointer<vtkTransform>::New();
-      trackerToReferenceToolTransform->Identity();
-      trackerToReferenceToolTransform->Translate(300, 400, 700);
-      trackerToReferenceToolTransform->RotateZ(90);
+      vtkSmartPointer<vtkTransform> referenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
+      referenceToTrackerTransform->Identity();
+      referenceToTrackerTransform->Translate(300, 400, 700);
+      referenceToTrackerTransform->RotateZ(90);
 
-      this->ToolTimeStampedUpdate("Reference", trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
+      this->ToolTimeStampedUpdate("Reference", referenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
 
       // create random positions along a sphere (with built-in error)
       double exactRadius = 210.0;
@@ -382,21 +383,20 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       random->Next();
       double radius = random->GetRangeValue(exactRadius-variance, exactRadius+variance);
 
-      vtkSmartPointer<vtkTransform> trackerToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
-      trackerToStylusTipTransform->Identity();
-      trackerToStylusTipTransform->Translate(705.0, 505.0, 2605.0); // Some distance from the tracker (5 because of the error, the actual number is sometimes below, sometimes over the hundred and it is hard to read)
-      trackerToStylusTipTransform->RotateY(phi);
-      trackerToStylusTipTransform->RotateZ(theta);
-      trackerToStylusTipTransform->Translate(-radius, 0.0, 0.0);
+      vtkSmartPointer<vtkTransform> stylusToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+      stylusToReferenceTransform->Identity();
+      stylusToReferenceTransform->Translate(205.0, 305.0, 55.0); // Some distance from the reference
+      stylusToReferenceTransform->RotateY(phi);
+      stylusToReferenceTransform->RotateZ(theta);
+      stylusToReferenceTransform->Translate(-radius, 0.0, 0.0);
 
-      vtkSmartPointer<vtkTransform> referenceToolToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
-      referenceToolToStylusTipTransform->Identity();
-      trackerToReferenceToolTransform->Inverse();
-      referenceToolToStylusTipTransform->Concatenate(trackerToReferenceToolTransform);
-      referenceToolToStylusTipTransform->Concatenate(trackerToStylusTipTransform);
+      vtkSmartPointer<vtkTransform> stylusToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
+      stylusToTrackerTransform->Identity();
+      stylusToTrackerTransform->Concatenate(referenceToTrackerTransform);
+      stylusToTrackerTransform->Concatenate(stylusToReferenceTransform);
 
       random->Delete();
-      this->ToolTimeStampedUpdate("Stylus", referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
+      this->ToolTimeStampedUpdate("Stylus", stylusToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }
     break;
 
@@ -406,63 +406,78 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
       // create stationary position for phantom reference (tool 0)
-      vtkSmartPointer<vtkTransform> phantomReferenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomReferenceToTrackerTransform->Identity();
+      vtkSmartPointer<vtkTransform> referenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
+      referenceToTrackerTransform->Identity();
 
-      phantomReferenceToTrackerTransform->Translate(300, 400, 700);
-      phantomReferenceToTrackerTransform->RotateZ(90);
+      referenceToTrackerTransform->Translate(300, 400, 700);
+      referenceToTrackerTransform->RotateZ(90);
 
-      this->ToolTimeStampedUpdate("Reference", phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate("Reference", referenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);
 
       // touch landmark points
-      vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomToLandmarkTransform->Identity();
+      vtkSmartPointer<vtkTransform> landmarkToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
+      landmarkToPhantomTransform->Identity();
 
       // Translate to actual landmark point
       switch (this->Counter) { // TODO Read from xml?
-  case 0:
-    phantomToLandmarkTransform->Translate(95.0, 5.0, 15.0);
-    break;
-  case 1:
-    phantomToLandmarkTransform->Translate(95.0, 40.0, 15.0);
-    break;
-  case 2:
-    phantomToLandmarkTransform->Translate(95.0, 40.0, 0.0);
-    break;
-  case 3:
-    phantomToLandmarkTransform->Translate(95.0, 0.0, 0.0);
-    break;
-  case 4:
-    phantomToLandmarkTransform->Translate(-25.0, 40.0, 15.0);
-    break;
-  case 5:
-    phantomToLandmarkTransform->Translate(-25.0, 0.0, 10.0);
-    break;
-  case 6:
-    phantomToLandmarkTransform->Translate(-25.0, 0.0, 0.0);
-    break;
-  case 7:
-    phantomToLandmarkTransform->Translate(-25.0, 40.0, 0.0);
-    break;
+        case 0:
+          landmarkToPhantomTransform->Translate(95.0, 5.0, 15.0);
+          break;
+        case 1:
+          landmarkToPhantomTransform->Translate(95.0, 40.0, 15.0);
+          break;
+        case 2:
+          landmarkToPhantomTransform->Translate(95.0, 40.0, 0.0);
+          break;
+        case 3:
+          landmarkToPhantomTransform->Translate(95.0, 0.0, 0.0);
+          break;
+        case 4:
+          landmarkToPhantomTransform->Translate(-25.0, 40.0, 15.0);
+          break;
+        case 5:
+          landmarkToPhantomTransform->Translate(-25.0, 0.0, 10.0);
+          break;
+        case 6:
+          landmarkToPhantomTransform->Translate(-25.0, 0.0, 0.0);
+          break;
+        case 7:
+          landmarkToPhantomTransform->Translate(-25.0, 40.0, 0.0);
+          break;
+      }
+
+      // Get stylus calibration inverse transform
+      vtkSmartPointer<vtkTransform> stylusToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
+      stylusToStylusTipTransform->Identity();
+      if (this->TransformRepository)
+      {
+        vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+        PlusTransformName stylusToStylusTipTransformName("Stylus", "StylusTip");
+        bool valid(false); 
+        if ( this->TransformRepository->GetTransform(stylusToStylusTipTransformName, stylusToStylusTipTransformMatrix, &valid) == PLUS_SUCCESS )
+        {
+          stylusToStylusTipTransform->Concatenate(stylusToStylusTipTransformMatrix);
+        }
       }
 
       // Rotate to make motion visible even if the camera is reset every time
       if (this->Counter < 7) {
-        phantomToLandmarkTransform->RotateY(this->Counter * 5.0);
+        landmarkToPhantomTransform->RotateY(this->Counter * 5.0);
       } else {
-        phantomToLandmarkTransform->RotateY(180.0);
+        landmarkToPhantomTransform->RotateY(180.0);
       }
-      phantomToLandmarkTransform->RotateZ(this->Counter * 5.0);
+      landmarkToPhantomTransform->RotateZ(this->Counter * 5.0);
+      vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+      phantomToReferenceTransform->Identity();
+      phantomToReferenceTransform->Translate(-75, -50, -150);
 
-      vtkSmartPointer<vtkTransform> phantomReferenceToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomReferenceToPhantomTransform->Identity();
-      phantomReferenceToPhantomTransform->Translate(-75, -50, -150);
+      vtkSmartPointer<vtkTransform> stylusToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
+      stylusToTrackerTransform->Concatenate(referenceToTrackerTransform);
+      stylusToTrackerTransform->Concatenate(phantomToReferenceTransform);
+      stylusToTrackerTransform->Concatenate(landmarkToPhantomTransform);
+      stylusToTrackerTransform->Concatenate(stylusToStylusTipTransform); // Un-calibrate it
 
-      vtkSmartPointer<vtkTransform> phantomReferenceToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomReferenceToLandmarkTransform->Concatenate(phantomReferenceToPhantomTransform);
-      phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
-
-      this->ToolTimeStampedUpdate("Stylus", phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
+      this->ToolTimeStampedUpdate("Stylus", stylusToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }
     break;
 

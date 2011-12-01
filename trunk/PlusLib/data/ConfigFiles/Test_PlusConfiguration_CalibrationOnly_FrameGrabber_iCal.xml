@@ -85,15 +85,6 @@
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
-
-      <Registration
-          MatrixName="PhantomToPhantomReference" 
-          MatrixValue="1 0 0 0 
-        0 1 0 0 
-        0 0 1 0
-        0 0 0 1" 
-          Date=""
-          Error="0.0" />
     </Geometry>
 
     <CustomTransforms TemplateHolderToPhantomTransform="

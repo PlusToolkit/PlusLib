@@ -22,7 +22,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
             />
       </Tool>
 
-      <Tool Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111"/>
+      <Tool Name="Reference" PortName="1" SendTo="127.0.0.1:1111"/>
 
       <Tool Name="Stylus" PortName="2" Model="Example" SendTo="127.0.0.1:1112">
         <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
@@ -159,16 +159,6 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
-      <Registration
-          MatrixName="PhantomToPhantomReference" 
-          MatrixValue="
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" 
-          Date=""
-          Error="0.0" />
     </Geometry>
   </PhantomDefinition>
 
@@ -185,7 +175,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       MaxTimeSpentWithProcessingMs="70"
       >
     <TrackerToolNames
-        Reference="PhantomReference"
+        Reference="Reference"
         Probe="Probe"
         Stylus="Stylus"
         />
