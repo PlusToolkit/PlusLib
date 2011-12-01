@@ -189,7 +189,7 @@ int main (int argc, char* argv[])
   }
 
   // Save result
-  if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("StylusTip", stylusToolName, pivotCalibration->GetTooltipToToolTransform()->GetMatrix(), 
+  if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("StylusTip", stylusToolName, pivotCalibration->GetTooltipToToolTransformMatrix(), 
     pivotCalibration->GetCalibrationError(), vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to write pivot calibration result to config file!");
