@@ -123,8 +123,8 @@ public:
       ss << tool->GetToolName() << ": ";
 
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-LOG_INFO("TEMPORARY ISSUE: fix here too");
-PlusTransformName transformName(tool->GetToolName(), "Reference");
+
+      PlusTransformName transformName(tool->GetToolName(), this->DataCollector->GetTracker()->GetToolReferenceFrameName());
       if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, transformName)!=PLUS_SUCCESS)
       {
         ss << "failed to get transform\n";
