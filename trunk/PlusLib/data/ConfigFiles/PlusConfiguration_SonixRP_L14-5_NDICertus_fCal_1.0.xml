@@ -5,7 +5,7 @@
     <DeviceSet 
         Name="SonixRP L14-5 + NDI Certus" 
         Description="Configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0
-      The computer needs to be on the same local network as SonixTOUCH and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
+The computer needs to be on the same local network as SonixTOUCH and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
         />
 
     <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >

@@ -5,7 +5,7 @@
     <DeviceSet 
         Name="TEST Simulation mode for Stylus calibration"
         Description="No Video with Fake tracker in Pivot calibration mode
-      vtkStylusCalibrationTest uses this configuration" 
+vtkStylusCalibrationTest uses this configuration" 
         />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
