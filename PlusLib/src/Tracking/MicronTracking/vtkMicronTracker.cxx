@@ -792,7 +792,7 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
