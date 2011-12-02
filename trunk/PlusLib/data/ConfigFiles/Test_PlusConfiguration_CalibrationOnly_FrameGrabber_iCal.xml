@@ -12,6 +12,10 @@
     <Synchronization Type="None" />
   </DataCollection>
 
+  <CoordinateDefinitions>
+    <Transform From="Reference" To="Tracker" Matrix="1 0 0 0   0 1 0 0   0 0 0 1   0 0 0 1" Date="2011.12.02 11:50:00" />
+  </CoordinateDefinitions> 
+  
   <USCalibration>
     <CalibrationController>
       <ProbeCalibration />
@@ -61,10 +65,10 @@
     <Model
         File="?"
         ModelToPhantomTransform="
-      1 0 0 0.0
-      0 1 0 0.0
-      0 0 1 0.0
-      0 0 0 1"
+          1 0 0 0.0
+          0 1 0 0.0
+          0 0 1 0.0
+          0 0 0 1"
         />
 
     <Geometry>

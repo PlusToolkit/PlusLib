@@ -118,7 +118,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  // Read stylus calibration
+  // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
@@ -167,23 +167,20 @@ int main (int argc, char* argv[])
     transformRepository->SetTransforms(trackedFrame);
 
     bool valid(false); 
-    if ( transformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceMatrix, &valid) != PLUS_SUCCESS )
+    if ( (transformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
     {
       LOG_ERROR("No valid transform found between stylus tip to reference!");
       continue; 
     }
 
-    if (valid)
-    {
-      // Compute point position from matrix
-      double stylusTipPosition[3]={stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
-      
-      // Add recorded point to algorithm
-      phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
-      phantomRegistration->GetRecordedLandmarks()->Modified();
+    // Compute point position from matrix
+    double stylusTipPosition[3]={stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
+    
+    // Add recorded point to algorithm
+    phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
+    phantomRegistration->GetRecordedLandmarks()->Modified();
 
-      vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
-    }
+    vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
   }
 
   if (phantomRegistration->Register() != PLUS_SUCCESS)
