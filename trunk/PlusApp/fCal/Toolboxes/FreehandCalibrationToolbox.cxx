@@ -656,7 +656,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
     // TODO: read it from config file
     PlusTransformName transformNameForCalibration("Probe", "Tracker"); 
-    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, transformNameForCalibration, m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, transformNameForCalibration, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
       CancelSpatial();
