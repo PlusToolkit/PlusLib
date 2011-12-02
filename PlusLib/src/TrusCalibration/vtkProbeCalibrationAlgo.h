@@ -24,6 +24,7 @@ class vtkHTMLGenerator;
 class vtkGnuplotExecuter;
 class TrackedFrame; 
 class vtkTrackedFrameList; 
+class vtkTransformRepository;
 class vtkXMLDataElement; 
 struct NWire;
 
@@ -63,27 +64,30 @@ public:
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
+    \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
 	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
 	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
+    \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
     \param trackedFrame The actual tracked frame (already segmented) to add for calibration or validation
     \param defaultTransformName Transform name to be used to get the tracked position
+    \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires, bool isValidation );
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation );
 	
 	/*! Get Phantom to Reference transform */
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);

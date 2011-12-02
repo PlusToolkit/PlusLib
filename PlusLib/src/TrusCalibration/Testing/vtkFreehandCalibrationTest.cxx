@@ -24,6 +24,7 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtkMath.h"
 #include "vtkTrackedFrameList.h"
 
@@ -82,7 +83,7 @@ int main (int argc, char* argv[])
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
@@ -93,34 +94,34 @@ int main (int argc, char* argv[])
   if (fCalElement == NULL)
   {
     LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
   if (trackerToolNames == NULL)
   {
     LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
   const char* probeToolName = trackerToolNames->GetAttribute("Probe");
   if (probeToolName == NULL)
   {
     LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
   const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
   if (referenceToolName == NULL)
   {
     LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
-  // Read phantom registration
+  // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -129,6 +130,7 @@ int main (int argc, char* argv[])
   if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     LOG_ERROR("No valid transform found between phantom to reference!");
+    return EXIT_FAILURE;
   }
 
   vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
@@ -181,7 +183,7 @@ int main (int argc, char* argv[])
   PlusTransformName probeToReferenceTransformName(probeToolName, referenceToolName);
 
   // Calibrate
-  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
     return EXIT_FAILURE;

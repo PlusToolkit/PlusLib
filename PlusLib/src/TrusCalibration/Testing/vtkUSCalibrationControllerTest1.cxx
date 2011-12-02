@@ -23,6 +23,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtkMath.h"
 #include "vtkPlusConfig.h"
 
@@ -156,7 +157,15 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
-	// Register phantom geometry before calibration 
+  // Read coordinate definitions
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read CoordinateDefinitions!"); 
+    return EXIT_FAILURE; 
+  }
+
+  // Register phantom geometry before calibration 
 	probeCal->SetPhantomToReferenceTransform( tPhantomToReference ); 
   
   // TODO: remove these transforms from vtkProbeCalibrationAlgo
@@ -203,7 +212,7 @@ int main (int argc, char* argv[])
   }
 
   // Calibrate
-  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
 		return EXIT_FAILURE;

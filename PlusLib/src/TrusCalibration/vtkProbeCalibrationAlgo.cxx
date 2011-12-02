@@ -34,6 +34,7 @@
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
@@ -180,16 +181,16 @@ PlusStatus vtkProbeCalibrationAlgo::Initialize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
 
-  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName, nWires);
+  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName, transformRepository, nWires);
 }
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
@@ -231,7 +232,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
-    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, nWires, true) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, transformRepository, nWires, true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
@@ -241,7 +242,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
-    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, nWires, false) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, transformRepository, nWires, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
       continue;
@@ -260,7 +261,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires, bool isValidation )
+PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
@@ -292,14 +293,16 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
   }
 
   // Assemble matrices and add them to the calibration input
-  double probeToReferenceTransformVector[16]; 
-  if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, probeToReferenceTransformVector) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  transformRepository->SetTransforms(*trackedFrame); 
+  bool valid(false); 
+  if ( (transformRepository->GetTransform(defaultTransformName, probeToReferenceVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformName; 
     defaultTransformName.GetTransformName(transformName); 
     LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
     return PLUS_FAIL;
-  }
+  } 
 
   // Convert segmented points to vnl
 	std::vector<vnl_vector<double>> segmentedPoints;
@@ -323,11 +326,8 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 	vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
   PlusMath::ConvertVtkMatrixToVnlMatrix(this->PhantomToReferenceTransform->GetMatrix(), phantomToReferenceTransformMatrix);
 
-  // Get reference to probe transform
-  vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  probeToReferenceVtkTransformMatrix->DeepCopy(probeToReferenceTransformVector); 
+  // Get reference to probe transform in vnl
   vnl_matrix<double> probeToReferenceTransformMatrix(4,4);
-
   PlusMath::ConvertVtkMatrixToVnlMatrix(probeToReferenceVtkTransformMatrix, probeToReferenceTransformMatrix); 
 
   vnl_matrix_inverse<double> inverseMatrix(probeToReferenceTransformMatrix);
