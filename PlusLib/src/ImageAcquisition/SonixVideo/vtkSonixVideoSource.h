@@ -244,6 +244,9 @@ public:
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters();
 
+  /*! Get the displayed frame rate. */
+  PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &FrameRate);
+
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();

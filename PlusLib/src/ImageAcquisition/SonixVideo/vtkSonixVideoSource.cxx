@@ -839,3 +839,22 @@ PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters()
   }
   return PLUS_SUCCESS;
 }
+
+PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &FrameRate)
+{
+  if (!this->UlteriusConnected)
+  {
+    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: not connected");
+    return PLUS_FAIL;
+  }
+  
+  char *paramId = "frame rate";
+  
+  if ( !this->Ult.getParamValue(paramId, FrameRate) )
+  {
+	 LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
+	 return PLUS_FAIL;
+  }
+  
+  return PLUS_SUCCESS;
+}
