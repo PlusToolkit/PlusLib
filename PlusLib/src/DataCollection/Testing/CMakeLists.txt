@@ -55,7 +55,7 @@ ADD_TEST(vtkDataCollectorSynchronizerTest1
   ) 
 SET_TESTS_PROPERTIES( vtkDataCollectorSynchronizerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
- #***************************  vtkDataCollectorTest2 ***************************
+#***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest2 
@@ -68,7 +68,7 @@ ADD_TEST(vtkDataCollectorTest2
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
- #***************************  vtkDataCollectorTrackingTest ***************************
+#***************************  vtkDataCollectorTrackingTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorTrackingTest vtkDataCollectorTrackingTest.cxx vtkToolAxesActor.cxx )
 TARGET_LINK_LIBRARIES(vtkDataCollectorTrackingTest vtkDataCollection )
 # ADD_TEST(vtkDataCollectorTrackingTest 
@@ -124,6 +124,7 @@ IF (PLUS_USE_OpenIGTLink )
 ENDIF (PLUS_USE_OpenIGTLink )
 
 
+#***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE( ReplayRecordedDataTest
   ReplayRecordedDataTest.cxx
   )
@@ -140,3 +141,12 @@ SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 #***************************  LineDetectionTest ***************************
 ADD_EXECUTABLE( LineDetectionTest LineDetectionTest.cxx )
 TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition)
+
+#***************************  vtkDataCollectorFileTest ***************************
+ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
+TARGET_LINK_LIBRARIES(vtkDataCollectorFileTest vtkDataCollection )
+ADD_TEST(vtkDataCollectorFileTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorFileTest
+  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_File.xml 
+  )
+SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

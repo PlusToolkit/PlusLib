@@ -386,7 +386,8 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
   else // Compute the corresponding valid timestamp if replay enabled
   {
     double loopTime = this->LastTimestamp - this->FirstTimestamp;
-    aTimestamp = this->FirstTimestamp + fmod(aTimestamp, loopTime); 
+    double elapsedTime = aTimestamp - this->FirstTimestamp;
+    aTimestamp = this->FirstTimestamp + fmod(elapsedTime, loopTime); 
   }
 
   // Start searching from last accessed tracked frame
