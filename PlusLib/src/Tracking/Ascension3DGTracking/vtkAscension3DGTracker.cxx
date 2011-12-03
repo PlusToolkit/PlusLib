@@ -270,63 +270,10 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
 
   // Set up reference matrix.
 
-  bool saturated, attached, inMotionBox;
-  bool transmitterRunning, transmitterAttached, globalError;
+  bool saturated(false), attached(false), inMotionBox(false);
+  bool transmitterRunning(false), transmitterAttached(false), globalError(false);
 
   ToolStatus toolStatus = TOOL_OK;
-  vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-  mTrackerToReference->Identity();
-
-  vtkTrackerTool * referenceTool = NULL; 
-  this->GetTool("Reference", referenceTool); 
-  int referenceToolPort(-1); 
-
-  if ( referenceTool )
-  {
-    std::stringstream convert(referenceTool->GetPortName());
-    if ( ! (convert >> referenceToolPort ) )
-    {
-      LOG_ERROR("Failed to convert tool '" << referenceTool->GetToolName() << "' port name '" << referenceTool->GetPortName() << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
-    }
-
-    atc::DEVICE_STATUS status = atc::GetSensorStatus( referenceToolPort );
-
-    saturated = status & SATURATED;
-    attached = ! ( status & NOT_ATTACHED );
-    inMotionBox = ! ( status & OUT_OF_MOTIONBOX );
-    transmitterRunning = !( status & NO_TRANSMITTER_RUNNING );
-    transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
-    globalError = status & GLOBAL_ERROR;
-
-    if ( ! attached )
-    {
-      toolStatus = TOOL_MISSING;
-    }
-    else if ( ! inMotionBox )
-    {
-      toolStatus = TOOL_OUT_OF_VIEW;
-    }
-    else
-    {
-      for ( int row = 0; row < 3; ++ row )
-      {
-        for ( int col = 0; col < 3; ++ col )
-        {
-          mTrackerToReference->SetElement( row, col, record[ referenceToolPort ].s[ row ][ col ] );
-        }
-      }
-
-      mTrackerToReference->Invert();
-
-      mTrackerToReference->SetElement( 0, 3, record[ referenceToolPort ].x );
-      mTrackerToReference->SetElement( 1, 3, record[ referenceToolPort ].y );
-      mTrackerToReference->SetElement( 2, 3, record[ referenceToolPort ].z );
-
-    }
-    mTrackerToReference->Invert();
-  }
-
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   int numberOfErrors(0); 
 
@@ -362,44 +309,24 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     mToolToTracker->SetElement( 1, 3, record[ sensorIndex ].y );
     mToolToTracker->SetElement( 2, 3, record[ sensorIndex ].z );
 
-
     if ( ! attached ) toolStatus = TOOL_MISSING;
     if ( ! inMotionBox ) toolStatus = TOOL_OUT_OF_VIEW;
-
-
-    // Apply reference to get Tool-to-Reference.
-
-    vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-    
     
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
-    vtkTrackerTool * tool = NULL;
 
+    vtkTrackerTool * tool = NULL;
     if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 
       numberOfErrors++; 
       continue; 
     }
-    
-    if ( referenceToolPort >= 0 && sensorIndex != referenceToolPort )
-    {
-      vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, toolStatus, this->FrameNumber, unfilteredTimestamp);
-    }
-    else
-    {
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, this->FrameNumber, unfilteredTimestamp);
-    }
+          
+    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, this->FrameNumber, unfilteredTimestamp);
   }
 
-  if ( numberOfErrors > 0 )
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);
 }
 
 //-------------------------------------------------------------------------

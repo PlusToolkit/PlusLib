@@ -342,7 +342,6 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
   int missing[VTK_CERTUS_NTOOLS];
   long statusFlags[VTK_CERTUS_NTOOLS];
   double transform[VTK_CERTUS_NTOOLS][8];
-  double *referenceTransform = 0;
 
   if (!this->Tracking)
   {
@@ -419,12 +418,6 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
   delete [] rigidBodyData;
 
-  // get reference tool transform
-  if (this->GetReferenceToolNumber() >= 0)
-  { 
-    referenceTransform = transform[this->GetReferenceToolNumber()];
-  }
-
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
@@ -438,24 +431,6 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
       this->InternalSetToolLED(tool, 0, VLEDST_BLINK); 
     }
 
-    // if tracking relative to another tool
-    if (this->GetReferenceToolNumber() >= 0 && tool != this->GetReferenceToolNumber())
-    {
-      if ( statusFlags[this->GetReferenceToolNumber()] & OPTOTRAK_UNDETERMINED_FLAG ) 
-      {
-        status = TOOL_OUT_OF_VIEW;
-        this->InternalSetToolLED(tool, 0, VLEDST_BLINK);
-      }
-
-      for (std::map<int, int>::iterator it = this->RigidBodyMap.begin(); it != this->RigidBodyMap.end(); it++)
-      {
-        if ( it->second == tool )
-        {
-          // pre-multiply transform by inverse of relative tool transform
-          ndiRelativeTransform(transform[tool],referenceTransform,transform[tool]);
-        }
-      }
-    }
     ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
     this->SendMatrix->Transpose();
 
@@ -478,7 +453,6 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
 //----------------------------------------------------------------------------
 // Enable all tool ports that have tools plugged into them.
-// The reference port is enabled with NDI_STATIC.
 PlusStatus vtkNDICertusTracker::EnableToolPorts()
 {
   int toolCounter = 0;
@@ -884,25 +858,5 @@ PlusStatus vtkNDICertusTracker::InternalSetToolLED(int portNumber, int led, int 
   }
 
   return PLUS_FAIL;
-}
-
-
-//-----------------------------------------------------------------------------
-// TODO: temporary solution remove it when we can check the reference transform names
-int vtkNDICertusTracker::GetReferenceToolNumber()
-{
-  int portNumber(-1); 
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-  {
-    if ( STRCASECMP(it->first.c_str(), "Reference") == 0 )
-    {
-      if ( PlusCommon::StringToInt(it->second->GetPortName(), portNumber) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to convert " << it->second->GetPortName() << " to integer!"); 
-        return (-1); 
-      }
-    }
-  }
-  return portNumber;
 }
 
