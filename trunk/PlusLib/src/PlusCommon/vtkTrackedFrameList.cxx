@@ -272,7 +272,7 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-  TrackerStatus status = TR_MISSING;
+  TrackedFrameFieldStatus status = FIELD_INVALID;
   std::string transformName; 
   if ( this->FrameTransformNameForValidation.GetTransformName(transformName) != PLUS_SUCCESS )
   {
@@ -281,9 +281,9 @@ bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
   }
 
   std::string toolStatusFrameFieldName = transformName + std::string("Status");
-  status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+  status = TrackedFrame::ConvertFieldStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
 
-  if ( status != TR_OK )
+  if ( status != FIELD_OK )
   {
     LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << transformName); 
     return false;

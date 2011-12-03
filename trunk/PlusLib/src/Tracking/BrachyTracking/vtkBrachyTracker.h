@@ -10,6 +10,8 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
 #include "BrachyStepper.h" 
+#include "vtkTracker.h"
+#include "vtkTimestampedCircularBuffer.h"
 
 class vtkTransform;
 class TrackedFrame; 
@@ -66,31 +68,31 @@ public:
   virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
 
   /*! Get stepper encoder values from the buffer by UID */
-  PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
+  PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
 
   /*! Get latest stepper encoder values from the buffer */
-  PlusStatus GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
+  PlusStatus GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
 
   /*! Get stepper encoder values in a particular timestamp */
-  PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
+  PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
 
   /*! Get probe home to probe transform from the buffer by UID */
-  PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status); 
+  PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus &status); 
 
   /*! Get probe home to probe transform in a particular timestamp */
-  PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status); 
+  PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus &status); 
 
   /*! Get template home to template transform from the buffer by UID */
-  PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status); 
+  PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus &status); 
 
   /*! Get template home to template transform in a particular timestamp */
-  PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status);
+  PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus &status);
 
   /*! Get raw encoder values transform from the buffer */
-  PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status ); 
+  PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status ); 
 
   /*! Get raw encoder values transform in a particular timestamp */
-  PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status); 
+  PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status); 
 
   /*! Get stepper encoder values from the tracked frame */
   static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition, PlusTransformName& defaultTransformName); 

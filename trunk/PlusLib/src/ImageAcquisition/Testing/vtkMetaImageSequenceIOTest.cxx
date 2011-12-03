@@ -184,6 +184,89 @@ int main(int argc, char **argv)
 		
 	}
 
+  // ****************************************************************************** 
+  // Test image status 
+
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  matrix->SetElement(0,3, -50); 
+  matrix->SetElement(0,3, 150); 
+
+  vtkSmartPointer<vtkTrackedFrameList> dummyTrackedFrame = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  TrackedFrame validFrame; 
+  int frameSize[2]={200,200}; 
+  validFrame.GetImageData()->AllocateFrame(frameSize, itk::ImageIOBase::UCHAR); 
+  validFrame.GetImageData()->FillBlank(); 
+  validFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
+  validFrame.SetCustomFrameField("FrameNumber", "0"); 
+  validFrame.SetTimestamp(1.0); 
+
+  TrackedFrame invalidFrame; 
+  invalidFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
+  invalidFrame.SetCustomFrameField("FrameNumber", "1"); 
+  invalidFrame.SetTimestamp(2.0); 
+
+  TrackedFrame validFrame_copy(validFrame); 
+  validFrame_copy.SetTimestamp(3.0); 
+  validFrame_copy.SetCustomFrameField("FrameNumber", "3"); 
+  
+  dummyTrackedFrame->AddTrackedFrame(&validFrame); 
+  dummyTrackedFrame->AddTrackedFrame(&invalidFrame); 
+  dummyTrackedFrame->AddTrackedFrame(&validFrame_copy); 
+
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+	writerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
+	writerImageStatus->SetTrackedFrameList(dummyTrackedFrame); 
+	writerImageStatus->UseCompressionOn();
+
+  if (writerImageStatus->Write()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't write sequence metafile: " <<  writerImageStatus->GetFileName() ); 
+    return EXIT_FAILURE;
+  }	
+
+  vtkSmartPointer<vtkMetaImageSequenceIO> readerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+	readerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
+	if (readerImageStatus->Read()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't read sequence metafile: " <<  outputImageSequenceFileName ); 
+  	return EXIT_FAILURE;
+	}		
+  vtkTrackedFrameList* trackedFrameListImageStatus=readerImageStatus->GetTrackedFrameList();
+  if (trackedFrameListImageStatus==NULL)
+	{
+		LOG_ERROR("Unable to get trackedFrameList!"); 
+		return EXIT_FAILURE;
+	}
+  
+  if ( trackedFrameListImageStatus->GetNumberOfTrackedFrames() != 3  
+    && !trackedFrameListImageStatus->GetTrackedFrame(1)->GetImageData()->IsImageValid() )
+  {
+    LOG_ERROR("Image status read/write failed!"); 
+		return EXIT_FAILURE;
+  }
+
+  // Test metafile writting with different sized images 
+
+  TrackedFrame differentSizeFrame; 
+  int frameSizeSmaller[2]={150,150}; 
+  differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, itk::ImageIOBase::UCHAR); 
+  differentSizeFrame.GetImageData()->FillBlank(); 
+  differentSizeFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
+  differentSizeFrame.SetCustomFrameField("FrameNumber", "6"); 
+  differentSizeFrame.SetTimestamp(6.0); 
+  dummyTrackedFrame->AddTrackedFrame(&differentSizeFrame); 
+
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerDiffSize=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+	writerDiffSize->SetFileName(outputImageSequenceFileName.c_str());
+	writerDiffSize->SetTrackedFrameList(dummyTrackedFrame); 
+	writerDiffSize->UseCompressionOff();
+
+  if (writerDiffSize->Write()==PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Metafile writting with different sized frames not yet implemented, expected failed return status!" ); 
+    return EXIT_FAILURE;
+  }
+
 	if ( numberOfFailures > 0 )
 	{
 		LOG_ERROR("Total number of failures: " << numberOfFailures ); 

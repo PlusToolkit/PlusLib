@@ -5,8 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
-  It can also broadcast the acquired data through OpenIGTLink.
+\file This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
+It can also broadcast the acquired data through OpenIGTLink.
 */ 
 
 #include "PlusConfigure.h"
@@ -27,6 +27,7 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
 #include "vtkTrackerTool.h"
+#include "TrackedFrame.h" 
 
 PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector); 
 PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster); 
@@ -38,47 +39,29 @@ public:
   {return new vtkMyCallback;}
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
-    TrackerStatus status = TR_OK; 
-    double synchronizedTime(0); 
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-    if ( !ToolName.empty() )
-    {
-      if ( this->DataCollector->GetTracker()->GetToolIteratorBegin() == this->DataCollector->GetTracker()->GetToolIteratorEnd() )
-      {
-        LOG_ERROR("There is no active tool!"); 
-        return; 
-      }
-
-      // Use the first active tool 
-      ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
-    }
-
-    PlusTransformName transformName(ToolName.c_str(), this->DataCollector->GetTracker()->GetToolReferenceFrameName());
-    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, transformName) == PLUS_SUCCESS )
-    {
-      this->Viewer->SetInput(this->RealtimeImage); 
-      this->Viewer->Modified(); 
-    }
-    else
+    TrackedFrame trackedFrame; 
+    if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to get tracked frame!"); 
       return; 
+    }
+
+    if ( trackedFrame.GetImageData()->IsImageValid() )
+    {
+      // Display image if it's valid
+      this->Viewer->SetInput(trackedFrame.GetImageData()->GetVtkImage()); 
+      this->Viewer->Modified(); 
     }
 
     std::ostringstream ss;
     ss.precision( 2 ); 
     if ( this->DataCollector->GetTracker()->IsTracking())
     {
-      if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
-      {
-        ss	<< "Tracker out of view..."; 
-      }
-      else if ( status == TR_REQ_TIMEOUT ) 
-      {
-        ss	<< "Tracker request timeout..."; 
-      }
-      else
+      TrackedFrameFieldStatus status; 
+      if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
+        && status == FIELD_OK )
       {
         ss	<< std::fixed 
           << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
@@ -86,10 +69,16 @@ public:
           << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
           << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
       }
+      else
+      {
+        std::string strTransformName; 
+        TransformName.GetTransformName(strTransformName); 
+        ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
+      }
     }
     else
     {
-      ss << "Unable to connect to tracker...";		
+      ss << "No tracker connected...";		
     }
 
     this->StepperTextActor->SetInput(ss.str().c_str());
@@ -107,9 +96,8 @@ public:
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
-  vtkImageData* RealtimeImage; 
   vtkOpenIGTLinkBroadcaster* Broadcaster;
-  std::string ToolName; 
+  PlusTransformName TransformName; 
 };
 
 int main(int argc, char **argv)
@@ -119,6 +107,7 @@ int main(int argc, char **argv)
   bool renderingOff(false);
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
+  std::string inputTransformName; 
   bool inputReplay(false); 
   bool inputEnableBroadcasting(false); 
 
@@ -130,10 +119,12 @@ int main(int argc, char **argv)
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
   args.AddArgument("--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferMetafile, "Video buffer sequence metafile.");
   args.AddArgument("--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Name of the transform displayed.");
+  
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
   args.AddArgument("--enable-broadcasting", vtksys::CommandLineArguments::NO_ARGUMENT, &inputEnableBroadcasting, "Enable OpenIGTLink broadcasting." );
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
   {
@@ -221,15 +212,7 @@ int main(int argc, char **argv)
   else
   {
 
-    int * frameSize = dataCollectorHardwareDevice->GetVideoSource()->GetFrameSize(); 
-    vtkSmartPointer<vtkImageData> realtimeImage = vtkSmartPointer<vtkImageData>::New(); 
-    realtimeImage->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0); 
-    realtimeImage->SetNumberOfScalarComponents(1); 
-    realtimeImage->SetScalarTypeToUnsignedChar(); 
-    realtimeImage->AllocateScalars();
-
     vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-    viewer->SetInput(realtimeImage);   //set image to the render and window
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
     viewer->SetZSlice(0);
@@ -260,8 +243,16 @@ int main(int argc, char **argv)
     call->Viewer=viewer;
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor; 
-    call->RealtimeImage=realtimeImage; 
     call->Broadcaster=broadcaster;
+    
+    if ( !inputTransformName.empty() )
+    {
+      if (call->TransformName.SetTransformName( inputTransformName.c_str() ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Transform name '"<<inputTransformName<<"' is invalid!"); 
+        return EXIT_FAILURE; 
+      }
+    }
 
     iren->AddObserver(vtkCommand::TimerEvent, call);
     iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0

@@ -94,6 +94,9 @@ protected:
   virtual ~vtkMetaImageSequenceIO();
 
   PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
+
+  /*! Delete custom frame field from tracked frame */
+  PlusStatus DeleteCustomFrameString(int frameNumber, const char* fieldName); 
   
   bool SetCustomString(const char* fieldName, const char* fieldValue);
   const char* GetCustomString(const char* fieldName);
@@ -111,6 +114,9 @@ protected:
   virtual PlusStatus WriteImagePixels();
 
   virtual void CreateTrackedFrameIfNonExisting(int frameNumber);
+  
+  /*! Get the largest possible image size in the tracked frame list */
+  virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
 
   //! Set file name for storing the pixel data
   vtkSetStringMacro(PixelDataFileName); 

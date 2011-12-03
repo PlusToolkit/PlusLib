@@ -249,6 +249,15 @@ public:
   /*! Get the size of a scalar pixel in bytes */
   static int GetNumberOfBytesPerPixel(PlusCommon::ITKScalarPixelType pixelType);
 
+  /*! Return true if the image data is valid (e.g. not NULL) */
+  bool IsImageValid()
+  {
+    return (!this->ItkImage.IsNull()); 
+  }
+
+  /*! Fill the actual image data with black pixels (0) */
+  PlusStatus FillBlank(); 
+
 protected:
   /*! 
     Connect ITK and VTK pipelines 

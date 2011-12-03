@@ -11,6 +11,7 @@
 #include "vtkObject.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTimestampedCircularBuffer.h"
+#include "vtkTracker.h"
 
 class vtkTrackedFrameList;
 class TrackedFrame; 
@@ -38,13 +39,13 @@ public:
   PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
 
   /*! Set tracker item status */
-  void SetStatus(TrackerStatus status) { this->Status = status; }  
+  void SetStatus(ToolStatus status) { this->Status = status; }  
   /*! Get tracker item status */
-  TrackerStatus GetStatus() const { return this->Status; }
+  ToolStatus GetStatus() const { return this->Status; }
 
 protected:
   vtkSmartPointer<vtkMatrix4x4> Matrix;
-  TrackerStatus Status;       
+  ToolStatus Status;       
 }; 
 
 /*!
@@ -90,8 +91,8 @@ public:
   int GetNumberOfItems() { return this->TrackerBuffer->GetNumberOfItems(); };
 
   /*! Add a matrix plus status to the list.  If the timestamp is less than or equal to the previous timestamp, then nothing  will be done. */
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp);
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
 
   /*! Get tracker item from buffer.  */
   virtual ItemStatus GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem);

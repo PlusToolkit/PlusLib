@@ -27,7 +27,7 @@ vtkStandardNewMacro(vtkTrackerBuffer);
 TrackerBufferItem::TrackerBufferItem()
 {
   this->Matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->Status = TR_OK; 
+  this->Status = TOOL_OK; 
 }
 
 //----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ TrackerBufferItem::~TrackerBufferItem()
 TrackerBufferItem::TrackerBufferItem(const TrackerBufferItem &trackerBufferItem)
 {
   this->Matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->Status = TR_OK; 
+  this->Status = TOOL_OK; 
   *this = trackerBufferItem; 
 }
 
@@ -189,7 +189,7 @@ PlusStatus vtkTrackerBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp)
+PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp)
 {
   double filteredTimestamp(0); 
   bool filteredTimestampProbablyValid=true;
@@ -208,7 +208,7 @@ PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerSta
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp)
+PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp)
 {
 
   if ( matrix  == NULL )
@@ -333,7 +333,7 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
   }
 
   // If tracker is out of view, etc. then we don't have a valid before and after the requested time, so we cannot do interpolation
-  if (itemA.GetStatus()!=TR_OK)
+  if (itemA.GetStatus()!=TOOL_OK)
   {
     // tracker is out of view, ...
     LOG_DEBUG("vtkTrackerBuffer: Cannot do tracker data interpolation. The closest item to the requested time (time: " << std::fixed << time <<", uid: "<<itemAuid<<") is invalid.");
@@ -404,7 +404,7 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
     return PLUS_FAIL;
   }
   // If there is no valid element on the other side of the requested time, then we cannot do an interpolation
-  if ( itemB.GetStatus() != TR_OK )
+  if ( itemB.GetStatus() != TOOL_OK )
   {
     LOG_DEBUG("vtkTrackerBuffer: Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed << time <<")");
     return PLUS_FAIL;
@@ -503,7 +503,7 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
       LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time << ")" ); 
       return status;
     }
-    bufferItem->SetStatus(TR_MISSING); // if we return at any point due to an error then it means that the interpolation is not successful, so the item is missing
+    bufferItem->SetStatus(TOOL_MISSING); // if we return at any point due to an error then it means that the interpolation is not successful, so the item is missing
     return ITEM_OK;
   }
 
@@ -666,7 +666,12 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
     if ( strTimestamp != NULL )
     {
-      timestamp = atof(strTimestamp); 
+      if ( PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp)
+      {
+        LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double"); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireTimestamp)
     {
@@ -680,7 +685,12 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
     if ( strUnfilteredTimestamp != NULL )
     {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+      if ( PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp)
+      {
+        LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double"); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireUnfilteredTimestamp)
     {
@@ -690,11 +700,11 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     }
 
     // read status
-    TrackerStatus status = TR_OK;
-    if ( sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS
+    TrackedFrameFieldStatus transformStatus = FIELD_OK;
+    if ( sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransformStatus(transformName, transformStatus) != PLUS_SUCCESS
       && requireFrameStatus )
     {
-      LOG_ERROR("Unable to read Status field of frame #" << frameNumber); 
+      LOG_ERROR("Unable to read TransformStatus field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -704,7 +714,12 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     unsigned long frmnum(0); 
     if ( strFrameNumber != NULL )
     {
-      frmnum = atol(strFrameNumber);
+      if ( PlusCommon::StringToLong(strFrameNumber, frmnum) != PLUS_SUCCESS && requireFrameNumber )
+      {
+        LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireFrameNumber)
     {
@@ -723,19 +738,26 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
       continue; 
     }
 
+    // convert tracked frame field status to tool status 
+    ToolStatus toolStatus = TOOL_MISSING; 
+    if ( transformStatus == FIELD_OK )
+    {
+      toolStatus = TOOL_OK; 
+    }
+
     vtkSmartPointer<vtkMatrix4x4> copiedTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     copiedTransformMatrix->DeepCopy(copiedTransform); 
 
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp, timestamp); 
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, unfilteredtimestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp); 
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, timestamp, timestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, timestamp, timestamp); 
       break;
     default:
       break;

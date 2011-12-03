@@ -53,7 +53,7 @@ void PrintActualTransforms( vtkDataCollector* dataCollector, const char * aToolN
   if ( dataCollector->GetTracker()->IsTracking() )
   {
     double timestamp( 0 ); 
-    TrackerStatus status = TR_OK;
+    toolStatus status = TOOL_OK;
     if ( dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, aToolName) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get transform with timestamp!"); 
@@ -62,11 +62,11 @@ void PrintActualTransforms( vtkDataCollector* dataCollector, const char * aToolN
     
     ss << "Timestamp: " << timestamp << std::endl;
     
-    if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
+    if ( status == TOOL_MISSING || status == TOOL_OUT_OF_VIEW ) 
     {
       ss  << "Tracker out of view..." << std::endl; 
     }
-    else if ( status == TR_REQ_TIMEOUT ) 
+    else if ( status == TOOL_REQ_TIMEOUT ) 
     {
       ss  << "Tracker request timeout..." << std::endl; 
     }

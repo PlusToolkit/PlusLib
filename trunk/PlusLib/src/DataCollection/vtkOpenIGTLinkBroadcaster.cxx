@@ -240,7 +240,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
   for ( int igtIndex = 0; igtIndex < this->NonReferenceToolInfos.size(); ++ igtIndex )
   {
 
-    // TrackerStatus status = TR_OK;
+    // TrackerStatus status = TOOL_OK;
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
 
     std::string toolPortName = this->NonReferenceToolInfos[ igtIndex ].TrackerPortName;
@@ -272,10 +272,10 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     }
 
 
-    TrackerStatus status = TR_MISSING;
+    TrackerStatus status = TOOL_MISSING;
     trackedFrame.GetCustomFrameTransformStatus(toolTransformName, status); 
 
-		if ( status != TR_OK )
+		if ( status != TOOL_OK )
     {
       LOG_INFO( "Tracking data invalid for tool: " << toolName );
       continue;
@@ -369,7 +369,7 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   // vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
   // double timestamp = 0.0;
   double timestamp = trackedFrame->GetTimestamp();
-  // TrackerStatus status = TR_OK;
+  // TrackerStatus status = TOOL_OK;
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   // PlusStatus pStatus = dataCollectorHardwareDevice->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 

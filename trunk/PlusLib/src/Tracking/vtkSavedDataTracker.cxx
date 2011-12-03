@@ -266,10 +266,10 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     }
 
     // Get flags
-    TrackerStatus trackerStatus = bufferItem.GetStatus(); 
+    ToolStatus toolStatus = bufferItem.GetStatus(); 
 
     // send the transformation matrix and flags to the tool
-    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, trackerStatus, this->FrameNumber, unfilteredTimestamp)!=PLUS_SUCCESS)
+    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, this->FrameNumber, unfilteredTimestamp)!=PLUS_SUCCESS)
     {
       numOfErrors++;
     }

@@ -430,11 +430,11 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
   for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
   {
     // convert status flags from Optotrak format to vtkTracker format
-    TrackerStatus status = TR_OK;
+    ToolStatus status = TOOL_OK;
     this->InternalSetToolLED(tool, 0, VLEDST_ON);
     if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
     {
-      status = TR_MISSING;
+      status = TOOL_MISSING;
       this->InternalSetToolLED(tool, 0, VLEDST_BLINK); 
     }
 
@@ -443,7 +443,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
     {
       if ( statusFlags[this->GetReferenceToolNumber()] & OPTOTRAK_UNDETERMINED_FLAG ) 
       {
-        status = TR_OUT_OF_VIEW;
+        status = TOOL_OUT_OF_VIEW;
         this->InternalSetToolLED(tool, 0, VLEDST_BLINK);
       }
 
@@ -896,7 +896,11 @@ int vtkNDICertusTracker::GetReferenceToolNumber()
   {
     if ( STRCASECMP(it->first.c_str(), "Reference") == 0 )
     {
-      portNumber = atoi(it->second->GetPortName()); 
+      if ( PlusCommon::StringToInt(it->second->GetPortName(), portNumber) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to convert " << it->second->GetPortName() << " to integer!"); 
+        return (-1); 
+      }
     }
   }
   return portNumber;

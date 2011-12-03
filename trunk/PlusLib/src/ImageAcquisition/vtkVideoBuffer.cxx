@@ -561,7 +561,12 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
     const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
     if ( strTimestamp != NULL )
     {
-      timestamp = atof(strTimestamp); 
+      if ( PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp )
+      {
+        LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double for frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireTimestamp)
     {
@@ -575,7 +580,12 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
     const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
     if ( strUnfilteredTimestamp != NULL )
     {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+      if ( PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp )
+      {
+        LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double for frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireUnfilteredTimestamp)
     {
@@ -589,7 +599,12 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
     unsigned long frmnum(0); 
     if ( strFrameNumber != NULL )
     {
-      frmnum = atol(strFrameNumber);
+      if ( PlusCommon::StringToLong(strFrameNumber, frmnum) != PLUS_SUCCESS && requireFrameNumber )
+      {
+        LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
     else if (requireFrameNumber)
     {

@@ -273,7 +273,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
   bool saturated, attached, inMotionBox;
   bool transmitterRunning, transmitterAttached, globalError;
 
-  TrackerStatus trackerStatus = TR_OK;
+  ToolStatus toolStatus = TOOL_OK;
   vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mTrackerToReference->Identity();
 
@@ -301,11 +301,11 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
 
     if ( ! attached )
     {
-      trackerStatus = TR_MISSING;
+      toolStatus = TOOL_MISSING;
     }
     else if ( ! inMotionBox )
     {
-      trackerStatus = TR_OUT_OF_VIEW;
+      toolStatus = TOOL_OUT_OF_VIEW;
     }
     else
     {
@@ -363,8 +363,8 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     mToolToTracker->SetElement( 2, 3, record[ sensorIndex ].z );
 
 
-    if ( ! attached ) trackerStatus = TR_MISSING;
-    if ( ! inMotionBox ) trackerStatus = TR_OUT_OF_VIEW;
+    if ( ! attached ) toolStatus = TOOL_MISSING;
+    if ( ! inMotionBox ) toolStatus = TOOL_OUT_OF_VIEW;
 
 
     // Apply reference to get Tool-to-Reference.
@@ -386,11 +386,11 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     if ( referenceToolPort >= 0 && sensorIndex != referenceToolPort )
     {
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, trackerStatus, this->FrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, toolStatus, this->FrameNumber, unfilteredTimestamp);
     }
     else
     {
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, trackerStatus, this->FrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, this->FrameNumber, unfilteredTimestamp);
     }
   }
 

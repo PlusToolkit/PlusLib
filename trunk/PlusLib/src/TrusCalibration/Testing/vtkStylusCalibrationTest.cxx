@@ -155,14 +155,6 @@ int main (int argc, char* argv[])
 
   // Check stylus tool
   PlusTransformName stylusToReferenceTransformName(stylusToolName, referenceToolName);
-  vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMAtrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid = false;
-  transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransformMAtrix, &valid);
-  if (!valid)
-  {
-    LOG_ERROR("No valid transform found between stylus to reference!");
-    exit(EXIT_FAILURE);
-  }
 
   // Acquire positions for pivot calibration
   for (int i=0; i < numberOfStylusCalibrationPointsToAcquire; ++i)
@@ -171,15 +163,29 @@ int main (int argc, char* argv[])
     vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfStylusCalibrationPointsToAcquire); 
 
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    TrackerStatus status = TR_MISSING;
-    double timestamp;
 
-    dataCollector->GetTransformWithTimestamp(stylusToReferenceMatrix, timestamp, status, stylusToReferenceTransformName);
-
-    if (status == TR_OK)
+    
+    TrackedFrame trackedFrame; 
+    if ( dataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
-      pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
+      LOG_ERROR("Failed to get tracked frame!"); 
+      exit(EXIT_FAILURE);
     }
+    
+    if ( transformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to update transforms in repository with tracked frame!");
+      exit(EXIT_FAILURE);
+    }
+
+    bool frameValid(false); 
+    if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &frameValid) != PLUS_SUCCESS) || (!frameValid) )
+    {
+      LOG_ERROR("No valid transform found between stylus to reference!");
+      exit(EXIT_FAILURE);
+    }
+
+    pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
 
   if (pivotCalibration->DoTooltipCalibration() != PLUS_SUCCESS)

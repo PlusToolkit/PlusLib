@@ -9,6 +9,7 @@
 
 #include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h" 
+#include "vtkTracker.h"
 
 class vtkXMLDataElement; 
 class vtkTrackedFrameList; 
@@ -76,9 +77,6 @@ public:
 
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame) = 0; 
-
-  /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName) = 0; 
 
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset) = 0; 

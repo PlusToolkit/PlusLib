@@ -68,9 +68,6 @@ public:
   /*! Get the tracked frame from tracked frame list by timestamp */
   virtual PlusStatus GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame); 
 
-  /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName); 
-
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
 

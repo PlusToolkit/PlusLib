@@ -17,16 +17,6 @@ enum PlusStatus
   PLUS_SUCCESS=1
 };
 
-enum TrackerStatus {
-  TR_OK,			      // Tool OK
-  TR_MISSING,       // tool or tool port is not available
-  TR_OUT_OF_VIEW,   // cannot obtain transform for tool
-  TR_OUT_OF_VOLUME, // tool is not within the sweet spot of system
-  TR_SWITCH1_IS_ON, // various buttons/switches on tool
-  TR_SWITCH2_IS_ON,
-  TR_SWITCH3_IS_ON, 
-  TR_REQ_TIMEOUT   // Request timeout
-};
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
@@ -123,8 +113,69 @@ namespace PlusCommon
 {
   typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
   typedef int VTKScalarPixelType;
-};
 
+  //----------------------------------------------------------------------------
+  // Quick and robust string to int conversion
+  template<class T>
+  static PlusStatus StringToInt(const char* strPtr, T &result)
+  {
+    if (strPtr==NULL || strlen(strPtr) == 0 )
+    {
+      return PLUS_FAIL;
+    }
+    char * pEnd=NULL;
+    result = static_cast<int>(strtol(strPtr, &pEnd, 10)); 
+    if (pEnd != strPtr+strlen(strPtr) ) 
+    {
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  // Quick and robust string to double conversion
+  template<class T>
+  static PlusStatus StringToDouble(const char* strPtr, T &result)
+  {
+    if (strPtr==NULL || strlen(strPtr) == 0 )
+    {
+      return PLUS_FAIL;
+    }
+    char * pEnd=NULL;
+    result = strtod(strPtr, &pEnd);
+    if (pEnd != strPtr+strlen(strPtr)) 
+    {
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  // Quick and robust string to int conversion
+  template<class T>
+  static PlusStatus StringToLong(const char* strPtr, T &result)
+  {
+    if (strPtr==NULL || strlen(strPtr) == 0 )
+    {
+      return PLUS_FAIL;
+    }
+    char * pEnd=NULL;
+    result = strtol(strPtr, &pEnd, 10);
+    if (pEnd != strPtr+strlen(strPtr) ) 
+    {
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  // Trim whitespace characters from the left and right
+  static void Trim(std::string &str)
+  {
+    str.erase(str.find_last_not_of(" \t\r\n")+1);
+    str.erase(0,str.find_first_not_of(" \t\r\n"));
+  }
+};
 
 /*!
   \class PlusTransformName 
