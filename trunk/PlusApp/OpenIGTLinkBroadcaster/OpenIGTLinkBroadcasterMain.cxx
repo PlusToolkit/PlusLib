@@ -18,27 +18,16 @@
  * @returns 0 on normal tracking.
  */
 int
-ProcessTrackerStatus( TrackerStatus status )
+ProcessTrackerStatus( TrackedFrameFieldStatus status )
 {
-  if ( status == TR_OK )
-    {
+  if ( status == FIELD_OK )
+  {
     return 0;
-    }
-  else if ( status == TR_MISSING || status == TR_OUT_OF_VIEW )
-    {
-    LOG_INFO( "Tracker data missing." );
-    return 1;
-    }
-  else if ( status == TR_REQ_TIMEOUT )
-    {
-    LOG_INFO( "Tracker requested timeout." );
-    return 1;
-    }
-  else
-    {
-    LOG_INFO( "Unknown tracker status." );
-    return 1;
-    }
+  }
+
+  // status == FIELD_INVALID 
+  LOG_INFO( "Tracker data missing." );
+  return 1;
 }
 
 

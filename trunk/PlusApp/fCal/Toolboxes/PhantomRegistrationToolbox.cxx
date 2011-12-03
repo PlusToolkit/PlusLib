@@ -514,7 +514,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   // Acquire point and add to registration algorithm
   vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusTipToReferenceMatrix, true) == TR_OK)
+  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusTipToReferenceMatrix, true) == FIELD_OK)
   {
     double elements[16]; //TODO find other way
     double stylusTipPosition[4];

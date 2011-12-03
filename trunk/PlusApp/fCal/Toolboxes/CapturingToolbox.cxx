@@ -199,10 +199,15 @@ void CapturingToolbox::TakeSnapshot()
     return;
   }
   
-  TrackerStatus status = TR_MISSING;
-  std::string toolStatusFrameFieldName = std::string(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName()) + "Status";
-  status = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
-  if ( status != TR_OK )
+  TrackedFrameFieldStatus status = FIELD_INVALID;
+  PlusTransformName transformName(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName(), "Tracker"); // TODO: store transform name instead
+  if ( trackedFrame.GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get transform status!"); 
+    return; 
+  }
+
+  if ( status != FIELD_OK )
 	{
 		LOG_WARNING("Unable to record tracked frame: Probe tool is out of view!"); 
     return;

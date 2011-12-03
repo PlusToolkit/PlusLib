@@ -515,13 +515,13 @@ PlusStatus vtkToolVisualizer::GetDisplayableTool(const char* aToolName, vtkDispl
 
 //-----------------------------------------------------------------------------
 
-TrackerStatus vtkToolVisualizer::AcquireTrackerPositionForToolByName(const char* aName, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated/* = false*/)
+TrackedFrameFieldStatus vtkToolVisualizer::AcquireTrackerPositionForToolByName(const char* aName, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated/* = false*/)
 {
   //LOG_TRACE("vtkToolVisualizer::AcquireTrackerPositionForToolByName");
 
   // TODO!!!!!!!
   LOG_ERROR("TEMPORARY ISSUE: Acquire position has to be changed to use tracked frame instead of tracker tools!");
-  return TR_MISSING;
+  return FIELD_INVALID;
   /*
   if (this->DataCollector->GetTracker() == NULL)
   {
@@ -568,28 +568,16 @@ std::string vtkToolVisualizer::GetToolPositionString(const char* aToolName, bool
   //LOG_TRACE("vtkToolVisualizer::GetToolPositionString");
 
   vtkSmartPointer<vtkMatrix4x4> toolToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  TrackerStatus status = AcquireTrackerPositionForToolByName(aToolName, toolToReferenceMatrix, aCalibrated);
-  if (status == TR_OK)
+  TrackedFrameFieldStatus status = AcquireTrackerPositionForToolByName(aToolName, toolToReferenceMatrix, aCalibrated);
+  if (status == FIELD_OK)
   {
     // Assemble position string
     char toolPositionChars[32];
     sprintf_s(toolPositionChars, 32, "%.1lf X %.1lf X %.1lf", toolToReferenceMatrix->GetElement(0,3), toolToReferenceMatrix->GetElement(1,3), toolToReferenceMatrix->GetElement(2,3));
     return std::string(toolPositionChars);
   }
-  else
-  {
-    switch (status)
-    {
-      case TR_MISSING:
-        return "Missing tool";
-      case TR_OUT_OF_VIEW:
-        return "Tool out of view";
-      case TR_REQ_TIMEOUT:
-        return "Tracker request timeout!";
-      default:
-        return "Other error!";
-    }
-  }
+
+  return "Missing tool";
 }
 
 //-----------------------------------------------------------------------------
@@ -688,6 +676,15 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 
   bool resetCameraNeeded = false;
 
+  TrackedFrame trackedFrame; 
+  if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracked frame!"); 
+    return PLUS_FAIL; 
+  }
+
+  LOG_ERROR("Temporary issue: update transform repo with tracked frame"); 
+  
   // For all tools
   for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
   {
@@ -710,18 +707,16 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
       resetCameraNeeded = true;
     }
 
-    TrackerStatus status = TR_MISSING;
-    double timestamp;
+    TrackedFrameFieldStatus status = FIELD_INVALID;
 
     vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix = NULL;
 
     // Acquire position from tracker
     PlusTransformName transformName(toolName, "Reference");
     toolToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    this->DataCollector->GetTransformWithTimestamp(toolToReferenceTransformMatrix, timestamp, status, transformName); 
-
+    
     // Compute and set transforms for actors
-    if (status == TR_OK)
+    if (status == FIELD_OK)
     {
       vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
       toolModelToPhantomReferenceTransform->Identity();

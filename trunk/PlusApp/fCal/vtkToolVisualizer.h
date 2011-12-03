@@ -130,7 +130,7 @@ public:
   * \param aCalibrated Flag whether to return the calibrated or the unbalibrated matrix
 	* \return Acquired transform if successful, else NULL
 	*/
-  TrackerStatus AcquireTrackerPositionForToolByName(const char* aName, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated = false);
+  TrackedFrameFieldStatus AcquireTrackerPositionForToolByName(const char* aName, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated = false);
 
 	/*!
 	 * Get tool position in string format

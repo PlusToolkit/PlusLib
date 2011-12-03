@@ -378,9 +378,9 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
     return PLUS_FAIL; 
   }
 
-  TrackerStatus trackerStatus = TR_MISSING;
-  trackedFrame.GetCustomFrameTransformStatus(TrackedUltrasoundCapturing::DefaultFrameTransformName, trackerStatus);
-  if ( trackerStatus != TR_OK )
+  TrackedFrameFieldStatus fieldStatus = FIELD_INVALID;
+  trackedFrame.GetCustomFrameTransformStatus(TrackedUltrasoundCapturing::DefaultFrameTransformName, fieldStatus);
+  if ( fieldStatus != FIELD_OK )
 	{
 		LOG_WARNING("Unable to record tracked frame: Tracker out of view!"); 
 	}

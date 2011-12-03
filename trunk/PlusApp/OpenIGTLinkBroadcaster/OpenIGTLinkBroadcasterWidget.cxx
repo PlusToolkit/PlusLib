@@ -160,15 +160,23 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
   
   if ( m_DataCollector->GetTrackingEnabled() )
   {
-    double timeTracker = 0.0;
-    TrackerStatus status = TR_OK;
-    PlusTransformName transformName("Probe", "Reference");
-    m_DataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, transformName ); //TODO
-    if ( status == TR_OK )
+    TrackedFrame trackedFrame; 
+    if ( m_DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "
-                                  << mToolToReference->GetElement( 1, 3 ) << " "
-                                  << mToolToReference->GetElement( 2, 3 ) << " " );
+      LOG_ERROR("Failed to get tracked frame!"); 
+    }
+    else
+    {
+      TrackedFrameFieldStatus status = FIELD_INVALID;
+      PlusTransformName transformName("Probe", "Reference");
+      trackedFrame.GetCustomFrameTransform(transformName, mToolToReference); 
+      trackedFrame.GetCustomFrameTransformStatus(transformName, status); 
+      if ( status == FIELD_OK )
+      {
+        LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "
+          << mToolToReference->GetElement( 1, 3 ) << " "
+          << mToolToReference->GetElement( 2, 3 ) << " " );
+      }
     }
   }
   else

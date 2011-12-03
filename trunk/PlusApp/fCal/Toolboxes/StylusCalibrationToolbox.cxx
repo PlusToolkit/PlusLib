@@ -401,7 +401,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   LOG_TRACE("StylusCalibrationToolbox::AddStylusPositionToCalibration");
 
   vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusToReferenceMatrix) == TR_OK)
+  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusToReferenceMatrix) == FIELD_OK)
   {
     double stylusPosition[4]={stylusToReferenceMatrix->GetElement(0,3), stylusToReferenceMatrix->GetElement(1,3), stylusToReferenceMatrix->GetElement(2,3), 1.0 };
 

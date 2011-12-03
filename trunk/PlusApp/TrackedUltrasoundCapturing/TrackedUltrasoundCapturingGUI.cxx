@@ -9,6 +9,7 @@
 #include "TrackedUltrasoundCapturing.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkTrackerTool.h"
+#include "vtkTrackerBuffer.h"
 #include "vtkDataCollectorHardwareDevice.h"
 #include "vtkCommand.h"
 #include "vtkRenderWindow.h"
@@ -458,7 +459,7 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
           LOG_ERROR("Failed to get transformMatrix"); 
         }
 
-        if ( bufferItem.GetStatus() != TR_OK )
+        if ( bufferItem.GetStatus() != TOOL_OK )
         {
           // if the buffer item status is not valid, display only identity matrix
           transformMatrix->Identity(); 

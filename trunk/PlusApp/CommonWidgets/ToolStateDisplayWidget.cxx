@@ -203,7 +203,7 @@ PlusStatus ToolStateDisplayWidget::Update()
       continue;
     }
 
-    TrackerStatus status = TR_MISSING;
+    TrackedFrameFieldStatus status = FIELD_INVALID;
     if (trackedFrame.GetCustomFrameTransformStatus(*transformIt, status) != PLUS_SUCCESS)
     {
       std::string transformNameStr;
@@ -216,24 +216,12 @@ PlusStatus ToolStateDisplayWidget::Update()
     {
       switch (status)
       {
-        case (TR_OK):
+        case (FIELD_OK):
           label->setText("OK");
           label->setTextColor(Qt::green);
           break;
-        case (TR_MISSING):
+        case (FIELD_INVALID):
           label->setText("MISSING");
-          label->setTextColor(QColor::fromRgb(223, 0, 0));
-          break;
-        case (TR_OUT_OF_VIEW):
-          label->setText("OUT OF VIEW");
-          label->setTextColor(QColor::fromRgb(255, 128, 0));
-          break;
-        case (TR_OUT_OF_VOLUME):
-          label->setText("OUT OF VOLUME");
-          label->setTextColor(QColor::fromRgb(255, 128, 0));
-          break;
-        case (TR_REQ_TIMEOUT):
-          label->setText("TIMEOUT");
           label->setTextColor(QColor::fromRgb(223, 0, 0));
           break;
         default:
