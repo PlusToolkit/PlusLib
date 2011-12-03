@@ -241,11 +241,11 @@ public:
   /*! Set the time required for setting up the connection. */
   vtkGetMacro(ConnectionSetupDelayMs, int);
 
-  /*! Print the list of supported parameters. For diagnostic purposes only. */
-  PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters();
-
   /*! Get the displayed frame rate. */
-  PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &FrameRate);
+  PlusStatus GetDisplayedFrameRate(int &aFrameRate);
+
+  /*! Print the list of supported parameters. For diagnostic purposes only. */
+  PlusStatus PrintListOfImagingParameters();
 
 protected:
   vtkSonixVideoSource();
