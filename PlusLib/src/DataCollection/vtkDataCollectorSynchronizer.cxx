@@ -443,7 +443,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
       return PLUS_FAIL; 
     }
 
-    if ( bufferItem.GetStatus() == TR_OK )
+    if ( bufferItem.GetStatus() == TOOL_OK )
     {
       vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
 
@@ -546,7 +546,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
       continue; 
     }
 
-    if ( bufferItem.GetStatus() == TR_OK )
+    if ( bufferItem.GetStatus() == TOOL_OK )
     {
       double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
       unsigned long frameNumber = bufferItem.GetIndex();
@@ -596,7 +596,7 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       continue; 
     }
 
-    if ( baseItem.GetStatus() != TR_OK )
+    if ( baseItem.GetStatus() != TOOL_OK )
     {
       // Tracker status was invalid, move to next item
       baseIndex = baseIndex + 1; 
@@ -613,7 +613,7 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       continue; 
     }
 
-    if ( currentItem.GetStatus() != TR_OK )
+    if ( currentItem.GetStatus() != TOOL_OK )
     {
       // Tracker status was invalid, move to next item
       baseIndex = baseIndex + 1; 
@@ -1046,7 +1046,7 @@ double vtkDataCollectorSynchronizer::GetPositionAcquisitionFrameRate(double& mea
 
     double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
 
-    if ( timestamp > 0 && bufferItem.GetStatus() == TR_OK )
+    if ( timestamp > 0 && bufferItem.GetStatus() == TOOL_OK )
     {
       trackerTimestamps.push_back(timestamp); 
     }

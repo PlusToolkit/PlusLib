@@ -9,6 +9,8 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 
+static double DOUBLE_THRESHOLD=0.0001; 
+
 PlusStatus TestValidTransformName( std::string from, std::string to)
 { 
   PlusTransformName transformName; 
@@ -91,6 +93,48 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
+  // ***********************************************
+  // Test PlusTransformName
+  // ***********************************************
+  double doubleResult(0); 
+  if ( PlusCommon::StringToDouble("8.12", doubleResult) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to convert '8.12' string to double"); 
+    return EXIT_FAILURE;
+  }
+  if ( fabs(doubleResult - 8.12) > DOUBLE_THRESHOLD )
+  {
+    LOG_ERROR("Failed to convert '8.12' string to double - difference is larger then threshold: " << std::fixed << DOUBLE_THRESHOLD); 
+    return EXIT_FAILURE;
+  }
+
+  if ( PlusCommon::StringToDouble("", doubleResult) != PLUS_FAIL )
+  {
+    LOG_ERROR("Error expected on empty string to double conversion!"); 
+    return EXIT_FAILURE;
+  }
+
+  int intResult(0); 
+  if ( PlusCommon::StringToInt("8", intResult) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to convert '8' string to integer!"); 
+    return EXIT_FAILURE;
+  }
+  if ( intResult != 8 )
+  {
+    LOG_ERROR("Failed to convert '8' string to integer - difference is: " << intResult - 8 ); 
+    return EXIT_FAILURE;
+  }
+
+  if ( PlusCommon::StringToInt("", intResult) != PLUS_FAIL )
+  {
+    LOG_ERROR("Error expected on empty string to integer conversion!"); 
+    return EXIT_FAILURE;
+  }
+
+  // ***********************************************
+  // Test PlusTransformName
+  // ***********************************************
   if ( TestValidTransformName("Image","Probe") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestValidTransformName("Tool","Tool") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   

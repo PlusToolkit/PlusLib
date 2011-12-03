@@ -333,7 +333,7 @@ PlusStatus vtkTracker::StopTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
+PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, 
                                              double unfilteredtimestamp) 
 {
   if ( aToolName == NULL )
@@ -608,36 +608,60 @@ double vtkTracker::GetStartTime()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkTracker::ConvertTrackerStatusToString(TrackerStatus status)
+TrackedFrameFieldStatus vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(ToolStatus status)
 {
-  std::ostringstream flagFieldValue; 
-  if ( status == TR_OK )
+  TrackedFrameFieldStatus fieldStatus = FIELD_INVALID; 
+  if ( status == TOOL_OK )
   {
-    flagFieldValue << "OK "; 
+    fieldStatus = FIELD_OK; 
   }
-  else if ( status == TR_MISSING != 0 )
+
+  return fieldStatus; 
+}
+
+//----------------------------------------------------------------------------
+ToolStatus vtkTracker::ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus)
+{
+  ToolStatus status = TOOL_MISSING; 
+  if ( fieldStatus == FIELD_OK)
   {
-    flagFieldValue << "TR_MISSING "; 
+    status = TOOL_OK ; 
   }
-  else if ( status == TR_OUT_OF_VIEW != 0 )
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+std::string vtkTracker::ConvertToolStatusToString(ToolStatus status)
+{
+  std::string flagFieldValue; 
+  if ( status == TOOL_OK )
   {
-    flagFieldValue << "TR_OUT_OF_VIEW "; 
+    flagFieldValue = "OK"; 
   }
-  else if ( status == TR_OUT_OF_VOLUME != 0 )
+  else if ( status == TOOL_MISSING )
   {
-    flagFieldValue << "TR_OUT_OF_VOLUME "; 
+    flagFieldValue = "TOOL_MISSING"; 
   }
-  else if ( status == TR_REQ_TIMEOUT != 0 )
+  else if ( status == TOOL_OUT_OF_VIEW )
   {
-    flagFieldValue << "TR_REQ_TIMEOUT "; 
+    flagFieldValue = "TOOL_OUT_OF_VIEW"; 
+  }
+  else if ( status == TOOL_OUT_OF_VOLUME )
+  {
+    flagFieldValue = "TOOL_OUT_OF_VOLUME"; 
+  }
+  else if ( status == TOOL_REQ_TIMEOUT )
+  {
+    flagFieldValue = "TOOL_REQ_TIMEOUT"; 
   }
   else
   { 
-    LOG_WARNING("Unknown tracker status received - set TR_MISSING by default!"); 
-    flagFieldValue << "TR_MISSING "; 
+    LOG_ERROR("Unknown tracker status received - set TOOL_INVALID by default!"); 
+    flagFieldValue = "TOOL_INVALID"; 
   }
 
-  return flagFieldValue.str(); 
+  return flagFieldValue; 
 }
 
 //----------------------------------------------------------------------------
@@ -690,7 +714,7 @@ PlusStatus vtkTracker::GetAllTransforms(double timestamp, TrackedFrame* aTracked
       continue; 
     }
 
-    if ( aTrackedFrame->SetCustomFrameTransformStatus(toolTransformName, vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ) != PLUS_SUCCESS )
+    if ( aTrackedFrame->SetCustomFrameTransformStatus(toolTransformName, vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus()) ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set transform status for tool " << it->second->GetToolName() ); 
       numberOfErrors++; 
@@ -913,7 +937,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
       trackedFrame.SetCustomFrameTransform(toolToTrackerTransform, toolMatrix ); 
 
       // Add tool status
-      trackedFrame.SetCustomFrameTransformStatus(toolToTrackerTransform, vtkTracker::ConvertTrackerStatusToString(toolBufferItem.GetStatus()) ); 
+      trackedFrame.SetCustomFrameTransformStatus(toolToTrackerTransform, vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(toolBufferItem.GetStatus()) ); 
     }
 
     // Add tracked frame to the list

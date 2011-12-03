@@ -113,26 +113,43 @@ public:
     std::ostringstream ss;
     ss.precision( 2 ); 
 
-    double toolToTrackerTransformTimestamp=0;
-    TrackerStatus trackerStatus=TR_OK;
-    for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
-    {      
-      vtkTrackerTool* tool=it->second;
+    TrackedFrame trackedFrame; 
+    if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tracked frame!");
+      return; 
+    }
 
-      // Tool enabled
-      ss << tool->GetToolName() << ": ";
+    std::vector<PlusTransformName> transformNameList; 
+    trackedFrame.GetCustomFrameTransformNameList(transformNameList); 
+    for ( std::vector<PlusTransformName>::iterator it = transformNameList.begin(); it != transformNameList.end(); ++it)
+    { 
+      PlusTransformName transformName = *it; 
 
+      vtkTrackerTool* tool=NULL; 
+      if ( this->DataCollector->GetTracker()->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: " << transformName.From() ); 
+        continue; 
+      }
+
+      std::string strTransformName; 
+      transformName.GetTransformName(strTransformName); 
+      // Transform name
+      ss << strTransformName << ": ";
+      
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-
-      PlusTransformName transformName(tool->GetToolName(), this->DataCollector->GetTracker()->GetToolReferenceFrameName());
-      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, transformName)!=PLUS_SUCCESS)
+      if ( trackedFrame.GetCustomFrameTransform(transformName, toolToTrackerTransform) != PLUS_SUCCESS )
       {
         ss << "failed to get transform\n";
         SetToolVisible(tool->GetToolName(),false);        
         continue;
       }
 
-      if ( trackerStatus!=TR_OK )
+      TrackedFrameFieldStatus status=FIELD_INVALID; 
+      trackedFrame.GetCustomFrameTransformStatus(transformName, status); 
+
+      if ( status!=FIELD_OK )
       {
         ss	<< "missing or out of view\n"; 
         SetToolVisible(tool->GetToolName(),false);        
@@ -281,7 +298,7 @@ int main(int argc, char **argv)
       }
 
       std::string transformParameters = PlusMath::GetTransformParametersString(matrix); 
-      std::string status = vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()); 
+      std::string status = vtkTracker::ConvertToolStatusToString(bufferItem.GetStatus()); 
 
       std::ostringstream message;
       message << "Tool name: " << tool->GetToolName() << "Transform:  "; 

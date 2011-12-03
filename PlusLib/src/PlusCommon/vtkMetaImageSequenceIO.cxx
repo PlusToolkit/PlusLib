@@ -20,43 +20,14 @@
 
 static const int MAX_LINE_LENGTH=1000;
 
+
 static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation"; 
 static const char* SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM = "DefaultFrameTransformName"; 
 static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile"; 
 static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL"; 
 
 static std::string SEQMETA_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame"; 
-
-// Quick and robust string to int conversion
-PlusStatus stringToInt(const std::string& str, int &result)
-{
-  const char * c_str = str.c_str();
-  char * pEnd=NULL;
-  result = strtol(c_str, &pEnd, 10);
-  if (pEnd != c_str+str.length()) 
-  {
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-
-// Quick and robust string to int conversion
-PlusStatus stringToInt(const char* strPtr, int &result)
-{
-  if (strPtr==NULL)
-  {
-    return PLUS_FAIL;
-  }
-  std::string str=strPtr;
-  return stringToInt(str, result);
-}
-
-// Trim whitespace characters from the left and right
-void trim(std::string &str)
-{
-  str.erase(str.find_last_not_of(" \t\r\n")+1);
-  str.erase(0,str.find_first_not_of(" \t\r\n"));
-}
+static std::string SEQMETA_FIELD_IMG_STATUS = "ImageStatus"; 
 
 vtkCxxRevisionMacro(vtkMetaImageSequenceIO, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkMetaImageSequenceIO); 
@@ -90,6 +61,19 @@ vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::DeleteCustomFrameString(int frameNumber, const char* fieldName)
+{
+  TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+  if (trackedFrame==NULL)
+  {
+    LOG_ERROR("Cannot access frame "<<frameNumber);
+    return PLUS_FAIL;
+  }
+  
+  return trackedFrame->DeleteCustomFrameField(fieldName); 
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue)
 {
   if (fieldName==NULL || fieldValue==NULL)
@@ -108,7 +92,13 @@ PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const c
  
   if ( STRCASECMP(fieldName, "Timestamp") == 0 )
   {
-    trackedFrame->SetTimestamp(atof(fieldValue));
+    double timestamp(0); 
+    if ( PlusCommon::StringToDouble(fieldValue, timestamp) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to convert Timestamp '"<< fieldValue << "' to double"); 
+      return PLUS_FAIL;
+    }
+    trackedFrame->SetTimestamp(timestamp);
   }
 
   return PLUS_SUCCESS; 
@@ -174,8 +164,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     std::string value=lineStr.substr(equalSignFound+1);
 
     // trim spaces from the left and right
-    trim(name);
-    trim(value);
+    PlusCommon::Trim(name);
+    PlusCommon::Trim(value);
 
     if (name.compare(0,SEQMETA_FIELD_FRAME_FIELD_PREFIX.size(),SEQMETA_FIELD_FRAME_FIELD_PREFIX)!=0)
     {
@@ -218,7 +208,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       std::string frameFieldName=name.substr(underscoreFound+1); // CustomTransform
 
       int frameNumber=0;
-      if (stringToInt(frameNumberStr,frameNumber)!=PLUS_SUCCESS)
+      if (PlusCommon::StringToInt(frameNumberStr.c_str(),frameNumber)!=PLUS_SUCCESS)
       {
         LOG_WARNING("Parsing line failed, cannot get file number from frame field ("<<lineStr<<")");
         continue;
@@ -262,7 +252,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   if (this->TrackedFrameList->GetCustomString("ElementNumberOfChannels")!=NULL)
   {
     // this field is optional
-    stringToInt(this->TrackedFrameList->GetCustomString("ElementNumberOfChannels"), numberOfComponents);
+    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("ElementNumberOfChannels"), numberOfComponents);
     if (numberOfComponents!=1)
     {
       LOG_ERROR("Images images with ElementNumberOfChannels=1 are supported. This image has "<<numberOfComponents<<" channels.");
@@ -278,7 +268,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   }
 
   int nDims=3;
-  if (stringToInt(this->TrackedFrameList->GetCustomString("NDims"), nDims)==PLUS_SUCCESS)
+  if (PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("NDims"), nDims)==PLUS_SUCCESS)
   {
     if (nDims!=2 && nDims!=3)
     {
@@ -328,7 +318,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     allFramesPixelBuffer.resize(allFramesPixelBufferSize);
 
     int allFramesCompressedPixelBufferSize=0;
-    stringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
+    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
     std::vector<unsigned char> allFramesCompressedPixelBuffer;
     allFramesCompressedPixelBuffer.resize(allFramesCompressedPixelBufferSize);
 
@@ -362,6 +352,23 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   {
     CreateTrackedFrameIfNonExisting(frameNumber);
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    
+    // Allocate frame only if it is valid 
+    const char* imgStatus = trackedFrame->GetCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str()); 
+    
+    // Delete image status field from tracked frame 
+    // Image status can be determine by trackedFrame->GetImageData()->IsImageValid()
+    this->DeleteCustomFrameString(frameNumber, SEQMETA_FIELD_IMG_STATUS.c_str()); 
+
+    if ( imgStatus != NULL  // Found the image status field 
+      && STRCASECMP(imgStatus, "OK") != 0 // Image status _not_ OK 
+      )
+    {
+      LOG_DEBUG("Frame #" << frameNumber << " image data is invalid, no need to allocate data in the tracked frame list."); 
+      continue; 
+    }
+
+
     if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
@@ -444,6 +451,7 @@ void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
   }
 }
 
+//----------------------------------------------------------------------------
 bool vtkMetaImageSequenceIO::CanReadFile(const char*)
 {
   FILE *stream=NULL;
@@ -474,8 +482,8 @@ bool vtkMetaImageSequenceIO::CanReadFile(const char*)
   std::string value=lineStr.substr(equalSignFound);
 
   // trim spaces from the left and right
-  trim(name);
-  trim(value);
+  PlusCommon::Trim(name);
+  PlusCommon::Trim(value);
 
   if (name.compare("ObjectType")!=0)
   {
@@ -491,6 +499,7 @@ bool vtkMetaImageSequenceIO::CanReadFile(const char*)
   return true;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::Read()
 {
   this->TrackedFrameList->Clear();
@@ -508,6 +517,7 @@ PlusStatus vtkMetaImageSequenceIO::Read()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 /** Writes the spacing and dimentions of the image.
 * Assumes SetFileName has been called with a valid file name. */
 PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
@@ -530,24 +540,21 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   }
 
   int frameSize[2]={0};
-  if (this->TrackedFrameList->GetNumberOfTrackedFrames()>0)
+  this->GetMaximumImageDimensions(frameSize); 
+
+  // Make sure the frame size is the same for each valid image 
+  // If it's needed, we can use the largest frame size for each frame and copy the image data row by row 
+  // but then, we need to save the original frame size for each frame and crop the image when we read it 
+  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
-    // Check frame sizes 
-    int* firstFrameSize = this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize(); 
-    for (int frameNumber=1; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+    int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
+    if ( this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid() 
+      && ( frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] )  )
     {
-      int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
-      if ( firstFrameSize[0] != currFrameSize[0] 
-      || firstFrameSize[1] != currFrameSize[1] )
-      {
-        LOG_ERROR("Frame size mismatch: expected size (" << firstFrameSize[0] << "x" << firstFrameSize[1] 
-        << ") differ from actual size (" << currFrameSize[0] << "x" << currFrameSize[1] << ") for frame #" << frameNumber); 
-        return PLUS_FAIL; 
-      }
-      
+      LOG_ERROR("Frame size mismatch: expected size (" << frameSize[0] << "x" << frameSize[1] 
+      << ") differ from actual size (" << currFrameSize[0] << "x" << currFrameSize[1] << ") for frame #" << frameNumber); 
+      return PLUS_FAIL; 
     }
-    frameSize[0]=firstFrameSize[0]; 
-    frameSize[1]=firstFrameSize[1]; 
   }
 
   // DimSize
@@ -630,15 +637,26 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   {
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
+    std::ostringstream frameIndexStr; 
+    frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber; 
+
     std::vector<std::string> fieldNames;
     trackedFrame->GetCustomFrameFieldNameList(fieldNames);
+    
     for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++) 
     {
-      std::ostringstream frameIndexStr; 
-      frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber; 
       std::string field=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
     }
+
+    // Add image status field 
+    std::string imageStatus("OK"); 
+    if ( !trackedFrame->GetImageData()->IsImageValid() )
+    {
+      imageStatus="INVALID"; 
+    }
+    std::string imgStatusField=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQMETA_FIELD_IMG_STATUS + " = " + imageStatus + "\n";
+    fputs(imgStatusField.c_str(), stream);
   }
  
   fputs("ElementDataFile = ", stream);
@@ -648,6 +666,27 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   fclose(stream);
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
+{
+  maxFrameSize[0]=0;
+  maxFrameSize[1]=0;
+
+  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  {
+    int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
+    if ( maxFrameSize[0] < currFrameSize[0] )
+    {
+      maxFrameSize[0] = currFrameSize[0]; 
+    }
+
+    if ( maxFrameSize[1] < currFrameSize[1] )
+    {
+      maxFrameSize[1] = currFrameSize[1]; 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -668,15 +707,31 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
     return PLUS_FAIL;
   }
-
+  
   PlusStatus result=PLUS_SUCCESS;
   if (!GetUseCompression())
   {
+    // Create a blank frame if we have to write an invalid frame to metafile 
+    PlusVideoFrame blankFrame; 
+    if ( blankFrame.AllocateFrame( this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to allocate space for blank image."); 
+      return PLUS_FAIL; 
+    }
+    blankFrame.FillBlank(); 
+
     // not compressed
     for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
       TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
-      fwrite(trackedFrame->GetImageData()->GetBufferPointer(), 1, trackedFrame->GetImageData()->GetFrameSizeInBytes(), stream);
+
+      PlusVideoFrame* videoFrame = &blankFrame; 
+      if ( trackedFrame->GetImageData()->IsImageValid() ) 
+      {
+        videoFrame = trackedFrame->GetImageData(); 
+      }
+
+      fwrite(videoFrame->GetBufferPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
     }
   }
   else
@@ -694,6 +749,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
   return result;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize)
 {
   LOG_DEBUG("Writing compressed pixel data into file started");
@@ -716,6 +772,15 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
     return PLUS_FAIL;
   }
 
+  // Create a blank frame if we have to write an invalid frame to metafile 
+  PlusVideoFrame blankFrame; 
+  if ( blankFrame.AllocateFrame( this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to allocate space for blank image."); 
+    return PLUS_FAIL; 
+  }
+  blankFrame.FillBlank(); 
+
   for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
@@ -725,8 +790,15 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
       deflateEnd(&strm);
       return PLUS_FAIL;
     }
-    strm.next_in=(Bytef*)trackedFrame->GetImageData()->GetBufferPointer();
-    strm.avail_in=trackedFrame->GetImageData()->GetFrameSizeInBytes();
+
+    PlusVideoFrame* videoFrame = &blankFrame; 
+    if ( trackedFrame->GetImageData()->IsImageValid() ) 
+    {
+      videoFrame = trackedFrame->GetImageData(); 
+    }
+
+    strm.next_in=(Bytef*)videoFrame->GetBufferPointer();
+    strm.avail_in=videoFrame->GetFrameSizeInBytes();
 
     // Note: it's possible to request to consume all inputs and delete all history after each frame writing to allow random access
     int flush = (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames()-1) ? Z_NO_FLUSH : Z_FINISH;
@@ -779,7 +851,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
   return PLUS_SUCCESS;
 }
 
-
+//----------------------------------------------------------------------------
 PlusTransformName vtkMetaImageSequenceIO::GetDefaultFrameTransformName()
 {
   PlusTransformName defaultTransformName; 
@@ -787,6 +859,7 @@ PlusTransformName vtkMetaImageSequenceIO::GetDefaultFrameTransformName()
   return defaultTransformName;
 }
 
+//----------------------------------------------------------------------------
 void vtkMetaImageSequenceIO::SetDefaultFrameTransformName(PlusTransformName& aTransformName)
 {
   std::string defaultTransformName; 
@@ -804,6 +877,7 @@ TrackedFrame* vtkMetaImageSequenceIO::GetTrackedFrame(int frameNumber)
   return trackedFrame;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType)
 {
   if (elementTypeStr.compare("MET_OTHER")==0
@@ -914,6 +988,7 @@ PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToItkPixelType(const st
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr)
 {
   if (itkPixelType==itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
@@ -953,6 +1028,7 @@ PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusComm
   return PLUS_FAIL;
 }
 
+//----------------------------------------------------------------------------
 std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
 {
   if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName)==0)
@@ -997,7 +1073,7 @@ PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldNam
       continue;
     }
     std::string name=lineStr.substr(0,equalSignFound);
-    trim(name);
+    PlusCommon::Trim(name);
 
     if (name.compare(fieldName)==0)
     {

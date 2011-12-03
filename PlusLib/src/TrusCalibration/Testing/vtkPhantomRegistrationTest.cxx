@@ -25,6 +25,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
+#include "PlusMath.h"
 
 #include <stdlib.h>
 #include <iostream>

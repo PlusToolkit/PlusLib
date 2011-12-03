@@ -109,7 +109,7 @@ int main(int argc, char **argv)
       continue; 
     }
 
-    if ( bufferItem.GetStatus()!=TR_OK )
+    if ( bufferItem.GetStatus()!=TOOL_OK )
     {
       LOG_DEBUG("Tracker item is missing or invalid (index: " << bufferItem.GetIndex() << ")" ); 
       continue; 

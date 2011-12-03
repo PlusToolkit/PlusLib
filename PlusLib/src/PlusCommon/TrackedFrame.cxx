@@ -134,6 +134,25 @@ const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus TrackedFrame::DeleteCustomFrameField( const char* fieldName )
+{
+  if ( fieldName == NULL )
+  {
+    LOG_DEBUG("Failed to delete custom frame field - field name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  FieldMapType::iterator field = this->CustomFrameFields.find(fieldName); 
+  if ( field != this->CustomFrameFields.end() )
+  {
+    this->CustomFrameFields.erase(field); 
+  }
+  LOG_DEBUG("Failed to delete custom frame field - could find field " << fieldName ); 
+  return PLUS_FAIL; 
+}
+ 
+
+//----------------------------------------------------------------------------
 bool TrackedFrame::IsCustomFrameTransformNameDefined(PlusTransformName& transformName)
 {
   std::string toolTransformName; 
@@ -217,9 +236,9 @@ PlusStatus TrackedFrame::GetCustomFrameTransform( PlusTransformName& frameTransf
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackerStatus& status)
+PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status)
 {
-  status = TR_MISSING; 
+  status = FIELD_INVALID; 
   std::string transformStatusName; 
   if ( frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS )
   {
@@ -246,13 +265,13 @@ PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameT
     return PLUS_FAIL; 
   }
 
-  status = TrackedFrame::GetStatusFromString( strStatus );
+  status = TrackedFrame::ConvertFieldStatusFromString( strStatus );
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, std::string status)
+PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus status)
 {
   std::string transformStatusName; 
   if ( frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS )
@@ -272,7 +291,10 @@ PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameT
   {
     transformStatusName.append("TransformStatus"); 
   }
-  this->SetCustomFrameField(transformStatusName, status ); 
+
+  std::string strStatus = TrackedFrame::ConvertFieldStatusToString(status); 
+
+  this->SetCustomFrameField(transformStatusName, strStatus ); 
 
   return PLUS_SUCCESS; 
 }
@@ -313,37 +335,37 @@ PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransfo
 }
 
 //----------------------------------------------------------------------------
-TrackerStatus TrackedFrame::GetStatusFromString(const char* statusStr) 
+TrackedFrameFieldStatus TrackedFrame::ConvertFieldStatusFromString(const char* statusStr) 
 {
   if ( statusStr == NULL ) 
   {
-    LOG_ERROR("Failed to get status from string if it's NULL!"); 
-    return TR_MISSING; 
+    LOG_ERROR("Failed to get field status from string if it's NULL!"); 
+    return FIELD_INVALID; 
   }
 
-  TrackerStatus status = TR_OK;
+  TrackedFrameFieldStatus status = FIELD_INVALID;
   std::string strFlag(statusStr); 
-  if ( strFlag.find("OK") != std::string::npos )
+  if ( STRCASECMP("OK", statusStr) == 0 )
   {
-    status = TR_OK;
+    status = FIELD_OK;
   }
-  else if ( strFlag.find("TR_MISSING") != std::string::npos )
-  {
-    status = TR_MISSING;
-  }
-  else if ( strFlag.find("TR_OUT_OF_VIEW") != std::string::npos )
-  {
-    status = TR_OUT_OF_VIEW;
-  }
-  else if ( strFlag.find("TR_OUT_OF_VOLUME") != std::string::npos )
-  {
-    status = TR_OUT_OF_VOLUME;
-  }
-  else if ( strFlag.find("TR_REQ_TIMEOUT") != std::string::npos )
-  {
-    status = TR_REQ_TIMEOUT;
-  }
+
   return status;
+}
+
+//----------------------------------------------------------------------------
+std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus status)
+{
+  std::string strStatus; 
+  if ( status == FIELD_OK )
+  {
+    strStatus = "OK"; 
+  }
+  else
+  {
+    strStatus = "INVALID"; 
+  }
+  return strStatus;
 }
 
 //----------------------------------------------------------------------------
@@ -445,7 +467,11 @@ PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFr
   const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
   if ( cProbePos != NULL )
   {
-    probePosition = atof(cProbePos); 
+    if ( PlusCommon::StringToDouble(cProbePos, probePosition) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to convert ProbePosition '"<< cProbePos << "' to double"); 
+      return PLUS_FAIL;
+    }
   }
   else
   {
@@ -457,7 +483,11 @@ PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFr
   const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
   if ( cProbeRot != NULL )
   {
-    probeRotation = atof(cProbeRot); 
+    if ( PlusCommon::StringToDouble(cProbeRot, probeRotation) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to convert ProbeRotation '"<< cProbeRot << "' to double"); 
+      return PLUS_FAIL;
+    }
   }
   else
   {
@@ -469,7 +499,11 @@ PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFr
   const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
   if ( cTemplatePos != NULL )
   {
-    templatePosition = atof(cTemplatePos); 
+    if ( PlusCommon::StringToDouble(cTemplatePos, templatePosition) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to convert TemplatePosition '"<< cTemplatePos << "' to double"); 
+      return PLUS_FAIL;
+    }
   }
   else
   {

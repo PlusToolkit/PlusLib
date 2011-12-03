@@ -242,13 +242,13 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     {
       GetReferenceTransformMatrix(identifedMarkerIndex, mTrackerToReference);
       mTrackerToReference->Invert();
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mTrackerToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mTrackerToReference, TOOL_OK, this->LastFrameNumber, unfilteredTimestamp);
     }
     else
     {
       GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker , mToolToReference );
-      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, TOOL_OK, this->LastFrameNumber, unfilteredTimestamp);
     }
     identifiedToolNames.insert(tool->GetPortName());
   }
@@ -262,7 +262,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
       // this tool has been found and update has been already called with the correct transform
       continue;
     }
-    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TR_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
+    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
   }
 
   return PLUS_SUCCESS;

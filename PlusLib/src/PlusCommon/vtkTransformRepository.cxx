@@ -147,7 +147,7 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
       continue; 
     }
 
-    TrackerStatus status = TR_MISSING; 
+    TrackedFrameFieldStatus status = FIELD_INVALID; 
     if ( trackedFrame.GetCustomFrameTransformStatus( *it, status) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get custom frame transform from tracked frame: " << trName ); 
@@ -155,7 +155,7 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
       continue; 
     }
 
-    if ( this->SetTransform(*it, matrix, status == TR_OK ) != PLUS_SUCCESS )
+    if ( this->SetTransform(*it, matrix, status == FIELD_OK ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set transform to repository: " << trName ); 
       numberOfErrors++; 

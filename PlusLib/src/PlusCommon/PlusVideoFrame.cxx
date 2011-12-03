@@ -174,6 +174,20 @@ PlusStatus PlusVideoFrame::DeepCopy(PlusVideoFrame* videoItem)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::FillBlank()
+{
+  if ( !this->IsImageValid() )
+  {
+    LOG_ERROR("Unable to fill image to blank, image data is NULL."); 
+    return PLUS_FAIL; 
+  }
+
+  memset( this->GetBufferPointer(), 0, this->GetFrameSizeInBytes()); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
 // Helper method, duplicates the image base if the specified pixel type matches the actual pixel type 
 template <class TPixel >
 PlusStatus CreateAndAllocateImageGeneric(PlusVideoFrame::ImageBasePointer &resultImage, int imageSize[2])

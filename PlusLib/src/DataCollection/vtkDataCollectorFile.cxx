@@ -194,42 +194,6 @@ PlusStatus vtkDataCollectorFile::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName)
-{
-  LOG_TRACE("vtkDataCollectorFile::GetTransformWithTimestamp"); 
-
-  if ( toolTransMatrix == NULL )
-  {
-    LOG_ERROR("Unable to get transform - tool transform matrix is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get transforms
-  TrackedFrame trackedFrame;
-  GetTrackedFrame(&trackedFrame);
-
-  if (trackedFrame.GetCustomFrameTransform(transformName, toolTransMatrix) != PLUS_SUCCESS )
-  {
-    std::string transformNameStr;
-    transformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Failed to get custom frame transform from tracked frame: " << transformNameStr );
-    return PLUS_FAIL;
-  }
-
-  if (trackedFrame.GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS)
-  {
-    std::string transformNameStr;
-    transformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform status for transform" << transformNameStr);
-    return PLUS_FAIL;
-  }
-
-  transformTimestamp = trackedFrame.GetTimestamp();
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
 {
   LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ")"); 

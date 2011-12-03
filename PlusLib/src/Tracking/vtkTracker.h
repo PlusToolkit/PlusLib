@@ -8,10 +8,10 @@ See License.txt for details.
 #define __vtkTracker_h
 
 #include "PlusConfigure.h"
-#include "vtkTrackerBuffer.h"
 #include "vtkObject.h"
 #include "vtkCriticalSection.h"
 #include "vtkXMLDataElement.h"
+#include "TrackedFrame.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -25,7 +25,7 @@ class vtkDataArray;
 class vtkDoubleArray;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
-class TrackedFrame; 
+class vtkTrackerBuffer; 
 
 typedef std::map<std::string, vtkTrackerTool*> ToolContainerType;
 typedef ToolContainerType::const_iterator ToolIteratorType; 
@@ -35,6 +35,20 @@ enum {
   TR_LED_OFF   = 0,
   TR_LED_ON    = 1,
   TR_LED_FLASH = 2
+};
+
+/*! Flags for tool statuses */
+enum ToolStatus 
+{
+  TOOL_OK,			      /*!< Tool OK */
+  TOOL_MISSING,       /*!< Tool or tool port is not available */
+  TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
+  TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */
+  TOOL_SWITCH1_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_SWITCH2_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_SWITCH3_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_REQ_TIMEOUT,   /*!< Request timeout status */
+  TOOL_INVALID        /*!< Invalid tool status */
 };
 
 /*!
@@ -90,9 +104,14 @@ public:
   /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
-  /*! Convert tracker status to string */
-  //TODO: the return value should be PLusStatus and the result should be got using parameter by reference
-  static std::string ConvertTrackerStatusToString(TrackerStatus status); 
+  /*! Convert tool status to string */
+  static std::string ConvertToolStatusToString(ToolStatus status); 
+
+  /*! Convert tool status to TrackedFrameFieldStatus */
+  static TrackedFrameFieldStatus ConvertToolStatusToTrackedFrameFieldStatus(ToolStatus status); 
+
+  /*! Convert TrackedFrameFieldStatus to tool status */
+  static ToolStatus ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus); 
 
   /*! Get all transforms from buffer element values of each tool by timestamp. */
   virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
@@ -199,7 +218,7 @@ protected:
   can communicate information back to the vtkTracker base class, which
   will in turn relay the information to the appropriate vtkTrackerTool.
   */
-  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
+  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
  /*! InternalStartTracking() initialize the tracking device, this methods should be overridden in derived classes */
   virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };

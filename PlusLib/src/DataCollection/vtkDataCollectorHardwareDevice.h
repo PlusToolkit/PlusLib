@@ -101,10 +101,6 @@ public:
   */
   virtual PlusStatus GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1); 
 
-  // TODO only vtkDataCollectorTest1 uses it, make it protected if possible
-  /*! Get the most recent tracked frame from devices  */
-  virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, PlusTransformName transformName); 
-
   /*!
     Get the tracked frame list from devices since time specified
     \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
@@ -115,9 +111,6 @@ public:
 
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
-
-  /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName); 
 
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
@@ -182,20 +175,10 @@ public:
   void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 
 protected:
+
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
-  /*! Get the tracked frame from devices by time with each tool transforms */
-  virtual PlusStatus GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<PlusTransformName> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime);
-
-  /*! Get transformation by timestamp from tracker  */
-  virtual PlusStatus GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, PlusTransformName transformName); 
-
-  /*! Get transformations by timestamp range from tracker. The first returned transform is the one after the startTime, except if startTime is -1, then it refers to the oldest one. '-1' for end time means the latest transform. Returns the timestamp of the requested transform (makes sense if endTime is -1) */
-  virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, PlusTransformName transformName);
-
-  /*! Get frame data by time  */
-  virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& aTimestamp); 
   /*! Get frame data by time  */
   virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, double& aTimestamp); 
 
