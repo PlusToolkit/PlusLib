@@ -809,7 +809,7 @@ PlusStatus vtkSonixVideoSource::SetImagingMode(int mode)
   return PLUS_SUCCESS;
 }
 
-
+//----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetImagingMode(int & mode)
 {
   if (!this->UlteriusConnected)
@@ -823,6 +823,7 @@ PlusStatus vtkSonixVideoSource::GetImagingMode(int & mode)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters()
 {
   if (!this->UlteriusConnected)
@@ -840,7 +841,8 @@ PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters()
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &FrameRate)
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
 {
   if (!this->UlteriusConnected)
   {
@@ -848,9 +850,7 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &FrameRate)
     return PLUS_FAIL;
   }
   
-  char *paramId = "frame rate";
-  
-  if ( !this->Ult.getParamValue(paramId, FrameRate) )
+  if ( !this->Ult.getParamValue("frame rate", aFrameRate) )
   {
 	 LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
 	 return PLUS_FAIL;
