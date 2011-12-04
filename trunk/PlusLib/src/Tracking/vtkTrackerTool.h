@@ -113,16 +113,6 @@ public:
   /*! Set tool model */
   vtkSetStringMacro(ToolModel); 
 
-  /*! Get tool definition data (model to tool transform, tool registration transform, model file path and filename) */
-  vtkGetObjectMacro(ModelToToolTransform, vtkTransform);
-  /*! Set tool definition data (model to tool transform, tool registration transform, model file path and filename) */
-  vtkSetObjectMacro(ModelToToolTransform, vtkTransform);
-
-  /*! Get name of the file containing the 3D model of this tool */
-  vtkGetStringMacro(Tool3DModelFileName); 
-  /*! Set name of the file containing the 3D model of this tool */
-  vtkSetStringMacro(Tool3DModelFileName); 
-
   /*! Set the tool 'SendTo' link for OpenIGTLink broadcasting */
   vtkSetStringMacro(SendToLink);
   /*! Get the tool 'SendTo' link for OpenIGTLink broadcasting */
@@ -153,9 +143,6 @@ protected:
 
   char *SendToLink;
   char *ToolModel;
-
-  char *Tool3DModelFileName;
-  vtkTransform *ModelToToolTransform;
 
   vtkTrackerBuffer *Buffer;
 
