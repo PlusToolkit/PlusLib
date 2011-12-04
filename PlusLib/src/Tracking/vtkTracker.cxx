@@ -35,7 +35,7 @@ vtkStandardNewMacro(vtkTracker);
 vtkTracker::vtkTracker()
 {
   this->Tracking = 0;
-    this->LastUpdateTime = 0;
+  this->LastUpdateTime = 0;
   this->InternalUpdateRate = 0;
   this->Frequency = 50; 
   this->ToolReferenceFrameName = NULL; 

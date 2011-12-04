@@ -33,13 +33,9 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolManufacturer = 0;
 	
 	this->ToolModel = 0;
-	this->Tool3DModelFileName = 0;
 
 	this->SendToLink = 0; 
 
-	this->ModelToToolTransform = vtkTransform::New();
-	this->ModelToToolTransform->Identity();
-	this->SetTool3DModelFileName("");
 	this->SetToolModel("");
 
 	this->Buffer = vtkTrackerBuffer::New();
@@ -65,14 +61,11 @@ vtkTrackerTool::~vtkTrackerTool()
 
   this->SetPortName(NULL); 
 
-	this->SetTool3DModelFileName(NULL); 
 	this->SetToolRevision(NULL); 
 	this->SetToolSerialNumber(NULL); 
 	this->SetToolManufacturer(NULL); 
 
-	this->SetModelToToolTransform(NULL); 
 	this->SetToolModel(NULL); 
-	this->SetTool3DModelFileName(NULL); 
 	
 	if ( this->Buffer )
 	{
@@ -107,10 +100,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
   if ( this->ToolModel )
   {
 	  os << indent << "ToolModel: " << this->GetToolModel() << "\n";
-  }
-	if ( this->ModelToToolTransform )
-  {
-    os << indent << "ModelToToolTransform: " << this->GetModelToToolTransform() << "\n";
   }
 
   if ( this->ToolRevision )
@@ -250,14 +239,11 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetSendToLink( tool->GetSendToLink() );
 
 	this->SetToolModel( tool->GetToolModel() );
-	this->SetTool3DModelFileName( tool->GetTool3DModelFileName() );
 	this->SetToolRevision( tool->GetToolRevision() );
 	this->SetToolSerialNumber( tool->GetToolSerialNumber() );
 	this->SetToolPartNumber( tool->GetToolPartNumber() );
 	this->SetToolManufacturer( tool->GetToolManufacturer() );
 	this->SetToolName( tool->GetToolName() ); 
-
-	this->ModelToToolTransform->DeepCopy( tool->GetModelToToolTransform() );
 
 	this->Buffer->DeepCopy( tool->GetBuffer() );
 
@@ -303,27 +289,6 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	if ( sendToLink != NULL ) 
 	{
 		this->SetSendToLink(sendToLink); 
-	}
-
-	vtkXMLDataElement* modelDataElement = config->FindNestedElementWithName("Model"); 
-	if ( modelDataElement != NULL ) 
-	{
-		const char* file = modelDataElement->GetAttribute("File");
-    if ( (file != NULL) && (STRCASECMP(file, "") != 0) )
-		{
-			this->SetTool3DModelFileName(file);
-		}
-    else
-    {
-      LOG_WARNING("'" << toolName << "' CAD model has not been defined");
-    }
-
-    // ModelToToolTransform stays identity if no model file has been found
-		double modelToToolTransformMatrixValue[16] = {0};
-		if ( (modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue )) && (file != NULL) && (STRCASECMP(file, "") != 0) )
-		{
-			this->ModelToToolTransform->SetMatrix(modelToToolTransformMatrixValue);
-		}
 	}
 
 	return PLUS_SUCCESS;
