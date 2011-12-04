@@ -194,18 +194,11 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 		return PLUS_FAIL; 
 	}
 
-  vtkXMLDataElement* usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
 	if (segmentationParameters == NULL)
   {
-		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
-		return PLUS_FAIL;
+    LOG_ERROR("Cannot find Segmentation element in XML tree!");
+    return PLUS_FAIL;
 	}
 
   double approximateSpacingMmPerPixel(0.0); 
