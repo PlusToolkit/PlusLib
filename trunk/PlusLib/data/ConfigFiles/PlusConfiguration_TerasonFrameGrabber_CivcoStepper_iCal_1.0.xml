@@ -44,34 +44,27 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
         />
   </DataCollection>
 
-  <USCalibration>
-    <CalibrationController>
-      <ProbeCalibration />
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.33"
+    MorphologicalOpeningCircleRadiusMm="0.47"
+    MorphologicalOpeningBarSizeMm="2.0"
 
-      <SegmentationParameters
-          ApproximateSpacingMmPerPixel="0.33"
-          MorphologicalOpeningCircleRadiusMm="0.47"
-          MorphologicalOpeningBarSizeMm="2.0"
+    RegionOfInterest="160 80 540 330"
 
-          RegionOfInterest="160 80 540 330"
+    MaxLinePairDistanceErrorPercent="10.0"
 
-          MaxLinePairDistanceErrorPercent="10.0"
+    MaxAngleDifferenceDegrees="11"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
 
-          MaxAngleDifferenceDegrees="11"
-          MinThetaDegrees="-70"
-          MaxThetaDegrees="70"
+    AngleToleranceDegrees="10"
 
-          AngleToleranceDegrees="10"
+    ThresholdImagePercent="10.0"
 
-          ThresholdImagePercent="10.0"
+    CollinearPointsMaxDistanceFromLineMm="1.75"
 
-          CollinearPointsMaxDistanceFromLineMm="1.75"
-
-          UseOriginalImageIntensityForDotIntensityScore="0"
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
 
   <iCal version="1.0" NumberOfImagesForValidation="100" RecordingIntervalMs="200" MaxTimeSpentWithProcessingMs="170" >
     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="5.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0"/>
@@ -83,11 +76,12 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-        Name="iCAL"
-        Type="Double-N"
-        Version="1.0"
-        Institution="Queen's University PerkLab"
-        />
+      Name="iCAL"
+      Type="Double-N"
+      Version="1.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+      />
 
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
@@ -127,7 +121,6 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
 
   </PhantomDefinition>
 
-  <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
       ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
       Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>

@@ -122,18 +122,11 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
-  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = configData->FindNestedElementWithName("Segmentation");
 	if (segmentationParameters == NULL)
   {
-		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
-		return PLUS_FAIL;
+    LOG_ERROR("Cannot find Segmentation element in XML tree!");
+    return PLUS_FAIL;
 	}
 
   vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");

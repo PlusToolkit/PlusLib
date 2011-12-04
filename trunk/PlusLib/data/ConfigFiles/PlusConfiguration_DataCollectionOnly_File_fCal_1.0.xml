@@ -3,40 +3,18 @@
   <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST SegmentationParameterDialogTest - Saved dataset for video only" 
-      Description="Saved dataset for video only" 
-      />
-
-    <Tracker Type="None"/>
-
-    <ImageAcquisition Type="SavedDataset" 
-        BufferSize="200" 
-        FrameSize="820 616" 
-        FrameRate="10" 
-        AveragedItemsForFiltering="20" 
-        LocalTimeOffset="0.12" 
-        SequenceMetafile="AllSegmentablefCal.mha"
-        UsImageOrientation="MF"
-        ReplayEnabled="TRUE"
-        SpeedThresholdPositionMm="10.0"
-        SpeedThresholdOrientationAngle="15.0"
+        Name="TEST Data collection uses sequence metafile in file mode TEST." 
+        Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
         />
 
-    <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
-
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
-
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
-        MaxFrameDifference="10.0" 
-        />
+    <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
+  <!-- COORDINATE DEFINITIONS -->
+  <CoordinateDefinitions>
+    <Transform From="Phantom" To="Reference" Matrix="0.9968 0.0075 -0.0795 -35.6089    0.0794 0.0055 0.9968 -124.9852    0.0079 -1.0000 0.0049 -16.7    0 0 0 1" Date="2011.12.01 17:57:00" Error="0.0"/>
+  </CoordinateDefinitions> 
+  
   <!-- SEGMENTATION -->
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -50,7 +28,7 @@
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    
+
     AngleToleranceDegrees="10"
 
     ThresholdImagePercent="10.0"
@@ -106,20 +84,22 @@
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
+      
     </Geometry>
   </PhantomDefinition>
 
-  <!-- VOLUME RECONSTRUCTION -->
-  <VolumeReconstruction>
-    <SliceParameters SliceSpacing="1 1 1" SliceOrigin="0 0 0" NumScalarComponents="1" />
-
-    <OutputParameters OutputSpacing="0.5 0.5 0.5" />
-
-    <ClippingParameters ClipRectangle="0 0 820 616"/>
-    <FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
-    <RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
-    <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
-  </VolumeReconstruction>
+  <!-- FCAL -->
+  <fCal NumberOfCalibrationImagesToAcquire="200"
+        NumberOfValidationImagesToAcquire="100"
+        NumberOfStylusCalibrationPointsToAcquire="200"
+        RecordingIntervalMs="100"
+        MaxTimeSpentWithProcessingMs="70"
+  >
+    <TrackerToolNames
+      Reference="Reference"
+      Probe="Probe"
+      Stylus="Stylus"
+    />
+  </fCal>
 
 </PlusConfiguration>

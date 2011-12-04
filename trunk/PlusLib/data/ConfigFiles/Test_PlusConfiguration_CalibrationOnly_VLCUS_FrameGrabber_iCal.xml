@@ -1,34 +1,27 @@
 <PlusConfiguration version="1.3">
 
-  <USCalibration>
-    <CalibrationController>
-      <ProbeCalibration />
-      
-      <SegmentationParameters
-          ApproximateSpacingMmPerPixel="0.21"
-          MorphologicalOpeningCircleRadiusMm="0.55"
-          MorphologicalOpeningBarSizeMm="2.0"
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.21"
+    MorphologicalOpeningCircleRadiusMm="0.55"
+    MorphologicalOpeningBarSizeMm="2.0"
 
-          RegionOfInterest="68 145 458 445"
+    RegionOfInterest="68 145 458 445"
 
-          MaxLinePairDistanceErrorPercent="20.0"
+    MaxLinePairDistanceErrorPercent="20.0"
 
-          MaxAngleDifferenceDegrees="11"
-          MinThetaDegrees="-70"
-          MaxThetaDegrees="70"
-          
-          AngleToleranceDegrees="11"
-          
-          ThresholdImagePercent="10.0"
+    MaxAngleDifferenceDegrees="11"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    
+    AngleToleranceDegrees="11"
+    
+    ThresholdImagePercent="10.0"
 
-          CollinearPointsMaxDistanceFromLineMm="1.11"
+    CollinearPointsMaxDistanceFromLineMm="1.11"
 
-          UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="0"
 
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+  />
 
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -36,6 +29,7 @@
       Name="iCAL"
       Type="Double-N"
       Version="1.0"
+      WiringVersion="1.0"
       Institution="Queen's University PerkLab"
     />
     

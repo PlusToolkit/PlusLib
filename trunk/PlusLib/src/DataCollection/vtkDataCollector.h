@@ -9,12 +9,10 @@
 
 #include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h" 
-#include "vtkTracker.h"
 
 class vtkXMLDataElement; 
 class vtkTrackedFrameList; 
 class TrackedFrame; 
-class vtkTrackerTool;
 class vtkMatrix4x4;
 
 /*!

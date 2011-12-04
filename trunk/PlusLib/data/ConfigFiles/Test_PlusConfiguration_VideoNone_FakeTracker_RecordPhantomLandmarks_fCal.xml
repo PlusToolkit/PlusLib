@@ -17,6 +17,7 @@ vtkPhantomRegistrationTest uses this configuration"
     <Synchronization Type="None" />
   </DataCollection> 
 
+  <!-- COORDINATE DEFINITIONS -->
   <CoordinateDefinitions>
     <Transform From="Reference" To="Tracker" Matrix="0 -1 0 300.0  1 0 0 400.0  0 0 1 700.0  0 0 0 1" Date="2011.12.01 11:57:00"/>
     <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0  0 1 0 0  0 0 1 0  0 0 0 1" Date="2011.12.01 17:22:12"/>
@@ -29,6 +30,7 @@ vtkPhantomRegistrationTest uses this configuration"
         Name="fCAL"
         Type="Double-N"
         Version="1.0"
+        WiringVersion="1.0"
         Institution="Queen's University PerkLab"
         />
 
@@ -70,6 +72,7 @@ vtkPhantomRegistrationTest uses this configuration"
     </Geometry>
   </PhantomDefinition>
 
+  <!-- FCAL -->
   <fCal NumberOfCalibrationImagesToAcquire="100">
     <TrackerToolNames
         Reference="Reference"

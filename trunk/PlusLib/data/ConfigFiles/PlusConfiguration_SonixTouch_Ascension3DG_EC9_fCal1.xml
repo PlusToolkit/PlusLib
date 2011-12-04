@@ -3,124 +3,124 @@
   <DataCollection version="2.0" StartupDelaySec="1.0">
 
     <DeviceSet 
-        Name="SonixTouch Ascension3DG(GPS) EC9 +Reference +Stylus" 
-        Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
-        />
+      Name="SonixTouch Ascension3DG(GPS) EC9 +Reference +Stylus" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+      />
 
     <Tracker Type="Ascension3DG" BufferSize="500" Frequency="20" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
-      <Tool Name="Probe" Type="Probe" PortName="0" SendTo="localhost:18944">
-        <Model
-            File="L14-5_38_ProbeModel.stl"
-            ModelToToolTransform="
+      <Tool Name="Probe" Type="Probe" PortName="0" SendTo="localhost:18944" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" />
+    </Tracker>
+
+    <ImageAcquisition
+      Type="SonixVideo" 
+      BufferSize="500" 
+      FrameSize="820 616" 
+      UsImageOrientation="UF"
+      FrameRate="30" 
+      AveragedItemsForFiltering="20" 
+      LocalTimeOffset="-0.2976"
+      IP="130.15.7.20" 
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" 
+      />
+
+    <Synchronization
+      Type="ChangeDetection" 
+      SynchronizationTimeLength="30" 
+      MinNumOfSyncSteps="5" 
+      ThresholdMultiplier="5"
+
+      NumberOfAveragedTransforms="20" 
+      MinTransformThreshold="2.0" 
+      MaxTransformDifference="2.0" 
+
+      NumberOfAveragedFrames="6" 
+      MinFrameThreshold="200.0" 
+      MaxFrameDifference="10.0" 
+      />
+
+  </DataCollection>
+
+  <!-- RENDERING -->
+  <Rendering>
+    <DisplayableTool ToolCoordinateFrame="Probe" WorldCoordinateFrame="Reference">
+      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+      <Model
+        File="L14-5_38_ProbeModel.stl"
+        ModelToToolTransform="
           0.107721 0.979858 0.168146 -115.733132
           -0.993248 0.113395 -0.024487 13.708913
           -0.043061 -0.164373 0.985458 -107.578262
           0 0 0 1"
-            />
-      </Tool>
-
-      <Tool Name="Reference" PortName="1"/>
-
-      <Tool Name="Stylus" PortName="2">
-        <Model
-            File="Stylus_Example.stl"
-            ModelToToolTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-            />
-      </Tool>
-
-    </Tracker>
-
-    <ImageAcquisition
-        Type="SonixVideo" 
-        BufferSize="500" 
-        FrameSize="820 616" 
-        UsImageOrientation="UF"
-        FrameRate="30" 
-        AveragedItemsForFiltering="20" 
-        LocalTimeOffset="-0.2976"
-        IP="130.15.7.20" 
-        ImagingMode="BMode"
-        AcquisitionDataType="BPost" 
-        Depth="-1" 
-        Sector="-1" 
-        Gain="-1" 
-        DynRange="-1" 
-        Zoom="-1" 
-        Frequency="-1" 
-        Timeout="-1" 
-        CompressionStatus="0" 
         />
+    </DisplayableTool>
 
-    <Synchronization
-        Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
+    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
+      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+      <Model
+          File="Stylus_Example.stl"
+          ModelToToolTransform="
+            1 0 0 -210.0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          />
+    </DisplayableTool>
+  </Rendering>
 
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
+  <!-- SEGMENTATION -->
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.3"
+    MorphologicalOpeningBarSizeMm="1.0"
 
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
-        MaxFrameDifference="10.0" 
-        />
+    RegionOfInterest="27 27 793 589"
 
-  </DataCollection>
+    MaxLinePairDistanceErrorPercent="10.0"
 
+    MaxAngleDifferenceDegrees="11"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
 
-  <!-- CALIBRATION -->
-  <USCalibration>
-    <CalibrationController>
-      <ProbeCalibration />
-      <SegmentationParameters
-          ApproximateSpacingMmPerPixel="0.078"
-          MorphologicalOpeningCircleRadiusMm="0.3"
-          MorphologicalOpeningBarSizeMm="1.0"
+    AngleToleranceDegrees="10"
 
-          RegionOfInterest="27 27 793 589"
+    ThresholdImagePercent="10.0"
 
-          MaxLinePairDistanceErrorPercent="10.0"
+    CollinearPointsMaxDistanceFromLineMm="0.41"
 
-          MaxAngleDifferenceDegrees="11"
-          MinThetaDegrees="-70"
-          MaxThetaDegrees="70"
-
-          AngleToleranceDegrees="10"
-
-          ThresholdImagePercent="10.0"
-
-          CollinearPointsMaxDistanceFromLineMm="0.41"
-
-          UseOriginalImageIntensityForDotIntensityScore="0"
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
 
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-        Name="fCAL"
-        Type="Double-N"
-        Version="1.0"
-        Institution="Queen's University PerkLab"
-        />
+      Name="fCAL"
+      Type="Double-N"
+      Version="1.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+      />
 
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
-        File="FCal_1.0.stl"
-        ModelToPhantomTransform="
-      1 0 0 -15.0
-      0 1 0 10.0
-      0 0 1 -5.0
-      0 0 0 1"
-        />
+      File="FCal_1.0.stl"
+      ModelToPhantomTransform="
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
+        0 0 0 1"
+      />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -156,6 +156,7 @@
       Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
       />
 
+  <!-- FCAL -->
   <fCal NumberOfCalibrationImagesToAcquire="200"
       NumberOfValidationImagesToAcquire="100"
       NumberOfStylusCalibrationPointsToAcquire="200"

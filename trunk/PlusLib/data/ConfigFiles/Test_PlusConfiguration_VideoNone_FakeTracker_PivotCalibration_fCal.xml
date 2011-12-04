@@ -9,29 +9,34 @@ vtkStylusCalibrationTest uses this configuration"
         />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
-
       <Tool Name="Reference" PortName="0" SendTo="127.0.0.1:1111"/>
-      <Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111">
-        <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-        <Model
-            File="Stylus_Example.stl"
-            ModelToToolTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-            />
-
-      </Tool>
+      <Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111" />
     </Tracker>
 
     <ImageAcquisition Type="None" />
     <Synchronization Type="None" />
   </DataCollection>
 
+  <!-- RENDERING -->
+  <Rendering>
+    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
+      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+      <Model
+          File="Stylus_Example.stl"
+          ModelToToolTransform="
+            1 0 0 -210.0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          />
+    </DisplayableTool>
+  </Rendering>
+
+  <!-- COORDINATE DEFINITIONS -->
   <CoordinateDefinitions>
   </CoordinateDefinitions>
 
+  <!-- FCAL -->
   <fCal NumberOfStylusCalibrationPointsToAcquire="200">
     <TrackerToolNames
         Reference="Reference"

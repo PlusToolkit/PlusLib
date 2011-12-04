@@ -8,7 +8,7 @@
       />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="ToolState" AveragedItemsForFiltering="20" >
-    <Tool Name="Test" PortName="0"></Tool>
+      <Tool Name="Test" PortName="0"></Tool>
     </Tracker>
 
     <ImageAcquisition Type="None" />

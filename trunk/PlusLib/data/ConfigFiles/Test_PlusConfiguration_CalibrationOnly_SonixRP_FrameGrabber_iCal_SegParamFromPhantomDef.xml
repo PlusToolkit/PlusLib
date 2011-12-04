@@ -1,36 +1,28 @@
 <PlusConfiguration version="1.3">
 
-  <USCalibration>
-    <!-- CalibrationMode: OFFLINE or REALTIME -->
-    <CalibrationController>
-      <ProbeCalibration />
+  <Segmentation
+    ComputeSegmentationParametersFromPhantomDefinition="1"
+    
+    MorphologicalOpeningCircleRadiusMm="0.55"
+    MorphologicalOpeningBarSizeMm="2.0"
 
-      <SegmentationParameters
-          ComputeSegmentationParametersFromPhantomDefinition="1"
-          
-          MorphologicalOpeningCircleRadiusMm="0.55"
-          MorphologicalOpeningBarSizeMm="2.0"
+    RegionOfInterest="50 140 600 440"
 
-          RegionOfInterest="50 140 600 440"
+    MaxLinePairDistanceErrorPercent="10.0"
 
-          MaxLinePairDistanceErrorPercent="10.0"
+    MaxAngleDifferenceDegrees="11"
+    
+    ThresholdImagePercent="10.0"
 
-          MaxAngleDifferenceDegrees="11"
-          
-          ThresholdImagePercent="10.0"
+    CollinearPointsMaxDistanceFromLineMm="1.38"
 
-          CollinearPointsMaxDistanceFromLineMm="1.38"
-
-          UseOriginalImageIntensityForDotIntensityScore="0"
-          
-          ApproximateSpacingMmPerPixel="0.26"
-          ImageScalingTolerancePercent="-10 10 -10 10"                                
-          ImageNormalVectorInPhantomFrameEstimation="0 0 1"
-          ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    
+    ApproximateSpacingMmPerPixel="0.26"
+    ImageScalingTolerancePercent="-10 10 -10 10"                                
+    ImageNormalVectorInPhantomFrameEstimation="0 0 1"
+    ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
+  />
 
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -38,6 +30,7 @@
       Name="iCAL"
       Type="Double-N"
       Version="1.0"
+      WiringVersion="1.0"
       Institution="Queen's University PerkLab"
     />
     

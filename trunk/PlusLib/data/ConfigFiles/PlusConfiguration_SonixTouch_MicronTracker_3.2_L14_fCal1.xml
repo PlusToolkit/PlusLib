@@ -8,31 +8,9 @@
         />
 
     <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
-
-      <Tool Name="Probe" PortName="probeMarker" SendTo="localhost:18944">
-        <Model
-            File="L14-5_38_ProbeModel.stl"
-            ModelToToolTransform="
-          0.107721 0.979858 0.168146 -115.733132
-          -0.993248 0.113395 -0.024487 13.708913
-          -0.043061 -0.164373 0.985458 -107.578262
-          0 0 0 1"
-            />
-      </Tool>
-
+      <Tool Name="Probe" PortName="probeMarker" SendTo="localhost:18944" />
       <Tool Name="Reference"  PortName="patientMarker" />
-
-      <Tool Name="Stylus" PortName="stitchMarker">
-        <Model
-            File="Stylus_Example.stl"
-            ModelToToolTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-            />
-      </Tool>
-
+      <Tool Name="Stylus" PortName="stitchMarker" />
     </Tracker>
 
     <ImageAcquisition
@@ -73,56 +51,77 @@
 
   </DataCollection>
 
+  <!-- RENDERING -->
+  <Rendering>
+    <DisplayableTool ToolCoordinateFrame="Probe" WorldCoordinateFrame="Reference">
+      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+      <Model
+        File="L14-5_38_ProbeModel.stl"
+        ModelToToolTransform="
+          0.107721 0.979858 0.168146 -115.733132
+          -0.993248 0.113395 -0.024487 13.708913
+          -0.043061 -0.164373 0.985458 -107.578262
+          0 0 0 1"
+        />
+    </DisplayableTool>
 
-  <!-- CALIBRATION -->
-  <USCalibration>
-    <CalibrationController>
-      <ProbeCalibration />
-      <SegmentationParameters
-          ApproximateSpacingMmPerPixel="0.078"
-          MorphologicalOpeningCircleRadiusMm="0.47"
-          MorphologicalOpeningBarSizeMm="1.0"
+    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
+      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+      <Model
+          File="Stylus_Example.stl"
+          ModelToToolTransform="
+            1 0 0 -210.0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          />
+    </DisplayableTool>
+  </Rendering>
 
-          RegionOfInterest="27 27 793 589"
+  <!-- SEGMENTATION -->
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.47"
+    MorphologicalOpeningBarSizeMm="1.0"
 
-          MaxLineLengthErrorPercent="10.0"
-          MaxLinePairDistanceErrorPercent="10.0"
-          MaxLineErrorMm="2.0"
+    RegionOfInterest="27 27 793 589"
 
-          AngleToleranceDegrees="10"
+    MaxLineLengthErrorPercent="10.0"
+    MaxLinePairDistanceErrorPercent="10.0"
+    MaxLineErrorMm="2.0"
 
-          MaxAngleDifferenceDegrees="11"
-          MinThetaDegrees="-70"
-          MaxThetaDegrees="70"
+    AngleToleranceDegrees="10"
 
-          ThresholdImagePercent="10.0"
+    MaxAngleDifferenceDegrees="11"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
 
-          CollinearPointsMaxDistanceFromLineMm="0.41"
+    ThresholdImagePercent="10.0"
 
-          UseOriginalImageIntensityForDotIntensityScore="0"
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+    CollinearPointsMaxDistanceFromLineMm="0.41"
+
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
 
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-        Name="fCAL"
-        Type="Double-N"
-        Version="1.0"
-        Institution="Queen's University PerkLab"
-        />
+      Name="fCAL"
+      Type="Double-N"
+      Version="1.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+      />
 
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
         File="FCal_1.0.stl"
         ModelToPhantomTransform="
-      1 0 0 -15.0
-      0 1 0 10.0
-      0 0 1 -5.0
-      0 0 0 1"
+          1 0 0 -15.0
+          0 1 0 10.0
+          0 0 1 -5.0
+          0 0 0 1"
         />
 
     <Geometry>
@@ -159,6 +158,7 @@
       Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
       />
 
+  <!-- FCAL -->
   <fCal NumberOfCalibrationImagesToAcquire="200"
       NumberOfValidationImagesToAcquire="100"
       NumberOfStylusCalibrationPointsToAcquire="200"

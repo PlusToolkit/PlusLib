@@ -12,48 +12,44 @@
     <Synchronization Type="None" />
   </DataCollection>
 
+  <!-- COORDINATE DEFINITIONS -->
   <CoordinateDefinitions>
     <Transform From="Phantom" To="Reference" Matrix="0.9955 -0.0286 -0.0898 -35.8654    0.0902 0.0125 0.9958 -125.0523    -0.0273 -0.9995 0.0150 -15.0    0 0 0 1" Date="2011.12.01 17:50:00" Error="0.0"/>
   </CoordinateDefinitions> 
 
-  <!-- CALIBRATION -->
-  <USCalibration>
-    <CalibrationController>
-      <ProbeCalibration />
-      <SegmentationParameters
-          ApproximateSpacingMmPerPixel="0.078"
-          MorphologicalOpeningCircleRadiusMm="0.47"
-          MorphologicalOpeningBarSizeMm="1.0"
+  <!-- SEGMENTATION -->
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.47"
+    MorphologicalOpeningBarSizeMm="1.0"
 
-          RegionOfInterest="27 27 793 589"
+    RegionOfInterest="27 27 793 589"
 
-          MaxLinePairDistanceErrorPercent="10.0"
+    MaxLinePairDistanceErrorPercent="10.0"
 
-          MaxAngleDifferenceDegrees="11"
-          MinThetaDegrees="-70"
-          MaxThetaDegrees="70"
+    MaxAngleDifferenceDegrees="11"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
 
-          AngleToleranceDegrees="11"
+    AngleToleranceDegrees="11"
 
-          ThresholdImagePercent="10.0"
+    ThresholdImagePercent="10.0"
 
-          CollinearPointsMaxDistanceFromLineMm="0.41"
+    CollinearPointsMaxDistanceFromLineMm="0.41"
 
-          UseOriginalImageIntensityForDotIntensityScore="0"
-          >
-      </SegmentationParameters>
-    </CalibrationController>
-  </USCalibration>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
 
   <!-- PHANTOM -->
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
-        Name="fCAL"
-        Type="Double-N"
-        Version="1.0"
-        Institution="Queen's University PerkLab"
-        />
+      Name="fCAL"
+      Type="Double-N"
+      Version="1.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+      />
 
     <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
     <Model
@@ -93,6 +89,7 @@
     </Geometry>
   </PhantomDefinition>
 
+  <!-- FCAL -->
   <fCal NumberOfCalibrationImagesToAcquire="200"
       NumberOfValidationImagesToAcquire="100"
       NumberOfStylusCalibrationPointsToAcquire="200"
