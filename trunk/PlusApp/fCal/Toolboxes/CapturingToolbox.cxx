@@ -11,6 +11,7 @@
 #include "VolumeReconstructionToolbox.h"
 #include "vtkDataCollectorFile.h"
 #include "vtkDataCollectorHardwareDevice.h"
+#include "vtkTracker.h"
 
 #include <QFileDialog>
 #include <QMessageBox>

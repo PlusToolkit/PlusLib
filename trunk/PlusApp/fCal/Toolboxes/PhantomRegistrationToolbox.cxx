@@ -270,7 +270,7 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
       stlMapper->SetInputConnection(stlReader->GetOutputPort());
       m_PhantomActor->SetMapper(stlMapper);
       m_PhantomActor->GetProperty()->SetOpacity(0.6);
-      m_PhantomActor->SetUserTransform(referenceDisplayableTool->GetTool()->GetModelToToolTransform());
+      m_PhantomActor->SetUserTransform(referenceDisplayableTool->GetModelToToolTransform());
     }
     else
     {

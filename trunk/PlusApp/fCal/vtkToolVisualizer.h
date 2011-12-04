@@ -7,12 +7,11 @@
 #ifndef __vtkToolVisualizer_h
 #define __vtkToolVisualizer_h
 
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
 #include "vtkDataCollector.h"
+#include "TrackedFrame.h"
+#include "vtkDisplayableTool.h"
 
 #include "vtkRenderer.h"
-#include "vtkActor.h"
 #include "vtkImageActor.h"
 #include "vtkPolyData.h"
 #include "vtkCamera.h"
@@ -21,67 +20,11 @@
 #include <QObject>
 
 class vtkMatrix4x4;
+class vtkTransform;
 
 class QTimer;
 
 class vtkSTLReader;
-
-//-----------------------------------------------------------------------------
-
-/*! \class vtkDisplayableTool 
- * \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
- * \ingroup PlusAppFCal
- */
-class vtkDisplayableTool : public vtkObject
-{
-public:
-	static vtkDisplayableTool *New();
-
-  bool IsDisplayable()
-  {
-    return ((this->Actor->GetMapper() != NULL) && this->Displayable);
-  };
-
-public:
-	vtkGetObjectMacro(Tool, vtkTrackerTool);
-	vtkSetObjectMacro(Tool, vtkTrackerTool);
-
-  vtkGetObjectMacro(Actor, vtkActor);
-
-	vtkBooleanMacro(Displayable, bool);
-	vtkGetMacro(Displayable, bool);
-	vtkSetMacro(Displayable, bool);
-
-protected:
- 	vtkSetObjectMacro(Actor, vtkActor);
-
-protected:
-  vtkDisplayableTool()
-  {
-	  this->Tool = NULL;
-    this->Actor = NULL;
-
-    vtkSmartPointer<vtkActor> toolActor = vtkSmartPointer<vtkActor>::New();
-	  this->SetActor(toolActor);
-
-    Displayable = true;
-  };
-
-  virtual ~vtkDisplayableTool()
-  {
-    this->SetActor(NULL);
-  };
-
-protected:
-  /*! Pointer to the tool object */
-  vtkTrackerTool* Tool;
-
-  /*! Actor displaying the tool model */
-  vtkActor*       Actor;
-
-  /*! Flag that can disable displaying of this tool */
-  bool            Displayable;
-};
 
 //-----------------------------------------------------------------------------
 
@@ -101,11 +44,17 @@ public:
 
 public:
 	/*!
-	* Initialize object, connect to devices, load configuration
+	* Initialize object
 	*/
 	PlusStatus Initialize();
 
-	/*!
+  /*!
+  * Read rendering configuration
+  * \param aConfig Displayable tool element (not the root!) of the input device set configuration XML data
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
+  /*!
 	* Initializes device visualization - loads models, transforms, assembles visualization pipeline
 	*/
   PlusStatus InitializeDeviceVisualization();
@@ -241,6 +190,9 @@ protected:
 	*/
 	PlusStatus SetDefaultStylusModel(vtkActor* aActor);
 
+  /*! Clear displayable tool vector */
+  PlusStatus ClearDisplayableTools();
+
 protected slots:
 	/*!
 	* Displays the devices if not in image mode
@@ -274,7 +226,7 @@ public:
 
 	vtkGetObjectMacro(VolumeActor, vtkActor);
 
-  vtkSetObjectMacro(ImageToProbeTransform, vtkTransform);
+  void SetImageToProbeTransform(vtkTransform*);
 
   vtkGetStringMacro(ProbeToolName);
   vtkSetStringMacro(ProbeToolName);

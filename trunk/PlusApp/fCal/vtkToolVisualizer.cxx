@@ -9,6 +9,8 @@
 #include "vtkToolVisualizer.h"
 
 #include "vtkDataCollectorHardwareDevice.h" //TODO
+#include "vtkTracker.h"
+
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 
@@ -16,6 +18,7 @@
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
 
+#include "vtkTransform.h"
 #include "vtkMath.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkGlyph3D.h"
@@ -39,8 +42,9 @@
 
 //-----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkDisplayableTool);
 vtkStandardNewMacro(vtkToolVisualizer);
+
+vtkCxxSetObjectMacro(vtkToolVisualizer, ImageToProbeTransform, vtkTransform);
 
 //-----------------------------------------------------------------------------
 
@@ -103,16 +107,7 @@ vtkToolVisualizer::~vtkToolVisualizer()
   this->SetImageActor(NULL);
   this->SetImageCamera(NULL);
 
-  for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
-  {
-    vtkDisplayableTool* tool = it->second;
-    if (tool != NULL)
-    {
-      tool->Delete();
-      tool = NULL;
-    }
-  }
-  this->DisplayableTools.clear();
+  ClearDisplayableTools();
 
   this->SetImageToProbeTransform(NULL);
 }
@@ -153,6 +148,52 @@ PlusStatus vtkToolVisualizer::Initialize()
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( DisplayDevices() ) );
 
   this->SetInitialized(true);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("vtkToolVisualizer::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
+
+  // Rendering section
+  vtkXMLDataElement* renderingElement = aConfig->FindNestedElementWithName("Rendering"); 
+
+  if (renderingElement == NULL)
+  {
+    LOG_ERROR("Unable to find Rendering element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Read displayable tool configurations
+  for ( int i = 0; i < renderingElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* displayableToolElement = renderingElement->GetNestedElement(i); 
+    if ( STRCASECMP(displayableToolElement->GetName(), "DisplayableTool") != 0 )
+    {
+      // if this is not a DisplayableTool element, skip it
+      continue; 
+    }
+
+    // Create displayable tool and read its configuration
+    vtkDisplayableTool* displayableTool = vtkDisplayableTool::New();
+
+    if (displayableTool->ReadConfiguration(displayableToolElement) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to read displayable tool configuration!");
+      continue;
+    }
+
+    this->DisplayableTools[displayableTool->GetToolToWorldTransformName().From()] = displayableTool;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -245,6 +286,32 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkToolVisualizer::ClearDisplayableTools()
+{
+  LOG_TRACE("vtkToolVisualizer::ClearDisplayableTools");
+
+  for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
+  {
+    vtkDisplayableTool* tool = it->second;
+    if (tool != NULL)
+    {
+      if (tool->GetActor() != NULL)
+      {
+        this->CanvasRenderer->RemoveActor(tool->GetActor());
+      }
+
+      tool->Delete();
+      tool = NULL;
+    }
+  }
+
+  this->DisplayableTools.clear();
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
 {
   LOG_TRACE("vtkToolVisualizer::InitializeDeviceVisualization");
@@ -262,20 +329,7 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
 
   // Delete displayable tools
-  for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
-  {
-    vtkDisplayableTool* tool = it->second;
-    if (tool != NULL)
-    {
-      if (tool->GetActor() != NULL)
-      {
-        this->CanvasRenderer->RemoveActor(tool->GetActor());
-      }
-
-      tool->Delete();
-      tool = NULL;
-    }
-  }
+  ClearDisplayableTools();
 
   // Connect data collector to image actor
   if (this->DataCollector->GetVideoEnabled())
@@ -484,7 +538,9 @@ void vtkToolVisualizer::SetPhantomToReferenceTransform(vtkTransform* aTransform)
     LOG_ERROR("Missing reference displayable tool!");
     return;
   }
-
+  // TODO!!!!!!!
+  LOG_ERROR("TEMPORARY ISSUE: Acquire position has to be changed to use tracked frame instead of tracker tools!");
+/*
   vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   phantomModelToPhantomReferenceTransform->Identity();
   phantomModelToPhantomReferenceTransform->Concatenate(aTransform->GetMatrix());
@@ -493,7 +549,7 @@ void vtkToolVisualizer::SetPhantomToReferenceTransform(vtkTransform* aTransform)
 
   this->DisplayableTools[this->ReferenceToolName]->GetActor()->SetUserTransform(phantomModelToPhantomReferenceTransform);
 
-  this->DisplayableTools[this->ReferenceToolName]->DisplayableOn();
+  this->DisplayableTools[this->ReferenceToolName]->DisplayableOn();*/
 }
 
 //-----------------------------------------------------------------------------
@@ -685,7 +741,7 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
   }
 
   LOG_ERROR("Temporary issue: update transform repo with tracked frame"); 
-  
+  /*
   // For all tools
   for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
   {
@@ -788,7 +844,7 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
   if (resetCameraNeeded)
   {
     this->CanvasRenderer->ResetCamera();
-  }
+  }*/
 
   return PLUS_SUCCESS;
 }
