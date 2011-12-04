@@ -326,6 +326,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL; 
   }
 
+  // Read tracker tool names
   vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
 
   if (fCalElement == NULL)
@@ -361,6 +362,23 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
 
   m_ParentMainWindow->GetToolVisualizer()->SetReferenceToolName(referenceToolName);
+
+  // Stylus tool name
+  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
+  if (stylusToolName == NULL)
+  {
+	  LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_ParentMainWindow->GetToolVisualizer()->SetStylusToolName(stylusToolName);
+
+  // Coordinate definitions
+  if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to read coordinate definitions from device set configuration!");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

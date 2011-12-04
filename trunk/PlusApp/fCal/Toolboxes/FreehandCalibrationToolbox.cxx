@@ -33,7 +33,6 @@ See License.txt for details.
 FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
   : AbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
-  , m_ProbeToolName("")
   , m_CancelRequest(false)
   , m_LastRecordedFrameTimestamp(0.0)
   , m_NumberOfCalibrationImagesToAcquire(200)
@@ -195,74 +194,17 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL; 
   }
 
-  // Stylus tool name
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+  // Read calibration result
+  PlusTransformName imageToProbeTransformName("Image", m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName());
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  bool valid = false;
 
-  if (trackerToolNames == NULL)
+  if ( (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->GetTransform(imageToProbeTransformName, imageToProbeTransformMatrix, &valid) == PLUS_SUCCESS) && (valid) )
   {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
-  if (probeToolName == NULL)
-  {
-	  LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
-  }
-
-  m_ProbeToolName = std::string(probeToolName);
-
-  // Check if a tool with the specified name exists
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackingEnabled() == false)
-  {
-    LOG_ERROR("Data collector object is invalid or not tracking!");
-    return PLUS_FAIL;
-  }
-
-  TrackedFrame trackedFrame;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get tracked frame from data collector!");
-    return PLUS_FAIL;
-  }
-
-  // TODO
-  LOG_ERROR("TEMPORARY ISSUE: TransformRepository will check the availability of the stylus tool");
-  bool probeFound = false;
-  if (!probeFound)
-  {
-    LOG_ERROR("No tool found with the specified name '" << m_ProbeToolName << "'!");
-    return PLUS_FAIL;
-  }
-
-  // Read probe calibration
-  vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Name", m_ProbeToolName.c_str());
-	if (probeDefinition == NULL) {
-		LOG_ERROR("No probe definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) {
-		LOG_ERROR("No calibration section is found in probe definition!");
-		return PLUS_FAIL;
-	}
-
-  // Read calibration matrix
-	double* userImageToProbeTransformVector = new double[16]; 
-	if (calibration->GetVectorAttribute("MatrixValue", 16, userImageToProbeTransformVector)) {
     vtkSmartPointer<vtkTransform> userImageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
     userImageToProbeTransform->Identity();
-    userImageToProbeTransform->SetMatrix(userImageToProbeTransformVector);
+    userImageToProbeTransform->Concatenate(imageToProbeTransformMatrix);
     m_Calibration->SetTransformUserImageToProbe(userImageToProbeTransform);
-	}
-	delete[] userImageToProbeTransformVector;
-
-  // Read calibration date
-  const char* date = calibration->GetAttribute("Date");
-  if ((date != NULL) && (STRCASECMP(date, "") != 0)) {
-    m_Calibration->SetCalibrationDate(date);
   }
 
   return PLUS_SUCCESS;
@@ -278,7 +220,7 @@ void FreehandCalibrationToolbox::Reset()
   ui.checkBox_ShowDevices->setChecked(false);
 
   vtkDisplayableTool* displayableTool = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName(), displayableTool) == PLUS_SUCCESS)
   {
     displayableTool->DisplayableOff();
   }
@@ -350,7 +292,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
       // Load calibration matrix into tool visualizer
       vtkDisplayableTool* displayableTool = NULL;
-      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
+      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName(), displayableTool) == PLUS_SUCCESS)
       {
         displayableTool->DisplayableOn();
       }
@@ -499,8 +441,7 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
   if (rootElement == NULL)
   {
     LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
@@ -515,7 +456,7 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Replace USCalibration element with the one in the just read file
-  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("USCalibration", rootElement);
+  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
   // Re-calculate camera parameters
   m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
@@ -655,7 +596,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
 
     // TODO: read it from config file
-    PlusTransformName transformNameForCalibration("Probe", "Tracker"); 
+    PlusTransformName transformNameForCalibration("Probe", "Reference"); // "Tracker" ??? az volt elotte, szerintem tevedesbol
     if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, transformNameForCalibration, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
@@ -665,7 +606,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
     // Set result for visualization
     vtkDisplayableTool* displayableTool = NULL;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName(), displayableTool) == PLUS_SUCCESS)
     {
       displayableTool->DisplayableOn();
     }

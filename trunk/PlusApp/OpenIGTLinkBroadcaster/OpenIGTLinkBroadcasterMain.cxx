@@ -4,10 +4,8 @@
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 
-
-
 #include "vtkOpenIGTLinkBroadcaster.h"
-
+#include "TrackedFrame.h"
 
 #include "OpenIGTLinkBroadcasterWidget.h"
 #include <QtGui/QApplication>

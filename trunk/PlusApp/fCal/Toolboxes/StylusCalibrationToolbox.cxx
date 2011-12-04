@@ -129,25 +129,7 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
   }
 
-  // Stylus tool name
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
-
-  if (trackerToolNames == NULL)
-  {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
-  if (stylusToolName == NULL)
-  {
-	  LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
-  }
-
-  m_StylusToolName = std::string(stylusToolName);
-
-  // Check if a tool with the specified name exists
+  // Check if stylus to reference transform is available
   if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackingEnabled() == false)
   {
     LOG_ERROR("Data collector object is invalid or not tracking!");
@@ -161,12 +143,12 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL;
   }
 
-  // TODO
-  LOG_ERROR("TEMPORARY ISSUE: TransformRepository will check the availability of the stylus tool");
-  bool stylusFound = false;
-  if (!stylusFound)
+  PlusTransformName stylusToReferenceTransformName(m_ParentMainWindow->GetToolVisualizer()->GetStylusToolName(), m_ParentMainWindow->GetToolVisualizer()->GetReferenceToolName());
+  vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransformMatrix) != PLUS_SUCCESS)
   {
-    LOG_ERROR("No tool found with the specified name '" << m_StylusToolName << "'!");
+    LOG_ERROR("No transform found between stylus and reference!");
     return PLUS_FAIL;
   }
 

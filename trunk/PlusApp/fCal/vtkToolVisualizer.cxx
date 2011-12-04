@@ -53,6 +53,7 @@ vtkToolVisualizer::vtkToolVisualizer()
   this->ImageModeOff();
   this->ProbeToolName = NULL;
   this->ReferenceToolName = NULL;
+  this->StylusToolName = NULL;
 
   this->CanvasRenderer = NULL;
   this->InputPolyData = NULL;

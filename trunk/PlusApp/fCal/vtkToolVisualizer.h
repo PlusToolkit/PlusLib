@@ -282,6 +282,9 @@ public:
   vtkGetStringMacro(ReferenceToolName);
   vtkSetStringMacro(ReferenceToolName);
 
+  vtkGetStringMacro(StylusToolName);
+  vtkSetStringMacro(StylusToolName);
+
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
 	vtkSetObjectMacro(InputActor, vtkActor);
@@ -333,6 +336,9 @@ protected:
 
   /*! Name of the reference tool */
   char* ReferenceToolName;
+
+  /*! Name of the stylus tool */
+  char* StylusToolName;
 
   /*! Renderer for the canvas */
 	vtkRenderer* CanvasRenderer; 

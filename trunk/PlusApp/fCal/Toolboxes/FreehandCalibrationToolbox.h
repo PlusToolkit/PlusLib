@@ -141,9 +141,6 @@ protected:
   /*! Tracked frame data for validation */
   vtkTrackedFrameList* m_ValidationData;
 
-  /*! Name of the tool that is handled as the probe during calibration */
-  std::string m_ProbeToolName;
-
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;
 
