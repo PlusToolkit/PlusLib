@@ -4,22 +4,6 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// Simple implementation for an accurate wait
-// From http://www.codeguru.com/Cpp/W-P/system/timers/comments.php/c5759/?thread=63096
-
-// Attached code works best in multithreaded environment when the number of threads need to wait on the same shared timer object.
-// Note that to calculate precise timing it uses high resolution counters. As it has been pointed out in the previous comments,
-// that even though this code will work happily on most of the machines, depending on the chip manufacture it may sometimes fail,
-// thus one may want to reserve to using only decrement counter as in the original timer example, relying on the fact that timer
-// callback gets called every 1msec by the multimedia timers.
-// Extra half msec was added purely from my experimental results - to provide higher precision level, you may wish to take it out
-// if you are not happy or dont understand why it is there.
-// Setting process and thread priority is needed here because NT schedule doesnt deal quite right with the processes that run in
-// the background when threads get suspended and resumed. It gives very high precision results when run in the foreground but
-// causes delays when run in trhe background unless priority is adjusted. Priority does not cause any problems unless your
-// process monopolises all available CPU - timer code by itself consumes pretty much 0%.
-
-// ------------------------------------------------------
 #ifndef __WINDOWS_ACCURATE_TIMER_H__
 #define __WINDOWS_ACCURATE_TIMER_H__
 
@@ -35,16 +19,38 @@
 
 #include "PlusCommon.h"
 
-// If a waiting thread cannot ber resumed in this many attempts then 
-// the thread is just removed from the wait pool and resume will not be attempted
-// any more.
+/*!
+  If a waiting thread cannot ber resumed in this many attempts then 
+  the thread is just removed from the wait pool and resume will not be attempted
+  any more.
+*/
 static const int MAX_RESUME_ATTEMPTS=100;
 
-//-------------------------------------------------------------------
-// this timer class was designed to give high precision < 2% average
-// error and it was designed to work best with multi-threaded clients
-// waiting on the single instance of this timer
-//
+/*!
+\class WindowsAccurateTimer 
+\brief Accurate delay and stopwatch function implementation in Windows
+
+  This timer class was designed to give high precision < 2% average
+  error and it was designed to work best with multi-threaded clients
+  waiting on the single instance of this timer
+
+  The implementation is based on this code sample:
+  From http://www.codeguru.com/Cpp/W-P/system/timers/comments.php/c5759/?thread=63096
+
+  The code works best in multithreaded environment when the number of threads need to wait on the same shared timer object.
+  Note that to calculate precise timing it uses high resolution counters. As it has been pointed out in the previous comments,
+  that even though this code will work happily on most of the machines, depending on the chip manufacture it may sometimes fail,
+  thus one may want to reserve to using only decrement counter as in the original timer example, relying on the fact that timer
+  callback gets called every 1msec by the multimedia timers.
+  Extra half msec was added purely from my experimental results - to provide higher precision level, you may wish to take it out
+  if you are not happy or dont understand why it is there.
+  Setting process and thread priority is needed here because NT schedule doesnt deal quite right with the processes that run in
+  the background when threads get suspended and resumed. It gives very high precision results when run in the foreground but
+  causes delays when run in trhe background unless priority is adjusted. Priority does not cause any problems unless your
+  process monopolises all available CPU - timer code by itself consumes pretty much 0%.
+
+\ingroup PlusLibCommon
+*/
 class WindowsAccurateTimer
 {
 public:
@@ -58,22 +64,21 @@ public:
     DeleteCriticalSection(&crit);
   }
 
-  // On some Windows XP SP3 machines the vtkTimerLog::GetUniversalTime() 
-  // measures time with 15 ms resolution
-  // timeBeginPeriod and timeEndPeriod are probably not needed because 
-  // timer is already set to high frequency update in the constructor. 
+  /*!
+    On some Windows XP SP3 machines the vtkTimerLog::GetUniversalTime() 
+    measures time with 15 ms resolution
+    timeBeginPeriod and timeEndPeriod are probably not needed because 
+    timer is already set to high frequency update in the constructor. 
+  */
   static inline double GetSystemTime()
   {
     return 0.001 * timeGetTime(); 
   }
 
-  ///////////////////////////////////////////////////////////////
-  // Function name   : Wait
-  // Description     : Timer wait method
-  //                 : 
-  // Return type     : void  : 
-  // Argument        : int timeout : 
-  ///////////////////////////////////////////////////////////////
+  /*! 
+    Wait for a specified amount of time
+    \param waiting time in ms
+  */
   void Wait(int timeout)
   {
     if ( timeout > 0 )   // anything to wait on ?
@@ -90,20 +95,10 @@ public:
       CloseHandle(tHandle);
     }
   }
-  inline double        Absolute(double val) { return val > 0 ? val : -val; }
-  inline LARGE_INTEGER GetFrequency()       { return freq; };
+  inline double Absolute(double val) { return val > 0 ? val : -val; }
+  inline LARGE_INTEGER GetFrequency() { return freq; };
 
-  ///////////////////////////////////////////////////////////////
-  // Function name   : CALLBACK TimerFunc
-  // Description     : Media callback timer method
-  //                 : 
-  // Return type     : static void  : 
-  // Argument        : UINT uID : 
-  // Argument        : UINT uMsg : 
-  // Argument        : DWORD dwUser : 
-  // Argument        : DWORD dw1 : 
-  // Argument        : DWORD dw2 : 
-  ///////////////////////////////////////////////////////////////
+  /*! Media callback timer method */
   static void CALLBACK TimerFunc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
   {
     static LARGE_INTEGER s[2]; 
@@ -196,6 +191,11 @@ private:
     timer = timeSetEvent(1, 0, TimerFunc, (DWORD)this, TIME_PERIODIC);
   }
 
+  /*!
+    \struct WaitData 
+    \brief Stores information for a wait object (used by the accurate timer implementation in Windows)
+    \ingroup PlusLibCommon
+  */
   struct WaitData
   { 
     WaitData(HANDLE _h, int _t) : h(_h)
@@ -208,7 +208,11 @@ private:
 
     HANDLE h;
     LARGE_INTEGER timeout;
-    int errorCount; // if the thread cannot be resumed then this counter is incremented, after many errors the item may be removed from the wait pool
+    /*! 
+      If the thread cannot be resumed then this counter is incremented, 
+      after many errors the item may be removed from the wait pool
+    */
+    int errorCount; 
   };
   friend struct WaitData;
 

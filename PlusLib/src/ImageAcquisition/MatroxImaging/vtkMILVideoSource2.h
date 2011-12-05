@@ -13,22 +13,6 @@ Authors include: Danielle Pace (Robarts Research Institute
  and The University of Western Ontario)
 =========================================================================*/  
 
-// .NAME vtkMILVideoSource2 - Matrox Imaging Library frame grabbers
-// .SECTION Description
-// vtkMILVideoSource2 provides an interface to Matrox Meteor, MeteorII
-// and Corona video digitizers through the Matrox Imaging Library 
-// interface.  In order to use this class, you must link VTK with mil.lib,
-// MIL version 5.0 or higher is required.
-// vtkMILVideoSource2 is an updated version of vtkMILVideoSource and uses
-// vtkPlusVideoSource instead of vtkVideoSource
-// .SECTION Caveats
-// With some capture cards, if this class is leaked and ReleaseSystemResources 
-// is not called, you may have to reboot before you can capture again.
-// vtkVideoSource used to keep a global list and delete the video sources
-// if your program leaked, due to exit crashes that was removed.
-// .SECTION See Also
-// vtkWin32VideoSource2 vtkPlusVideoSource vtkMILVideoSource
-
 #ifndef __vtkMILVideoSource2_h
 #define __vtkMILVideoSource2_h
 
@@ -71,6 +55,29 @@ Authors include: Danielle Pace (Robarts Research Institute
 #define VTK_MIL_SECAM         4
 #define VTK_MIL_NONSTANDARD   5       
 
+/*!
+\class vtkMILVideoSource2 
+\brief Support Matrox Imaging Library frame grabbers. Currently not functional.
+
+  vtkMILVideoSource2 provides an interface to Matrox Meteor, MeteorII
+  and Corona video digitizers through the Matrox Imaging Library 
+  interface.  In order to use this class, you must link VTK with mil.lib,
+  MIL version 5.0 or higher is required.
+  vtkMILVideoSource2 is an updated version of vtkMILVideoSource and uses
+  vtkPlusVideoSource instead of vtkVideoSource
+
+  Caveats:
+  With some capture cards, if this class is leaked and ReleaseSystemResources 
+  is not called, you may have to reboot before you can capture again.
+  vtkVideoSource used to keep a global list and delete the video sources
+  if your program leaked, due to exit crashes that was removed.
+
+  This class was kept so that in case of MIL support is requested by someone
+  this could be used as a starting point, however currently this class is
+  not functional in Plus.
+
+\ingroup PlusLibImageAcquisition
+*/ 
 class VTK_EXPORT vtkMILVideoSource2 : public vtkPlusVideoSource
 {
 public:
@@ -78,151 +85,205 @@ public:
   vtkTypeRevisionMacro(vtkMILVideoSource2,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  // Description:
-  // Standard VCR functionality: Record incoming video.
+  /*! Standard VCR functionality: Record incoming video. */
   void Record();
 
-  // Description:
-  // Standard VCR functionality: Stop recording.
+  /*! Standard VCR functionality: Stop recording. */
   void Stop();
 
-  // Description:
-  // Grab a single video frame.
+  /*! Grab a single video frame */
   void Grab();
  
-  // Description:
-  // Request a particular frame size (set the third value to 1).
+  /*! Request a particular frame size (set the third value to 1) */
   void SetFrameSize(int x, int y, int z);
-  virtual void SetFrameSize(int dim[3]) { 
-    this->SetFrameSize(dim[0], dim[1], dim[2]); };
+  /*! Request a particular frame size (set the third value to 1) */
+  virtual void SetFrameSize(int dim[3]) 
+  { 
+    this->SetFrameSize(dim[0], dim[1], dim[2]); 
+  };
   
-  // Description:
-  // Request a particular output format (default: VTK_RGB).
+  /*! Request a particular output format (default: VTK_RGB) */
   void SetOutputFormat(int format);
 
-  // Description:
-  // Set/Get the video channel
+  /*! Set/Get the video channel */
   virtual void SetVideoChannel(int channel);
   vtkGetMacro(VideoChannel, int);
 
-  // Description:
-  // Set/Get the video format
+  /*! Set the video format */
   virtual void SetVideoFormat(int format);
+  /*! Set the video format */
   void SetVideoFormatToNTSC() { this->SetVideoFormat(VTK_MIL_NTSC); };
+  /*! Set the video format */
   void SetVideoFormatToPAL() { this->SetVideoFormat(VTK_MIL_PAL); };
+  /*! Set the video format */
   void SetVideoFormatToSECAM() { this->SetVideoFormat(VTK_MIL_SECAM); };
+  /*! Set the video format */
   void SetVideoFormatToRS170() { this->SetVideoFormat(VTK_MIL_RS170); };
+  /*! Set the video format */
   void SetVideoFormatToCCIR() { this->SetVideoFormat(VTK_MIL_CCIR); };
-  void SetVideoFormatToNonStandard() { 
-    this->SetVideoFormat(VTK_MIL_NONSTANDARD); };
+  /*! Set the video format */
+  void SetVideoFormatToNonStandard() 
+  { 
+    this->SetVideoFormat(VTK_MIL_NONSTANDARD); 
+  };
+  /*! Get the video format */
   vtkGetMacro(VideoFormat,int);
   
-  // Description:
-  // Set/Get the video input
+  /*! Set the video input */
   virtual void SetVideoInput(int input);
+  /*! Set the video input */
   void SetVideoInputToMono() { this->SetVideoInput(VTK_MIL_MONO); };
+  /*! Set the video input */
   void SetVideoInputToComposite() {this->SetVideoInput(VTK_MIL_COMPOSITE);};
+  /*! Set the video input */
   void SetVideoInputToYC() { this->SetVideoInput(VTK_MIL_YC); };
+  /*! Set the video input */
   void SetVideoInputToRGB() { this->SetVideoInput(VTK_MIL_RGB); };
+  /*! Set the video input */
   void SetVideoInputToDigital() { this->SetVideoInput(VTK_MIL_DIGITAL); };
+  /*! Get the video input */
   vtkGetMacro(VideoInput,int);
 
-  // Description:
-  // Set/Get the video levels for composite/SVideo: the valid ranges are: 
-  // Contrast [0.0,2.0] 
-  // Brighness [0.0,255.0] 
-  // Hue [-0.5,0.5] 
-  // Saturation [0.0,2.0] 
+  /*!
+    Set the video levels for composite/SVideo: the valid ranges are: 
+    Contrast [0.0,2.0] 
+  */
   virtual void SetContrastLevel(float contrast);
+  /*! Get the contrast level */
   vtkGetMacro(ContrastLevel,float);
+  /*!
+    Set the video levels for composite/SVideo: the valid ranges are: 
+    Brighness [0.0,255.0] 
+  */
   virtual void SetBrightnessLevel(float brightness);
+  /*! Get the brightness level */
   vtkGetMacro(BrightnessLevel,float);
+  /*!
+    Set the video levels for composite/SVideo: the valid ranges are: 
+    Hue [-0.5,0.5] 
+  */
   virtual void SetHueLevel(float hue);
+  /*! Get the hue level */
   vtkGetMacro(HueLevel,float);
+  /*!
+    Set the video levels for composite/SVideo: the valid ranges are: 
+    Saturation [0.0,2.0] 
+  */
   virtual void SetSaturationLevel(float saturation);
+  /*! Get the saturation level */
   vtkGetMacro(SaturationLevel,float);
 
-  // Description:
-  // Set/Get the video levels for monochrome/RGB: valid values are
-  // between 0.0 and 255.0. 
+  /*! Set the video levels for monochrome/RGB: valid values are between 0.0 and 255.0 */
   virtual void SetBlackLevel(float value);
-  virtual float GetBlackLevel() {
-    return this->BlackLevel; };
+  /*! Get the video levels for monochrome/RGB: valid values are between 0.0 and 255.0 */
+  virtual float GetBlackLevel() { return this->BlackLevel; };
+  /*! Set the video levels for monochrome/RGB: valid values are between 0.0 and 255.0 */
   virtual void SetWhiteLevel(float value);
-  virtual float GetWhiteLevel() {
-    return this->WhiteLevel; };
+  /*! Get the video levels for monochrome/RGB: valid values are between 0.0 and 255.0 */
+  virtual float GetWhiteLevel() { return this->WhiteLevel; };
 
-  // Description:
-  // Set the system which you want use.  If you don't specify a system,
-  // then your primary digitizer will be autodetected.
+  /*!
+    Set the system which you want use.  If you don't specify a system,
+    then your primary digitizer will be autodetected.
+  */
   vtkSetStringMacro(MILSystemType);
+  /*!
+    Get the system which you want use.  If you don't specify a system,
+    then your primary digitizer will be autodetected.
+  */ 
   vtkGetStringMacro(MILSystemType);
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMeteor() { this->SetMILSystemType(VTK_MIL_METEOR); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMeteorII() { this->SetMILSystemType(VTK_MIL_METEOR_II); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMeteorIIDig() { this->SetMILSystemType(VTK_MIL_METEOR_II_DIG); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMeteorIICL() { this->SetMILSystemType(VTK_MIL_METEOR_II_CL); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMeteorII1394() { this->SetMILSystemType(VTK_MIL_METEOR_II_1394); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToCorona() { this->SetMILSystemType(VTK_MIL_CORONA); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToCoronaII() { this->SetMILSystemType(VTK_MIL_CORONA_II); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToPulsar() { this->SetMILSystemType(VTK_MIL_PULSAR); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToGenesis() { this->SetMILSystemType(VTK_MIL_GENESIS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToGenesisPlus() { this->SetMILSystemType(VTK_MIL_GENESIS_PLUS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToOrion() { this->SetMILSystemType(VTK_MIL_ORION); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToCronos() { this->SetMILSystemType(VTK_MIL_CRONOS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToOdyssey() { this->SetMILSystemType(VTK_MIL_ODYSSEY); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToHelios() { this->SetMILSystemType(VTK_MIL_HELIOS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToIris() { this->SetMILSystemType(VTK_MIL_IRIS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToCronoPlus() { this->SetMILSystemType(VTK_MIL_CRONOPLUS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMorphis() { this->SetMILSystemType(VTK_MIL_MORPHIS); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToMorphisQxT() { this->SetMILSystemType(VTK_MIL_MORPHISQXT); };
+  /*! Set the system which you want use */
   void SetMILSystemTypeToSolis() { this->SetMILSystemType(VTK_MIL_SOLIOS); };
 
-  // Description:
-  // Set the system number if you have multiple systems of the same type
+  /*! Set the system number if you have multiple systems of the same type */
   vtkSetMacro(MILSystemNumber,int);
+  /*! Get the system number if you have multiple systems of the same type */
   vtkGetMacro(MILSystemNumber,int);
 
-  // Description:
-  // Set the DCF filename for non-standard video formats
+  /*! Set the DCF filename for non-standard video formats */
   vtkSetStringMacro(MILDigitizerDCF);
+  /*! Get the DCF filename for non-standard video formats */
   vtkGetStringMacro(MILDigitizerDCF);
 
-  // Description:
-  // Set the digitizer number for systems with multiple digitizers
+  /*! Set the digitizer number for systems with multiple digitizers */
   vtkSetMacro(MILDigitizerNumber,int);
+  /*! Get the digitizer number for systems with multiple digitizers */
   vtkGetMacro(MILDigitizerNumber,int);
 
-  // Description:
-  // Set whether to display MIL error messages (default on)
+  /*! Set whether to display MIL error messages (default on) */
   virtual void SetMILErrorMessages(int yesno);
+  /*! Set whether to display MIL error messages (default on) */
   vtkBooleanMacro(MILErrorMessages,int);
+  /*! Get whether to display MIL error messages (default on) */
   vtkGetMacro(MILErrorMessages,int);
 
-  // Description:
-  // Allows fine-grained control 
+  /*! Allows fine-grained control */
   vtkSetMacro(MILAppID,long);
+  /*! Allows fine-grained control */
   vtkGetMacro(MILAppID,long);
+  /*! Allows fine-grained control */
   vtkSetMacro(MILSysID,long);
+  /*! Allows fine-grained control */
   vtkGetMacro(MILSysID,long);
+  /*! Allows fine-grained control */
   vtkGetMacro(MILDigID,long);
+  /*! Allows fine-grained control */
   vtkGetMacro(MILBufID,long);
 
-  // Description:
-  // Initialize the driver (this is called automatically when the
-  // first grab is done).
+  /*!
+    Initialize the driver (this is called automatically when the
+    first grab is done).
+  */
   void Initialize();
 
-  // Description:
-  // Free the driver (this is called automatically inside the
-  // destructor).
+  /*! Free the driver (this is called automatically inside the destructor) */
   void ReleaseSystemResources();
 
-  // Description:
-  // For internal use only
+  /*! For internal use only */
   void *OldHookFunction;
+  /*! For internal use only */
   void *OldUserDataPtr;
+  /*! For internal use only */
   int FrameCounter;
+  /*! For internal use only */
   int ForceGrab;
+  /*! For internal use only */
   void InternalGrab();
 
 protected:
@@ -270,11 +331,12 @@ protected:
 
   int FatalMILError;
 
-  // Description:
-  // Method for updating the virtual clock that accurately times the
-  // arrival of each frame, more accurately than is possible with
-  // the system clock alone because the virtual clock averages out the
-  // jitter.
+  /*!
+    Method for updating the virtual clock that accurately times the
+    arrival of each frame, more accurately than is possible with
+    the system clock alone because the virtual clock averages out the
+    jitter.
+  */
   double CreateTimeStampForFrame(unsigned long frame);
 
   double LastTimeStamp;

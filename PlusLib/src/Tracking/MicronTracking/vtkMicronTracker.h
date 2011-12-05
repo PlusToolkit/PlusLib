@@ -4,6 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+
 /*=========================================================================
 The following copyright notice is applicable to parts of this file:
 
@@ -39,19 +40,6 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
-
-// .NAME vtkPOLARISTracker - VTK interface for Northern Digital's POLARIS
-// .SECTION Description
-// The vtkPOLARISTracker class provides an  interface to the POLARIS
-// (Northern Digital Inc., Waterloo, Canada) optical tracking system.
-// It also works with the AURORA magnetic tracking system, using the
-// POLARIS API.
-// .SECTION Caveats
-// This class refers to ports 1,2,3,A,B,C as ports 0,1,2,3,4,5
-// .SECTION see also
-// vtkTrackerTool vtkFlockTracker
-
-
 #ifndef __vtkMicronTracker_h
 #define __vtkMicronTracker_h
 
@@ -81,21 +69,25 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #define MAX_TOOL_NUM 10
 
-class vtkFrameToTimeConverter;
-class vtkTrackerBuffer;
 class MicronTrackerInterface;
-
-// the number of tools the polaris can handle
-//#define VTK_POLARIS_NTOOLS 12
-//#define VTK_POLARIS_REPLY_LEN 512
 
 #define CAM_FRAME_WIDTH 1024
 #define CAM_FRAME_HEIGHT 768
 
+/*!
+  \class vtkMicronTracker
+  \brief Interface class to Claron MicronTracker optical trackers
+  \ingroup PlusLibTracking
+*/
 class VTK_EXPORT vtkMicronTracker : public vtkTracker
 {
 public:
 
+  /*!
+    \struct CameraInfo
+    \brief Description of a MicronTracker camera
+    \ingroup PlusLibTracking
+  */
   struct CameraInfo
   {
     int serialNum;
@@ -107,402 +99,300 @@ public:
   static vtkMicronTracker *New();
   vtkTypeMacro(vtkMicronTracker,vtkTracker);
  
-  // Description:
-  // Probe to see if the tracking system is present on the
-  // specified serial port.  If the SerialPort is set to -1,
-  // then all serial ports will be checked.
+  /*!
+    Probe to see if the tracking system is present.
+  */
   PlusStatus Probe();
 
-  // Description:
-  // Get an update from the tracking system and push the new transforms
-  // to the tools.  This should only be used within vtkTracker.cxx.
+  /*!
+    Get an update from the tracking system and push the new transforms
+    to the tools.  This should only be used within vtkTracker.cxx.
+  */
   PlusStatus InternalUpdate();
 
-  /*********************************/
-  /*
-  /* Save the changes in the INI (persistence) file.
-  /*
-  /*********************************/
-  // Description:
-  // Save the changes in the INI file
+  /*! Save the changes in the INI (persistence) file */
   void UpdateINI();
 
-  /*********************************/
-  /*
-  /* Get the camera info (number of cameras, serial number, resolution).
-  /*
-  /*********************************/
-  // Description:
-  // Get the number of attached cameras.
+  /*! Get the number of attached cameras. */
   int GetNumOfCameras();
 
-  // Description:
-  // Set / Get the camera(s) serial number and x and y resolution. 
-  // Each of these properties are stored in an array. The first element of the array
-  // belongs to the first camera, the second to the second cameras and so on.
+  /*!
+    Get the camera(s) serial number and x and y resolution. 
+    Each of these properties are stored in an array. The first element of the array
+    belongs to the first camera, the second to the second cameras and so on.
+  */
   const CameraInfo& GetCameraInfo(int cameraIndex) { return this->CameraInfoList[cameraIndex]; };
 
-  /*********************************/
-  /*
-  /* Select a camera; Get the index of the current camera
-  /*
-  /*********************************/
-  // Description:
-  // Selects the camera with the index number of n.
+  /*! Selects the camera with the index number of n */
   void SelectCamera(int n);
 
-  // Description:
-  // Returns the index of the current camera
+  /*! Returns the index of the current camera */
   int GetCurrCamIndex();
  
-  /*********************************/
-  /*
-  /* Set and get the templates matching tolerance. This is the maximum allowed distance (in mm)
-  /* between the ends of vectors in each facet template and its matched measure vectors during identification.
-  /*
-  /*********************************/
-  // Description:
-  // Set the templatesMatchingTolerance to the passed argument. 
+  /*!
+    Set and get the templates matching tolerance. This is the maximum allowed distance (in mm)
+    between the ends of vectors in each facet template and its matched measure vectors during identification.
+  */
   void SetTemplatesMatchingTolerance(double mTolerance);
 
-  // Description:
-  // Get the templatesMatchingTolerance in mm.
+  /* Get the templatesMatchingTolerance in mm */
   double GetTemplatesMatchingTolerance();
 
-  // Description:
-  // Get the default templatesMatchingTolerance in mm.
+  /*! Get the default templatesMatchingTolerance in mm */
   double GetTemplatesMatchingToleranceDefault();
 
-  /*********************************/
-  /*
-  /* Get the general information about the identified markers
-  /*
-  /*********************************/
+  /*! Get general information about the identified markers */
   int GetNumOfIdentifiedMarkers();
-
+  /*! Get general information about the identified markers */
   int GetNumberOfFacetsInMarker(int markerIdx);
+  /*! Get general information about the identified markers */
   int GetNumberOfTotalFacetsInMarker(int markerIdx);
 
-  /*********************************/
-  /*
-  /* Get the general information about the unidentified markers
-  /*
-  /*********************************/
+  /*! Get general information about the unidentified markers */
   int GetNumOfUnidentifiedMarkers();
 
-  /*********************************/
-  /*
-  /* Set and get the predictive frames interleave. This is the numbe of predictive-only frames 
-  /* between each pair of comprehensive frames.
-  /*
-  /*********************************/
-  // Description:
-  // Set the predictive frame interleave.
+  /*!
+    Set and get the predictive frames interleave. This is the numbe of predictive-only frames 
+    between each pair of comprehensive frames.
+  */
   void SetPredictiveFrameInterleave(int predInterleave);
 
-  // Description:
-  // Get the predictive frame interleave.
+  /*! Get the predictive frame interleave */
   int GetPredictiveFrameInterleave();
 
-  /*********************************/
-  /*
-  /* Set and get some properties of the loaded markers in the markers folder.
-  /*
-  /*********************************/
-  // Description:
-  // Set the predictive tracking of the markers to 1(true) or 0(false).
+  /*! 
+    Set and get some properties of the loaded markers in the markers folder
+    \param predictiveTracking 1 (enabled) or 0 (disabled)
+  */
   void SetPredictiveTracking(short predictiveTracking);
 
-  // Description:
-  // Get the predictive tracking of the markers.
+  /*! Get the predictive tracking of the markers */
   short GetPredictiveTracking();
 
-  // Description:
-  // Set the AutoAdjustCameraExposure. If set to true (-1) the camera settings will be updated
-  // after every call to process frame. If set to false(0) this does not happen.
+  /*!
+    Set the AutoAdjustCameraExposure. If set to true (-1) the camera settings will be updated
+    after every call to process frame. If set to false(0) this does not happen.
+  */
   void SetAdjustCamAfterEveryProcess(short autoCamExposure);
 
-  // Description:
-  // Get the AutoAdjustCameraExposure. See the description of SetAutoAdjustCamExposure above.
+  /*! Get the AutoAdjustCameraExposure. See the description of SetAutoAdjustCamExposure above */
   short GetAdjustCamAfterEveryProcess();
 
-  // Description:
-  // Set the name of the marker markerIdx in the list.
+  /*! Set the name of the marker markerIdx in the list */
   void SetTemplateName(int markerIdx, char* templateName);
-
-  // Description:
-  // Get the name of the marker markerIdx in the list.
+  /*! Get the name of the marker markerIdx in the list */
   char* GetTemplateName(int markerIdx);
-
-  // Description:
-  // Get the name of the marker markerIdx in the list of identified markers
+  /*! Get the name of the marker markerIdx in the list of identified markers */
   char* GetIdentifiedTemplateName(int markerIdx);
- 
-  // Description:
-  // Stops the process of collecting frames for the new template.
-  int StopSampling(char* name, double jitter);
-
-  // Description:
-  // Deletes the marker with the index markerIdx from the list of the loaded templates.
+  /*! Deletes the marker with the index markerIdx from the list of the loaded templates */
   void DeleteTemplate(int markerIdx);
-
-  // Description:
-  // Saves the marker with the name markerName. Returns 0 if successful, -1 if not.
+  /*! Saves the marker with the name markerName. Returns 0 if successful, -1 if not */
   int SaveTemplate(char* markerName);
-  
-  // Description:
-  // Refresh the loaded markers. If successful returns 0, if not -1.
+  /*! Refresh the loaded markers. If successful returns 0, if not -1 */
   void RefreshMarkerTemplates();
-  
-  // Description:
-  // Get the number of loaded markers.
+  /*! Stops the process of collecting frames for the new template */
+  int StopSampling(char* name, double jitter);  
+  /*! Get the number of loaded markers */
   int GetNumOfLoadedMarkers();
 
-  /*********************************/
-  /*
-  /* Set and get the preferred setting for shutter period. This is relative (no units)
-  /*
-  /*********************************/
-  // Description:
-  // Get the shutter setting.
+  /*! Get the preferred setting for shutter period. This is relative (no units). */
   int GetShutterPref();
-
-  // Description:
-  // Set the shutter setting.
+  /*! Set the preferred shutter setting */
   void SetShutterPref(int shutterPref);
-
-
-  /*********************************/
-  /*
-  /* Set and get the shutter opening time. When setting 
-  /* the value of it, the AutoExposure will be set to false automatically.
-  /*
-  /*********************************/
-  // Description:
-  // Get the shutter opening time.
+  /*! 
+    Set and get the shutter opening time. When setting 
+    the value of it, the AutoExposure will be set to false automatically.
+  */
   double GetShutterTime(int cam);
-
-  // Description:
-  // Set the shutter opening time.
+  /*! Set the shutter opening time */
   void SetShutterTime(double shutterTime, int cam);
-  
-  // Description:
-  // Get the shutter opening time.
+  /*! Get the minimum shutter opening time */
   double GetMinShutterTime(int cam);
-
-  // Description:
-  // Get the shutter opening time.
+  /*! Get maximum the shutter opening time */
   double GetMaxShutterTime(int cam);
  
-  /*********************************/
-  /*
-  /* Set and get the Gain and Exposure of the camera.
-  /*
-  /*********************************/
-  // Description:
-  // Get the gain of the camera.
+  /*! Set and get the gain of the camera */
   double GetGain(int cam);
-
-  // Description:
-  // Set the gain of the camera.
+  /*! Set the gain of the camera */
   void SetGain(double gain, int cam);
-
-  // Description:
-  // Get the minimum gain of the camera.
+  /*! Get the minimum gain of the camera */
   double GetMinGain(int cam);
-
-  // Description:
-  // Get the maximum gain of the camera.
+  /*! Get the maximum gain of the camera */
   double GetMaxGain(int cam);
-
-  // Description:
-  // Get the DB gain of the camera.
+  /*! Get the DB gain of the camera */
   double GetDBGain(int cam);
 
-  // Description:
-  // Get the exposure of the camera.
+  /*! Get the exposure of the camera */
   double GetExposure(int cam);
-
-  // Description:
-  // Set the exposure of the camera.
+  /*! Set the exposure of the camera */
   void SetExposure(double exposure, int cam);
-
-  // Description:
-  // Get the minimum exposure of the camera.
+  /*! Get the minimum exposure of the camera */
   double GetMinExposure(int cam);
-
-  // Description:
-  // Get the maximum exposure of the camera.
+  /*! Get the maximum exposure of the camera */
   double GetMaxExposure(int cam);
 
-  // Description:
-  // Get the colour temperature setting of the camera.
+  /*! Get the colour temperature setting of the camera */
   double GetLightCoolness(int cam = -1);
 
-  /*********************************/
-  /*
-  /* Set and get the AutoExposure property of the camera. When set to true the exposure is
-  /* automatically adjusted to maintain a good distribution of grey levels in the image.
-  /*
-  /*********************************/
-  // Description:
-  // Get the AutoExposure property of the camera. -1 is true, 0 if false.
+  /*!
+    Set the AutoExposure property of the camera. When set to true the exposure is
+    automatically adjusted to maintain a good distribution of grey levels in the image.
+    \param autoExposure -1 is true, 0 if false.
+    \param cam index of the current camera
+  */
+  void SetCamAutoExposure(int autoExposure, int cam);
+  
+  /*!
+    Set the AutoExposure property of the camera
+    \return -1 is true, 0 if false.
+  */
   int GetCamAutoExposure(int cam);
 
-  // Description:
-  // Set the AutoExposure property of the camera
-  void SetCamAutoExposure(int autoExposure, int cam);
-
-  /*********************************/
-  /*
-  /* Set and get the latest frame (or general frame) info.
-  /*
-  /*********************************/
-  // Description:
-  // Get the latest frame time relative to the start time of the MicronTracker.
+  /*! Get the latest frame time relative to the start time of the MicronTracker */
   double GetLatestFrameTime(int cam);
 
-  // Description:
-  // Get the BitsPerPixel value of the frames.
+  /*! Get the BitsPerPixel value of the frames */
   int GetBitsPerPixel(int cam);
 
-  // Description:
-  // Gets the pixel value histogram of the latest frame. ssr is the subSamplingRate. 
-  // If ssr set to values > 1 the speed of computation increases.
+  /*!
+    Gets the pixel value histogram of the latest frame. ssr is the subSamplingRate. 
+    If ssr set to values > 1 the speed of computation increases.
+  */
   vtkLongArray* GetLatestFramePixHistogram(int cam, int ssr);
 
-  // Description:
-  // Returns the number of frame grabbed by the camera. Increments by one each
-  // time a frame is grabbed.
+  /*! Returns the number of frame grabbed by the camera. Increments by one each time a frame is grabbed. */
   int GetNumOfFramesGrabbed(int cam);
 
-  // Description:
-  // Query current camera's readiness; if more detail is desired this is available
-  // in the value returned by mtGetLatestFrameHazard()
+  /*!
+    Query current camera's readiness; if more detail is desired this is available
+    in the value returned by mtGetLatestFrameHazard()
+  */
   int GetLatestFrameHazard();
 
-  // Description:
-  // Set the flag that indicates whether new samples are to be collected 
-  // for new templates.
+  /*!
+    Set the flag that indicates whether new samples are to be collected 
+    for new templates.
+  */
   vtkSetMacro(IsCollectingNewSamples, int);
 
-  // Description:
-  // Set the flag that indiates an additional facet is being added to 
-  // an existing marker.
+  /*!
+    Set the flag that indicates an additional facet is being added to 
+    an existing marker.
+  */
   vtkSetMacro(IsAdditionalFacetAdding, int);
 
-  // Description:
-  // Resets the counter of the frames collected for the new marker to 0.
+  /*! Resets the counter of the frames collected for the new marker to 0 */
   void ResetNewSampleFramesCollected();
+  /*! Get the number of the frames collected for the new marker */
   vtkGetMacro(NewSampleFramesCollected, int);
 
-  /*********************************/
-  /*
-  /* Calibration methods.
-  /*
-  /*********************************/
-  // Description: Returns the frameLimit which is the number of frames to be grabed 
-  // for finding the rotation matrix of the calibration matrix.
-//  vtkGetObjectMacro(finalCalibrationMatrix, vtkMatrix4x4);
-
-  /*********************************/
-  /*
-  /* Get the image arrays or constructed image.
-  /* Note: The client should call the UpdateLeftRightImage() first and subsequently
-  /*       retrieve the information on the image pixel array via GetLeftImage() and GetRightImage.
-  /*       These two functions returns the image data in the form of a vtkImageImport which can
-  /*       be manipulated or displayed in the desired form by the client.
-  /*
-  /*********************************/
+  /*!
+    Get the image arrays or constructed image.
+    Note: The client should call the UpdateLeftRightImage() first and subsequently
+    retrieve the information on the image pixel array via GetLeftImage() and GetRightImage.
+    These two functions returns the image data in the form of a vtkImageImport which can
+    be manipulated or displayed in the desired form by the client.
+  */
   vtkImageImport* GetLeftImage();
+  /*!
+    Get the image arrays or constructed image.
+    Note: The client should call the UpdateLeftRightImage() first and subsequently
+    retrieve the information on the image pixel array via GetLeftImage() and GetRightImage.
+    These two functions returns the image data in the form of a vtkImageImport which can
+    be manipulated or displayed in the desired form by the client.
+  */
   vtkImageImport* GetRightImage();
+  /*!
+    Prepare the image arrays or constructed image for getting them.
+    Note: The client should call the UpdateLeftRightImage() first and subsequently
+    retrieve the information on the image pixel array via GetLeftImage() and GetRightImage.
+    These two functions returns the image data in the form of a vtkImageImport which can
+    be manipulated or displayed in the desired form by the client.
+  */
   void UpdateLeftRightImage();
+  /*! Saves the current camera images into files in the current directory */
   void GetSnapShot(char* testNum, char* identifier);
 
-  /*********************************/
-  /*
-  /* Get identified markers xpoints
-  /*
-  /*********************************/
+  /*! Get identified markers xpoints */
   vtkDoubleArray* vtkGetIdentifiedMarkersXPoints(int markerIdx);
 
-  /*********************************/
-  /*
-  /* Get unidentified markers xpoints
-  /*
-  /*********************************/
+  /*! Get unidentified markers xpoints */
   vtkDoubleArray* vtkGetUnidentifiedMarkersEnds(int vectorIdx);
 
-
-  /*********************************/
-  /*
-  /* Get number of loaded tools 
-  /*
-  /*********************************/
-  // Description: The name and class name of the tools to be loaded is read from a text file (ToolNames.txt).
-  // The number of laoded tools is kept in the numOfLoadedTools variable. The name of the individual tools and 
-  // their corresponding class name is stored in containers and they can be accessed via the accessor methods below.
-  int numOfLoadedTools;
+  /*!
+    Get number of loaded tools 
+    The name and class name of the tools to be loaded is read from a text file (ToolNames.txt).
+    The number of laoded tools is kept in the numOfLoadedTools variable. The name of the individual tools and 
+    their corresponding class name is stored in containers and they can be accessed via the accessor methods below.
+  */
   vtkGetMacro(numOfLoadedTools, int);
+
+  /*! Get a tool name corresponding to a tool index */
   char* GetToolName(int toolIndex);
+
+  /*! Get a tool class name corresponding to a tool index */
   char* GetToolClassName(int toolIndex);
-  // Description: Sets the toolIndex_th member of the markerIndexAssignedToTool array to markerIndex.
-  // In fact this array holds the index of the loaded markers that are assigned to each tool.
-  // If this index is 99 it means that the specified tool is not assigned to any specific marker and the 
-  // marker will be assigned to tools on the "first come, first served" basis, i.e. the first detected marker
-  // will be assigend to the first loaded tool, the second marker to the second tool and so on..
+  
+  /*!
+    Sets the toolIndex_th member of the markerIndexAssignedToTool array to markerIndex.
+    In fact this array holds the index of the loaded markers that are assigned to each tool.
+    If this index is 99 it means that the specified tool is not assigned to any specific marker and the 
+    marker will be assigned to tools on the "first come, first served" basis, i.e. the first detected marker
+    will be assigend to the first loaded tool, the second marker to the second tool and so on..
+  */
   void SetMarkerIndexAssignedToTool(int toolIndex, int markerIndex);
 
-  /*********************************/
-  /*
-  /* Get the status of the MicronTracker (Tracking or not)
-  /*
-  /*********************************/
+  /*! Get the status of the MicronTracker (Tracking or not) */
   vtkGetMacro(IsMicronTrackingInitialized, int);
  
   /*! Returns the transformation matrix of the index_th marker */
   void GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix);
+  /*! Returns the reference transformation matrix of the index_th marker. Deprecated. */
   void GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* ReferencetransformMatrix);
 
-  // An instance of the MicronTrackerInterface class.
+  /*! Pointer to the MicronTrackerInterface class instance */
   MicronTrackerInterface* MT;
 
-  /*! Read MicronTracker configuration to xml data */
+  /*! Read MicronTracker configuration and update the tracker settings accordingly */
   PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+  
+  /*! Connect to the tracker hardware */
   PlusStatus Connect();
+  /*! Disconnect from the tracker hardware */
   PlusStatus Disconnect();
 
 protected:
   vtkMicronTracker();
   ~vtkMicronTracker();
 
-  // Description:
-  // Start the tracking system.  The tracking system is brought from
-  // its ground state into full tracking mode.  The POLARIS will
-  // only be reset if communication cannot be established without
-  // a reset.
+  /*!
+    Start the tracking system.  The tracking system is brought from
+    its ground state into full tracking mode.  The POLARIS will
+    only be reset if communication cannot be established without
+    a reset.
+  */
   PlusStatus InternalStartTracking();
 
-  // Description:
-  // Stop the tracking system and bring it back to its ground state:
-  // Initialized, not tracking, at 9600 Baud.
+  /*! Stop the tracking system and bring it back to its initial state. */
   PlusStatus InternalStopTracking();
 
+  /*! Non-zero if the tracker has been initialized */
   int IsMicronTrackingInitialized;
 
-  /** Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double LastFrameNumber;
 
-  //SI
+  // Camera information
   int CurrCamIndex;  // index of the current camera, if -1 then all cameras selected
+  std::vector<CameraInfo> CameraInfoList;
+
+  // Marker information
   int NumOfIdentifiedMarkers;
   int NumOfUnidentifiedMarkers;
   int IsCollectingNewSamples;
   int IsAdditionalFacetAdding;
   int NewSampleFramesCollected;
- 
-  std::vector<CameraInfo> CameraInfoList;
-
+  
   // Camera image data 
   vtkImageImport* LeftImage;
   vtkImageImport* RightImage;
@@ -512,17 +402,21 @@ protected:
   vtkDoubleArray* Xpoints;
   vtkDoubleArray* VectorEnds;
 
+  int numOfLoadedTools;
+
   std::string ToolNames[MAX_TOOL_NUM];
   std::string ToolFileLines[12];
   std::string ToolClassNames[MAX_TOOL_NUM];
   int MarkerIndexAssingedToTools[MAX_TOOL_NUM];
+
+  unsigned int FrameNumber;
+
 private:
   vtkMicronTracker(const vtkMicronTracker&);
   void operator=(const vtkMicronTracker&);  
   void PrintMatrix(FILE *file, float a[4][4]);
   void PrintMatrix(float a[4][4]);
   void PrintMatrix(vtkMatrix4x4*);
-  unsigned int FrameNumber;
 };
 
 #endif

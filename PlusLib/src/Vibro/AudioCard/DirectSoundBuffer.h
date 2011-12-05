@@ -4,7 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#pragma once
+#ifndef __DirectSoundBuffer_h
+#define __DirectSoundBuffer_h
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -17,7 +18,16 @@ namespace VibroLib
 {
 	namespace AudioCard
 	{
-		class VTK_EXPORT DirectSoundBuffer
+
+    /*!
+      \class DirectSoundBuffer
+      \brief Class to store a DirectSound buffer object pointer
+      The class can be used to output an analog signal using a regular
+      audio card. The signal can be amplified and converted to mechanical energy
+      to serve as an excitation source for vibro-elastography.
+      \ingroup PlusLibVibro
+    */
+    class VTK_EXPORT DirectSoundBuffer
 		{
 		public:
 			DirectSoundBuffer(void);
@@ -35,3 +45,5 @@ namespace VibroLib
 		};
 	}
 }
+
+#endif // __DirectSoundBuffer_h

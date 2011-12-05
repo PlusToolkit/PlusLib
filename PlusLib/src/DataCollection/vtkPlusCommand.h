@@ -7,7 +7,6 @@
 #ifndef __VTKPLUSCOMMAND_H
 #define __VTKPLUSCOMMAND_H
 
-
 #include <string>
 #include <vector>
 
@@ -20,7 +19,7 @@
 #include "vtkDataCollector.h"
 
 /*!
-  \class vtkPlusCommandCollection 
+  \class vtkPlusCommand 
   \brief This is an abstract superclass for commands in the OpenIGTLink network interface for Plus.
 
   All commands have a unique string representation to enable sending commands as string messages.
@@ -28,10 +27,7 @@
   
   \ingroup PlusLibDataCollection
 */
-class
-VTK_EXPORT 
-vtkPlusCommand
-: public vtkObjectFactory
+class VTK_EXPORT vtkPlusCommand : public vtkObjectFactory
 {
 public:
   
@@ -39,8 +35,8 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   /*!
-   Determines if a string can be converted to a specific command.
-   \param str String representation of the command to be examined.
+    Determines if a string can be converted to a specific command.
+    \param str String representation of the command to be examined.
   */
   virtual bool CanExecute( std::string str ) = 0;
   
@@ -58,7 +54,6 @@ public:
   const char* GetVTKSourceVersion();
   const char* GetDescription();
   
-  
 protected:
   
   vtkPlusCommand();
@@ -69,8 +64,7 @@ protected:
   vtkDataCollector* DataCollector;
   
   std::string StringRepresentation;
-  
-  
+    
 private:
 	
   vtkPlusCommand( const vtkPlusCommand& );
@@ -79,7 +73,6 @@ private:
   CommandStringsType CommandStrings;
   
 };
-
 
 #endif
 

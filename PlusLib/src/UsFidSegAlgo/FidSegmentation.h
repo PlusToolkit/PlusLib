@@ -14,7 +14,11 @@
 
 //-----------------------------------------------------------------------------
 
-/*! Structure holding a coordinate of a structuring element - to be removed when changing to ITK */
+/*!
+  \struct Coordinate2D
+  \brief Structure holding a coordinate of a structuring element
+  \ingroup PlusLibPatternRecognition
+*/ 
 struct Coordinate2D
 {
 	Coordinate2D(){ Y = 0; X = 0; }; 
@@ -31,7 +35,6 @@ struct Coordinate2D
   \brief Algorithm for segmenting dots in an image. The dots correspond to the fiducial lines that are orthogonal to the image plane
   \ingroup PlusLibPatternRecognition
 */
-
 class FidSegmentation
 {
 	public:
@@ -83,29 +86,31 @@ class FidSegmentation
 		void 					      DilateCircle( PixelType *dest, PixelType *image );
 		void 					      Subtract( PixelType *image, PixelType *vals );
     		
-    /*! Write image with the selected points on it 
+    /*! 
+      Write image with the selected points on it 
       \param It takes a vector of vector of double as an input
     */
 		void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
 
-    /*! Write image with the selected points on it 
-        \param It takes a vector of Dot as an input
+    /*! 
+      Write image with the selected points on it 
+      \param It takes a vector of Dot as an input
     */
     void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
 
     /*! Perform the morphological operations on the image */
 		void MorphologicalOperations();	
 
-    /* Suppress unwanted parts of the image */
+    /*! Suppress unwanted parts of the image */
 		void Suppress( PixelType *image, float percent_thresh ); 
 
-    /* Accept a dot as a possible fiducial */
+    /*! Accept a dot as a possible fiducial */
 		inline bool AcceptDot( Dot &dot );
 
-    /* Cluster the dots */
+    /*! Cluster the dots */
 		void Cluster();
 
-    /*! addition to write out intermediate files */
+    /*! Utility function to write image to file */
     static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
 
     /*! Check if shape (structuring element) contains the new element (a point) */
@@ -114,7 +119,7 @@ class FidSegmentation
     /*! Add neighbors to the cluster */
 		inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
 		
-		//Accessors and mutators
+		// Accessors and mutators
 
     /*! Set the possible fiducials Image file name */
     void SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
@@ -128,7 +133,7 @@ class FidSegmentation
     /*! Set the debug output value, if true more debug information are provided but the speed is lower */
     void SetDebugOutput(bool value) { m_DebugOutput = value; };
 
-    /*1 Get the size of the bar for the morphological oprations */
+    /*! Get the size of the bar for the morphological oprations */
     int GetMorphologicalOpeningBarSizePx(); 
 
     /*! Get the size of the frame as an array */
@@ -158,7 +163,7 @@ class FidSegmentation
     /*! Set the radius of the opening circle needed for the morphological operations */
     void  SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
 
-     /*! Set the size in Mm of the opening bar needed for the morphological operations */
+    /*! Set the size in Mm of the opening bar needed for the morphological operations */
     void  SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
 
     /*! Set the region of interest in the image */
@@ -175,7 +180,8 @@ class FidSegmentation
 		int						      m_RegionOfInterest[4];
 		bool					      m_UseOriginalImageIntensityForDotIntensityScore;
 
-		double 					    m_ThresholdImagePercent;  // segmentation threshold (in percentage, minimum is 0, maximum is 100)
+    /*! Segmentation threshold (in percentage, minimum is 0, maximum is 100) */
+		double 					    m_ThresholdImagePercent;  
 
 		double					    m_MorphologicalOpeningBarSizeMm; 
 		double					    m_MorphologicalOpeningCircleRadiusMm; 
@@ -192,14 +198,16 @@ class FidSegmentation
     double			        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
 		double					    m_ImageToPhantomTransform[16];
 
-		/* True if the dots are found, false otherwise. */
+		/*! True if the dots are found, false otherwise. */
 		bool					      m_DotsFound;
 
-		/* X and Y values of found dots. */
+		/*! X and Y values of found dots. */
 		std::vector< std::vector<double> >	m_FoundDotsCoordinateValue; 
 
-		double					    m_NumDots; // number of possibel fiducial points
-		std::vector<Dot>	  m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		/*! Number of possibel fiducial points */
+    double					    m_NumDots; 
+    /*! Pointer to the fiducial candidates coordinates */
+		std::vector<Dot>	  m_CandidateFidValues; 
 
 		PixelType*				  m_Working;
 		PixelType*				  m_Dilated;

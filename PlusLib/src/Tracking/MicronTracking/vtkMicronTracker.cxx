@@ -268,7 +268,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------
+//----------------------------------------------------------------------------
 void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
 {
   std::ostringstream dumpStr; 
@@ -287,7 +287,7 @@ void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
   LOG_DEBUG(dumpStr.str());
 }
 
-//----------------------------------------------
+//----------------------------------------------------------------------------
 void vtkMicronTracker::RefreshMarkerTemplates()
 {
   std::vector<std::string> vTemplatesName;
@@ -310,12 +310,13 @@ void vtkMicronTracker::RefreshMarkerTemplates()
   }
 }
 
-//----------------------------------------------
+//----------------------------------------------------------------------------
 int vtkMicronTracker::GetNumOfLoadedMarkers()
 {
   return this->MT->mtGetLoadedTemplatesNum();
 }
-//----------------------------------------------
+
+//----------------------------------------------------------------------------
 void vtkMicronTracker::GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* Referencetransform)
 {  
   std::vector<double> vRotMat;
@@ -337,7 +338,8 @@ void vtkMicronTracker::GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4
   Referencetransform->SetElement(1,3,vPos[1]);
   Referencetransform->SetElement(2,3,vPos[2]);
 }
-//----------------------------------------------
+
+//----------------------------------------------------------------------------
 void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {  
   std::vector<double> vRotMat;
@@ -715,7 +717,6 @@ void vtkMicronTracker::SetTemplateName(int markerIdx, char* templateName)
   this->RefreshMarkerTemplates();
 }
 
-//
 //-----------------------------------------------------------------------------
 void vtkMicronTracker::DeleteTemplate(int markerIdx)
 {
@@ -754,32 +755,6 @@ int vtkMicronTracker::GetBitsPerPixel(int cam)
 }
 
 //----------------------------------------------------------------------------
-// Protected Methods
-
-// helper method to strip whitespace
-static char *vtkStripWhitespace(char *text)
-{
-  int n = strlen(text);
-  // strip from right
-  while (--n >= 0) 
-  {
-    if (isspace(text[n])) 
-    {
-      text[n] = '\0';
-    }
-    else 
-    {
-      break;
-    }
-  }
-  // strip from left
-  while (isspace(*text)) 
-  {
-    text++;
-  }
-  return text;
-}
-
 PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
@@ -809,6 +784,7 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::Connect()
 { 
   if (this->IsMicronTrackingInitialized)
@@ -863,32 +839,38 @@ PlusStatus vtkMicronTracker::Connect()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::Disconnect()
 { 
   this->MT->mtEnd();  
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 int vtkMicronTracker::GetNumOfCameras()
 {
   return this->MT->mtGetNumOfCameras();
 }
 
+//----------------------------------------------------------------------------
 int vtkMicronTracker::GetNumOfIdentifiedMarkers()
 {
   return this->MT->mtGetIdentifiedMarkersCount();
 }
 
+//----------------------------------------------------------------------------
 int vtkMicronTracker::GetNumOfUnidentifiedMarkers()
 {
   return this->MT->mtGetUnidentifiedMarkersCount();
 }
 
+//----------------------------------------------------------------------------
 double vtkMicronTracker::GetLightCoolness(int cam /* = -1 */) 
 {
   return MT->mtGetLightCoolness(cam);
 }
 
+//----------------------------------------------------------------------------
 int vtkMicronTracker::GetLatestFrameHazard() 
 {
   return MT->mtGetLatestFrameHazard();

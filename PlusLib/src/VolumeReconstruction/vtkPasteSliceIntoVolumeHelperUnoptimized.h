@@ -40,11 +40,16 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
-// .NAME vtkPasteSliceIntoVolumeHelperUnoptimized - Unoptimized helper functions for pasting slice into volume
-// .SECTION Description
-// Contains unoptimized interpolation and slice insertion functions for vtkPasteSliceIntoVolume
-// .SECTION see also
-// vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperCommon, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
+
+/*!
+  \file vtkPasteSliceIntoVolumeHelperUnoptimized.h
+  \brief Unoptimized helper functions for pasting slice into volume
+
+  Contains unoptimized interpolation and slice insertion functions for vtkPasteSliceIntoVolume
+
+  \sa vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperCommon, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
+  \ingroup PlusLibVolumeReconstruction
+*/
 
 #ifndef __vtkPasteSliceIntoVolumeHelperUnoptimized_h
 #define __vtkPasteSliceIntoVolumeHelperUnoptimized_h
@@ -52,29 +57,29 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPasteSliceIntoVolumeHelperCommon.h"
 #include "vtkMatrix4x4.h"
 
-///////////////// NEAREST NEIGHBOR INTERPOLATION ///////////////////////
-// In the un-optimized version, each output voxel
-// is converted into a set of look-up indices for the input data;
-// then, the indices are checked to ensure they lie within the
-// input data extent.
+/*!
+  Non-optimized nearest neighbor interpolation.
 
-// In the optimized versions, the check is done in reverse:
-// it is first determined which output voxels map to look-up indices
-// within the input data extent.  Then, further calculations are
-// done only for those voxels.  This means that 1) minimal work
-// is done for voxels which map to regions outside fo the input
-// extent (they are just set to the background color) and 2)
-// the inner loops of the look-up and interpolation are
-// tightened relative to the un-uptimized version.
-////////////////////////////////////////////////////////////////////////
+  In the un-optimized version, each output voxel
+  is converted into a set of look-up indices for the input data;
+  then, the indices are checked to ensure they lie within the
+  input data extent.
 
-//----------------------------------------------------------------------------
-// vtkNearestNeighborInterpolation - NOT OPTIMIZED
-// Do nearest-neighbor interpolation of the input data 'inPtr' of extent 
-// 'inExt' at the 'point'.  The result is placed at 'outPtr'.  
-// If the lookup data is beyond the extent 'inExt', set 'outPtr' to
-// the background color 'background'.  
-// The number of scalar components in the data is 'numscalars'
+  In the optimized versions, the check is done in reverse:
+  it is first determined which output voxels map to look-up indices
+  within the input data extent.  Then, further calculations are
+  done only for those voxels.  This means that 1) minimal work
+  is done for voxels which map to regions outside fo the input
+  extent (they are just set to the background color) and 2)
+  the inner loops of the look-up and interpolation are
+  tightened relative to the un-uptimized version.
+
+  Do nearest-neighbor interpolation of the input data 'inPtr' of extent 
+  'inExt' at the 'point'.  The result is placed at 'outPtr'.  
+  If the lookup data is beyond the extent 'inExt', set 'outPtr' to
+  the background color 'background'.  
+  The number of scalar components in the data is 'numscalars'
+*/
 template <class F, class T>
 static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
                                            unsigned short *accPtr, 
@@ -128,12 +133,12 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
 } 
 
 //----------------------------------------------------------------------------
-// Actually inserts the slice - executes the filter for any type of data, for
-// no optimization
-// Given an input and output region, execute the filter algorithm to fill the
-// output from the input - no optimization.
-// (this one function is pretty much the be-all and end-all of the
-// filter)
+/*!
+  Actually inserts the slice - executes the filter for any type of data, without optimization
+  Given an input and output region, execute the filter algorithm to fill the
+  output from the input - no optimization.
+  (this one function is pretty much the be-all and end-all of the filter)
+*/
 template <class T>
 static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
   double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode)

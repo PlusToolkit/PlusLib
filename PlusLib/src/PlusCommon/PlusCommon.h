@@ -76,8 +76,19 @@ enum PlusStatus
 	
 /////////////////////////////////////////////////////////////////// 
 
-// This class is used for locking a objects (buffers, mutexes, etc.)
-// and releasing the lock automatically when the object is deleted
+/*!
+  \class PlusLockGuard
+  \brief A class for automatically unlocking objects
+  
+  This class is used for locking a objects (buffers, mutexes, etc.)
+  and releasing the lock automatically when the guard object is deleted
+  (typically by getting out of scope).
+  
+  Example:
+   PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+
+  \ingroup PlusLibCommon
+*/
 template <typename T> class PlusLockGuard
 {
 public:
@@ -101,6 +112,7 @@ private:
 /*! 
   \def DELETE_IF_NOT_NULL(Object)
   \brief A macro to safely delete a VTK object (usable if the VTK object pointer is already NULL).
+  \ingroup PlusLibCommon
 */
 #define DELETE_IF_NOT_NULL( Object ) {\
   if ( Object != NULL ) {\
@@ -115,7 +127,7 @@ namespace PlusCommon
   typedef int VTKScalarPixelType;
 
   //----------------------------------------------------------------------------
-  // Quick and robust string to int conversion
+  /*! Quick and robust string to int conversion */
   template<class T>
   static PlusStatus StringToInt(const char* strPtr, T &result)
   {
@@ -133,7 +145,7 @@ namespace PlusCommon
   }
 
   //----------------------------------------------------------------------------
-  // Quick and robust string to double conversion
+  /*! Quick and robust string to double conversion */
   template<class T>
   static PlusStatus StringToDouble(const char* strPtr, T &result)
   {
@@ -151,7 +163,7 @@ namespace PlusCommon
   }
 
   //----------------------------------------------------------------------------
-  // Quick and robust string to int conversion
+  /*! Quick and robust string to int conversion */
   template<class T>
   static PlusStatus StringToLong(const char* strPtr, T &result)
   {
@@ -169,7 +181,7 @@ namespace PlusCommon
   }
 
   //----------------------------------------------------------------------------
-  // Trim whitespace characters from the left and right
+  /*! Trim whitespace characters from the left and right */
   static void Trim(std::string &str)
   {
     str.erase(str.find_last_not_of(" \t\r\n")+1);

@@ -4,7 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#pragma once
+#ifndef __DirectSoundInstance_h
+#define __DirectSoundInstance_h
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -14,6 +15,12 @@ namespace VibroLib
 {
 	namespace AudioCard
 	{
+
+    /*!
+      \class DirectSoundInstance
+      \brief Class to store a DirectSound object pointer
+      \ingroup PlusLibVibro
+    */
 		class VTK_EXPORT DirectSoundInstance
 		{
 		public:
@@ -28,3 +35,5 @@ namespace VibroLib
 		};
 	}
 }
+
+#endif // __DirectSoundInstance_h

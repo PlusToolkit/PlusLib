@@ -39,12 +39,16 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkPasteSliceIntoVolumeHelperCommon - Helper functions for pasting slice into volume
-// .SECTION Description
-// Contains common interpolation and clipping functions for vtkPasteSliceIntoVolume
-// .SECTION see also
-// vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
 
+/*!
+  \file vtkPasteSliceIntoVolumeHelperCommon.h
+  \brief Helper functions for pasting slice into volume
+
+  Contains common interpolation and clipping functions for vtkPasteSliceIntoVolume
+
+  \sa vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
+  \ingroup PlusLibVolumeReconstruction
+*/
 #ifndef __vtkPasteSliceIntoVolumeHelperCommon_h
 #define __vtkPasteSliceIntoVolumeHelperCommon_h
 
@@ -55,19 +59,20 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusMath.h"
 
 
-////////////////////// TRILINEAR INTERPOLATION //////////////////////////
-// does reverse trilinear interpolation
-// trilinear interpolation would use the pixel values to interpolate something
-// in the middle we have the something in the middle and want to spread it to
-// the discrete pixel values around it, in an interpolated way
-/////////////////////////////////////////////////////////////////////////
+/*!
+  Implements trilinear interpolation
 
-//----------------------------------------------------------------------------
-// Do trilinear interpolation of the input data 'inPtr' of extent 'inExt'
-// at the 'point'.  The result is placed at 'outPtr'.  
-// If the lookup data is beyond the extent 'inExt', set 'outPtr' to
-// the background color 'background'.  
-// The number of scalar components in the data is 'numscalars'
+  Does reverse trilinear interpolation. Trilinear interpolation would use 
+  the pixel values to interpolate something in the middle we have the 
+  something in the middle and want to spread it to the discrete pixel 
+  values around it, in an interpolated way
+
+  Do trilinear interpolation of the input data 'inPtr' of extent 'inExt'
+  at the 'point'.  The result is placed at 'outPtr'.  
+  If the lookup data is beyond the extent 'inExt', set 'outPtr' to
+  the background color 'background'.  
+  The number of scalar components in the data is 'numscalars'
+*/
 template <class F, class T>
 static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
@@ -234,15 +239,16 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
 
 
 //----------------------------------------------------------------------------
-// convert the ClipRectangle into a
-// clip extent that can be applied to the input data - number of pixels (+ or -)
-// from the origin (the z component is copied from the inExt parameter)
-// 
-// clipExt = {x0, x1, y0, y1, z0, z1} <-- the "output" of this function is to
-//                                        change this array
-// inOrigin = {x, y, z} <-- the origin in mm
-// inSpacing = {x, y, z} <-- the spacing in mm
-// inExt = {x0, x1, y0, y1, z0, z1} <-- min/max possible extent, in pixels
+/*!
+  Convert the ClipRectangle into a clip extent that can be applied to the
+  input data - number of pixels (+ or -) from the origin (the z component 
+  is copied from the inExt parameter)
+
+  \param clipExt {x0, x1, y0, y1, z0, z1} the "output" of this function is to change this array
+  \param inOrigin = {x, y, z} the origin in mm
+  \param inSpacing = {x, y, z} the spacing in mm
+  \param inExt = {x0, x1, y0, y1, z0, z1} min/max possible extent, in pixels
+*/
 void GetClipExtent(int clipExt[6],
 										   vtkFloatingPointType inOrigin[3],
 										   vtkFloatingPointType inSpacing[3],
@@ -307,8 +313,5 @@ void GetClipExtent(int clipExt[6],
 	clipExt[4] = inExt[4];
 	clipExt[5] = inExt[5];
 }
-
-
-
 
 #endif

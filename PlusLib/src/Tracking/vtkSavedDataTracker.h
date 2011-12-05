@@ -15,7 +15,7 @@ class vtkTrackerBuffer;
 \class vtkSavedDataTracker 
 \brief Simulator interface for exported buffers 
 
-Simualtor reads exported tracked buffer from sequence metafile and play back it 
+Simulator reads exported tracked buffer from sequence metafile and play back it 
 
 \ingroup PlusLibTracking
 */

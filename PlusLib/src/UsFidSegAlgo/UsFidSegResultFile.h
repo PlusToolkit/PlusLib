@@ -11,6 +11,11 @@
 #include "FidPatternRecognition.h"
 #include <iostream>
 
+/*!
+  \class UsFidSegResultFile
+  \brief This class can write fiducial segmentation results to an XML file
+  \ingroup PlusLibPatternRecognition
+*/ 
 class UsFidSegResultFile
 {
 public:

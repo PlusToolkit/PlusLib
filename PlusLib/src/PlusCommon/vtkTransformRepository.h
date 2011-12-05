@@ -34,6 +34,13 @@ Example usage:
   vtkTransformRepository::TransformStatus status=vtkTransformRepository::TRANSFORM_INVALID;
   transformRepository->GetTransform("Image", "Tracker", mxImageToTracker, &status);
 
+The following coordinate frames are used commonly: 
+  Image: image frame coordinate system, origin is the bottom-left corner, unit is pixel
+  Tool: coordinate system of the DRB attached to the probe, unit is mm
+  Reference: coordinate system of the DRB attached to the reference body, unit is mm
+  Tracker: coordinate system of the tracker, unit is mm
+  World: world coordinate system, orientation is usually patient RAS, unit is mm
+
 \ingroup PlusLibCommon
 */
 class VTK_EXPORT vtkTransformRepository : public vtkObject
@@ -121,7 +128,11 @@ protected:
   vtkTransformRepository();
   ~vtkTransformRepository();  
 
-  /*! Stores a transformation matrix and some additional information (valid or not, computed or not)*/ 
+  /*!
+    \struct TransformInfo
+    \brief Stores a transformation matrix and some additional information (valid or not, computed or not)
+    \ingroup PlusLibCommon
+  */
   class TransformInfo
   {
   public:

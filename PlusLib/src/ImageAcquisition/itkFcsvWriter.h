@@ -26,42 +26,50 @@
 namespace itk
 {
 
+/*!
+  \class FcsvWriter
+  \brief Writes a fiducial list (fcsv) file 
+  The fcsv file is the standard file format of 3D Slicer for storing a fiducial list
+  \ingroup PlusLibImageAcquisition
+*/
+
 class PLUS_EXPORT FcsvWriter : public Object
 {
 public:
 
-  // SmartPointer typedef support 
-  typedef FcsvWriter						Self;									// correct????
-  typedef SmartPointer<Self>                Pointer;
+  /*! SmartPointer typedef support */
+  typedef FcsvWriter Self;
+  /*! SmartPointer typedef support */
+  typedef SmartPointer<Self> Pointer;
 
-  // Method for creation through the object factory 
+  /*! Method for creation through the object factory */
   itkNewMacro(Self);
 
-  // Run-time type information (and related methods). 
+  /*! For run-time type information */
   typedef Object Superclass;
+  /*! For run-time type information */
   itkTypeMacro(FcsvWriter, Object);
 
-  //Load a FCSV file.
+  /* Load an FCSV file */
   void Update(void);
 
-  // Set the filename  
+  /*! Set the filename */
   itkSetStringMacro(FileName);
-
-  // Get the filename 
+  /*! Get the filename */
   itkGetStringMacro(FileName);
 
   FcsvData* GetFcsvDataObject() { return &m_FcsvDataObject; };
+
 protected:
-  FcsvWriter(const Self&);		//purposely not implemented
-  Self& operator=(const Self&);	//purposely not implemented
-
-  std::string m_FileName;
-
   FcsvWriter();
   virtual ~FcsvWriter();
 
-private:
+  std::string m_FileName;
   FcsvData m_FcsvDataObject;
+
+private:
+  FcsvWriter(const Self&);		//purposely not implemented
+  Self& operator=(const Self&);	//purposely not implemented
 };
 
 
