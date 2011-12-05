@@ -28,6 +28,8 @@ vtkFakeTracker::vtkFakeTracker()
 vtkFakeTracker::~vtkFakeTracker()
 {
   this->InternalTransform->Delete();
+  // remove reference from the transform repository
+  this->SetTransformRepository(NULL);
 }
 
 //----------------------------------------------------------------------------

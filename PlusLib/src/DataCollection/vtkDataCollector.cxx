@@ -14,6 +14,10 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 
+// Needed for getting the value of VTK_DEBUG_LEAKS
+#include "vtkToolkits.h"
+#include "vtkDebugLeaks.h"
+
 vtkCxxRevisionMacro(vtkDataCollector, "$Revision: 1.0 $");
 
 //----------------------------------------------------------------------------
@@ -95,6 +99,11 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
     {
       return (vtkDataCollector*)dataCollector;
     }
+    // if the factory failed to create the object,
+    // then destroy it now, as vtkDebugLeaks::ConstructClass was called
+#ifdef VTK_DEBUG_LEAKS
+    vtkDebugLeaks::DestructClass("vtkDataCollectorHardwareDevice");
+#endif 
     // If the factory was unable to create the object, then create it here.
     return vtkDataCollectorHardwareDevice::New();
   }
@@ -109,7 +118,11 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
     {
       return (vtkDataCollector*)dataCollector;
     }
-    // If the factory was unable to create the object, then create it here.
+    // if the factory failed to create the object,
+    // then destroy it now, as vtkDebugLeaks::ConstructClass was called
+#ifdef VTK_DEBUG_LEAKS
+    vtkDebugLeaks::DestructClass("vtkDataCollectorFile");
+#endif 
     return vtkDataCollectorFile::New();
   }
 
