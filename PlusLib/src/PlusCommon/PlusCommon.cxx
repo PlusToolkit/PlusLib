@@ -123,13 +123,12 @@ std::string PlusTransformName::To()
 //-------------------------------------------------------
 void PlusTransformName::Capitalize(std::string& aString )
 {
-  // Check starting character 
-  vtksys::RegularExpression capitalize("^[a-z].*"); 
-  if ( capitalize.find(aString) )
+  // Change first character to uppercase
+  if (aString.length()<1)
   {
-    aString = vtksys::SystemTools::Capitalized(aString);
-    LOG_WARNING("Coordinate frame name should be capitalized, changed to " << aString ); 
+    return;
   }
+  aString[0] = toupper( aString[0] );
 }
 
 

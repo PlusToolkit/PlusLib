@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // ***********************************************
-  // Test PlusTransformName
+  // Test string to number conversion
   // ***********************************************
   double doubleResult(0); 
   if ( PlusCommon::StringToDouble("8.12", doubleResult) != PLUS_SUCCESS )
@@ -135,6 +135,19 @@ int main(int argc, char **argv)
   // ***********************************************
   // Test PlusTransformName
   // ***********************************************
+
+  PlusTransformName trName("tr1", "tr2");
+  if (trName.From().compare("Tr1")!=0) 
+  {
+    LOG_ERROR("Capitalization test failed: "<<trName.From()<<" != Tr1");
+    exit(EXIT_FAILURE);
+  }
+  if (trName.To().compare("Tr2")!=0) 
+  {
+    LOG_ERROR("Capitalization test failed: "<<trName.To()<<" != Tr2");
+    exit(EXIT_FAILURE);
+  }
+
   if ( TestValidTransformName("Image","Probe") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestValidTransformName("Tool","Tool") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   
