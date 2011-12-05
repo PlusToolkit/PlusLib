@@ -8,10 +8,15 @@
 #define _BRACHYSTEPPER_H_
 #include "PlusConfigure.h"
 
+/*! \class BrachyStepper 
+ * \brief Generic interface for position tracking using brachy stepper devices
+ * \ingroup PlusLibBrachyStepper
+ */
 class  BrachyStepper 
 {
 public:
 
+  /*! Stepper type enumeration */
   enum BRACHY_STEPPER_TYPE
   {
     UNDEFINED_STEPPER,
@@ -21,6 +26,7 @@ public:
     CIVCO_STEPPER
   };
 
+  /*! Constructor */
   BrachyStepper()
   {
     m_BrachyStepperType=UNDEFINED_STEPPER;
@@ -28,50 +34,39 @@ public:
   };
   virtual ~BrachyStepper(){}; 
 
-  // Description:
-  // Connect to stepper
+  /*! Destructor */
   virtual PlusStatus Connect() = 0; 
 
-  // Description:
-  // Disconnect from stepper 
+  /*! Disconnect from stepper  */
   virtual PlusStatus Disconnect() = 0; 
 
-  // Description:
-  // Get raw encoder values from stepper 
+  /*! Get raw encoder values from stepper  */
   virtual PlusStatus GetEncoderValues(double &PPosition, 
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber) = 0; 
 
-  // Description:
-  // Get stepper model specific information from device 
+  /*! Get stepper model specific information from device  */
   virtual PlusStatus GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial ) = 0; 
 
-  // Description:
-  // Reset stepper 
+  /*! Reset stepper  */
   virtual PlusStatus ResetStepper() = 0; 
 
-  // Description:
-  // Set baud rate for communication with the stepper
+  /*! Set baud rate for communication with the stepper */
   virtual PlusStatus SetBaudRate(unsigned long BaudRate) = 0; 
 
-  // Description:
-  // Set COM port number for cummunication with the stepper 
+  /*! Set COM port number for cummunication with the stepper  */
   virtual PlusStatus SetCOMPort(unsigned long COMPort) = 0; 
 
-  // Description:
-  // Get notification from the stepper 
+  /*! Get notification from the stepper  */
   virtual PlusStatus IsStepperAlive() = 0; 
 
-  // Description:
-  // Initialize stepper 
+  /*! Initialize stepper  */
   virtual PlusStatus InitializeStepper(std::string &CalibMsg) = 0; 
 
-  // Description:
-  // Set/get bracy stepper type from BRACHY_STEPPER_TYPE
+  /*! Set/get bracy stepper type from BRACHY_STEPPER_TYPE */
   void SetBrachyStepperType( BRACHY_STEPPER_TYPE type ) { m_BrachyStepperType = type; }
   BRACHY_STEPPER_TYPE GetBrachyStepperType() const { return m_BrachyStepperType; }
 
-  // Description:
-  // Get brachy stepper type in string format
+  /*! Get brachy stepper type in string format */
   static std::string GetBrachyStepperTypeInString(BRACHY_STEPPER_TYPE stepperType) 
   { 
     std::string strStepperType;
@@ -103,8 +98,10 @@ public:
 
 protected: 
 
+  /*! Type of the current brachy stepper */
   BRACHY_STEPPER_TYPE m_BrachyStepperType;
 
+  /*! Number of position requests performed */
   unsigned long m_PositionRequestNumber; 
 
 }; 
