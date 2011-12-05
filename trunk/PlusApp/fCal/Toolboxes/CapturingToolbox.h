@@ -136,9 +136,6 @@ protected:
   /*! Queue storing the number of recorded frames in each round in the last two seconds */
   std::deque<int> m_RecordedFrameNumberQueue;
 
-  /*! Name of the frame transform that is used for validation */
-  std::string m_DefaultFrameTransformName;
-
 protected:
 	Ui::CapturingToolbox ui;
 };

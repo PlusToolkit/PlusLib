@@ -328,10 +328,10 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 	m_ParentMainWindow->SetStatusBarProgress(0);
 	RefreshContent();
 
-  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList);
+  LOG_WARNING("TODO: Need a transform name to use for output extent computation!"); 
+  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, PlusTransformName("Image", "Reference"));
 
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
   {
 		// Set progress
@@ -339,7 +339,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     RefreshContent();
 
 		// Add this tracked frame to the reconstructor
-    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName);
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), PlusTransformName("Image", "Reference"));
 	}
 	
 	m_ParentMainWindow->SetStatusBarProgress(0);

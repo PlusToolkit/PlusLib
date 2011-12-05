@@ -34,14 +34,11 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   , m_SamplingFrameRate(8)
   , m_RequestedFrameRate(0.0)
   , m_ActualFrameRate(0.0)
-  , m_DefaultFrameTransformName("Probe")
 {
 	ui.setupUi(this);
 
   // Create tracked frame list
   m_RecordedFrames = vtkTrackedFrameList::New();
-  PlusTransformName defaultTransformName(m_DefaultFrameTransformName.c_str(), "Tracker"); 
-  m_RecordedFrames->SetDefaultFrameTransformName(defaultTransformName);
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Connect events

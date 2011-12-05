@@ -274,8 +274,6 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 		// Request an update before each image acquisition 
 		(*UpdateRequestCallbackFunction)();
 	}
-
-  this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName); 
 	this->TrackedFrameContainer->AddTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME); 
 }
 

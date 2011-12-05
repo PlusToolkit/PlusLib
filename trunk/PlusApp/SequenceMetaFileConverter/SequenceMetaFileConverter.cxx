@@ -111,6 +111,7 @@ std::string outputUsImageOrientation("XX");
 bool inputUseCompression(false); 
 bool inputNoImageData(false); 
 std::string inputToolToReferenceName, inputReferenceToTrackerName; 
+std::string inputTransformName; 
 
 //-------------------------------------------------------------------------------
 int main (int argc, char* argv[])
@@ -137,6 +138,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method (METAFILE, SEQUENCE_METAFILE, BMP24, BMP8, PNG, JPG; Default: SEQUENCE_METAFILE)" );
   cmdargs.AddArgument("--convert-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConvertMethod, "Convert method (FROM_BMP24, FROM_METAFILE, FROM_SEQUENCE_METAFILE; Default: FROM_BMP24)" );
   cmdargs.AddArgument("--output-us-img-orientation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageOrientation, "Output ultrasound image orientation (UF, UN, MF, MN, XX; Default: XX)" );
+  cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for saving to metafile." );
 
   // convert from BMP24 arguments
   cmdargs.AddArgument("--input-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataDir, "Input data directory for image files with transforms (default: ./)");
@@ -318,8 +320,6 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 {
   LOG_INFO("Converting bitmap images..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  PlusTransformName toolToReferenceTransformName("Tool", "Reference"); 
-  trackedFrameContainer->SetDefaultFrameTransformName(toolToReferenceTransformName); 
 
   int numberOfImagesWritten(0); 
   int frameNumber(0); 
@@ -491,7 +491,6 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
         LOG_INFO("Saving metafiles..."); 
       }
 
-      PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
       for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
       {
         if ( numberOfFrames > 1 )
@@ -501,9 +500,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
         std::ostringstream fileName; 
         fileName << outputFolder << "/Frame" << std::setfill('0') << std::setw(4) << numberOfImagesWritten + imgNumber << ".mha" << std::ends;
-        std::string strTransformName; 
-        defaultFrameTransformName.GetTransformName(strTransformName); 
-        SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), strTransformName, fileName.str(), inputUseCompression ); 
+        SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), inputTransformName, fileName.str(), inputUseCompression ); 
       }
 
       if ( numberOfFrames > 1 )
@@ -746,7 +743,6 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
   LOG_INFO("Converting metafile images..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   PlusTransformName toolToReferenceTransformName("Tool", "Reference"); 
-  trackedFrameContainer->SetDefaultFrameTransformName(toolToReferenceTransformName); 
 
   int numberOfImagesWritten(0); 
   int frameNumber(0); 

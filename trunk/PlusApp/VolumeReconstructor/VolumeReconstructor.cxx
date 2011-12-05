@@ -21,12 +21,14 @@ int main (int argc, char* argv[])
 	std::string inputImgSeqFileName;
 	std::string inputConfigFileName;
 	std::string outputVolumeFileName;
+  std::string inputImageToReferenceTransformName; 
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
+  cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Image to reference transform name used for the reconstruction");
 	cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	cmdargs.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Path to the input image sequence meta file.");
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Path to the configuration file.");
@@ -74,16 +76,23 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
   
+  PlusTransformName toolToReferenceTransformName;
+  if ( toolToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
+  { 
+    LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   LOG_INFO("Reconstruct volume...");
-  reconstructor->SetOutputExtentFromFrameList(trackedFrameList);
+  reconstructor->SetOutputExtentFromFrameList(trackedFrameList, toolToReferenceTransformName);
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
+
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
-    reconstructor->AddTrackedFrame(frame, defaultFrameTransformName);
+    reconstructor->AddTrackedFrame(frame, toolToReferenceTransformName);
   }
   vtkPlusLogger::PrintProgressbar( 100 ); 
 
