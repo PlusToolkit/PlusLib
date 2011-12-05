@@ -1,7 +1,10 @@
 /*=Plus=header=begin======================================================
-Program: Plus
-Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-See License.txt for details.
+  Author: Siavash Khallaghi
+  Date: 2010
+  Program: Plus
+  Copyright (c) University of British Columbia
+  Contact: siavashk@ece.ubc.ca
+  See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
