@@ -39,23 +39,30 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 =========================================================================*/
 
-// .NAME vtkFillHolesInVolume - Fill holes in a volume reconstructed from slices.
-// .SECTION Description
-// This class has not been tested extensively and it may not work properly!
-// Fill holes in the output by using the weighted average of the
-// surrounding voxels.  If Compounding is off, then all hit voxels
-// are weighted equally. 
-// These papers could be useful to study when reviewing/updating the algorithm:
-//  http://www.irma-international.org/viewtitle/46058/
-//  http://www.3dmed.net/paper/daiyakang_TITB.pdf
-// .SECTION See Also
-// vtkPasteSliceIntoVolume
-
 #ifndef __vtkFillHolesInVolume_h
 #define __vtkFillHolesInVolume_h
 
 #include "vtkThreadedImageAlgorithm.h"
 
+/*!
+  \class vtkFillHolesInVolume
+  \brief Fill holes in a volume reconstructed from slices.
+
+  This class has not been tested extensively and it may not work properly!
+  Fill holes in the output by using the weighted average of the
+  surrounding voxels.  If Compounding is off, then all hit voxels
+  are weighted equally. 
+  These papers could be useful to study when reviewing/updating the algorithm:
+  http://www.irma-international.org/viewtitle/46058/
+  http://www.3dmed.net/paper/daiyakang_TITB.pdf
+
+  Warning: The class was part of the SynchroGrab library and ported into
+  Plus, but has not been tested and probably needs some work to fill the holes correctly.
+  See https://www.assembla.com/spaces/plus/tickets/285-hole-filling-after-volume-reconstruction-doesn-t-seem-to-be-effective
+
+  \sa vtkPasteSliceIntoVolume
+  \ingroup PlusLibVolumeReconstruction
+*/
 class VTK_EXPORT vtkFillHolesInVolume : public vtkThreadedImageAlgorithm
 {
 public:
@@ -63,28 +70,48 @@ public:
   vtkTypeMacro(vtkFillHolesInVolume,vtkThreadedImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
     
-  // Description:
-  // Turn on or off the compounding (default on, which means
-  // that scans will be compounded where they overlap instead of just considering
-  // the last acquired slice.
+  /*! Get current compounding setting */
   vtkGetMacro(Compounding,int);
+
+  /*!
+    Turn on or off the compounding (default on, which means
+    that scans will be compounded where they overlap instead
+    of just considering the last acquired slice.
+  */
   vtkSetMacro(Compounding,int);
 
+  /*! Set the input volume (reconstructed volume, with holes) */
   void SetReconstructedVolume(vtkImageData *reconstructedVolume);
 
+  /*! 
+    Set the input accumulation buffer, which indicates how many slices
+    were inserted at each particular voxel.
+  */
   void SetAccumulationBuffer(vtkImageData *accumulationBuffer);
 
 protected:
   vtkFillHolesInVolume();
-  ~vtkFillHolesInVolume() {};
+  ~vtkFillHolesInVolume();
 
+  /*!
+    This method is passed a region that holds the image extent of this filters
+    input, and changes the region to hold the image extent of this filters
+    output.
+  */
   virtual int RequestInformation (vtkInformation*,
                                   vtkInformationVector**,
                                   vtkInformationVector*);
+  
+  /*! This method computes the input extent necessary to generate the output */
   virtual int RequestUpdateExtent(vtkInformation*,
                                   vtkInformationVector**,
                                   vtkInformationVector*);
 
+  /*!
+    This method contains a switch statement that calls the correct
+    templated function for the input data type.  The output data
+    must match input type.
+  */
   virtual void ThreadedRequestData(vtkInformation *request, 
     vtkInformationVector **inputVector, 
     vtkInformationVector *outputVector,

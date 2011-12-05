@@ -10,22 +10,30 @@
 
 namespace VibroLib
 {
-	namespace AudioCard
-	{
-		DirectSoundCapture::DirectSoundCapture(void)
-		{
-			pDirectSoundCapture = NULL;
-		}
+namespace AudioCard
+{
 
-		DirectSoundCapture::~DirectSoundCapture(void)
-		{
-		}
+//----------------------------------------------------------------------------
+DirectSoundCapture::DirectSoundCapture(void)
+{
+	pDirectSoundCapture = NULL;
+}
 
-		PlusStatus DirectSoundCapture::Initialize()
-		{
-			if (::DirectSoundCaptureCreate(NULL, &pDirectSoundCapture, NULL) != DS_OK)
-				return PLUS_FAIL;
-			return PLUS_SUCCESS;
-		}
-	}
+//----------------------------------------------------------------------------
+DirectSoundCapture::~DirectSoundCapture(void)
+{
+}
+
+//----------------------------------------------------------------------------
+PlusStatus DirectSoundCapture::Initialize()
+{
+	if (::DirectSoundCaptureCreate(NULL, &pDirectSoundCapture, NULL) != DS_OK)
+  {
+    LOG_ERROR("DirectSoundCaptureCreate failed");
+		return PLUS_FAIL;
+  }
+	return PLUS_SUCCESS;
+}
+
+}
 }

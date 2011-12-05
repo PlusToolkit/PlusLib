@@ -6,7 +6,6 @@ SET (VibroAudioCard_SRCS
 	DirectSoundCaptureBuffer.cxx
 	DirectSoundInstance.cxx
 	SignalGenerator.cxx
-	Timer.cxx
 	Wave.cxx
 	)
 
@@ -18,7 +17,6 @@ if (WIN32)
   	DirectSoundCaptureBuffer.h
   	DirectSoundInstance.h
   	SignalGenerator.h
-  	Timer.h
   	Wave.h
     )
 endif (WIN32)

@@ -22,25 +22,11 @@
 class vtkTrackedFrameList;
 class TrackedFrame;
 
-// The following coordinate frames are used with this metafile: 
-// Image: image frame coordinate system, origin is the bottom-left corner, unit is pixel
-// Tool: coordinate system of the DRB attached to the probe, unit is mm
-// Reference: coordinate system of the DRB attached to the reference body, unit is mm
-// Tracker: coordinate system of the tracker, unit is mm
-// World: world coordinate system, orientation is usually patient RAS, unit is mm
-//
-// ImageToToolTransform: calibration matrix
-// ToolToTrackerTransform: for each frame, pose of the image in the tracker coordinate system
-// ReferenceToTrackerTransform: for each frame, pose of the reference body in the tracker coordinate system
-// TrackerToWorldTransform: rarely used 
-
-/** \class MetaImageIO
-*
-*  \brief Read MetaImage file format.
-*
-*  \ingroup IOFilters
+/*!
+  \class vtkMetaImageSequenceIO
+  \brief Read and write MetaImage file with a sequence of frames, with additional information for each frame
+  \ingroup PlusLibCommon
 */
-
 class PLUS_EXPORT vtkMetaImageSequenceIO : public vtkObject
 {
 public:
@@ -49,109 +35,149 @@ public:
 	vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  //! Get/Set the TrackedFrameList where the images are stored
+  /*! Set the TrackedFrameList where the images are stored */
   virtual void SetTrackedFrameList(vtkTrackedFrameList *trackedFrameList);
+  /*! Get the TrackedFrameList where the images are stored */
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
-  // Set/get the default frame transform name 
-  PlusTransformName GetDefaultFrameTransformName();
+  /*! Set the default frame transform name. Deprecated. */
   void SetDefaultFrameTransformName(PlusTransformName& aTransformName);
-
-  // Set/get the ultrasound image orientation for file storage.
-  // Note that the image data is always stored in MF orientation in the TrackedFrameList.
-  // The ultrasound image axes are defined as follows:
-  // - x axis: points towards the x coordinate increase direction
-  // - y axis: points towards the y coordinate increase direction
-  // The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
-  // There are four possible orientations:
-  // - UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
-  // - UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
-  // - MF: image x axis = marked transducer axis, image y axis = far transducer axis
-  // - MN: image x axis = marked transducer axis, image y axis = near transducer axis
+  /*! Get the default frame transform name. Deprecated. */
+  PlusTransformName GetDefaultFrameTransformName();
+  
+  /*!
+    Set/get the ultrasound image orientation for file storage.
+    Note that the image data is always stored in MF orientation in the TrackedFrameList object in memory.
+    The ultrasound image axes are defined as follows:
+    * x axis: points towards the x coordinate increase direction
+    * y axis: points towards the y coordinate increase direction
+  
+  The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+    There are four possible orientations:
+    * UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
+    * UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
+    * MF: image x axis = marked transducer axis, image y axis = far transducer axis
+    * MN: image x axis = marked transducer axis, image y axis = near transducer axis
+  */
   vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
 
+  /*! Write object contents into file */
   virtual PlusStatus Write();
 
+  /*! Read file contents into the object */
   virtual PlusStatus Read();
 
+  /*! Check if this class can read the specified file */
   virtual bool CanReadFile(const char*);
 
+  /*! Returns a pointer to a single frame */
   virtual TrackedFrame* GetTrackedFrame(int frameNumber);
 
-  //! Set input/output file name. The file contains only the image header in case of
-  // MHD images and the full image (including pixel data) in case of MHA images.
+  /*!
+    Set input/output file name. The file contains only the image header in case of
+    MHD images and the full image (including pixel data) in case of MHA images.
+  */
   vtkSetStringMacro(FileName); 
+  /*! Get input/output file name. */
 	vtkGetStringMacro(FileName); 
 
-  //! Flag to enable/disable compression of image data
-  // Not yet supported.
+  /*! Flag to enable/disable compression of image data */
 	vtkGetMacro(UseCompression, bool);
+  /*! Flag to enable/disable compression of image data */
 	vtkSetMacro(UseCompression, bool);
+  /*! Flag to enable/disable compression of image data */
 	vtkBooleanMacro(UseCompression, bool);
 
 protected:
   vtkMetaImageSequenceIO();
   virtual ~vtkMetaImageSequenceIO();
 
+  /*! Set a custom string field value for a specific frame */
   PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
 
   /*! Delete custom frame field from tracked frame */
   PlusStatus DeleteCustomFrameString(int frameNumber, const char* fieldName); 
   
+  /*! Get a custom string field value for a specific frame */
   bool SetCustomString(const char* fieldName, const char* fieldValue);
+
+  /*! Get a custom string field value (global, not for a specific frame) */
   const char* GetCustomString(const char* fieldName);
 
-  //! Read all the fields in the metaimage file header
+  /*! Read all the fields in the metaimage file header */
   virtual PlusStatus ReadImageHeader();
 
-  //! Read pixel data from the metaimage
+  /*! Read pixel data from the metaimage */
   virtual PlusStatus ReadImagePixels();
 
-  //! Write all the fields to the metaimage file header
+  /*! Write all the fields to the metaimage file header */
   virtual PlusStatus WriteImageHeader();
 
-  //! Write pixel data to the metaimage
+  /*! Write pixel data to the metaimage */
   virtual PlusStatus WriteImagePixels();
 
+  /*! 
+    Convenience function that extends the tracked frame list (if needed) to make sure
+    that the requested frame is included in the list
+  */
   virtual void CreateTrackedFrameIfNonExisting(int frameNumber);
   
   /*! Get the largest possible image size in the tracked frame list */
   virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
 
-  //! Set file name for storing the pixel data
+  /*! Set file name for storing the pixel data */
   vtkSetStringMacro(PixelDataFileName); 
+  /*! Get file name for storing the pixel data */
 	vtkGetStringMacro(PixelDataFileName); 
 
+  /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
+  /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType);
+  /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr);
 
-  //! Update a field in the image header with its current value
+  /*! Update a field in the image header with its current value */
   PlusStatus UpdateFieldInImageHeader(const char* fieldName);
 
-  //! Writes the compressed pixel data directly into file. The compression is performed in chunks, so no excessive memory is used for the compression.
-  // compressedDataSize returns the size of the total compressed data that is written to the file.
+  /*! 
+    Writes the compressed pixel data directly into file. 
+    The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param compressedDataSize returns the size of the total compressed data that is written to the file.
+  */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
-
 
 private:
 
   typedef __int64 FilePositionOffsetType;
     
-  // Custom frame fields and image data are stored in the m_FrameList for each frame
+  /*! Custom frame fields and image data are stored in the m_FrameList for each frame */
   vtkTrackedFrameList* TrackedFrameList;
 
+  /*! Name of the file that contains the image header (*.MHA or *.MHD) */
   char* FileName;
+  /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
+  /*! ASCII or binary */
   itk::ImageIOBase::FileType FileType;
+  /*! Integer/float, short/long, signed/unsigned */
   PlusCommon::ITKScalarPixelType PixelType;
+  /*! Number of components (or channels). Only single-component images are supported. */
   int NumberOfComponents;
+  /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */
   int NumberOfDimensions;
+  /*! Frame size (first two elements) and number of frames (last element) */
   int Dimensions[3];
 
+  /*! 
+    Image orientation in memory is always MF, but when reading/writing a file then
+    any orientation can be used.
+  */
   US_IMAGE_ORIENTATION ImageOrientationInFile;
 
+  /*! Position of the first pixel of the image data within the pixel data file */
   FilePositionOffsetType PixelDataFileOffset;
+  /*! File name where the pixel data is stored */
   char* PixelDataFileName;
   
   vtkMetaImageSequenceIO(const vtkMetaImageSequenceIO&); //purposely not implemented

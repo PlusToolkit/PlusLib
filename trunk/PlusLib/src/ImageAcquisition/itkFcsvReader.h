@@ -27,16 +27,11 @@
 
 namespace itk
 {
-/*  \class FcsvData
- *  \stores Fiducial information
- *  \ingroup IOFilters
- *  \Stored data: Fiducial label , (x,y,z) , selected ,  visibility
- *  \Limitations: 2D or 3D??? (if 2D, Z is not needed)
- */
-
-////////////////////////////////////////////////////////////////////////////////
-/// Fcsv Data definition.
-////////////////////////////////////////////////////////////////////////////////
+/*!
+  \class FcsvPoint
+  \brief Describes a single fiducial point
+  \ingroup PlusLibImageAcquisition
+*/
 class FcsvPoint 
 {
 	public:
@@ -46,12 +41,14 @@ class FcsvPoint
 		int visibility;	
 };
 
-////////////////////////////////////////////////////////////////////////////////
-/// FCSV data file header.
-////////////////////////////////////////////////////////////////////////////////
+/*!
+  \class FcsvData
+  \brief Describes a fiducial list
+  \ingroup PlusLibImageAcquisition
+*/
 struct FcsvData
 {
-		std::string filePath;	// C:/Documents and Settings/peikarih/L.fcsv
+		std::string filePath;	// L.fcsv
 		std::string name;		//= L
 		int numPoints;			//= 16
 		int symbolScale;		// = 5
@@ -67,7 +64,6 @@ struct FcsvData
 		float specular;			//= 0  
 		float power;			//= 1
 		int   locked;			//= 0
-		// :TODO: use std<std::string,int> instead
 		std::vector<std::string> columns;			//= label,x,y,z,sel,vis
 		int numberingScheme;	//= 0
 		std::vector<FcsvPoint> points;				
@@ -75,44 +71,50 @@ struct FcsvData
 
 static const int FcsvNDimensions=3;
 
+/*!
+  \class FcsvReader
+  \brief Reads a fiducial list (fcsv) file 
+  The fcsv file is the standard file format of 3D Slicer for storing a fiducial list
+  \ingroup PlusLibImageAcquisition
+*/
 class PLUS_EXPORT FcsvReader : public Object
 {
 public:
 
-  // SmartPointer typedef support 
-  typedef FcsvReader                Self;									// correct????
-  typedef SmartPointer<Self>                  Pointer;
+  /*! SmartPointer typedef support */
+  typedef FcsvReader Self;
+  /*! SmartPointer typedef support */
+  typedef SmartPointer<Self> Pointer;
 
-  // Method for creation through the object factory 
+  /*! Method for creation through the object factory */
   itkNewMacro(Self);
 
-  // Run-time type information (and related methods). 
+  /*! For run-time type information */
   typedef Object Superclass;
+  /*! For run-time type information */
   itkTypeMacro(FcsvReader, Object);
 
-  //Load a FCSV file.
+  /*! Load a FCSV file */
   void Update(void);
 
-  // Set the filename  
+  /*! Set the filename */
   itkSetStringMacro(FileName);
-
-  // Get the filename 
+  /*! Get the filename */
   itkGetStringMacro(FileName);
 
   FcsvData* GetFcsvDataObject() { return &m_FcsvDataObject; };
+
 protected:
-  FcsvReader(const Self&);		//purposely not implemented
-  Self& operator=(const Self&);	//purposely not implemented
-
-  std::string m_FileName;
-
   FcsvReader();
   virtual ~FcsvReader();
 
-private:
+  std::string m_FileName;
   FcsvData m_FcsvDataObject;
-};
 
+private:
+  FcsvReader(const Self&);		//purposely not implemented
+  Self& operator=(const Self&);	//purposely not implemented
+};
 
 } // namespace itk
 

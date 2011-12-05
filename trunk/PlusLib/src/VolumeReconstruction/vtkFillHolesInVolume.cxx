@@ -66,7 +66,6 @@ struct FillHoleThreadFunctionInfoStruct
 
 
 //----------------------------------------------------------------------------
-// Construct an instance of vtkFillHolesInVolume fitler.
 vtkFillHolesInVolume::vtkFillHolesInVolume()
 {
   this->SetNumberOfInputPorts(1);
@@ -74,25 +73,21 @@ vtkFillHolesInVolume::vtkFillHolesInVolume()
   this->Compounding=0;
 }
 
+//----------------------------------------------------------------------------
+vtkFillHolesInVolume::~vtkFillHolesInVolume()
+{
+}
 
 //----------------------------------------------------------------------------
 void vtkFillHolesInVolume::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  /*
-  os << indent << "HandleBoundaries: " << this->HandleBoundaries << "\n";
-  os << indent << "Dimensionality: " << this->Dimensionality << "\n";
-  */
+  os << indent << "Compounding: " << this->Compounding<< "\n";
 }
 
 //----------------------------------------------------------------------------
-// This method is passed a region that holds the image extent of this filters
-// input, and changes the region to hold the image extent of this filters
-// output.
-int vtkFillHolesInVolume::RequestInformation (
-  vtkInformation* vtkNotUsed(request),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
+int vtkFillHolesInVolume::RequestInformation(vtkInformation* vtkNotUsed(request),
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {  
   int extent[6];
 
@@ -101,22 +96,17 @@ int vtkFillHolesInVolume::RequestInformation (
   vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
 
   // invalid setting, it has not been set, so default to whole Extent
-  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 
-              extent);
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent);
   
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 
-               extent, 6);
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent, 6);
 
   return 1;
 }
 
 
 //----------------------------------------------------------------------------
-// This method computes the input extent necessary to generate the output.
-int vtkFillHolesInVolume::RequestUpdateExtent (
-  vtkInformation* vtkNotUsed(request),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* outputVector)
+int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(request),
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   int wholeExtent[6];
 
@@ -138,10 +128,9 @@ int vtkFillHolesInVolume::RequestUpdateExtent (
 //----------------------------------------------------------------------------
 template <class T>
 void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
-                                      vtkImageData *inVolData, T *inVolPtr,
-                                      vtkImageData *accData, unsigned short *accPtr,      
-                                      vtkImageData *outData, T *outPtr,
-                                      int outExt[6], int id)
+  vtkImageData *inVolData, T *inVolPtr, vtkImageData *accData,
+  unsigned short *accPtr, vtkImageData *outData, T *outPtr,
+  int outExt[6], int id)
 {
   /*
   int maxC, maxX, maxY, maxZ;
@@ -529,16 +518,9 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 		// add the continuous increment
 		alphaPtr += (incZ - (outExt[3]-outExt[2]+1)*incY);
 	}
-
-
-
 }
 
-
 //----------------------------------------------------------------------------
-// This method contains a switch statement that calls the correct
-// templated function for the input data type.  The output data
-// must match input type.
 void vtkFillHolesInVolume::ThreadedRequestData(vtkInformation *request, 
     vtkInformationVector **inputVector, 
     vtkInformationVector *outputVector,

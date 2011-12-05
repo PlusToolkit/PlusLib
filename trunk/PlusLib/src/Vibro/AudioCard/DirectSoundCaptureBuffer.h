@@ -4,7 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#pragma once
+#ifndef __DirectSoundCaptureBuffer_h
+#define __DirectSoundCaptureBuffer_h
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -12,38 +13,42 @@
 
 #include "Wave.h"
 #include "DirectSoundCapture.h"
-#include "Timer.h"
 #include <vector>
 
 namespace VibroLib
 {
 	namespace AudioCard
 	{
+
+    /*!
+      \class DirectSoundCaptureBuffer
+      \brief Class to store a DirectSound capture buffer object pointer
+      \ingroup PlusLibVibro
+    */
 		class VTK_EXPORT DirectSoundCaptureBuffer
 		{
 		public:
 			DirectSoundCaptureBuffer(void);
 			~DirectSoundCaptureBuffer(void);
-			/* Initializes a capture buffer using 16 bits per sample, at the
-			specified frequency. The buffer will have a size in samples equal
-			to BufferMaxSamples.
-			
-			Returns DS_OK on success.
+
+			/*!
+        Initializes a capture buffer using 16 bits per sample, at the
+			  specified frequency. The buffer will have a size in samples equal
+			  to BufferMaxSamples.
+			  \return DS_OK on success
 			*/
 			PlusStatus Initialize(DirectSoundCapture* pDSC, size_t SampleFrequency, size_t BufferMaxSamples);
 
-			/* Reads the buffer without pausing the capture.
-			*/
+			/*! Reads the buffer without pausing the capture */
 			PlusStatus GetData(std::vector<signed short>& data);
 
-			/* Pausing the capture in order to read the entire
-			buffer. Capture is then resumed.
-			*/
+			/*! Pausing the capture in order to read the entire buffer. Capture is then resumed. */
 			PlusStatus GetEntireBuffer(std::vector<signed short>& data);
 
-			/* Reads the specified duration of data, if the duration
-			is as long as or longer than the buffer length capture
-			is paused.
+			/*! 
+        Reads the specified duration of data, if the duration
+			  is as long as or longer than the buffer length capture
+			  is paused.
 			*/
 			PlusStatus GetData(std::vector<signed short>& data, double duration);
 
@@ -62,3 +67,5 @@ namespace VibroLib
 		};
 	}
 }
+
+#endif // __DirectSoundCaptureBuffer_h

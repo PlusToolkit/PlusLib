@@ -5,47 +5,9 @@
 =========================================================Plus=header=end*/
 
 /*=========================================================================
-
-  Program:   USB Data ECG Box for VTK
-  Module:    $RCSfile: vtkUSBECGBox.h,v $
-  Creator:   Chris Wedlake <cwedlake@imaging.robarts.ca>
-  Language:  C++
-  Author:    $Author: dpace $
-  Date:      $Date: 2009/03/30 14:18:39 $
-  Version:   $Revision: 1.3 $
-
-==========================================================================
-
-Use, modification and redistribution of the software, in source or
-binary forms, are permitted provided that the following terms and
-conditions are met:
-
-1) Redistribution of the source code, in verbatim or modified
-   form, must retain the above copyright notice, this license,
-   the following disclaimer, and any notices that refer to this
-   license and/or the following disclaimer.  
-
-2) Redistribution in binary form must include the above copyright
-   notice, a copy of this license and the following disclaimer
-   in the documentation or with other materials provided with the
-   distribution.
-
-3) Modified copies of the source code must be clearly marked as such,
-   and must not be misrepresented as verbatim copies of the source code.
-
-THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE SOFTWARE "AS IS"
-WITHOUT EXPRESSED OR IMPLIED WARRANTY INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  IN NO EVENT SHALL ANY COPYRIGHT HOLDER OR OTHER PARTY WHO MAY
-MODIFY AND/OR REDISTRIBUTE THE SOFTWARE UNDER THE TERMS OF THIS LICENSE
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, LOSS OF DATA OR DATA BECOMING INACCURATE
-OR LOSS OF PROFIT OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF
-THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGES.
-
-=========================================================================*/
-// .NAME vtkUSBECGBox - interfaces VTK with real-time ECG signal
+Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
+(Robarts Research Institute and The University of Western Ontario)
+=========================================================================*/  
 
 #ifndef __vtkUSBECGBox_h
 #define __vtkUSBECGBox_h
@@ -67,6 +29,11 @@ class vtkMultiThreader;
 #include ".\cbw\cbw.h"
 #include <vector>
 
+/*!
+\class vtkUSBECGBox
+\brief Interfaces Plus with real-time ECG signal
+\ingroup PlusLibSignaling
+*/ 
 class VTK_EXPORT vtkUSBECGBox : public vtkSignalBox
 {
 public:
@@ -77,16 +44,18 @@ public:
 //  int GetRawECG(void);
 //  int GetRawPressure(void);
 
-  // Description:
-  // Start the tracking system.  The tracking system is brought from
-  // its ground state (i.e. on but not necessarily initialized) into
-  // full tracking mode.  This method calls InternalStartTracking()
-  // after doing a bit of housekeeping.
+  /*!
+    Start the tracking system.  The tracking system is brought from
+    its ground state (i.e. on but not necessarily initialized) into
+    full tracking mode.  This method calls InternalStartTracking()
+    after doing a bit of housekeeping.
+  */
   void Start();
 
-  // Description:
-  // Stop the tracking system and bring it back to its ground state.
-  // This method calls InternalStopTracking().
+  /*!
+    Stop the tracking system and bring it back to its ground state.
+    This method calls InternalStopTracking().
+  */
   void Stop();
 
   void Update();

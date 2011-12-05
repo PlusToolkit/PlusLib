@@ -38,15 +38,6 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkPOLARISTracker - VTK interface for Northern Digital's POLARIS
-// .SECTION Description
-// The vtkPOLARISTracker class provides an  interface to the POLARIS
-// (Northern Digital Inc., Waterloo, Canada) optical tracking system.
-// .SECTION Caveats
-// This class refers to ports 1,2,3,A,B,C as ports 0,1,2,3,4,5
-// .SECTION see also
-// vtkTrackerTool vtkFlockTracker
-
 
 #ifndef __vtkPOLARISTracker_h
 #define __vtkPOLARISTracker_h
@@ -54,12 +45,28 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTracker.h"
 #include "polaris.h"
 
-class vtkFrameToTimeConverter;
-
 // the number of tools the polaris can handle
 #define VTK_POLARIS_NTOOLS 12
 #define VTK_POLARIS_REPLY_LEN 512
 
+/*!
+  \class vtkPOLARISTracker
+  \brief Interface class for Northern Digital's POLARIS tracking devices
+
+  The vtkPOLARISTracker class provides an  interface to the POLARIS
+  (Northern Digital Inc., Waterloo, Canada) optical tracking system.
+
+  The vtkNDITracker class provides an  interface to the AURORA and POLARIS
+  (Northern Digital Inc., Waterloo, Canada) using the new "combined API" and
+  should also support all newer NDI tracking devices.  Any POLARIS systems
+  purchased before 2002 will not support the combined API, and should be
+  used with vtkPOLARISTracker instead.
+
+  This class refers to ports 1,2,3,A,B,C as ports 0,1,2,3,4,5
+
+  \sa vtkNDITracker
+  \ingroup PlusLibTracking
+*/
 class VTK_EXPORT vtkPOLARISTracker : public vtkTracker
 {
 public:
@@ -68,100 +75,115 @@ public:
   vtkTypeMacro(vtkPOLARISTracker,vtkTracker);
   void PrintSelf(ostream& os, vtkIndent indent);
  
-  // Description:
-  // Probe to see if the tracking system is present on the
-  // specified serial port.  If the SerialPort is set to -1,
-  // then all serial ports will be checked.
+  /*!
+    Probe to see if the tracking system is present on the
+    specified serial port.  If the SerialPort is set to -1,
+    then all serial ports will be checked.
+  */
   PlusStatus Probe();
 
-  // Description:
-  // Send a command to the POLARIS in the format INIT: or VER:0 (the
-  // command should include a colon).  Commands can only be done after
-  // either Probe() or StartTracking() has been called.
-  // The text reply from the POLARIS is returned, without the CRC or
-  // final carriage return.
+  /*!
+    Send a command to the POLARIS in the format INIT: or VER:0 (the
+    command should include a colon).  Commands can only be done after
+    either Probe() or StartTracking() has been called.
+    The text reply from the POLARIS is returned, without the CRC or
+    final carriage return.
+  */
   char *Command(const char *command);
 
-  // Description:
-  // Get the a string (perhaps a long one) describing the type and version
-  // of the device.
+  /*!
+    Get the a string (perhaps a long one) describing the type and version
+    of the device.
+  */
   vtkGetStringMacro(Version);
 
-  // Description:
-  // Set which serial port to use, 1 through 4.
+  /*! Set which serial port to use, 1 through 4 */
   vtkSetMacro(SerialPort, int);
+  /*! Get which serial port to use, 1 through 4 */
   vtkGetMacro(SerialPort, int);
 
-  // Description:
-  // Set which serial device to use.  If present, this overrides
-  // the SerialPort number.
+  /*! Set which serial device to use. This overrides the SerialPort number. */
   vtkSetStringMacro(SerialDevice);
+  /*! Get which serial device to use */
   vtkGetStringMacro(SerialDevice);
 
-  // Description:
-  // Set the desired baud rate.  Default: 115200.  If CRC errors are
-  // common, reduce to 57600.
+  /*! Set the desired baud rate. Default: 115200. If CRC errors are common, reduce to 57600. */
   vtkSetMacro(BaudRate, int);
+  /*! Get the desired baud rate */
   vtkGetMacro(BaudRate, int);
 
-  // Description:
-  // Enable a passive tool by uploading a virtual SROM for that
-  // tool, where 'tool' is a number between 0 and 5.
+  /*!
+    Enable a passive tool by uploading a virtual SROM for that
+    tool, where 'tool' is a number between 0 and 5.
+  */
   PlusStatus LoadVirtualSROM(int tool, const char *filename);
+  /*! Disable a passive tool, where 'tool' is a number between 0 and 5 */
   PlusStatus ClearVirtualSROM(int tool);
 
-  // Description:
-  // Get an update from the tracking system and push the new transforms
-  // to the tools.  This should only be used within vtkTracker.cxx.
+  /*!
+    Get an update from the tracking system and push the new transforms
+    to the tools.  This should only be used within vtkTracker.cxx.
+  */
   PlusStatus InternalUpdate();
 
 protected:
   vtkPOLARISTracker();
   ~vtkPOLARISTracker();
 
-  // Description:
-  // Set the version information.
+  /*! Set the version information */
   vtkSetStringMacro(Version);
 
-  // Description:
-  // Start the tracking system.  The tracking system is brought from
-  // its ground state into full tracking mode.  The POLARIS will
-  // only be reset if communication cannot be established without
-  // a reset.
+  /*!
+    Start the tracking system.  The tracking system is brought from
+    its ground state into full tracking mode.  The POLARIS will
+    only be reset if communication cannot be established without
+    a reset.
+  */
   PlusStatus InternalStartTracking();
 
-  // Description:
-  // Stop the tracking system and bring it back to its ground state:
-  // Initialized, not tracking, at 9600 Baud.
+  /*!
+    Stop the tracking system and bring it back to its ground state:
+    Initialized, not tracking, at 9600 Baud.
+  */
   PlusStatus InternalStopTracking();
 
-  // Description:
-  // Cause the POLARIS to beep the specified number of times.
+  /*! Cause the POLARIS to beep the specified number of times */
   PlusStatus InternalBeep(int n);
 
-  // Description:
-  // Set the specified tool LED to the specified state.
+  /*! Set the specified tool LED to the specified state */
   PlusStatus InternalSetToolLED(int tool, int led, int state);
 
-  // Description:
-  // This is a low-level method for loading a virtual SROM.
-  // You must halt the tracking thread and take the POLARIS
-  // out of tracking mode before you use it.
+  /*!
+    This is a low-level method for loading a virtual SROM.
+    You must halt the tracking thread and take the POLARIS
+    out of tracking mode before you use it.
+  */
   PlusStatus InternalLoadVirtualSROM(int tool, const unsigned char data[1024]);
+  /*!
+    This is a low-level method for loading a virtual SROM.
+    You must halt the tracking thread and take the POLARIS
+    out of tracking mode before you use it.
+  */
   PlusStatus InternalClearVirtualSROM(int tool);
 
-  // Description:
-  // Methods for detecting which ports have tools in them, and
-  // auto-enabling those tools.
+  /*!
+    Methods for detecting which ports have tools in them, and
+    auto-enabling those tools.
+  */
   PlusStatus EnableToolPorts();
+  /*!
+    Methods for detecting which ports have tools in them, and
+    auto-enabling those tools.
+  */
   PlusStatus DisableToolPorts();
 
-  /** Requested frequency of position updates in Hz (1/sec) */
+  /*! Requested frequency of position updates in Hz (1/sec) */
   double UpdateNominalFrequency;
 
-  /** Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double LastFrameNumber;
 
+  /*! Deprecated. Computing transforms relative to a reference tracker are now handled at the data collection level. */
   int ReferenceTool;
 
   polaris *Polaris;
@@ -184,8 +206,3 @@ private:
 };
 
 #endif
-
-
-
-
-

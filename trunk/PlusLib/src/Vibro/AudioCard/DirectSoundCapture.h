@@ -4,7 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#pragma once
+#ifndef __DirectSoundCapture_h
+#define __DirectSoundCapture_h
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -16,7 +17,13 @@ namespace VibroLib
 {
 	namespace AudioCard
 	{
-		class VTK_EXPORT DirectSoundCapture
+
+    /*!
+      \class DirectSoundCapture
+      \brief Class to store a DirectSound capture object pointer
+      \ingroup PlusLibVibro
+    */
+    class VTK_EXPORT DirectSoundCapture
 		{
 		public:
 			DirectSoundCapture(void);
@@ -28,3 +35,5 @@ namespace VibroLib
 		};
 	}
 }
+
+#endif // __DirectSoundCapture_h

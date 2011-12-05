@@ -39,11 +39,16 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkPasteSliceIntoVolumeHelperOptimized - Optimized helper functions for pasting slice into volume
-// .SECTION Description
-// Contains optimized interpolation and slice insertion functions for vtkPasteSliceIntoVolume.
-// .SECTION see also
-// vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperCommon, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
+
+/*!
+  \file vtkPasteSliceIntoVolumeHelperOptimized.h
+  \brief Optimized helper functions for pasting slice into volume
+
+  Contains optimized interpolation and slice insertion functions for vtkPasteSliceIntoVolume
+
+  \sa vtkPasteSliceIntoVolume, vtkPasteSliceIntoVolumeHelperCommon, vtkPasteSliceIntoVolumeHelperOptimized, vtkPasteSliceIntoVolumeHelperUnoptimized
+  \ingroup PlusLibVolumeReconstruction
+*/
 
 #ifndef __vtkPasteSliceIntoVolumeHelperOptimized_h
 #define __vtkPasteSliceIntoVolumeHelperOptimized_h
@@ -51,13 +56,11 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPasteSliceIntoVolumeHelperCommon.h"
 #include "fixed.h"
 
-//****************************************************************************
-// HELPER FUNCTIONS FOR THE RECONSTRUCTION
-//****************************************************************************
-
 //----------------------------------------------------------------------------
-// find approximate intersection of line with the plane x = x_min,
-// y = y_min, or z = z_min (lower limit of data extent) 
+/*! 
+  Find approximate intersection of line with the plane
+  x = x_min, y = y_min, or z = z_min (lower limit of data extent) 
+*/
 template<class F>
 static inline
 int intersectionHelper(F *point, F *axis, int *limit, int ai, int *inExt)
@@ -79,7 +82,7 @@ int intersectionHelper(F *point, F *axis, int *limit, int ai, int *inExt)
 }
 
 //----------------------------------------------------------------------------
-// find the point just inside the extent
+/*! Find the point just inside the extent */
 template <class F>
 static int intersectionLow(F *point, F *axis, int *sign,
                            int *limit, int ai, int *inExt)
@@ -124,7 +127,7 @@ static int intersectionLow(F *point, F *axis, int *sign,
 }
 
 //----------------------------------------------------------------------------
-// same as above, but for x = x_max
+/*! Find the point just inside the extent, for x = x_max */
 template <class F>
 static int intersectionHigh(F *point, F *axis, int *sign, 
                             int *limit, int ai, int *inExt)
@@ -170,8 +173,7 @@ static int intersectionHigh(F *point, F *axis, int *sign,
 
 //----------------------------------------------------------------------------
 template <class F>
-static int isBounded(F *point, F *xAxis, int *inMin, 
-                     int *inMax, int ai, int r)
+static int isBounded(F *point, F *xAxis, int *inMin, int *inMax, int ai, int r)
 {
   int bi = ai+1; 
   int ci = ai+2;
@@ -195,8 +197,10 @@ static int isBounded(F *point, F *xAxis, int *inMin,
 }
 
 //----------------------------------------------------------------------------
-// This huge mess finds out where the current output raster
-// line intersects the input volume
+/*!
+  This huge mess finds out where the current output raster
+  line intersects the input volume
+*/
 static void vtkUltraFindExtentHelper(int &xIntersectionPixStart, int &xIntersectionPixEnd, int sign, int *inExt)
 {
   if (sign < 0)
@@ -489,8 +493,7 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
 
 
 //----------------------------------------------------------------------------
-// vtkFreehand2OptimizedNNHelper - OPTIMIZED, WITHOUT INTEGER MATHEMATICS
-// Optimized nearest neighbor interpolation
+/*! Optimized nearest neighbor interpolation, without integer mathematics */
 template<class T>
 static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int xIntersectionPixEnd,
                                                  double *outPoint,
@@ -589,10 +592,10 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
 }
 
 //----------------------------------------------------------------------------
-// vtkFreehand2OptimizedNNHelper - OPTIMIZED, WITH INTEGER MATHEMATICS
-// Optimized nearest neighbor interpolation, specifically optimized for fixed
-// point (i.e. integer) mathematics
-// Same as above, but with fixed type
+/*! 
+  Optimized nearest neighbor interpolation, specifically optimized for fixed
+  point (i.e. integer) mathematics
+*/
 template <class T>
 static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int xIntersectionPixEnd,
                                                  fixed *outPoint,
@@ -691,12 +694,8 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
   } 
 }
 
-//****************************************************************************
-// REAL-TIME RECONSTRUCTION - OPTIMIZED
-//****************************************************************************
-
 //----------------------------------------------------------------------------
-// Actually inserts the slice, with optimization.
+/*! Actually inserts the slice, with optimization */
 template <class F, class T>
 static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     T *outPtr, // scalar pointer to the output volume over the output extent

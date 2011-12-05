@@ -39,15 +39,6 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkPasteSliceIntoVolume - paste image slice(s) into a volume
-// .SECTION Description
-// This filter incrementally compound ultrasound images into a
-// reconstruction volume, given a transform which specifies the location of
-// each ultrasound slice. An alpha component is appended to the output to
-// specify the coverage of each pixel in the output volume (i.e. whether or
-// not a voxel has been touched by the reconstruction)
-// .SECTION see also
-// vtkVolumeReconstructor
 
 #ifndef __vtkPasteSliceIntoVolume_h
 #define __vtkPasteSliceIntoVolume_h
@@ -58,6 +49,23 @@ class vtkMatrix4x4;
 class vtkXMLDataElement;
 class vtkMultiThreader;
 
+/*!
+  \class vtkPasteSliceIntoVolume
+  \brief Paste a single slice into a volume to reconstruct a single image volume from multiple image slices
+
+  This filter incrementally compound ultrasound images into a
+  reconstruction volume, given a transform which specifies the location of
+  each ultrasound slice. An alpha component is appended to the output to
+  specify the coverage of each pixel in the output volume (i.e. whether or
+  not a voxel has been touched by the reconstruction)
+
+  The output reconstructed volume may contain holes (empty voxels between images slices).
+  The vtkFillHolesInVolume filter can be used for post-processing the data to fill holes with
+  values similar to nearby voxels.
+
+  \sa vtkFillHolesInVolume
+  \ingroup PlusLibVolumeReconstruction
+*/
 class VTK_EXPORT vtkPasteSliceIntoVolume : public vtkObject
 {
 
@@ -79,127 +87,162 @@ public:
   vtkTypeRevisionMacro(vtkPasteSliceIntoVolume, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Spacing, origin, and extent of output data in Reference coordinate system.
-  // This is required to be set, otherwise the reconstructed volume will be empty.
+  /*!
+    Set spacing of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
   vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  /*! Get spacing of the output data in Reference coordinate system  */
   vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
+
+  /*!
+    Set origin of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
   vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  /*! Get origin of the output data in Reference coordinate system  */
   vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
+
+  /*!
+    Set extent of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
   vtkSetVector6Macro(OutputExtent, int);
+  /*! Get extentof the output data in Reference coordinate system  */
   vtkGetVector6Macro(OutputExtent, int);  
 
-  // Description:
-  // Insert the slice into the reconstructed volume
-  // The origin of the image is at the first pixel stored in the memory (follows the ITK convention).
-  // Note that this is origin not the one that is used by VTK when displaying a 2D image on screen
-  // (VTK normally shows the first pixel of the last image line at the origin).
+  /*!
+    Insert the slice into the reconstructed volume
+    The origin of the image is at the first pixel stored in the memory.
+  */
   virtual PlusStatus InsertSlice(vtkImageData *image, vtkMatrix4x4* mImageToReference);
 
-  // Description:
-  // Get the output reconstructed 3D ultrasound volume
-  // (the output is the reconstruction volume, the second component
-  // is the alpha component that stores whether or not a voxel has
-  // been touched by the reconstruction)
+  /*!
+    Get the output reconstructed 3D ultrasound volume
+    (the output is the reconstruction volume, the second component
+    is the alpha component that stores whether or not a voxel has
+    been touched by the reconstruction)
+  */
   virtual vtkImageData *GetReconstructedVolume();
 
-  // Description:
-  // Get the accumulation buffer
-  // accumulation buffer is for compounding, there is a voxel in
-  // the accumulation buffer for each voxel in the output.
-  // Will be NULL if we are not compounding.
+  /*!
+    Get the accumulation buffer
+    accumulation buffer is for compounding, there is a voxel in
+    the accumulation buffer for each voxel in the output.
+    Will be NULL if we are not compounding.
+  */
   virtual vtkImageData *GetAccumulationBuffer();
 
-  // Description:
-  // Creates the and clears all necessary image buffers.
+  /*! Creates the and clears all necessary image buffers */
   virtual PlusStatus ResetOutput();
 
-  // Description:
-  // Set the clip rectangle origin to apply to the image in pixel coordinates.
-  // Pixels outside the clip rectangle will not be pasted into the volume.
-  // The origin of the rectangle is at its corner that is closest to the image origin.
+  /*!
+    Set the clip rectangle origin to apply to the image in pixel coordinates.
+    Pixels outside the clip rectangle will not be pasted into the volume.
+    The origin of the rectangle is at its corner that is closest to the image origin.
+  */
   vtkSetVector2Macro(ClipRectangleOrigin,int);
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+  */
   vtkGetVector2Macro(ClipRectangleOrigin,int);
 
-  // Description:
-  // Set the clip rectangle size in pixels.
+  /*! Set the clip rectangle size in pixels */
   vtkSetVector2Macro(ClipRectangleSize,int);
+  /*! Get the clip rectangle size in pixels */
   vtkGetVector2Macro(ClipRectangleSize,int);
 
-  // Description:
-  // Set the fan-shaped clipping region for curvilinear probes.
-  // The origin of the fan is defined in the image coordinate system, in mm.
+  /*!
+    Set fan-shaped clipping region for curvilinear probes.
+    The origin of the fan is defined in the image coordinate system, in mm.
+  */
   vtkSetVector2Macro(FanOrigin,double);
+  /*! Get fan-shaped clipping region for curvilinear probes */
   vtkGetVector2Macro(FanOrigin,double);
 
-  // Description:
-  // Set the fan-shaped clipping region for curvilinear probes.
-  // Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees.
-  // If both angles are 0 then no fan-shaped clipping is performed.
+  /*!
+    Set the fan-shaped clipping region for curvilinear probes.
+    Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees.
+    If both angles are 0 then no fan-shaped clipping is performed.
+  */
   vtkSetVector2Macro(FanAngles,double);
+  /*! Set the fan-shaped clipping region for curvilinear probes */
   vtkGetVector2Macro(FanAngles,double);
   
-  // Description:
-  // Set the fan-shaped clipping region for curvilinear probes.
-  // Fan depth is the radius of the fan, in mm.
+  /*!
+    Set the fan-shaped clipping region for curvilinear probes.
+    Fan depth is the radius of the fan, in mm.
+  */
   vtkSetMacro(FanDepth,double);
+  /*! Get the fan-shaped clipping region for curvilinear probes */
   vtkGetMacro(FanDepth,double);
 
-  // Description:
-  // Returns true if fan-shaped clipping is applied (true, if any of the
-  // fan angles are non-zero).
+  /*! 
+    Returns true if fan-shaped clipping is applied (true, if any of the
+    fan angles are non-zero).
+  */
   bool FanClippingApplied();
 
-  // Description:
-  // Turn on and off optimizations (default on, turn them off only if
-  // they are not stable on your architecture).
-  // NO_OPTIMIZATION: means no optimization (almost never used) 
-  // PARTIAL_OPTIMIZATION: break transformation into x, y and z components, and
-  //   don't do bounds checking for nearest-neighbor interpolation
-  // FULL_OPTIMIZATION: fixed-point (i.e. integer) math is used instead of float math,
-  //   it is only useful with NEAREST_NEIGHBOR interpolation
-  //  (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION)
+  /*!
+    Set optimization method (turn off optimization only if it is not stable
+    on your architecture).
+    NO_OPTIMIZATION: means no optimization (almost never used) 
+    PARTIAL_OPTIMIZATION: break transformation into x, y and z components, and
+      don't do bounds checking for nearest-neighbor interpolation
+    FULL_OPTIMIZATION: fixed-point (i.e. integer) math is used instead of float math,
+      it is only useful with NEAREST_NEIGHBOR interpolation
+      (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION)
+  */
   vtkSetMacro(Optimization,OptimizationType);
+  /*! Get the current optimization method */
   vtkGetMacro(Optimization,OptimizationType);
+  /*! Get the name of an optimization method from a type id */
   char* GetOptimizationModeAsString(OptimizationType type);
 
-  // Description:
-  // Set/Get the interpolation mode
-  // LINEAR: better image quality, slower
-  // NEAREST_NEIGHBOR: lower image quality, faster (default)
+  /*!
+    Set the interpolation mode
+    LINEAR: better image quality, slower
+    NEAREST_NEIGHBOR: lower image quality, faster (default)
+  */
   vtkSetMacro(InterpolationMode,InterpolationType);
+  /*! Get the interpolation mode */
   vtkGetMacro(InterpolationMode,InterpolationType);
+  /*! Get the name of an interpolation mode from a type id */
   char *GetInterpolationModeAsString(InterpolationType interpEnum);
 
-  // Description:
-  // Turn on or off the compounding (default on, which means
-  // that scans will be averaged where they overlap instead of just considering
-  // the last acquired slice).
-  vtkGetMacro(Compounding,int);
+  /*!
+    Turn on or off the compounding (default on, which means
+    that scans will be averaged where they overlap instead of just considering
+    the last acquired slice).
+  */
   virtual void SetCompounding(int c);
-
-  // Description:
-  // Number of threads use for processing the data.
-  // The reconstruction result is slightly different if more than one thread is used
-  // because due to interpolation and rounding errors is influenced by the order the pixels
-  // are processed.
-  // Choose 0 (this is the default) for maximum speed, in this case the default number of
-  // used threads equals the number of processors. Choose 1 for reproducible results.
-  vtkGetMacro(NumberOfThreads,int);
+  /*! Get current compounding setting */
+  vtkGetMacro(Compounding,int);
+  
+  /*!
+    Set number of threads used for processing the data.
+    The reconstruction result is slightly different if more than one thread is used
+    because due to interpolation and rounding errors is influenced by the order the pixels
+    are processed.
+    Choose 0 (this is the default) for maximum speed, in this case the default number of
+    used threads equals the number of processors. Choose 1 for reproducible results.
+  */
   vtkSetMacro(NumberOfThreads,int);
+  /*! Get number of threads used for processing the data */
+  vtkGetMacro(NumberOfThreads,int);
 
 protected:
   vtkPasteSliceIntoVolume();
   ~vtkPasteSliceIntoVolume();
 
-  // Description:
-  // Thread function that actually performs the pasting of frame pixels into the volume
+  /*! Thread function that actually performs the pasting of frame pixels into the volume */
   static VTK_THREAD_RETURN_TYPE InsertSliceThreadFunction( void *arg );
   
-  // Description:
-  // To split the extent over many threads
-  // Input: the full extent (fullExt), current thread index (threadId), total number of threads (requestedNumberOfThreads)
-  // Output: the split extent for the selected thread, number of threads to be used (return value)
+  /*!
+    To split the extent over many threads
+    Input: the full extent (fullExt), current thread index (threadId), total number of threads (requestedNumberOfThreads)
+    Output: the split extent for the selected thread, number of threads to be used (return value)
+  */
   static int SplitSliceExtent(int splitExt[6], int fullExt[6], int threadId, int requestedNumberOfThreads);
 
   vtkImageData *ReconstructedVolume;
