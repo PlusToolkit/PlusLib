@@ -27,12 +27,14 @@ int main(int argc, char **argv)
   int inputAveragedItemsForFiltering(20); 
   double inputMaxTimestampDifference(0.080); 
   double inputMinStdevReductionFactor(3.0); 
+  std::string inputTransformName; 
 
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for generating timestamp filtering");
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
   args.AddArgument("--input-averaged-items-for-filtering", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAveragedItemsForFiltering, "Number of averaged items used for filtering (Default: 20).");
@@ -63,6 +65,13 @@ int main(int argc, char **argv)
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   // Read buffer 
   LOG_INFO("Reading meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -74,7 +83,7 @@ int main(int argc, char **argv)
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
   // compute filtered timestamps now to test the filtering
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;

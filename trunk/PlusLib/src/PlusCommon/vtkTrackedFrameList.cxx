@@ -25,7 +25,6 @@ vtkStandardNewMacro(vtkTrackedFrameList);
 //----------------------------------------------------------------------------
 vtkTrackedFrameList::vtkTrackedFrameList()
 {
-  this->CustomFields["DefaultFrameTransformName"] = "ToolToTrackerTransform"; 
   this->CustomFields["UltrasoundImageOrientation"] = "MF"; 
 
   this->SetNumberOfUniqueFrames(5); 
@@ -310,7 +309,6 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
     return false;
   }
 
-  // Get default frame transform of the input frame and the latest frame in the list
   vtkSmartPointer<vtkTransform> inputTransform = vtkSmartPointer<vtkTransform>::New(); 
   double inputTransformVector[16]={0}; 
   if ( trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector) )
@@ -319,7 +317,9 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   }
   else
   {
-    LOG_ERROR("Unable to get default frame transform for input frame!");
+    std::string strFrameTransformName; 
+    this->FrameTransformNameForValidation.GetTransformName(strFrameTransformName); 
+    LOG_ERROR("Unable to get frame transform '"<<strFrameTransformName<<"' from input tracked frame!");
     return false;
   }
 
@@ -377,31 +377,6 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 
   return numberOfBitsPerPixel; 
 }
-
-//----------------------------------------------------------------------------
-PlusTransformName vtkTrackedFrameList::GetDefaultFrameTransformName()
-{
-  PlusTransformName defaultTransformName; 
-  if( defaultTransformName.SetTransformName(this->CustomFields["DefaultFrameTransformName"].c_str()) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Default transform name is not valid: " << this->CustomFields["DefaultFrameTransformName"] ); 
-  }
-  return defaultTransformName;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SetDefaultFrameTransformName(PlusTransformName& name)
-{
-  std::string transformName; 
-  if ( name.GetTransformName(transformName) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set default frame transform name - name is invalid (From: '" << name.From() << "'  To: '" << name.To() << "')" ); 
-    return PLUS_FAIL; 
-  }
-
-  this->CustomFields["DefaultFrameTransformName"]=transformName;
-  return PLUS_SUCCESS;
-} 
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)

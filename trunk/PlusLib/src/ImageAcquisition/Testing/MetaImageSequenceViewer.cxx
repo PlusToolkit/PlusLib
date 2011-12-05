@@ -137,6 +137,7 @@ int main(int argc, char **argv)
 {
 
 	std::string inputImageSequenceFileName;
+  std::string inputTransformName; 
 	bool renderingOff(false);
 	int inputOriginX(0); 
 	int inputOriginY(0); 
@@ -146,6 +147,7 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
 	args.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence.");
 	args.AddArgument("--input-origin-x", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputOriginX, "Image X origin in px (Default: 0)");
 	args.AddArgument("--input-origin-y", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputOriginY, "Image Y origin in px (Default: 0)");
@@ -203,15 +205,21 @@ int main(int argc, char **argv)
   LOG_INFO("Adding frames to actors...");
 
   std::vector<vtkTransform*> imageTransforms; 
-  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(inputTransformName.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
+  for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 	{
 		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
     TrackedFrame* trackedFrame=trackedFrameList->GetTrackedFrame(imgNumber);
 
 
 		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultFrameTransformName, imageTransMatrix);
+    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(transformName, imageTransMatrix);
 		vtkSmartPointer<vtkTransform> imageTransform = vtkSmartPointer<vtkTransform>::New(); 
 		imageTransform->SetMatrix(imageTransMatrix); 
 		imageTransform->Update(); 

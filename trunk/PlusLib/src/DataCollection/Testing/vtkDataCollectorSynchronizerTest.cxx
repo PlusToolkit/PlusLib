@@ -44,12 +44,14 @@ int main(int argc, char **argv)
   double maxTransformDifference(2.0); 
   double thresholdMultiplier(5); 
   bool generateReport(false); 
+  std::string inputTransformName; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for the test");
   args.AddArgument("--input-video-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferSequenceFileName, "Filename of the input video buffer sequence metafile.");
   args.AddArgument("--input-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferSequenceFileName, "Filename of the input tracker bufffer sequence metafile.");
   args.AddArgument("--input-number-of-averaged-frames", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAveragedFrames, "Number of averaged frames (Default: 15)");
@@ -80,6 +82,13 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   // Read tracker buffer 
   LOG_INFO("Reading tracker buffer meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -87,7 +96,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_FILTERED_AND_UNFILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_FILTERED_AND_UNFILTERED_TIMESTAMPS,transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     return EXIT_FAILURE;

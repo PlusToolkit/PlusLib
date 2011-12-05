@@ -26,12 +26,14 @@ int main (int argc, char* argv[])
   std::string outputVolumeFileName;
   std::string outputVolumeAlphaFileName;
   std::string outputFrameFileName; 
+  std::string inputImageToReferenceTransformName; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
+  cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Image to reference transform name used for the reconstruction");
   cmdargs.AddArgument( "--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
   cmdargs.AddArgument( "--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
   cmdargs.AddArgument( "--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.vtk)" );
@@ -79,11 +81,16 @@ int main (int argc, char* argv[])
   trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
   // Reconstruct volume 
+  PlusTransformName toolToReferenceTransformName;
+  if ( toolToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
+  { 
+    LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
+    return EXIT_FAILURE; 
+  }
   
   LOG_INFO("Reconstruct volume...");
-  reconstructor->SetOutputExtentFromFrameList(trackedFrameList);
+  reconstructor->SetOutputExtentFromFrameList(trackedFrameList, toolToReferenceTransformName);
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-  PlusTransformName toolToReferenceTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);

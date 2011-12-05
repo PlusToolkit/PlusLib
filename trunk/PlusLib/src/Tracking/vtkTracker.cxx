@@ -860,9 +860,6 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
   // Get the first tool
   vtkTrackerTool* firstActiveTool = this->ToolContainer.begin()->second; 
 
-  // Set default transform name
-  PlusTransformName defaultFrameTransformName(firstActiveTool->GetToolName(), this->ToolReferenceFrameName ); 
-  trackedFrameList->SetDefaultFrameTransformName(defaultFrameTransformName); 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 

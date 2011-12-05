@@ -11,6 +11,7 @@ ADD_TEST(TimestampFilteringTest
   --input-averaged-items-for-filtering=20
   --input-max-timestamp-difference=0.08
   --input-min-stdev-reduction-factor=3.0
+  --input-transform-name=IdentityToIdentityTransform
   )
 SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -45,13 +46,15 @@ ADD_TEST(vtkDataCollectorSynchronizerTest1
   --input-video-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --input-tracker-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --input-baseline-report-file=${TestDataDir}/DataCollectorSyncReportBaseline.txt
+  --input-transform-name=ToolToTrackerTransform
   --input-number-of-averaged-frames=6
   --input-max-frame-difference=10
   --input-min-frame-threshold=200
   --input-number-of-averaged-transforms=15
   --input-max-transform-difference=2.0
   --input-min-transform-threshold=5.0
-  --verbose=4
+  --verbose=3
+  
   ) 
 SET_TESTS_PROPERTIES( vtkDataCollectorSynchronizerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
@@ -64,7 +67,7 @@ ADD_TEST(vtkDataCollectorTest2
   --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
   --input-acq-time-length=5
-  --verbose=2
+  --verbose=3
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  

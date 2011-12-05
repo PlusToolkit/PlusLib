@@ -623,13 +623,6 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering)
-{
-  PlusTransformName defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();  
-  return CopyTransformFromTrackedFrameList(sourceTrackedFrameList, timestampFiltering, defaultTransformName);
-}
-
-//-----------------------------------------------------------------------------
 PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
 {
   int numberOfErrors=0;
