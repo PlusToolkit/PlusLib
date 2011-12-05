@@ -26,6 +26,7 @@ TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkTracking vtkPlusCommon vtkIm
 ADD_TEST(TransformInterpolationTest 
   ${EXECUTABLE_OUTPUT_PATH}/TransformInterpolationTest
   --input-metafile=${TestDataDir}/TransformInterpolationTest.mha 
+  --input-transform-name=ProbeToReferenceTransform
   --input-max-rotation-difference=1.0
   --input-max-translation-difference=0.5
   )

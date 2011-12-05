@@ -156,16 +156,6 @@ public:
   virtual double GetLocalTimeOffset();
 
   /*! 
-  Copy default transforms to a tracker buffer. It is useful when tracking-only data is stored in a
-  metafile (with dummy image data), which is read by a sequence metafile reader, and the 
-  result is needed as a vtkTrackerBuffer.
-  If useFilteredTimestamps is true, then the filtered timestamps that are stored in the buffer
-  will be copied to the tracker buffer. If useFilteredTimestamps is false, then only unfiltered timestamps
-  will be copied to the tracker buffer and the tracker buffer will compute the filtered timestamps.
-  */
-  PlusStatus CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering);
-
-  /*! 
   Copy a specified transform to a tracker buffer. It is useful when tracking-only data is stored in a
   metafile (with dummy image data), which is read by a sequence metafile reader, and the 
   result is needed as a vtkTrackerBuffer.

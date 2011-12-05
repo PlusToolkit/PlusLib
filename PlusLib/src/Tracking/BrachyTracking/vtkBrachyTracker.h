@@ -95,7 +95,7 @@ public:
   PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status); 
 
   /*! Get stepper encoder values from the tracked frame */
-  static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition, PlusTransformName& defaultTransformName); 
+  static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
   /*! Get the a string (perhaps a long one) describing the type and version of the device. */
   vtkGetStringMacro(ModelVersion);
@@ -218,9 +218,6 @@ protected:
   unsigned long BaudRate;
 
   //========== Stepper calibration ==================
-
-  /* Flag used to define brachy tracker compensation parameters are ready, intenal only */ 
-  bool IsBrachyTrackerCompensationDefined; 
 
   /*! Enable/diasable stepper compensation */
   bool CompensationEnabled; 

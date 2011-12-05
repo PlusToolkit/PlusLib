@@ -21,8 +21,7 @@
 static const int MAX_LINE_LENGTH=1000;
 
 
-static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation"; 
-static const char* SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM = "DefaultFrameTransformName"; 
+static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation";  
 static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile"; 
 static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL"; 
 
@@ -581,7 +580,6 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   if (GetCustomString("Offset")==NULL) { SetCustomString("Offset", "0 0 0"); }
   if (GetCustomString("CenterOfRotation")==NULL) { SetCustomString("CenterOfRotation", "0 0 0"); }
   if (GetCustomString("ElementSpacing")==NULL) { SetCustomString("ElementSpacing", "1 1 1"); }
-  if (GetCustomString("DefaultFrameTransformName")==NULL) { SetCustomString("DefaultFrameTransformName", "Unknown"); }
   if (GetCustomString("AnatomicalOrientation")==NULL) { SetCustomString("AnatomicalOrientation", "RAI"); }
 
   std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
@@ -849,26 +847,6 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusTransformName vtkMetaImageSequenceIO::GetDefaultFrameTransformName()
-{
-  PlusTransformName defaultTransformName; 
-  defaultTransformName.SetTransformName( this->TrackedFrameList->GetCustomString(SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM) ); 
-  return defaultTransformName;
-}
-
-//----------------------------------------------------------------------------
-void vtkMetaImageSequenceIO::SetDefaultFrameTransformName(PlusTransformName& aTransformName)
-{
-  std::string defaultTransformName; 
-  if ( aTransformName.GetTransformName(defaultTransformName) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set default frame transform name - transform name is invalid!"); 
-    return; 
-  }
-  SetCustomString(SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM, defaultTransformName.c_str());  
 }
 
 TrackedFrame* vtkMetaImageSequenceIO::GetTrackedFrame(int frameNumber)

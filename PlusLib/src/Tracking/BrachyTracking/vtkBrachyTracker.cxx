@@ -34,7 +34,6 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->ModelSerialNumber = NULL; 
   this->CalibrationAlgorithmVersion = NULL; 
   this->CalibrationDate = NULL; 
-  this->IsBrachyTrackerCompensationDefined = false; 
 
   this->SetSerialPort(1);
   this->BaudRate = 19200;
@@ -175,7 +174,7 @@ std::string vtkBrachyTracker::GetBrachyToolName(BRACHY_STEPPER_TOOL tool)
     LOG_ERROR("Failed to get tool by port: " << toolPortName.str() ); 
     return toolName; 
   }
-  
+
   toolName = trackerTool->GetToolName(); 
 
   return toolName; 
@@ -211,7 +210,7 @@ PlusStatus vtkBrachyTracker::InternalUpdate()
   probePosition->SetElement(ROW_PROBE_POSITION, 3, dProbePosition); 
   probePosition->SetElement(ROW_PROBE_ROTATION, 3, dProbeRotation); 
   probePosition->SetElement(ROW_TEMPLATE_POSITION, 3, dTemplatePosition); 
-  
+
   // Update encoder values tool 
   if ( this->ToolTimeStampedUpdate(this->GetBrachyToolName(RAW_ENCODER_VALUES).c_str(), probePosition, status, frameNum, unfilteredTimestamp) != PLUS_SUCCESS )
   {
@@ -321,8 +320,8 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
@@ -421,12 +420,12 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
   }
 
-	vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
-	if ( calibration != NULL ) 
-	{
-		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
-		if ( calibrationAlgorithmVersion != NULL )
-		{
+  vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+  if ( calibration != NULL ) 
+  {
+    const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
+    if ( calibrationAlgorithmVersion != NULL )
+    {
       this->SetCalibrationAlgorithmVersion(calibrationAlgorithmVersion); 
     }
     else
@@ -469,17 +468,6 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     {
       this->ProbeRotationEncoderScale = probeRotationEncoderScale; 
     }
-
-    this->IsBrachyTrackerCompensationDefined = true; 
-  }
-
-  if ( this->IsBrachyTrackerCompensationDefined )
-  {
-    LOG_INFO("BrachyTracker compensation parameters are defined (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
-  }
-  else
-  {
-    LOG_INFO("BrachyTracker compensation parameters are undefined "); 
   }
 
   return PLUS_SUCCESS;
@@ -495,8 +483,8 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   }
 
   // Get data collection and then Tracker configuration element
-	vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
@@ -522,32 +510,28 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   trackerConfig->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
   trackerConfig->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
 
-  if ( this->IsBrachyTrackerCompensationDefined )
+  // Save stepper calibration results to file
+  vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+  if ( calibration == NULL) 
   {
-    // Save stepper calibration results to file
-  	vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
-    if ( calibration == NULL) 
-    {
-      // create new element and add to trackerTool 
-      calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
-      calibration->SetName("StepperCalibrationResult"); 
-      calibration->SetParent(trackerConfig); 
-      trackerConfig->AddNestedElement(calibration);
-    } 
+    // create new element and add to trackerTool 
+    calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    calibration->SetName("StepperCalibrationResult"); 
+    calibration->SetParent(trackerConfig); 
+    trackerConfig->AddNestedElement(calibration);
+  } 
 
-    calibration->SetAttribute("Date", this->GetCalibrationDate());
+  calibration->SetAttribute("Date", this->GetCalibrationDate());
 
-    calibration->SetAttribute("AlgorithmVersion", this->GetCalibrationAlgorithmVersion() ); 
+  calibration->SetAttribute("AlgorithmVersion", this->GetCalibrationAlgorithmVersion() ); 
 
-    calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
+  calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
 
-    calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
+  calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
 
-    calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
+  calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
 
-    calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
-
-  }
+  calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
 
   return PLUS_SUCCESS;
 }
@@ -577,7 +561,7 @@ PlusStatus vtkBrachyTracker::GetAllTransforms(double timestamp, TrackedFrame* aT
     LOG_ERROR("Failed to get probe home to probe transform from buffer!"); 
     return PLUS_FAIL; 
   }
-  
+
   PlusTransformName probeToReferenceTransformName(this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM), this->ToolReferenceFrameName ); 
   if ( !probeToReferenceTransformName.IsValid())
   {
@@ -983,7 +967,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition, PlusTransformName& defaultTransformName)
+PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition)
 {
   if ( trackedFrame == NULL )
   {
@@ -993,65 +977,44 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
 
   // Get the probe position from tracked frame info
   const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
-  if ( cProbePos != NULL )
+  if ( cProbePos == NULL )
   {
-    probePosition = atof(cProbePos); 
+    LOG_ERROR("Couldn't find ProbePosition field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
-  else
+
+  if ( PlusCommon::StringToDouble(cProbePos, probePosition) != PLUS_SUCCESS )
   {
-    double transform[16]; 
-    if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )
-    {
-      // Get probe position from matrix (0,3) element
-      probePosition = transform[ 4 * ROW_PROBE_POSITION + 3]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get probe position from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
+    LOG_ERROR("Failed to convert probe position " << cProbePos << " to double!"); 
+    return PLUS_FAIL; 
   }
 
   // Get the probe rotation from tracked frame info
   const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
-  if ( cProbeRot != NULL )
+  if ( cProbeRot == NULL )
   {
-    probeRotation = atof(cProbeRot); 
+    LOG_ERROR("Couldn't find ProbeRotation field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
-  else
+
+  if ( PlusCommon::StringToDouble(cProbeRot, probeRotation) != PLUS_SUCCESS )
   {
-    double transform[16]; 
-    if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )      
-    {
-      // Get probe rotation from matrix (1,3) element
-      probeRotation = transform[ 4 * ROW_PROBE_ROTATION + 3]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get probe rotation from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
+    LOG_ERROR("Failed to convert probe rotation " << cProbeRot << " to double!"); 
+    return PLUS_FAIL; 
   }
 
   // Get the template position from tracked frame info
   const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
-  if ( cTemplatePos != NULL )
+  if ( cTemplatePos == NULL )
   {
-    templatePosition = atof(cTemplatePos); 
+    LOG_ERROR("Couldn't find TemplatePosition field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
-  else
+
+  if ( PlusCommon::StringToDouble(cTemplatePos, templatePosition) != PLUS_SUCCESS )
   {
-    double transform[16]; 
-    if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )
-    {
-      // Get template position from matrix (2,3) element
-      templatePosition = transform[ 4 * ROW_TEMPLATE_POSITION + 3]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get template position from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
+    LOG_ERROR("Failed to convert template position " << cTemplatePos << " to double!"); 
+    return PLUS_FAIL; 
   }
 
   return PLUS_SUCCESS; 

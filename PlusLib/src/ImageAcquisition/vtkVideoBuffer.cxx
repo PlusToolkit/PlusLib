@@ -654,9 +654,6 @@ PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char
 
   PlusStatus status = PLUS_SUCCESS;
 
-  // Set default transform name
-  PlusTransformName defaulTransformName("Image", "Image"); 
-  trackedFrameList->SetDefaultFrameTransformName(defaulTransformName);
   for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
   {
     VideoBufferItem videoItem;
@@ -669,11 +666,6 @@ PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char
 
     TrackedFrame trackedFrame;
     trackedFrame.SetImageData(videoItem.GetFrame());
-
-    // Add transform
-    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    matrix->Identity();
-    trackedFrame.SetCustomFrameTransform(defaulTransformName, matrix);
 
     // Add filtered timestamp
     double filteredTimestamp = videoItem.GetFilteredTimestamp( this->GetLocalTimeOffset() );

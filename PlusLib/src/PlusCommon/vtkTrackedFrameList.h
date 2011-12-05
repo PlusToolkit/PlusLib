@@ -80,12 +80,6 @@ public:
   /*! Clear tracked frame list and free memory */
   virtual void Clear(); 
 
-  /*! Get default frame transform name */
-  virtual PlusTransformName GetDefaultFrameTransformName(); 
-
-  /*! Set default frame transform name */
-  virtual PlusStatus SetDefaultFrameTransformName(PlusTransformName& name); 
-
   /*! Set the number of following unique frames needed in the tracked frame list */
   vtkSetMacro(NumberOfUniqueFrames, int); 
 

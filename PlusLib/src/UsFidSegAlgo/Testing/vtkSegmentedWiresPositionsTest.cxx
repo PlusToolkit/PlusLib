@@ -35,6 +35,7 @@ typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 int main (int argc, char* argv[])
 { 
 	std::string inputTestDataPath;
+  std::string inputTransformName; 
 	std::string outputWirePositionFile("./SegmentedWirePositions.txt");
 	int inputImageType(1); 
 
@@ -48,6 +49,7 @@ int main (int argc, char* argv[])
 	cmdargs.Initialize(argc, argv);
 
 	cmdargs.AddArgument("--input-test-data-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataPath, "Test data path");
+	cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
 	cmdargs.AddArgument("--input-image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");	
 	cmdargs.AddArgument("--output-wire-position-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputWirePositionFile, "Result wire position file name (Default: ./SegmentedWirePositions.txt)");
 
@@ -130,13 +132,17 @@ int main (int argc, char* argv[])
 			continue; 
 		}
 
-    PlusTransformName defaultTransformName = trackedFrameList->GetDefaultFrameTransformName(); 
-
-
+    PlusTransformName transformName; 
+    if ( transformName.SetTransformName(inputTransformName.c_str()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+      return EXIT_FAILURE; 
+    }
+   
     if ( segResults.GetDotsFound() )
 		{
       double defaultTransform[16]={0}; 
-      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultTransformName, defaultTransform) != PLUS_SUCCESS )
+      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get default frame transform from tracked frame #" << imgNumber); 
         continue; 

@@ -23,12 +23,14 @@ int main(int argc, char **argv)
   std::string inputBaselineReportFilePath(""); 
   double inputMaxTranslationDifference(0.5); 
   double inputMaxRotationDifference(1.0); 
+  std::string inputTransformName; 
 
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for generating transform interpolation");
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
   args.AddArgument("--input-max-rotation-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxRotationDifference, "Maximum rotation difference in degrees (Default: 1 deg).");
@@ -66,10 +68,17 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile ); 
   }
 
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
   // force recomputation of the filtered timestamps to test timestamp filtering as well
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;

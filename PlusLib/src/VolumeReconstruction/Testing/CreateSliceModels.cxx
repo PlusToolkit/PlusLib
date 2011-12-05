@@ -38,12 +38,14 @@ int main( int argc, char** argv )
   std::string inputMetaFilename;
   std::string inputConfigFileName; 
   std::string outputModelFilename; 
+  std::string inputTransformName; 
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
+  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for creating slice models");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
   args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
@@ -122,14 +124,20 @@ int main( int argc, char** argv )
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
   appender->SetInput( outputPolyData );
 
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   // Loop over each tracked image slice.
-  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     double defaultTransform[ 16 ];
-    frame->GetCustomFrameTransform(defaultFrameTransformName, defaultTransform);
+    frame->GetCustomFrameTransform(transformName, defaultTransform);
     vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
     tToolToTracker->SetMatrix( defaultTransform );    
 

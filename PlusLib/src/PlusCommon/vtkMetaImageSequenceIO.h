@@ -40,12 +40,8 @@ public:
   /*! Get the TrackedFrameList where the images are stored */
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
-  /*! Set the default frame transform name. Deprecated. */
-  void SetDefaultFrameTransformName(PlusTransformName& aTransformName);
-  /*! Get the default frame transform name. Deprecated. */
-  PlusTransformName GetDefaultFrameTransformName();
-  
-  /*!
+
+/*!
     Set/get the ultrasound image orientation for file storage.
     Note that the image data is always stored in MF orientation in the TrackedFrameList object in memory.
     The ultrasound image axes are defined as follows:
@@ -58,8 +54,7 @@ public:
     * UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
     * MF: image x axis = marked transducer axis, image y axis = far transducer axis
     * MN: image x axis = marked transducer axis, image y axis = near transducer axis
-  */
-  vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
+  */  vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
 
   /*! Write object contents into file */
   virtual PlusStatus Write();
