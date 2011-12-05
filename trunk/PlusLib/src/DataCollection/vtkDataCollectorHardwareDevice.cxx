@@ -100,6 +100,7 @@ vtkDataCollectorHardwareDevice::vtkDataCollectorHardwareDevice()
 //----------------------------------------------------------------------------
 vtkDataCollectorHardwareDevice::~vtkDataCollectorHardwareDevice()
 {
+  this->Disconnect();
   this->SetTracker(NULL); 
   this->SetVideoSource(NULL);
   this->SetSynchronizer(NULL); 
