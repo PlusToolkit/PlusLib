@@ -374,12 +374,5 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   m_ParentMainWindow->GetToolVisualizer()->SetStylusToolName(stylusToolName);
 
-  // Coordinate definitions
-  if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Failed to read coordinate definitions from device set configuration!");
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
 }

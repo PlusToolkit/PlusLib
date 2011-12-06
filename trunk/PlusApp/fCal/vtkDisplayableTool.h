@@ -39,6 +39,8 @@ public:
   /*! Get tool to world transform name */
   PlusTransformName GetToolToWorldTransformName() { return this->ToolToWorldTransformName;  };
 
+  /*! Set STL modle file name */
+	vtkSetStringMacro(STLModelFileName);
   /*! Get STL modle file name */
 	vtkGetStringMacro(STLModelFileName);
 
@@ -63,9 +65,6 @@ protected:
 
   /*! Set model to tool transform */
 	vtkSetObjectMacro(ModelToToolTransform, vtkTransform);
-
-  /*! Set STL modle file name */
-	vtkSetStringMacro(STLModelFileName);
 
 protected:
   /*! Constructor */

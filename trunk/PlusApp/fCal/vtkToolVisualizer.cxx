@@ -165,6 +165,13 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL; 
   }
 
+  // Read coordinate definitions
+  if ( this->TransformRepository->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read coordinate definitions from device set configuration!");
+    return PLUS_FAIL;
+  }
+
   // Rendering section
   vtkXMLDataElement* renderingElement = aConfig->FindNestedElementWithName("Rendering"); 
 
@@ -528,27 +535,27 @@ PlusStatus vtkToolVisualizer::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-void vtkToolVisualizer::SetPhantomToReferenceTransform(vtkTransform* aTransform)
+PlusStatus vtkToolVisualizer::SetPhantomToReferenceTransform(vtkTransform* aTransform)
 {
   LOG_TRACE("vtkToolVisualizer::SetPhantomToReferenceTransform");
 
   if (this->DisplayableTools.find(this->ReferenceToolName) == this->DisplayableTools.end())
   {
     LOG_ERROR("Missing reference displayable tool!");
-    return;
+    return PLUS_FAIL;
   }
-  // TODO!!!!!!!
-  LOG_ERROR("TEMPORARY ISSUE: Acquire position has to be changed to use tracked frame instead of tracker tools!");
-/*
+
   vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   phantomModelToPhantomReferenceTransform->Identity();
   phantomModelToPhantomReferenceTransform->Concatenate(aTransform->GetMatrix());
-  phantomModelToPhantomReferenceTransform->Concatenate(this->DisplayableTools[this->ReferenceToolName]->GetTool()->GetModelToToolTransform());
+  phantomModelToPhantomReferenceTransform->Concatenate(this->DisplayableTools[this->ReferenceToolName]->GetModelToToolTransform());
   phantomModelToPhantomReferenceTransform->Modified();
 
   this->DisplayableTools[this->ReferenceToolName]->GetActor()->SetUserTransform(phantomModelToPhantomReferenceTransform);
 
-  this->DisplayableTools[this->ReferenceToolName]->DisplayableOn();*/
+  this->DisplayableTools[this->ReferenceToolName]->DisplayableOn();
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -860,29 +867,15 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
     return PLUS_FAIL;
   }
 
-  // TODO!!!!!!!
-  LOG_ERROR("TEMPORARY ISSUE: Phantom visualization has to be changed to use tracked frame instead of tracker tools!");
-  return PLUS_FAIL;
-  /*
-  if (this->DataCollector->GetTracker() == NULL)
+  if (this->DataCollector->GetTrackingEnabled() == false)
   {
     LOG_ERROR("No tracker is available");
     return PLUS_FAIL;
   }
 
-  vtkTrackerTool* referenceTool = NULL;
-  if (this->DataCollector->GetTracker()->GetTool(this->ReferenceToolName, referenceTool) != PLUS_SUCCESS)
-  {
-    LOG_WARNING("No reference tool is present in the tracker - one is created for visualization");
-
-    referenceTool = vtkSmartPointer<vtkTrackerTool>::New();
-    referenceTool->SetToolName(this->ReferenceToolName);
-  }
-
   // Create displayable tool object for phantom
   vtkDisplayableTool* displayableTool = vtkDisplayableTool::New();
   displayableTool->DisplayableOff(); // Until phantom registration is missing (phantom to phantom reference transform is set)
-  displayableTool->SetTool(referenceTool);
   this->DisplayableTools[this->ReferenceToolName] = displayableTool;
 
   // Get phantom definition xml data element
@@ -901,67 +894,28 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration"); 
-  if (registration == NULL)
+  PlusTransformName phantomToReferenceTransformName("Phantom", this->ReferenceToolName); // TODO No constant strings
+  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  bool valid = false;
+  if ( (this->TransformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
-    LOG_ERROR("Registration element not found!");
+    LOG_ERROR("No valid phantom registration transform found!");
     return PLUS_FAIL;
   }
 
-  // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
-  const char* date = registration->GetAttribute("Date");
-  if ((date == NULL) || (STRCASECMP(date, "") == 0))
+  vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+  phantomToReferenceTransform->Identity();
+  phantomToReferenceTransform->Concatenate(phantomToReferenceTransformMatrix);
+
+  if ( SetPhantomToReferenceTransform(phantomToReferenceTransform) != PLUS_SUCCESS )
   {
-    LOG_INFO("Transform cannot be loaded with no date entered - phantom model is not shown until registering it");
-  }
-  else
-  {
-    // Load transform
-    double* transform = new double[16]; 
-    if (registration->GetVectorAttribute("MatrixValue", 16, transform))
-    {
-      vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomToReferenceTransform->Identity();
-      phantomToReferenceTransform->SetMatrix(transform);
-      this->SetPhantomToReferenceTransform(phantomToReferenceTransform);
-    }
-    else
-    {
-      LOG_ERROR("Unable to read MatrixValue element in phantom registration!");
-      return PLUS_FAIL;
-    }
-    delete[] transform;
+    LOG_ERROR("Unable to set phantom to reference transform to visualizer!");
+    return PLUS_FAIL;
   }
 
-  // Load model to phantom transform
-  vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
-  if (model == NULL)
-  {
-    LOG_WARNING("Phantom model information not found - no model displayed");
-  }
-  else
-  {
-    // PhantomModelToPhantomTransform - transform input model for proper visualization
-    double* phantomModelToPhantomTransformVector = new double[16]; 
-    if (model->GetVectorAttribute("ModelToPhantomTransform", 16, phantomModelToPhantomTransformVector))
-    {
-      vtkSmartPointer<vtkTransform> phantomModelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
-      phantomModelToPhantomTransform->Identity();
-      phantomModelToPhantomTransform->SetMatrix(phantomModelToPhantomTransformVector);
-      this->DisplayableTools[this->ReferenceToolName]->GetTool()->SetModelToToolTransform(phantomModelToPhantomTransform);
-    }
-    else
-    {
-      LOG_ERROR("Unable to read ModelToPhantomTransform element!");
-      return PLUS_FAIL;
-    }
-
-    delete[] phantomModelToPhantomTransformVector;
-  }
-
-  // If model and all transforms has been found, set up the visualization pipeline
+  // Set up the visualization pipeline
   vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-  if (LoadPhantomModel(stlReader) == PLUS_SUCCESS)
+  if ( LoadPhantomModel(stlReader) == PLUS_SUCCESS )
   {
     vtkSmartPointer<vtkPolyDataMapper> phantomMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     phantomMapper->SetInputConnection(stlReader->GetOutputPort());
@@ -972,7 +926,6 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
   }
 
   return PLUS_SUCCESS;
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -1098,7 +1051,7 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader)
+PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader) //TODO do it another way (somehow get the file name instead)
 {
   LOG_TRACE("vtkToolVisualizer::LoadPhantomModel");
 
@@ -1132,6 +1085,7 @@ PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader)
   }
   else
   {
+    this->DisplayableTools[this->ReferenceToolName]->SetSTLModelFileName(searchResult.c_str());
     aSTLReader->SetFileName(searchResult.c_str());
   }
 

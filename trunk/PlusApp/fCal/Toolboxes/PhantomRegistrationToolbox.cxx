@@ -263,7 +263,7 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 
     // Initialize phantom visualization in toolbox canvas
     vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-    if (m_ParentMainWindow->GetToolVisualizer()->LoadPhantomModel(stlReader) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetToolVisualizer()->LoadPhantomModel(stlReader) == PLUS_SUCCESS) // do it another way (somehow get the file name instead)
     {
       m_PhantomActor = vtkActor::New();
       vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();

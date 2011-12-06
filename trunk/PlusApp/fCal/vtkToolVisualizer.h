@@ -93,7 +93,7 @@ public:
 	 * Set phantom registration transform and enables displaying of the phantom
    * \param aTransform Phantom to phantom reference transform
 	 */
-  void SetPhantomToReferenceTransform(vtkTransform* aTransform);
+  PlusStatus SetPhantomToReferenceTransform(vtkTransform* aTransform);
 
 	/*!
 	 * Hide all tools, other models and the image from main canvas
