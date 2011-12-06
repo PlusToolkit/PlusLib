@@ -13,10 +13,8 @@
 
 #ifdef _WIN32
 #include "WindowsAccurateTimer.h"
-WindowsAccurateTimer WindowsAccurateTimer::instance;
+WindowsAccurateTimer WindowsAccurateTimer::m_Instance;
 double vtkAccurateTimer::SystemStartTime=0;
-volatile double  WindowsAccurateTimer::error=0;
-volatile int     WindowsAccurateTimer::count=0;
 #endif
 
 
