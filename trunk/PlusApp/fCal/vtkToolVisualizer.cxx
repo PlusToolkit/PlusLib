@@ -55,7 +55,7 @@ vtkToolVisualizer::vtkToolVisualizer()
   this->AcquisitionFrameRate = 20;
   this->InitializedOff();
   this->ImageModeOff();
-  this->ProbeToolName = NULL;
+  this->ProbeToolName = NULL; //TODO delete
   this->ReferenceToolName = NULL;
   this->StylusToolName = NULL;
 
@@ -68,9 +68,10 @@ vtkToolVisualizer::vtkToolVisualizer()
   this->ImageCamera = NULL;
   this->VolumeActor = NULL;
 
-  this->ImageToProbeTransform = NULL;
+  this->ImageToProbeTransform = NULL; // TODO delete
+  // TODO Add ImageRenderingTransformName instead
 
-  this->SetReferenceToolName("Reference");
+  this->SetReferenceToolName("Reference"); // TODO needed?
 
   // Create timer
   this->AcquisitionTimer = NULL;
@@ -339,7 +340,7 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
   else
   {
-    LOG_WARNING("Data collector has no video output, cannot initialize image actor");
+    LOG_INFO("Data collector has no video output, cannot initialize image actor");
   }
 
   // Load phantom model and registration from configuration and set up visualization
@@ -348,79 +349,77 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
     LOG_WARNING("Initializing phantom visualization failed!");
   }
 
-  // TODO!!!!!!!
-  LOG_ERROR("TEMPORARY ISSUE: Visualization has to be changed to use tracked frame instead of tracker tools!");
-  /*
-  if (this->DataCollector->GetTracker()==NULL)
+  if (this->DataCollector->GetTrackingEnabled() == false)
   {
-    LOG_ERROR("No tracker is available");
+    LOG_ERROR("No tracking data is available");
     return PLUS_FAIL;
   }
 
   // Load tool models
-  for (ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+  for (std::map<std::string, vtkDisplayableTool*>::iterator it = this->DisplayableTools.begin(); it != this->DisplayableTools.end(); ++it)
   {
-    vtkTrackerTool* tool = it->second;
-
-    std::string toolName = it->first;
-    vtkDisplayableTool* displayableTool = NULL;
-
-    // Load model if file name exists and file can be found
-    if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0)
+    vtkDisplayableTool* displayableTool = it->second;
+    if (displayableTool == NULL)
     {
-      std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
+      LOG_ERROR("Invalid displayable tool!");
+      continue;
+    }
 
-      if (STRCASECMP("", searchResult.c_str()) == 0)
-      {
-        LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetTool3DModelFileName());
-      }
-      else
-      {
-        vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-        stlReader->SetFileName(searchResult.c_str());
+    std::string toolName = displayableTool->GetToolToWorldTransformName().From();
 
-        vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        toolMapper->SetInputConnection(stlReader->GetOutputPort());
+    // Check if file name exists and file can be found
+    std::string stlFileName = "";
+    if (STRCASECMP(displayableTool->GetSTLModelFileName(), "") == 0)
+    {
+      LOG_WARNING("No STL file name found for displayable tool (" << toolName << ") - it cannot be displayed!");
+      continue;
+    }
 
-        displayableTool = vtkDisplayableTool::New();
-        displayableTool->GetActor()->SetMapper(toolMapper);
-        displayableTool->SetTool(tool);
-
-        if (toolName.find("Stylus") != std::string::npos) // Stylus is always black
-        {
-          displayableTool->GetActor()->GetProperty()->SetColor(0.0, 0.0, 0.0);
-        }
-
-        this->DisplayableTools[toolName] = displayableTool;
-        this->CanvasRenderer->AddActor(displayableTool->GetActor());
-      }
+    std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(displayableTool->GetSTLModelFileName());
+    if (STRCASECMP("", searchResult.c_str()) == 0)
+    {
+      LOG_WARNING("Tool (" << toolName << ") model file is not found with name: " << displayableTool->GetSTLModelFileName());
+      // Don't continue cycle here because for some tools default model can be assigned
+    }
+    else
+    {
+      stlFileName = searchResult;
     }
 
     // Handle missing tool models
-    if ((toolName.compare(this->ProbeToolName) == 0) && (this->DisplayableTools.find(this->ProbeToolName) == this->DisplayableTools.end())) // If the tool is the given probe and there is no model for it
+    if (stlFileName.empty())
     {
-      LOG_WARNING("Unable to initialize probe visualization - no probe is displayed");
+      if (toolName.compare(this->ProbeToolName) == 0) // If the tool is the given probe and there is no model for it
+      {
+        LOG_WARNING("Unable to initialize probe visualization - no probe is displayed");
+      }
+      else if (toolName.find("Stylus") != std::string::npos) // If the tool name contains stylus but there is no model for it
+      {
+        LOG_INFO("No stylus model file found - default model will be displayed");
 
-      displayableTool = vtkDisplayableTool::New();
-      displayableTool->SetTool(tool);
-      this->DisplayableTools[toolName] = displayableTool;
+        SetDefaultStylusModel(displayableTool->GetActor());
+        this->CanvasRenderer->AddActor(displayableTool->GetActor());
+      }
     }
-    else if ((toolName.find("Stylus") != std::string::npos) && (this->DisplayableTools.find(toolName) == this->DisplayableTools.end())) // If the tool name contains stylus but there is no model for it
+    else
+    // Load STL model
     {
-      LOG_INFO("No stylus model file found - default model will be displayed");
+      vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+      stlReader->SetFileName(stlFileName.c_str());
 
-      displayableTool = vtkDisplayableTool::New();
-      displayableTool->SetTool(tool);
-      SetDefaultStylusModel(displayableTool->GetActor());
-      this->DisplayableTools[toolName] = displayableTool;
+      vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      toolMapper->SetInputConnection(stlReader->GetOutputPort());
+
+      displayableTool->GetActor()->SetMapper(toolMapper);
+
+      if (toolName.find("Stylus") != std::string::npos) // Stylus is always black
+      {
+        displayableTool->GetActor()->GetProperty()->SetColor(0.0, 0.0, 0.0);
+      }
+
       this->CanvasRenderer->AddActor(displayableTool->GetActor());
     }
-    else if (this->DisplayableTools.find(toolName) == this->DisplayableTools.end())
-    {
-      LOG_INFO("Unable to initialize visualization of tool '" << toolName << "' - it will not be displayed");
-    }
-  } // for each tool
-  */
+  }
 
   // Hide all tools so that they don't appear next to the configuration toolbox
   HideAll();

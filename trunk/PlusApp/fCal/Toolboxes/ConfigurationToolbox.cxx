@@ -176,6 +176,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         // Load device models based on the new configuration
+        m_ParentMainWindow->GetToolVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
         m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();

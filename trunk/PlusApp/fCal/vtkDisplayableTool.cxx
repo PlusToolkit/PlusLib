@@ -72,7 +72,8 @@ PlusStatus vtkDisplayableTool::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;     
   }
 
-  //this->ToolToWorldTransformName.
+  std::string transformName = std::string(toolCoordinateFrame) + "To" + std::string(worldCoordinateFrame);
+  this->ToolToWorldTransformName.SetTransformName(transformName.c_str());
 
   vtkXMLDataElement* modelElement = aConfig->FindNestedElementWithName("Model");
   if (modelElement == NULL)
@@ -90,11 +91,14 @@ PlusStatus vtkDisplayableTool::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   else if (STRCASECMP(modelFileName, "") != 0) // If model file name is not empty
   {
+    this->SetSTLModelFileName(modelFileName);
+
     // ModelToToolTransform stays identity if no model file has been found
 		double modelToToolTransformMatrixValue[16] = {0};
 		if ( modelElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue) )
 		{
-			this->ModelToToolTransform->SetMatrix(modelToToolTransformMatrixValue);
+      this->ModelToToolTransform->Identity();
+      this->ModelToToolTransform->Concatenate(modelToToolTransformMatrixValue);
 		}
   }
 
