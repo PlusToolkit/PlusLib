@@ -56,12 +56,13 @@ class WindowsAccurateTimer
 public:
   static WindowsAccurateTimer* Instance()
   {
-    return &instance;
+    return &m_Instance;
   };
   virtual ~WindowsAccurateTimer()
   {
-    timeKillEvent(timer), timer = 0;
-    DeleteCriticalSection(&crit);
+    timeKillEvent(m_Timer);
+    m_Timer = 0;
+    DeleteCriticalSection(&m_CriticalSection);
   }
 
   /*!
@@ -88,48 +89,78 @@ public:
       DuplicateHandle(pHandle, GetCurrentThread(), pHandle,
         &tHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
       // wrap pool data access
-      EnterCriticalSection(&WindowsAccurateTimer::Instance()->crit);
-      waitPool.push_back(WaitData(tHandle, timeout));
-      LeaveCriticalSection(&WindowsAccurateTimer::Instance()->crit);
+      EnterCriticalSection(&WindowsAccurateTimer::Instance()->m_CriticalSection);
+      m_WaitPool.push_back(WaitData(tHandle, timeout));
+      LeaveCriticalSection(&WindowsAccurateTimer::Instance()->m_CriticalSection);
       SuspendThread(tHandle);        // do the wait
       CloseHandle(tHandle);
     }
   }
   inline double Absolute(double val) { return val > 0 ? val : -val; }
-  inline LARGE_INTEGER GetFrequency() { return freq; };
+  inline LARGE_INTEGER GetFrequency() { return m_Freq; };
 
-  /*! Media callback timer method */
-  static void CALLBACK TimerFunc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+  void Initialize()
   {
-    static LARGE_INTEGER s[2]; 
-    static bool init = false;
-
-    if ( !init )
+    // Set the thread priority to real-time
+    HANDLE tHandle = 0;
+    HANDLE pHandle = GetCurrentProcess();
+    bool duplicateHandleSuccess=DuplicateHandle(pHandle, GetCurrentThread(), pHandle, &tHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
+    if (duplicateHandleSuccess && tHandle!=NULL)
     {
-      init = true;
-      HANDLE tHandle = 0;
-      HANDLE pHandle = GetCurrentProcess();
-      DuplicateHandle(pHandle, GetCurrentThread(), pHandle,
-        &tHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
-      SetThreadPriority(tHandle, THREAD_PRIORITY_TIME_CRITICAL);
-      HANDLE h = OpenProcess(PROCESS_ALL_ACCESS, FALSE, _getpid());
-      if (!SetPriorityClass(h, REALTIME_PRIORITY_CLASS))
+      bool threadPrioritySet=SetThreadPriority(tHandle, THREAD_PRIORITY_TIME_CRITICAL);
+      if (!threadPrioritySet)
       {
-        DWORD err = GetLastError();
+        DWORD lastError=GetLastError();
+        LOG_WARNING("Failed to raise the thread priority to real-time (SetThreadPriority failed with ErrorCode="<<lastError<<", pHandle="<<pHandle<<"). Timer accuracy may not be optimal.");
       }
-      CloseHandle(h);
       CloseHandle(tHandle);
     }
+    else
+    {
+      DWORD lastError=GetLastError();
+      LOG_WARNING("Failed to raise the thread priority to real-time (DuplicateHandle failed with ErrorCode="<<lastError<<", pHandle="<<pHandle<<"). Timer accuracy may not be optimal.");
+    }
 
+    // Set the process priority to real-time
+    // This may fail depending on the privileges of the current user, but the accuracy should be still good enough,
+    // so don't log it as an error.
+    int pid=_getpid();
+    HANDLE h = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+    if (h!=NULL)
+    {
+      if (!SetPriorityClass(h, REALTIME_PRIORITY_CLASS))
+      {
+        DWORD lastError = GetLastError();
+        LOG_DEBUG("Failed to raise the process priority class to real-time (SetPriorityClass failed with ErrorCode="<<lastError<<", pid="<<pid<<"). Timer accuracy may not be optimal.");
+      }
+      CloseHandle(h);
+    }
+    else
+    {
+      DWORD lastError=GetLastError();
+      LOG_DEBUG("Failed to raise the process priority class to real-time (OpenProcess failed with ErrorCode="<<lastError<<", pid="<<pid<<"). Timer accuracy may not be optimal.");
+    }
+  }
+
+  /*! Media callback m_Timer method */
+  static void CALLBACK TimerFunc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+  {
     WindowsAccurateTimer* pThis = (WindowsAccurateTimer*)dwUser;
 
-    QueryPerformanceCounter(&s[1]);
-    double diff = (((double)s[1].QuadPart - (double)s[0].QuadPart)/(double)pThis->freq.QuadPart);
-    __int64 now = s[1].QuadPart+pThis->halfMsec.QuadPart;
+    if (!pThis->m_Initialized)
+    {      
+      pThis->Initialize();
+      pThis->m_Initialized = true;
+    }
 
-    EnterCriticalSection(&pThis->crit);
-    std::deque<WaitData>::iterator it = pThis->waitPool.begin();
-    while ( it != pThis->waitPool.end() )
+    static LARGE_INTEGER s[2];
+    QueryPerformanceCounter(&s[1]);
+    double diff = (((double)s[1].QuadPart - (double)s[0].QuadPart)/(double)pThis->m_Freq.QuadPart);
+    __int64 now = s[1].QuadPart+pThis->m_HalfMsec.QuadPart;
+
+    EnterCriticalSection(&pThis->m_CriticalSection);
+    std::deque<WaitData>::iterator it = pThis->m_WaitPool.begin();
+    while ( it != pThis->m_WaitPool.end() )
     {
       if ( now < it->timeout.QuadPart )
       {
@@ -143,7 +174,7 @@ public:
       if (res>0)
       {
         // the thread was successfully waken up, it can be removed from the wait pool
-        it = pThis->waitPool.erase(it);
+        it = pThis->m_WaitPool.erase(it);
         continue;
       }
       
@@ -165,30 +196,26 @@ public:
       if (it->errorCount>MAX_RESUME_ATTEMPTS)
       {
         LOG_ERROR("Maximum thread resume attempts reached, remove item "<<it->h<<"from the wait pool");
-        it = pThis->waitPool.erase(it);
+        it = pThis->m_WaitPool.erase(it);
         continue;
       }
 
       // Resume failed this time, but try it again later; now go to the next item in the pool
       ++it;
     }
-    LeaveCriticalSection(&pThis->crit);
+    LeaveCriticalSection(&pThis->m_CriticalSection);
     s[0] = s[1];
   }
-
-  volatile static double  error;
-  volatile static int     count;
 
 private:
   WindowsAccurateTimer()
   {
-    error = 0;
-    count = 0;
-    QueryPerformanceFrequency(&freq);
-    halfMsec.QuadPart = freq.QuadPart / 2000;
-    freq.QuadPart /= 1000;   // convert to msecs
-    InitializeCriticalSection(&crit);
-    timer = timeSetEvent(1, 0, TimerFunc, (DWORD)this, TIME_PERIODIC);
+    QueryPerformanceFrequency(&m_Freq);
+    m_HalfMsec.QuadPart = m_Freq.QuadPart / 2000;
+    m_Freq.QuadPart /= 1000;   // convert to msecs
+    InitializeCriticalSection(&m_CriticalSection);
+    m_Timer = timeSetEvent(1, 0, TimerFunc, (DWORD)this, TIME_PERIODIC);
+    m_Initialized=false;
   }
 
   /*!
@@ -203,7 +230,7 @@ private:
       LARGE_INTEGER now; 
       QueryPerformanceCounter(&now);
       errorCount=0;
-      timeout.QuadPart = _t * WindowsAccurateTimer::Instance()->freq.QuadPart + now.QuadPart;
+      timeout.QuadPart = _t * WindowsAccurateTimer::Instance()->m_Freq.QuadPart + now.QuadPart;
     };
 
     HANDLE h;
@@ -216,13 +243,14 @@ private:
   };
   friend struct WaitData;
 
-  static WindowsAccurateTimer    instance;
+  static WindowsAccurateTimer    m_Instance;  
 
-  CRITICAL_SECTION        crit;
-  std::deque<WaitData>         waitPool;
-  MMRESULT                timer;
-  LARGE_INTEGER           freq;
-  LARGE_INTEGER           halfMsec;
+  CRITICAL_SECTION m_CriticalSection;
+  std::deque<WaitData> m_WaitPool;
+  MMRESULT m_Timer;
+  LARGE_INTEGER m_Freq;
+  LARGE_INTEGER m_HalfMsec;
+  bool m_Initialized;
 };
 
 #endif  // __WINDOWS_ACCURATE_TIMER_H__
