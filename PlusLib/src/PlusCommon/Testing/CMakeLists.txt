@@ -54,3 +54,13 @@ ADD_TEST(vtkTransformRepositoryTest
   )
 # This test prints some errors when testing error cases, therefore the output is not
 # checked for the presence of ERROR or WARNING string
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(EditSeqMetaFile EditSeqMetaFile.cxx )
+TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
+
+# ADD_TEST(EditSeqMetaFile 
+  # ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+  # --verbose=3
+  # )
+
