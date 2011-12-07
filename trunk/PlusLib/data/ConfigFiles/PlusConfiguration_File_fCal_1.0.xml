@@ -1,44 +1,92 @@
 <PlusConfiguration version="1.3">
 
-  <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-        Name="TEST Data collection uses sequence metafile in file mode TEST." 
-        Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
-        />
+      Name="TEST Data collection uses sequence metafile in file mode TEST." 
+      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
+    />
 
     <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
-  <!-- COORDINATE DEFINITIONS -->
+
   <CoordinateDefinitions>
-    <Transform From="Phantom" To="Reference" Matrix="0.9968 0.0075 -0.0795 -35.6089    0.0794 0.0055 0.9968 -124.9852    0.0079 -1.0000 0.0049 -16.7    0 0 0 1" Date="2011.12.01 17:57:00" Error="0.0"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="0.9968 0.0075 -0.0795 -35.6089
+              0.0794 0.0055 0.9968 -124.9852
+              0.0079 -1.0000 0.0049 -16.7
+              0 0 0 1"
+      Date="2011.12.01 17:57:00" Error="0.0"
+    />
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
   </CoordinateDefinitions> 
   
-  <!-- SEGMENTATION -->
+
+  <Rendering
+    WorldCoordinateFrame="Reference"
+  >
+    <DisplayableObject ObjectCoordinateFrame="TransducerOrigin">
+      <Model
+        File="L14-5_38_ProbeModel.stl"
+        ModelToObjectTransform="
+          1 0 0 0
+          0 1 0 66.0
+          0 0 1 0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="StylusTip">
+      <Model
+        File="Stylus_Example.stl"
+        ModelToObjectTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Phantom">
+      <Model
+        File="FCal_1.0.stl"
+        ModelToObjectTransform="
+          1 0 0 -15.0
+          0 1 0 10.0
+          0 0 1 -5.0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Image">
+      <Image />
+    </DisplayableObject>
+
+  </Rendering>
+
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="1.0"
-
     RegionOfInterest="27 27 793 589"
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     AngleToleranceDegrees="10"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="0.41"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
   
-  <!-- PHANTOM -->
+
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
@@ -49,18 +97,7 @@
       Institution="Queen's University PerkLab"
     />
     
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-      File="FCal_1.0.stl"
-      ModelToPhantomTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
-        0 0 0 1"
-    />
-
     <Geometry>
-      <!-- N wire definitions -->
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
         <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
@@ -72,7 +109,6 @@
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
@@ -88,18 +124,44 @@
     </Geometry>
   </PhantomDefinition>
 
-  <!-- FCAL -->
-  <fCal NumberOfCalibrationImagesToAcquire="200"
-        NumberOfValidationImagesToAcquire="100"
-        NumberOfStylusCalibrationPointsToAcquire="200"
-        RecordingIntervalMs="100"
-        MaxTimeSpentWithProcessingMs="70"
-  >
-    <TrackerToolNames
-      Reference="Reference"
-      Probe="Probe"
-      Stylus="Stylus"
-    />
-  </fCal>
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
+
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
 
 </PlusConfiguration>

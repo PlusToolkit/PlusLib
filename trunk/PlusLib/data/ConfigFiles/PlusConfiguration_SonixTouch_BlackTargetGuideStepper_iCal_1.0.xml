@@ -2,10 +2,10 @@
 
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-        Name="SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
-        Description="Configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
+      Name="SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
+      Description="Configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
 Plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel. The computer needs to be on the same local network as SonixTOUCH" 
-        />
+    />
 
     <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
       <StepperCalibration AlgorithmVersion="1.0.0" Date="2011.05.02" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
@@ -13,61 +13,58 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
-        BufferSize="500" 
-        FrameSize="820 616" 
-        UsImageOrientation="UF"
-        FrameRate="30" 
-        AveragedItemsForFiltering="20" 
-        LocalTimeOffset="-0.2126"
-        IP="130.15.7.20" 
-        ImagingMode="BMode"
-        AcquisitionDataType="BPost" 
-        Depth="-1" 
-        Sector="-1" 
-        Gain="-1" 
-        DynRange="-1" 
-        Zoom="-1" 
-        Frequency="-1" 
-        Timeout="-1" 
-        CompressionStatus="0" 
-        />
+      BufferSize="500" 
+      FrameSize="820 616" 
+      UsImageOrientation="UF"
+      FrameRate="30" 
+      AveragedItemsForFiltering="20" 
+      LocalTimeOffset="-0.2126"
+      IP="130.15.7.20" 
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" 
+    />
 
     <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="15" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
+      SynchronizationTimeLength="15" 
+      MinNumOfSyncSteps="5" 
+      ThresholdMultiplier="5"
 
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
+      NumberOfAveragedTransforms="20" 
+      MinTransformThreshold="2.0" 
+      MaxTransformDifference="2.0" 
 
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="10.0" 
-        MaxFrameDifference="10.0" 
-        />
+      NumberOfAveragedFrames="6" 
+      MinFrameThreshold="10.0" 
+      MaxFrameDifference="10.0" 
+    />
   </DataCollection>
   
   <Segmentation
     ApproximateSpacingMmPerPixel="0.145"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"
-
     RegionOfInterest="90 70 730 430"
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     AngleToleranceDegrees="10"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="0.77"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
+
+  <CoordinateDefinitions>
+  </CoordinateDefinitions> 
+
 
   <iCal version="1.0" NumberOfImagesForValidation="50" RecordingIntervalMs="200" MaxTimeSpentWithProcessingMs="180"   >
     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
@@ -75,6 +72,44 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
   </iCal>
+
+  
+  <vtkBrachyStepperPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
+
+
+  <Rendering
+    WorldCoordinateFrame="Reference"
+  >
+    <DisplayableObject ObjectCoordinateFrame="Phantom">
+      <Model
+        File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
+        ModelToObjectTransform="
+          1 0 0  0.7
+          0 0 -1 48.6
+          0 1 0  51.3
+          0 0 0  1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Image">
+      <Image />
+    </DisplayableObject>
+
+  </Rendering>
+
 
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -84,20 +119,9 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-      />
-
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-        File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
-        ModelToPhantomTransform="
-          -1 0 0 36.5
-          0 0 -1 58
-          0 -1 0 61
-          0 0 0 1"
-        />
+    />
 
     <Geometry>
-      <!-- N wire definitions -->
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire" Name="top">
         <Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
@@ -110,7 +134,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         <Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
@@ -124,16 +147,19 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
 
   </PhantomDefinition>
 
-  <!-- VOLUME RECONSTRUCTION -->
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
 
   <TemplateModel version="1.0" 
-      TemplateHolderToTemplateTransform="1 0 0 5
-    0 1 0 63.5
-    0 0 1 0
-    0 0 0 1" >
+      TemplateHolderToTemplateTransform=" 1 0 0 5
+                                          0 1 0 63.5
+                                          0 0 1 0
+                                          0 0 0 1"
+  >
     <TemplateHole Representation="Sphere" Radius="0.2"/>
     <!--TemplateHole Representation="Disk" Radius="0.6"/-->
     <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />

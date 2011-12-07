@@ -2,22 +2,14 @@
 
   <Segmentation
     ComputeSegmentationParametersFromPhantomDefinition="1"
-  
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
-
     RegionOfInterest="68 145 458 445"
-
     MaxLinePairDistanceErrorPercent="20.0"
-
     MaxAngleDifferenceDegrees="11"
-    
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="1.11"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
-    
     ApproximateSpacingMmPerPixel="0.21"
     ImageScalingTolerancePercent="-10 10 -10 10"                                
     ImageNormalVectorInPhantomFrameEstimation="0 0 1"
@@ -34,18 +26,7 @@
       Institution="Queen's University PerkLab"
     />
     
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-      File="?"
-      ModelToPhantomTransform="
-        1 0 0 0.0
-        0 1 0 0.0
-        0 0 1 0.0
-        0 0 0 1"
-    />
-
     <Geometry>
-      <!-- N wire definitions -->
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire" Name="top">
         <Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
@@ -58,7 +39,6 @@
         <Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>

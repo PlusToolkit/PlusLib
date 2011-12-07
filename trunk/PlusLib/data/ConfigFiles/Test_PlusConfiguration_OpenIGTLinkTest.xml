@@ -3,9 +3,9 @@
   <DataCollection version="2.0" StartupDelaySec="1.0">
     
     <DeviceSet 
-       Name="TEST Simulated data for OpenIGTLinkBroadcaster test"
-       Description="Simulated data for OpenIGTLinkBroadcaster" 
-       />
+      Name="TEST Simulated data for OpenIGTLinkBroadcaster test"
+      Description="Simulated data for OpenIGTLinkBroadcaster" 
+    />
 
     <Tracker
       Type="SavedDataset"
@@ -13,14 +13,12 @@
       Frequency="5"
       LocalTimeOffset="0.0"
       AveragedItemsForFiltering="4"
-      >
-      
+    >
       <Tool
         Name="Tool"
         PortName="0"
         SendTo="localhost:18944">
       </Tool>
-
     </Tracker>
 
     <ImageAcquisition
@@ -32,7 +30,7 @@
       AveragedItemsForFiltering="4" 
       LocalTimeOffset="0.0" 
       SendTo="localhost:18944"
-      />
+     />
 
     <Synchronization
       Type="None"

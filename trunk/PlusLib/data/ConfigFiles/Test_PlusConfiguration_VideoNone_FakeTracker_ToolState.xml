@@ -1,31 +1,17 @@
 <PlusConfiguration version="1.3">
 
-  <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST No Video with Fake tracker in Tool state mode" 
       Description="ToolStateDisplayWidgetTest uses this configuration" 
-      />
+    />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="ToolState" AveragedItemsForFiltering="20" >
       <Tool Name="Test" PortName="0"></Tool>
     </Tracker>
 
     <ImageAcquisition Type="None" />
-
-    <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
-        MinNumOfSyncSteps="5" 
-        ThresholdMultiplier="5"
-
-        NumberOfAveragedTransforms="20" 
-        MinTransformThreshold="2.0" 
-        MaxTransformDifference="2.0" 
-
-        NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
-        MaxFrameDifference="10.0" 
-        />
+    <Synchronization Type="None" />
   </DataCollection> 
 
 </PlusConfiguration>

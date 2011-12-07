@@ -80,7 +80,7 @@
     ReferenceCoordinateFrame="Reference"
   />
 
-   <vtkProbeCalibrationAlgo
+  <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

@@ -2,10 +2,10 @@
 
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-        Name="SonixRP L14-5 + NDI Certus" 
-        Description="Configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0
+      Name="SonixRP L14-5 + NDI Certus" 
+      Description="Configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0
 The computer needs to be on the same local network as SonixTOUCH and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
-        />
+    />
 
     <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" SendTo="127.0.0.1:1111" />
@@ -32,7 +32,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" 
-      />
+    />
 
     <Synchronization Type="ChangeDetection" 
       SynchronizationTimeLength="30" 
@@ -46,7 +46,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       NumberOfAveragedFrames="6" 
       MinFrameThreshold="200.0" 
       MaxFrameDifference="10.0" 
-      />
+    />
   </DataCollection>
 
 
@@ -56,7 +56,8 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
               0 1 0 5
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.07 11:39:00" Error="0.0" />    
+      Date="2011.12.07 11:39:00" Error="0.0"
+    />    
   </CoordinateDefinitions> 
 
 
@@ -116,7 +117,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 
-  <!-- PHANTOM -->
+
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
@@ -139,7 +140,6 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
@@ -154,16 +154,21 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     </Geometry>
   </PhantomDefinition>
 
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
     Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
   />
 
-  <fCal NumberOfCalibrationImagesToAcquire="200"
+
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
     RecordingIntervalMs="100"
     MaxTimeSpentWithProcessingMs="70"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
   />
 
 

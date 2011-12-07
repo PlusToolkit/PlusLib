@@ -1,8 +1,7 @@
 <PlusConfiguration version="1.3">
-  <!-- DATA COLLECTION -->
+
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet Name="SonixTouch MicronTracker L14-5 + Reference + Stylus" Description="MicronTracker"/>
-    
     <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="20">
       <Tool Name="Probe" PortName="probeMarker" SendTo="localhost:18944" />
       <Tool Name="Reference" PortName="patientMarker" />
@@ -10,58 +9,76 @@
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" BufferSize="500" FrameSize="820 616" UsImageOrientation="UF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffset="-0.2976" IP="130.15.7.20" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="-1" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" />
-
     <Synchronization Type="ChangeDetection" SynchronizationTimeLength="30" MinNumOfSyncSteps="5" ThresholdMultiplier="5" NumberOfAveragedTransforms="20" MinTransformThreshold="2.0" MaxTransformDifference="2.0" NumberOfAveragedFrames="6" MinFrameThreshold="200.0" MaxFrameDifference="10.0" />
-
   </DataCollection>
 
-  <!-- RENDERING -->
-  <Rendering>
-    <DisplayableTool ToolCoordinateFrame="Probe" WorldCoordinateFrame="Reference">
-      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
+
+
+  <Rendering
+    WorldCoordinateFrame="Reference"
+  >
+    <DisplayableObject ObjectCoordinateFrame="TransducerOrigin">
       <Model
         File="L14-5_38_ProbeModel.stl"
-        ModelToToolTransform="
-          0.107721 0.979858 0.168146 -115.733132
-          -0.993248 0.113395 -0.024487 13.708913
-          -0.043061 -0.164373 0.985458 -107.578262
+        ModelToObjectTransform="
+          1 0 0 0
+          0 1 0 66.0
+          0 0 1 0
           0 0 0 1"
-        />
-    </DisplayableTool>
+      />
+    </DisplayableObject>
 
-    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
-      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+    <DisplayableObject ObjectCoordinateFrame="StylusTip">
       <Model
-          File="Stylus_Example.stl"
-          ModelToToolTransform="
-            1 0 0 -210.0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          />
-    </DisplayableTool>
+        File="Stylus_Example.stl"
+        ModelToObjectTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Phantom">
+      <Model
+        File="FCal_1.0.stl"
+        ModelToObjectTransform="
+          1 0 0 -15.0
+          0 1 0 10.0
+          0 0 1 -5.0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Image">
+      <Image />
+    </DisplayableObject>
+
   </Rendering>
 
-  <!-- SEGMENTATION -->
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="1.0"
-
     RegionOfInterest="27 27 793 589"
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     AngleToleranceDegrees="10"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="0.41"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 
@@ -74,18 +91,9 @@
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-      />
-
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model File="FCal_1.0.stl" ModelToPhantomTransform="
-      1 0 0 -15.0
-      0 1 0 10.0
-      0 0 1 -5.0
-      0 0 0 1"
     />
 
     <Geometry>
-      <!-- N wire definitions -->
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
         <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
@@ -97,7 +105,6 @@
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
@@ -112,21 +119,42 @@
     </Geometry>
   </PhantomDefinition>
 
-  <!-- VOLUME RECONSTRUCTION -->
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" Interpolation="LINEAR" Optimization="FULL" Compou="" nding="On" FillHoles="Off" />
 
-  <!-- FCAL -->
-  <fCal NumberOfCalibrationImagesToAcquire="200"
-      NumberOfValidationImagesToAcquire="100"
-      NumberOfStylusCalibrationPointsToAcquire="200"
-      RecordingIntervalMs="100"
-      MaxTimeSpentWithProcessingMs="70"
-      >
-    <TrackerToolNames
-        Reference="Reference"
-        Probe="Probe"
-        Stylus="Stylus"
-        />
-  </fCal>
+
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
 
 </PlusConfiguration>
