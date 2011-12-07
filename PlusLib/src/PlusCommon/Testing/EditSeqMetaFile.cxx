@@ -37,41 +37,33 @@ public:
     FrameScalarStart = 0; 
     FrameScalarIncrement = 0; 
     FrameScalarDecimalDigits = 5; 
-    FrameTransformTranslateIncrement[0] = 0; 
-    FrameTransformTranslateIncrement[1] = 0; 
-    FrameTransformTranslateIncrement[2] = 0; 
-
-    FrameTransformRotateDegIncrement[0] = 0; 
-    FrameTransformRotateDegIncrement[1] = 0; 
-    FrameTransformRotateDegIncrement[2] = 0;
-
-    for ( int i = 0; i < 16; i++ )
-    {
-      FrameTransformStart[i] = 0.0; 
-    }
+    FrameTransformStart = NULL; 
+    FrameTransformIncrement = NULL; 
   }
 
-  vtkTrackedFrameList* TrackedFrameList; 
   std::string FieldName; 
   std::string UpdatedFieldName; 
   std::string UpdatedFieldValue; 
-  int FrameScalarStart; 
-  int FrameScalarIncrement; 
+  vtkTrackedFrameList* TrackedFrameList; 
+  double FrameScalarStart; 
+  double FrameScalarIncrement; 
   int FrameScalarDecimalDigits; 
-  double FrameTransformTranslateIncrement[3]; 
-  double FrameTransformRotateDegIncrement[3]; 
-  double FrameTransformStart[16]; 
+  vtkMatrix4x4* FrameTransformStart; 
+  vtkMatrix4x4* FrameTransformIncrement; 
 }; 
 
 PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* trackedFrameList, int firstFrameIndex, int lastFrameIndex ); 
 PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate ); 
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
+PlusStatus ConvertStringToMatrix(std::string &strMatrix, vtkMatrix4x4* matrix); 
 
+const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
+const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
 
 int main(int argc, char **argv)
 {
   // Parse command-line arguments
-  bool printHelp(false);
+  bool printHelp = false;
   int verboseLevel(vtkPlusLogger::LOG_LEVEL_DEFAULT);
   vtksys::CommandLineArguments args;
 
@@ -80,15 +72,25 @@ int main(int argc, char **argv)
   std::string outputFileName; // Sequence metafile name with path to save the result
   std::string strOperation; 
   OperationType operation; 
-  bool useCompression(false); 
+  bool useCompression = false; 
 
-  int firstFrameIndex(-1); // First frame index used for trimming the sequence metafile.
-  int lastFrameIndex(-1); // Last frame index used for trimming the sequence metafile.
+  int firstFrameIndex = -1; // First frame index used for trimming the sequence metafile.
+  int lastFrameIndex = -1; // Last frame index used for trimming the sequence metafile.
 
   std::string fieldName; // Field name to edit
   std::string updatedFieldName;  // Updated field name after edit
   std::string updatedFieldValue;  // Updated field value after edit
 
+  int frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence metafile (Default: 5)
+
+  double frameScalarStart = 0.0;  // Frame scalar field value starting index (Default: 0.0)
+  double frameScalarIncrement = 1.0;  // Frame scalar field value increment (Default: 1.0)
+  
+  std::string strFrameTransformStart; // Frame transform field starting 4x4 transform matrix (Default: identity)
+  vtkSmartPointer<vtkMatrix4x4> frameTransformStart = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform field starting 4x4 transform matrix (Default: identity)
+  
+  std::string strFrameTransformIncrement; // Frame transform increment 4x4 transform matrix
+  vtkSmartPointer<vtkMatrix4x4> frameTransformIncrement = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform increment 4x4 transform matrix
 
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
@@ -108,6 +110,13 @@ int main(int argc, char **argv)
   args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");	
   args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");	
   
+  args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");	
+  args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");	
+  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");	
+
+  args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");	
+  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");	
+ 
 
   args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");	
 
@@ -195,6 +204,19 @@ int main(int argc, char **argv)
     return EXIT_FAILURE; 
   }
 
+  // Convert strings transforms to vtkMatrix 
+  if ( ConvertStringToMatrix(strFrameTransformStart, frameTransformStart) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("String to matrix conversion failed for transform start matrix!"); 
+    return EXIT_FAILURE;
+  }
+
+  if ( ConvertStringToMatrix(strFrameTransformIncrement, frameTransformIncrement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("String to matrix conversion failed for transform increment matrix!"); 
+    return EXIT_FAILURE;
+  }
+
   ///////////////////////////////////////////////////////////////////
   // Read input files 
 
@@ -230,9 +252,6 @@ int main(int argc, char **argv)
   ///////////////////////////////////////////////////////////////////
   // Make the operation 
 
-  
-
-
   switch ( operation )
   {
   case NO_OPERATION:
@@ -256,7 +275,7 @@ int main(int argc, char **argv)
       fieldUpdate.TrackedFrameList = trackedFrameList; 
       fieldUpdate.FieldName = fieldName; 
       fieldUpdate.UpdatedFieldName = updatedFieldName; 
-
+     
       if ( UpdateFrameFieldValue( fieldUpdate ) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to update frame field name '"<<fieldName<<"' to '"<<updatedFieldName<<"'"); 
@@ -271,6 +290,11 @@ int main(int argc, char **argv)
       fieldUpdate.FieldName = fieldName; 
       fieldUpdate.UpdatedFieldName = updatedFieldName; 
       fieldUpdate.UpdatedFieldValue = updatedFieldValue; 
+      fieldUpdate.FrameScalarDecimalDigits = frameScalarDecimalDigits; 
+      fieldUpdate.FrameScalarIncrement = frameScalarIncrement; 
+      fieldUpdate.FrameScalarStart = frameScalarStart; 
+      fieldUpdate.FrameTransformStart = frameTransformStart; 
+      fieldUpdate.FrameTransformIncrement = frameTransformIncrement; 
 
       if ( UpdateFrameFieldValue( fieldUpdate ) != PLUS_SUCCESS )
       {
@@ -422,6 +446,17 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
 {
   LOG_INFO("Update frame field" ); 
   int numberOfErrors(0);
+
+  // Set the start scalar value 
+  double scalarVariable = fieldUpdate.FrameScalarStart; 
+
+  // Set the start transform matrix 
+  vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
+  if ( fieldUpdate.FrameTransformStart != NULL )
+  {
+    frameTransform->SetMatrix(fieldUpdate.FrameTransformStart); 
+  }
+
   for ( int i = 0; i < fieldUpdate.TrackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     TrackedFrame* trackedFrame = fieldUpdate.TrackedFrameList->GetTrackedFrame(i); 
@@ -448,10 +483,65 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
     // Update field value 
     if ( !fieldName.empty() && !fieldUpdate.UpdatedFieldValue.empty() )
     {
-      trackedFrame->SetCustomFrameField(fieldName.c_str(), fieldUpdate.UpdatedFieldValue.c_str() ); 
+      if ( STRCASECMP(fieldUpdate.UpdatedFieldValue.c_str(), FIELD_VALUE_FRAME_SCALAR) == 0 )
+      { // Update it as a scalar variable 
+        
+        std::ostringstream fieldValue; 
+        fieldValue << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) << scalarVariable; 
+
+        trackedFrame->SetCustomFrameField(fieldName.c_str(), fieldValue.str().c_str() ); 
+        scalarVariable += fieldUpdate.FrameScalarIncrement; 
+
+      }
+      else if ( STRCASECMP(fieldUpdate.UpdatedFieldValue.c_str(), FIELD_VALUE_FRAME_TRANSFORM) == 0 )
+      { // Update it as a transform variable 
+
+        double transformMatrix[16]={0}; 
+        vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix()); 
+        std::ostringstream strTransform; 
+        strTransform	<< std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
+          << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
+          << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
+          << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
+          << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
+
+        trackedFrame->SetCustomFrameField(fieldName.c_str(), strTransform.str().c_str() ); 
+        
+        frameTransform->Concatenate(fieldUpdate.FrameTransformIncrement); 
+
+      }
+      else // Update only as a string value 
+      {
+        trackedFrame->SetCustomFrameField(fieldName.c_str(), fieldUpdate.UpdatedFieldValue.c_str() ); 
+      }
     }
   
   }
 
    return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
+}
+
+//-------------------------------------------------------
+PlusStatus ConvertStringToMatrix(std::string& strMatrix, vtkMatrix4x4* matrix)
+{
+  if ( matrix == NULL )
+  {
+    LOG_ERROR("Failed to convert string to matrix - output matrix is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if( !strMatrix.empty() )
+  {
+    double transformMatrix[16]={0}; 
+    std::istringstream transform(strMatrix); 
+    double item; 
+    int i = 0; 
+    while ( transform >> item && i < 16)
+    {
+      transformMatrix[i++] = item; 
+    }
+    matrix->DeepCopy(transformMatrix); 
+  }
+
+  return PLUS_SUCCESS; 
 }
