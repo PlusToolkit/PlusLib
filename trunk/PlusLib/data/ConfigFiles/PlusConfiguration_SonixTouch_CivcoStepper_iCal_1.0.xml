@@ -98,6 +98,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     <DisplayableObject ObjectCoordinateFrame="Phantom">
       <Model
         File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
+        Opacity="0.6"
         ModelToObjectTransform="
           1 0 0  0.7
           0 0 -1 48.6
