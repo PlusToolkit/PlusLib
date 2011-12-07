@@ -177,7 +177,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         // Load device models based on the new configuration
         m_ParentMainWindow->GetToolVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-        m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
+        m_ParentMainWindow->GetToolVisualizer()->InitializeObjectVisualization();
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
@@ -336,43 +336,25 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;     
   }
 
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
-
-  if (trackerToolNames == NULL)
+  // Probe coordinate frame
+  const char* probeCoordinateFrame = fCalElement->GetAttribute("ProbeCoordinateFrame");
+  if (probeCoordinateFrame == NULL)
   {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
+	  LOG_ERROR("Probe coordinate frame is not specified in the fCal section of the configuration!");
     return PLUS_FAIL;     
   }
 
-  // Probe tool name
-  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
-  if (probeToolName == NULL)
+  m_ParentMainWindow->SetProbeCoordinateFrame(probeCoordinateFrame);
+
+  // Reference coordinate frame
+  const char* referenceCoordinateFrame = fCalElement->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
+	  LOG_ERROR("Reference coordinate frame not specified in the fCal section of the configuration!");
     return PLUS_FAIL;     
   }
 
-  m_ParentMainWindow->GetToolVisualizer()->SetProbeToolName(probeToolName);
-
-  // Reference tool name
-  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
-  if (referenceToolName == NULL)
-  {
-	  LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
-  }
-
-  m_ParentMainWindow->GetToolVisualizer()->SetReferenceToolName(referenceToolName);
-
-  // Stylus tool name
-  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
-  if (stylusToolName == NULL)
-  {
-	  LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
-  }
-
-  m_ParentMainWindow->GetToolVisualizer()->SetStylusToolName(stylusToolName);
+  m_ParentMainWindow->SetReferenceCoordinateFrame(referenceCoordinateFrame);
 
   return PLUS_SUCCESS;
 }

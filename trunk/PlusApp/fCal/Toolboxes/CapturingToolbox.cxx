@@ -9,9 +9,11 @@
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
 #include "VolumeReconstructionToolbox.h"
-#include "vtkDataCollectorFile.h"
-#include "vtkDataCollectorHardwareDevice.h"
-#include "vtkTracker.h"
+
+#include "vtkDataCollectorFile.h" // Only to get maximum frame rate in file mode
+#include "vtkDataCollectorHardwareDevice.h" // Only to get maximum frame rate in device mode
+#include "vtkPlusVideoSource.h" // Only to get maximum frame rate in device mode
+#include "vtkTracker.h" // Only to get maximum frequency in device mode
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -19,7 +21,6 @@
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-#include "vtkPlusVideoSource.h"
 
 #include "vtksys/SystemTools.hxx"
 
@@ -198,7 +199,7 @@ void CapturingToolbox::TakeSnapshot()
   }
   
   TrackedFrameFieldStatus status = FIELD_INVALID;
-  PlusTransformName transformName(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName(), "Tracker"); // TODO: store transform name instead
+  PlusTransformName transformName(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
   if ( trackedFrame.GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get transform status!"); 
@@ -359,8 +360,7 @@ void CapturingToolbox::ClearRecordedFrames()
 {
 	LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
 
-  if (QMessageBox::question(this, tr("fCal - Capturing"), tr("Dou you want to discard all the recorded frames?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-    == QMessageBox::No)
+  if ( QMessageBox::question(this, tr("fCal - Capturing"), tr("Dou you want to discard all the recorded frames?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No )
   {
     return; 
   }

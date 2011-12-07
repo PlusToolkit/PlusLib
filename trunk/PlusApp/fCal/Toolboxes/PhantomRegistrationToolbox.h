@@ -107,9 +107,6 @@ protected:
   /*! Phantom registration algorithm */
   vtkPhantomRegistrationAlgo* m_PhantomRegistration;
 
-  /*! Name of the tool that is handled as the stylus during point recording */
-  std::string                 m_StylusToolName;
-
 	/*! Renderer for the canvas */
 	vtkRenderer*							  m_PhantomRenderer;
 

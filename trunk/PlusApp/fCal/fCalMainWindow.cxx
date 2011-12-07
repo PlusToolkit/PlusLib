@@ -34,6 +34,8 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
   , m_StatusIcon(NULL)
+  , m_ProbeCoordinateFrame("")
+  , m_ReferenceCoordinateFrame("")
 {
 	// Set up UI
 	ui.setupUi(this);

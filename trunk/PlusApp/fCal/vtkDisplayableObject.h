@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkDisplayableTool_h
-#define __vtkDisplayableTool_h
+#ifndef __vtkDisplayableObject_h
+#define __vtkDisplayableObject_h
 
 #include "PlusConfigure.h"
 
@@ -17,14 +17,14 @@ class vtkActor;
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkDisplayableTool 
+/*! \class vtkDisplayableObject 
  * \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
  * \ingroup PlusAppFCal
  */
-class vtkDisplayableTool : public vtkObject
+class vtkDisplayableObject : public vtkObject
 {
 public:
-	static vtkDisplayableTool *New();
+	static vtkDisplayableObject *New();
 
   /*! Returns displayable status (true if displayable flag is on and valid actor is present) */
   bool IsDisplayable();
@@ -36,8 +36,10 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
 public:
-  /*! Get tool to world transform name */
-  PlusTransformName GetToolToWorldTransformName() { return this->ToolToWorldTransformName;  };
+  /*! Set object coordinate frame name */
+  vtkSetStringMacro(ObjectCoordinateFrame);
+  /*! Get object coordinate frame name */
+  vtkGetStringMacro(ObjectCoordinateFrame);
 
   /*! Set STL modle file name */
 	vtkSetStringMacro(STLModelFileName);
@@ -45,8 +47,10 @@ public:
 	vtkGetStringMacro(STLModelFileName);
 
   /*! Get model to tool transform */
-	vtkGetObjectMacro(ModelToToolTransform, vtkTransform);
+	vtkGetObjectMacro(ModelToObjectTransform, vtkTransform);
 
+  /*! Set actor */
+  void SetActor(vtkActor*);
   /*! Get actor */
   vtkGetObjectMacro(Actor, vtkActor);
 
@@ -56,38 +60,40 @@ public:
   /*! Get displayable flag */
 	vtkGetMacro(Displayable, bool);
 
+  /*! Set previously set opacity */
+	vtkSetMacro(LastOpacity, double);
+  /*! Get previously set opacity */
+	vtkGetMacro(LastOpacity, double);
+
 protected:
-  /*! Set tool to world transform name */
-  void SetToolToWorldTransformName(PlusTransformName aName) { this->ToolToWorldTransformName = aName;  };
-
-  /*! Set actor */
-  void SetActor(vtkActor*);
-
   /*! Set model to tool transform */
-	vtkSetObjectMacro(ModelToToolTransform, vtkTransform);
+	vtkSetObjectMacro(ModelToObjectTransform, vtkTransform);
 
 protected:
   /*! Constructor */
-  vtkDisplayableTool();
+  vtkDisplayableObject();
 
   /*! Destructor */
-  virtual ~vtkDisplayableTool();
+  virtual ~vtkDisplayableObject();
 
 protected:
   /*! Name of the STL file containing the 3D model of this tool */
   char*               STLModelFileName;
 
-  /* Tool to world transform name */
-  PlusTransformName   ToolToWorldTransformName;
+  /* Object coordinate frame name */
+  char*               ObjectCoordinateFrame;
 
   /* Model to tool transform */
-  vtkTransform*       ModelToToolTransform;
+  vtkTransform*       ModelToObjectTransform;
 
   /*! Actor displaying the tool model */
   vtkActor*           Actor;
 
   /*! Flag that can disable displaying of this tool */
-  bool                Displayable;
+  bool                Displayable; //TODO is it needed?
+
+  /*! Previously set opacity */
+  double              LastOpacity;
 };
 
 #endif

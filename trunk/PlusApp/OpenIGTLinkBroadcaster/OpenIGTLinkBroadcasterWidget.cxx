@@ -168,7 +168,7 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
     else
     {
       TrackedFrameFieldStatus status = FIELD_INVALID;
-      PlusTransformName transformName("Probe", "Reference");
+      PlusTransformName transformName("Probe", "Reference"); //TODO!!!!!
       trackedFrame.GetCustomFrameTransform(transformName, mToolToReference); 
       trackedFrame.GetCustomFrameTransformStatus(transformName, status); 
       if ( status == FIELD_OK )

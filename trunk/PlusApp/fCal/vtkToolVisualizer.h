@@ -9,7 +9,7 @@
 
 #include "vtkDataCollector.h"
 #include "TrackedFrame.h"
-#include "vtkDisplayableTool.h"
+#include "vtkDisplayableObject.h"
 
 #include "vtkRenderer.h"
 #include "vtkImageActor.h"
@@ -50,119 +50,79 @@ public:
 
   /*!
   * Read rendering configuration
-  * \param aConfig Displayable tool element (not the root!) of the input device set configuration XML data
+  * \param aConfig Root element of the device set configuration
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
 	* Initializes device visualization - loads models, transforms, assembles visualization pipeline
 	*/
-  PlusStatus InitializeDeviceVisualization();
+  PlusStatus InitializeObjectVisualization();
 
 	/*!
 	 * Read configuration file and start data collection
-	 * \return Success flag
 	 */
 	PlusStatus StartDataCollection();
 
 	/*!
 	 * Get displayable tool object
-	 * \param aToolName Name of the tool
-	 * \param aDisplayableTool Displayable tool object out parameter
-	 * \return Success flag
+	 * \param aObjectCoordinateFrame Object coordinate frame name
+	 * \param aDisplayableTool Displayable object out parameter
 	 */
-  PlusStatus GetDisplayableTool(const char* aToolName, vtkDisplayableTool* &aDisplayableTool);
-
-	/*!
-	* Acquires new position from a given tool of the tracker
-	* \param aName Tool name
-  * \param aCalibrated Flag whether to return the calibrated or the unbalibrated matrix
-	* \return Acquired transform if successful, else NULL
-	*/
-  TrackedFrameFieldStatus AcquireTrackerPositionForToolByName(const char* aName, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated = false);
-
-	/*!
-	 * Get tool position in string format
-	 * \param aToolName Name of the tool
-	 * \param aCalibrated Flag whether to return the calibrated or the unbalibrated matrix
-	 * \return Tool position string
-	 */
-  std::string GetToolPositionString(const char* aToolName, bool aCalibrated);
-
-	/*!
-	 * Set phantom registration transform and enables displaying of the phantom
-   * \param aTransform Phantom to phantom reference transform
-	 */
-  PlusStatus SetPhantomToReferenceTransform(vtkTransform* aTransform);
+  PlusStatus GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableTool);
 
 	/*!
 	 * Hide all tools, other models and the image from main canvas
-	 * \return Success flag
 	 */
   PlusStatus HideAll();
 
 	/*!
-	 * Show or hide all tools
+	 * Show or hide all displayable objects
    * \param aOn Show if true, else hide
-	 * \return Success flag
 	 */
-  PlusStatus ShowAllTools(bool aOn);
+  PlusStatus ShowAllObjects(bool aOn);
 
 	/*!
-	 * Show or hide a tool
-   * \param aToolName Tool name
+	 * Show or hide a displayable object
+   * \param aObjectCoordinateFrame Object coordinate frame name
    * \param aOn Show if true, else hide
-	 * \return Success flag
 	 */
-  PlusStatus ShowTool(const char* aToolName, bool aOn);
+  PlusStatus ShowObject(const char* aObjectCoordinateFrame, bool aOn);
 
 	/*!
 	 * Show or hide input points
    * \param aOn Show if true, else hide
-	 * \return Success flag
 	 */
   PlusStatus ShowInput(bool aOn);
 
 	/*!
 	 * Show or hide result points
    * \param aOn Show if true, else hide
-	 * \return Success flag
 	 */
   PlusStatus ShowResult(bool aOn);
 
 	/*!
 	 * Enable/disable image mode
 	 * \param aOn Image mode flag - true: show only the image and interactions are off - false: show all toola and the image and interactions are on
-	 * \return Success flag
 	 */
   PlusStatus EnableImageMode(bool aOn);
 
 	/*!
 	 * Enable/disable camera movements (mouse interactions on rendering window)
 	 * \param aEnabled Trackball interactions if true, no interactions if false
-	 * \return Success flag
 	 */
   PlusStatus EnableCameraMovements(bool aEnabled);
 
 	/*!
 	 * Calculate and set camera parameters so that image fits canvas in image mode
-	 * \return Success flag
 	 */
 	PlusStatus CalculateImageCameraParameters();
 
 	/*!
 	 * Dump video and tracker buffers to a given directory
    * \param aDirectory Destination directory
-	 * \return Success flag
 	 */
   PlusStatus DumpBuffersToDirectory(const char* aDirectory);
-
-	/*!
-	 * Load phantom model to an STL reader object (parse up model file and load it to the STL reader for use in the main canvas or elsewhere)
-   * \param aSTLReader STL reader object
-	 * \return Success flag
-	 */
-  PlusStatus LoadPhantomModel(vtkSTLReader* aSTLReader);
 
 	/*!
 	 * Return acquisition timer (to be able to connect actions to it)
@@ -170,35 +130,57 @@ public:
 	 */
   QTimer* GetAcquisitionTimer() { return this->AcquisitionTimer; };
 
+  /*! Check if a transform is available */
+  PlusStatus CheckTransformAvailability(const char* aTransformFrom, const char* aTransformTo);
+  /*! Check if a transform is available */
+  PlusStatus CheckTransformAvailability(PlusTransformName aTransform);
+
+  /*!
+    Acquire transform matrix from tracking and provide string containing the translation part
+    /param aTransformTranslationString Out parameter for the position string
+    /param aValid True if the transform is valid, false otherwise (optional parameter)
+  */
+  PlusStatus GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid = NULL);
+  /*!
+    Acquire transform matrix from tracking and provide string containing the translation part
+    /param aTransformTranslationString Out parameter for the position string
+    /param aValid True if the transform is valid, false otherwise (optional parameter)
+  */
+  PlusStatus GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid = NULL);
+
+  /*!
+    Acquire transform matrix from tracking
+    /param aOutputMatrix Out parameter for the transform matrix
+    /param aValid True if the transform is valid, false otherwise (optional parameter)
+  */
+  PlusStatus GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid = NULL);
+  /*!
+    Acquire transform matrix from tracking
+    /param aOutputMatrix Out parameter for the transform matrix
+    /param aValid True if the transform is valid, false otherwise (optional parameter)
+  */
+  PlusStatus GetTransformMatrix(PlusTransformName aTransform, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid = NULL);
+
 protected:
 	/*!
 	* Initialize 3D visualization
-	* \return Success flag
 	*/
-	PlusStatus InitializeVisualization();
-
-	/*!
-	* Initialize phantom visualization (registration, model to phantom transform, phantom model)
-	* \return Success flag
-	*/
-  PlusStatus InitializePhantomVisualization();
+	PlusStatus InitializeBasicVisualization();
 
 	/*!
 	* Assemble and set default stylus model for stylus tool actor
 	* \param aActor Actor to add the model to
-	* \return Success flag
 	*/
 	PlusStatus SetDefaultStylusModel(vtkActor* aActor);
 
-  /*! Clear displayable tool vector */
-  PlusStatus ClearDisplayableTools();
+  /*! Clear displayable object vector */
+  PlusStatus ClearDisplayableObjects();
 
 protected slots:
 	/*!
-	* Displays the devices if not in image mode
-	* \return Success flag
+	* Displays the displayable objects if not in image mode
 	*/
-  PlusStatus DisplayDevices();
+  PlusStatus UpdateObjectVisualization();
 
 public:
 	// Set/Get macros for member variables
@@ -226,16 +208,10 @@ public:
 
 	vtkGetObjectMacro(VolumeActor, vtkActor);
 
-  void SetImageToProbeTransform(vtkTransform*);
+  vtkGetStringMacro(WorldCoordinateFrame);
+  vtkSetStringMacro(WorldCoordinateFrame);
 
-  vtkGetStringMacro(ProbeToolName);
-  vtkSetStringMacro(ProbeToolName);
-
-  vtkGetStringMacro(ReferenceToolName);
-  vtkSetStringMacro(ReferenceToolName);
-
-  vtkGetStringMacro(StylusToolName);
-  vtkSetStringMacro(StylusToolName);
+  vtkGetStringMacro(ImageCoordinateFrame);
 
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
@@ -249,6 +225,8 @@ protected:
 
 	vtkSetMacro(ImageMode, bool); 
 	vtkBooleanMacro(ImageMode, bool); 
+
+  vtkSetStringMacro(ImageCoordinateFrame);
 
 protected:
 	/*!
@@ -265,8 +243,8 @@ protected:
 	/*! Data collector object */
 	vtkDataCollector*	DataCollector;
 
-  /*! List of displayable tools (structures holding the tool objects and actors) */
-  std::map<std::string, vtkDisplayableTool*> DisplayableTools;
+  /*! List of displayable objects */
+  std::map<std::string, vtkDisplayableObject*> DisplayableObjects;
 
   /*! Transform repository to store and handle all transforms */
   vtkTransformRepository* TransformRepository;
@@ -283,14 +261,11 @@ protected:
 	/*! Desired frame rate of synchronized recording */
 	int AcquisitionFrameRate;
 
-  /*! Name of the tool (which must be a probe) that acquires the images to display */
-  char* ProbeToolName;
+  /*! Name of the rendering world coordinate frame */
+  char* WorldCoordinateFrame;
 
-  /*! Name of the reference tool */
-  char* ReferenceToolName;
-
-  /*! Name of the stylus tool */
-  char* StylusToolName;
+  /*! Name of the image coordinate frame */
+  char* ImageCoordinateFrame;
 
   /*! Renderer for the canvas */
 	vtkRenderer* CanvasRenderer; 

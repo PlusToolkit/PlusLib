@@ -97,6 +97,16 @@ public:
 	*/
   AbstractToolbox* GetToolbox(ToolboxType aType) { return m_ToolboxList[aType]; };
 
+  /*! Get probe coordinate frame name */
+  std::string GetProbeCoordinateFrame() { return m_ProbeCoordinateFrame; };
+  /*! Set probe coordinate frame name */
+  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame) { m_ProbeCoordinateFrame = aProbeCoordinateFrame; };
+
+  /*! Get reference coordinate frame name */
+  std::string GetReferenceCoordinateFrame() { return m_ReferenceCoordinateFrame; };
+  /*! Set reference coordinate frame name */
+  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame) { m_ReferenceCoordinateFrame = aReferenceCoordinateFrame; };
+
 protected:
 	/*!
 	* Create toolboxes
@@ -170,6 +180,12 @@ protected:
 
   /*! List of toolbox objects (the indices are the type identifiers) */
   std::vector<AbstractToolbox*> m_ToolboxList;
+
+  /*! Probe coordinate frame name for Capturing */
+  std::string m_ProbeCoordinateFrame;
+
+  /*! Reference coordinate frame name for Capturing */
+  std::string m_ReferenceCoordinateFrame;
 
 private:
 	Ui::fCalMainWindow	ui;

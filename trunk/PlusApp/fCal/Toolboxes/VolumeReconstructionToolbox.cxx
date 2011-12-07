@@ -330,7 +330,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
   LOG_WARNING("TODO: Need a transform name to use for output extent computation!"); 
   m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), PlusTransformName("Image", "Reference"));
-  
+
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
   {

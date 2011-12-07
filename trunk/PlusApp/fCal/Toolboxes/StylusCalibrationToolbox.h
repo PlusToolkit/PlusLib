@@ -98,9 +98,6 @@ protected:
   /*! Number of points acquired so far */
   int									      m_CurrentPointNumber;
 
-  /*! Name of the tool that is handled as the stylus during calibration */
-  std::string               m_StylusToolName;
-
   /*! Stylus or stylus tip position (depending on the state) as string */
   std::string							  m_StylusPositionString;
 
