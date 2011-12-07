@@ -11,7 +11,7 @@ ADD_TEST(vtkVolumeReconstructorTest1
   --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml 
   --input-img-seq-file-name=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
   --output-volume-file-name=vtkVolumeReconstructorTest1Output.vtk
-  --input-transform-name=ProbeToReference
+  --input-transform-name=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -21,7 +21,7 @@ ADD_TEST(vtkVolumeReconstructorTest2
   --input-config-file-name=${TestDataDir}/NwirePhantomFreehand.xml 
   --input-img-seq-file-name=${TestDataDir}/NwirePhantomFreehand.mha
   --output-volume-file-name=vtkVolumeReconstructorTest2Output.vtk
-  --input-transform-name=ProbeToReference
+  --input-transform-name=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

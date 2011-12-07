@@ -89,15 +89,15 @@ int main (int argc, char* argv[])
   trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
   // Reconstruct volume 
-  PlusTransformName toolToReferenceTransformName;
-  if ( toolToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
+  PlusTransformName imageToReferenceTransformName;
+  if ( imageToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
   { 
     LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
     return EXIT_FAILURE; 
   }
   
   LOG_INFO("Set volume output extent...");
-  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, toolToReferenceTransformName) != PLUS_SUCCESS )
+  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, imageToReferenceTransformName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set output extent of volume!"); 
     return EXIT_FAILURE; 
@@ -113,7 +113,7 @@ int main (int argc, char* argv[])
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Insert slice for reconstruction
-    if ( reconstructor->AddTrackedFrame(frame, transformRepository, toolToReferenceTransformName ) != PLUS_SUCCESS )
+    if ( reconstructor->AddTrackedFrame(frame, transformRepository, imageToReferenceTransformName ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 
@@ -123,10 +123,10 @@ int main (int argc, char* argv[])
     if (!outputFrameFileName.empty())
     {       
       vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-      if ( transformRepository->GetTransform(toolToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS )
+      if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS )
       {
         std::string strImageToReferenceTransformName; 
-        toolToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+        imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
         LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
         continue; 
       }
