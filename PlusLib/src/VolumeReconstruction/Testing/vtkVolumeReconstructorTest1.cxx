@@ -105,6 +105,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Reconstruct volume...");
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  int numberOfFramesAddedToVolume=0; 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
@@ -112,11 +113,23 @@ int main (int argc, char* argv[])
 
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
+    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to update transform repository with frame #" << frameIndex ); 
+      continue; 
+    }
+
     // Insert slice for reconstruction
-    if ( reconstructor->AddTrackedFrame(frame, transformRepository, imageToReferenceTransformName ) != PLUS_SUCCESS )
+    bool insertedIntoVolume=false;
+    if ( reconstructor->AddTrackedFrame(frame, transformRepository, imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 
+    }
+
+    if ( insertedIntoVolume )
+    {
+      numberOfFramesAddedToVolume++; 
     }
 
     // Write an ITK image with the image pose in the reference coordinate system
@@ -153,6 +166,8 @@ int main (int argc, char* argv[])
   vtkPlusLogger::PrintProgressbar( 100 ); 
 
   trackedFrameList->Clear(); 
+
+  LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
 
   LOG_INFO("Saving volume to file...");
   vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
