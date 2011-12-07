@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
 
+class vtkTransformRepository;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
@@ -27,42 +28,58 @@ class vtkPivotCalibrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);
-
 	static vtkPivotCalibrationAlgo *New();
 
-public:
+  /*! Initialize algorithm - clear calibration array */
   PlusStatus Initialize();
 
   /*!
-    Insert acquired point to calibration point list
-    \param aToolToReferenceTransformMatrix New calibration point (tool to reference transform)
-	*/
-  PlusStatus InsertNextCalibrationPoint(vtkSmartPointer<vtkMatrix4x4> aToolToReferenceTransformMatrix);
+  * Read configuration
+  * \param aConfig Root element of the device set configuration
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-  /*! Calibrate tooltip (call the minimizer and set the result) */
-  PlusStatus DoTooltipCalibration();
+  /*!
+    Insert acquired point to calibration point list
+    \param aMarkerToReferenceTransformMatrix New calibration point (tool to reference transform)
+	*/
+  PlusStatus InsertNextCalibrationPoint(vtkSmartPointer<vtkMatrix4x4> aMarkerToReferenceTransformMatrix);
+
+  /*!
+    Calibrate (call the minimizer and set the result)
+    \param aTransformRepository Transform repository to save the results into
+  */
+  PlusStatus DoPivotCalibration(vtkTransformRepository* aTransformRepository = NULL);
 
 	/*!
     Get calibration result string to display
-	  \return Calibration result - stylus tip to stylus translation - string
+	  \return Calibration result (eg. stylus tip to stylus translation) string
 	*/
-	std::string GetTooltipToToolTranslationString();
+	std::string GetPivotPointToMarkerTranslationString();
 
 public:
 
 	vtkGetMacro(CalibrationError, double);
 
-  vtkGetObjectMacro(TooltipToToolTransformMatrix, vtkMatrix4x4); 
+  vtkGetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4); 
 
-  vtkGetVector3Macro(TooltipPosition, double);
+  vtkGetVector3Macro(PivotPointPosition, double);
+
+  vtkGetStringMacro(ObjectMarkerCoordinateFrame);
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
 
 protected:
 
-  vtkSetObjectMacro(TooltipToToolTransformMatrix, vtkMatrix4x4);
+  vtkSetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4);
 
   vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
 
   vtkSetObjectMacro(CalibrationArray, vtkDoubleArray);
+
+  vtkSetStringMacro(ObjectMarkerCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
 
 protected:
 	vtkPivotCalibrationAlgo();
@@ -73,11 +90,8 @@ protected:
   friend void vtkTrackerToolCalibrationFunction(void *userData);
 
 protected:
-  /*! Tool tip position in reference frame */
-  double              TooltipPosition[3];
-
-	/*! Tooltip to tool transform - the result of the calibration */
-	vtkMatrix4x4*				TooltipToToolTransformMatrix;
+	/*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
+	vtkMatrix4x4*				PivotPointToMarkerTransformMatrix;
 
 	/*! Uncertainty (standard deviation), error of the calibration result in mm */
 	double							CalibrationError;
@@ -88,6 +102,17 @@ protected:
   /*! Array of the input points */
   vtkDoubleArray*     CalibrationArray;
 
+  /*! Name of the object marker coordinate frame (eg. Stylus) */
+  char*               ObjectMarkerCoordinateFrame;
+
+  /*! Name of the reference coordinate frame (eg. Reference) */
+  char*               ReferenceCoordinateFrame;
+
+  /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
+  char*               ObjectPivotPointCoordinateFrame;
+
+  /*! Pivot point position in reference frame */
+  double              PivotPointPosition[3];
 };
 
 #endif

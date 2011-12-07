@@ -3,7 +3,7 @@
     # Timestamp format: MM/DD/YY HH:MM:SS
   </CalibrationFile>
   <CalibrationResults>
-    <CalibrationTransform TransformImageToUserImage="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformUserImageToProbe="-0.0106623 -0.0741843 0.00204246 -102.324 0.0772734 -0.00976774 -0.00229377 -42.7951 0.00260556 0.00169031 0.0763846 -94.7935 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="-0.0106623 -0.0741843 0.00204246 -102.324 0.0772734 -0.00976774 -0.00229377 -42.7951 0.00260556 0.00169031 0.0763846 -94.7935 0 0 0 1">
+    <CalibrationTransform TransformImageToTransducerOriginPixel="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToProbe="-0.0106623 -0.0741843 0.00204246 -102.324 0.0772734 -0.00976774 -0.00229377 -42.7951 0.00260556 0.00169031 0.0763846 -94.7935 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="-0.0106623 -0.0741843 0.00204246 -102.324 0.0772734 -0.00976774 -0.00229377 -42.7951 0.00260556 0.00169031 0.0763846 -94.7935 0 0 0 1">
       
     </CalibrationTransform>
     

@@ -46,8 +46,6 @@ int main (int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  std::string phantomName("Phantom"); 
-
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
 
@@ -61,8 +59,6 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
   cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-
-  cmdargs.AddArgument("--input-phantom-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &phantomName, "Name of the phantom (Default: Phantom)");
 
   cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
   cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
@@ -89,33 +85,6 @@ int main (int argc, char* argv[])
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  // Probe and reference tool names
-  vtkXMLDataElement* fCalElement = configRootElement->FindNestedElementWithName("fCal"); 
-  if (fCalElement == NULL)
-  {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    return EXIT_FAILURE;
-  }
-
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
-  if (trackerToolNames == NULL)
-  {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    return EXIT_FAILURE;
-  }
-  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
-  if (probeToolName == NULL)
-  {
-    LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
-    return EXIT_FAILURE;
-  }
-  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
-  if (referenceToolName == NULL)
-  {
-    LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
-    return EXIT_FAILURE;
-  }
-
   // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
@@ -124,24 +93,10 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  PlusTransformName phantomToReferenceTransformName(phantomName, referenceToolName);
-  bool valid = false;
-  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-  {
-    LOG_ERROR("No valid transform found between phantom to reference!");
-    return EXIT_FAILURE;
-  }
-
   vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
 
   freehandCalibration->Initialize();
-
-  vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-  phantomToReferenceTransform->Identity();
-  phantomToReferenceTransform->Concatenate(phantomToReferenceTransformMatrix);
-  freehandCalibration->SetPhantomToReferenceTransform(phantomToReferenceTransform);
 
   FidPatternRecognition patternRecognition;
   patternRecognition.ReadConfiguration(configRootElement);
@@ -180,10 +135,8 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
-  PlusTransformName probeToReferenceTransformName(probeToolName, referenceToolName);
-
   // Calibrate
-  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
     return EXIT_FAILURE;
@@ -268,14 +221,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       double blTransformImageToProbe[16]; 
       double cTransformImageToProbe[16]; 
 
-      if (!calibrationTransformBaseline->GetVectorAttribute("TransformUserImageToProbe", 16, blTransformImageToProbe))
+      if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToProbe", 16, blTransformImageToProbe))
       {
-        LOG_ERROR("Baseline TransformUserImageToProbe tag is missing");
+        LOG_ERROR("Baseline TransformImageToProbe tag is missing");
         numberOfFailures++;			
       }
-      else if (!calibrationTransform->GetVectorAttribute("TransformUserImageToProbe", 16, cTransformImageToProbe))
+      else if (!calibrationTransform->GetVectorAttribute("TransformImageToProbe", 16, cTransformImageToProbe))
       {
-        LOG_ERROR("Current TransformUserImageToProbe tag is missing");
+        LOG_ERROR("Current TransformImageToProbe tag is missing");
         numberOfFailures++;			
       }
       else

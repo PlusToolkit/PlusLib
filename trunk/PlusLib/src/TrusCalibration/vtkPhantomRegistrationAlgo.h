@@ -13,6 +13,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 
+class vtkTransformRepository;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
@@ -31,14 +32,13 @@ public:
 public:
 	/*!
     Performs landmark registration to determine transformation from phantom reference to phantom
-	  \return Success flag
+    \param aTransformRepository Transform repository to save the results into
 	*/
-	PlusStatus Register();
+	PlusStatus Register(vtkTransformRepository* aTransformRepository = NULL);
 
 	/*!
 	  Read phantom definition (landmarks)
 	  \param aConfig Root XML data element containing the tool calibration
-	  \return Success flag
 	*/
 	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
@@ -49,13 +49,19 @@ public:
 	*/
   std::string GetDefinedLandmarkName(int aIndex) { return this->DefinedLandmarkNames[aIndex]; };
 
-	vtkGetMacro(RegistrationError, double);
+public:
+
+  vtkGetMacro(RegistrationError, double);
 
   vtkGetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4); 
   vtkSetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4);
 
   vtkGetObjectMacro(DefinedLandmarks, vtkPoints);
   vtkGetObjectMacro(RecordedLandmarks, vtkPoints);
+
+  vtkGetStringMacro(PhantomCoordinateFrame);
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro(StylusTipCoordinateFrame);
 
 protected:
   /*! Compute the registration error */
@@ -67,6 +73,10 @@ protected:
 
   /*! Sets the landmark points that were recorded by a stylus */
   vtkSetObjectMacro(RecordedLandmarks, vtkPoints);
+
+  vtkSetStringMacro(PhantomCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro(StylusTipCoordinateFrame);
 
 protected:
 	vtkPhantomRegistrationAlgo();
@@ -87,6 +97,16 @@ protected:
 
 	/*! The mean error of the landmark registration in mm */
 	double									  RegistrationError;
+
+  /*! Name of the phantom coordinate frame (eg. Phantom) */
+  char*                     PhantomCoordinateFrame;
+
+  /*! Name of the reference coordinate frame (eg. Reference) */
+  char*                     ReferenceCoordinateFrame;
+
+  /*! Name of the stylus tip coordinate frame (eg. StylusTip) */
+  char*                     StylusTipCoordinateFrame;
+
 };
 
 #endif

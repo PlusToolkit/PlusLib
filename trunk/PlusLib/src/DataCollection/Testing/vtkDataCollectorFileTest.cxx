@@ -74,8 +74,8 @@ int main( int argc, char** argv )
   // Create the used objects
   TrackedFrame trackedFrame;
 
-  PlusTransformName phantomToReferenceTransformName("Phantom", "Reference");
-  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  PlusTransformName referenceToTrackerTransformName("Reference", "Tracker");
+  vtkSmartPointer<vtkMatrix4x4> referenceToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
   PlusTransformName probeToReferenceTransformName("Probe", "Reference");
   vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -94,18 +94,18 @@ int main( int argc, char** argv )
   dataCollector->GetTrackedFrameByTime(218.8, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if ( (transformRepository->GetTransform(referenceToTrackerTransformName, referenceToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformNameStr;
-    phantomToReferenceTransformName.GetTransformName(transformNameStr);
+    referenceToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
-  if ( fabs(phantomToReferenceTransformMatrix->GetElement(0,3) - (-292.088)) > 0.001
-    || fabs(phantomToReferenceTransformMatrix->GetElement(1,3) - (60.4261)) > 0.001
-    || fabs(phantomToReferenceTransformMatrix->GetElement(2,3) - (-1762.41)) > 0.001 )
+  if ( fabs(referenceToTrackerTransformMatrix->GetElement(0,3) - (-292.088)) > 0.001
+    || fabs(referenceToTrackerTransformMatrix->GetElement(1,3) - (60.4261)) > 0.001
+    || fabs(referenceToTrackerTransformMatrix->GetElement(2,3) - (-1762.41)) > 0.001 )
   {
     std::string transformNameStr;
-    phantomToReferenceTransformName.GetTransformName(transformNameStr);
+    referenceToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
 
@@ -135,18 +135,18 @@ int main( int argc, char** argv )
   dataCollector->GetTrackedFrameByTime(222.3, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if ( (transformRepository->GetTransform(referenceToTrackerTransformName, referenceToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformNameStr;
-    phantomToReferenceTransformName.GetTransformName(transformNameStr);
+    referenceToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
-  if ( fabs(phantomToReferenceTransformMatrix->GetElement(0,3) - (-292.055)) > 0.001
-    || fabs(phantomToReferenceTransformMatrix->GetElement(1,3) - (60.647)) > 0.001
-    || fabs(phantomToReferenceTransformMatrix->GetElement(2,3) - (-1762.63)) > 0.001 )
+  if ( fabs(referenceToTrackerTransformMatrix->GetElement(0,3) - (-292.055)) > 0.001
+    || fabs(referenceToTrackerTransformMatrix->GetElement(1,3) - (60.647)) > 0.001
+    || fabs(referenceToTrackerTransformMatrix->GetElement(2,3) - (-1762.63)) > 0.001 )
   {
     std::string transformNameStr;
-    phantomToReferenceTransformName.GetTransformName(transformNameStr);
+    referenceToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
 

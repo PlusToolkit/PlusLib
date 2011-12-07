@@ -1,6 +1,5 @@
 <PlusConfiguration version="1.3">
 
-  <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
         Name="SonixRP L14-5 + NDI Certus" 
@@ -50,55 +49,71 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       />
   </DataCollection>
 
-  <!-- RENDERING -->
-  <Rendering>
-    <DisplayableTool ToolCoordinateFrame="Probe" WorldCoordinateFrame="Reference">
-      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 320
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.07 11:39:00" Error="0.0" />    
+  </CoordinateDefinitions> 
+
+
+  <Rendering
+    WorldCoordinateFrame="Reference"
+  >
+    <DisplayableObject ObjectCoordinateFrame="TransducerOrigin">
       <Model
         File="L14-5_38_ProbeModel.stl"
-        ModelToToolTransform="
-          0.107721 0.979858 0.168146 -115.733132
-          -0.993248 0.113395 -0.024487 13.708913
-          -0.043061 -0.164373 0.985458 -107.578262
+        ModelToObjectTransform="
+          1 0 0 0
+          0 1 0 66.0
+          0 0 1 0
           0 0 0 1"
-        />
-    </DisplayableTool>
+      />
+    </DisplayableObject>
 
-    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
-      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+    <DisplayableObject ObjectCoordinateFrame="StylusTip">
       <Model
-          File="Stylus_Example.stl"
-          ModelToToolTransform="
-            1 0 0 -210.0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          />
-    </DisplayableTool>
+        File="Stylus_Example.stl"
+        ModelToObjectTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Phantom">
+      <Model
+        File="FCal_1.0.stl"
+        ModelToObjectTransform="
+          1 0 0 -15.0
+          0 1 0 10.0
+          0 0 1 -5.0
+          0 0 0 1"
+      />
+    </DisplayableObject>
+
+    <DisplayableObject ObjectCoordinateFrame="Image" />
+
   </Rendering>
 
-  <!-- SEGMENTATION -->
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.098"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
-
     RegionOfInterest="25 25 615 455"
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     AngleToleranceDegrees="10"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="0.52"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
-
   />
 
   <!-- PHANTOM -->
@@ -110,20 +125,9 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-      />
-
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-      File="FCal_1.0.stl"
-      ModelToPhantomTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
-        0 0 0 1"
-      />
+    />
 
     <Geometry>
-      <!-- N wire definitions -->
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
         <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
@@ -150,24 +154,40 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     </Geometry>
   </PhantomDefinition>
 
-  <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-      ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-      Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-      />
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
 
-  <!-- FCAL -->
   <fCal NumberOfCalibrationImagesToAcquire="200"
-      NumberOfValidationImagesToAcquire="100"
-      NumberOfStylusCalibrationPointsToAcquire="200"
-      RecordingIntervalMs="100"
-      MaxTimeSpentWithProcessingMs="70"
-      >
-    <TrackerToolNames
-        Reference="Reference"
-        Probe="Probe"
-        Stylus="Stylus"
-        />
-  </fCal>
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
 
 </PlusConfiguration>

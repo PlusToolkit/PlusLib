@@ -32,13 +32,14 @@
 const double TRANSLATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5mm
 const double ROTATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5deg
 
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusToolName); 
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusCoordinateFrame, const char* stylusTipCoordinateFrame);
 
 int main (int argc, char* argv[])
 { 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
+  int numberOfPointsToAcquire=100;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments cmdargs;
@@ -46,6 +47,7 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+	cmdargs.AddArgument("--number-of-points-to-acquire", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfPointsToAcquire, "Number of acquired points during the pivot calibration");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
@@ -75,43 +77,6 @@ int main (int argc, char* argv[])
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
-
-  // Read number of points to acquire and needed tool names
-  vtkXMLDataElement* fCalElement = configRootElement->FindNestedElementWithName("fCal"); 
-  if (fCalElement == NULL)
-  {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  // Number of stylus calibraiton points to acquire
-  int numberOfStylusCalibrationPointsToAcquire = 0; 
-  fCalElement->GetScalarAttribute("NumberOfStylusCalibrationPointsToAcquire", numberOfStylusCalibrationPointsToAcquire);
-  if (numberOfStylusCalibrationPointsToAcquire < 5)
-  {
-    LOG_ERROR("Invalid number of stylus calibration points to aquire!");
-    exit(EXIT_FAILURE);
-  }
-
-  // Stylus and reference tool names
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
-  if (trackerToolNames == NULL)
-  {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    exit(EXIT_FAILURE);
-  }
-  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
-  if (stylusToolName == NULL)
-  {
-    LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
-  }
-  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
-  if (referenceToolName == NULL)
-  {
-    LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
-  }
 
   // Initialize data collection
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
@@ -144,7 +109,11 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  pivotCalibration->Initialize();
+  if (pivotCalibration->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read pivot calibration configuration!");
+    exit(EXIT_FAILURE);
+  }
 
   // Create and initialize transform repository
   TrackedFrame trackedFrame;
@@ -154,13 +123,13 @@ int main (int argc, char* argv[])
   transformRepository->SetTransforms(trackedFrame);
 
   // Check stylus tool
-  PlusTransformName stylusToReferenceTransformName(stylusToolName, referenceToolName);
+  PlusTransformName stylusToReferenceTransformName(pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetReferenceCoordinateFrame());
 
   // Acquire positions for pivot calibration
-  for (int i=0; i < numberOfStylusCalibrationPointsToAcquire; ++i)
+  for (int i=0; i < numberOfPointsToAcquire; ++i)
   {
     vtksys::SystemTools::Delay(50);
-    vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfStylusCalibrationPointsToAcquire); 
+    vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfPointsToAcquire); 
 
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -178,8 +147,8 @@ int main (int argc, char* argv[])
       exit(EXIT_FAILURE);
     }
 
-    bool frameValid(false); 
-    if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &frameValid) != PLUS_SUCCESS) || (!frameValid) )
+    bool valid = false;
+    if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
     {
       LOG_ERROR("No valid transform found between stylus to reference!");
       exit(EXIT_FAILURE);
@@ -188,17 +157,16 @@ int main (int argc, char* argv[])
     pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
 
-  if (pivotCalibration->DoTooltipCalibration() != PLUS_SUCCESS)
+  if (pivotCalibration->DoPivotCalibration(transformRepository) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration error!");
     exit(EXIT_FAILURE);
   }
 
   // Save result
-  if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("StylusTip", stylusToolName, pivotCalibration->GetTooltipToToolTransformMatrix(), 
-    pivotCalibration->GetCalibrationError(), vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()) != PLUS_SUCCESS )
+  if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to write pivot calibration result to config file!");
+    LOG_ERROR("Failed to write pivot calibration result to configuration element!");
     exit(EXIT_FAILURE);
   }
 
@@ -207,7 +175,7 @@ int main (int argc, char* argv[])
   configRootElement->PrintXML(calibrationResultFileName.c_str());
 
   // Compare to baseline
-  if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), stylusToolName ) !=0 )
+  if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetObjectPivotPointCoordinateFrame() ) !=0 )
   {
     LOG_ERROR("Comparison of calibration data to baseline failed");
     std::cout << "Exit failure!!!" << std::endl;
@@ -221,7 +189,7 @@ int main (int argc, char* argv[])
 //-----------------------------------------------------------------------------
 
 // return the number of differences
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusToolName )
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusCoordinateFrame, const char* stylusTipCoordinateFrame )
 {
   int numberOfFailures=0;
 
@@ -235,7 +203,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   
   vtkSmartPointer<vtkMatrix4x4> transformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double currentError(0); 
-  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(currentRootElem, "StylusTip", stylusToolName, transformCurrent, &currentError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformCurrent, &currentError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
     return ++numberOfFailures;
@@ -251,7 +219,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
   vtkSmartPointer<vtkMatrix4x4> transformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double baselineError(0); 
-  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(baselineRootElem, "StylusTip", stylusToolName, transformBaseline, &baselineError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformBaseline, &baselineError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current stylus calibration result from configuration file!"); 
     return ++numberOfFailures;

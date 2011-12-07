@@ -1,6 +1,5 @@
 <PlusConfiguration version="1.3">
 
-  <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
         Name="TEST Freehand calibration offline test" 
@@ -12,35 +11,33 @@
     <Synchronization Type="None" />
   </DataCollection>
 
-  <!-- COORDINATE DEFINITIONS -->
+
   <CoordinateDefinitions>
-    <Transform From="Phantom" To="Reference" Matrix="0.9955 -0.0286 -0.0898 -35.8654    0.0902 0.0125 0.9958 -125.0523    -0.0273 -0.9995 0.0150 -15.0    0 0 0 1" Date="2011.12.01 17:50:00" Error="0.0"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="0.9955 -0.0286 -0.0898 -35.8654
+              0.0902 0.0125 0.9958 -125.0523
+              -0.0273 -0.9995 0.0150 -15.0
+              0 0 0 1"
+      Date="2011.12.01 17:50:00" Error="0.0"/>
   </CoordinateDefinitions> 
 
-  <!-- SEGMENTATION -->
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="1.0"
-
     RegionOfInterest="27 27 793 589"
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     AngleToleranceDegrees="11"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="0.41"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 
-  <!-- PHANTOM -->
+
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
@@ -49,20 +46,9 @@
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-      />
-
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-        File="FCal_1.0.stl"
-        ModelToPhantomTransform="
-      1 0 0 -15.0
-      0 1 0 10.0
-      0 0 1 -5.0
-      0 0 0 1"
-        />
+    />
 
     <Geometry>
-      <!-- N wire definitions -->
       <Pattern Type="NWire" Name="top">
         <Wire Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
         <Wire Name="F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
@@ -74,7 +60,6 @@
         <Wire Name="K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
@@ -89,18 +74,14 @@
     </Geometry>
   </PhantomDefinition>
 
-  <!-- FCAL -->
-  <fCal NumberOfCalibrationImagesToAcquire="200"
-      NumberOfValidationImagesToAcquire="100"
-      NumberOfStylusCalibrationPointsToAcquire="200"
-      RecordingIntervalMs="100"
-      MaxTimeSpentWithProcessingMs="70"
-      >
-    <TrackerToolNames
-        Reference="Reference"
-        Probe="Probe"
-        Stylus="Stylus"
-        />
-  </fCal>
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
 
 </PlusConfiguration>

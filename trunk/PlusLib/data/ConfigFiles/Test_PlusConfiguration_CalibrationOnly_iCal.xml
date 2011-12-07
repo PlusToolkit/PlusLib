@@ -19,21 +19,14 @@
     ApproximateSpacingMmPerPixel="0.19"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
-
     RegionOfInterest="50 40 600 340" 
-
     MaxLinePairDistanceErrorPercent="10.0"
-
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-
     AngleToleranceDegrees="11"
-
     ThresholdImagePercent="10.0"
-
     CollinearPointsMaxDistanceFromLineMm="1.0"
-
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 
@@ -52,17 +45,7 @@
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-      />
-
-    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-    <Model
-        File="?"
-        ModelToPhantomTransform="
-          1 0 0 0.0
-          0 1 0 0.0
-          0 0 1 0.0
-          0 0 0 1"
-        />
+    />
 
     <Geometry>
       <!-- N wire definitions -->
@@ -78,7 +61,6 @@
         <Wire Id="6" Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
 
-      <!-- Landmark list for registration -->
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
@@ -88,8 +70,23 @@
       1 0 0 5
       0 1 0 63.5
       0 0 1 0
-      0 0 0 1" />
+      0 0 0 1"
+    />
 
   </PhantomDefinition>
 
+  <vtkBrachyStepperPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+   <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
+ 
 </PlusConfiguration>

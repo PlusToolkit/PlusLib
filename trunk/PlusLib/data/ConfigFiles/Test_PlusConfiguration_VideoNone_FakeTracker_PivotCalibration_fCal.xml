@@ -1,6 +1,5 @@
 <PlusConfiguration version="1.3">
 
-  <!-- DATA COLLECTION -->
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
         Name="TEST Simulation mode for Stylus calibration"
@@ -17,32 +16,38 @@ vtkStylusCalibrationTest uses this configuration"
     <Synchronization Type="None" />
   </DataCollection>
 
-  <!-- RENDERING -->
-  <Rendering>
-    <DisplayableTool ToolCoordinateFrame="Stylus" WorldCoordinateFrame="Reference">
-      <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization  -->
+
+  <Rendering
+    WorldCoordinateFrame="Reference"
+  >
+    <DisplayableObject ObjectCoordinateFrame="StylusTip">
       <Model
-          File="Stylus_Example.stl"
-          ModelToToolTransform="
-            1 0 0 -210.0
-            0 1 0 0
-            0 0 1 0
-            0 0 0 1"
-          />
-    </DisplayableTool>
+        File="Stylus_Example.stl"
+        ModelToObjectTransform="
+          1 0 0 -210.0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1"
+      />
+    </DisplayableObject>
   </Rendering>
 
-  <!-- COORDINATE DEFINITIONS -->
+
   <CoordinateDefinitions>
   </CoordinateDefinitions>
 
-  <!-- FCAL -->
-  <fCal NumberOfStylusCalibrationPointsToAcquire="200">
-    <TrackerToolNames
-        Reference="Reference"
-        Probe="Probe"
-        Stylus="Stylus"
-        />
-  </fCal>
+
+  <fCal
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
 
 </PlusConfiguration>

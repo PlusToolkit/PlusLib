@@ -56,7 +56,14 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
-  this->CalibrationDate = NULL; 
+  this->CalibrationDate = NULL;
+  this->ImageCoordinateFrame = NULL;
+  this->ProbeCoordinateFrame = NULL;
+  this->PhantomCoordinateFrame = NULL;
+  this->ReferenceCoordinateFrame = NULL;
+  this->TransducerOriginCoordinateFrame = NULL;
+  this->TransducerOriginPixelCoordinateFrame = NULL;
+
 
 	this->US3DBeamwidthDataReadyOff();
   this->NumUS3DBeamwidthProfileData = -1;
@@ -87,17 +94,17 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 	this->TransformTemplateHolderToPhantom = NULL;
 	this->SetTransformTemplateHolderToPhantom(transformTemplateHolderToPhantom); 
 
-	vtkSmartPointer<vtkTransform> transformUserImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformUserImageToProbe = NULL;
-	this->SetTransformUserImageToProbe(transformUserImageToProbe); 
+	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
+	this->TransformImageToProbe = NULL;
+	this->SetTransformImageToProbe(transformImageToProbe); 
 
 	vtkSmartPointer<vtkTransform> transformImageToTemplate = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformImageToTemplate = NULL;
 	this->SetTransformImageToTemplate(transformImageToTemplate); 
 
-	vtkSmartPointer<vtkTransform> transformImageToUserImage = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformImageToUserImage = NULL;
-	this->SetTransformImageToUserImage(transformImageToUserImage); 
+	vtkSmartPointer<vtkTransform> transformImageToTransducerOriginPixel = vtkSmartPointer<vtkTransform>::New(); 
+	this->TransformImageToTransducerOriginPixel = NULL;
+	this->SetTransformImageToTransducerOriginPixel(transformImageToTransducerOriginPixel); 
 
 	vtkSmartPointer<vtkTransform> transformTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformTemplateHomeToTemplate = NULL;
@@ -105,8 +112,8 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 
   this->TransformImageToTemplate->Identity(); 
   this->TransformImageToTemplate->PostMultiply(); 
-  this->TransformImageToTemplate->Concatenate(this->TransformImageToUserImage); 
-  this->TransformImageToTemplate->Concatenate(this->TransformUserImageToProbe); 
+  this->TransformImageToTemplate->Concatenate(this->TransformImageToTransducerOriginPixel); 
+  this->TransformImageToTemplate->Concatenate(this->TransformImageToProbe); 
   this->TransformImageToTemplate->Concatenate(this->TransformProbeToReference); 
   this->TransformImageToTemplate->Concatenate(this->TransformReferenceToTemplateHolderHome); 
   this->TransformImageToTemplate->Concatenate(this->TransformTemplateHolderToTemplate);
@@ -135,9 +142,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 	//    above the twice of the minimum beamwidth may serve a good cutoff
 	//    point to quality control the imaging data for a reliable calibration.
   mNumOfTimesOfMinBeamWidth = 2.1;
-
-
-  this->PhantomToReferenceTransform = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -145,19 +149,13 @@ vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo()
 {
   // Former ProbeCalibrationController and FreehandCalibraitonController members
 	this->SetTransformImageToTemplate(NULL);
-	this->SetTransformImageToUserImage(NULL);
-	this->SetTransformUserImageToProbe(NULL);
+	this->SetTransformImageToTransducerOriginPixel(NULL);
+	this->SetTransformImageToProbe(NULL);
 	this->SetTransformProbeToReference(NULL);
 	this->SetTransformReferenceToTemplateHolderHome(NULL);
 	this->SetTransformTemplateHolderToTemplate(NULL);
   this->SetTransformTemplateHolderToPhantom(NULL); 
 	this->SetTransformTemplateHomeToTemplate(NULL);
-
-  if ( this->PhantomToReferenceTransform != NULL )
-  {
-    this->PhantomToReferenceTransform->Delete(); 
-    this->PhantomToReferenceTransform = NULL; 
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -181,16 +179,16 @@ PlusStatus vtkProbeCalibrationAlgo::Initialize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
 
-  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName, transformRepository, nWires);
+  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, transformRepository, nWires);
 }
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
@@ -232,7 +230,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
-    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, transformRepository, nWires, true) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, nWires, true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
@@ -242,7 +240,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
-    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, transformRepository, nWires, false) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, nWires, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
       continue;
@@ -261,11 +259,11 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation )
+PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
-  if (this->TransformImageToUserImage == NULL)
+  if (this->TransformImageToTransducerOriginPixel == NULL)
   {
     LOG_ERROR("Invalid Image to User image transform!");
     return PLUS_FAIL;
@@ -292,14 +290,16 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
     return PLUS_SUCCESS;
   }
 
+  bool valid = false;
+
   // Assemble matrices and add them to the calibration input
+  PlusTransformName probeToReferenceTransformName(this->ProbeCoordinateFrame, this->ReferenceCoordinateFrame);
   vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   transformRepository->SetTransforms(*trackedFrame); 
-  bool valid(false); 
-  if ( (transformRepository->GetTransform(defaultTransformName, probeToReferenceVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if ( (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformName; 
-    defaultTransformName.GetTransformName(transformName); 
+    probeToReferenceTransformName.GetTransformName(transformName); 
     LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
     return PLUS_FAIL;
   } 
@@ -319,12 +319,20 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 	}
 
   // Convert Image to User image transform to vnl
-  vnl_matrix<double> imageToUserImageTransformMatrix(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), imageToUserImageTransformMatrix); 
+  vnl_matrix<double> imageToTransducerOriginPixelTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToTransducerOriginPixel->GetMatrix(), imageToTransducerOriginPixelTransformMatrix); 
 
-  // Convert phantom registration matrix to vnl
-	vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(this->PhantomToReferenceTransform->GetMatrix(), phantomToReferenceTransformMatrix);
+  // Get phantom registration matrix and convert it to vnl
+  PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrixVtk, &valid) != PLUS_SUCCESS) || (!valid) )
+  {
+    LOG_ERROR("No valid transform found from phantom to reference");
+    return PLUS_FAIL;
+  }
+
+  vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(phantomToReferenceTransformMatrixVtk, phantomToReferenceTransformMatrix);
 
   // Get reference to probe transform in vnl
   vnl_matrix<double> probeToReferenceTransformMatrix(4,4);
@@ -343,13 +351,13 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
   for (int n = 0; n < segmentedPoints.size() / 3; ++n)
   {
     // Convert the segmented position of the middle wire from the original image to the predefined ultrasound image frame
-    vnl_vector<double> middleWirePositionInUserImageFrame = imageToUserImageTransformMatrix * segmentedPoints[n*3 + 1];
+    vnl_vector<double> middleWirePositionInImageFrame = segmentedPoints[n*3 + 1];
 
     // Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
     if ( true == mIsUSBeamwidthAndWeightFactorsTableReady && !isValidation )
     {
       // Get and round the axial depth in the US Image Frame for the segmented data point (in pixels and along the Y-axis)
-      const int axialDepthInActualImageFrameRounded = floor( middleWirePositionInUserImageFrame.get(1) + 0.5 );
+      const int axialDepthInActualImageFrameRounded = floor( middleWirePositionInImageFrame.get(1) + 0.5 );
       mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(axialDepthInActualImageFrameRounded) );
     }
 
@@ -381,7 +389,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
     LOG_DEBUG("Segmented point #" << n*3 << " = " << segmentedPoints[n*3]);
     LOG_DEBUG("Segmented point #" << n*3+1 << " = " << segmentedPoints[n*3+1]);
     LOG_DEBUG("Segmented point #" << n*3+2 << " = " << segmentedPoints[n*3+2]);
-    LOG_DEBUG("Middle wire position in user image frame = " << middleWirePositionInUserImageFrame);
+    LOG_DEBUG("Middle wire position in image frame = " << middleWirePositionInImageFrame);
     LOG_DEBUG("Alpha = " << alpha);
     LOG_DEBUG("Middle wire position in phantom frame = " << positionInPhantomFrame);
     LOG_DEBUG("Reference to probe transform = \n" << referenceToProbeTransformMatrix);
@@ -390,7 +398,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
     if (!isValidation)
     {
       // Store into the list of positions in the image frame and the probe frame
-      mDataPositionsInUSImageFrame.push_back( middleWirePositionInUserImageFrame );
+      mDataPositionsInUSImageFrame.push_back( middleWirePositionInImageFrame );
       mDataPositionsInUSProbeFrame.push_back( positionInProbeFrame );
     }
     else
@@ -410,7 +418,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
       vnl_vector<double> NWireJointForN3InUSProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * intersectPosW32; //any point of wire 3 of this layer
 
       // Store into the list of positions in the US image frame
-      mValidationPositionsInUSImageFrame.push_back( middleWirePositionInUserImageFrame );
+      mValidationPositionsInUSImageFrame.push_back( middleWirePositionInImageFrame );
 
       // Store into the list of positions in the US probe frame
       mValidationPositionsInUSProbeFrame.push_back( positionInProbeFrame );
@@ -431,11 +439,12 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
           vnl_vector<double> N3SegmentedPositionInOriginalImageFrame( segmentedPoints[2] );
 
           // Convert the segmented image positions from the original image to the predefined ultrasound image frame.
-          vnl_vector<double> N1SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N1SegmentedPositionInOriginalImageFrame;
-          vnl_vector<double> N3SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N3SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N1SegmentedPositionInImageFrame = N1SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N3SegmentedPositionInImageFrame = N3SegmentedPositionInOriginalImageFrame;
 
-          mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUserImageFrame );
-          mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUserImageFrame );
+          // TODO: these have no use any more
+          mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInImageFrame );
+          mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInImageFrame );
           mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
           mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
         }
@@ -444,11 +453,12 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
           vnl_vector<double> N4SegmentedPositionInOriginalImageFrame( segmentedPoints[3] );
           vnl_vector<double> N6SegmentedPositionInOriginalImageFrame( segmentedPoints[5] );
 
-          vnl_vector<double> N4SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N4SegmentedPositionInOriginalImageFrame;
-          vnl_vector<double> N6SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N6SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N4SegmentedPositionInImageFrame = N4SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N6SegmentedPositionInImageFrame = N6SegmentedPositionInOriginalImageFrame;
 
-          mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUserImageFrame );
-          mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUserImageFrame );
+          // TODO: these have no use any more
+          mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInImageFrame );
+          mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInImageFrame );
           mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
           mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
         }
@@ -460,16 +470,77 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* configData )
+PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
-	if ( configData == NULL )
+	if ( aConfig == NULL )
 	{
 		LOG_ERROR("Unable to read configuration"); 
 		return PLUS_FAIL; 
 	}
 
-  // TODO it does nothing. Do we need it? (will it do anything later?)
+  // vtkPivotCalibrationAlgo section
+  vtkXMLDataElement* probeCalibrationElement = aConfig->FindNestedElementWithName("vtkProbeCalibrationAlgo"); 
+
+  if (probeCalibrationElement == NULL)
+  {
+    LOG_ERROR("Unable to find vtkProbeCalibrationAlgo element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Image coordinate frame name
+  const char* imageCoordinateFrame = probeCalibrationElement->GetAttribute("ImageCoordinateFrame");
+  if (imageCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("ImageCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetImageCoordinateFrame(imageCoordinateFrame);
+
+  // Probe coordinate frame name
+  const char* probeCoordinateFrame = probeCalibrationElement->GetAttribute("ProbeCoordinateFrame");
+  if (probeCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("ProbeCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetProbeCoordinateFrame(probeCoordinateFrame);
+
+  // Phantom coordinate frame name
+  const char* phantomCoordinateFrame = probeCalibrationElement->GetAttribute("PhantomCoordinateFrame");
+  if (phantomCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
+
+  // Reference coordinate frame name
+  const char* referenceCoordinateFrame = probeCalibrationElement->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  // Transducer origin (mm) coordinate frame name
+  const char* transducerOriginCoordinateFrame = probeCalibrationElement->GetAttribute("TransducerOriginCoordinateFrame");
+  if (transducerOriginCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("TransducerOriginCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetTransducerOriginCoordinateFrame(transducerOriginCoordinateFrame);
+
+  // Transducer origin (pixel) coordinate frame name
+  const char* transducerOriginPixelCoordinateFrame = probeCalibrationElement->GetAttribute("TransducerOriginPixelCoordinateFrame");
+  if (transducerOriginPixelCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("TransducerOriginPixelCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   return PLUS_SUCCESS;
 }
@@ -513,14 +584,6 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
 	}
 
   return PLUS_SUCCESS; 
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfig)
-{
-	LOG_TRACE("vtkProbeCalibrationAlgo::WriteConfiguration");
-	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -591,16 +654,16 @@ PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 }
 
 //----------------------------------------------------------------------------
-bool vtkProbeCalibrationAlgo::IsUserImageToProbeTransformOrthogonal()
+bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal()
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::IsUserImageToProbeTransformOrthogonal");
+	LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
 
-  vtkMatrix4x4* userImageToProbeMatrix = this->TransformUserImageToProbe->GetMatrix(); 
+  vtkMatrix4x4* imageToProbeMatrix = this->TransformImageToProbe->GetMatrix(); 
 
   // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-  double xVector[3] = {userImageToProbeMatrix->GetElement(0,0),userImageToProbeMatrix->GetElement(1,0),userImageToProbeMatrix->GetElement(2,0)}; 
-  double yVector[3] = {userImageToProbeMatrix->GetElement(0,1),userImageToProbeMatrix->GetElement(1,1),userImageToProbeMatrix->GetElement(2,1)};  
-  double zVector[3] = {userImageToProbeMatrix->GetElement(0,2),userImageToProbeMatrix->GetElement(1,2),userImageToProbeMatrix->GetElement(2,2)};  
+  double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
+  double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
+  double zVector[3] = {imageToProbeMatrix->GetElement(0,2),imageToProbeMatrix->GetElement(1,2),imageToProbeMatrix->GetElement(2,2)};  
 
   double dotProductXY = vtkMath::Dot(xVector, yVector);
   double dotProductXZ = vtkMath::Dot(xVector, zVector);
@@ -647,26 +710,26 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
     return PLUS_FAIL;
   }
 
-	vtkSmartPointer<vtkMatrix4x4> userImageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+	vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
 	// convert transform to vtk
 	for ( int i = 0; i < 3; i++ )
 	{
 		for ( int j = 0; j < 4; j++ )
 		{
-			userImageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
+			imageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
 		}
 	}
 	
   // Check orthogonality
-  if ( ! IsUserImageToProbeTransformOrthogonal() )
+  if ( ! IsImageToProbeTransformOrthogonal() )
   {
     LOG_WARNING("User image to probe transform matrix orthogonality test failed! The result is probably not satisfactory");
   }
 
 	// Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-	double xVector[3] = {userImageToProbeMatrix->GetElement(0,0),userImageToProbeMatrix->GetElement(1,0),userImageToProbeMatrix->GetElement(2,0)}; 
-	double yVector[3] = {userImageToProbeMatrix->GetElement(0,1),userImageToProbeMatrix->GetElement(1,1),userImageToProbeMatrix->GetElement(2,1)};  
+	double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
+	double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
 	double zVector[3] = {0,0,0}; 
 
   vtkMath::Cross(xVector, yVector, zVector); 
@@ -677,12 +740,12 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 	double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
 	vtkMath::MultiplyScalar(zVector, normZ);
 	
-	userImageToProbeMatrix->SetElement(0, 2, zVector[0]);
-	userImageToProbeMatrix->SetElement(1, 2, zVector[1]);
-	userImageToProbeMatrix->SetElement(2, 2, zVector[2]);
+	imageToProbeMatrix->SetElement(0, 2, zVector[0]);
+	imageToProbeMatrix->SetElement(1, 2, zVector[1]);
+	imageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
   // Set result matrix
-  this->TransformUserImageToProbe->SetMatrix( userImageToProbeMatrix );
+  this->TransformImageToProbe->SetMatrix( imageToProbeMatrix );
 
   // Compute the independent point and line reconstruction errors
 	if ( this->computeIndependentPointLineReconstructionError() != PLUS_SUCCESS )
@@ -693,7 +756,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 
 	// STEP-4. Print the final calibration results and error reports 
   LOG_INFO("Calibration result transform matrix = ");
-  PlusMath::LogVtkMatrix(this->TransformUserImageToProbe->GetMatrix());
+  PlusMath::LogVtkMatrix(this->TransformImageToProbe->GetMatrix());
 
   // Point-Line Distance Error Analysis for Validation Positions in US probe frame
   LOG_INFO("Point-Line Distance Error - mean: " << this->PointLineDistanceErrorAnalysisVector[0] << ", rms: " << this->PointLineDistanceErrorAnalysisVector[1] << ", std: " << this->PointLineDistanceErrorAnalysisVector[2]);
@@ -701,13 +764,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 
 	// STEP-5. Save the calibration results and error reports into a file 
 	SaveCalibrationResultsAndErrorReportsToXML();
-
-  // Save calibration
-  if ( WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
-  {
-	  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
-	  return PLUS_FAIL;
-  }
 
 	this->CalibrationDoneOn(); 
 
@@ -810,7 +866,7 @@ std::string vtkProbeCalibrationAlgo::GetResultString()
 	// Print matrix rows
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			matrixStringStream << std::fixed << std::setprecision(3) << std::setw(6) << std::right << this->GetTransformUserImageToProbe()->GetMatrix()->GetElement(i,j) << " ";
+			matrixStringStream << std::fixed << std::setprecision(3) << std::setw(6) << std::right << this->GetTransformImageToProbe()->GetMatrix()->GetElement(i,j) << " ";
 		}
 
 		matrixStringStream << std::endl;
@@ -1627,21 +1683,21 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationResults->SetName("CalibrationResults"); 
 
-	double imageToUserImageMatrix[16]; 
+	double imageToTransducerOriginPixelMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			imageToUserImageMatrix[i*4+j] = this->TransformImageToUserImage->GetMatrix()->GetElement(i,j); 
+			imageToTransducerOriginPixelMatrix[i*4+j] = this->TransformImageToTransducerOriginPixel->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
-	double userImageToProbeMatrix[16]; 
+	double imageToProbeMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			userImageToProbeMatrix[i*4+j] = this->TransformUserImageToProbe->GetMatrix()->GetElement(i,j); 
+			imageToProbeMatrix[i*4+j] = this->TransformImageToProbe->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
@@ -1684,8 +1740,8 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	// <CalibrationTransform>
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationTransform = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationTransform->SetName("CalibrationTransform"); 
-	tagCalibrationTransform->SetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformUserImageToProbe", 16, userImageToProbeMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformImageToTransducerOriginPixel", 16, imageToTransducerOriginPixelMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformImageToProbe", 16, imageToProbeMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, referenceToTemplateHolderHomeMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHolderToTemplate", 16, templateHolderToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHomeToTemplate", 16, templateHomeToTemplateMatrix); 
@@ -2075,7 +2131,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadUs3DBeamwidthDataFromFile()
 	USBeamProfileFile >> ElevationFocalZoneAtAxialDistance2TheCrystals >> MinElevationBeamwidth;
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToTransducerOriginPixel->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 
 	// Convert the crystal surface position to TRUS image frame
 	double axialPositionOfCrystalSurfaceInTRUSImageFrame = transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,1) * axialPositionOfCrystalSurfaceInOrigImageFrame + transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,3);

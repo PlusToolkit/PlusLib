@@ -8,9 +8,11 @@
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"
-#include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
+
+#include "vtkObjectFactory.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
@@ -23,13 +25,19 @@
 vtkCxxRevisionMacro(vtkBrachyStepperPhantomRegistrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkBrachyStepperPhantomRegistrationAlgo); 
 
+vtkCxxSetObjectMacro(vtkBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkTransformRepository);
+
 //----------------------------------------------------------------------------
 vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo()
 {
   this->TrackedFrameList = NULL; 
   this->PhantomToReferenceTransform = NULL; 
+  this->TransformRepository = NULL;
   this->SetSpacing(0,0); 
-  this->SetCenterOfRotationPx(0, 0); 
+  this->SetCenterOfRotationPx(0, 0);
+
+  this->PhantomCoordinateFrame = NULL;
+  this->ReferenceCoordinateFrame = NULL;
 
   this->PhantomToReferenceTransform = vtkTransform::New(); 
 
@@ -84,12 +92,13 @@ void vtkBrachyStepperPhantomRegistrationAlgo::PrintSelf(ostream& os, vtkIndent i
 
 
 //----------------------------------------------------------------------------
-void vtkBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], const std::vector<NWire>& nWires)
+void vtkBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkTransformRepository* transformRepository, const std::vector<NWire>& nWires)
 {
   LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::SetInput"); 
   this->SetTrackedFrameList(trackedFrameList); 
   this->SetSpacing(spacing); 
   this->SetCenterOfRotationPx(centerOfRotationPx); 
+  this->SetTransformRepository(transformRepository);
   this->NWires = nWires; 
   this->Modified(); 
 }
@@ -274,8 +283,62 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
 
   this->PhantomToReferenceTransform->DeepCopy(tTemplateToReference); 
 
+  // Save result
+  if (this->TransformRepository)
+  {
+    PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+    this->TransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransform->GetMatrix());
+    this->TransformRepository->SetTransformPersistent(phantomToReferenceTransformName, true);
+    this->TransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+    this->TransformRepository->SetTransformError(phantomToReferenceTransformName, -1); //TODO
+  }
+  else
+  {
+    LOG_INFO("Transform repository object is NULL, cannot save results into it");
+  }
+
   this->UpdateTime.Modified(); 
 
   return PLUS_SUCCESS; 
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Invalid configuration! Problably device set is not connected.");
+    return PLUS_FAIL;
+  }
+
+  // vtkPhantomRegistrationAlgo section
+  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName("vtkBrachyStepperPhantomRegistrationAlgo"); 
+
+  if (phantomRegistrationElement == NULL)
+  {
+    LOG_ERROR("Unable to find vtkBrachyStepperPhantomRegistrationAlgo element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Phantom coordinate frame name
+  const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
+  if (phantomCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
+
+  // Reference coordinate frame name
+  const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  return PLUS_SUCCESS;
+}

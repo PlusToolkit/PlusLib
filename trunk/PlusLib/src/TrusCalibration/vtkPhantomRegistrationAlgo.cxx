@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "vtkPhantomRegistrationAlgo.h"
+#include "vtkTransformRepository.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
@@ -29,6 +30,9 @@ vtkPhantomRegistrationAlgo::vtkPhantomRegistrationAlgo()
   this->PhantomToReferenceTransformMatrix = NULL;
   this->DefinedLandmarks = NULL;
   this->RecordedLandmarks = NULL;
+  this->PhantomCoordinateFrame = NULL;
+  this->ReferenceCoordinateFrame = NULL;
+  this->StylusTipCoordinateFrame = NULL;
 
   this->DefinedLandmarkNames.clear();
 
@@ -50,7 +54,7 @@ vtkPhantomRegistrationAlgo::~vtkPhantomRegistrationAlgo()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPhantomRegistrationAlgo::Register()
+PlusStatus vtkPhantomRegistrationAlgo::Register(vtkTransformRepository* aTransformRepository/* = NULL*/)
 {
   LOG_TRACE("vtkPhantomRegistrationAlgo::Register"); 
 
@@ -117,6 +121,20 @@ PlusStatus vtkPhantomRegistrationAlgo::Register()
   {
     LOG_ERROR("Failed to compute registration error!");
     return PLUS_FAIL;
+  }
+
+  // Save result
+  if (aTransformRepository)
+  {
+    PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+    aTransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix);
+    aTransformRepository->SetTransformPersistent(phantomToReferenceTransformName, true);
+    aTransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+    aTransformRepository->SetTransformError(phantomToReferenceTransformName, this->RegistrationError);
+  }
+  else
+  {
+    LOG_INFO("Transform repository object is NULL, cannot save results into it");
   }
 
   return PLUS_SUCCESS;
@@ -200,6 +218,42 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
     LOG_ERROR("No valid landmarks were found!");
     return PLUS_FAIL;
   }
+
+  // vtkPhantomRegistrationAlgo section
+  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName("vtkPhantomRegistrationAlgo"); 
+
+  if (phantomRegistrationElement == NULL)
+  {
+    LOG_ERROR("Unable to find vtkPhantomRegistrationAlgo element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Phantom coordinate frame name
+  const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
+  if (phantomCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
+
+  // Reference coordinate frame name
+  const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  // Object pivot point coordinate frame name
+  const char* stylusTipCoordinateFrame = phantomRegistrationElement->GetAttribute("StylusTipCoordinateFrame");
+  if (stylusTipCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("StylusTipCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetStylusTipCoordinateFrame(stylusTipCoordinateFrame);
 
   return PLUS_SUCCESS;
 }
