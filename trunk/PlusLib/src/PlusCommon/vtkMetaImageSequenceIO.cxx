@@ -354,19 +354,21 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     
     // Allocate frame only if it is valid 
     const char* imgStatus = trackedFrame->GetCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str()); 
-    
-    // Delete image status field from tracked frame 
-    // Image status can be determine by trackedFrame->GetImageData()->IsImageValid()
-    this->DeleteCustomFrameString(frameNumber, SEQMETA_FIELD_IMG_STATUS.c_str()); 
+    if ( imgStatus != NULL  ) // Found the image status field 
+    { 
+      // Save status field 
+      std::string strImgStatus(imgStatus); 
 
-    if ( imgStatus != NULL  // Found the image status field 
-      && STRCASECMP(imgStatus, "OK") != 0 // Image status _not_ OK 
-      )
-    {
+      // Delete image status field from tracked frame 
+      // Image status can be determine by trackedFrame->GetImageData()->IsImageValid()
+      trackedFrame->DeleteCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str()); 
+
+      if ( STRCASECMP(strImgStatus.c_str(), "OK") != 0 )// Image status _not_ OK 
+      {
       LOG_DEBUG("Frame #" << frameNumber << " image data is invalid, no need to allocate data in the tracked frame list."); 
       continue; 
+      }
     }
-
 
     if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
     {

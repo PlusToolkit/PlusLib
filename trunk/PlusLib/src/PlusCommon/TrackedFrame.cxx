@@ -146,6 +146,7 @@ PlusStatus TrackedFrame::DeleteCustomFrameField( const char* fieldName )
   if ( field != this->CustomFrameFields.end() )
   {
     this->CustomFrameFields.erase(field); 
+    return PLUS_SUCCESS; 
   }
   LOG_DEBUG("Failed to delete custom frame field - could find field " << fieldName ); 
   return PLUS_FAIL; 
