@@ -146,17 +146,6 @@ int main (int argc, char* argv[])
 
   vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 
 
-  vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
-  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, patternRecognition.GetFidLineFinder()->GetNWires()); 
-  phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
-
-  vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
-  if ( phantomRegistrationAlgo->GetPhantomToReferenceTransform( tPhantomToReference ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to register phantom frame to reference frame!"); 
-    return EXIT_FAILURE; 
-  }
-
   // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
@@ -165,8 +154,22 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
-  // Register phantom geometry before calibration 
-	probeCal->SetPhantomToReferenceTransform( tPhantomToReference ); 
+  // Phantom registration
+  vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
+  if (phantomRegistrationAlgo->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read phantom definition!");
+    return EXIT_FAILURE; 
+  }
+  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()); 
+  phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
+
+  vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
+  if ( phantomRegistrationAlgo->GetPhantomToReferenceTransform( tPhantomToReference ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to register phantom frame to reference frame!"); 
+    return EXIT_FAILURE; 
+  }
   
   // TODO: remove these transforms from vtkProbeCalibrationAlgo
   probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
@@ -204,15 +207,8 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
-  PlusTransformName probeToReferenceTransformName; 
-  if ( probeToReferenceTransformName.SetTransformName( inputProbeToReferenceTransformName.c_str() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << inputProbeToReferenceTransformName ); 
-    return EXIT_FAILURE; 
-  }
-
   // Calibrate
-  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
 		return EXIT_FAILURE;
@@ -296,18 +292,18 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 				return numberOfFailures;
 			}
 			
-			//********************************* TransformImageToUserImage *************************************
-			double blTransformImageToUserImage[16]; 
-			double cTransformImageToUserImage[16]; 
+			//********************************* TransformImageToTransducerOriginPixel *************************************
+			double blTransformImageToTransducerOriginPixel[16]; 
+			double cTransformImageToTransducerOriginPixel[16]; 
 
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToUserImage", 16, blTransformImageToUserImage))
+			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToTransducerOriginPixel", 16, blTransformImageToTransducerOriginPixel))
 			{
-				LOG_ERROR("Baseline TransformImageToUserImage tag is missing");
+				LOG_ERROR("Baseline TransformImageToTransducerOriginPixel tag is missing");
 				numberOfFailures++;			
 			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformImageToUserImage", 16, cTransformImageToUserImage))
+			else if (!calibrationTransform->GetVectorAttribute("TransformImageToTransducerOriginPixel", 16, cTransformImageToTransducerOriginPixel))
 			{
-				LOG_ERROR("Current TransformImageToUserImage tag is missing");
+				LOG_ERROR("Current TransformImageToTransducerOriginPixel tag is missing");
 				numberOfFailures++;			
 			}
 			else
@@ -319,39 +315,39 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					for ( int j = 0; j < 4; j++)
 					{
 
-						baseTransMatrix->SetElement(i,j, blTransformImageToUserImage[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformImageToUserImage[4*i + j]); 
+						baseTransMatrix->SetElement(i,j, blTransformImageToTransducerOriginPixel[4*i + j]); 
+						currentTransMatrix->SetElement(i,j, cTransformImageToTransducerOriginPixel[4*i + j]); 
 					}
 
 				}
 					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
-						LOG_ERROR("TransformImageToUserImage translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
+						LOG_ERROR("TransformImageToTransducerOriginPixel translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
 					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
-						LOG_ERROR("TransformImageToUserImage rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
+						LOG_ERROR("TransformImageToTransducerOriginPixel rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
 						numberOfFailures++;
 					}
 				
 			}
 
-			//********************************* TransformUserImageToProbe *************************************
-			double blTransformUserImageToProbe[16]; 
-			double cTransformUserImageToProbe[16]; 
+			//********************************* TransformImageToProbe *************************************
+			double blTransformImageToProbe[16]; 
+			double cTransformImageToProbe[16]; 
 
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformUserImageToProbe", 16, blTransformUserImageToProbe))
+			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToProbe", 16, blTransformImageToProbe))
 			{
-				LOG_ERROR("Baseline TransformUserImageToProbe tag is missing");
+				LOG_ERROR("Baseline TransformImageToProbe tag is missing");
 				numberOfFailures++;			
 			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformUserImageToProbe", 16, cTransformUserImageToProbe))
+			else if (!calibrationTransform->GetVectorAttribute("TransformImageToProbe", 16, cTransformImageToProbe))
 			{
-				LOG_ERROR("Current TransformUserImageToProbe tag is missing");
+				LOG_ERROR("Current TransformImageToProbe tag is missing");
 				numberOfFailures++;			
 			}
 			else
@@ -363,22 +359,22 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					for ( int j = 0; j < 4; j++)
 					{
 
-						baseTransMatrix->SetElement(i,j, blTransformUserImageToProbe[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformUserImageToProbe[4*i + j]); 
+						baseTransMatrix->SetElement(i,j, blTransformImageToProbe[4*i + j]); 
+						currentTransMatrix->SetElement(i,j, cTransformImageToProbe[4*i + j]); 
 					}
 
 				}
 					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
-						LOG_ERROR("TransformUserImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
+						LOG_ERROR("TransformImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
 					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
-						LOG_ERROR("TransformUserImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
+						LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
 						numberOfFailures++;
 					}
 				

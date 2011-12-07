@@ -33,7 +33,7 @@ See License.txt for details.
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD = 0.001; // error threshold  
 
-PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName); 
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame);
 
 int main (int argc, char* argv[])
 { 
@@ -69,33 +69,6 @@ int main (int argc, char* argv[])
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
-
-  // Stylus and reference tool names
-  vtkXMLDataElement* fCalElement = configRootElement->FindNestedElementWithName("fCal"); 
-  if (fCalElement == NULL)
-  {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
-  if (trackerToolNames == NULL)
-  {
-    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
-    exit(EXIT_FAILURE);
-  }
-  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
-  if (stylusToolName == NULL)
-  {
-    LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
-  }
-  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
-  if (referenceToolName == NULL)
-  {
-    LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
-    exit(EXIT_FAILURE);
-  }
 
   // Initialize data collection
   vtkSmartPointer<vtkDataCollectorHardwareDevice> dataCollector = vtkSmartPointer<vtkDataCollectorHardwareDevice>::New(); 
@@ -155,7 +128,7 @@ int main (int argc, char* argv[])
   fakeTracker->SetTransformRepository(transformRepository);
 
   TrackedFrame trackedFrame;
-  PlusTransformName stylusTipToReferenceTransformName("StylusTip", referenceToolName);
+  PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
   
   for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter)
   {
@@ -175,7 +148,7 @@ int main (int argc, char* argv[])
     }
 
     // Compute point position from matrix
-    double stylusTipPosition[3]={stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
+    double stylusTipPosition[3] = {stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
     
     // Add recorded point to algorithm
     phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
@@ -184,7 +157,7 @@ int main (int argc, char* argv[])
     vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
   }
 
-  if (phantomRegistration->Register() != PLUS_SUCCESS)
+  if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
   {
     LOG_ERROR("Phantom registration failed!");
     exit(EXIT_FAILURE);
@@ -195,17 +168,17 @@ int main (int argc, char* argv[])
   LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
 
   // Save result
-  PlusTransformName tnPhantomToPhantomReference("Phantom", "Reference"); 
-  transformRepository->SetTransform(tnPhantomToPhantomReference, phantomRegistration->GetPhantomToReferenceTransformMatrix() ); 
-  transformRepository->SetTransformPersistent(tnPhantomToPhantomReference, true); 
-  transformRepository->SetTransformError(tnPhantomToPhantomReference, phantomRegistration->GetRegistrationError() ); 
-  transformRepository->WriteConfiguration(configRootElement); 
+  if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to write phantom registration result to configuration element!");
+    exit(EXIT_FAILURE);
+  }
 
   vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
   configRootElement->PrintXML(registrationResultFileName.c_str());
 
-  if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) != PLUS_SUCCESS )
+  if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Comparison of calibration data to baseline failed");
     std::cout << "Exit failure!!!" << std::endl; 
@@ -219,7 +192,7 @@ int main (int argc, char* argv[])
 //-----------------------------------------------------------------------------
 
 // return the number of differences
-PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName)
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame)
 {
   int numberOfFailures=0;
 
@@ -235,7 +208,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  PlusTransformName tnPhantomToPhantomReference("Phantom", "Reference"); 
+  PlusTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame); 
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(

@@ -16,6 +16,7 @@
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 class vtkTransform;
+class vtkTransformRepository;
 
 /*!
   \class vtkBrachyStepperPhantomRegistrationAlgo 
@@ -41,9 +42,16 @@ public:
     \param trackedFrameList Tracked frames with segmentation results 
     \param spacing Image spacing (mm/px)
     \param centerOfRotationPx Ultrasound image rotation center in px
+    \param transformRepository Transform repositoyr to set the result into
     \param nWires Phantom definition structure 
   */
-  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], const std::vector<NWire>& nWires ); 
+  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkTransformRepository* transformRepository, const std::vector<NWire>& nWires ); 
+
+	/*!
+	  Read phantom definition (landmarks)
+	  \param aConfig Root XML data element containing the tool calibration
+	*/
+	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get phantom to reference transform */
   virtual PlusStatus GetPhantomToReferenceTransform( vtkTransform* phantomToReferenceTransform);
@@ -73,9 +81,19 @@ protected:
   /*! Set spacing */
   vtkSetVector2Macro(Spacing, double); 
 
-  /*! Set center of rotation in px  */
+  /*! Set center of rotation in px */
   vtkSetVector2Macro(CenterOfRotationPx, double); 
 
+  /*! Set phantom coordinate frame */
+  vtkSetStringMacro(PhantomCoordinateFrame);
+
+  /*! Set reference coordinate frame */
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+
+  /*! Set input transform repository */
+  void SetTransformRepository(vtkTransformRepository*);
+
+protected:
   /*! Image spacing (mm/pixel). Spacing[0]: lateral axis, Spacing[1]: axial axis */
   double Spacing[2];
 
@@ -100,6 +118,14 @@ protected:
   /*! When the results were computed. The result is recomputed only if the inputs changed more recently than UpdateTime. */
   vtkTimeStamp UpdateTime;  
 
+  /*! Transform repository object into that the result is set */
+  vtkTransformRepository* TransformRepository;
+
+  /*! Name of the phantom coordinate frame (eg. Phantom) */
+  char*                     PhantomCoordinateFrame;
+
+  /*! Name of the reference coordinate frame (eg. Reference) */
+  char*                     ReferenceCoordinateFrame;
 }; 
 
 #endif

@@ -46,14 +46,14 @@ public:
 	/*! Initialize the calibration controller interface */
 	virtual PlusStatus Initialize(); 
 
-	/*! Read XML based configuration of the calibration controller */
-	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
+	/*!
+    Read XML based configuration of the calibration controller
+    \param aConfig Root element of device set configuration data
+  */
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
 	/*! Read XML based configuration for probe calibration */
   virtual PlusStatus ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData );
-
-  /*! Write configuration */
-  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData );
 
   /*!
 	  Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
@@ -63,36 +63,28 @@ public:
 	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
-    \param defaultTransformName Name of the default transform (which will be used for the calibration)
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
 	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
 	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
-    \param defaultTransformName Name of the default transform (which will be used for the calibration)
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
     \param trackedFrame The actual tracked frame (already segmented) to add for calibration or validation
-    \param defaultTransformName Transform name to be used to get the tracked position
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation );
-	
-	/*! Get Phantom to Reference transform */
-	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
-	/*! Set Phantom to Reference transform */
-	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation );
 
 	/*! Get flag to show the initialized state */
 	vtkGetMacro(Initialized, bool);
@@ -108,6 +100,13 @@ public:
 	vtkSetMacro(CalibrationDone, bool);
   /*! Flag to identify the calibration state */
 	vtkBooleanMacro(CalibrationDone, bool);
+
+  vtkGetStringMacro(ImageCoordinateFrame);
+  vtkGetStringMacro(ProbeCoordinateFrame);
+  vtkGetStringMacro(PhantomCoordinateFrame);
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro(TransducerOriginCoordinateFrame);
+  vtkGetStringMacro(TransducerOriginPixelCoordinateFrame);
 
   /*! Reset data containers */
   void ResetDataContainers();
@@ -125,7 +124,7 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	virtual PlusStatus ComputeCalibrationResults();
 
   /*! Check user image home to probe home transform orthogonality */
-  virtual bool IsUserImageToProbeTransformOrthogonal(); 
+  virtual bool IsImageToProbeTransformOrthogonal(); 
 		
 	/*! Update Line Reconstruction Error Analysis for the validation positions in the US probe frame. For details see member variable definitions */
   PlusStatus UpdateLineReconstructionErrorAnalysisVectors();  
@@ -204,15 +203,15 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
   /*! Get/set final calibration transform */
 	vtkSetObjectMacro(TransformImageToTemplate, vtkTransform);
 
-	/*! Get/set image home to user defined image home constant transform. Should be defined in config file */
-	vtkGetObjectMacro(TransformImageToUserImage, vtkTransform);
-	/*! Get/set image home to user defined image home constant transform. Should be defined in config file */
-	vtkSetObjectMacro(TransformImageToUserImage, vtkTransform);
+	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
+	vtkGetObjectMacro(TransformImageToTransducerOriginPixel, vtkTransform);
+	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
+	vtkSetObjectMacro(TransformImageToTransducerOriginPixel, vtkTransform);
 	
-	/*! Get/set the iCAL calibration result transformation between the user defined image home and probe home position */
-	vtkGetObjectMacro(TransformUserImageToProbe, vtkTransform);
-  /*! Get/set the iCAL calibration result transformation between the user defined image home and probe home position */
-	vtkSetObjectMacro(TransformUserImageToProbe, vtkTransform);
+	/*! Get/set the iCAL calibration result transformation between the image and probe home position */
+	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
+  /*! Get/set the iCAL calibration result transformation between the image and probe home position */
+	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
 	
 	/*! Get/set transformation between the probe home and probe position (e.g read from stepper) */
 	vtkGetObjectMacro(TransformProbeToReference, vtkTransform);
@@ -261,6 +260,13 @@ protected:
 	vtkBooleanMacro(Initialized, bool);
   /*! Set flag to show the initialized state */
   vtkSetMacro(Initialized, bool);
+
+  vtkSetStringMacro(ImageCoordinateFrame);
+  vtkSetStringMacro(ProbeCoordinateFrame);
+  vtkSetStringMacro(PhantomCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro(TransducerOriginCoordinateFrame);
+  vtkSetStringMacro(TransducerOriginPixelCoordinateFrame);
 
 protected: // from former Phantom class
 	/*!
@@ -316,6 +322,24 @@ protected:
 
   /*! Calibration date in string format */
   char* CalibrationDate; 
+
+  /*! Name of the image coordinate frame (eg. Image) */
+  char* ImageCoordinateFrame;
+
+  /*! Name of the probe coordinate frame (eg. Probe) */
+  char* ProbeCoordinateFrame;
+
+  /*! Name of the phantom coordinate frame (eg. Phantom) */
+  char* PhantomCoordinateFrame;
+
+  /*! Name of the reference coordinate frame (eg. Reference) */
+  char* ReferenceCoordinateFrame;
+
+  /*! Name of the transducer origin (mm) coordinate frame (eg. TransducerOrigin) */
+  char* TransducerOriginCoordinateFrame;
+
+  /*! Name of the transducer origin (pixel) coordinate frame (eg. TransducerOriginPixel) */
+  char* TransducerOriginPixelCoordinateFrame;
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
 
@@ -431,11 +455,11 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
   /*! Final calibration transform */
 	vtkTransform * TransformImageToTemplate;
 
-	/*! Transform matrix from the original image frame to the TRUS image frame. Constant transform, read from file */
-	vtkTransform * TransformImageToUserImage;
+	/*! Transform matrix from the original image frame to the transducer origin (pixel). Constant transform, read from file */
+	vtkTransform * TransformImageToTransducerOriginPixel;
 
   /*! The result of the calibration */
-	vtkTransform * TransformUserImageToProbe;
+	vtkTransform * TransformImageToProbe;
 
   /*! Actual tracker position of the probe in the reference frame */
 	vtkTransform * TransformProbeToReference;
@@ -779,9 +803,6 @@ protected: // From former Phantom class
 
 	/*! This is the threshold to filter out input data acquired at large beamwidth */
 	double mNumOfTimesOfMinBeamWidth;
-
-  /*! Phantom registration transform */
-  vtkTransform* PhantomToReferenceTransform;
 
 private:
 	vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);
