@@ -16,6 +16,7 @@
 class vtkPasteSliceIntoVolume;
 class vtkTrackedFrameList;
 class TrackedFrame;
+class vtkTransformRepository; 
 
 /*!
   \class vtkVolumeReconstructor
@@ -59,10 +60,10 @@ public:
     Automatically adjusts the reconstruced volume size to enclose all the
     frames in the supplied vtkTrackedFrameList. It clears the reconstructed volume.
   */
-  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, PlusTransformName& toolToReferenceTransformName);
+  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName);
 
   /*! Inserts the tracked frame into the volume */
-  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName);
+  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume=NULL);
 
   /*! Returns the reconstructed volume */
   virtual PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume);
@@ -73,20 +74,6 @@ public:
     in the alpha channel is non-zero.
   */
   virtual PlusStatus GetReconstructedVolumeAlpha(vtkImageData* reconstructedVolume);
-
-  /*! Get the image to tool transform (the calibration matrix) */
-  vtkTransform* GetImageToToolTransform();
-
-  /*! 
-    Get the image to reference transform (the image frame pose in the reference coordinate system)
-    from the tool to reference transform (the transform provided by the tracked, which is different for each frame)
-  */
-  PlusStatus GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix);
-  /*! 
-    Get the image to reference transform (the image frame pose in the reference coordinate system)
-    from the tool to reference transform (the transform provided by the tracked, which is different for each frame)
-  */
-  PlusStatus GetImageToReferenceTransformMatrix(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix);
 
 protected: 
   vtkVolumeReconstructor();
@@ -99,9 +86,6 @@ protected:
   
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   int FillHoles;
-  
-  /*! The calibration matrix, constant throughout the reconstruction */
-  vtkTransform* ImageToToolTransform;
 
 private: 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.

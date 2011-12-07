@@ -469,7 +469,7 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
   if ( coordinateDefinitions == NULL )
   {
     LOG_DEBUG("Couldn't read transform from CoordinateDefinitions - CoordinateDefinitions element not found"); 
-    return PLUS_FAIL;  
+    return PLUS_SUCCESS;  
   }
 
   // Clear the transforms
