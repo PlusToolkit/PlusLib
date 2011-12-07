@@ -29,6 +29,7 @@
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkVolumeReconstructor.h"
+#include "vtkTransformRepository.h"
 
 
 int main( int argc, char** argv )
@@ -105,19 +106,12 @@ int main( int argc, char** argv )
   reconstructor->ReadConfiguration(configRead);
   LOG_DEBUG("Reading config file done.");
 
-  const vtkMatrix4x4* mImageToTool = reconstructor->GetImageToToolTransform()->GetMatrix();
-  if ( mImageToTool == NULL )
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
-    LOG_ERROR("ERROR: ImageToTool calibration matrix not defined. Cannot continue.");
-    return EXIT_FAILURE;
+    LOG_ERROR("Failed to read transforms for transform repository!"); 
+    return EXIT_FAILURE; 
   }
-
-  vtkSmartPointer< vtkMatrix4x4 > mImageToTool2 = vtkSmartPointer< vtkMatrix4x4 >::New();
-  mImageToTool2->DeepCopy( const_cast< vtkMatrix4x4* >( mImageToTool ) );
-
-  vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
-  tImageToTool->SetMatrix( mImageToTool2 );
-  tImageToTool->Update();
 
   // Prepare the output polydata.
   vtkSmartPointer< vtkPolyData > outputPolyData = vtkSmartPointer< vtkPolyData >::New();
@@ -136,10 +130,24 @@ int main( int argc, char** argv )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
-    double defaultTransform[ 16 ];
-    frame->GetCustomFrameTransform(transformName, defaultTransform);
-    vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
-    tToolToTracker->SetMatrix( defaultTransform );    
+    // Update transform repository 
+    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
+      continue; 
+    }
+
+    vtkSmartPointer<vtkMatrix4x4> tUserDefinedMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( transformRepository->GetTransform(transformName, tUserDefinedMatrix) != PLUS_SUCCESS )
+    {
+      std::string strTransformName; 
+      transformName.GetTransformName(strTransformName); 
+      LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
+      continue; 
+    }
+
+    vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
+    tUserDefinedTransform->SetMatrix( tUserDefinedMatrix );    
 
     int* frameSize = frame->GetFrameSize();
 
@@ -149,8 +157,7 @@ int main( int argc, char** argv )
 
     vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
     tCubeToTracker->Identity();
-    tCubeToTracker->Concatenate( tToolToTracker );
-    tCubeToTracker->Concatenate( tImageToTool );
+    tCubeToTracker->Concatenate( tUserDefinedTransform );
     tCubeToTracker->Concatenate( tCubeToImage );
 
     vtkSmartPointer< vtkTransformPolyDataFilter > CubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();

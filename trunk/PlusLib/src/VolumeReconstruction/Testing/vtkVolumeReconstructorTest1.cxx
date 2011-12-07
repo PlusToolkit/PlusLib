@@ -15,6 +15,7 @@
 #include "vtkVolumeReconstructor.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
 
 int main (int argc, char* argv[])
 { 
@@ -70,10 +71,17 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read transforms for transform repository!"); 
+    return EXIT_FAILURE; 
+  }
+
   // Print calibration transform
-  std::ostringstream osTransformImageToTool; 
-  reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
-  LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
+  std::ostringstream osTransformRepo; 
+  transformRepository->Print(osTransformRepo); 
+  LOG_DEBUG("Transform repository: \n" << osTransformRepo.str());  
 
   // Read image sequence
   LOG_INFO("Reading image sequence...");
@@ -88,8 +96,14 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
   
+  LOG_INFO("Set volume output extent...");
+  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, toolToReferenceTransformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set output extent of volume!"); 
+    return EXIT_FAILURE; 
+  }
+
   LOG_INFO("Reconstruct volume...");
-  reconstructor->SetOutputExtentFromFrameList(trackedFrameList, toolToReferenceTransformName);
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
@@ -99,15 +113,21 @@ int main (int argc, char* argv[])
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Insert slice for reconstruction
-    reconstructor->AddTrackedFrame(frame, toolToReferenceTransformName);
+    if ( reconstructor->AddTrackedFrame(frame, transformRepository, toolToReferenceTransformName ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
+      continue; 
+    }
 
     // Write an ITK image with the image pose in the reference coordinate system
     if (!outputFrameFileName.empty())
     {       
       vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-      if ( reconstructor->GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+      if ( transformRepository->GetTransform(toolToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
+        std::string strImageToReferenceTransformName; 
+        toolToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+        LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
         continue; 
       }
 

@@ -22,10 +22,10 @@
   </DataCollection>
 
   <!-- COORDINATE DEFINITIONS -->
-  <CoordinateFrameDefinitions>
+  <CoordinateDefinitions>
     <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
     <Transform From="Image" To="Probe" Matrix="0.191647 0.00743877 0.0242208 -65.3006 -0.00410587 0.183884 -0.00547576 -86.7768 -0.0249356 0.0044197 0.187056 160.661 0 0 0 1" Date="2011.07.28 21:42:34" Error="0.0" />
-  </CoordinateFrameDefinitions>
+  </CoordinateDefinitions>
 
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction ImageCoordinateFrame="Image"

@@ -26,6 +26,7 @@
 #include "vtkFillHolesInVolume.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructor);
@@ -34,7 +35,6 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
-  this->ImageToToolTransform = vtkTransform::New();
   this->FillHoles=0;
 }
 
@@ -45,11 +45,6 @@ vtkVolumeReconstructor::~vtkVolumeReconstructor()
   {
     this->Reconstructor->Delete();
     this->Reconstructor=NULL;
-  }
-  if (this->ImageToToolTransform!=NULL)
-  {
-    this->ImageToToolTransform->Delete();
-    this->ImageToToolTransform=NULL;
   }
 }
 
@@ -186,32 +181,6 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  // Read calibration matrix (ImageToTool transform)
-  //*************** TODO: remove it after assemble ticket plus #385 fixed 
-  vtkXMLDataElement* coordinateFrameDefinitions = config->FindNestedElementWithName("CoordinateFrameDefinitions");
-  if (coordinateFrameDefinitions == NULL)
-  {
-    LOG_ERROR("Cannot find CoordinateFrameDefinitions element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* toolCalibrationConfig = coordinateFrameDefinitions->FindNestedElementWithNameAndAttribute("Transform", "From", "Image");
-  if (toolCalibrationConfig == NULL)
-  {
-    LOG_ERROR("Cannot find image to probe transform in " << coordinateFrameDefinitions->GetName() << " XML tree!");
-    return PLUS_FAIL;
-  }
-
-  double aImageToTool[16];
-  if (!toolCalibrationConfig->GetVectorAttribute("Matrix", 16, aImageToTool)) 
-  {
-    LOG_ERROR("No calibration matrix found!");
-    return PLUS_FAIL;
-  }
-
-  this->ImageToToolTransform->SetMatrix( aImageToTool );
-  //************* END-TODO: remove it after assemble ticket plus #385 fixed 
-
   return PLUS_SUCCESS;
 }
 
@@ -279,34 +248,6 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkVolumeReconstructor::GetImageToToolTransform()
-{ 
-  return this->ImageToToolTransform;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix)
-{
-  // Transformation chain: ImageToReference = ToolToReference * ImageToTool
-  vtkMatrix4x4::Multiply4x4(
-    toolToReferenceTransformMatrix, this->ImageToToolTransform->GetMatrix(),
-    imageToReferenceTransformMatrix);  
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix)
-{
-  vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( frame->GetCustomFrameTransform(toolToReferenceTransformName, toolToReferenceTransformMatrix)!= PLUS_SUCCESS )		
-  {
-    LOG_ERROR("Unable to get default frame transform"); 
-    return PLUS_FAIL; 
-  }
-  return GetImageToReferenceTransformMatrix(toolToReferenceTransformMatrix, imageToReferenceTransformMatrix);
-}
-
-//----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref)
 {
   // Output volume is in the Reference coordinate system.
@@ -346,8 +287,20 @@ void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, PlusTransformName& imageToReferenceTransformName)
+PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName)
 {
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( transformRepository == NULL )
+  {
+    LOG_ERROR("Failed to set output extent from tracked frame list - input transform repository is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
   double extent_Ref[6]=
   {
     VTK_DOUBLE_MAX, VTK_DOUBLE_MIN,
@@ -359,20 +312,32 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
-
-    // Get transform
-    vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+    
+    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
-      continue; 
+      LOG_ERROR("Failed to update transform repository with tracked frame!"); 
+      return PLUS_FAIL; 
     }
 
-    // Get image (only the frame extents will be used)
-    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
+    // Get transform
+    bool isMatrixValid(false); 
+    vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid ) != PLUS_SUCCESS )
+    {
+      std::string strImageToReferenceTransformName; 
+      imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+      LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
+      return PLUS_FAIL; 
+    }
 
-    // Expand the extent_Ref to include this frame
-    AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
+    if ( isMatrixValid )
+    {
+      // Get image (only the frame extents will be used)
+      vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
+
+      // Expand the extent_Ref to include this frame
+      AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
+    }
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
@@ -404,13 +369,39 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName)
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume/*=NULL*/)
 {
-  vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+  if ( frame == NULL )
   {
-    LOG_ERROR("Unable to get image to reference transform for frame"); 
+    LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL!"); 
     return PLUS_FAIL; 
+  }
+
+  if ( transformRepository == NULL )
+  {
+    LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  bool isMatrixValid(false); 
+  vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid ) != PLUS_SUCCESS )
+  {
+    std::string strImageToReferenceTransformName; 
+    imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+    LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( insertedIntoVolume != NULL )
+  {
+    *insertedIntoVolume = isMatrixValid; 
+  }
+
+  if ( !isMatrixValid )
+  {
+    // Insert only valid frame into volume 
+    return PLUS_SUCCESS; 
   }
 
   vtkImageData* frameImage=frame->GetImageData()->GetVtkImage();
