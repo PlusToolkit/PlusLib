@@ -175,11 +175,11 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 
   if (m_State == ToolboxState_Uninitialized)
   {
-    vtkDisplayableObject* referenceDisplayableObject = NULL;
-    if ( m_PhantomRegistration->GetReferenceCoordinateFrame() == NULL
-      || m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), referenceDisplayableObject) != PLUS_SUCCESS )
+    vtkDisplayableObject* phantomDisplayableObject = NULL;
+    if ( m_PhantomRegistration->GetPhantomCoordinateFrame() == NULL
+      || m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to get reference displayable object!");
+      LOG_ERROR("Unable to get phantom displayable object!");
       return PLUS_FAIL;
     }
 
@@ -202,16 +202,23 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
     m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
     // Initialize phantom visualization in toolbox canvas
-    if ( referenceDisplayableObject->GetSTLModelFileName() != NULL && referenceDisplayableObject->GetModelToObjectTransform() != NULL )
+    if ( phantomDisplayableObject->GetSTLModelFileName() != NULL && phantomDisplayableObject->GetModelToObjectTransform() != NULL )
     {
+      std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(phantomDisplayableObject->GetSTLModelFileName());
+      if (STRCASECMP("", searchResult.c_str()) == 0)
+      {
+        LOG_ERROR("Failed to find phantom model file in configuration directory!");
+        return PLUS_FAIL;
+      }
+      
       vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
       m_PhantomActor = vtkActor::New();
       vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      stlReader->SetFileName(referenceDisplayableObject->GetSTLModelFileName());
+      stlReader->SetFileName(searchResult.c_str());
       stlMapper->SetInputConnection(stlReader->GetOutputPort());
       m_PhantomActor->SetMapper(stlMapper);
-      m_PhantomActor->GetProperty()->SetOpacity(0.6);
-      m_PhantomActor->SetUserTransform(referenceDisplayableObject->GetModelToObjectTransform());
+      m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableObject->GetLastOpacity() );
+      m_PhantomActor->SetUserTransform(phantomDisplayableObject->GetModelToObjectTransform());
     }
     else
     {
@@ -333,7 +340,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
     if (m_CurrentLandmarkIndex >= 3)
     {
-      m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), true);
+      m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -351,7 +358,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
 
   }

@@ -54,7 +54,7 @@ vtkToolVisualizer::vtkToolVisualizer()
   this->InitializedOff();
   this->ImageModeOff();
   this->WorldCoordinateFrame = NULL;
-  this->ImageCoordinateFrame = NULL;
+  this->ImageCoordinateFrame = NULL; //TODO needed?
 
   this->CanvasRenderer = NULL;
   this->InputPolyData = NULL;
@@ -73,6 +73,8 @@ vtkToolVisualizer::vtkToolVisualizer()
 
 vtkToolVisualizer::~vtkToolVisualizer()
 {
+  ClearDisplayableObjects();
+
   if (this->AcquisitionTimer != NULL)
   {
     disconnect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( UpdateObjectVisualization() ) );
@@ -99,8 +101,6 @@ vtkToolVisualizer::~vtkToolVisualizer()
   this->SetCanvasRenderer(NULL);
   this->SetImageActor(NULL);
   this->SetImageCamera(NULL);
-
-  ClearDisplayableObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -196,29 +196,43 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
     vtkDisplayableObject* displayableObject = vtkDisplayableObject::New();
 
     // Check if image (empty but the coordinate frame) and store it
-    const char* objectCoordinateFrame = displayableObjectElement->GetAttribute("ObjectCoordinateFrame");
-    if (objectCoordinateFrame != NULL && displayableObjectElement->GetNumberOfAttributes() == 1 && displayableObjectElement->GetNumberOfNestedElements() == 0)
+    vtkXMLDataElement* imageElement = displayableObjectElement->FindNestedElementWithName("Image");
+    if (imageElement == NULL)
     {
+      // Read configuration if not image
+      if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to read displayable tool configuration!");
+        continue;
+      }
+    }
+    else
+    {
+      const char* objectCoordinateFrame = displayableObjectElement->GetAttribute("ObjectCoordinateFrame");
+      if (objectCoordinateFrame == NULL)
+      {
+        LOG_ERROR("No ObjectCoordinateFrame defined for image!");
+      }
+
       displayableObject->SetObjectCoordinateFrame(objectCoordinateFrame);
       displayableObject->SetActor((vtkActor*)this->ImageActor);
-
       this->SetImageCoordinateFrame(objectCoordinateFrame);
 
       imageFound = true;
-    }
-    // Read configuration if not image
-    else if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to read displayable tool configuration!");
-      continue;
     }
 
     this->DisplayableObjects[displayableObject->GetObjectCoordinateFrame()] = displayableObject;
   }
 
+  if (this->DisplayableObjects.size() == 0)
+  {
+    LOG_ERROR("No displayable objects found!");
+    return PLUS_FAIL;
+  }
+
   if (!imageFound)
   {
-    LOG_WARNING("No image found in the displayable object list, it will not be displayed!");
+    LOG_INFO("No image found in the displayable object list, it will not be displayed!");
   }
 
   return PLUS_SUCCESS;
@@ -343,9 +357,6 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
     return PLUS_FAIL;
   }
 
-  // Delete displayable objects
-  ClearDisplayableObjects();
-
   // Connect data collector to image actor
   if (this->DataCollector->GetVideoEnabled())
   {
@@ -415,6 +426,7 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
       toolMapper->SetInputConnection(stlReader->GetOutputPort());
 
       displayableObject->GetActor()->SetMapper(toolMapper);
+      displayableObject->GetActor()->GetProperty()->SetOpacity( displayableObject->GetLastOpacity() );
 
       if (objectName.find("Stylus") != std::string::npos) // Stylus is always black
       {

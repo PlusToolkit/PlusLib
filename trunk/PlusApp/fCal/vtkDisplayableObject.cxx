@@ -95,5 +95,12 @@ PlusStatus vtkDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
 		}
   }
 
+  // Opacity
+	double opacity = 0.0; 
+	if ( modelElement->GetScalarAttribute("Opacity", opacity) )
+	{
+    this->LastOpacity = opacity;
+	}
+
   return PLUS_SUCCESS;
 }

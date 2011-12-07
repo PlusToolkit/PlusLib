@@ -156,13 +156,6 @@ windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="d
   <span class="kw">print</span> <span class="str">"[ERROR] Unable to find OK status!"</span>
   captureScreenAndExit()
 
-<span class="cmt"># Wait for the status to be Out of view
-</span><span class="kw">try</span>:
-  windowRegion.<span class="skw">wait</span>(<img src="OutOfViewLabel.png" />, <span class="dig">60</span>)
-<span class="kw">except</span> FindFailed:
-  <span class="kw">print</span> <span class="str">"[ERROR] Unable to find Out of view status!"</span>
-  captureScreenAndExit()
-
 <span class="cmt"># Wait for the status to be Missing
 </span><span class="kw">try</span>:
   windowRegion.<span class="skw">wait</span>(<img src="MissingLabel.png" />, <span class="dig">60</span>)

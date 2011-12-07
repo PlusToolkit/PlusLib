@@ -84,13 +84,6 @@ except FindFailed:
   print "[ERROR] Unable to find OK status!"
   captureScreenAndExit()
 
-# Wait for the status to be Out of view
-try:
-  windowRegion.wait("OutOfViewLabel.png", 60)
-except FindFailed:
-  print "[ERROR] Unable to find Out of view status!"
-  captureScreenAndExit()
-
 # Wait for the status to be Missing
 try:
   windowRegion.wait("MissingLabel.png", 60)
