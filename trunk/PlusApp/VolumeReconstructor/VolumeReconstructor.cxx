@@ -14,6 +14,7 @@
 
 #include "vtkVolumeReconstructor.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
 
 int main (int argc, char* argv[])
 { 
@@ -64,14 +65,23 @@ int main (int argc, char* argv[])
   LOG_INFO( "Reading configuration file:" << inputConfigFileName );
   vtkXMLDataElement *configRead = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   reconstructor->ReadConfiguration(configRead);
+
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read transforms for transform repository!"); 
+    return EXIT_FAILURE; 
+  }
+
   configRead->Delete();
   configRead=NULL;
 
   // Print calibration transform
-  std::ostringstream osTransformImageToTool; 
-  reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
-  LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
+   std::ostringstream osTransformRepo; 
+  transformRepository->Print(osTransformRepo); 
+  LOG_DEBUG("Transform repository: \n" << osTransformRepo.str());  
 
+  // Read image sequence
   LOG_INFO("Reading image sequence...");
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
@@ -83,16 +93,26 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
-  LOG_INFO("Reconstruct volume...");
-  reconstructor->SetOutputExtentFromFrameList(trackedFrameList, toolToReferenceTransformName);
+  LOG_INFO("Set volume output extent...");
+  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, toolToReferenceTransformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set output extent of volume!"); 
+    return EXIT_FAILURE; 
+  }
+  
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 
+  LOG_INFO("Reconstruct volume...");
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
-    reconstructor->AddTrackedFrame(frame, toolToReferenceTransformName);
+    if ( reconstructor->AddTrackedFrame(frame, transformRepository, toolToReferenceTransformName ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
+      continue; 
+    }
   }
   vtkPlusLogger::PrintProgressbar( 100 ); 
 
