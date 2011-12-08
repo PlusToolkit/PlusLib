@@ -579,6 +579,12 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
 
   if (aOn)
   {
+    if (this->DataCollector->GetVideoEnabled() == false)
+    {
+      LOG_DEBUG("Cannot switch to image mode without enabled video in data collector!");
+      return PLUS_FAIL;
+    }
+
     this->ImageActor->VisibilityOn();
     this->ImageActor->SetOpacity(1.0);
 

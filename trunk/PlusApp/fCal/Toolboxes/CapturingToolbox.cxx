@@ -40,7 +40,7 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 
   // Create tracked frame list
   m_RecordedFrames = vtkTrackedFrameList::New();
-  m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+  m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
   // Connect events
 	connect( ui.pushButton_Snapshot, SIGNAL( clicked() ), this, SLOT( TakeSnapshot() ) );
@@ -197,23 +197,43 @@ void CapturingToolbox::TakeSnapshot()
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
   }
-  
-  TrackedFrameFieldStatus status = FIELD_INVALID;
-  PlusTransformName transformName(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
-  if ( trackedFrame.GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS )
+
+  // Check if there are any valid transforms
+  std::vector<PlusTransformName> transformNames;
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  bool validFrame = false;
+
+  if (transformNames.size() == 0)
   {
-    LOG_ERROR("Failed to get transform status!"); 
-    return; 
+    validFrame = true;
+  }
+  else
+  {
+    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+    {
+      TrackedFrameFieldStatus status = FIELD_INVALID;
+      trackedFrame.GetCustomFrameTransformStatus(*it, status);
+
+      if ( status == FIELD_OK )
+      {
+        validFrame = true;
+        break;
+      }
+    }
   }
 
-  if ( status != FIELD_OK )
+  if ( !validFrame )
 	{
-		LOG_WARNING("Unable to record tracked frame: Probe tool is out of view!"); 
+		LOG_WARNING("Unable to record tracked frame: All the tool transforms are invalid!"); 
     return;
 	}
 
   // Add tracked frame to the list
-  m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME);
+  if (m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Frame could not be added because validation failed!");
+    return;
+  }
 
   SetState(ToolboxState_Done);
 }
