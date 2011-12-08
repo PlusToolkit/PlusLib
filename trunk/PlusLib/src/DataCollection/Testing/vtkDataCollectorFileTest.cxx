@@ -77,11 +77,11 @@ int main( int argc, char** argv )
   PlusTransformName referenceToTrackerTransformName("Reference", "Tracker");
   vtkSmartPointer<vtkMatrix4x4> referenceToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-  PlusTransformName probeToReferenceTransformName("Probe", "Reference");
-  vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  PlusTransformName probeToTrackerTransformName("Probe", "Tracker");
+  vtkSmartPointer<vtkMatrix4x4> probeToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-  PlusTransformName stylusToReferenceTransformName("Stylus", "Reference");
-  vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  PlusTransformName stylusToTrackerTransformName("Stylus", "Tracker");
+  vtkSmartPointer<vtkMatrix4x4> stylusToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
 
@@ -106,28 +106,28 @@ int main( int argc, char** argv )
   {
     std::string transformNameStr;
     referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    LOG_ERROR("Transform " << transformNameStr << " does not match!");
   }
 
-  if ( (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if ( (transformRepository->GetTransform(probeToTrackerTransformName, probeToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformNameStr;
-    probeToReferenceTransformName.GetTransformName(transformNameStr);
+    probeToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
-  if ( fabs(probeToReferenceTransformMatrix->GetElement(0,3) - (-10.8643)) > 0.001
-    || fabs(probeToReferenceTransformMatrix->GetElement(1,3) - (9.56497)) > 0.001
-    || fabs(probeToReferenceTransformMatrix->GetElement(2,3) - (64.7422)) > 0.001 )
+  if ( fabs(probeToTrackerTransformMatrix->GetElement(0,3) - (-275.514)) > 0.001
+    || fabs(probeToTrackerTransformMatrix->GetElement(1,3) - (82.2319)) > 0.001
+    || fabs(probeToTrackerTransformMatrix->GetElement(2,3) - (-1701.99)) > 0.001 )
   {
     std::string transformNameStr;
-    probeToReferenceTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    probeToTrackerTransformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Transform " << transformNameStr << " does not match!");
   }
 
-  if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
+  if ( (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
   {
     std::string transformNameStr;
-    stylusToReferenceTransformName.GetTransformName(transformNameStr);
+    stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
 
@@ -147,28 +147,28 @@ int main( int argc, char** argv )
   {
     std::string transformNameStr;
     referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    LOG_ERROR("Transform " << transformNameStr << " does not match!");
   }
 
-  if ( (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if ( (transformRepository->GetTransform(probeToTrackerTransformName, probeToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
   {
     std::string transformNameStr;
-    probeToReferenceTransformName.GetTransformName(transformNameStr);
+    probeToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
-  if ( fabs(probeToReferenceTransformMatrix->GetElement(0,3) - (-12.1615)) > 0.001
-    || fabs(probeToReferenceTransformMatrix->GetElement(1,3) - (9.35552)) > 0.001
-    || fabs(probeToReferenceTransformMatrix->GetElement(2,3) - (59.7665)) > 0.001 )
+  if ( fabs(probeToTrackerTransformMatrix->GetElement(0,3) - (-276.036)) > 0.001
+    || fabs(probeToTrackerTransformMatrix->GetElement(1,3) - (82.8124)) > 0.001
+    || fabs(probeToTrackerTransformMatrix->GetElement(2,3) - (-1707.32)) > 0.001 )
   {
     std::string transformNameStr;
-    probeToReferenceTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    probeToTrackerTransformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Transform " << transformNameStr << " does not match!");
   }
 
-  if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
+  if ( (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
   {
     std::string transformNameStr;
-    stylusToReferenceTransformName.GetTransformName(transformNameStr);
+    stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
   }
 
