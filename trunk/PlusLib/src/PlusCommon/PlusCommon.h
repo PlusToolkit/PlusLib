@@ -242,6 +242,11 @@ public:
   /*! Check if the current transform name is valid */ 
   bool IsValid(); 
 
+  bool operator== (const PlusTransformName& in) const
+  {
+    return (in.m_From == m_From && in.m_To == m_To ); 
+  }
+
 private: 
 
   /*! Check if the input string is capitalized, if not capitalize it */ 
