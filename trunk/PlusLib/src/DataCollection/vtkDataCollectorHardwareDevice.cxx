@@ -1734,10 +1734,13 @@ void vtkDataCollectorHardwareDevice::SetTrackingOnly(bool trackingOnly)
   }
   else
   {
-    this->VideoEnabled = true;
+    if (this->VideoSource != NULL)
+    {
+      this->VideoEnabled = true;
+    }
   }
 
-  if ( this->GetConnected() && this->GetVideoSource() != NULL )
+  if ( this->GetConnected() && this->VideoSource != NULL )
   {
     if ( this->VideoEnabled )
     {
@@ -1760,10 +1763,13 @@ void vtkDataCollectorHardwareDevice::SetVideoOnly(bool videoOnly)
   }
   else
   {
-    this->TrackingEnabled = true;
+    if (this->Tracker != NULL)
+    {
+      this->TrackingEnabled = true;
+    }
   }
 
-  if ( this->GetConnected() && this->GetTracker() != NULL )
+  if ( this->GetConnected() && this->Tracker != NULL )
   {
     if ( this->TrackingEnabled )
     {
@@ -1784,6 +1790,7 @@ void vtkDataCollectorHardwareDevice::GetFrameSize(int aDim[2])
   if (this->VideoSource == NULL)
   {
     LOG_ERROR("Video source is invalid!");
+    return;
   }
 
   this->VideoSource->GetFrameSize(aDim);
