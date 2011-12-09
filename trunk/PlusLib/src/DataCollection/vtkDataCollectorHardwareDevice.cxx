@@ -1290,8 +1290,9 @@ int vtkDataCollectorHardwareDevice::RequestData( vtkInformation* vtkNotUsed( req
     outData->SetScalarTypeToUnsignedChar();
     outData->SetNumberOfScalarComponents(1); 
     outData->AllocateScalars(); 
-    unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize(); 
-    memset(outData->GetScalarPointer(), 0, memorysize); 
+    unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize();
+    memset(outData->GetScalarPointer(), 0, memorysize);
+
     // If the video buffer is empty, we can return immediately 
     LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
     return 1;
