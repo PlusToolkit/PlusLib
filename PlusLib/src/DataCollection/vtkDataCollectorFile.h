@@ -95,7 +95,7 @@ public:
 
 protected:
   /*! Compute next timestamp from start time and elapsed time */
-  double GetCurrentFrameTimestamp();
+  PlusStatus GetCurrentFrameTimestamp(double &aTimestamp);
 
   /*! Get index of tracked frame in the loaded tracked frame list that corresponds to a given timestamp */
   PlusStatus GetTrackedFrameIndexForTimestamp(double aTimestamp, int &aIndex);

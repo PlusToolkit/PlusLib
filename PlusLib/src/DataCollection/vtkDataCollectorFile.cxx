@@ -212,7 +212,11 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrac
     return PLUS_FAIL;
   }
 
-  aTimestamp = GetCurrentFrameTimestamp();
+  if (GetCurrentFrameTimestamp(aTimestamp) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get current timestamp!");
+    return PLUS_FAIL;
+  }
 
   int indexOfLastFrameToReturn = 0;
   if (GetTrackedFrameIndexForTimestamp(aTimestamp, indexOfLastFrameToReturn) != PLUS_SUCCESS)
@@ -275,7 +279,12 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameListSampled(double& aTimestamp, 
     return PLUS_FAIL; 
   }
 
-  double currentFrameTimestamp = GetCurrentFrameTimestamp();
+  double currentFrameTimestamp = 0.0;
+  if (GetCurrentFrameTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get current timestamp!");
+    return PLUS_FAIL;
+  }
 
   if (aTimestamp > currentFrameTimestamp)
   {
@@ -314,14 +323,18 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrame(TrackedFrame* trackedFrame)
   //LOG_TRACE("vtkDataCollectorFile::GetTrackedFrame"); 
 
   // Get tracked frame by computed timestamp
-  TrackedFrame outTrackedFrame;
-  if (GetTrackedFrameByTime(GetCurrentFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
+  double currentFrameTimestamp = 0.0;
+  if (GetCurrentFrameTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetCurrentFrameTimestamp());
+    LOG_ERROR("Unable to get current timestamp!");
     return PLUS_FAIL;
   }
 
-  trackedFrame = &outTrackedFrame;
+  if (GetTrackedFrameByTime(currentFrameTimestamp, trackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame by timestamp: " << currentFrameTimestamp);
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -444,15 +457,23 @@ int vtkDataCollectorFile::RequestData(vtkInformation *vtkNotUsed(request), vtkIn
     unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize(); 
     memset(outData->GetScalarPointer(), 0, memorysize); 
 
-    LOG_ERROR("Cannot request vide data connection was not estabilished (sequence metafile not loaded successfully)!"); 
+    // If the buffer is empty, we can return immediately 
+    LOG_DEBUG("Cannot request video data connection was not estabilished (sequence metafile not loaded)!"); 
     return 1;
   }
 
   // Get tracked frame by computed timestamp
   TrackedFrame outTrackedFrame;
-  if (GetTrackedFrameByTime(GetCurrentFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
+  double currentFrameTimestamp = 0.0;
+  if (GetCurrentFrameTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetCurrentFrameTimestamp());
+    LOG_ERROR("Unable to get current timestamp!");
+    return 1;
+  }
+
+  if (GetTrackedFrameByTime(currentFrameTimestamp, &outTrackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame by timestamp: " << currentFrameTimestamp);
     return 1;
   }
 
@@ -462,7 +483,7 @@ int vtkDataCollectorFile::RequestData(vtkInformation *vtkNotUsed(request), vtkIn
 }
 
 //------------------------------------------------------------------------------
-double vtkDataCollectorFile::GetCurrentFrameTimestamp()
+PlusStatus vtkDataCollectorFile::GetCurrentFrameTimestamp(double &aTimestamp)
 {
   //LOG_TRACE("vtkDataCollectorFile::GetCurrentFrameTimestamp");
 
@@ -474,6 +495,10 @@ double vtkDataCollectorFile::GetCurrentFrameTimestamp()
     if ( this->ReplayEnabled )
     {
       double loopTime = this->LastTimestamp - this->FirstTimestamp;
+      if (loopTime < 0.001)
+      {
+        return PLUS_FAIL;
+      }
       nextFrameTimestamp = this->FirstTimestamp + fmod(elapsedTime, loopTime); 
     }
     else
@@ -482,7 +507,9 @@ double vtkDataCollectorFile::GetCurrentFrameTimestamp()
     }
   }
 
-  return nextFrameTimestamp;
+  aTimestamp = nextFrameTimestamp;
+
+  return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
