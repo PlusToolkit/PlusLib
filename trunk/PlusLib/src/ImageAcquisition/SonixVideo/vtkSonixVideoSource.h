@@ -244,6 +244,9 @@ public:
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(int &aFrameRate);
 
+  /*! Set RF decimation. */
+  PlusStatus SetRFDecimation(int decimation);
+
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
 
