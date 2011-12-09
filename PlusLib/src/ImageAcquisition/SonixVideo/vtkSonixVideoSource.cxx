@@ -858,3 +858,20 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
   
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
+{
+  if (!this->UlteriusConnected)
+  {
+    LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: not connected");
+    return PLUS_FAIL;
+  }
+  if ( !this->Ult.setParamValue("rf-rf decimation", decimation) )
+  {
+	 LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
+	 return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
