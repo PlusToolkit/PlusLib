@@ -13,7 +13,8 @@
 #include "vtkTransform.h"
 
 class vtkTransform;
-class vtkActor;
+class vtkProp3D;
+class vtkMapper;
 
 //-----------------------------------------------------------------------------
 
@@ -50,20 +51,29 @@ public:
 	vtkGetObjectMacro(ModelToObjectTransform, vtkTransform);
 
   /*! Set actor */
-  void SetActor(vtkActor*);
+  void SetActor(vtkProp3D*);
   /*! Get actor */
-  vtkGetObjectMacro(Actor, vtkActor);
+  vtkGetObjectMacro(Actor, vtkProp3D);
 
-	vtkBooleanMacro(Displayable, bool);
   /*! Set displayable flag */
 	vtkSetMacro(Displayable, bool);
-  /*! Get displayable flag */
-	vtkGetMacro(Displayable, bool);
+	vtkBooleanMacro(Displayable, bool);
 
   /*! Set previously set opacity */
 	vtkSetMacro(LastOpacity, double);
   /*! Get previously set opacity */
 	vtkGetMacro(LastOpacity, double);
+
+  /*! Set opacity */
+  void SetOpacity(double aOpacity);
+  /*! Get opacity */
+  double GetOpacity();
+
+  /*! Set color (does not work for vtkImageActor) */
+  void SetColor(double aR, double aG, double aB);
+
+  /*! Set mapper (does not work for vtkImageActor) */
+  void SetMapper(vtkMapper* aMapper);
 
 protected:
   /*! Set model to tool transform */
@@ -87,7 +97,7 @@ protected:
   vtkTransform*       ModelToObjectTransform;
 
   /*! Actor displaying the tool model */
-  vtkActor*           Actor;
+  vtkProp3D*          Actor;
 
   /*! Flag that can disable displaying of this tool */
   bool                Displayable; //TODO is it needed?

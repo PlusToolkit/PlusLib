@@ -50,14 +50,10 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   m_PatternRecognition = new FidPatternRecognition();
 
   // Create tracked frame lists
-  PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
-
   m_CalibrationData = vtkTrackedFrameList::New();
-  m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_CalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_ValidationData = vtkTrackedFrameList::New();
-  m_ValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_ValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Change result display properties
@@ -133,7 +129,7 @@ void FreehandCalibrationToolbox::Initialize()
     }
 
     // Check if probe to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
     {
       LOG_ERROR("No transform found between probe and reference!");
       return;
@@ -212,7 +208,9 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
 
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->GetTransform(imageToProbeTransformName, imageToProbeTransformMatrix, &valid) == PLUS_SUCCESS) && (valid) )
+  if ( (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->IsExistingTransform(imageToProbeTransformName) == PLUS_SUCCESS)
+    && (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->GetTransform(imageToProbeTransformName, imageToProbeTransformMatrix, &valid) == PLUS_SUCCESS)
+    && (valid) )
   {
     vtkSmartPointer<vtkTransform> imageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
     imageToProbeTransform->Identity();
@@ -298,7 +296,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
 
-    if ( (isReadyToStartSpatialCalibration) && (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame()) == PLUS_SUCCESS) )
+    if ( (isReadyToStartSpatialCalibration) && (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame()) == PLUS_SUCCESS) )
     {
       ui.checkBox_ShowDevices->setEnabled(true);
 
@@ -566,10 +564,18 @@ void FreehandCalibrationToolbox::StartSpatial()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Set validation transform names
-  PlusTransformName transformNameForValidation(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame());
+  // Set validation transform names for tracked frame lists
+  std::string toolReferenceFrame;
+  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+    || (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  {
+    LOG_ERROR("Failed to get tool reference frame name!");
+    return;
+  }
+  PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_ValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
+
 
   SetState(ToolboxState_InProgress);
 
@@ -613,7 +619,6 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   {
     LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
 
-    // TODO: read it from config file
     if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
@@ -622,10 +627,23 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     }
 
     // Set result for visualization
-    vtkDisplayableObject* probeDisplayable = NULL;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), probeDisplayable) == PLUS_SUCCESS)
+    vtkDisplayableObject* transducerOriginDisplayable = NULL;
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetTransducerOriginCoordinateFrame(), transducerOriginDisplayable) == PLUS_SUCCESS)
     {
-      probeDisplayable->DisplayableOn();
+      transducerOriginDisplayable->DisplayableOn();
+    }
+    vtkDisplayableObject* imageDisplayable = NULL;
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
+    {
+      imageDisplayable->DisplayableOn();
+    }
+
+    // Save result in configuration
+    if ( m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
+      SetState(ToolboxState_Error);
+      return;
     }
 
     SetState(ToolboxState_Done);
@@ -762,7 +780,7 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
   delete patternRecognition;
 
   // Determine if there is already a phantom registration present
-  if (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_Calibration->GetPhantomCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetPhantomCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
   {
     ui.label_InstructionsSpatial->setText(tr("Phantom registration needs to be imported"));
     return false;
@@ -783,6 +801,11 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
   m_ParentMainWindow->GetToolVisualizer()->ShowAllObjects(aOn);
 
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(!aOn);
+
+  if (aOn)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+  }
 }
 
 //-----------------------------------------------------------------------------

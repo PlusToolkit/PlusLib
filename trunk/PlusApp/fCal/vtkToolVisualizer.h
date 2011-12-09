@@ -130,10 +130,11 @@ public:
 	 */
   QTimer* GetAcquisitionTimer() { return this->AcquisitionTimer; };
 
-  /*! Check if a transform is available */
-  PlusStatus CheckTransformAvailability(const char* aTransformFrom, const char* aTransformTo);
-  /*! Check if a transform is available */
-  PlusStatus CheckTransformAvailability(PlusTransformName aTransform);
+  /*!
+    Check if a transform exists in transform repository
+    /param aUseLatestTrackedFrame Get latest tracked frame and set its transforms to transform repository before checking
+  */
+  PlusStatus IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame = true);
 
   /*!
     Acquire transform matrix from tracking and provide string containing the translation part
@@ -171,7 +172,7 @@ protected:
 	* Assemble and set default stylus model for stylus tool actor
 	* \param aActor Actor to add the model to
 	*/
-	PlusStatus SetDefaultStylusModel(vtkActor* aActor);
+	PlusStatus SetDefaultStylusModel(vtkProp3D* aActor);
 
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();

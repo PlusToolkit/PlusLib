@@ -25,11 +25,11 @@
 #include "vtkSphereSource.h"
 #include "vtkCylinderSource.h"
 #include "vtkConeSource.h"
-#include "vtkProperty.h"
 #include "vtkAppendPolyData.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkSTLReader.h"
 #include "vtkAxesActor.h"
+#include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
@@ -195,18 +195,9 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
     // Create displayable tool
     vtkDisplayableObject* displayableObject = vtkDisplayableObject::New();
 
-    // Check if image (empty but the coordinate frame) and store it
-    vtkXMLDataElement* imageElement = displayableObjectElement->FindNestedElementWithName("Image");
-    if (imageElement == NULL)
-    {
-      // Read configuration if not image
-      if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Unable to read displayable tool configuration!");
-        continue;
-      }
-    }
-    else
+    // Check if image
+    const char* type = displayableObjectElement->GetAttribute("Type");
+    if (STRCASECMP(type, "Image") == 0)
     {
       const char* objectCoordinateFrame = displayableObjectElement->GetAttribute("ObjectCoordinateFrame");
       if (objectCoordinateFrame == NULL)
@@ -215,10 +206,20 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
       }
 
       displayableObject->SetObjectCoordinateFrame(objectCoordinateFrame);
-      displayableObject->SetActor((vtkActor*)this->ImageActor);
+      displayableObject->SetActor(this->ImageActor);
+      displayableObject->SetDisplayable(false);
       this->SetImageCoordinateFrame(objectCoordinateFrame);
 
       imageFound = true;
+    }
+    else
+    {
+      // Read configuration if not image
+      if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to read displayable tool configuration!");
+        continue;
+      }
     }
 
     this->DisplayableObjects[displayableObject->GetObjectCoordinateFrame()] = displayableObject;
@@ -388,9 +389,9 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
 
     // Check if file name exists and file can be found
     std::string stlFileName = "";
-    if (STRCASECMP(displayableObject->GetSTLModelFileName(), "") == 0)
+    if ( (displayableObject->GetSTLModelFileName() == NULL) || (STRCASECMP(displayableObject->GetSTLModelFileName(), "") == 0) )
     {
-      LOG_WARNING("No STL file name found for displayable object (" << objectName << ") - it cannot be displayed!");
+      LOG_DEBUG("No STL file name found for displayable object (" << objectName << ")");
       continue;
     }
 
@@ -417,20 +418,23 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
       }
     }
     else
-    // Load STL model
+    // Load STL model as usual
     {
       vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
       stlReader->SetFileName(stlFileName.c_str());
 
-      vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      toolMapper->SetInputConnection(stlReader->GetOutputPort());
+      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      mapper->SetInputConnection(stlReader->GetOutputPort());
 
-      displayableObject->GetActor()->SetMapper(toolMapper);
-      displayableObject->GetActor()->GetProperty()->SetOpacity( displayableObject->GetLastOpacity() );
+      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
+      displayableObject->SetActor(actor);
+      displayableObject->SetMapper(mapper);
+      displayableObject->SetOpacity( displayableObject->GetLastOpacity() );
 
       if (objectName.find("Stylus") != std::string::npos) // Stylus is always black
       {
-        displayableObject->GetActor()->GetProperty()->SetColor(0.0, 0.0, 0.0);
+        displayableObject->SetColor(0.0, 0.0, 0.0);
       }
 
       this->CanvasRenderer->AddActor(displayableObject->GetActor());
@@ -453,8 +457,11 @@ PlusStatus vtkToolVisualizer::SetAcquisitionFrameRate(int aFrameRate)
 
   if (this->AcquisitionTimer != NULL)
   {
-    this->AcquisitionTimer->stop();
-    this->AcquisitionTimer->start(1000.0 / this->AcquisitionFrameRate);
+    if (this->AcquisitionTimer->isActive())
+    {
+      this->AcquisitionTimer->stop();
+      this->AcquisitionTimer->start(1000.0 / this->AcquisitionFrameRate);
+    }
   }
   else
   {
@@ -602,15 +609,25 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
     for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
     {
       vtkDisplayableObject* displayableObject = it->second;
-      if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL))
+      if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL) && (this->ImageActor != displayableObject->GetActor()))
       {
-        displayableObject->SetLastOpacity(displayableObject->GetActor()->GetProperty()->GetOpacity());
-        displayableObject->GetActor()->GetProperty()->SetOpacity(0.0);
+        if (fabs(displayableObject->GetOpacity()) > 0.001 && fabs(displayableObject->GetOpacity() - 0.3) > 0.001)
+        {
+          displayableObject->SetLastOpacity(displayableObject->GetOpacity());
+        }
+        displayableObject->SetOpacity(0.0);
       }
     }
   }
   else if (this->ImageMode == true) // If just changed from image mode to show devices mode
   {
+    // Reset opacities
+    for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+    {
+      vtkDisplayableObject* displayableObject = it->second;
+      displayableObject->SetOpacity( displayableObject->GetLastOpacity() );
+    }
+
     // Reset camera to show all devices and the image
     vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
     imageCamera->SetViewUp(0, 1, 0);
@@ -646,7 +663,7 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
   for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
     vtkDisplayableObject* displayableObject = it->second;
-    if ( displayableObject->IsDisplayable() && displayableObject->GetActor()->GetVisibility() > 0 )
+    if ( displayableObject->IsDisplayable() && displayableObject->GetActor() && displayableObject->GetActor()->GetVisibility() > 0 )
     {
       noObjectsToDisplay = false;
     }
@@ -679,7 +696,7 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     vtkDisplayableObject* displayableObject = it->second;
 
     // If not displayable then hide
-    if (displayableObject->GetDisplayable() == false)
+    if (displayableObject->IsDisplayable() == false)
     {
       displayableObject->GetActor()->VisibilityOff();
       continue;
@@ -689,6 +706,8 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
+bool sajt=false;
+if (sajt) {this->TransformRepository->PrintSelf(std::cout, vtkIndent());} //TODO
     bool valid = false;
     if ( this->TransformRepository->GetTransform(objectCoordinateFrameToWorldTransformName, objectCoordinateFrameToWorldTransformMatrix, &valid) != PLUS_SUCCESS )
     {
@@ -701,9 +720,9 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     {
       // If opacity was 0.0, then this is the first visualization iteration after switching back from image mode - reset opacity and camera is needed
       // In case of 0.3 it was previously out of view, same opacity and camera reset is needed
-      if (displayableObject->GetActor()->GetProperty()->GetOpacity() == 0.0 || displayableObject->GetActor()->GetProperty()->GetOpacity() == 0.3)
+      if (fabs(displayableObject->GetOpacity()) < 0.001 || fabs(displayableObject->GetOpacity() - 0.3) < 0.001)
       {
-        displayableObject->GetActor()->GetProperty()->SetOpacity( displayableObject->GetLastOpacity() );
+        displayableObject->SetOpacity( displayableObject->GetLastOpacity() );
         resetCameraNeeded = true;
       }
 
@@ -719,8 +738,11 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     // If invalid then make it partially transparent and leave in place
     else
     {
-      displayableObject->SetLastOpacity( displayableObject->GetActor()->GetProperty()->GetOpacity() );
-      displayableObject->GetActor()->GetProperty()->SetOpacity( 0.3 );
+      if (fabs(displayableObject->GetOpacity()) > 0.001 && fabs(displayableObject->GetOpacity() - 0.3) > 0.001)
+      {
+        displayableObject->SetLastOpacity( displayableObject->GetOpacity() );
+      }
+      displayableObject->SetOpacity( 0.3 );
     }
   } // for all displayable objects
 
@@ -860,13 +882,14 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkActor* aActor)
+PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkProp3D* aActor)
 {
   LOG_TRACE("vtkToolVisualizer::SetDefaultStylusModel");
 
-  if (aActor == NULL)
+  vtkActor* actor = dynamic_cast<vtkActor*>(aActor);
+  if (actor == NULL)
   {
-    LOG_ERROR("Unable to load stylus model to an uninitialized actor!");
+    LOG_ERROR("Unable to load stylus model to an uninitialized or invalid actor!");
     return PLUS_FAIL;
   }
 
@@ -903,9 +926,9 @@ PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkActor* aActor)
   stylusTransformFilter->SetTransform(stylusTransform);
 
   stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
-  aActor->SetMapper(stylusMapper);
-  aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
-  aActor->SetVisibility(false);
+  actor->SetMapper(stylusMapper);
+  actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+  actor->SetVisibility(false);
 
   return PLUS_SUCCESS;
 }
@@ -954,46 +977,32 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::CheckTransformAvailability(const char* aTransformFrom, const char* aTransformTo)
+PlusStatus vtkToolVisualizer::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
-  return CheckTransformAvailability(transformName);
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkToolVisualizer::CheckTransformAvailability(PlusTransformName aTransform)
-{
-  if (this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false)
+  if (aUseLatestTrackedFrame)
   {
-    LOG_ERROR("Data collector object is invalid or not tracking!");
-    return PLUS_FAIL;
+    if (this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false)
+    {
+      LOG_ERROR("Data collector object is invalid or not tracking!");
+      return PLUS_FAIL;
+    }
+
+    TrackedFrame trackedFrame;
+    if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to get tracked frame from data collector!");
+      return PLUS_FAIL;
+    }
+    if (this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to set transforms from tracked frame!");
+      return PLUS_FAIL;
+    }
   }
 
-  TrackedFrame trackedFrame;
-  if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get tracked frame from data collector!");
-    return PLUS_FAIL;
-  }
-  if (this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to set transforms from tracked frame!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-
-  if (this->TransformRepository->GetTransform(aTransform, transformMatrix) != PLUS_SUCCESS)
-  {
-    std::string transformName; 
-    aTransform.GetTransformName(transformName); 
-    LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return this->TransformRepository->IsExistingTransform(transformName);
 }
 
 //-----------------------------------------------------------------------------

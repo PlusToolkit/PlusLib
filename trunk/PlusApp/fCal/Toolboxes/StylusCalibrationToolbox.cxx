@@ -88,7 +88,7 @@ void StylusCalibrationToolbox::Initialize()
     }
 
     // Check if stylus to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
     {
       LOG_ERROR("No transform found between stylus and reference!");
       return;

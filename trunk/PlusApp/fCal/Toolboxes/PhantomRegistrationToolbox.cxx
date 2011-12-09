@@ -126,7 +126,7 @@ void PhantomRegistrationToolbox::Initialize()
     }
 
     // Check if stylus tip to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
     {
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -397,7 +397,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetToolVisualizer()->CheckTransformAvailability(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
   {
     m_CurrentLandmarkIndex = 0;
 
