@@ -743,7 +743,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
   if (waitTimeMs == 0)
   {
-    LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration");
+    LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration (it should be more than the processing time (the last one was " << m_LastProcessingTimePerFrameMs << "), so if it is already small, try to increase RecordingIntervalMs too)");
   }
 
   LOG_DEBUG("Number of requested frames: " << numberOfFramesToGet);

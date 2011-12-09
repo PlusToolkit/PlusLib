@@ -10,8 +10,6 @@ INCLUDE(${QT_USE_FILE})
 SET (fCal_SRCS
 	fCalMain.cxx
 	fCalMainWindow.cxx
-  vtkToolVisualizer.cxx
-  vtkDisplayableObject.cxx
 	Toolboxes/ConfigurationToolbox.cxx
 	Toolboxes/CapturingToolbox.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
@@ -28,8 +26,6 @@ endif (WIN32)
 
 SET (fCal_UI_HDRS
 		fCalMainWindow.h
-    vtkToolVisualizer.h
-    vtkDisplayableObject.h
     Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
     Toolboxes/CapturingToolbox.h

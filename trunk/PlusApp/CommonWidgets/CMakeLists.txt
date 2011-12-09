@@ -14,6 +14,8 @@ SET (CommonWidgets_SRCS
 	ToolStateDisplayWidget.cxx
   ConfigFileSaverDialog.cxx
   SegmentationParameterDialog.cxx
+  vtkToolVisualizer.cxx
+  vtkDisplayableObject.cxx
 	)
 
 if (WIN32)	
@@ -28,6 +30,8 @@ SET (CommonWidgets_UI_HDRS
 		ToolStateDisplayWidget.h
     ConfigFileSaverDialog.h
     SegmentationParameterDialog.h
+    vtkToolVisualizer.h
+    vtkDisplayableObject.h
 	)
 
 SET (CommonWidgets_UI_SRCS
