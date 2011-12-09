@@ -308,6 +308,7 @@ void fCalMainWindow::UpdateGUI()
 	// Update canvas
   if ((m_ToolVisualizer->GetDataCollector() != NULL) && (m_ToolVisualizer->GetDataCollector()->GetConnected()))
   {
+    m_ToolVisualizer->GetDataCollector()->Modified();
 	  ui.canvas->update();
   }
 }

@@ -706,8 +706,6 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-bool sajt=false;
-if (sajt) {this->TransformRepository->PrintSelf(std::cout, vtkIndent());} //TODO
     bool valid = false;
     if ( this->TransformRepository->GetTransform(objectCoordinateFrameToWorldTransformName, objectCoordinateFrameToWorldTransformMatrix, &valid) != PLUS_SUCCESS )
     {
@@ -1000,6 +998,13 @@ PlusStatus vtkToolVisualizer::IsExistingTransform(const char* aTransformFrom, co
       LOG_ERROR("Unable to set transforms from tracked frame!");
       return PLUS_FAIL;
     }
+  }
+
+  // For debugging purposes
+  bool printTransforms = false;
+  if (printTransforms)
+  {
+    this->TransformRepository->PrintSelf(std::cout, vtkIndent());
   }
 
   return this->TransformRepository->IsExistingTransform(transformName);

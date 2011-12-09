@@ -253,7 +253,11 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
   m_ParentMainWindow->GetToolVisualizer()->HideAll();
 
-  ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
+  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  {
+    ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
+  }
 
   double videoTimeOffset = 0.0;
   if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
@@ -291,7 +295,12 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Idle)
   {
-    bool isReadyToStartSpatialCalibration = IsReadyToStartSpatialCalibration();
+    bool isReadyToStartSpatialCalibration = false;
+    if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+    {
+      isReadyToStartSpatialCalibration = IsReadyToStartSpatialCalibration();
+    }
 
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
