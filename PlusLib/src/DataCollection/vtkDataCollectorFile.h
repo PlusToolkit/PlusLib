@@ -71,6 +71,9 @@ public:
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
 
+  /*! Get tracker tool reference frame name (eg. "Tracker")  */
+  virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
+
 public:
   /*! Synchronize the connected devices */
   virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 

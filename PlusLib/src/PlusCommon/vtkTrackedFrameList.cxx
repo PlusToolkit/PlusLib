@@ -279,7 +279,7 @@ bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
     return false; 
   }
 
-  std::string toolStatusFrameFieldName = transformName + std::string("Status");
+  std::string toolStatusFrameFieldName = transformName + std::string("TransformStatus");
   status = TrackedFrame::ConvertFieldStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
 
   if ( status != FIELD_OK )

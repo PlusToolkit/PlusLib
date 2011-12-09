@@ -594,3 +594,43 @@ PlusStatus vtkDataCollectorFile::GetFrameRate(double &aFrameRate)
 
   return PLUS_SUCCESS;
 }
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollectorFile::GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName)
+{
+  LOG_TRACE("vtkDataCollectorFile::GetTrackerToolReferenceFrame");
+
+	TrackedFrame trackedFrame;
+  if (this->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get tracked frame!");
+    return PLUS_FAIL;
+  }
+
+  std::vector<PlusTransformName> transformNames;
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+
+  if (transformNames.size() == 0)
+  {
+    LOG_ERROR("No transforms found in tracked frame!");
+    return PLUS_FAIL;
+  }
+
+  std::string frameName = "";
+  for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+  {
+    if (frameName == "")
+    {
+      frameName = it->To();
+    }
+    else if (frameName != it->To())
+    {
+      LOG_ERROR("Destination coordinate frame names are not the same!");
+      return PLUS_FAIL;
+    }
+  }
+
+  aToolReferenceFrameName = frameName;
+
+  return PLUS_SUCCESS;
+}

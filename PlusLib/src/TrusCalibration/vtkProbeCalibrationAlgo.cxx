@@ -254,6 +254,22 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     return PLUS_FAIL;
   }
 
+  // Save results back into transform repository
+  PlusTransformName imageToProbeTransformName(this->ImageCoordinateFrame, this->ProbeCoordinateFrame);
+  transformRepository->SetTransform(imageToProbeTransformName, this->TransformImageToProbe->GetMatrix());
+  transformRepository->SetTransformPersistent(imageToProbeTransformName, true);
+  transformRepository->SetTransformDate(imageToProbeTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+  transformRepository->SetTransformError(imageToProbeTransformName, this->PointLineDistanceErrorAnalysisVector[0]); //TODO which error?
+
+  double* imageToProbeScale = this->TransformImageToProbe->GetScale();
+  vtkSmartPointer<vtkTransform> transducerOriginPixelToTransducerOriginTransform = vtkSmartPointer<vtkTransform>::New();
+  transducerOriginPixelToTransducerOriginTransform->Identity();
+  transducerOriginPixelToTransducerOriginTransform->Scale(imageToProbeScale);
+  PlusTransformName transducerOriginPixelToTransducerOriginTransformName(this->TransducerOriginPixelCoordinateFrame, this->TransducerOriginCoordinateFrame);
+  transformRepository->SetTransform(transducerOriginPixelToTransducerOriginTransformName, transducerOriginPixelToTransducerOriginTransform->GetMatrix());
+  transformRepository->SetTransformPersistent(transducerOriginPixelToTransducerOriginTransformName, true);
+  transformRepository->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+
   return PLUS_SUCCESS;
 }
 

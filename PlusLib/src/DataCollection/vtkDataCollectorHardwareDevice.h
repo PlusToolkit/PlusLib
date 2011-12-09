@@ -115,6 +115,9 @@ public:
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
 
+  /*! Get tracker tool reference frame name (eg. "Tracker")  */
+  virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
+
 public:
   /*! Set the acquisition type  */
   void SetAcquisitionType(ACQUISITION_TYPE type) { AcquisitionType = type; }

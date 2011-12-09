@@ -77,7 +77,10 @@ public:
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame) = 0; 
 
   /*! Set video and tracker local time offset  */
-  virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset) = 0; 
+  virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset) = 0;
+
+  /*! Get tracker tool reference frame name (eg. "Tracker")  */
+  virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName) = 0;
 
 public:
   /*! Get frame size */

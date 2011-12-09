@@ -707,7 +707,13 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
     return PLUS_FAIL;
   }
-  
+
+  if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+  {
+    // If the pixel type was not defined, define it to UCHAR
+    this->PixelType = itk::ImageIOBase::UCHAR; 
+  }
+
   PlusStatus result=PLUS_SUCCESS;
   if (!GetUseCompression())
   {

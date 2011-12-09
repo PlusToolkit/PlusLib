@@ -1795,3 +1795,19 @@ void vtkDataCollectorHardwareDevice::GetFrameSize(int aDim[2])
 
   this->VideoSource->GetFrameSize(aDim);
 }
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName)
+{
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackerToolReferenceFrame");
+
+  if (this->Tracker == NULL)
+  {
+    LOG_ERROR("Unable to get tool reference name because tracker is not present!");
+    return PLUS_FAIL;
+  }
+
+  aToolReferenceFrameName = std::string(this->Tracker->GetToolReferenceFrameName());
+
+  return PLUS_SUCCESS;
+}
