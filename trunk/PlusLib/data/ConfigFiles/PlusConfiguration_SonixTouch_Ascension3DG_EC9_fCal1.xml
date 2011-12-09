@@ -62,48 +62,34 @@
   </CoordinateDefinitions> 
 
 
-  <Rendering
-    WorldCoordinateFrame="Reference"
-  >
-    <DisplayableObject ObjectCoordinateFrame="TransducerOrigin">
-      <!-- TODO EC9 model and proper transform -->
-      <Model
-        File="L14-5_38_ProbeModel.stl"
-        ModelToObjectTransform="
-          1 0 0 0
-          0 1 0 66.0
-          0 0 1 0
-          0 0 0 1"
+  <Rendering WorldCoordinateFrame="Reference">
+    <!-- TODO EC9 model and proper transform -->
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        1 0 0 34.5
+        0 -1 0 1.5
+        0 0 -1 14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_1.0.stl"
+      ModelToObjectTransform="
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
+        0 0 0 1"
       />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="StylusTip">
-      <Model
-        File="Stylus_Example.stl"
-        ModelToObjectTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-      />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="Phantom">
-      <Model
-        File="FCal_1.0.stl"
-        Opacity="0.6"
-        ModelToObjectTransform="
-          1 0 0 -15.0
-          0 1 0 10.0
-          0 0 1 -5.0
-          0 0 0 1"
-      />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="Image">
-      <Image />
-    </DisplayableObject>
-
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
   </Rendering>
 
 

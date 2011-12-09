@@ -410,6 +410,13 @@ PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, T
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransformName, bool aSilent/* = true*/)
+{
+  TransformInfoListType transformInfoList;
+  return FindPath(aTransformName, transformInfoList, NULL, aSilent);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::DeleteTransform(PlusTransformName& aTransformName)
 {
   CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
@@ -630,4 +637,3 @@ PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configR
   }
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
-

@@ -124,6 +124,9 @@ public:
   /*! Removes all the transforms from the repository */
   void Clear();
 
+  /*! Checks if a transform exist */
+  virtual PlusStatus IsExistingTransform(PlusTransformName aTransformName, bool aSilent = true);
+
 protected:
   vtkTransformRepository();
   ~vtkTransformRepository();  

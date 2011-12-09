@@ -2,8 +2,8 @@
 
   <DataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST Data collection uses sequence metafile in file mode TEST." 
-      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
+      Name="Data collection uses sequence metafile in file mode" 
+      Description="The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
     />
 
     <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
@@ -18,6 +18,13 @@
               0 0 0 1"
       Date="2011.12.01 17:57:00" Error="0.0"
     />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 210.0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.01 17:22:12"
+    /> 
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 410
               0 1 0 5
@@ -28,47 +35,33 @@
   </CoordinateDefinitions> 
   
 
-  <Rendering
-    WorldCoordinateFrame="Reference"
-  >
-    <DisplayableObject ObjectCoordinateFrame="TransducerOrigin">
-      <Model
-        File="L14-5_38_ProbeModel.stl"
-        ModelToObjectTransform="
-          1 0 0 0
-          0 1 0 66.0
-          0 0 1 0
-          0 0 0 1"
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        1 0 0 34.5
+        0 -1 0 1.5
+        0 0 -1 14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_1.0.stl"
+      ModelToObjectTransform="
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
+        0 0 0 1"
       />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="StylusTip">
-      <Model
-        File="Stylus_Example.stl"
-        ModelToObjectTransform="
-          1 0 0 -210.0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1"
-      />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="Phantom">
-      <Model
-        File="FCal_1.0.stl"
-        Opacity="0.6"
-        ModelToObjectTransform="
-          1 0 0 -15.0
-          0 1 0 10.0
-          0 0 1 -5.0
-          0 0 0 1"
-      />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="Image">
-      <Image />
-    </DisplayableObject>
-
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
   </Rendering>
 
 

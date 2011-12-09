@@ -85,25 +85,17 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
   />
 
 
-  <Rendering
-    WorldCoordinateFrame="Reference"
-  >
-    <DisplayableObject ObjectCoordinateFrame="Phantom">
-      <Model
-        File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
-        Opacity="0.6"
-        ModelToObjectTransform="
-          1 0 0  0.7
-          0 0 -1 48.6
-          0 1 0  51.3
-          0 0 0  1"
-      />
-    </DisplayableObject>
-
-    <DisplayableObject ObjectCoordinateFrame="Image">
-      <Image />
-    </DisplayableObject>
-
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
+      ModelToObjectTransform="
+        1 0 0  0.7
+        0 0 -1 48.6
+        0 1 0  51.3
+        0 0 0  1"
+    />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
   </Rendering>
 
 
