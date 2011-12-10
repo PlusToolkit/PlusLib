@@ -163,6 +163,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     NumberOfStylusCalibrationPointsToAcquire="200"
     RecordingIntervalMs="100"
     MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
   />

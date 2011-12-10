@@ -158,6 +158,7 @@
     NumberOfStylusCalibrationPointsToAcquire="200"
     RecordingIntervalMs="100"
     MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
   />
