@@ -118,6 +118,9 @@ public:
   /*! Get tracker tool reference frame name (eg. "Tracker")  */
   virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
 
+  /*! Get frame rate - from video if enabled, else from tracker */
+  virtual PlusStatus GetFrameRate(double &aFrameRate);
+
 public:
   /*! Set the acquisition type  */
   void SetAcquisitionType(ACQUISITION_TYPE type) { AcquisitionType = type; }

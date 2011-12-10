@@ -31,12 +31,6 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolSerialNumber = 0;
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
-	
-	this->ToolModel = 0;
-
-	this->SendToLink = 0; 
-
-	this->SetToolModel("");
 
 	this->Buffer = vtkTrackerBuffer::New();
 	  
@@ -46,7 +40,6 @@ vtkTrackerTool::vtkTrackerTool()
 //----------------------------------------------------------------------------
 vtkTrackerTool::~vtkTrackerTool()
 {
- 
   if ( this->ToolName != NULL )
   {
     delete [] this->ToolName; 
@@ -64,8 +57,6 @@ vtkTrackerTool::~vtkTrackerTool()
 	this->SetToolRevision(NULL); 
 	this->SetToolSerialNumber(NULL); 
 	this->SetToolManufacturer(NULL); 
-
-	this->SetToolModel(NULL); 
 	
 	if ( this->Buffer )
 	{
@@ -93,14 +84,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "LED1: " << this->GetLED1() << "\n"; 
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
-  if ( this->SendToLink )
-  {
-	  os << indent << "SendTo: " << this->GetSendToLink() << "\n";
-  }
-  if ( this->ToolModel )
-  {
-	  os << indent << "ToolModel: " << this->GetToolModel() << "\n";
-  }
 
   if ( this->ToolRevision )
   {
@@ -236,9 +219,6 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetLED2( tool->GetLED2() );
 	this->SetLED3( tool->GetLED3() );
 
-	this->SetSendToLink( tool->GetSendToLink() );
-
-	this->SetToolModel( tool->GetToolModel() );
 	this->SetToolRevision( tool->GetToolRevision() );
 	this->SetToolSerialNumber( tool->GetToolSerialNumber() );
 	this->SetToolPartNumber( tool->GetToolPartNumber() );
@@ -283,12 +263,6 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
 		return PLUS_FAIL; 
-	}
-
-  const char* sendToLink = config->GetAttribute("SendTo"); 
-	if ( sendToLink != NULL ) 
-	{
-		this->SetSendToLink(sendToLink); 
 	}
 
 	return PLUS_SUCCESS;

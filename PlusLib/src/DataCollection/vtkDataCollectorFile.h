@@ -74,6 +74,9 @@ public:
   /*! Get tracker tool reference frame name (eg. "Tracker")  */
   virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
 
+  /*! Get frame rate */
+  virtual PlusStatus GetFrameRate(double &aFrameRate);
+
 public:
   /*! Synchronize the connected devices */
   virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 
@@ -86,9 +89,6 @@ public:
 
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]);
-
-  /*! Get frame rate */
-  virtual PlusStatus GetFrameRate(double &aFrameRate);
 
   /*! Callback function for progress bar refreshing */  
   virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb);

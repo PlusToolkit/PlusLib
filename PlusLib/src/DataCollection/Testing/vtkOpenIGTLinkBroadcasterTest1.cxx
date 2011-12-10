@@ -41,53 +41,61 @@ const double DELAY_BETWEEN_MESSAGES_SEC = 0.18;
 /**
  * Print acutal transform on the screen for debugging.
  */
-void PrintActualTransforms( vtkDataCollector* dataCollector, const char * aToolName )
+void PrintActualTransforms( vtkDataCollector* dataCollector )
 {
-  vtkSmartPointer< vtkMatrix4x4 > tFrame2Tracker = vtkSmartPointer< vtkMatrix4x4 >::New(); 
-  
   std::stringstream ss;
     
-  // TODO!!!!
-  LOG_INFO("TEMPORARY ISSUE: test has to be modified to use transform repository!");
-  /*
-  if ( dataCollector->GetTracker()->IsTracking() )
+  if ( dataCollector->GetTrackingEnabled() == false )
   {
-    double timestamp( 0 ); 
-    toolStatus status = TOOL_OK;
-    if ( dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, aToolName) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get transform with timestamp!"); 
-      return; 
-    }
-    
-    ss << "Timestamp: " << timestamp << std::endl;
-    
-    if ( status == TOOL_MISSING || status == TOOL_OUT_OF_VIEW ) 
-    {
-      ss  << "Tracker out of view..." << std::endl; 
-    }
-    else if ( status == TOOL_REQ_TIMEOUT ) 
-    {
-      ss  << "Tracker request timeout..." << std::endl; 
-    }
-    else
-    {
-      ss  << std::fixed 
-        << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   "
-          << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
-        << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   "
-          << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
-        << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   "
-          << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
-        << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   "
-          << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
-    }
+    LOG_ERROR("Tracking is not enabled!");
+    return;
   }
-  else
+
+  TrackedFrame trackedFrame;
+  if ( dataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
   {
-    ss << "Unable to connect to tracker...";    
+    LOG_ERROR("Failed to get tracked frame!"); 
+    return; 
   }
-  */
+
+  ss << "Timestamp: " << trackedFrame.GetTimestamp() << std::endl;
+
+  std::vector<PlusTransformName> transformNames; 
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+
+  std::vector<PlusTransformName>::iterator it;
+  for (it = transformNames.begin(); it != transformNames.end(); ++it)
+  {
+    TrackedFrameFieldStatus status = FIELD_INVALID;
+    trackedFrame.GetCustomFrameTransformStatus(*it, status);
+
+    if ( status != FIELD_OK )
+    {
+      std::string transformNameStr; 
+      it->GetTransformName(transformNameStr); 
+      ss  << "Transform '" << transformNameStr << "' missing (probably tracker tool is out of view)" << std::endl; 
+      continue;
+    }
+
+    vtkSmartPointer< vtkMatrix4x4 > transformMatrix  = vtkSmartPointer< vtkMatrix4x4 >::New();
+    if ( trackedFrame.GetCustomFrameTransform(*it, transformMatrix) != PLUS_SUCCESS )
+    {
+      std::string transformNameStr; 
+      it->GetTransformName(transformNameStr); 
+      LOG_ERROR("Unable to get transform '" << transformNameStr << "'!");
+      continue;
+    }
+
+    ss  << std::fixed 
+    << transformMatrix->GetElement(0,0) << "   " << transformMatrix->GetElement(0,1) << "   "
+      << transformMatrix->GetElement(0,2) << "   " << transformMatrix->GetElement(0,3) << std::endl
+    << transformMatrix->GetElement(1,0) << "   " << transformMatrix->GetElement(1,1) << "   "
+      << transformMatrix->GetElement(1,2) << "   " << transformMatrix->GetElement(1,3) << std::endl
+    << transformMatrix->GetElement(2,0) << "   " << transformMatrix->GetElement(2,1) << "   "
+      << transformMatrix->GetElement(2,2) << "   " << transformMatrix->GetElement(2,3) << std::endl
+    << transformMatrix->GetElement(3,0) << "   " << transformMatrix->GetElement(3,1) << "   "
+      << transformMatrix->GetElement(3,2) << "   " << transformMatrix->GetElement(3,3) << std::endl; 
+  }
 }
 
 
@@ -103,7 +111,6 @@ int main( int argc, char** argv )
   std::string inputConfigFileName;
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
-  std::string inputToolName("Probe");
   bool inputReplay(false); 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
   
@@ -116,11 +123,9 @@ int main( int argc, char** argv )
                     &inputVideoBufferMetafile, "Video buffer sequence metafile." );
   args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                     &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
-  args.AddArgument( "--input-tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &inputToolName, "Tracker tool used for transform display (Default: Probe)" );
   args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT,
                     &inputReplay, "Replay tracked frames after reached the latest one." );
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
+  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
                       &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)");  
   
   if ( ! args.Parse() )
@@ -141,8 +146,7 @@ int main( int argc, char** argv )
   
     // Prepare data collector object.
   
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
@@ -211,7 +215,7 @@ int main( int argc, char** argv )
   
   std::string errorMessage;
   broadcasterStatus = broadcaster->Initialize( errorMessage );
-  switch ( broadcasterStatus )
+  switch ( broadcasterStatus ) // TODO
   {
     case vtkOpenIGTLinkBroadcaster::STATUS_OK:
       break;
@@ -228,7 +232,12 @@ int main( int argc, char** argv )
       LOG_ERROR( "Unknown error while trying to intialize the broadcaster. " );
       exit( BC_EXIT_FAILURE );
   }
-  
+
+  if (broadcaster->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read OpenIGTLinkBroadcaster configuration!");
+    exit( BC_EXIT_FAILURE );
+  }
   
     // Starting data collector.
   
@@ -238,21 +247,21 @@ int main( int argc, char** argv )
   
     // Determine number of iterations the broadcaster should run for.
   
-  unsigned int NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX;
+  unsigned int numberOfBroadcastedMessages = UINT_MAX;
   
   if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    NUMBER_OF_BROADCASTED_MESSAGES = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize();
+    numberOfBroadcastedMessages = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize();
     if ( inputReplay )
     {
-      NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX; 
+      numberOfBroadcastedMessages = UINT_MAX; 
     }
   }
   
   
     // Send messages in each itreation.
   
-  for ( int i = 0; i < NUMBER_OF_BROADCASTED_MESSAGES; ++ i )
+  for ( int i = 0; i < numberOfBroadcastedMessages; ++ i )
   {
     vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
     LOG_INFO( "Iteration: " << i );
@@ -262,12 +271,11 @@ int main( int argc, char** argv )
     broadcasterStatus = broadcaster->SendMessages( errorMessage );
     
     if ( broadcasterStatus != vtkOpenIGTLinkBroadcaster::STATUS_OK )
-      {
+    {
       LOG_WARNING( "Broadcaster couldn't send messages: " << errorMessage );
-      }
-    
-    
-    PrintActualTransforms( dataCollectorHardwareDevice, inputToolName.c_str() );
+    }
+
+    PrintActualTransforms( dataCollectorHardwareDevice );
   }
 
   
