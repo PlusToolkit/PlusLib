@@ -417,38 +417,11 @@ double CapturingToolbox::GetMaximumFrameRate()
     return 0.0;
   }
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
-  if ( dataCollectorHardwareDevice )
+  double frameRate = 0.0;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
   {
-    if ( dataCollectorHardwareDevice->GetVideoEnabled()
-      && dataCollectorHardwareDevice->GetVideoSource())
-    {
-      return dataCollectorHardwareDevice->GetVideoSource()->GetFrameRate();
-    }
-    else if (dataCollectorHardwareDevice->GetTracker())
-    {
-      return dataCollectorHardwareDevice->GetTracker()->GetFrequency();
-    }
-    else
-    {
-      return 0.0;
-    }
+    LOG_ERROR("Unable to get frame rate from data collector!");
   }
 
-  vtkDataCollectorFile* dataCollectorFile = dynamic_cast<vtkDataCollectorFile*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
-  if ( dataCollectorFile )
-  {
-    double frameRate = 0.0;
-    
-    if (dataCollectorFile->GetFrameRate(frameRate) != PLUS_SUCCESS)
-    {
-      return 0.0;
-    }
-
-    return frameRate;
-  }
-
-  LOG_ERROR("Unknown data collector type!");
-
-  return 0.0;
+  return frameRate;
 }

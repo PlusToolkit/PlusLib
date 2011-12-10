@@ -2,6 +2,9 @@
 #include "OpenIGTLinkBroadcasterWidget.h"
 
 #include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollectorFile.h"
+
 #include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
@@ -89,22 +92,28 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName )
   std::string errorMessage;
   broadcasterStatus = this->m_OpenIGTLinkBroadcaster->Initialize( errorMessage );
   if ( broadcasterStatus != vtkOpenIGTLinkBroadcaster::STATUS_OK )
-    {
-    std::cout << "Error in broadcaster:" << errorMessage << std::endl;
-    }
-  
+  {
+    std::cout << "Error in broadcaster:" << errorMessage << std::endl; //TODO
+  }
+
+  if (m_OpenIGTLinkBroadcaster->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read OpenIGTLinkBroadcaster configuration!");
+  }
+
   
     // Determine delay from frequency for the tracker.
 
-  //TODO
-  LOG_ERROR("Tracked frequency and delay are not determined!");
-  double delayTracking = 0.1;
-  /*
-  double delayTracking = 1.0 / dataCollectorHardwareDevice->GetTracker()->GetFrequency();
+  double frequency = 0.1;
+  if (m_DataCollector->GetFrameRate(frequency)  != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get frame rate from data collector!");
+  }
 
-  LOG_INFO( "Tracker frequency = " << dataCollectorHardwareDevice->GetTracker()->GetFrequency() );
+  double delayTracking = 1.0 / frequency;
+
+  LOG_INFO( "Tracker frequency = " << frequency );
   LOG_DEBUG( "Tracker delay = " << delayTracking );
-  */
   
     // Start data collection and broadcasting.
   
@@ -167,6 +176,9 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
     }
     else
     {
+      //TODO
+      LOG_WARNING("TEMPORARY ISSUE - cannot print transforms"); // Need to get all toolInfos from broadcaster and get the transforms OR make some logging possible in the broadcaster itself
+      /*
       TrackedFrameFieldStatus status = FIELD_INVALID;
       PlusTransformName transformName("Probe", "Reference"); //TODO!!!!!
       trackedFrame.GetCustomFrameTransform(transformName, mToolToReference); 
@@ -177,6 +189,7 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
           << mToolToReference->GetElement( 1, 3 ) << " "
           << mToolToReference->GetElement( 2, 3 ) << " " );
       }
+      */
     }
   }
   else
