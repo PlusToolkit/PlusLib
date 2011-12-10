@@ -63,16 +63,6 @@ struct SocketInfo
 class VTK_EXPORT vtkOpenIGTLinkBroadcaster : public vtkObject
 {
 public:
-
-  enum Status {
-    STATUS_OK,
-    STATUS_NOT_INITIALIZED,
-    STATUS_NOT_TRACKING,
-    STATUS_HOST_NOT_FOUND,
-    STATUS_SEND_ERROR,
-    STATUS_MISSING_DEFAULT_TOOL, 
-	  STATUS_MISSING_TRACKED_FRAME
-  };
   
   static vtkOpenIGTLinkBroadcaster *New();
 	vtkTypeRevisionMacro( vtkOpenIGTLinkBroadcaster, vtkObject );
@@ -80,34 +70,31 @@ public:
 
   void SetApplyStylusCalibration( bool apply );
 
-  Status SetDataCollector( vtkDataCollector* dataCollector );
-  Status Initialize( std::string &strError ); // TODO It would be better to return with the regular PlusStatus. The error message is already logged in this function so there's no need to repeat that in the application, it's enough to know that it failed.
+  void SetDataCollector( vtkDataCollector* dataCollector );
+
+  PlusStatus Initialize();
+
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-  /*!
-    \return Internal status. If it is HOST_NOT_FOUND, strError will be filled with the host:port address not found.
-  */
-  Status SendMessages( std::string strError );
-  Status SendMessages();
-
+  PlusStatus SendMessages();
 
 protected:
 
   vtkOpenIGTLinkBroadcaster();
 	virtual ~vtkOpenIGTLinkBroadcaster();
 
+  PlusStatus GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo ); 
 
-private:
+  PlusStatus SendImageMessage( TrackedFrame* trackedFrame );
 
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
-	void operator=( const vtkOpenIGTLinkBroadcaster& );
 
-  void SendImageMessage( TrackedFrame* trackedFrame, std::string strError );
+  void operator=( const vtkOpenIGTLinkBroadcaster& );
+
+private:
   
-  PlusStatus GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo ); 
-  
-  Status             InternalStatus;
   vtkDataCollector*  DataCollector;
+
   bool               ApplyStylusCalibration;
   
   /*! List of tools */

@@ -271,28 +271,12 @@ int main(int argc, char **argv)
 
 PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector)
 {
-  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   broadcaster = vtkSmartPointer<vtkOpenIGTLinkBroadcaster>::New();
   broadcaster->SetDataCollector( dataCollector );
 
-  std::string errorMessage;
-  broadcasterStatus = broadcaster->Initialize( errorMessage );
-  switch ( broadcasterStatus )
+  if (broadcaster->Initialize() != PLUS_SUCCESS)
   {
-  case vtkOpenIGTLinkBroadcaster::STATUS_OK:
-    // no error, continue
-    break;
-  case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-    LOG_ERROR("Couldn't initialize OpenIGTLink broadcaster.");
-    return PLUS_FAIL; 
-  case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-    LOG_ERROR("Could not connect to host: " << errorMessage);
-    return PLUS_FAIL; 
-  case vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL:
-    LOG_ERROR("Default tool not defined. ");
-    return PLUS_FAIL; 
-  default:
-    LOG_ERROR("Unknown error while trying to intialize the broadcaster. ");
+    LOG_ERROR("Unable to initialize OpenIGTLink broadcaster!");
     return PLUS_FAIL; 
   }
 
@@ -307,31 +291,11 @@ PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster)
     return PLUS_FAIL; 
   }
 
-  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   std::string errorMessage;
 
-  broadcasterStatus = broadcaster->SendMessages( errorMessage );
-
-  // Display messages depending on the status of broadcaster.
-  switch (broadcasterStatus)
+  if (broadcaster->SendMessages() != PLUS_SUCCESS)
   {
-  case vtkOpenIGTLinkBroadcaster::STATUS_OK:
-    // no error, no message
-    break;
-  case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-    LOG_WARNING("Host not found: " << errorMessage);
-    return PLUS_FAIL; 
-  case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-    LOG_WARNING("OpenIGTLink broadcaster not initialized.");
-    return PLUS_FAIL; 
-  case vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING:
-    LOG_WARNING("Tracking error detected.");
-    return PLUS_FAIL; 
-  case vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR:
-    LOG_WARNING("Could not send OpenIGTLink message.");
-    return PLUS_FAIL; 
-  default:
-    LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
+    LOG_ERROR("Unable to send message!");
     return PLUS_FAIL; 
   }
 
