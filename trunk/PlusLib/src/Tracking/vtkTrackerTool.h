@@ -95,8 +95,6 @@ public:
   vtkGetStringMacro(ToolSerialNumber);
   /*! Get tool name */
   vtkGetStringMacro(ToolName); 
-  /*! Get tool model */
-  vtkGetStringMacro(ToolModel);
 
   /*! Set tracker which owns this tool */
   void SetTracker(vtkTracker *tracker);
@@ -109,15 +107,7 @@ public:
   vtkSetStringMacro(ToolPartNumber);
   /*! Set tool serial number */
   vtkSetStringMacro(ToolSerialNumber);
-  
-  /*! Set tool model */
-  vtkSetStringMacro(ToolModel); 
-
-  /*! Set the tool 'SendTo' link for OpenIGTLink broadcasting */
-  vtkSetStringMacro(SendToLink);
-  /*! Get the tool 'SendTo' link for OpenIGTLink broadcasting */
-  vtkGetStringMacro(SendToLink);
-  
+    
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkTrackerTool *tool);
 
@@ -140,9 +130,6 @@ protected:
   char *ToolPartNumber;
   char *ToolManufacturer;
   char *ToolName; 
-
-  char *SendToLink;
-  char *ToolModel;
 
   vtkTrackerBuffer *Buffer;
 

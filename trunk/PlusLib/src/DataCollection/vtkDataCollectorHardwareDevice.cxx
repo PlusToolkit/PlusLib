@@ -1812,3 +1812,25 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackerToolReferenceFrame(std::str
 
   return PLUS_SUCCESS;
 }
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollectorHardwareDevice::GetFrameRate(double &aFrameRate)
+{
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameRate");
+
+  if ( this->VideoEnabled && this->VideoSource )
+  {
+    aFrameRate = this->VideoSource->GetFrameRate();
+  }
+  else if ( this->Tracker )
+  {
+    aFrameRate = this->Tracker->GetFrequency();
+  }
+  else
+  {
+    LOG_ERROR("Neither video nor tracking is enabled!");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

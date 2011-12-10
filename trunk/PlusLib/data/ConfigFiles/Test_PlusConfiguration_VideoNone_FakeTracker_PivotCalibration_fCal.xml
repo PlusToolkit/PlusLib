@@ -8,8 +8,8 @@ vtkStylusCalibrationTest uses this configuration"
     />
 
     <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0" SendTo="127.0.0.1:1111"/>
-      <Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111" />
+      <Tool Name="Reference" PortName="0" />
+      <Tool Name="Stylus" PortName="1" Model="Example" />
     </Tracker>
 
     <ImageAcquisition Type="None" />

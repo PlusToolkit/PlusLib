@@ -8,10 +8,10 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     />
 
     <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" SendTo="127.0.0.1:1111" />
-      <Tool Name="Reference" PortName="1" SendTo="127.0.0.1:1111" />
-      <Tool Name="Stylus" PortName="2" Model="Example" SendTo="127.0.0.1:1112" />
-      <Tool Name="Needle" PortName="3" Model="Example"  SendTo="127.0.0.1:1112" />
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" Model="Example" />
+      <Tool Name="Needle" PortName="3" Model="Example"  />
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
@@ -47,6 +47,13 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       MinFrameThreshold="200.0" 
       MaxFrameDifference="10.0" 
     />
+
+    <OpenIGTLink>
+      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
+      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112" />
+      <Transform Name="NeedleToReference" SendTo="127.0.0.1:1112" />
+      <Image SendTo="127.0.0.1:1113" />
+    </OpenIGTLink>
   </DataCollection>
 
 

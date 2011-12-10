@@ -202,11 +202,6 @@ public:
   */
   virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
-  /*! Set the tool 'SendTo' link for OpenIGTLink broadcasting */
-  vtkSetStringMacro(SendToLink);
-  /*! Get the tool 'SendTo' link for OpenIGTLink broadcasting */
-  vtkGetStringMacro(SendToLink);
-
 protected:
   vtkPlusVideoSource();
   virtual ~vtkPlusVideoSource();
@@ -284,8 +279,6 @@ protected:
   VideoBufferItem *CurrentVideoBufferItem; 
 
   US_IMAGE_ORIENTATION UsImageOrientation; 
-
-  char *SendToLink;
 
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.

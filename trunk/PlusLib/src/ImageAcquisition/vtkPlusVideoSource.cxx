@@ -75,8 +75,6 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->SetNumberOfInputPorts(0);
 
   this->UsImageOrientation = US_IMG_ORIENT_XX; 
-
-  this->SendToLink = NULL; 
 }
 
 //----------------------------------------------------------------------------
@@ -636,12 +634,6 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!");
     this->SetUsImageOrientation(US_IMG_ORIENT_XX );
   }
-
-  const char* sendToLink = imageAcquisitionConfig->GetAttribute("SendTo"); 
-	if ( sendToLink != NULL ) 
-	{
-		this->SetSendToLink(sendToLink); 
-	}
 
   return PLUS_SUCCESS;
 }

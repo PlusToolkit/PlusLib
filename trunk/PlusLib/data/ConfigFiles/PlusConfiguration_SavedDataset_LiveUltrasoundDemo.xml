@@ -11,9 +11,9 @@ The desired file name with path needs to be added to this XML file as values Seq
         SequenceMetafile=""
         ReplayEnabled="TRUE"
     >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" SendTo="127.0.0.1:1111" />
-      <Tool Name="Reference" PortName="1" SendTo="127.0.0.1:1111" />
-      <Tool Name="Stylus" PortName="2" Model="Example" SendTo="127.0.0.1:1112" />
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" Model="Example" />
     </Tracker>
 
     <ImageAcquisition Type="SavedDataset" 
@@ -40,6 +40,12 @@ The desired file name with path needs to be added to this XML file as values Seq
       MinFrameThreshold="200.0" 
       MaxFrameDifference="10.0" 
     />
+    
+    <OpenIGTLink>
+      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
+      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112" />
+      <Image SendTo="127.0.0.1:1113" />
+    </OpenIGTLink>
   </DataCollection>
 
 

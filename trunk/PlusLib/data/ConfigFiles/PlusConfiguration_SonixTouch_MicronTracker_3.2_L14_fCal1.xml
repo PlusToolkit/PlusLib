@@ -7,7 +7,7 @@
     />
 
     <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
-      <Tool Name="Probe" PortName="probeMarker" SendTo="localhost:18944" />
+      <Tool Name="Probe" PortName="probeMarker" />
       <Tool Name="Reference"  PortName="patientMarker" />
       <Tool Name="Stylus" PortName="stitchMarker" />
     </Tracker>
@@ -48,6 +48,10 @@
       MaxFrameDifference="10.0" 
     />
 
+    <OpenIGTLink>
+      <Transform Name="ProbeToReference" SendTo="localhost:18944" />
+      <Image SendTo="localhost:18944" />
+    </OpenIGTLink>
   </DataCollection>
 
 

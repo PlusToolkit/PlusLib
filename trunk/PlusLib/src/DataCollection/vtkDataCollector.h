@@ -82,6 +82,9 @@ public:
   /*! Get tracker tool reference frame name (eg. "Tracker")  */
   virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName) = 0;
 
+  /*! Get frame rate */
+  virtual PlusStatus GetFrameRate(double &aFrameRate) = 0;
+
 public:
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]) = 0;

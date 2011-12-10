@@ -18,12 +18,159 @@ See License.txt for details.
 #include "PlusVideoFrame.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
 
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 
 vtkCxxRevisionMacro( vtkOpenIGTLinkBroadcaster, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkOpenIGTLinkBroadcaster ); 
+
+//----------------------------------------------------------------------------
+vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
+{
+  this->DataCollector = NULL;
+  this->InternalStatus = STATUS_NOT_INITIALIZED;
+  this->ApplyStylusCalibration = false;
+  this->TransformRepository = NULL;
+  this->ImageSocket = NULL;
+}
+
+//----------------------------------------------------------------------------
+vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
+{
+  for ( int i = 0; i < this->SocketInfos.size(); ++ i )
+  {
+    this->SocketInfos[ i ].Socket->CloseSocket();
+  }
+
+  this->SocketInfos.clear();
+
+  if (this->TransformRepository != NULL)
+  {
+    this->TransformRepository->Delete();
+    this->TransformRepository = NULL;
+  } 
+}
+
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkBroadcaster::PrintSelf( ostream& os, vtkIndent indent )
+{
+  this->Superclass::PrintSelf( os, indent );
+}
+
+//----------------------------------------------------------------------------
+vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::string &strError )
+{
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::Initialize");
+
+  if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
+  {
+    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without valid DataCollector" );
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+  }
+
+  // Create transform repository
+  this->TransformRepository = vtkTransformRepository::New();
+  if (this->TransformRepository == NULL)
+  {
+    LOG_ERROR( "Unable to create TransformRepository!" );
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+  }
+
+  this->InternalStatus = STATUS_OK;
+  return this->InternalStatus;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
+
+  if (this->TransformRepository->ReadConfiguration(aConfig) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to read transform repository configuration!");
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* dataCollectionElement = aConfig->FindNestedElementWithName("DataCollection"); 
+  if (dataCollectionElement == NULL)
+  {
+    LOG_ERROR("Unable to find DataCollection element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  vtkXMLDataElement* openIGTLinkElement = dataCollectionElement->FindNestedElementWithName("OpenIGTLink"); 
+  if (openIGTLinkElement == NULL)
+  {
+    LOG_ERROR("Unable to find OpenIGTLink element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  int imageElements = 0;
+
+  // Read transforms to broadcast
+  for (int transform = 0; transform < openIGTLinkElement->GetNumberOfNestedElements(); ++transform)
+  {
+    vtkXMLDataElement* transformDataElement = openIGTLinkElement->GetNestedElement(transform); 
+
+    SocketInfo socketInfo; 
+    const char* sendToLink = transformDataElement->GetAttribute("SendTo");
+    if ( (sendToLink == NULL)
+      || (GetSocketInfoFromSendToLink(sendToLink, socketInfo) != PLUS_SUCCESS) )
+    {
+	    LOG_WARNING("OpenIGTLink Transform element does not contain SendTo attribute - it cannot be broadcasted!");
+      continue;
+    }
+
+    if ( STRCASECMP(transformDataElement->GetName(), "Transform") == 0 )
+    {
+      const char* transformName = transformDataElement->GetAttribute("Name");
+      if (transformName == NULL)
+      {
+	      LOG_WARNING("OpenIGTLink Transform element does not have a Name element - it cannot be broadcasted!");
+        continue;
+      }
+
+      IgtToolInfo info;
+      info.Socket = socketInfo.Socket;
+      info.TransformName = transformName;
+
+      this->ToolInfos.push_back( info );
+    }
+    else if ( STRCASECMP(transformDataElement->GetName(), "Image") == 0 )
+    {
+      this->ImageSocket = socketInfo.Socket;
+      ++imageElements;
+    }
+  }
+
+  if (imageElements > 1)
+  {
+    LOG_WARNING("More than one Image elements found, only the last one is broadcasted!");
+  }
+
+  LOG_DEBUG( "Number of broadcasted tools: " << this->ToolInfos.size() );
+  LOG_DEBUG( "Image is broadcasted: " << (imageElements==0?"false":"true") );
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
+{
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration(" << (apply?"TRUE":"FALSE") << ")");
+
+  this->ApplyStylusCalibration = apply;
+}
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SetDataCollector( vtkDataCollector* dataCollector )
@@ -84,111 +231,6 @@ PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* s
   this->SocketInfos.push_back( socketInfo );
 
   return PLUS_SUCCESS; 
-
-}
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::string &strError )
-{
-  LOG_TRACE("vtkOpenIGTLinkBroadcaster::Initialize");
-
-  if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
-  {
-    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without valid DataCollector" );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
-  }
-
-  // TODO fix this once the SendTo mechanism has been implemented in the new way (with transform repository and these stuff)
-  LOG_INFO("TEMPORARY ISSUE: Cannot initialize!");
-  /*
-  // Create a socket for all non-reference tools that need to be broadcasted.
-  for ( ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
-  {
-    if ( STRCASECMP(it->second->GetToolName(), "Reference") == 0 )
-    {
-      // We never broadcast the reference tool.
-      continue; 
-    }
-
-    // Check if SendTo address exists for non reference tools.
-    vtkTrackerTool* tool = it->second;
-    if ( tool->GetSendToLink() == NULL ) 
-    {
-      // This tool is not broadcasted.
-      continue;  
-    }
-
-    SocketInfo socketInfo; 
-    if ( this->GetSocketInfoFromSendToLink(tool->GetSendToLink(), socketInfo) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get socket info from send to adress for tool " << tool->GetToolName()); 
-      continue; 
-    }
-
-    LOG_TRACE( "SendTo address for tool " << tool->GetToolName() << ": hostname=" << socketInfo.Host << ", port=" << socketInfo.Port);
-    
-    IgtToolInfo info;
-    info.Socket = socketInfo.Socket;
-    info.ToolName = tool->GetToolName();
-    info.TrackerPortName = it->second->GetPortName();
-
-    this->NonReferenceToolInfos.push_back( info );
-  }
-
-
-  // Check image message send to address 
-  const char* imageSendToLink = dataCollectorHardwareDevice->GetVideoSource()->GetSendToLink(); 
-  if ( imageSendToLink )
-  {
-    SocketInfo socketInfo; 
-    if ( this->GetSocketInfoFromSendToLink(imageSendToLink, socketInfo) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get socket info from send to adress for image message (send to link: " << imageSendToLink <<")"); 
-    }
-  }
-  */
-
-  // Everything worked.
-
-  LOG_DEBUG( "Number of non-reference tools = " << this->NonReferenceToolInfos.size() );
-
-
-  this->InternalStatus = STATUS_OK;
-  return this->InternalStatus;
-}
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
-{
-  this->DataCollector = NULL;
-  this->InternalStatus = STATUS_NOT_INITIALIZED;
-  this->ApplyStylusCalibration = false;
-}
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
-{
-  for ( int i = 0; i < this->SocketInfos.size(); ++ i )
-  {
-    this->SocketInfos[ i ].Socket->CloseSocket();
-  }
-
-  this->SocketInfos.clear();
-}
-
-//----------------------------------------------------------------------------
-void vtkOpenIGTLinkBroadcaster::PrintSelf( ostream& os, vtkIndent indent )
-{
-  this->Superclass::PrintSelf( os, indent );
-}
-
-//----------------------------------------------------------------------------
-void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
-{
-  LOG_TRACE("vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration(" << (apply?"TRUE":"FALSE") << ")");
-
-  this->ApplyStylusCalibration = apply;
 }
 
 //----------------------------------------------------------------------------
@@ -231,53 +273,40 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
   TrackedFrame trackedFrame;
   this->DataCollector->GetTrackedFrame( &trackedFrame );
 
+  if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set current transforms to transform repository!"); 
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+  }
+
   double timestamp = trackedFrame.GetTimestamp();
 
 
-  // Read the non-reference transforms to be broadcasted
-  // relative to the reference from the DataCollector.
-
-  for ( int igtIndex = 0; igtIndex < this->NonReferenceToolInfos.size(); ++ igtIndex )
+  // Read the transforms to be broadcasted
+  for ( int igtIndex = 0; igtIndex < this->ToolInfos.size(); ++ igtIndex )
   {
+    vtkSmartPointer< vtkMatrix4x4 > transformMatrix  = vtkSmartPointer< vtkMatrix4x4 >::New();
 
-    // TrackerStatus status = TOOL_OK;
-    vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
-
-    std::string toolPortName = this->NonReferenceToolInfos[ igtIndex ].TrackerPortName;
-    const char* toolName = this->NonReferenceToolInfos[ igtIndex ].ToolName.c_str();
-    igtl::ClientSocket::Pointer toolSocket = this->NonReferenceToolInfos[ igtIndex ].Socket;
-    
-    double transform[ 16 ] = { 0 };
-    
-    // debug
-    double c[ 16 ] = { 0 };
-    double n[ 16 ] = { 0 };
-
-    // TODO fix this once the SendTo mechanism has been implemented in the new way (with transform repository and these stuff)
-    LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
-    /*
-    PlusTransformName toolTransformName(toolName, dataCollectorHardwareDevice->GetTracker()->GetToolReferenceFrameName() ); 
-
-    trackedFrame.GetCustomFrameTransform( toolTransformName, n );
-
-    if ( this->ApplyStylusCalibration && strcmp( toolName, "Stylus" ) == 0 )
+    const char* transformNameStr = this->ToolInfos[ igtIndex ].TransformName.c_str();
+    igtl::ClientSocket::Pointer socket = this->ToolInfos[ igtIndex ].Socket;
+        
+    PlusTransformName transformName; 
+    if ( transformName.SetTransformName(transformNameStr) != PLUS_SUCCESS )
     {
-      // TODO create the calibrated transform here according to the transforms defined in the device set configuration file
-      trackedFrame.GetCustomFrameTransform( toolTransformName, transform );
-      LOG_ERROR("TEMPORARY ISSUE: Unable to get the calibrated fransform directly! Uncalibrated transform is sent.");
-    }
-    else
-    {
-      trackedFrame.GetCustomFrameTransform( toolTransformName, transform );
+      LOG_ERROR("Failed to set transform name " << transformNameStr); 
+      continue;
     }
 
-
-    TrackerStatus status = TOOL_MISSING;
-    trackedFrame.GetCustomFrameTransformStatus(toolTransformName, status); 
-
-		if ( status != TOOL_OK )
+    bool valid = false;
+    if ( this->TransformRepository->GetTransform(transformName, transformMatrix, &valid) != PLUS_SUCCESS )
     {
-      LOG_INFO( "Tracking data invalid for tool: " << toolName );
+      LOG_ERROR("Cannot get frame transform '" << transformNameStr << "' from tracked frame!");
+      continue;
+    }
+		if ( !valid )
+    {
+      LOG_INFO( "Invalid transform: " << transformNameStr );
       continue;
     }
 
@@ -291,7 +320,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
       for ( int col = 0; col < 4; ++ col )
       {
         // igtlMatrix[ row ][ col ] = mToolToTracker->GetElement( row, col );
-        igtlMatrix[ row ][ col ] = transform[ row * 4 + col ];
+        igtlMatrix[ row ][ col ] = transformMatrix->GetElement(row, col);
       }
     }
 
@@ -304,29 +333,23 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New();
     transformMessage->SetMatrix( igtlMatrix );
     transformMessage->SetTimeStamp( igtlTime );
-    transformMessage->SetDeviceName( toolName );
+    transformMessage->SetDeviceName( transformName.From().c_str() );
     transformMessage->Pack();
 
-    int success = toolSocket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
+    int success = socket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
 
     if ( success == 0 )
     {
-      LOG_WARNING( "Could not broadcast tool: " << toolPortName );
+      LOG_WARNING( "Could not broadcast transform: " << transformNameStr );
     }
-    */
   }
 
 
   // If we should broadcast the image slice too, set up the image container.
-  // TODO!!!!!
-  LOG_INFO("TEMPORARY ISSUE: Cannot send message!");
-  /*
-  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL
-    && dataCollectorHardwareDevice->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
+  if ( this->DataCollector->GetVideoEnabled() )
   {
     this->SendImageMessage( &trackedFrame, strError );
   }
-  */
 
 
   this->InternalStatus = STATUS_OK;
@@ -344,78 +367,20 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
     return;
   }
 
-  // TODO!!!!!
-  LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
-  const char* imageSendToLink = NULL;
-  /*
-  const char* imageSendToLink = dataCollectorHardwareDevice->GetVideoSource()->GetSendToLink(); 
-  if ( imageSendToLink == NULL )
-  {
-    LOG_DEBUG( "No SendTo address found for image message." );
-    return;
-  }
-  */
-
-  SocketInfo imageSocket; 
-  if ( this->GetSocketInfoFromSendToLink(imageSendToLink, imageSocket) != PLUS_SUCCESS )
-  {
-    LOG_DEBUG( "Failed to get sokect info for image message!" );
-    return;
-  }
-
-  igtl::ClientSocket::Pointer defaultSocket = imageSocket.Socket;
+  igtl::ClientSocket::Pointer defaultSocket = this->ImageSocket;
 
   // Read the actual image data with transform.
-  // vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
-  // double timestamp = 0.0;
   double timestamp = trackedFrame->GetTimestamp();
-  // TrackerStatus status = TOOL_OK;
-  vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-  // PlusStatus pStatus = dataCollectorHardwareDevice->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 
   vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImage();
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime( timestamp );
 
-  /*
-  //debug
-  //imageMessage->Get
-  std::stringstream ss;
-  ss << "_vtk_" << igtlFrameTime->GetSecond() << "-" << igtlFrameTime->GetNanosecond() << ".bmp";
-  PlusVideoFrame::SaveImageToFile(frameImage, ss.str().c_str()); 
-  */
-
 
   // Convert matrix and time formats.
 
   igtl::Matrix4x4 igtlMatrix;
-
-  /*
-  for ( int row = 0; row < 4; ++ row )
-  {
-  for ( int col = 0; col < 4; ++ col )
-  {
-  igtlMatrix[ row ][ col ] = mProbeToReference->GetElement( row, col );
-  }
-  }
-  */
-
-  /*
-  //debug
-  std::cerr << "ProbeToReference:" << std::endl;
-  for ( int row = 0; row < 4; ++ row )
-  {
-  for ( int col = 0; col < 4; ++ col )
-  {
-  std::cerr << mProbeToReference->GetElement( row, col ) << "   ";
-  }
-  std::cerr << std::endl;
-  }
-  std::cerr << std::endl;
-  */
-
-
 
   // Create and send the image message.
 
@@ -453,9 +418,9 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
 
   int success = defaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
 
-  if ( success == 0 )
+  if ( success == 0 ) // TODO redundancy
   {
-    LOG_ERROR( "Could send image through OpenIGTLink port" );
+    LOG_ERROR( "Could not send image through OpenIGTLink port" );
     this->InternalStatus = STATUS_SEND_ERROR;
     return;
   }

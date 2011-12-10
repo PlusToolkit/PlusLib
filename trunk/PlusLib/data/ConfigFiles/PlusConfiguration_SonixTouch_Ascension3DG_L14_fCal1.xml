@@ -7,7 +7,7 @@
     />
 
     <Tracker Type="Ascension3DG" BufferSize="500" Frequency="20" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
-      <Tool Name="Probe" PortName="0" SendTo="localhost:18944" />
+      <Tool Name="Probe" PortName="0" />
       <Tool Name="Reference" PortName="1" />
       <Tool Name="Stylus" PortName="2" />
     </Tracker>
@@ -47,6 +47,11 @@
       MinFrameThreshold="200.0" 
       MaxFrameDifference="10.0" 
     />
+
+    <OpenIGTLink>
+      <Transform Name="ProbeToReference" SendTo="localhost:18944" />
+      <Image SendTo="localhost:18944" />
+    </OpenIGTLink>
   </DataCollection>
 
 

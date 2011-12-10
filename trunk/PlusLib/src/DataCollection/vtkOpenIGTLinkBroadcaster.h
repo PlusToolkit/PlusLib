@@ -18,6 +18,8 @@
 
 #include "vtkDataCollector.h"
 
+class vtkTransformRepository;
+
 
 /*!
   \class IgtToolInfo 
@@ -26,8 +28,7 @@
 */
 struct IgtToolInfo
 {
-  std::string                  ToolName;
-  std::string                  TrackerPortName;
+  std::string                  TransformName;
   igtl::ClientSocket::Pointer  Socket;
 };
 
@@ -53,19 +54,16 @@ struct SocketInfo
   \class vtkOpenIGTLinkBroadcaster 
   \brief Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
 
-  Input is read from the configuration xml file for DataCollector.
-  To broadcast a tracker tool, specify a SendTo attribute in the tool tag.
-  E.g. <Tool Name="Probe" PortNumber="0" SendTo="localhost:18944"></Tool>
+  Input is read from the device set configuration xml file.
+  To broadcast a transform, add a new element under the DataCollection/OpenIGTLink element
+  E.g. <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
 
   \ingroup PlusLibDataCollection
 */
-class
-VTK_EXPORT 
-vtkOpenIGTLinkBroadcaster
-: public vtkObject
+class VTK_EXPORT vtkOpenIGTLinkBroadcaster : public vtkObject
 {
 public:
-  
+
   enum Status {
     STATUS_OK,
     STATUS_NOT_INITIALIZED,
@@ -79,30 +77,31 @@ public:
   static vtkOpenIGTLinkBroadcaster *New();
 	vtkTypeRevisionMacro( vtkOpenIGTLinkBroadcaster, vtkObject );
 	virtual void PrintSelf( ostream& os, vtkIndent indent );
-  
+
   void SetApplyStylusCalibration( bool apply );
-  
+
   Status SetDataCollector( vtkDataCollector* dataCollector );
-  Status Initialize( std::string &strError );
-  
+  Status Initialize( std::string &strError ); // TODO It would be better to return with the regular PlusStatus. The error message is already logged in this function so there's no need to repeat that in the application, it's enough to know that it failed.
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
   /*!
     \return Internal status. If it is HOST_NOT_FOUND, strError will be filled with the host:port address not found.
   */
   Status SendMessages( std::string strError );
   Status SendMessages();
-  
-  
+
+
 protected:
-  
+
   vtkOpenIGTLinkBroadcaster();
 	virtual ~vtkOpenIGTLinkBroadcaster();
-  
-  
+
+
 private:
-	
+
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
 	void operator=( const vtkOpenIGTLinkBroadcaster& );
-  
+
   void SendImageMessage( TrackedFrame* trackedFrame, std::string strError );
   
   PlusStatus GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo ); 
@@ -112,10 +111,16 @@ private:
   bool               ApplyStylusCalibration;
   
   /*! List of tools */
-  std::vector< IgtToolInfo > NonReferenceToolInfos; 
+  std::vector< IgtToolInfo >  ToolInfos; 
+
   /*! List of sockets */
-  std::vector< SocketInfo >  SocketInfos;            
-  
+  std::vector< SocketInfo >   SocketInfos;            
+
+  /*! Socket for image */
+  igtl::ClientSocket::Pointer ImageSocket;
+
+  /*! Transform repository */
+  vtkTransformRepository*     TransformRepository;
 };
 
 

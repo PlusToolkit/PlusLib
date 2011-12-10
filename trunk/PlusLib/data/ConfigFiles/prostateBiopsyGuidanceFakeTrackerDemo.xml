@@ -8,7 +8,7 @@
 
     <Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
       <Tool Name="Reference" PortName="0"></Tool> 
-      <Tool Name="Stylus" PortName="1" SendTo="localhost:18944"></Tool>
+      <Tool Name="Stylus" PortName="1" ></Tool>
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
@@ -44,6 +44,10 @@
       MaxFrameDifference="10.0" 
     />
 
+    <OpenIGTLink>
+      <Transform Name="ProbeToReference" SendTo="localhost:18944" />
+      <Image SendTo="localhost:18944" />
+    </OpenIGTLink>
   </DataCollection>
   
   <ProstateBiopsy AcquisitionTime="3" />
