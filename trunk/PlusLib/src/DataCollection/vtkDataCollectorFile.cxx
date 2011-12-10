@@ -188,7 +188,11 @@ PlusStatus vtkDataCollectorFile::GetMostRecentTimestamp(double &ts)
     return PLUS_FAIL;
   }
 
-  ts = this->LastTimestamp;
+  if (GetCurrentFrameTimestamp(ts) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get current timestamp!");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -376,7 +380,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
     aIndex = -1;
   }
 
-  while (aTimestamp > this->TrackedFrameBuffer->GetTrackedFrame(aIndex + 1)->GetTimestamp())
+  while (aTimestamp >= this->TrackedFrameBuffer->GetTrackedFrame(aIndex + 1)->GetTimestamp())
   {
     aIndex++;
 
@@ -571,7 +575,7 @@ void vtkDataCollectorFile::SetTrackingOnly(bool trackingOnly)
 {
   LOG_TRACE("vtkDataCollectorFile::SetTrackingOnly");
 
-  LOG_INFO("Tracking cannot be explicitly turned on or off in case of simulation mode!");
+  LOG_DEBUG("Tracking cannot be explicitly turned on or off in case of simulation mode!");
 }
 
 //------------------------------------------------------------------------------
@@ -579,7 +583,7 @@ void vtkDataCollectorFile::SetVideoOnly(bool videoOnly)
 {
   LOG_TRACE("vtkDataCollectorFile::SetVideoOnly");
 
-  LOG_INFO("Video cannot be explicitly turned on or off in case of simulation mode!");
+  LOG_DEBUG("Video cannot be explicitly turned on or off in case of simulation mode!");
 }
 
 //------------------------------------------------------------------------------
@@ -587,7 +591,7 @@ void vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction(ProgressBarUpdat
 {
   LOG_TRACE("vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction");
 
-  LOG_INFO("There is no update callback function in simulation mode!");
+  LOG_DEBUG("There is no update callback function in simulation mode!");
 }
 
 //------------------------------------------------------------------------------
