@@ -86,14 +86,11 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName )
   
     // Prepare the OpenIGTLink broadcaster.
   
-  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   this->m_OpenIGTLinkBroadcaster->SetDataCollector( this->m_DataCollector );
   
-  std::string errorMessage;
-  broadcasterStatus = this->m_OpenIGTLinkBroadcaster->Initialize( errorMessage );
-  if ( broadcasterStatus != vtkOpenIGTLinkBroadcaster::STATUS_OK )
+  if ( this->m_OpenIGTLinkBroadcaster->Initialize() != PLUS_SUCCESS )
   {
-    std::cout << "Error in broadcaster:" << errorMessage << std::endl; //TODO
+    LOG_ERROR("Unable to initialize broadcaster!");
   }
 
   if (m_OpenIGTLinkBroadcaster->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
@@ -198,15 +195,11 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
   }
   
   
-  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
-  std::string errorMessage;
   if ( this->Paused == false )
   {
-    
-    broadcasterStatus = this->m_OpenIGTLinkBroadcaster->SendMessages( errorMessage );
-  }
-  if ( broadcasterStatus != vtkOpenIGTLinkBroadcaster::STATUS_OK )
-  {
-    LOG_WARNING( "Could not broadcast messages." );
+    if ( this->m_OpenIGTLinkBroadcaster->SendMessages() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to broadcast messages!");
+    }
   }
 }
