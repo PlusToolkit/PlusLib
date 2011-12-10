@@ -209,28 +209,13 @@ int main( int argc, char** argv )
   
     // Prepare the OpenIGTLink broadcaster.
   
-  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   vtkSmartPointer< vtkOpenIGTLinkBroadcaster > broadcaster = vtkSmartPointer< vtkOpenIGTLinkBroadcaster >::New();
   broadcaster->SetDataCollector( dataCollector );
   
-  std::string errorMessage;
-  broadcasterStatus = broadcaster->Initialize( errorMessage );
-  switch ( broadcasterStatus ) // TODO
+  if (broadcaster->Initialize() != PLUS_SUCCESS)
   {
-    case vtkOpenIGTLinkBroadcaster::STATUS_OK:
-      break;
-    case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-      LOG_ERROR("Couldn't initialize OpenIGTLink broadcaster." );
-      exit( BC_EXIT_FAILURE );
-    case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-      LOG_ERROR( "Could not connect to host: " << errorMessage );
-      exit( BC_EXIT_FAILURE );
-    case vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL:
-      LOG_ERROR( "Default tool not defined. ");
-      exit( BC_EXIT_FAILURE );
-    default:
-      LOG_ERROR( "Unknown error while trying to intialize the broadcaster. " );
-      exit( BC_EXIT_FAILURE );
+    LOG_ERROR("Unable to initialize OpenIGTLinkBroadcaster!");
+    exit( BC_EXIT_FAILURE );
   }
 
   if (broadcaster->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
@@ -266,13 +251,9 @@ int main( int argc, char** argv )
     vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
     LOG_INFO( "Iteration: " << i );
     
-    vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
-    std::string errorMessage;
-    broadcasterStatus = broadcaster->SendMessages( errorMessage );
-    
-    if ( broadcasterStatus != vtkOpenIGTLinkBroadcaster::STATUS_OK )
+    if (broadcaster->SendMessages() != PLUS_SUCCESS)
     {
-      LOG_WARNING( "Broadcaster couldn't send messages: " << errorMessage );
+      LOG_ERROR( "Broadcaster couldn't send messages!" );
     }
 
     PrintActualTransforms( dataCollectorHardwareDevice );

@@ -30,7 +30,6 @@ vtkStandardNewMacro( vtkOpenIGTLinkBroadcaster );
 vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
 {
   this->DataCollector = NULL;
-  this->InternalStatus = STATUS_NOT_INITIALIZED;
   this->ApplyStylusCalibration = false;
   this->TransformRepository = NULL;
   this->ImageSocket = NULL;
@@ -60,15 +59,14 @@ void vtkOpenIGTLinkBroadcaster::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::string &strError )
+PlusStatus vtkOpenIGTLinkBroadcaster::Initialize()
 {
   LOG_TRACE("vtkOpenIGTLinkBroadcaster::Initialize");
 
   if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
   {
-    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without valid DataCollector" );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
+    LOG_ERROR( "Unable to initialize vtkOpenIGTLinkBroadcaster without valid DataCollector" );
+    return PLUS_FAIL;
   }
 
   // Create transform repository
@@ -76,12 +74,10 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
   if (this->TransformRepository == NULL)
   {
     LOG_ERROR( "Unable to create TransformRepository!" );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
+    return PLUS_FAIL;
   }
 
-  this->InternalStatus = STATUS_OK;
-  return this->InternalStatus;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -173,11 +169,9 @@ void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
 }
 
 //----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SetDataCollector( vtkDataCollector* dataCollector )
+void vtkOpenIGTLinkBroadcaster::SetDataCollector( vtkDataCollector* dataCollector )
 {
   this->DataCollector = dataCollector;
-
-  return this->InternalStatus;
 }
 
 //----------------------------------------------------------------------------
@@ -234,39 +228,28 @@ PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* s
 }
 
 //----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages()
-{
-  //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendMessages");
-
-  std::string str;
-  return SendMessages( str );
-}
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::string strError )
+PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
 {
   //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendMessages");
 
   // Check status and possible errors.
 
-  if ( this->InternalStatus == STATUS_NOT_INITIALIZED )
+  if ( this->ToolInfos.size() == 0 && this->ImageSocket.IsNull() )
   {
-    LOG_WARNING( "Broadcaster not initialized." );
-    return this->InternalStatus;
+    LOG_ERROR( "Broadcaster not initialized (configuration has not been read)!" );
+    return PLUS_FAIL;
   }
 
   if ( this->DataCollector == NULL )
   {
-    LOG_WARNING( "Tried to send OpenIGTLink messages without a proper DataCollector." );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
+    LOG_ERROR( "Unable to send OpenIGTLink messages without a proper DataCollector" );
+    return PLUS_FAIL;
   }
 
   if ( ! this->DataCollector->GetTrackingEnabled() )
   {
-    LOG_WARNING( "Tried to send OpenIGTLink messages without starting the tracker." );
-    this->InternalStatus = STATUS_NOT_TRACKING;
-    return this->InternalStatus;
+    LOG_ERROR( "Unable to send OpenIGTLink messages without starting the tracker." );
+    return PLUS_FAIL;
   }
 
 
@@ -276,8 +259,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
   if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set current transforms to transform repository!"); 
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
+    return PLUS_FAIL;
   }
 
   double timestamp = trackedFrame.GetTimestamp();
@@ -348,23 +330,21 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
   // If we should broadcast the image slice too, set up the image container.
   if ( this->DataCollector->GetVideoEnabled() )
   {
-    this->SendImageMessage( &trackedFrame, strError );
+    this->SendImageMessage( &trackedFrame );
   }
 
-
-  this->InternalStatus = STATUS_OK;
-  return this->InternalStatus;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, std::string strError )
+PlusStatus vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame )
 {
   //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendImageMessage");
 
   if ( this->DataCollector == NULL )
   {
     LOG_ERROR("Invalid data collector, cannot send message!");
-    return;
+    return PLUS_FAIL;
   }
 
   igtl::ClientSocket::Pointer defaultSocket = this->ImageSocket;
@@ -416,16 +396,11 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
 
   imageMessage->Pack();
 
-  int success = defaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
-
-  if ( success == 0 ) // TODO redundancy
+  if ( defaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() ) == 0 )
   {
     LOG_ERROR( "Could not send image through OpenIGTLink port" );
-    this->InternalStatus = STATUS_SEND_ERROR;
-    return;
+    return PLUS_FAIL;
   }
-  else
-  {
-    this->InternalStatus = STATUS_OK;
-  }
+
+  return PLUS_SUCCESS;
 }
