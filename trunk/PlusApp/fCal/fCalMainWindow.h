@@ -97,6 +97,11 @@ public:
 	*/
   AbstractToolbox* GetToolbox(ToolboxType aType) { return m_ToolboxList[aType]; };
 
+  /*! Get image coordinate frame name */
+  std::string GetImageCoordinateFrame() { return m_ImageCoordinateFrame; };
+  /*! Set image coordinate frame name */
+  void SetImageCoordinateFrame(const char* aImageCoordinateFrame) { m_ImageCoordinateFrame = aImageCoordinateFrame; };
+
   /*! Get probe coordinate frame name */
   std::string GetProbeCoordinateFrame() { return m_ProbeCoordinateFrame; };
   /*! Set probe coordinate frame name */
@@ -180,6 +185,9 @@ protected:
 
   /*! List of toolbox objects (the indices are the type identifiers) */
   std::vector<AbstractToolbox*> m_ToolboxList;
+
+  /*! Image coordinate frame name for Volume reconstruction */
+  std::string m_ImageCoordinateFrame;
 
   /*! Probe coordinate frame name for Capturing */
   std::string m_ProbeCoordinateFrame;

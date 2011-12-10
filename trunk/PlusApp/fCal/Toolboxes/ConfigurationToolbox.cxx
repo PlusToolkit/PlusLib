@@ -336,6 +336,16 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;     
   }
 
+  // Image coordinate frame
+  const char* imageCoordinateFrame = fCalElement->GetAttribute("ImageCoordinateFrame");
+  if (imageCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("Image coordinate frame is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_ParentMainWindow->SetImageCoordinateFrame(imageCoordinateFrame);
+
   // Probe coordinate frame
   const char* probeCoordinateFrame = fCalElement->GetAttribute("ProbeCoordinateFrame");
   if (probeCoordinateFrame == NULL)

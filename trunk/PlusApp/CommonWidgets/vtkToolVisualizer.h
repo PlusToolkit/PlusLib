@@ -29,9 +29,18 @@ class vtkSTLReader;
 //-----------------------------------------------------------------------------
 
 /*! \class vtkToolVisualizer 
- * \brief Class that is responsible for visualizing the tools (and so getting acquired tracked data)
- * \ingroup PlusAppFCal
- */
+ \brief Class that is responsible for visualizing the tools (and so getting acquired tracked data)
+
+ Usage: Instantiate, call Initialize function and add its canvas renderer to the vtkRenderWindow (get it by calling QVTKWidget::GetRenderWindow() function)
+   that can be reached by calling its GetCanvasRenderer() function. Updating the visualization is done by calling the update() function of the application's
+   QVTKWidget object. Before calling this, force the data collector to provide new data by calling GetDataCollector()->Modified() function.
+
+   It has two  modes, ImageMode and DeviceMode. In image mode it shows only the video input in the whole window (you'd better call CalculateImageCameraParameters()
+   function in the resize event of the application window because of this). In DeviceMode, all the devices and the image is visible (that are defined in the device
+   set configuration file's Rendering element). Devices and objects can be shown and hidden (HideAll(), ShowAllObjects(), ShowObject(), ShowInput(), ShowResult())
+
+ \ingroup PlusAppCommonWidgets
+*/
 class vtkToolVisualizer : public QObject, public vtkObject
 {
 	Q_OBJECT
@@ -212,8 +221,6 @@ public:
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
 
-  vtkGetStringMacro(ImageCoordinateFrame);
-
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
 	vtkSetObjectMacro(InputActor, vtkActor);
@@ -226,8 +233,6 @@ protected:
 
 	vtkSetMacro(ImageMode, bool); 
 	vtkBooleanMacro(ImageMode, bool); 
-
-  vtkSetStringMacro(ImageCoordinateFrame);
 
 protected:
 	/*!
@@ -264,9 +269,6 @@ protected:
 
   /*! Name of the rendering world coordinate frame */
   char* WorldCoordinateFrame;
-
-  /*! Name of the image coordinate frame */
-  char* ImageCoordinateFrame;
 
   /*! Renderer for the canvas */
 	vtkRenderer* CanvasRenderer; 

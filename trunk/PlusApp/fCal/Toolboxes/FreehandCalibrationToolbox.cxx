@@ -203,21 +203,6 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL; 
   }
 
-  // Read calibration result // TODO is it needed at all?
-  PlusTransformName imageToProbeTransformName(m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame());
-  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid = false;
-
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->IsExistingTransform(imageToProbeTransformName) == PLUS_SUCCESS)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->GetTransform(imageToProbeTransformName, imageToProbeTransformMatrix, &valid) == PLUS_SUCCESS)
-    && (valid) )
-  {
-    vtkSmartPointer<vtkTransform> imageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
-    imageToProbeTransform->Identity();
-    imageToProbeTransform->Concatenate(imageToProbeTransformMatrix);
-    m_Calibration->SetTransformImageToProbe(imageToProbeTransform);
-  }
-
   return PLUS_SUCCESS;
 }
 

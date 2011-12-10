@@ -54,7 +54,6 @@ vtkToolVisualizer::vtkToolVisualizer()
   this->InitializedOff();
   this->ImageModeOff();
   this->WorldCoordinateFrame = NULL;
-  this->ImageCoordinateFrame = NULL; //TODO needed?
 
   this->CanvasRenderer = NULL;
   this->InputPolyData = NULL;
@@ -208,7 +207,6 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
       displayableObject->SetObjectCoordinateFrame(objectCoordinateFrame);
       displayableObject->SetActor(this->ImageActor);
       displayableObject->SetDisplayable(false);
-      this->SetImageCoordinateFrame(objectCoordinateFrame);
 
       imageFound = true;
     }

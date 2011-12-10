@@ -20,7 +20,7 @@ class vtkMapper;
 
 /*! \class vtkDisplayableObject 
  * \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
- * \ingroup PlusAppFCal
+ * \ingroup PlusAppCommonWidgets
  */
 class vtkDisplayableObject : public vtkObject
 {

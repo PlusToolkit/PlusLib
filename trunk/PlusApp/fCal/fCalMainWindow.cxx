@@ -34,6 +34,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
   , m_StatusIcon(NULL)
+  , m_ImageCoordinateFrame("")
   , m_ProbeCoordinateFrame("")
   , m_ReferenceCoordinateFrame("")
 {
