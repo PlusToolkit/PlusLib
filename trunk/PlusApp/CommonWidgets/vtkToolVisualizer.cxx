@@ -383,6 +383,8 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
       continue;
     }
 
+    displayableObject->SetDisplayable(false);
+
     std::string objectName(displayableObject->GetObjectCoordinateFrame());
 
     // Check if file name exists and file can be found
@@ -413,6 +415,8 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
 
         SetDefaultStylusModel(displayableObject->GetActor());
         this->CanvasRenderer->AddActor(displayableObject->GetActor());
+
+        displayableObject->SetDisplayable(true);
       }
     }
     else
@@ -436,6 +440,8 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
       }
 
       this->CanvasRenderer->AddActor(displayableObject->GetActor());
+
+      displayableObject->SetDisplayable(true);
     }
   }
 
@@ -696,7 +702,10 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     // If not displayable then hide
     if (displayableObject->IsDisplayable() == false)
     {
-      displayableObject->GetActor()->VisibilityOff();
+      if (displayableObject->GetActor())
+      {
+        displayableObject->GetActor()->VisibilityOff();
+      }
       continue;
     }
 
