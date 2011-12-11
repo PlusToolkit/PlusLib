@@ -21,6 +21,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkImageData.h"
+#include "metaImage.h"
 
 //-----------------------------------------------------------------------------
 
@@ -163,7 +164,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 	}
   else if (m_State == ToolboxState_Done)
   {
-		ui.label_Instructions->setText("Reconstructed volume saved successfully");
+		ui.label_Instructions->setText("Reconstruction done");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(true);
@@ -253,6 +254,7 @@ void VolumeReconstructionToolbox::Reconstruct()
 	if (ReconstructVolumeFromInputImage() != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to reconstruct volume!");
+    SetState(ToolboxState_Error);
   }
 
 	QApplication::restoreOverrideCursor();
@@ -264,14 +266,14 @@ void VolumeReconstructionToolbox::Save()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Save"); 
 
-	QString filter = QString( tr( "VTK files ( *.vtk );;" ) );
+	QString filter = QString( tr( "VTK files ( *.vtk );;Sequence metafiles ( *.mha );;" ) );
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
 
 	if (! fileName.isNull() )
   {
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-		if (SaveVolumeToFile(fileName.toAscii().data()) != PLUS_SUCCESS)
+		if (SaveVolumeToFile(fileName) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to save volume to file!");
     }
@@ -339,7 +341,11 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     RefreshContent();
 
 		// Add this tracked frame to the reconstructor
-    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), imageToReferenceTransformName);
+    if (m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), imageToReferenceTransformName) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to add tracked frame to reconstructor! Maybe image to probe calibration is not in the configuration file!");
+      return PLUS_FAIL;
+    }
 	}
 	
 	m_ParentMainWindow->SetStatusBarProgress(0);
@@ -385,16 +391,39 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(std::string aOutput)
+PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 {
-	LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput << ")"); 
+	LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toAscii().data() << ")"); 
 
 	// Write out to file
-	vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
-	writer->SetFileTypeToBinary();
-	writer->SetInput(m_ReconstructedVolume);
-	writer->SetFileName(aOutput.c_str());
-	writer->Update();
+  if (aOutput.right(3).toLower() == QString("vtk"))
+  {
+    vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
+    writer->SetFileTypeToBinary();
+    writer->SetInput(m_ReconstructedVolume);
+    writer->SetFileName(aOutput.toAscii().data());
+    writer->Update();
+  }
+  else if (aOutput.right(3).toLower() == QString("mha"))
+  {
+    LOG_INFO("sajt   " << m_ReconstructedVolume->GetScalarTypeAsString());
+    MetaImage* metaImage = new MetaImage(m_ReconstructedVolume->GetDimensions()[0], m_ReconstructedVolume->GetDimensions()[1], m_ReconstructedVolume->GetDimensions()[2],
+                                         m_ReconstructedVolume->GetSpacing()[0], m_ReconstructedVolume->GetSpacing()[1], m_ReconstructedVolume->GetSpacing()[2],
+                                         MET_UCHAR, 1, m_ReconstructedVolume->GetScalarPointer());
+
+    if (metaImage->Write(aOutput.toAscii().data(), aOutput.toAscii().data()) == false)
+    {
+      LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
+      return PLUS_FAIL;
+    }
+
+    delete metaImage;
+  }
+  else
+  {
+    LOG_ERROR("Invalid file extension (.vtk or .mha expected)!");
+    return PLUS_FAIL;
+  }
 
 	return PLUS_SUCCESS;
 }
@@ -415,7 +444,7 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
 	LOG_TRACE("VolumeReconstructionToolbox::PopulateImageComboBox");
 
   // Clear images combobox
-  for (int i=0; i<ui.comboBox_InputImage->count(); ++i)
+  for (int i=ui.comboBox_InputImage->count()-1; i>=0; --i)
   {
     ui.comboBox_InputImage->removeItem(i);
   }

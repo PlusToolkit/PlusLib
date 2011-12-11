@@ -73,7 +73,7 @@ protected:
 	* \param aOutput Output file
 	* \return Success flag
 	*/
-	PlusStatus SaveVolumeToFile(std::string aOutput);
+	PlusStatus SaveVolumeToFile(QString aOutput);
 
 	/*!
 	* Display reconstructed volume in canvas
