@@ -64,11 +64,6 @@ public:
   */
   void SetDisplayAccordingToState();
 
-  /*!
-  * Overridden method of AbstractToolbox which is called when disconnecting from the device set
-  */
-  void Reset();
-
 protected:
   /*!
   * Determines if everything is OK to run spatial calibration
@@ -121,12 +116,6 @@ protected slots:
   * Slot handling cancel spatial calibration button click
   */
   void CancelSpatial();
-
-  /*!
-  * Slot handling show devices combobox state change
-  * \param Slot aOn True if toggled, false otherwise
-  */
-  void ShowDevicesToggled(bool aOn);
 
 protected:
   /*! Calibration algorithm */

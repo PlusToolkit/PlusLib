@@ -119,8 +119,11 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
 
-  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  if (m_ParentMainWindow->AreDevicesShown() == false)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  }
 
 	if (m_State == ToolboxState_Uninitialized)
   {

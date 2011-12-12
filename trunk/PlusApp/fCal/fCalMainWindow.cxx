@@ -99,9 +99,10 @@ void fCalMainWindow::Initialize()
 	SetupStatusBar();
 
 	// Make connections
-	connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
-  connect(ui.pushButton_SaveConfiguration, SIGNAL(clicked()), this, SLOT(SaveDeviceSetConfiguration()));
-	connect(m_UiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
+	connect( ui.tabWidgetToolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentTabChanged(int) ) );
+  connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
+  connect( ui.pushButton_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
+	connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
 
   // Initialize default tab widget
 	CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
@@ -402,3 +403,25 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
 
   delete configSaverDialog;
 }
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::ShowDevicesToggled(bool aOn)
+{
+  LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
+
+  if (aOn)
+  {
+    m_ToolVisualizer->HideAll();
+    m_ToolVisualizer->EnableImageMode(false);
+    m_ToolVisualizer->ShowAllObjects(true);
+    m_ToolVisualizer->GetCanvasRenderer()->ResetCamera();
+  }
+  else
+  {
+    m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+  }
+
+  m_ShowDevices = aOn;
+}
+

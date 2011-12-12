@@ -112,6 +112,9 @@ public:
   /*! Set reference coordinate frame name */
   void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame) { m_ReferenceCoordinateFrame = aReferenceCoordinateFrame; };
 
+  /*! Get show devices status */
+  bool AreDevicesShown() { return m_ShowDevices; };
+
 protected:
 	/*!
 	* Create toolboxes
@@ -148,6 +151,12 @@ protected slots:
 	* Updates every part of the GUI (called by ui refresh timer)
 	*/
 	void UpdateGUI();
+
+  /*!
+  * Slot handling show devices combobox state change
+  * \param Slot aOn True if toggled, false otherwise
+  */
+  void ShowDevicesToggled(bool aOn);
 
 	/*!
 	* Resize event handler
@@ -194,6 +203,9 @@ protected:
 
   /*! Reference coordinate frame name for Capturing */
   std::string m_ReferenceCoordinateFrame;
+
+  /*! Show devices flag */
+  bool m_ShowDevices;
 
 private:
 	Ui::fCalMainWindow	ui;

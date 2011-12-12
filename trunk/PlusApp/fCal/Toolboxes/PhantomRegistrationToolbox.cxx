@@ -293,8 +293,11 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("PhantomRegistrationToolbox::SetDisplayAccordingToState");
 
-  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  if (m_ParentMainWindow->AreDevicesShown() == false)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  }
 
   if (m_State == ToolboxState_Uninitialized)
   {
@@ -526,7 +529,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   // Add point to registration algorithm
   if (!valid)
   {
-    LOG_WARNING("Invalid stylus tip to reference transform cannot be added!");
+    LOG_WARNING("Invalid stylus tip to reference transform - cannot be added!");
     return;
   }
 

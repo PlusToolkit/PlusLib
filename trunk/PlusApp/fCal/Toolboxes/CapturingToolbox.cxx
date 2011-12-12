@@ -110,8 +110,11 @@ void CapturingToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
 
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
-  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(true);
+  if (m_ParentMainWindow->AreDevicesShown() == false)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(true);
+  }
 
 	if (m_State == ToolboxState_Uninitialized)
   {

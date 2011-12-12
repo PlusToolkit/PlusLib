@@ -67,7 +67,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
   connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
-  connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -208,24 +207,6 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::Reset()
-{
-  LOG_TRACE("FreehandCalibrationToolbox::Reset"); 
-
-  // Turn off show devices (this function is called when disconnecting, there is no valid result anymore to show)
-  ui.checkBox_ShowDevices->setChecked(false);
-
-  vtkDisplayableObject* imageDisplayable = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
-  {
-    imageDisplayable->DisplayableOff();
-  }
-
-  SetState(ToolboxState_Idle);
-}
-
-//-----------------------------------------------------------------------------
-
 void FreehandCalibrationToolbox::RefreshContent()
 {
 }
@@ -236,12 +217,10 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("FreehandCalibrationToolbox::SetDisplayAccordingToState");
 
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
-
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
+    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(true);
   }
 
   double videoTimeOffset = 0.0;
@@ -269,7 +248,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
-    ui.checkBox_ShowDevices->setEnabled(false);
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
     ui.pushButton_StartTemporal->setEnabled(false);
@@ -292,18 +270,12 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     if ( (isReadyToStartSpatialCalibration) && (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame()) == PLUS_SUCCESS) )
     {
-      ui.checkBox_ShowDevices->setEnabled(true);
-
       // Show image
       vtkDisplayableObject* imageDisplayable = NULL;
       if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
       {
         imageDisplayable->DisplayableOn();
       }
-    }
-    else
-    {
-      ui.checkBox_ShowDevices->setEnabled(false);
     }
 
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
@@ -333,7 +305,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_StartSpatial->setEnabled(false);
 
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
-    ui.checkBox_ShowDevices->setEnabled(false);
     ui.label_Results->setText(tr(""));
 
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
@@ -352,7 +323,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_CancelSpatial->setEnabled(false);
 
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
-    ui.checkBox_ShowDevices->setEnabled(true);
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());
 
     ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
@@ -372,8 +342,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_InstructionsSpatial->setText(tr(""));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
-
-    ui.checkBox_ShowDevices->setEnabled(false);
 
     ui.label_InstructionsTemporal->setText(tr("Error occured!"));
     ui.pushButton_StartTemporal->setEnabled(false);
@@ -746,11 +714,6 @@ void FreehandCalibrationToolbox::CancelSpatial()
 {
   LOG_TRACE("FreehandCalibrationToolbox::CancelSpatial"); 
 
-  // Turn off device visualization if it was on
-  if (ui.checkBox_ShowDevices->isChecked() == true) {
-    ui.checkBox_ShowDevices->setChecked(false);
-  }
-
   m_CancelRequest = true;
 
   m_ParentMainWindow->SetTabsEnabled(true);
@@ -784,22 +747,6 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
   ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
 
   return true;
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
-{
-  LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
-
-  m_ParentMainWindow->GetToolVisualizer()->ShowAllObjects(aOn);
-
-  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(!aOn);
-
-  if (aOn)
-  {
-    m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
-  }
 }
 
 //-----------------------------------------------------------------------------
