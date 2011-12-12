@@ -137,14 +137,6 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
       ENDIF()
       
-      IF ("@vcProj_VibroAudioCard@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroAudioCard@)
-      ENDIF()
-      
-      IF ("@vcProj_VibroMcdc@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroMcdc@)
-      ENDIF()
-      
       IF ("@vcProj_BrachyStepper@" STRGREATER "")
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
       ENDIF()
