@@ -125,12 +125,15 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->PortaModeSelected = 0;
   this->PortaProbeName = 0;
   this->PortaSettingPath = 0;
+  this->PortaLicensePath = 0;
   this->PortaFirmwarePath = 0;
   this->PortaLUTPath = 0;
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
 
   //initialize the frame number
   this->FrameNumber = 0;
+
+  this->SetFrameBufferSize(200); 
   
 
 }
@@ -143,6 +146,7 @@ vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource()
   // release all previously allocated memory
   SetPortaProbeName(NULL);
   SetPortaSettingPath(NULL);
+  SetPortaLicensePath(NULL);
   SetPortaFirmwarePath(NULL);
   SetPortaLUTPath(NULL);
 
@@ -226,11 +230,11 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 #endif
 {
 
-  /*if ( id == 0 )  
+  if ( id == 0 )  
   {
     // no actual data received
     return ( false );
-  }*/
+  }
 
   vtkSonixPortaVideoSource::GetInstance()->AddFrameToBuffer( param, id );
 
@@ -250,7 +254,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
  
   // AR: update the number of frames.
   this->FrameNumber++;
-
   // AR: borrowed from sonixvideo
   const int* frameSize = this->GetFrameSize(); 
   int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
@@ -335,7 +338,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     this->PortaSettingPath,
 	this->PortaLicensePath,
     this->PortaLUTPath,
-	3, 3, 0, 0, 64) ) 
+	2, 3, 0, 0, 32) )
+	//3, 3, 0, 0, 64) ) 
   {
     this->Porta.getLastError( err, size );
     LOG_ERROR("Initialize: Porta could not be initialized: (" << err << ")" );
@@ -353,7 +357,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     this->Porta.getProbeInfo( nfo ) &&
     nfo.motorized ) 
   {
-    const int MAX_NAME_LENGTH=80;
+    const int MAX_NAME_LENGTH=100;
     char name[MAX_NAME_LENGTH+1];
     name[MAX_NAME_LENGTH]=0;
 
@@ -364,18 +368,22 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     // store the probe name
     SetPortaProbeName(name);
 
-    if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+	/*if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
     {
       LOG_ERROR("Initialize: master preset cannot be found" );
       return PLUS_FAIL;
-    }
+    }*/ 
 
-    if ( !this->Porta.loadPreset( name ) ) 
+    if ( !this->Porta.loadPreset( "D:/devel/PlusExperimental-build/PLTools/Ultrasonix/sdk-5.7.1/Porta/dat/presets/imaging/GEN-General (4DC7-3 40mm).xml" ) ) 
     {
       LOG_ERROR("Initialize: master preset could not be loaded" );
       return PLUS_FAIL;
     }
 
+	if( !this->SetFrameSize( this->PortaBModeWidth, this->PortaBModeHeight )	)
+	{
+		LOG_ERROR("Initializer: can not set the frame size" );
+	}
     // now we have successfully selected the probe
     this->PortaProbeSelected = 1;
   }
@@ -383,7 +391,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   // this is from propello
   if( !this->Porta.initImagingMode( BMode ) ) 
   {
-    LOG_ERROR("Initialize: cannot initialize imagingMode" );
+	this->Porta.getLastError( err, size );
+    LOG_ERROR("Initialize: cannot initialize imagingMode (" << err << ")" );
     return PLUS_FAIL;
   }
   else
@@ -397,7 +406,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   this->PortaModeSelected = 1;
 
   // manual acquisition
-  this->Porta.setParam( prmMotorStatus, 0 );
+  this->Porta.setParam( prmMotorStatus, 1 );
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
@@ -414,10 +423,10 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // set up the callback function which is invocked upon arrival
   // of a new frame
-
   this->Porta.setDisplayCallback( 0, vtkSonixPortaVideoSourceNewFrameCallback,
     (void*)this );
 
+//  this->Porta.setMotorActive(true);
   
   LOG_DEBUG("Successfully connected to sonix video device");
   return PLUS_SUCCESS;
@@ -588,7 +597,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   const char* LicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
   if ( LicensePath != NULL) 
   {
-      this->SetPortaSettingPath(LicensePath); 
+      this->SetPortaLicensePath(LicensePath); 
   }
   else
   {
@@ -598,7 +607,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   const char* FirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
   if ( FirmwarePath != NULL) 
   {
-      this->SetPortaSettingPath(FirmwarePath); 
+      this->SetPortaFirmwarePath(FirmwarePath); 
   }
   else
   {
