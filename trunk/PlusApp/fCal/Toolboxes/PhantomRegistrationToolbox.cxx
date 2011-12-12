@@ -202,9 +202,10 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
     m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
     // Initialize phantom visualization in toolbox canvas
-    if ( phantomDisplayableObject->GetSTLModelFileName() != NULL && phantomDisplayableObject->GetModelToObjectTransform() != NULL )
+    vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantomDisplayableObject);
+    if ( phantomDisplayableModel->GetSTLModelFileName() != NULL && phantomDisplayableModel->GetModelToObjectTransform() != NULL )
     {
-      std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(phantomDisplayableObject->GetSTLModelFileName());
+      std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(phantomDisplayableModel->GetSTLModelFileName());
       if (STRCASECMP("", searchResult.c_str()) == 0)
       {
         LOG_ERROR("Failed to find phantom model file in configuration directory!");
@@ -217,8 +218,8 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
       stlReader->SetFileName(searchResult.c_str());
       stlMapper->SetInputConnection(stlReader->GetOutputPort());
       m_PhantomActor->SetMapper(stlMapper);
-      m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableObject->GetLastOpacity() );
-      m_PhantomActor->SetUserTransform(phantomDisplayableObject->GetModelToObjectTransform());
+      m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
+      m_PhantomActor->SetUserTransform(phantomDisplayableModel->GetModelToObjectTransform());
     }
     else
     {

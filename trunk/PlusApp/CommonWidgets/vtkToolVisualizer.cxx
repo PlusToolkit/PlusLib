@@ -12,7 +12,9 @@
 #include "TrackedFrame.h"
 
 #include "vtkDataCollectorHardwareDevice.h" // Only for dumping buffers
-#include "vtkTracker.h"
+#include "vtkTracker.h" // Only for dumping buffers
+#include "vtkPlusVideoSource.h" // Only for dumping buffers
+#include "vtkVideoBuffer.h" // Only for dumping buffers
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
@@ -23,16 +25,9 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkGlyph3D.h"
 #include "vtkSphereSource.h"
-#include "vtkCylinderSource.h"
-#include "vtkConeSource.h"
-#include "vtkAppendPolyData.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkSTLReader.h"
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
-#include "vtkPlusVideoSource.h"
-#include "vtkVideoBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 #include "vtkRenderWindowInteractor.h"
@@ -191,11 +186,18 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
       continue; 
     }
 
+    // Get type
+    const char* type = displayableObjectElement->GetAttribute("Type");
+    if (type == NULL)
+    {
+      LOG_ERROR("No type found for displayable object!");
+      continue;
+    }
+
     // Create displayable tool
-    vtkDisplayableObject* displayableObject = vtkDisplayableObject::New();
+    vtkDisplayableObject* displayableObject = vtkDisplayableObject::New(type);
 
     // Check if image
-    const char* type = displayableObjectElement->GetAttribute("Type");
     if (STRCASECMP(type, "Image") == 0)
     {
       const char* objectCoordinateFrame = displayableObjectElement->GetAttribute("ObjectCoordinateFrame");
@@ -373,7 +375,7 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
     return PLUS_FAIL;
   }
 
-  // Load displayable object models
+  // Add displayable object actors to renderer
   for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
     vtkDisplayableObject* displayableObject = it->second;
@@ -383,69 +385,10 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
       continue;
     }
 
-    displayableObject->SetDisplayable(false);
-
-    std::string objectName(displayableObject->GetObjectCoordinateFrame());
-
-    // Check if file name exists and file can be found
-    std::string stlFileName = "";
-    if ( (displayableObject->GetSTLModelFileName() == NULL) || (STRCASECMP(displayableObject->GetSTLModelFileName(), "") == 0) )
-    {
-      LOG_DEBUG("No STL file name found for displayable object (" << objectName << ")");
-      continue;
-    }
-
-    std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(displayableObject->GetSTLModelFileName());
-    if (STRCASECMP("", searchResult.c_str()) == 0)
-    {
-      LOG_WARNING("Displayable object (" << displayableObject->GetObjectCoordinateFrame() << ") model file is not found with name: " << displayableObject->GetSTLModelFileName());
-      // Don't continue cycle here because for some tools default model can be assigned
-    }
-    else
-    {
-      stlFileName = searchResult;
-    }
-
-    // Handle missing object models if possible
-    if (stlFileName.empty())
-    {
-      if (objectName.find("Stylus") != std::string::npos) // If the tool name contains stylus but there is no model for it
-      {
-        LOG_INFO("No stylus model file found - default model will be displayed");
-
-        SetDefaultStylusModel(displayableObject->GetActor());
-        this->CanvasRenderer->AddActor(displayableObject->GetActor());
-
-        displayableObject->SetDisplayable(true);
-      }
-    }
-    else
-    // Load STL model as usual
-    {
-      vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-      stlReader->SetFileName(stlFileName.c_str());
-
-      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->SetInputConnection(stlReader->GetOutputPort());
-
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-
-      displayableObject->SetActor(actor);
-      displayableObject->SetMapper(mapper);
-      displayableObject->SetOpacity( displayableObject->GetLastOpacity() );
-
-      if (objectName.find("Stylus") != std::string::npos) // Stylus is always black
-      {
-        displayableObject->SetColor(0.0, 0.0, 0.0);
-      }
-
-      this->CanvasRenderer->AddActor(displayableObject->GetActor());
-
-      displayableObject->SetDisplayable(true);
-    }
+    this->CanvasRenderer->AddActor(displayableObject->GetActor());
   }
 
-  // Hide all tools so that they don't appear next to the configuration toolbox
+  // Hide all tools so that they don't appear by default
   HideAll();
 
   return PLUS_SUCCESS;
@@ -735,7 +678,12 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
       vtkSmartPointer<vtkTransform> objectModelToWorldTransform = vtkSmartPointer<vtkTransform>::New();
       objectModelToWorldTransform->Identity();
       objectModelToWorldTransform->Concatenate(objectCoordinateFrameToWorldTransformMatrix);
-      objectModelToWorldTransform->Concatenate(displayableObject->GetModelToObjectTransform());
+
+      vtkDisplayableModel* displayableModel = dynamic_cast<vtkDisplayableModel*>(displayableObject);
+      if (displayableModel)
+      {
+        objectModelToWorldTransform->Concatenate(displayableModel->GetModelToObjectTransform());
+      }
       objectModelToWorldTransform->Modified();
 
       displayableObject->GetActor()->SetUserTransform(objectModelToWorldTransform);
@@ -881,59 +829,6 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
   }
 
   this->TransformRepository->SetTransforms(trackedFrame);
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkProp3D* aActor)
-{
-  LOG_TRACE("vtkToolVisualizer::SetDefaultStylusModel");
-
-  vtkActor* actor = dynamic_cast<vtkActor*>(aActor);
-  if (actor == NULL)
-  {
-    LOG_ERROR("Unable to load stylus model to an uninitialized or invalid actor!");
-    return PLUS_FAIL;
-  }
-
-  // Create default model
-  vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-  stylusBigCylinderSource->SetRadius(3.0); // mm
-  stylusBigCylinderSource->SetHeight(120.0); // mm
-  stylusBigCylinderSource->SetCenter(0.0, 150.0, 0.0);
-  vtkSmartPointer<vtkCylinderSource> stylusSmallCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-  stylusSmallCylinderSource->SetRadius(1.5); // mm
-  stylusSmallCylinderSource->SetHeight(80.0); // mm
-  stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
-  vtkSmartPointer<vtkConeSource> resultConeSource = vtkSmartPointer<vtkConeSource>::New();
-  resultConeSource->SetRadius(1.5); // mm
-  resultConeSource->SetHeight(10.0); //mm
-  vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
-  coneTransform->Identity();
-  coneTransform->RotateZ(-90.0);
-  coneTransform->Translate(-5.0, 0.0, 0.0);
-  vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  coneTransformFilter->AddInputConnection(resultConeSource->GetOutputPort());
-  coneTransformFilter->SetTransform(coneTransform);
-
-  vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-  appendFilter->AddInputConnection(stylusBigCylinderSource->GetOutputPort());
-  appendFilter->AddInputConnection(stylusSmallCylinderSource->GetOutputPort());
-  appendFilter->AddInputConnection(coneTransformFilter->GetOutputPort());
-  vtkSmartPointer<vtkTransform> stylusTransform = vtkSmartPointer<vtkTransform>::New();
-  stylusTransform->Identity();
-  stylusTransform->RotateZ(90.0);
-  vtkSmartPointer<vtkTransformPolyDataFilter> stylusTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  stylusTransformFilter->AddInputConnection(appendFilter->GetOutputPort());
-  stylusTransformFilter->SetTransform(stylusTransform);
-
-  stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
-  actor->SetMapper(stylusMapper);
-  actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
-  actor->SetVisibility(false);
 
   return PLUS_SUCCESS;
 }

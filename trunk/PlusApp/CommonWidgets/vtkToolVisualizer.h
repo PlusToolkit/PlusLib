@@ -177,12 +177,6 @@ protected:
 	*/
 	PlusStatus InitializeBasicVisualization();
 
-	/*!
-	* Assemble and set default stylus model for stylus tool actor
-	* \param aActor Actor to add the model to
-	*/
-	PlusStatus SetDefaultStylusModel(vtkProp3D* aActor);
-
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
 
@@ -293,9 +287,6 @@ protected:
 
   /*! Camera of the scene */
 	vtkCamera* ImageCamera;
-
-  /*! Image to probe transform (probe calibration result) */
-  vtkTransform* ImageToProbeTransform;
 };
 
 #endif

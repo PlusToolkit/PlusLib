@@ -406,7 +406,6 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
   }
   else if (aOutput.right(3).toLower() == QString("mha"))
   {
-    LOG_INFO("sajt   " << m_ReconstructedVolume->GetScalarTypeAsString());
     MetaImage* metaImage = new MetaImage(m_ReconstructedVolume->GetDimensions()[0], m_ReconstructedVolume->GetDimensions()[1], m_ReconstructedVolume->GetDimensions()[2],
                                          m_ReconstructedVolume->GetSpacing()[0], m_ReconstructedVolume->GetSpacing()[1], m_ReconstructedVolume->GetSpacing()[2],
                                          MET_UCHAR, 1, m_ReconstructedVolume->GetScalarPointer());
