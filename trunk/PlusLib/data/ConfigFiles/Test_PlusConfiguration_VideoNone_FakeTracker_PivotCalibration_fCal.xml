@@ -35,6 +35,7 @@ vtkStylusCalibrationTest uses this configuration"
 
   <fCal
     NumberOfStylusCalibrationPointsToAcquire="200"
+    ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
   />
