@@ -641,9 +641,12 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
   for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
     vtkDisplayableObject* displayableObject = it->second;
+    PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
+    vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    // If not displayable then hide
-    if (displayableObject->IsDisplayable() == false)
+    // If not displayable or valid transform does not exist then hide
+    if ( (displayableObject->IsDisplayable() == false)
+      || (this->TransformRepository->IsExistingTransform(objectCoordinateFrameToWorldTransformName) != PLUS_SUCCESS) )
     {
       if (displayableObject->GetActor())
       {
@@ -653,13 +656,10 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
     }
 
     // Get object to world transform
-    PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
-    vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-
     bool valid = false;
     if ( this->TransformRepository->GetTransform(objectCoordinateFrameToWorldTransformName, objectCoordinateFrameToWorldTransformMatrix, &valid) != PLUS_SUCCESS )
     {
-      LOG_ERROR("No transform found from object (" << displayableObject->GetObjectCoordinateFrame() << ") to world! (" << this->WorldCoordinateFrame << ")");
+      LOG_ERROR("Failed to get transform from object (" << displayableObject->GetObjectCoordinateFrame() << ") to world! (" << this->WorldCoordinateFrame << ")");
       continue;
     }
 

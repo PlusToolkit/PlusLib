@@ -268,16 +268,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
 
-    if ( (isReadyToStartSpatialCalibration) && (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame()) == PLUS_SUCCESS) )
-    {
-      // Show image
-      vtkDisplayableObject* imageDisplayable = NULL;
-      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
-      {
-        imageDisplayable->DisplayableOn();
-      }
-    }
-
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
     ui.label_Results->setText(tr(""));
 

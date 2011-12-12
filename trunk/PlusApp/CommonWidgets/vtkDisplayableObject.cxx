@@ -434,17 +434,7 @@ void vtkDisplayableAxes::SetOpacity(double aOpacity)
 {
   LOG_TRACE("vtkDisplayableAxes::SetOpacity(" << aOpacity << ")");
 
-  vtkAxesActor* axesActor = dynamic_cast<vtkAxesActor*>(this->Actor);
-  if (axesActor)
-  {
-    bool visible = (aOpacity<0.5 ? false : true);
-    axesActor->SetVisibility(visible);
-    //axesActor->SetOpacity(aOpacity); //TODO change this when proper axes visualization replaces this actor
-  }
-  else
-  {
-    LOG_WARNING("Invalid actor - cannot set opacity!");
-  }
+  LOG_DEBUG("Cannot set opacity of axes actor!");
 }
 
 //-----------------------------------------------------------------------------

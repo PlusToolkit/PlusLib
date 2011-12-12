@@ -209,6 +209,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
       m_ParentMainWindow->ResetAllToolboxes();
+
+      m_ParentMainWindow->GetToolVisualizer()->ClearDisplayableObjects();
 		}
 	}
 

@@ -74,6 +74,9 @@
              <height>23</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Save current device set configuration</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -96,6 +99,9 @@
              <width>23</width>
              <height>23</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Show all devices / Show content for current toolbox</string>
            </property>
            <property name="text">
             <string/>
@@ -129,6 +135,9 @@
              <width>23</width>
              <height>23</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Tools menu</string>
            </property>
            <property name="text">
             <string/>

@@ -37,6 +37,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
   , m_ImageCoordinateFrame("")
   , m_ProbeCoordinateFrame("")
   , m_ReferenceCoordinateFrame("")
+  , m_ShowDevices(false)
 {
 	// Set up UI
 	ui.setupUi(this);
@@ -410,8 +411,20 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
 {
   LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
-  if (aOn)
+  m_ShowDevices = aOn;
+
+  if (m_ShowDevices == true)
   {
+    if (m_ToolVisualizer->IsExistingTransform(m_ImageCoordinateFrame.c_str(), m_ProbeCoordinateFrame.c_str()) == PLUS_SUCCESS)
+    {
+      // Show image
+      vtkDisplayableObject* imageDisplayable = NULL;
+      if (m_ToolVisualizer->GetDisplayableObject(m_ImageCoordinateFrame.c_str(), imageDisplayable) == PLUS_SUCCESS)
+      {
+        imageDisplayable->DisplayableOn();
+      }
+    }
+
     m_ToolVisualizer->HideAll();
     m_ToolVisualizer->EnableImageMode(false);
     m_ToolVisualizer->ShowAllObjects(true);
@@ -421,7 +434,5 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
   {
     m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
   }
-
-  m_ShowDevices = aOn;
 }
 

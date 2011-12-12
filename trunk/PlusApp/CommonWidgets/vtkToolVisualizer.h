@@ -80,6 +80,9 @@ public:
 	 */
   PlusStatus GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableTool);
 
+  /*! Clear displayable object vector */
+  PlusStatus ClearDisplayableObjects();
+
 	/*!
 	 * Hide all tools, other models and the image from main canvas
 	 */
@@ -176,9 +179,6 @@ protected:
 	* Initialize 3D visualization
 	*/
 	PlusStatus InitializeBasicVisualization();
-
-  /*! Clear displayable object vector */
-  PlusStatus ClearDisplayableObjects();
 
 protected slots:
 	/*!

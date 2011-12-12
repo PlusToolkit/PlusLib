@@ -59,7 +59,10 @@ public:
 	/*!
 	* \brief Reset toolbox to initial state - virtual function
 	*/
-  virtual void Reset() { };
+  virtual void Reset()
+  {
+    SetState(ToolboxState_Idle);
+  };
 
   /*!
 	* \brief Sets display mode (visibility of actors) according to the current state - pure virtual function (implemented as slots!)
@@ -70,7 +73,8 @@ public:
 	* \brief Properly sets new toolbox state
   * \param aState New state of the toolbox
 	*/
-  void SetState(ToolboxState aState) {
+  void SetState(ToolboxState aState)
+  {
     m_State = aState;
     SetDisplayAccordingToState();
   };
