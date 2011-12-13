@@ -83,7 +83,7 @@ SET (fCal_LIBS
     vtkCommon 
     vtkRendering 
     vtkHybrid 
-    vtkTrusCalibration 
+    vtkCalibrationAlgo 
     vtkTracking 
     vtkDataCollection 
     vtkVolumeReconstruction
