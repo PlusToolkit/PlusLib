@@ -281,7 +281,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 	return PLUS_FAIL; 
   }*/
   
-  this->Porta.getBwImage( 0, this->ImageBuffer, true );
+  this->Porta.getBwImage( 0, this->ImageBuffer, false );
   
   // get the pointer to the actual incoming data onto a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
@@ -416,6 +416,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // manual acquisition
   this->Porta.setParam( prmMotorStatus, 1 );
+  this->Porta.setParam( prmMotorFrames, FramePerVolume );
+  this->Porta.setParam( prmMotorSteps, StepPerFrame );
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
@@ -574,7 +576,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   int framePerVolume = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
   {
-      this->SetFramePerVolume(framePerVolume); 
+      this->SetFramePerVolume(framePerVolume);
   }  
 
   int stepPerFrame = 0; 
