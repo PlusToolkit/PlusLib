@@ -55,8 +55,9 @@ public:
 	static vtkICCapturingSourceCleanup Cleanup;
 	//ETX
 
-  /*! Read configuration from xml data */
-	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion();
+  /*! Read configuration from xml data */	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 

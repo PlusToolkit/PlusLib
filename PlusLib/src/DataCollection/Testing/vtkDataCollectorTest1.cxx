@@ -165,8 +165,7 @@ int main(int argc, char **argv)
 
   dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
 
-  if ( ! inputVideoBufferMetafile.empty()
-    && dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( ! inputVideoBufferMetafile.empty() )
   {
     vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
     if ( videoSource == NULL )
@@ -178,8 +177,7 @@ int main(int argc, char **argv)
     videoSource->SetReplayEnabled(inputReplay); 
   }
 
-  if ( ! inputTrackerBufferMetafile.empty()
-    && dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( ! inputTrackerBufferMetafile.empty() )
   {
     vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
     if ( tracker == NULL )

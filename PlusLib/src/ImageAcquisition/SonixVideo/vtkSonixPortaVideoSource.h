@@ -90,8 +90,10 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   static vtkSonixPortaVideoSourceCleanup Cleanup;
   //ETX
 
-  /*! Read/write main configuration from/to xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion();
+  /*! Read main configuration from xml data */  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/  

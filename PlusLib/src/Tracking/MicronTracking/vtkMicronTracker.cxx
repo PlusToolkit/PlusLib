@@ -50,6 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusVideoFrame.h"
 
 #include "MicronTrackerInterface.h"
+#include "MTC.h"
 
 /****************************************************************************/
 
@@ -86,6 +87,14 @@ vtkMicronTracker::~vtkMicronTracker()
     delete this->MT;
     this->MT = NULL;
   }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMicronTracker::GetSDKVersion()
+{
+  std::ostringstream version; 
+  version << "MTC-" << MTCMajorVersion << "." << MTCMinorVersion << "." << MTCBuild << "." << MTCRevision; 
+  return version.str(); 
 }
 
 //----------------------------------------------------------------------------

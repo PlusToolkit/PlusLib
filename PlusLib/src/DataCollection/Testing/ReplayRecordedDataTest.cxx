@@ -72,14 +72,8 @@ int main( int argc, char** argv )
 
   dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
 
-  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( !inputVideoBufferMetafile.empty() )
   {
-    if ( inputVideoBufferMetafile.empty() )
-    {
-      LOG_ERROR( "Video source metafile missing." );
-      return 1;
-    }
-
     vtkSavedDataVideoSource* videoSource =
       dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
     if ( videoSource == NULL )
@@ -91,17 +85,16 @@ int main( int argc, char** argv )
     videoSource->SetReplayEnabled( true ); 
   }
 
-  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( !inputTrackerBufferMetafile.empty() )
   {
-    if ( inputTrackerBufferMetafile.empty() )
+    vtkSavedDataTracker* tracker = dynamic_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
+    if ( tracker == NULL )
     {
-      LOG_ERROR( "Tracker source metafile missing." );
-      return 1;
+      LOG_ERROR( "Invalid saved data tracker source." );
+      exit( 1 );
     }
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( true ); 
-    tracker->Connect();
   }
 
   LOG_DEBUG( "Initializing data collector... " );

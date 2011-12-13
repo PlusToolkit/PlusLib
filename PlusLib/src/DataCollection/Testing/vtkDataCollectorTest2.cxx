@@ -86,15 +86,25 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( ! inputVideoBufferMetafile.empty() )
   {
-    vtkSavedDataVideoSource* videoSource = static_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
+    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
+    if ( videoSource == NULL )
+    {
+      LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
+      exit( EXIT_FAILURE );
+    }
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
   }
 
-  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( !inputTrackerBufferMetafile.empty() )
   {
-    vtkSavedDataTracker* tracker = static_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
+    if ( tracker == NULL )
+    {
+      LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
+      exit( EXIT_FAILURE );
+    }
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
   }
 

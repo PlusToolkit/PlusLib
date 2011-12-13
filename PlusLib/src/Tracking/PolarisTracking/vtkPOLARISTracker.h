@@ -74,6 +74,9 @@ public:
   static vtkPOLARISTracker *New();
   vtkTypeMacro(vtkPOLARISTracker,vtkTracker);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion(); 
  
   /*!
     Probe to see if the tracking system is present on the

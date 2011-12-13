@@ -98,6 +98,9 @@ public:
 
   static vtkMicronTracker *New();
   vtkTypeMacro(vtkMicronTracker,vtkTracker);
+
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion(); 
  
   /*!
     Probe to see if the tracking system is present.

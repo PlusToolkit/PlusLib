@@ -15,34 +15,6 @@ class vtkDataCollectorSynchronizer;
 class vtkPlusVideoSource;
 class PlusVideoFrame;
 
-/*! Acquisition types */ 
-enum ACQUISITION_TYPE 
-{
-  SYNCHRO_VIDEO_NONE=0, 
-  SYNCHRO_VIDEO_SAVEDDATASET,
-  SYNCHRO_VIDEO_NOISE,
-  SYNCHRO_VIDEO_MIL,
-  SYNCHRO_VIDEO_WIN32,
-  SYNCHRO_VIDEO_LINUX,
-  SYNCHRO_VIDEO_SONIX,
-  SYNCHRO_VIDEO_ICCAPTURING
-}; 
-
-/*! Tracker types */
-enum TRACKER_TYPE
-{
-  TRACKER_NONE=0, 
-  TRACKER_SAVEDDATASET,
-  TRACKER_BRACHY, 
-  TRACKER_CERTUS, 
-  TRACKER_POLARIS, 
-  TRACKER_AURORA, 
-  TRACKER_FLOCK, 
-  TRACKER_MICRON,
-  TRACKER_FAKE,
-  TRACKER_ASCENSION3DG
-}; 
-
 /*! Synchronization types */
 enum SYNC_TYPE
 {
@@ -122,16 +94,6 @@ public:
   virtual PlusStatus GetFrameRate(double &aFrameRate);
 
 public:
-  /*! Set the acquisition type  */
-  void SetAcquisitionType(ACQUISITION_TYPE type) { AcquisitionType = type; }
-  /*! Get the acquisition type  */
-  ACQUISITION_TYPE GetAcquisitionType() { return this->AcquisitionType; }
-
-  /*! Set the tracker type  */
-  void SetTrackerType(TRACKER_TYPE type) { TrackerType = type; }
-  /*! Get the tracker type  */
-  TRACKER_TYPE GetTrackerType() { return this->TrackerType; }
-
   /*! Set the synchronization type  */
   void SetSyncType(SYNC_TYPE type) { SyncType = type; }
   /*! Get the synchronization type  */
@@ -219,10 +181,6 @@ protected:
   /*! Tracking data source */
   vtkTracker*		              	Tracker; 
 
-  /*! Image acquisition device type */
-  ACQUISITION_TYPE	            AcquisitionType; 
-  /*! Tracking data acquisition device type */
-  TRACKER_TYPE		              TrackerType; 
   /*! Synchronization algorithm type */
   SYNC_TYPE			                SyncType; 
 

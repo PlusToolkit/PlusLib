@@ -19,6 +19,14 @@ IF (PLUS_USE_BRACHY_TRACKER)
     TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkTracking vtkCommon vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
 
+#*************************** vtkTrackerFactoryTest ***************************
+ADD_EXECUTABLE(vtkTrackerFactoryTest vtkTrackerFactoryTest.cxx)
+TARGET_LINK_LIBRARIES(vtkTrackerFactoryTest vtkTracking vtkPlusCommon)
+ADD_TEST(vtkTrackerFactoryTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkTrackerFactoryTest
+  )
+SET_TESTS_PROPERTIES( vtkTrackerFactoryTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+  
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
 TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkTracking vtkPlusCommon vtkImageAcquisition)

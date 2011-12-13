@@ -13,6 +13,7 @@ SET (ImageAcquisition_SRCS
   itkFcsvWriter.cxx
   vtkVideoBuffer.cxx 
   vtkPlusVideoSource.cxx 
+  vtkPlusVideoSourceFactory.cxx
   vtkSavedDataVideoSource.cxx
   )
 	
@@ -23,6 +24,7 @@ if (WIN32)
     itkFcsvWriter.h
     vtkVideoBuffer.h 
     vtkPlusVideoSource.h 
+    vtkPlusVideoSourceFactory.h
     vtkSavedDataVideoSource.h 
     )
 endif (WIN32)	

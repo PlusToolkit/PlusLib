@@ -72,7 +72,6 @@ vtkNDITracker::vtkNDITracker()
   this->SerialPort = -1; // default is to probe
   this->SerialDevice = 0;
   this->BaudRate = 9600;
-  this->SetNumberOfTools(VTK_NDI_NTOOLS);
 
   for (int i = 0; i < VTK_NDI_NTOOLS; i++)
   {
@@ -130,6 +129,14 @@ void vtkNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "SendMatrix: " << this->SendMatrix << "\n";
   this->SendMatrix->PrintSelf(os,indent.GetNextIndent());
+}
+
+//----------------------------------------------------------------------------
+std::string vtkNDITracker::GetSDKVersion()
+{
+  std::ostringstream version; 
+  version << "NDICAPI-" << NDICAPI_MAJOR_VERSION << "." << NDICAPI_MINOR_VERSION; 
+  return version.str(); 
 }
 
 //----------------------------------------------------------------------------
@@ -552,15 +559,15 @@ PlusStatus vtkNDITracker::InternalUpdate()
     flags = 0;
     if ((port_status & mflags) != mflags) 
     {
-      flags |= TR_MISSING;
+      flags |= TOOL_MISSING;
     }
     else
     {
-      if (absent[tool]) { flags |= TR_OUT_OF_VIEW;  }
-      if (port_status & NDI_OUT_OF_VOLUME){ flags |= TR_OUT_OF_VOLUME; }
-      if (port_status & NDI_SWITCH_1_ON)  { flags |= TR_SWITCH1_IS_ON; }
-      if (port_status & NDI_SWITCH_2_ON)  { flags |= TR_SWITCH2_IS_ON; }
-      if (port_status & NDI_SWITCH_3_ON)  { flags |= TR_SWITCH3_IS_ON; }
+      if (absent[tool]) { flags |= TOOL_OUT_OF_VIEW;  }
+      if (port_status & NDI_OUT_OF_VOLUME){ flags |= TOOL_OUT_OF_VOLUME; }
+      if (port_status & NDI_SWITCH_1_ON)  { flags |= TOOL_SWITCH1_IS_ON; }
+      if (port_status & NDI_SWITCH_2_ON)  { flags |= TOOL_SWITCH2_IS_ON; }
+      if (port_status & NDI_SWITCH_3_ON)  { flags |= TOOL_SWITCH3_IS_ON; }
     }
 
     // if tracking relative to another tool
@@ -570,11 +577,11 @@ PlusStatus vtkNDITracker::InternalUpdate()
       {
         if (absent[this->ReferenceTool])
         {
-          flags |= TR_OUT_OF_VIEW;
+          flags |= TOOL_OUT_OF_VIEW;
         }
         if (status[this->ReferenceTool] & NDI_OUT_OF_VOLUME)
         {
-          flags |= TR_OUT_OF_VOLUME;
+          flags |= TOOL_OUT_OF_VOLUME;
         }
       }
       // pre-multiply transform by inverse of relative tool transform
@@ -592,8 +599,19 @@ PlusStatus vtkNDITracker::InternalUpdate()
       // this will create a timestamp from the frame number      
       toolframe = frame[tool];
     }
-    // send the matrix and flags to the tool
-    this->ToolTimeStampedUpdate(tool, this->SendMatrix, (TrackerStatus)flags, toolframe, tooltimestamp);   
+    
+    std::ostringstream toolPortName; 
+    toolPortName << tool; 
+    vtkTrackerTool* trackerTool = NULL; 
+    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+    }
+    else
+    {
+      // send the matrix and status to the tool's vtkTrackerBuffer
+      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolframe, tooltimestamp);
+    }
   }
   
   return PLUS_SUCCESS;
@@ -861,20 +879,29 @@ void vtkNDITracker::EnableToolPorts()
         }
       }
     }
+
+    std::ostringstream toolPortName; 
+    toolPortName << tool; 
+    vtkTrackerTool* trackerTool = NULL; 
+    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      continue; 
+    }
+
     // decompose identity string from end to front
     ndiGetPHINFToolInfo(this->Device, identity);
     identity[31] = '\0';
-    this->Tools[port]->SetToolSerialNumber(vtkStripWhitespace(&identity[23]));
+    trackerTool->SetToolSerialNumber(vtkStripWhitespace(&identity[23]));
     identity[23] = '\0';
-    this->Tools[port]->SetToolRevision(vtkStripWhitespace(&identity[20]));
+    trackerTool->SetToolRevision(vtkStripWhitespace(&identity[20]));
     identity[20] = '\0';
-    this->Tools[port]->SetToolManufacturer(vtkStripWhitespace(&identity[8]));
+    trackerTool->SetToolManufacturer(vtkStripWhitespace(&identity[8]));
     identity[8] = '\0';
-    this->Tools[port]->SetToolType(TRACKER_TOOL_GENERAL); // TODO: some tools should be reference, etc., it should be defined in the config file
-    this->Tools[port]->SetToolName(vtkStripWhitespace(&identity[0]));
+    trackerTool->SetToolName(vtkStripWhitespace(&identity[0]));
     ndiGetPHINFPartNumber(this->Device, partNumber);
     partNumber[20] = '\0';
-    this->Tools[port]->SetToolPartNumber(vtkStripWhitespace(partNumber));
+    trackerTool->SetToolPartNumber(vtkStripWhitespace(partNumber));
     status = ndiGetPHINFPortStatus(this->Device);
 
     // send the Tool Info to the server
@@ -885,7 +912,7 @@ void vtkNDITracker::EnableToolPorts()
         char msg[40];
         int len = 40;
         sprintf(msg, "SetToolSerialNumber:%d:%s",
-          port, this->Tools[port]->GetToolSerialNumber());
+          port, trackerTool->GetToolSerialNumber());
         len = strlen(msg) +1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
@@ -899,7 +926,7 @@ void vtkNDITracker::EnableToolPorts()
         //  ca->Delete();
 
         sprintf(msg, "SetToolRevision:%d:%s",
-          port, this->Tools[port]->GetToolRevision());
+          port, trackerTool->GetToolRevision());
         len = strlen(msg) + 1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
@@ -910,7 +937,7 @@ void vtkNDITracker::EnableToolPorts()
           }
         }
         sprintf(msg, "SetToolManufacturer:%d:%s",
-          port, this->Tools[port]->GetToolManufacturer());
+          port, trackerTool->GetToolManufacturer());
         len = strlen(msg) +1;
         vtkCharArray *ca2 = vtkCharArray::New();
         ca2->SetNumberOfComponents(len);
@@ -923,22 +950,8 @@ void vtkNDITracker::EnableToolPorts()
           }
         }
 
-        sprintf(msg, "SetToolType:%d:%s",
-          port, this->Tools[port]->GetToolType());
-        len = strlen(msg) +1;
-        vtkCharArray *ca3 = vtkCharArray::New();
-        ca3->SetNumberOfComponents(len);
-        ca3->SetArray(msg, len, 1);//
-        if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
-        {
-          if( !this->SocketCommunicator->Send(msg, len, 1, 22) )
-          {
-            LOG_ERROR("Could not Send SetToolSerialNumber");
-          }
-        }
-
         sprintf(msg, "SetToolPartNumber:%d:%s",
-          port, this->Tools[port]->GetToolPartNumber());
+          port, trackerTool->GetToolPartNumber());
         len = strlen(msg) + 1;
         vtkCharArray *ca4 = vtkCharArray::New();
         ca4->SetNumberOfComponents(len);
@@ -956,17 +969,17 @@ void vtkNDITracker::EnableToolPorts()
 
     this->PortEnabled[port] = ((status & NDI_ENABLED) != 0);
 
-    if (this->Tools[port]->GetLED1())
+    if (trackerTool->GetLED1())
     {
-      this->InternalSetToolLED(tool,1,this->Tools[port]->GetLED1());
+      this->InternalSetToolLED(tool,1,trackerTool->GetLED1());
     }
-    if (this->Tools[port]->GetLED2())
+    if (trackerTool->GetLED2())
     {
-      this->InternalSetToolLED(tool,2,this->Tools[port]->GetLED2());
+      this->InternalSetToolLED(tool,2,trackerTool->GetLED2());
     }
-    if (this->Tools[port]->GetLED3())
+    if (trackerTool->GetLED3())
     {
-      this->InternalSetToolLED(tool,3,this->Tools[port]->GetLED3());
+      this->InternalSetToolLED(tool,3,trackerTool->GetLED3());
     }
   }
 
@@ -1221,7 +1234,8 @@ PlusStatus vtkNDITracker::InternalClearVirtualSROM(int tool)
 //----------------------------------------------------------------------------
 PlusStatus vtkNDITracker::InternalInterpretCommand( char * messageText)
 {
-  if( !messageText)
+  // TODO: Need to revise this code 
+/*  if( !messageText)
   {
     LOG_ERROR("InternalInterpretCommand failed, messageText is invalid");
     return PLUS_FAIL;
@@ -1327,6 +1341,7 @@ PlusStatus vtkNDITracker::InternalInterpretCommand( char * messageText)
   }
 
   LOG_ERROR("Unknown command: "<<token1);
+  */
   return PLUS_FAIL;
 }
 

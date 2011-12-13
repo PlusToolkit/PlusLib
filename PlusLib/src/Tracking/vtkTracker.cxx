@@ -74,6 +74,14 @@ void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+std::string vtkTracker::GetSDKVersion()
+{
+  // Base class version is the same as the Plus library version
+  std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 
+  return ver; 
+}
+
+//----------------------------------------------------------------------------
 ToolIteratorType vtkTracker::GetToolIteratorBegin()
 {
   return this->ToolContainer.begin(); 

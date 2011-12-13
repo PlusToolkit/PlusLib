@@ -196,6 +196,15 @@ void vtkSonixVideoSource::SetInstance(vtkSonixVideoSource* instance)
   // user will call ->Delete() after setting instance
   instance->Register(NULL);
 }
+
+//----------------------------------------------------------------------------
+std::string vtkSonixVideoSource::GetSDKVersion()
+{
+  std::ostringstream version; 
+  version << "UltrasonixSDK-" << PLUS_ULTRASONIX_SDK_MAJOR_VERSION << "." << PLUS_ULTRASONIX_SDK_MINOR_VERSION << "." << PLUS_ULTRASONIX_SDK_PATCH_VERSION; 
+  return version.str(); 
+}
+
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {

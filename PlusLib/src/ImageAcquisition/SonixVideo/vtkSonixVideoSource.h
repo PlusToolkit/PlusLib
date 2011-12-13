@@ -104,6 +104,9 @@ public:
   vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion(); 
+
   /*!
     This is a singleton pattern New.  There will only be ONE
     reference to a vtkOutputWindow object per process.  Clients that

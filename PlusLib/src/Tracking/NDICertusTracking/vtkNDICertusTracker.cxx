@@ -72,6 +72,14 @@ vtkNDICertusTracker::~vtkNDICertusTracker()
 }
 
 //----------------------------------------------------------------------------
+std::string vtkNDICertusTracker::GetSDKVersion()
+{
+  char version[200]; 
+  OAPIGetVersionString(version, 200);
+  return std::string(version); 
+}
+
+//----------------------------------------------------------------------------
 void vtkNDICertusTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkTracker::PrintSelf(os,indent);

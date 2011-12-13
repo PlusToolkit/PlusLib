@@ -213,6 +213,15 @@ void vtkSonixPortaVideoSource::SetInstance( vtkSonixPortaVideoSource *instance )
   instance->Register( NULL );
 }
 
+
+//----------------------------------------------------------------------------
+std::string vtkSonixPortaVideoSource::GetSDKVersion()
+{
+  std::ostringstream version; 
+  version << "UltrasonixSDK-" << PLUS_ULTRASONIX_SDK_MAJOR_VERSION << "." << PLUS_ULTRASONIX_SDK_MINOR_VERSION << "." << PLUS_ULTRASONIX_SDK_PATCH_VERSION; 
+  return version.str(); 
+}
+
 //----------------------------------------------------------------------------
 void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
   this->Superclass::PrintSelf(os,indent);

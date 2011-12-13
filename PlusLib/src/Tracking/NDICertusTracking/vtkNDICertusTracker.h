@@ -31,6 +31,9 @@ public:
 	vtkTypeMacro(vtkNDICertusTracker,vtkTracker);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion(); 
+
 	/*! Connect to device */
 	PlusStatus Connect();
 

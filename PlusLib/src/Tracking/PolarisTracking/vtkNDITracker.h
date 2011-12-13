@@ -72,6 +72,9 @@ public:
   vtkTypeMacro(vtkNDITracker,vtkTracker);
   void PrintSelf(ostream& os, vtkIndent indent);
  
+  /*! Hardware device SDK version. */
+  virtual std::string GetSDKVersion();
+
   /*!
     Probe to see if the tracking system is present on the
     specified serial port.  If the SerialPort is set to -1,
