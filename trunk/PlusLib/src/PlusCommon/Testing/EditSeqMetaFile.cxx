@@ -14,6 +14,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkTrackedFrameList.h" 
 #include "vtkMetaImageSequenceIO.h"
+#include "vtksys/RegularExpression.hxx"
 
 enum OperationType
 {
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
   std::string strFrameTransformIncrement; // Frame transform increment 4x4 transform matrix
   vtkSmartPointer<vtkMatrix4x4> frameTransformIncrement = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform increment 4x4 transform matrix
 
+  std::string strUpdatedReferenceTransformName; 
+
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -117,7 +120,8 @@ int main(int argc, char **argv)
   args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");	
   args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");	
  
-
+  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");	
+ 
   args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");	
 
   if ( !args.Parse() )
@@ -361,6 +365,103 @@ int main(int argc, char **argv)
     {
       LOG_WARNING("Selected operation not yet implemented!"); 
       return EXIT_FAILURE; 
+    }
+  }
+
+
+  //////////////////////////////////////////////////////////////////
+  // Convert metafiles to the new metafile format 
+
+  if ( !strUpdatedReferenceTransformName.empty() )
+  {
+    PlusTransformName referenceTransformName; 
+    if ( referenceTransformName.SetTransformName(strUpdatedReferenceTransformName.c_str()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Reference transform name is invalid: " << strUpdatedReferenceTransformName );
+      return EXIT_FAILURE; 
+    }
+
+    for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+    {
+      TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
+
+      vtkSmartPointer<vtkMatrix4x4> referenceToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+      if ( trackedFrame->GetCustomFrameTransform(referenceTransformName, referenceToTrackerMatrix) != PLUS_SUCCESS )
+      {
+        LOG_WARNING("Couldn't get reference transform with name: " << strUpdatedReferenceTransformName ); 
+        continue; 
+      }
+
+      std::vector<PlusTransformName> transformNameList; 
+      trackedFrame->GetCustomFrameTransformNameList(transformNameList); 
+
+      vtkSmartPointer<vtkTransform> toolToTrackerTransform = vtkSmartPointer<vtkTransform>::New(); 
+      vtkSmartPointer<vtkMatrix4x4> toolToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+      for ( int n = 0; n < transformNameList.size(); ++n )
+      {
+        // No need to change the reference transform
+        if ( transformNameList[n] == referenceTransformName )
+        {
+          continue; 
+        }
+
+        TrackedFrameFieldStatus status = FIELD_INVALID; 
+        if ( trackedFrame->GetCustomFrameTransform(transformNameList[n], toolToReferenceMatrix) != PLUS_SUCCESS )
+        {
+          std::string strTransformName; 
+          transformNameList[i].GetTransformName(strTransformName); 
+          LOG_ERROR("Failed to get custom frame transform: " << strTransformName); 
+          continue; 
+        }
+
+        if (trackedFrame->GetCustomFrameTransformStatus(transformNameList[n], status) != PLUS_SUCCESS )
+        {
+          std::string strTransformName; 
+          transformNameList[i].GetTransformName(strTransformName); 
+          LOG_ERROR("Failed to get custom frame transform status: " << strTransformName); 
+          continue; 
+        }
+
+        // Compute ToolToTracker transform from ToolToReference  
+        toolToTrackerTransform->Identity(); 
+        toolToTrackerTransform->Concatenate(referenceToTrackerMatrix); 
+        toolToTrackerTransform->Concatenate(toolToReferenceMatrix); 
+
+        // Update the name to ToolToTracker
+        PlusTransformName toolToTracker(transformNameList[n].From().c_str(), "Tracker"); 
+        // Set the new custom transoform
+        if ( trackedFrame->SetCustomFrameTransform(toolToTracker, toolToTrackerTransform->GetMatrix()) != PLUS_SUCCESS )
+        {
+          std::string strTransformName; 
+          transformNameList[i].GetTransformName(strTransformName); 
+          LOG_ERROR("Failed to set custom frame transform: " << strTransformName); 
+          continue; 
+        }
+        
+        // Use the same status as it was before 
+        if ( trackedFrame->SetCustomFrameTransformStatus(toolToTracker, status) != PLUS_SUCCESS )
+        {
+          std::string strTransformName; 
+          transformNameList[i].GetTransformName(strTransformName); 
+          LOG_ERROR("Failed to set custom frame transform status: " << strTransformName); 
+          continue; 
+        }
+        
+        // Delete old transform and status fields 
+        std::string oldTransformName, oldTransformStatus; 
+        transformNameList[n].GetTransformName(oldTransformName); 
+        // Append Transform to the end of the transform name
+        vtksys::RegularExpression isTransform("Transform$"); 
+        if ( !isTransform.find(oldTransformName) )
+        {
+          oldTransformName.append("Transform"); 
+        }
+        oldTransformStatus = oldTransformName; 
+        oldTransformStatus.append("Status"); 
+        trackedFrame->DeleteCustomFrameField(oldTransformName.c_str());
+        trackedFrame->DeleteCustomFrameField(oldTransformStatus.c_str());
+
+      }
     }
   }
 
