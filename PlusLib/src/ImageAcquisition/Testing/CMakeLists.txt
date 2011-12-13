@@ -73,6 +73,22 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
+#************************  vtkSonixPortaVideoSourceTest.cxx ************************
+IF (PLUS_USE_ULTRASONIX_VIDEO)
+	ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
+	TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkImageAcquisition vtkCharts)
+	# ADD_TEST(vtkSonixPortaVideoSourceTest 
+	# ${EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
+	# To be added if the 3D probe is attached to the machine
+	# --setting-path=${ULTRASONIX_SDK_DIR}/porta/dat/
+	# --license-path=D:/Ultrasonix Settings/licenses.txt
+	# --firmware-path=${ULTRASONIX_SDK_DIR}/porta/fw/
+	# --lut-path=C:/luts
+	# --rendering-off
+	# )
+	# SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
