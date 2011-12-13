@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-\file This program tests if a recorded tracked ultrasound buffer can be read.
+  \file ReplayRecordedDataTest.cxx
+  \brief This program tests if a recorded tracked ultrasound buffer can be read.
 */ 
 
 #include "vtkSmartPointer.h"

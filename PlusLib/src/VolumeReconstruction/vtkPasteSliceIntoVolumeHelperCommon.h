@@ -248,6 +248,8 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
   \param inOrigin = {x, y, z} the origin in mm
   \param inSpacing = {x, y, z} the spacing in mm
   \param inExt = {x0, x1, y0, y1, z0, z1} min/max possible extent, in pixels
+  \param clipRectangleOrigin = {x, y} origin of the clipping rectangle in the image, in pixels
+  \param clipRectangleSize = {x, y} size of the clipping rectangle in the image, in pixels
 */
 void GetClipExtent(int clipExt[6],
 										   vtkFloatingPointType inOrigin[3],

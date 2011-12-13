@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This program tests the timestamp filtering algorithm.
+  \file TimestampFilteringTest.cxx
+  \brief This program tests the timestamp filtering algorithm.
 */ 
 
 #include "PlusConfigure.h"

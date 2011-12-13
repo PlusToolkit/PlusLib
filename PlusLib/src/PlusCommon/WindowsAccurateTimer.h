@@ -78,7 +78,7 @@ public:
 
   /*! 
     Wait for a specified amount of time
-    \param waiting time in ms
+    \param timeout waiting time in ms
   */
   void Wait(int timeout)
   {

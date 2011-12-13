@@ -4,10 +4,6 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkAccurateTimer - class for accurate time measurement
-// .SECTION Description
-// This class is used for accuretly measuring elapsed time 
-
 #ifndef __vtkAccurateTimer_h
 #define __vtkAccurateTimer_h
 

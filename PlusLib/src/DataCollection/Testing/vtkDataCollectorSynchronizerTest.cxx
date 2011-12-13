@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This program tests the temporal calibration algorithm and compares to a baseline.
+  \file vtkDataCollectorSynchronizerTest.cxx 
+  \brief This program tests the temporal calibration algorithm and compares to a baseline.
 */ 
 
 #include "PlusConfigure.h"

@@ -85,7 +85,9 @@ enum PlusStatus
   (typically by getting out of scope).
   
   Example:
-   PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  \code
+  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  \endcode
 
   \ingroup PlusLibCommon
 */
@@ -196,16 +198,16 @@ namespace PlusCommon
   The PlusTransformName stores and generates the from and to coordinate frame names for transforms. 
 
   Example usage:
-  
+  \code
   PlusTransformName tnImageToProbe("Image", "Probe"); 
-  ... or
-
+  \endcode
+  or
+  \code
   PlusTransformName tnImageToProbe; 
   if ( tnImageToProbe->SetTransformName("ImageToProbe") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set transform name!"); 
   }
-
   std::string fromFrame = tnImageToProbe->GetFrom(); 
   std::string toFrame = tnImageToProbe->GetFrom(); 
   std::string strImageToProbe; 
@@ -213,6 +215,7 @@ namespace PlusCommon
   {
     LOG_ERROR("Failed to get transform name!"); 
   }
+  \endcode
 
   \ingroup PlusLibCommon
 */

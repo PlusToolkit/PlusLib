@@ -5,7 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-\file This test runs a phantom registration on a recorded data set and compares the results to a baseline
+  \file vtkPhantomRegistrationTest.cxx 
+  \brief This test runs a phantom registration on a recorded data set and 
+  compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"

@@ -10,12 +10,11 @@ See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for mo
 
 \defgroup PlusLibDataCollection DataCollection
 \defgroup PlusLibImageAcquisition ImageAcquisition
-\defgroup PlusLibPlusCommon PlusCommon
+\defgroup PlusLibCommon PlusCommon
 \defgroup PlusLibSignaling Signaling
 \defgroup PlusLibTracking Tracking
 \defgroup PlusLibCalibrationAlgorithm CalibrationAlgorithm
-\defgroup PlusLibUsFidSegAlgo UsFidSegAlgo
-\defgroup PlusLibVibro Vibro
+\defgroup PlusLibPatternRecognition PatternRecognition
 \defgroup PlusLibVolumeReconstruction VolumeReconstruction 
 
 */

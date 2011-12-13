@@ -4,10 +4,6 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkGnuplotExecuter - class for gnuplot execution 
-// .SECTION Description
-// This class is used for generating plots with gnuplot 
-
 #ifndef __VTKGNUPLOTEXECUTER_H
 #define __VTKGNUPLOTEXECUTER_H
 
@@ -15,7 +11,11 @@
 #include "vtkTable.h"
 #include <vector>
 
-
+/*!
+  \class vtkGnuplotExecuter 
+  \brief Class for executing gnuplot for diagram generation
+  \ingroup PlusLibCommon
+*/ 
 class VTK_EXPORT vtkGnuplotExecuter : public vtkObject
 {
 public: 
@@ -23,41 +23,38 @@ public:
 	vtkTypeRevisionMacro(vtkGnuplotExecuter,vtkObject);
 	void PrintSelf(ostream& os, vtkIndent indent); 
 
-	// Description:
-	// Execute gnuplot with the given arguments
+	/*! Execute gnuplot with the given arguments */
 	PlusStatus Execute(); 
 
-	// Description:
-	// Add custom argument
+	/*! Add custom argument */
 	void AddArgument(const char* argument); 
 
-	// Description:
-	// Clear arguments 
+	/*! Clear arguments */
 	void ClearArguments(); 
 
-  // Description:
-	// Dump vtkTable to text file in gnuplot format
+  /*! Dump vtkTable to text file in gnuplot format */
   static PlusStatus DumpTableToFileInGnuplotFormat( vtkTable* table, const char* filename); 
 
-	// Description:
-	// Set/get working directory
+	/*! Set working directory */
 	vtkSetStringMacro(WorkingDirectory); 
+  /*! Get working directory */
 	vtkGetStringMacro(WorkingDirectory); 
 
-	// Description:
-	// Set/get gnuplot command with path 
+	/*! Set/get gnuplot command with path */
 	vtkSetStringMacro(GnuplotCommand); 
+  /*! Set/get gnuplot command with path */
 	vtkGetStringMacro(GnuplotCommand); 
 
-	// Description:
-	// Set/get flag whether to hide gnuplot window on Windows.
+	/*! Set/get flag whether to hide gnuplot window on Windows. */
 	vtkSetMacro(HideWindow, bool); 
+  /*! Set/get flag whether to hide gnuplot window on Windows. */
 	vtkGetMacro(HideWindow, bool); 
+  /*! Set/get flag whether to hide gnuplot window on Windows. */
 	vtkBooleanMacro(HideWindow, bool); 
 	
-	// Description:
-	// Set/get execution timeout of command 
+	/*! Set execution timeout of command  */
 	vtkSetMacro(Timeout, double); 
+  /*! Get execution timeout of command  */
 	vtkGetMacro(Timeout, double); 
 
 protected:
@@ -70,8 +67,6 @@ protected:
 
 	bool HideWindow; 
 	double Timeout; 
-
-
 
 private:
 	vtkGnuplotExecuter(const vtkGnuplotExecuter&);  // Not implemented.

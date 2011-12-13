@@ -35,7 +35,8 @@ class FidPatternRecognition
     PlusStatus ReadConfiguration(vtkXMLDataElement* rootConfigElement);
 
     /*!
-      Run pattern recognition on a tracked frame list. It only segments the tracked frames which were not already segmented
+      Run pattern recognition on a tracked frame list.
+      It only segments the tracked frames which were not already segmented
       \param trackedFrameList Tracked frame list to segment
       \param numberOfSuccessfullySegmentedImages Out parameter holding the number of segmented images in this call (it is only equals the number of all segmented images in the tracked frame if it was not segmented at all)
     */
@@ -43,14 +44,14 @@ class FidPatternRecognition
 
     /*! 
       Run pattern recognition on a tracked frame list.
-      \param trackedFrameList Tracked frame list to segment
+      \param trackedFrame image to segment
     */
     PlusStatus RecognizePattern(TrackedFrame* trackedFrame);
 
     /*! 
       Run pattern recognition on a tracked frame list.
-      \param trackedFrameList Tracked frame list to segment
-      \param patternRecognitionResult The result element.
+      \param trackedFrame image to segment
+      \param patternRecognitionResult object to store the pattern recognition result
     */
 		PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
 

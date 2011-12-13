@@ -41,7 +41,7 @@ public:
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
 
-/*!
+  /*!
     Set/get the ultrasound image orientation for file storage.
     Note that the image data is always stored in MF orientation in the TrackedFrameList object in memory.
     The ultrasound image axes are defined as follows:
@@ -138,6 +138,7 @@ protected:
   /*! 
     Writes the compressed pixel data directly into file. 
     The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param outputFileStream the file stream where the compressed pixel data willbe written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);

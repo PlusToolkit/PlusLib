@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This program tests Plus server and Plus client. The communication in this test
+  \file vtkPlusOpenIGTLinkServerTest.cxx 
+  \brief This program tests Plus server and Plus client. The communication in this test
   happens between two threads. In real life, it happens between two programs.
 */ 
 

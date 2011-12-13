@@ -49,8 +49,10 @@ vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo
 //----------------------------------------------------------------------------
 vtkBrachyStepperPhantomRegistrationAlgo::~vtkBrachyStepperPhantomRegistrationAlgo()
 {
-  this->SetTrackedFrameList(NULL); 
-
+  // remove references to objects avoid memory leaks
+  this->SetTrackedFrameList(NULL);
+  this->SetTransformRepository(NULL);
+  // delete member variables
   if ( this->PhantomToReferenceTransform != NULL )
   {
     this->PhantomToReferenceTransform->Delete(); 

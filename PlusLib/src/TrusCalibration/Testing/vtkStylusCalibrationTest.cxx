@@ -5,7 +5,9 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This test runs a stylus calibration on a recorded data set and compares the results to a baseline
+  \file vtkStylusCalibrationTest.cxx 
+  \brief This test runs a stylus (pivot) calibration on a recorded data set 
+  and compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"

@@ -4,11 +4,17 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// Test basic connection to the Ultrasonix image acquisition
-// If the --rendering-off switch is defined then the connection is established, images are 
-// transferred for a few seconds, then the connection is closed (useful for automatic testing).
-// If the --rendering-off switch is not defined then the live ultrasound image is displayed
-// in a window (useful for quick interactive testing of the image transfer).
+/*!
+  \file vtkSonixVideoSourceTest1.cxx
+  \brief Test basic connection to the Ultrasonix image acquisition
+
+  If the --rendering-off switch is defined then the connection is established, images are 
+  transferred for a few seconds, then the connection is closed (useful for automatic testing).
+  If the --rendering-off switch is not defined then the live ultrasound image is displayed
+  in a window (useful for quick interactive testing of the image transfer).
+  \todo This is a test todo
+  \ingroup PlusLibImageAcquisition
+*/
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"

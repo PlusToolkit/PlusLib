@@ -1,8 +1,15 @@
 @ECHO off 
 ECHO Build PlusLib documentation...
 
-"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /build Release /project doc 1> CreateDoc.log 2>&1 
+REM Clear old files to force rebuild of documentation
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project doc-usr 1> CreateDoc.log 2>&1 
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project doc-dev 1>> CreateDoc.log 2>>&1 
 
-ECHO Documentation available at: ${CMAKE_CURRENT_BINARY_DIR}/Doxygen/html/index.html
+ECHO   Generating doc-usr
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /build Release /project doc-usr 1>> CreateDoc.log 2>&1 
+ECHO   Generating doc-dev
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /build Release /project doc-dev 1>> CreateDoc.log 2>>&1 
+
+ECHO Documentation available at: ${PLUS_EXECUTABLE_OUTPUT_PATH}/Doc
 
 timeout /t 5 
