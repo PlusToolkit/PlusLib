@@ -21,6 +21,11 @@
 
 class ulterius; 
 
+/*!
+  \class vtkSonixVolumeReader 
+  \brief Reads a volume from file to vtkImageData
+  \ingroup PlusLibImageAcquisition
+*/ 
 class VTK_EXPORT vtkSonixVolumeReader: public vtkImageAlgorithm
 {
 public:
@@ -28,61 +33,63 @@ public:
 	static vtkSonixVolumeReader *New();
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-	// Description:
-	// Specify file name for the volume file.
+  /*! Specify file name for the volume file. */
 	virtual void SetFileName(vtkstd::string fileName) { this->FileName = fileName; }
+  /*! Get volume file name. */
 	virtual vtkstd::string GetFileName() { return this->FileName; }
 
-	// Description:
-	// Get the number of frames 
+  /*! Get the number of frames  */
 	vtkGetMacro(NumberOfFrames, int); 
 
-	// Description:
-	// Get the frame width
+  /*! Get the frame width */
 	vtkGetMacro(FrameWidth, int); 
 
-	// Description:
-	// Get the frame height
+  /*! Get the frame height */
 	vtkGetMacro(FrameHeight, int); 
 
-	// Description:
-	// Get the data sample size in bits 
+  /*! Get the data sample size in bits  */
 	vtkGetMacro(DataSampleSize, int); 
 
-	// Description:
-	// Get the data type 
+  /*! Get the data type  */
 	vtkGetMacro(DataType, int); 
 
-	// Description:
-	// Read a volume at Ultrasonix format (.b8, .b32, .bpr)
+  /*! Read a volume at Ultrasonix format (.b8, .b32, .bpr) */
 	virtual int ReadVolume(); 
+  /*! Read a volume at Ultrasonix format (.b8, .b32, .bpr) */
 	virtual int ReadVolume(const char* filename); 
 
-	// Description:
-	// Get a frame from volume
+  /*! Get a frame from volume */
 	virtual vtkImageData *GetFrame(int ImageNumber = 0);
 
-	// Description:
-	// Get all frames from volume by vector of vtkImageData
+  /*! Get all frames from volume by vector of vtkImageData */
 	virtual vtkstd::vector<vtkImageData *> *GetAllFrames(); 
 
-	// Description:
-	// Save frame as TIFF
+  /*! Save frame as TIFF */
 	virtual PlusStatus WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory = "./"); 
+  /*! Save all frames as TIFF */
 	virtual PlusStatus WriteAllFramesAsTIFF(const char* filePrefix, const char* directory = "./"); 
 
 
 protected:
+	/*! Constructor */
 	vtkSonixVolumeReader();
+	/*! Destructor */
 	~vtkSonixVolumeReader();
 
+  /*! name of the input file containing the volume */
 	vtkstd::string	FileName;
+  /*! Number of frames */
 	int		NumberOfFrames; 
+  /*! Frame width */
 	int		FrameWidth; 
+  /*! Frame height */
 	int		FrameHeight; 
+  /*! Data sample size */
 	int		DataSampleSize; 
+  /*! Data type */
 	int		DataType; 
 
+  /*! Image data vector */
 	vtkstd::vector<vtkImageData*> ImageDataVector; 
 
 private:

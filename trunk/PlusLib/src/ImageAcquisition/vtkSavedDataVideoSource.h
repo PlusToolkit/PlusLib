@@ -13,6 +13,11 @@ class vtkVideoBuffer;
 
 class VTK_EXPORT vtkSavedDataVideoSource;
 
+/*!
+  \class vtkSavedDataVideoSourceCleanup2 
+  \brief Class that cleans up (deletes singleton instance of) vtkSavedDataVideoSource when destroyed
+  \ingroup PlusLibImageAcquisition
+*/
 class VTK_EXPORT vtkSavedDataVideoSourceCleanup2
 {
 public:
@@ -20,6 +25,11 @@ public:
 	~vtkSavedDataVideoSourceCleanup2();
 };
 
+/*!
+  \class vtkSavedDataVideoSource 
+  \brief Class for providing VTK video input interface from sequence metafile
+  \ingroup PlusLibImageAcquisition
+*/
 class VTK_EXPORT vtkSavedDataVideoSource : public vtkPlusVideoSource
 {
 public:
@@ -36,68 +46,74 @@ public:
 	static vtkSavedDataVideoSourceCleanup2 Cleanup;
 	//ETX
 
-	// Description:
-	// Read/write main configuration from/to xml data
+  /*! Read configuration from xml data */
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-	// Description:
-	// Set/get SequenceMetafile name with path with tracking buffer data 
+  /*! Set SequenceMetafile name with path with tracking buffer data  */
 	vtkSetStringMacro(SequenceMetafile);
+  /*! Get SequenceMetafile name with path with tracking buffer data  */
 	vtkGetStringMacro(SequenceMetafile);
 
-  // Description: 
-  // Set/get loop start time 
-  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  /*! Set loop start time /sa LoopStartTime */
 	vtkSetMacro(LoopStartTime, double); 
+  /*! Get loop start time /sa LoopStartTime */
 	vtkGetMacro(LoopStartTime, double); 
 
-  // Description: 
-  // Set/get loop time 
-  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  /*! Set loop time /sa LoopTime */
 	vtkSetMacro(LoopTime, double); 
+  /*! Get loop time /sa LoopTime */
 	vtkGetMacro(LoopTime, double); 
 
-	//! Description 
-	// Flag to to enable saved dataset reply
-	// If it's enabled, the video source will continuously play saved data
+	/*! Set flag to to enable saved dataset reply /sa ReplayEnabled */
 	vtkGetMacro(ReplayEnabled, bool);
+	/*! Get flag to to enable saved dataset reply /sa ReplayEnabled */
 	vtkSetMacro(ReplayEnabled, bool);
 	vtkBooleanMacro(ReplayEnabled, bool);
 
-  //! Description 
-  // Get local video buffer 
+  /*! Get local video buffer */
   vtkGetObjectMacro(LocalVideoBuffer, vtkVideoBuffer); 
 	
 protected:
+	/*! Constructor */
 	vtkSavedDataVideoSource();
+	/*! Destructor */
 	virtual ~vtkSavedDataVideoSource();
 
-	// Description:
-	// Connect to device
+  /*! Connect to device */
 	virtual PlusStatus InternalConnect();
 
-	// Description:
-	// Disconnect from device
+  /*! Disconnect from device */
 	virtual PlusStatus InternalDisconnect();
 
-	// Description:
-	// The internal function which actually does the grab. 
+  /*! The internal function which actually does the grab.  */
 	PlusStatus InternalGrab();
 
-	// Description:
-	// For internal use only
+  /*! For internal use only */
 	PlusStatus AddFrameToBuffer(unsigned char * data, int type, int sz, bool cine, int frmnum);
 
-	// byte alignment of each row in the framebuffer
+protected:
+	/*! Byte alignment of each row in the framebuffer */
 	int FrameBufferRowAlignment;
 
-	char* SequenceMetafile; 
+  /*! Name of input sequence metafile */
+	char* SequenceMetafile;
+
+	/*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
 	bool ReplayEnabled; 
 
+  /*! Loop start time
+      ItemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  */
   double LoopStartTime; 
+
+  /*! Loop time
+      ItemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  */
   double LoopTime; 
 
+  /*! Local viceo buffer */
 	vtkVideoBuffer* LocalVideoBuffer; 
 
 private:

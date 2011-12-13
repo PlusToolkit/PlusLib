@@ -46,25 +46,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-  
-// .NAME vtkSonixVideoSource - VTK interface for video input from Ultrasonix machine
-// .SECTION Description
-// vtkSonixVideoSource is a class for providing video input interfaces between VTK and Ultrasonix machine.
-// The goal is to provide the ability to be able to do acquisition
-// in various imaging modes, buffer the image/volume series being acquired
-// and stream the frames to output. 
-// Note that the data coming out of the Sonix rp through ulterius is always RGB
-// This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
-// Parameter setting doesn't work with Ulterius-2.x
-// .SECTION Usage
-//  sonixGrabber->SetSonixIP("130.15.7.212");
-//  sonixGrabber->SetImagingMode(0);
-//  sonixGrabber->SetAcquisitionDataType(0x00000004);
-//  sonixGrabber->Record();  
-//  imageviewer->SetInput(sonixGrabber->GetOutput());
-//  See SonixVideoSourceTest.cxx for more details
-// .SECTION See Also
-// vtkWin32VideoSource vtkMILVideoSource
 
 #ifndef __vtkSonixVideoSource_h
 #define __vtkSonixVideoSource_h
@@ -82,6 +63,11 @@ class ulterius;
 
 class VTK_EXPORT vtkSonixVideoSource;
 
+/*!
+\class vtkSonixVideoSourceCleanup 
+\brief Class that cleans up (deletes singleton instance of) vtkSonixVideoSource when destroyed
+\ingroup PlusLibImageAcquisition
+*/
 class VTK_EXPORT vtkSonixVideoSourceCleanup
 {
 public:
@@ -90,10 +76,31 @@ public:
 };
 //ETX
 
+/*!
+  \class vtkSonixVideoSource 
+  \brief VTK interface for video input from Ultrasonix machine
+
+  vtkSonixVideoSource is a class for providing video input interfaces between VTK and Ultrasonix machine.
+  The goal is to provide the ability to be able to do acquisition
+  in various imaging modes, buffer the image/volume series being acquired
+  and stream the frames to output. 
+  Note that the data coming out of the Sonix rp through ulterius is always RGB
+  This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
+  Parameter setting doesn't work with Ulterius-2.x
+
+  Usage:
+  sonixGrabber->SetSonixIP("130.15.7.212");
+  sonixGrabber->SetImagingMode(0);
+  sonixGrabber->SetAcquisitionDataType(0x00000004);
+  sonixGrabber->Record();  
+  imageviewer->SetInput(sonixGrabber->GetOutput());
+  See vtkSonixVideoSourceTest1.cxx for more details
+
+  \ingroup PlusLibImageAcquisition
+*/ 
 class VTK_EXPORT vtkSonixVideoSource : public vtkPlusVideoSource
 {
 public:
-  //static vtkSonixVideoSource *New();
   vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
@@ -114,6 +121,7 @@ public:
     instance after setting it.
   */
   static void SetInstance(vtkSonixVideoSource *instance);
+
   //BTX
   /*!
     Use this as a way of memory management when the

@@ -12,29 +12,29 @@
 
 namespace itk
 {
-/** \class UlteriusImageIOFactory
+/*! \class UlteriusImageIOFactory
  * \brief Create instances of UlteriusImageIO objects using an object factory.
  */
 class UlteriusImageIOFactory : public ObjectFactoryBase
 {
 public:  
-  /** Standard class typedefs. */
+  /*! Standard class typedefs. */
   typedef UlteriusImageIOFactory       Self;
   typedef ObjectFactoryBase        Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
   
-  /** Class methods used to interface with the registered factories. */
+  /*! Class methods used to interface with the registered factories. */
   virtual const char* GetITKSourceVersion() const;
   virtual const char* GetDescription() const;
   
-  /** Method for class instantiation. */
+  /*! Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
+  /*! Run-time type information (and related methods). */
   itkTypeMacro(UlteriusImageIOFactory, ObjectFactoryBase);
 
-  /** Register one factory of this type  */
+  /*! Register one factory of this type  */
   static void RegisterOneFactory()
     {
     Pointer ulteriusFactory = New();
