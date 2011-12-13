@@ -4,7 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "UsFidSegResultFile.h" 
+#include "PatternLocResultFile.h" 
 #include "FidPatternRecognition.h"
 
 //----------------------------------------------------------------------------

@@ -4,7 +4,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 #--------------------------------------------------------------------------------------------
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
-    TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection )
+    TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkCalibrationAlgo vtkDataCollection )
 
     ADD_TEST(vtkUSCalibrationControllerTest
             ${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -30,7 +30,7 @@ ENDIF ()
 		
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkCalibrationAlgo vtkDataCollection )
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
@@ -41,7 +41,7 @@ SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSIO
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vtkCalibrationAlgo vtkDataCollection )
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
@@ -52,7 +52,7 @@ SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESS
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkCalibrationAlgo vtkDataCollection )
 
 # This test has not been completed yet, see #138
 ADD_TEST(vtkFreehandCalibrationTest
@@ -66,7 +66,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESS
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkImageAcquisition )
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -86,7 +86,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_R
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkImageAcquisition )
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest

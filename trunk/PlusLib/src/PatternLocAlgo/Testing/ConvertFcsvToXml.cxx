@@ -19,7 +19,7 @@
 #include "itkFcsvReader.h"
 #include "itkLandmarkSpatialObject.h"
 
-#include "UsFidSegResultFile.h"
+#include "PatternLocResultFile.h"
 
 void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, const std::string &fiducialPosFileName) 
 {
