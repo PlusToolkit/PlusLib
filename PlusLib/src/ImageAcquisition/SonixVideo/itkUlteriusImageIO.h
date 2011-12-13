@@ -35,7 +35,7 @@
 namespace itk
 {
 
-/** \class UlteriusImageIO
+/*! \class UlteriusImageIO
  *
  *  \brief Read UlteriusImage file format.
  *
@@ -48,18 +48,18 @@ namespace itk
 class ITK_EXPORT UlteriusImageIO : public ImageIOBase
 {
 public:
-  /** Standard class typedefs. */
+  /*! Standard class typedefs. */
   typedef UlteriusImageIO        Self;
   typedef ImageIOBase        Superclass;
   typedef SmartPointer<Self> Pointer;
   
-  /** Method for creation through the object factory. */
+  /*! Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
+  /*! Run-time type information (and related methods). */
   itkTypeMacro(UlteriusImageIO, Superclass);
 
-  /** The different types of ImageIO's can support data of varying
+  /*! The different types of ImageIO's can support data of varying
    * dimensionality. For example, some file formats are strictly 2D
    * while others can support 2D, 3D, or even n-D. This method returns
    * true/false as to whether the ImageIO can support the dimension
@@ -71,26 +71,26 @@ public:
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
-  /** Determine the file type. Returns true if this ImageIO can read the
+  /*! Determine the file type. Returns true if this ImageIO can read the
    * file specified. */
   virtual bool CanReadFile(const char*);
 
-  /** Set the spacing and dimension information for the set filename. */
+  /*! Set the spacing and dimension information for the set filename. */
   virtual void ReadImageInformation();
   
-  /** Reads the data from disk into the memory buffer provided. */
+  /*! Reads the data from disk into the memory buffer provided. */
   virtual void Read(void* buffer);
  
   /*-------- This part of the interfaces deals with writing data. ----- */
 
-  /** Determine the file type. Returns true if this ImageIO can write the
+  /*! Determine the file type. Returns true if this ImageIO can write the
    * file specified. */
   virtual bool CanWriteFile(const char*);
 
-  /** Set the spacing and dimension information for the set filename. */
+  /*! Set the spacing and dimension information for the set filename. */
   virtual void WriteImageInformation();
   
-  /** Writes the data to disk from the memory buffer provided. Make sure
+  /*! Writes the data to disk from the memory buffer provided. Make sure
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
   
