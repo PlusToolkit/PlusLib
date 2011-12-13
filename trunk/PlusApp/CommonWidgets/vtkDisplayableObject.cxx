@@ -29,6 +29,11 @@ vtkCxxSetObjectMacro(vtkDisplayableObject, Actor, vtkProp3D);
 
 vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
 {
+  if (aType==NULL)
+  {
+    LOG_ERROR("vtkDisplayableObject::New failed. Object type is not specified");
+    return NULL;
+  }
   if (STRCASECMP(aType, "Model") == 0)
   {
     return vtkDisplayableModel::New();
@@ -41,6 +46,8 @@ vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
   {
     return vtkDisplayableAxes::New();
   }
+  LOG_ERROR("vtkDisplayableObject::New failed. Unkonwn object type: "<<aType);
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
