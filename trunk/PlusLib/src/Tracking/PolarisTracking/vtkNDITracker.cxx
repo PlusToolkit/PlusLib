@@ -1036,7 +1036,8 @@ void vtkNDITracker::DisableToolPorts()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDITracker::GetFullTX(int tool, double transform[9]) {
+int vtkNDITracker::GetFullTX(int tool, double transform[9]) 
+{
 
   int ph = this->PortHandle[tool];
   if (ph == 0)

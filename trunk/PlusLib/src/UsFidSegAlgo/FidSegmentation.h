@@ -87,14 +87,18 @@ class FidSegmentation
 		void 					      Subtract( PixelType *image, PixelType *vals );
     		
     /*! 
-      Write image with the selected points on it 
-      \param It takes a vector of vector of double as an input
+      Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
+      \param fiducials position of fiducial points
+      \param unalteredImage original image
+      \param frameIndex frame index (used for generating the file name)
     */
 		void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
 
     /*! 
-      Write image with the selected points on it 
-      \param It takes a vector of Dot as an input
+      Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
+      \param fiducials position of fiducial points
+      \param unalteredImage original image
+      \param frameIndex frame index (used for generating the file name)
     */
     void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
 

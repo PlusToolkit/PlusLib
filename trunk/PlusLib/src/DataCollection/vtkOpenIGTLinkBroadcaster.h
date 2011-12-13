@@ -56,7 +56,10 @@ struct SocketInfo
 
   Input is read from the device set configuration xml file.
   To broadcast a transform, add a new element under the DataCollection/OpenIGTLink element
-  E.g. <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
+  Example:
+  \code
+  <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
+  \endcode
 
   \ingroup PlusLibDataCollection
 */

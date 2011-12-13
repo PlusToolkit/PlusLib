@@ -15,10 +15,13 @@ class vtkImageData;
 class vtkImageImport;
 
 /*!
-  The ultrasound image axes are defined as follows: \n
-  - x axis: points towards the x coordinate increase direction \n
-  - y axis: points towards the y coordinate increase direction \n
+  \enum US_IMAGE_ORIENTATION
+  \brief Defines constant values for ultrasound image orientation definition
+  The ultrasound image axes are defined as follows:
+  \li x axis: points towards the x coordinate increase direction
+  \li y axis: points towards the y coordinate increase direction
   The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+  \ingroup PlusLibCommon
 */
 enum US_IMAGE_ORIENTATION
 {
@@ -31,10 +34,8 @@ enum US_IMAGE_ORIENTATION
 
 
 /*!
-  \class vtkPlusVideoFrame 
+  \class PlusVideoFrame 
   \brief Store images in a variety of pixel formats
-
-  vtkPlusVideoFrame is a structure for storing images in formats.
   An ITK image can only store a certain pixel type.
   This class can store an ITK image with any pixel type and has convenient
   functions to get/set its content from ITK and VTK images and byte arrays.

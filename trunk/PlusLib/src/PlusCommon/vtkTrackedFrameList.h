@@ -16,13 +16,19 @@ class TrackedFrame;
 class vtkMatrix4x4; 
 
 
-/** \class vtkTrackedFrameList 
- *
- *  \brief Stores a list of tracked frames (image + pose information)
- *
- *  \ingroup PlusLibImageAcquisition
- *
- */
+/*!
+  \class vtkTrackedFrameList 
+  \brief Stores a list of tracked frames (image + pose information)
+
+  Validation threshold values: If the threshold==0 it means that no
+  checking is needed (the frame is always accepted). If the threshold>0
+  then the frame is considered valid only if the position/angle
+  difference compared to all previously acquired frames is larger than 
+  the position/angle minimum value and the translation/rotation speed is lower
+  than the maximum allowed translation/rotation.
+
+  \ingroup PlusLibCommon
+*/
 class VTK_EXPORT vtkTrackedFrameList : public vtkObject
 {
 
@@ -39,8 +45,9 @@ public:
   vtkTypeRevisionMacro(vtkTrackedFrameList, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-  /*! Action performed after AddTrackedFrame got invalid frame. 
-  Invalid frame can be a TrackedFrame if the validation requirement didn't meet the expectation.
+  /*!
+    Action performed after AddTrackedFrame got invalid frame. 
+    Invalid frame can be a TrackedFrame if the validation requirement didn't meet the expectation.
   */
   enum InvalidFrameAction
   {
@@ -50,10 +57,10 @@ public:
     SKIP_INVALID_FRAME /*!< Skip invalid frame wihout notification */
   }; 
 
-  /*! Add tracked frame to container */
+  /*! Add tracked frame to container. If the frame is invalid then it may not actuallt add it to the list. */
   virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action=ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
-  /*! Add all frames from a tracked frame list to the container */
+  /*! Add all frames from a tracked frame list to the container. It adds all invalid frames as well, but an error is reported. */
   virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList); 
 
   /*! Get tracked frame from container */
@@ -64,9 +71,6 @@ public:
 
   /*! Save the tracked data to sequence metafile */
   PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
-  
-  template <class OutputPixelType>
-  PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
@@ -141,25 +145,25 @@ public:
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 
 
-  /*! Set custom string value to <fieldValue>. If <fieldValue> is NULL then the field is deleted. */
+  /*! Set custom string value to \c fieldValue. If \c fieldValue is NULL then the field is deleted. */
   virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue); 
 
   /*! Get the custom transformation matrix from metafile by custom frame transform name
-  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName]
   * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
   
   /*! Get the custom transformation matrix from metafile by custom frame transform name
-  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName]
   * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
   /*! Set the custom transformation matrix from metafile by custom frame transform name
-  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName> */
+  * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName] */
   virtual void SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
   
   /*! Set the custom transformation matrix from metafile by custom frame transform name
-  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName> */
+  * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName] */
   virtual void SetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
   /*! Get custom field name list */
@@ -175,13 +179,17 @@ protected:
   vtkTrackedFrameList();
   virtual ~vtkTrackedFrameList();
 
-    /*! Perform validation on a tracked frame before adding to the list. If any of the requested requirement is not fulfilled then the validation fails
-   \param trackedFrame Input tracked frame 
-   \param validationRequirements Data validation regurirements (like: REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
-   \param frameTransformNameforPositionValidation Frame transform name used for position validation
-   \sa TrackedFrameValidationRequirements 
+  /*!
+    Perform validation on a tracked frame . If any of the requested requirement is not fulfilled then the validation fails.
+    \param trackedFrame Input tracked frame 
+    \return True if the frame is valid
+    \sa TrackedFrameValidationRequirements 
   */
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
+
+  /*! Helper class for saving to sequence metafile */
+  template <class OutputPixelType>
+  PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 
@@ -194,12 +202,13 @@ protected:
 
   int NumberOfUniqueFrames;
 
-  /*! If the threshold==0 it means that no checking is needed (the frame is always accepted). \n
-  * If the threshold>0 then the frame is considered valid only if the position/angle difference compared to all previously acquired frames is larger than 
-  * the position/angle minimum value and the translation/rotation speed is lower than the maximum allowed translation/rotation. */
+  /*! Validation threshold value */
   double MinRequiredTranslationDifferenceMm;
+  /*! Validation threshold value */
   double MinRequiredAngleDifferenceDeg;
+  /*! Validation threshold value */
   double MaxAllowedTranslationSpeedMmPerSec;
+  /*! Validation threshold value */
   double MaxAllowedRotationSpeedDegPerSec;
 
   long ValidationRequirements; 

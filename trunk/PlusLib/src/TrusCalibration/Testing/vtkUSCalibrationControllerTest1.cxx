@@ -5,7 +5,9 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This test runs a TRUS probe calibration on a recorded data set and compares the results to a baseline
+  \file vtkUSCalibrationControllerTest1.cxx 
+  \brief This test runs a TRUS probe calibration on a recorded data set and 
+  compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"

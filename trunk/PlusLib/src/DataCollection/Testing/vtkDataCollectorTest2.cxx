@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This a test program acquires both video and tracking data and writes them into separate metafiles
+  \file vtkDataCollectorTest2.cxx 
+  \brief This a test program acquires both video and tracking data and writes them into separate metafiles
 */ 
 
 #include "PlusConfigure.h"

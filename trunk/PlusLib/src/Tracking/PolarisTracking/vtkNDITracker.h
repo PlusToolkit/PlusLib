@@ -127,7 +127,7 @@ public:
   virtual PlusStatus InternalInterpretCommand( char * c);
 
   /*! Get the full TX reply for a tool */
-  int GetFullTX(int tool, double transform[8]);
+  int GetFullTX(int tool, double transform[9]);
   /*! Get the full TX reply for a tool */
   double *GetFullTX(int tool) { this->ReturnValue[0] = (double) this->GetFullTX(tool, &this->ReturnValue[1]); return this->ReturnValue; };
 

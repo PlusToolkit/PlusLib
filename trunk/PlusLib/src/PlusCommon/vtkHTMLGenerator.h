@@ -4,10 +4,6 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkHTMLGenerator - class for generating basic html tags
-// .SECTION Description
-// This class is used for generating basic html tags 
-
 #ifndef __vtkHTMLGenerator_H
 #define __vtkHTMLGenerator_H
 
@@ -17,6 +13,11 @@
 
 class vtkTable; 
 
+/*!
+  \class vtkHTMLGenerator 
+  \brief class for generating basic html tags
+  \ingroup PlusLibCommon
+*/ 
 class VTK_EXPORT vtkHTMLGenerator : public vtkObject
 {
 public: 
@@ -35,47 +36,38 @@ public:
 	vtkTypeRevisionMacro(vtkHTMLGenerator,vtkObject);
 	void PrintSelf(ostream& os, vtkIndent indent); 
 
-	// Description: 
-	// Get the html page source
+	/*! Get the html page source */
 	virtual void SaveHtmlPage( const char * fileName); 
 
-	// Description: 
-	// Add image to document
+	/*! Add image to document */
 	virtual void AddImage(const char* imageSource, const char* alt, const int widthPx=0, const int heightPx=0); 
 
-	// Description: 
-	// Add paragraph to document
+	/*! Add paragraph to document */
 	virtual void AddParagraph( const char* paragraph ); 
 	
-	// Description: 
-	// Add text to document 
+	/*! Add text to document */
 	virtual void AddText( const char* text, HEADINGS h, const char* style=NULL); 
 
-  // Description: 
-  // Add table to document
+  /*! Add table to document */
   virtual void AddTable( vtkTable* table, int borderPx); 
 
-	// Description: 
-	// 
+	/*! Add a link to the document*/
 	virtual void AddLink( const char* linkText, const char* url ); 
 
-	// Description: 
-	// Add horizontal line
+	/*! Add horizontal line separator to the document */
 	virtual void AddHorizontalLine(); 
 
-	// Description: 
-	// Set/get page title 
-	vtkSetStringMacro(Title); 
+	/*! Set the page title */
+	vtkSetStringMacro(Title);
+  /*! Get the page title */
 	vtkGetStringMacro(Title); 
 
 protected:
 
-	// Description: 
-	// Get the body 
+	/*! Get the body */
 	virtual std::string GetHtmlBody(); 
 
-	// Description: 
-	// Get the html page source
+	/*! Get the html page source */
 	virtual std::string GetHtmlPage(); 
 
 	vtkHTMLGenerator();

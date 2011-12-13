@@ -15,24 +15,29 @@ class vtkMatrix4x4;
 class vtkTransform; 
 class vtkPoints; 
 
+/*!
+  \class vtkGnuplotExecuter 
+  Class for executing gnuplot for diagram generation
+*/ 
+
 /*! 
-  Tracked frame field status \n
-  - Image filed is valid if the image data is not NULL \n
-  - Tool status is valid only if the ToolStatus is TOOL_OK \n
-  */
+  \enum TrackedFrameFieldStatus
+  \brief Tracked frame field status
+  Image field is valid if the image data is not NULL.
+  Tool status is valid only if the ToolStatus is TOOL_OK.
+  \ingroup PlusLibCommon
+*/
 enum TrackedFrameFieldStatus 
 {
   FIELD_OK,			      /*!< Field is valid */
   FIELD_INVALID       /*!< Field is invalid */
 };
 
-/** \class TrackedFrame 
- *
- *  \brief Stores tracked frame (image + pose information)
- *
- *  \ingroup PlusLibImageAcquisition
- *
- */ 
+/*!
+  \class TrackedFrame 
+  \brief Stores tracked frame (image + pose information)
+  \ingroup PlusLibCommon
+*/ 
 class VTK_EXPORT TrackedFrame
 {
 public:
@@ -145,12 +150,11 @@ protected:
 
 //----------------------------------------------------------------------------
 
-/*! 
- *  \enum Tracked frame validation requirements 
- *
- *  \brief If any of the requested requirement is not fulfilled then the validation fails. 
- *  \ingroup PlusLibImageAcquisition
- */
+/*!
+  \enum TrackedFrameValidationRequirements
+  \brief If any of the requested requirement is not fulfilled then the validation fails. 
+  \ingroup PlusLibCommon
+*/
 enum TrackedFrameValidationRequirements
 {
   REQUIRE_UNIQUE_TIMESTAMP = 0x0001, /*!< the timestamp shall be unique */  
@@ -160,13 +164,11 @@ enum TrackedFrameValidationRequirements
   REQUIRE_CHANGED_TRANSFORM = 0x0010, /*!<  the transform defined by name shall be different from the previous ones  */  
 }; 
 
-/** \class TrackedFrameTimestampFinder 
- *
- *  \brief Helper class used for validating timestamps in a tracked frame list
- *
- *  \ingroup PlusLibImageAcquisition
- *
- */ 
+/*!
+  \class TrackedFrameTimestampFinder 
+  \brief Helper class used for validating timestamps in a tracked frame list
+  \ingroup PlusLibCommon
+*/ 
 class TrackedFrameTimestampFinder
 {	
 public:
@@ -180,12 +182,10 @@ public:
 
 //----------------------------------------------------------------------------
 
-/** \class TrackedFrameEncoderPositionFinder 
-*
-*  \brief Helper class used for validating encoder position in a tracked frame list
-*
-*  \ingroup PlusLibImageAcquisition
-*
+/*!
+  \class TrackedFrameEncoderPositionFinder 
+  \brief Helper class used for validating encoder position in a tracked frame list
+  \ingroup PlusLibCommon
 */ 
 class TrackedFrameEncoderPositionFinder
 {	
@@ -198,7 +198,7 @@ public:
 
   /*! 
     Predicate unary function for std::find_if to validate encoder position 
-    @return Returning true if the encoder position difference is less than required 
+    \return Returning true if the encoder position difference is less than required 
   */
   bool operator()( TrackedFrame *newFrame ); 	
 
@@ -210,21 +210,20 @@ protected:
 
 //----------------------------------------------------------------------------
 
-/** \class TrackedFrameTransformFinder 
- *
- *  \brief Helper class used for validating frame transform in a tracked frame list
- *
- *  \ingroup PlusLibImageAcquisition
- *
- */ 
+/*!
+  \class TrackedFrameTransformFinder 
+  \brief Helper class used for validating frame transform in a tracked frame list
+  \ingroup PlusLibCommon
+*/ 
 class TrackedFrameTransformFinder
 {	
 public:
   TrackedFrameTransformFinder(TrackedFrame* frame, PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
   ~TrackedFrameTransformFinder(); 
 
-  /*! Predicate unary function for std::find_if to validate transform 
-      @return Returning true if the transform difference is less than required 
+  /*! 
+    Predicate unary function for std::find_if to validate transform 
+    \return Returning true if the transform difference is less than required 
   */
   bool operator()( TrackedFrame *newFrame ); 
 

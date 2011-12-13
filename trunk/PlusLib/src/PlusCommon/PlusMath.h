@@ -18,8 +18,7 @@
 
 /*!
   \class PlusMath
-  \brief A utility class that contains static functions for various
-  useful commonly used computations
+  \brief A utility class that contains static functions for various useful commonly used computations
   \ingroup PlusLibCommon
 */
 class VTK_EXPORT PlusMath
@@ -30,21 +29,27 @@ public:
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param aMatrix The coefficient matrix of size m-by-n.
     \param bVector Column vector of length m.
-    \resultsVector Vector to store the results.
+    \param mean Pointer to get the resulting mean of the the LSQR fit error
+    \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
+    \param resultVector to store the results
   */
   static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param aMatrix The coefficient matrix of size m-by-n.
     \param bVector Column vector of length m.
-    \resultsVector Vector to store the results.
+    \param mean Pointer to get the resulting mean of the the LSQR fit error
+    \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
+    \param resultVector to store the results
   */
   static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
-    \param aMatrix The coefficient matrix of size m-by-n.
-    \param bVector Column vector of length m.
-    \resultsVector Vector to store the results.
+    \param sparseMatrixLeftSide The coefficient matrix of size m-by-n. (aMatrix)
+    \param vectorRightSide Column vector of length m. (bVector)
+    \param mean Pointer to get the resulting mean of the the LSQR fit error
+    \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
+    \param resultVector to store the results
   */
   static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
 

@@ -5,7 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This test program sends the contents of a saved tracked image sequence and sends it through OpenIGTLink
+  \file vtkOpenIGTLinkBroadcasterTest1.cxx 
+  \brief This test program sends the contents of a saved tracked image sequence 
+  and sends it through OpenIGTLink
 */ 
 
 #include <ctime>

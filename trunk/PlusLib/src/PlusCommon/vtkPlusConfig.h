@@ -24,14 +24,12 @@ class VTK_EXPORT vtkPlusConfig : public vtkObject
 public:
 	vtkTypeRevisionMacro(vtkPlusConfig, vtkObject);
 
-	/*!
-	* New
-	*/
+	/*! New */
 	static vtkPlusConfig *New();
 
 	/*!
-	* Instance getter for the singleton class
-	* \return Instance object
+    Instance getter for the singleton class
+	  \return Instance object
 	*/
 	static vtkPlusConfig* GetInstance();
 
@@ -39,102 +37,104 @@ public:
   static void SetInstance(vtkPlusConfig* instance);
 
 	/*!
-	* Saves application configuration data to file with the name that is stored in ApplicationConfigurationFileName
-	* \return Success flag
+	  Saves application configuration data to file with the name that is stored in ApplicationConfigurationFileName
+	  \return Success flag
 	*/
   PlusStatus SaveApplicationConfigurationToFile();
 
 	/*!
-	 * Assembles a filename for the new device set configuration that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
-	 * \return New device set configuration file name
+	  Assembles a filename for the new device set configuration that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
+	  \return New device set configuration file name
 	 */
   std::string GetNewDeviceSetConfigurationFileName();
 
-  /*! Write coordinate frame definition transfoms to the configuration file (if already exists update the values)
-  \param aFromCoordinateFrame Name of the 'from' coordinate frame used to define the transformation 
-  \param aToCoordinateFrame Name of the 'to' coordinate frame used to define the transformation 
-  \param aMatrix Matrix value of the FromFrameToFrame transformation  
-  \param aError Error value of the computed transform (if -1, we don't write it)
-  \param aDate Date in string format (if NULL, we don't write it)
+  /*!
+    Write coordinate frame definition transfoms to the configuration file (if already exists update the values)
+    \param aFromCoordinateFrame Name of the 'from' coordinate frame used to define the transformation 
+    \param aToCoordinateFrame Name of the 'to' coordinate frame used to define the transformation 
+    \param aMatrix Matrix value of the FromFrameToFrame transformation  
+    \param aError Error value of the computed transform (if -1, we don't write it)
+    \param aDate Date in string format (if NULL, we don't write it)
   */
   static PlusStatus WriteTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double aError=-1, const char* aDate=NULL); 
 
-  /*! Read coordinate frame definition transfoms from the actual configuration data in the memory /vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()/ 
-  \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
-  \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
-  \param aMatrix Output matrix value of the FromFrameToFrame transformation  
-  \param aError Output error value of the computed transform (if NULL, we don't read it)
-  \param aDate Output date in string format (if NULL, we don't read it)
+  /*! 
+    Read coordinate frame definition transfoms from the actual configuration data in the memory (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData())
+    \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
+    \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
+    \param aMatrix Output matrix value of the FromFrameToFrame transformation  
+    \param aError Output error value of the computed transform (if NULL, we don't read it)
+    \param aDate Output date in string format (if NULL, we don't read it)
   */
   static PlusStatus ReadTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError=NULL, std::string* aDate=NULL); 
   
   /*! Read coordinate frame definition transfoms from specified configuration xml data 
-  \param aDeviceSetConfigRootElement Device set configuration root element 
-  \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
-  \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
-  \param aMatrix Output matrix value of the FromFrameToFrame transformation  
-  \param aError Output error value of the computed transform (if NULL, we don't read it)
-  \param aDate Output date in string format (if NULL, we don't read it)
+    \param aDeviceSetConfigRootElement Device set configuration root element 
+    \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
+    \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
+    \param aMatrix Output matrix value of the FromFrameToFrame transformation  
+    \param aError Output error value of the computed transform (if NULL, we don't read it)
+    \param aDate Output date in string format (if NULL, we don't read it)
   */
   static PlusStatus ReadTransformToCoordinateDefinition(vtkXMLDataElement* aDeviceSetConfigRootElement, const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError=NULL, std::string* aDate=NULL); 
 
   /*!
-	 * Replaces an element with a name on the level under the top level in device set configuration with the element in the parameter root XML data element
-   * \param Element name to replace
-   * \param Root element containing the element to replace with
-	 * \return Success flag
-	 */
+	  Replaces an element with a name on the level under the top level in device set configuration with the element in the parameter root XML data element
+    \param aElementName Element name to replace
+    \param aNewRootElement Root element containing the element to replace with
+	  \return Success flag
+	*/
   static PlusStatus ReplaceElementInDeviceSetConfiguration(const char* aElementName, vtkXMLDataElement* aNewRootElement);
 
   /*!
-	 * Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
-   * \param aConfig Root XML element in that the search is conducted
-   * \param aElementName Name of the parent of the searched element
-   * \param aChildName Name of the searched element
-   * \param aChildAttributeName Name of the attribute based on which we want the element to be found
-   * \param aChildAttributeValue Value of the attribute based on which we want the element to be found
-	 * \return Found XML data element
-	 */
+	  Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
+    \param aConfig Root XML element in that the search is conducted
+    \param aElementName Name of the parent of the searched element
+    \param aChildName Name of the searched element
+    \param aChildAttributeName Name of the attribute based on which we want the element to be found
+    \param aChildAttributeValue Value of the attribute based on which we want the element to be found
+	  \return Found XML data element
+	*/
 	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
 
   /*!
-	* Search recursively for a file in the configuration directory
-	* \param aFileName Name of the file to be searched
-	* \return The first file that is found (with full path)
+	  Search recursively for a file in the configuration directory
+	  \param aFileName Name of the file to be searched
+	  \return The first file that is found (with full path)
 	*/
 	static std::string GetFirstFileFoundInConfigurationDirectory(const char* aFileName);
 
 	/*!
-	* Search recursively for a file in the parent of a specified directory
-	* \param aFileName Name of the file to be searched
-	* \param aDirectory Directory in whose parent the search is performed
-	* \return The first file that is found (with full path)
+	  Search recursively for a file in the parent of a specified directory
+	  \param aFileName Name of the file to be searched
+	  \param aDirectory Directory in whose parent the search is performed
+	  \return The first file that is found (with full path)
 	*/
 	static std::string GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory);
 
 	/*!
-	* Search recursively for a file in a specified directory
-	* \param aFileName Name of the file to be searched
-	* \param aDirectory Directory in which search is performed
-	* \return The first file that is found (with full path)
+	  Search recursively for a file in a specified directory
+	  \param aFileName Name of the file to be searched
+	  \param aDirectory Directory in which search is performed
+	  \return The first file that is found (with full path)
 	*/
 	static std::string GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory);
 
 	/*!
-	* Set program path and read application configuration
-	* \return Success flag
+	  Set program path and read application configuration
+	  \return Success flag
 	*/
   PlusStatus SetProgramPath(const char* aProgramDirectory);
 
   /*!
-	* Set output directory and change vtkPlusLog file name
+	  Set output directory and change vtkPlusLog file name
 	*/
   void SetOutputDirectory(const char* outputDir);
 
 	/*!
-	* Get absolute image path from input image path
-	* \param aImagePath Image path read from configuration file
-	* \return Absolute image path
+	  Get absolute image path from input image path
+	  \param aImagePath Image path read from configuration file
+	  \return Absolute image path
 	*/
   static std::string GetAbsoluteImagePath(const char* aImagePath);
 
@@ -202,34 +202,27 @@ protected:
 
 protected:
   /*!
-	* Save application configuration file
-  * \return Success flag
+	  Save application configuration file
+    \return Success flag
 	*/
   PlusStatus WriteApplicationConfiguration();
 
 	/*!
-	* Read application configuration from file
-  * \return Success flag
+	  Read application configuration from file
+    \return Success flag
 	*/
   PlusStatus ReadApplicationConfiguration();
 
   /*!
-	* Search recursively for a file in a specified directory (core, protected function)
-	* \param aFileName Name of the file to be searched
-	* \param aDirectory Directory in which search is performed
-	* \return The first file that is found with full path
+	  Search recursively for a file in a specified directory (core, protected function)
+	  \param aFileName Name of the file to be searched
+	  \param aDirectory Directory in which search is performed
+	  \return The first file that is found with full path
 	*/
 	static std::string FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory);
 
 protected:
-	/*!
-	* Constructor
-	*/
 	vtkPlusConfig();
-
-	/*!
-	* Destructor
-	*/
 	virtual	~vtkPlusConfig();
 
 protected:

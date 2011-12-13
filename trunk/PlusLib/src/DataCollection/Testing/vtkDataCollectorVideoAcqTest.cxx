@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This a simple test program to acquire a video sequence and write to a metafile
+  \file vtkDataCollectorVideoAcqTest.cxx 
+  \brief This a simple test program to acquire a video sequence and write to a metafile
 */ 
 
 #include "PlusConfigure.h"

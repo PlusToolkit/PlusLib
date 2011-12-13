@@ -49,7 +49,7 @@ PROJECT_BRIEF          = "Software library for tracked ultrasound image acquisit
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = "@PlusLib_BINARY_DIR@/Doxygen"
+OUTPUT_DIRECTORY       = ""
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -689,7 +689,6 @@ EXCLUDE                = "@PlusLib_SOURCE_DIR@/data" \
                          "@PlusLib_SOURCE_DIR@/src/Tracking/ndicapi" \
                          "@PlusLib_SOURCE_DIR@/src/Tracking/FlockTracking/Utils" \ 
                          "@PlusLib_SOURCE_DIR@/src/Tracking/MicronTracking/Utils" \ 
-                         "@PlusLib_SOURCE_DIR@/src/Vibro/AudioCard/dsound.h" \
                          "@PlusLib_SOURCE_DIR@/src/scripts" 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
@@ -708,7 +707,6 @@ EXCLUDE_PATTERNS       = moc_*.cxx \
                          ui_*.h \
                          */.git/* \
                          */.svn/* \
-                         */Testing/* \
                          */Plugins/* \
                          */CMake/* \
                          @PlusLib_ADDITIONAL_EXCLUDE_PATTERN@
@@ -991,21 +989,21 @@ DOCSET_PUBLISHER_NAME  = Publisher
 # Microsoft HTML help workshop to generate a compiled HTML help file (.chm)
 # of the generated HTML documentation.
 
-GENERATE_HTMLHELP      = NO
+GENERATE_HTMLHELP      = @GENERATE_HTMLHELP@
 
 # If the GENERATE_HTMLHELP tag is set to YES, the CHM_FILE tag can
 # be used to specify the file name of the resulting .chm file. You
 # can add a path in front of the file if the result should not be
 # written to the html output directory.
 
-CHM_FILE               =
+CHM_FILE               = @COMPRESSED_HELP_TARGET_FILE@
 
 # If the GENERATE_HTMLHELP tag is set to YES, the HHC_LOCATION tag can
 # be used to specify the location (absolute path including file name) of
 # the HTML help compiler (hhc.exe). If non-empty doxygen will try to run
 # the HTML help compiler on the generated index.hhp.
 
-HHC_LOCATION           =
+HHC_LOCATION           = @HHC_LOCATION@
 
 # If the GENERATE_HTMLHELP tag is set to YES, the GENERATE_CHI flag
 # controls if a separate .chi index file is generated (YES) or that

@@ -5,8 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-\file This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
-It can also broadcast the acquired data through OpenIGTLink.
+  \file vtkDataCollectorTest1.cxx 
+  \brief This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
+  It can also broadcast the acquired data through OpenIGTLink.
 */ 
 
 #include "PlusConfigure.h"

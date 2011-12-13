@@ -27,19 +27,21 @@ it can multiply these transforms (or the inverse of these transforms) to
 compute the transform between any two coordinate frames.
 
 Example usage:
+\code
   transformRepository->SetTransform("Probe", "Tracker", mxProbeToTracker);
   transformRepository->SetTransform("Image", "Probe", mxImageToProbe);
   ...
   vtkSmartPointer<vtkMatrix4x4> mxImageToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
   vtkTransformRepository::TransformStatus status=vtkTransformRepository::TRANSFORM_INVALID;
   transformRepository->GetTransform("Image", "Tracker", mxImageToTracker, &status);
+\endcode
 
 The following coordinate frames are used commonly: 
-  Image: image frame coordinate system, origin is the bottom-left corner, unit is pixel
-  Tool: coordinate system of the DRB attached to the probe, unit is mm
-  Reference: coordinate system of the DRB attached to the reference body, unit is mm
-  Tracker: coordinate system of the tracker, unit is mm
-  World: world coordinate system, orientation is usually patient RAS, unit is mm
+  \li Image: image frame coordinate system, origin is the bottom-left corner, unit is pixel
+  \li Tool: coordinate system of the DRB attached to the probe, unit is mm
+  \li Reference: coordinate system of the DRB attached to the reference body, unit is mm
+  \li Tracker: coordinate system of the tracker, unit is mm
+  \li World: world coordinate system, orientation is usually patient RAS, unit is mm
 
 \ingroup PlusLibCommon
 */
@@ -107,12 +109,16 @@ public:
   /*! 
     Get a transform matrix between two coordinate frames. The method fails if the transform
     cannot be already constructed by combining/inverting already stored transforms.
+    \param aTransformName name of the transform to retrieve from the repository
     \param matrix the retrieved transform is copied into this matrix 
-    \param status if this parameter is not NULL then the transform's status is returned at that memory address 
+    \param isValid if this parameter is not NULL then the transform's validity status is returned at that memory address 
   */
   virtual PlusStatus GetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid=NULL);
 
-  /*! Get the valid status of a transform matrix between two coordinate frames. */
+  /*! 
+    Get the valid status of a transform matrix between two coordinate frames.
+    The status is typically invalid when a tracked tool is out of view.
+  */
   virtual PlusStatus GetTransformValid(PlusTransformName& aTransformName, bool &isValid);
 
   /*! Get the persistent status of a transform matrix between two coordinate frames. */
@@ -178,9 +184,10 @@ protected:
 
   /*! 
     Find a transform path between the specified coordinate frames.
+    \param aTransformName name of the transform to find
     \param transformInfoList Stores the list of transforms to get from the fromCoordFrameName to toCoordFrameName
     \param skipCoordFrameName This is the name of a coordinate system that should be ignored (e.g., because it was checked previously already)
-    \param silent Don't log an error if path cannot be found (it's normal while searching in the graph)
+    \param silent Don't log an error if path cannot be found (it's normal while searching in branches of the graph)
     \return returns PLUS_SUCCESS if a path can be found, PLUS_FAIL otherwise
   */ 
   PlusStatus FindPath(PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName=NULL, bool silent=false);

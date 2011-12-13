@@ -71,7 +71,7 @@ public:
     \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
     \param samplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs) = 0; 
+  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateSec) = 0; 
 
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame) = 0; 

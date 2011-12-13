@@ -5,8 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This a simple test program to acquire a tracking data and optionally writes the buffer to a metafile
-  and display the live transform in a 3D view.
+  \file vtkDataCollectorTrackingTest.cxx 
+  \brief This a simple test program to acquire a tracking data and optionally 
+  writes the buffer to a metafile and displays the live transform in a 3D view.
 */ 
 
 #include "PlusConfigure.h"
