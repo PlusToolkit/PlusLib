@@ -63,4 +63,3 @@ TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
   # ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
   # --verbose=3
   # )
-

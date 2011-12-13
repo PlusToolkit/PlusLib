@@ -168,14 +168,8 @@ int main( int argc, char** argv )
 
   dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
   
-  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( !inputVideoBufferMetafile.empty() )
   {
-    if ( inputVideoBufferMetafile.empty() )
-    {
-      LOG_ERROR("Video source metafile missing.");
-      return BC_EXIT_FAILURE;
-    }
-
     vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
     if ( videoSource == NULL )
     {
@@ -186,17 +180,16 @@ int main( int argc, char** argv )
     videoSource->SetReplayEnabled( inputReplay ); 
   }
 
-  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( !inputTrackerBufferMetafile.empty() )
   {
-    if ( inputTrackerBufferMetafile.empty() )
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
+    if ( tracker == NULL )
     {
-      LOG_ERROR("Tracker source metafile missing.");
-      return BC_EXIT_FAILURE;
+      LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
+      exit( BC_EXIT_FAILURE );
     }
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
-    tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
+    tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
     tracker->SetReplayEnabled( inputReplay ); 
-    tracker->Connect();
   }
   
   LOG_INFO("Initializing data collector... ");
@@ -236,7 +229,7 @@ int main( int argc, char** argv )
   
   unsigned int numberOfBroadcastedMessages = UINT_MAX;
   
-  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()) != NULL ) 
   {
     numberOfBroadcastedMessages = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize();
     if ( inputReplay )
@@ -244,7 +237,6 @@ int main( int argc, char** argv )
       numberOfBroadcastedMessages = UINT_MAX; 
     }
   }
-  
   
     // Send messages in each itreation.
   

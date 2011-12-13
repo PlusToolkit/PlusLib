@@ -10,6 +10,7 @@ OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe T
 # --------------------------------------------------------------------------
 # Sources
 SET (Tracking_SRCS
+  vtkTrackerFactory.cxx
   vtkFakeTracker.cxx 
   vtkTracker.cxx 
   vtkTrackerBuffer.cxx 
@@ -21,6 +22,7 @@ SET (Tracking_HDRS)
 
 if (WIN32)	
   SET (Tracking_HDRS
+    vtkTrackerFactory.h
     vtkFakeTracker.h
     vtkTracker.h 
     vtkTrackerBuffer.h 

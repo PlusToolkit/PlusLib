@@ -69,7 +69,6 @@ vtkPOLARISTracker::vtkPOLARISTracker()
   this->SerialPort = -1; // default is to probe
   this->SerialDevice = 0;
   this->BaudRate = 115200;
-  this->SetNumberOfTools(VTK_POLARIS_NTOOLS);
 
   for (int i = 0; i < VTK_POLARIS_NTOOLS; i++)
   {
@@ -105,6 +104,14 @@ vtkPOLARISTracker::~vtkPOLARISTracker()
   {
     delete [] this->SerialDevice;
   }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPOLARISTracker::GetSDKVersion()
+{
+  std::ostringstream version; 
+  version << "Polaris-" << POLARIS_MAJOR_VERSION << "." << POLARIS_MINOR_VERSION; 
+  return version.str(); 
 }
 
 //----------------------------------------------------------------------------
@@ -557,15 +564,15 @@ PlusStatus vtkPOLARISTracker::InternalUpdate()
     flags = 0;
     if ((port_status & mflags) != mflags) 
     {
-      flags |= TR_MISSING;
+      flags |= TOOL_MISSING;
     }
     else
     {
-      if (absent[tool]) { flags |= TR_OUT_OF_VIEW;  }
-      if (port_status & PL_OUT_OF_VOLUME){ flags |= TR_OUT_OF_VOLUME; }
-      if (port_status & PL_SWITCH_1_ON)  { flags |= TR_SWITCH1_IS_ON; }
-      if (port_status & PL_SWITCH_2_ON)  { flags |= TR_SWITCH2_IS_ON; }
-      if (port_status & PL_SWITCH_3_ON)  { flags |= TR_SWITCH3_IS_ON; }
+      if (absent[tool]) { flags |= TOOL_OUT_OF_VIEW;  }
+      if (port_status & PL_OUT_OF_VOLUME){ flags |= TOOL_OUT_OF_VOLUME; }
+      if (port_status & PL_SWITCH_1_ON)  { flags |= TOOL_SWITCH1_IS_ON; }
+      if (port_status & PL_SWITCH_2_ON)  { flags |= TOOL_SWITCH2_IS_ON; }
+      if (port_status & PL_SWITCH_3_ON)  { flags |= TOOL_SWITCH3_IS_ON; }
     }
 
     // if tracking relative to another tool
@@ -575,11 +582,11 @@ PlusStatus vtkPOLARISTracker::InternalUpdate()
       {
         if (absent[this->ReferenceTool])
         {
-          flags |= TR_OUT_OF_VIEW;
+          flags |= TOOL_OUT_OF_VIEW;
         }
         if (status[this->ReferenceTool] & PL_OUT_OF_VOLUME)
         {
-          flags |= TR_OUT_OF_VOLUME;
+          flags |= TOOL_OUT_OF_VOLUME;
         }
       }
       // pre-multiply transform by inverse of relative tool transform
@@ -597,8 +604,19 @@ PlusStatus vtkPOLARISTracker::InternalUpdate()
       // this will create a timestamp from the frame number      
       toolframe = frame[tool];
     }
-    // send the matrix and flags to the tool
-    this->ToolTimeStampedUpdate(tool, this->SendMatrix, (TrackerStatus)flags, toolframe, tooltimestamp);   
+    
+    std::ostringstream toolPortName; 
+    toolPortName << tool; 
+    vtkTrackerTool* trackerTool = NULL; 
+    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+    }
+    else
+    {
+      // send the matrix and status to the tool's vtkTrackerBuffer
+      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolframe, tooltimestamp);
+    }
   }
   
   return PLUS_SUCCESS;
@@ -744,6 +762,9 @@ PlusStatus vtkPOLARISTracker::EnableToolPorts()
     int port = ((tool < 3) ? ('1' + tool) : ('A' + tool - 3));
     status = plGetPSTATPortStatus(this->Polaris,port);
 
+   
+    
+
     // if a new tool has been plugged in, enable it
     if ((status & PL_TOOL_IN_PORT) && !(status & PL_ENABLED))
     {
@@ -775,18 +796,27 @@ PlusStatus vtkPOLARISTracker::EnableToolPorts()
         LOG_ERROR(plErrorString(errnum));
       }
 
+      std::ostringstream toolPortName; 
+      toolPortName << tool; 
+      vtkTrackerTool* trackerTool = NULL; 
+      if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+        continue; 
+      }
+
       // turn on all LEDs that the user has requested
-      if (this->Tools[tool]->GetLED1())
+      if (trackerTool->GetLED1())
       {
-        this->InternalSetToolLED(tool,1,this->Tools[tool]->GetLED1());
+        this->InternalSetToolLED(tool,1,trackerTool->GetLED1());
       }
-      if (this->Tools[tool]->GetLED2())
+      if (trackerTool->GetLED2())
       {
-        this->InternalSetToolLED(tool,2,this->Tools[tool]->GetLED2());
+        this->InternalSetToolLED(tool,2,trackerTool->GetLED2());
       }
-      if (this->Tools[tool]->GetLED3())
+      if (trackerTool->GetLED3())
       {
-        this->InternalSetToolLED(tool,3,this->Tools[tool]->GetLED3());
+        this->InternalSetToolLED(tool,3,trackerTool->GetLED3());
       }
     }
   }
@@ -808,32 +838,39 @@ PlusStatus vtkPOLARISTracker::EnableToolPorts()
     status = plGetPSTATPortStatus(this->Polaris,port);
     this->PortEnabled[tool] = ((status & PL_ENABLED) != 0);
 
+     std::ostringstream toolPortName; 
+    toolPortName << tool; 
+    vtkTrackerTool* trackerTool = NULL; 
+    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      continue; 
+    }
+
     if (status & PL_TOOL_IN_PORT)
     {
       // decompose identity string from end to front
       plGetPSTATToolInfo(this->Polaris, port, identity);
       identity[30] = '\0';
-      this->Tools[tool]->SetToolSerialNumber(
+      trackerTool->SetToolSerialNumber(
         vtkStripWhitespace(&identity[22]));
       identity[22] = '\0';
-      this->Tools[tool]->SetToolRevision(vtkStripWhitespace(&identity[19]));
+      trackerTool->SetToolRevision(vtkStripWhitespace(&identity[19]));
       identity[19] = '\0';
-      this->Tools[tool]->SetToolManufacturer(vtkStripWhitespace(&identity[7]));
+      trackerTool->SetToolManufacturer(vtkStripWhitespace(&identity[7]));
       identity[7] = '\0';
-      this->Tools[port]->SetToolType(TRACKER_TOOL_GENERAL); // TODO: some tools should be reference, etc., it should be defined in the config file
-      this->Tools[port]->SetToolName(vtkStripWhitespace(&identity[0]));
+      trackerTool->SetToolName(vtkStripWhitespace(&identity[0]));
       plGetPSTATPartNumber(this->Polaris, port, partNumber);
       partNumber[20] = '\0';
-      this->Tools[tool]->SetToolPartNumber(vtkStripWhitespace(partNumber));
+      trackerTool->SetToolPartNumber(vtkStripWhitespace(partNumber));
     }
     else
     {
-      this->Tools[tool]->SetToolSerialNumber("");
-      this->Tools[tool]->SetToolRevision("");
-      this->Tools[tool]->SetToolManufacturer("");
-      this->Tools[tool]->SetToolType(TRACKER_TOOL_GENERAL);
-      this->Tools[port]->SetToolName("");
-      this->Tools[tool]->SetToolPartNumber("");
+      trackerTool->SetToolSerialNumber("");
+      trackerTool->SetToolRevision("");
+      trackerTool->SetToolManufacturer("");
+      trackerTool->SetToolName("");
+      trackerTool->SetToolPartNumber("");
     }
 
   }

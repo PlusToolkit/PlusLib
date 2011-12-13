@@ -75,6 +75,10 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
 	${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
 	)
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in 
+	${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
+	)  
 
 # --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories
@@ -164,7 +168,7 @@ configure_file(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
 configure_file(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
-  
+
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
 # 

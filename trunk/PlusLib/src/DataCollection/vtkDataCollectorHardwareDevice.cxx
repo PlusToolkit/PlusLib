@@ -11,61 +11,20 @@ See License.txt for details.
 #include "vtkInformation.h"
 #include "vtkXMLDataElement.h"
 #include "vtkImageData.h"
-#include "vtkVideoBuffer.h"
-#include "vtkTrackerBuffer.h"
+
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkDataCollectorSynchronizer.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusVideoSource.h"
 
-//----------------------------------------------------------------------------
-// Tracker devices
+#include "vtkTrackerFactory.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
-#ifdef PLUS_USE_POLARIS
-#include "vtkPOLARISTracker.h"
-#include "vtkNDITracker.h"
-#endif
-#ifdef PLUS_USE_CERTUS
-#include "vtkNDICertusTracker.h"
-#endif
-#ifdef PLUS_USE_MICRONTRACKER
-#include "vtkMicronTracker.h"
-#endif
-#ifdef PLUS_USE_BRACHY_TRACKER
-#include "vtkBrachyTracker.h"
-#endif
-#ifdef PLUS_USE_Ascension3DG
-#include "vtkAscension3DGTracker.h"
-#endif
-#include "vtkFakeTracker.h"
 #include "vtkSavedDataTracker.h"
 
-//----------------------------------------------------------------------------
-// Video source
 #include "vtkPlusVideoSource.h"
-//#ifdef PLUS_USE_MATROX_IMAGING
-//#include "vtkMILVideoSource2.h"
-//#endif
-#ifdef WIN32
-#ifdef VTK_VFW_SUPPORTS_CAPTURE
-#include "vtkWin32VideoSource2.h"
-#endif
-//#else
-//#ifdef USE_LINUX_VIDEO
-//#include "vtkV4L2VideoSource2.h"
-//#endif
-#endif
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-#include "vtkSonixVideoSource.h"
-#include "vtkSonixPortaVideoSource.h"
-#endif
-#ifdef PLUS_USE_ICCAPTURING_VIDEO
-#include "vtkICCapturingSource.h"
-#endif
+#include "vtkPlusVideoSourceFactory.h"
+#include "vtkVideoBuffer.h"
 #include "vtkSavedDataVideoSource.h"
 
 //----------------------------------------------------------------------------
@@ -137,7 +96,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Connect()
 
   PlusStatus status = PLUS_SUCCESS;
 
-  // VideoSource can be null if the ACQUISITION_TYPE == SYNCHRO_VIDEO_NONE 
+  // VideoSource can be null if video source type is None
   if ( this->GetVideoSource() != NULL ) 
   {
     this->GetVideoSource()->Connect();
@@ -187,30 +146,15 @@ PlusStatus vtkDataCollectorHardwareDevice::SetLoopTimes()
 {
   LOG_TRACE("vtkDataCollectorHardwareDevice::SetLoopTimes"); 
 
-  if ( (this->GetTrackerType() != TRACKER_SAVEDDATASET) && (this->GetAcquisitionType() != SYNCHRO_VIDEO_SAVEDDATASET) )
-  {
-    // No need to compute loop time
-    return PLUS_SUCCESS;
-  }
-
-  vtkSavedDataTracker* savedDataTracker = NULL;
-  vtkSavedDataVideoSource* savedDataVideoSource = NULL;
+  vtkSavedDataTracker* savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(this->GetTracker()); 
 
   double oldestTrackerTimeStamp(0);
   double latestTrackerTimeStamp(0);
   double oldestVideoTimeStamp(0);
   double latestVideoTimeStamp(0);
 
-  if ( this->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( savedDataTracker != NULL )
   {
-    savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(this->GetTracker()); 
-
-    if ( savedDataTracker == NULL )
-    {
-      LOG_ERROR("Failed to dynamic cast saved data tracker!"); 
-      return PLUS_FAIL; 
-    }
-
     if ( savedDataTracker->GetLocalTrackerBuffer() == NULL ) 
     {
       LOG_ERROR("Failed to get local tracker buffer!"); 
@@ -231,16 +175,10 @@ PlusStatus vtkDataCollectorHardwareDevice::SetLoopTimes()
 
   }
 
-  if( this->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
+
+  if( savedDataVideoSource != NULL)
   {
-    savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
-
-    if ( savedDataVideoSource == NULL )
-    {
-      LOG_ERROR("Failed to dynamic cast saved data video source!"); 
-      return PLUS_FAIL; 
-    }
-
     if ( savedDataVideoSource->GetLocalVideoBuffer() == NULL ) 
     {
       LOG_ERROR("Failed to get local video buffer!"); 
@@ -1435,119 +1373,22 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
 
   LOG_TRACE("vtkDataCollectorHardwareDevice::ReadTrackerProperties");
   const char* type = trackerConfig->GetAttribute("Type"); 
-  if ( type == NULL ) 
+  
+  vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New(); 
+  if ( trackerFactory->CreateInstance(type, this->Tracker) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Unable to find tracker type, set to default: None"); 
+    LOG_ERROR("Failed to create tracker instance!"); 
+    return PLUS_FAIL; 
+  }
 
-    this->SetTrackerType(TRACKER_NONE); 
-    LOG_DEBUG("Tracker type: None");
-    this->SetTracker(NULL); 
-    this->TrackingEnabled = false; 
-  }
-  //******************* Brachy Tracker ***************************
-  else if ( STRCASECMP("BrachyTracker", type)==0) 
+  if ( this->Tracker )
   {
-#ifdef PLUS_USE_BRACHY_TRACKER
-    LOG_DEBUG("Tracker type: Brachy tracker"); 
-    this->SetTrackerType(TRACKER_BRACHY); 
-    vtkSmartPointer<vtkBrachyTracker> tracker = vtkSmartPointer<vtkBrachyTracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
+    this->TrackingEnabled = true; 
+    return this->Tracker->ReadConfiguration(aConfigurationData); 
   }
-  //******************* Certus Tracker ***************************
-  else if ( STRCASECMP("CertusTracker", type)==0) 
-  {
-#ifdef PLUS_USE_CERTUS
-    LOG_DEBUG("Tracker type: Certus tracker"); 
-    this->SetTrackerType(TRACKER_CERTUS); 
-    vtkSmartPointer<vtkNDICertusTracker> tracker = vtkSmartPointer<vtkNDICertusTracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-
-    /*int referenceToolNumber(-1);
-    if ( trackerCertus->GetScalarAttribute("ReferenceToolNumber", referenceToolNumber) ) 
-    {
-    tracker->SetReferenceTool(referenceToolNumber); 
-    }
-
-    int mainToolNumber(-1);
-    if ( trackerCertus->GetScalarAttribute("MainToolNumber", mainToolNumber) ) 
-    {
-    tracker->SetMainTool(mainToolNumber); 
-    this->SetMainToolNumber(mainToolNumber); 
-    }*/
-#endif
-  }
-  //******************* Polaris Tracker ***************************
-  else if ( STRCASECMP("PolarisTracker", type)==0) 
-  {
-#ifdef PLUS_USE_POLARIS
-    LOG_DEBUG("Tracker type: Polaris tracker"); 
-    this->SetTrackerType(TRACKER_POLARIS); 
-    vtkSmartPointer<vtkPOLARISTracker> tracker = vtkSmartPointer<vtkPOLARISTracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Aurora Tracker ***************************
-  else if ( STRCASECMP("AuroraTracker", type)==0) 
-  {
-#ifdef PLUS_USE_POLARIS
-    LOG_DEBUG("Tracker type: Aurora tracker"); 
-    this->SetTrackerType(TRACKER_AURORA); 
-    vtkSmartPointer<vtkNDITracker> tracker = vtkSmartPointer<vtkNDITracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Micron Tracker ***************************
-  else if ( STRCASECMP("MicronTracker", type)==0) 
-  {
-#ifdef PLUS_USE_MICRONTRACKER
-    LOG_DEBUG("Tracker type: Micron tracker"); 
-    this->SetTrackerType(TRACKER_MICRON); 
-    vtkSmartPointer<vtkMicronTracker> tracker = vtkSmartPointer<vtkMicronTracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Saved dataset ***************************
-  else if ( STRCASECMP("SavedDataset", type)==0) 
-  {
-    LOG_DEBUG("Tracker type: Saved Dataset");
-    this->SetTrackerType(TRACKER_SAVEDDATASET); 
-    vtkSmartPointer<vtkSavedDataTracker> tracker = vtkSmartPointer<vtkSavedDataTracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-  }
-  //******************* Ascension 3DG ***************************
-  else if ( STRCASECMP( "Ascension3DG", type ) == 0 )
-  {
-#ifdef PLUS_USE_Ascension3DG
-    LOG_DEBUG( "Tracker type: Ascension 3DG" );
-    this->SetTrackerType( TRACKER_ASCENSION3DG );
-    vtkSmartPointer< vtkAscension3DGTracker > tracker = vtkSmartPointer< vtkAscension3DGTracker >::New();
-    this->SetTracker( tracker );
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Fake Tracker ***************************
-  else if ( STRCASECMP("FakeTracker", type)==0) 
-  {
-    LOG_DEBUG("Tracker type: Fake Tracker");
-    this->SetTrackerType(TRACKER_FAKE); 
-    vtkSmartPointer<vtkFakeTracker> tracker = vtkSmartPointer<vtkFakeTracker>::New();
-    this->SetTracker(tracker);
-    tracker->ReadConfiguration(aConfigurationData);
-  }
-  else
-  {
-    this->SetTrackerType(TRACKER_NONE); 
-    LOG_DEBUG("Tracker type: None");
-    this->SetTracker(NULL); 
-    this->TrackingEnabled = false; 
-  }
+  
+  // No tracking
+  this->TrackingEnabled = false; 
   return PLUS_SUCCESS;
 }
 
@@ -1572,109 +1413,21 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
 
   const char* type = imageAcquisitionConfig->GetAttribute("Type"); 
 
-  if ( type == NULL ) 
+  vtkSmartPointer<vtkPlusVideoSourceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusVideoSourceFactory>::New(); 
+  if ( videoSourceFactory->CreateInstance(type, this->VideoSource) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Unable to find image acquisition type, set to default: None"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_NONE); 
-    LOG_DEBUG("Image acquisition type: None");
-    this->SetVideoSource(NULL); 
-    this->VideoEnabled = false; 
+    LOG_ERROR("Failed to create video source instance!"); 
+    return PLUS_FAIL; 
   }
-  //******************* Sonix Video ***************************
-  else if ( STRCASECMP("SonixVideo", type)==0) 
+
+  if ( this->VideoSource )
   {
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-    LOG_DEBUG("Image acquisition type: Sonix Video"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
-    vtkSmartPointer<vtkSonixVideoSource> videoSource = vtkSmartPointer<vtkSonixVideoSource>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData);
-#else
-    LOG_ERROR("Ultrasonix support was disabled when this Plus library was built");     
-#endif
+    this->VideoEnabled = true; 
+    return this->VideoSource->ReadConfiguration(aConfigurationData); 
   }
-  //***************** Sonix Porta Video ***********************
-  else if ( STRCASECMP("SonixPortaVideo", type)==0) 
-  {
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-    LOG_DEBUG("Image acquisition type: Ultrasonix Porta Video"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
-    vtkSmartPointer<vtkSonixPortaVideoSource> videoSource = vtkSmartPointer<vtkSonixPortaVideoSource>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData);
-#else
-    LOG_ERROR("Ultrasonix support was disabled when this Plus library was built");     
-#endif
-  }
-  //******************* Matrox Imaging ***************************
-  else if ( STRCASECMP("MatroxImaging", type)==0) 
-  {
-#ifdef PLUS_USE_MATROX_IMAGING
-    LOG_DEBUG("Image acquisition type: Matrox Imaging"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_MIL); 
-    vtkSmartPointer<vtkMILVideoSource2> videoSource = vtkSmartPointer<vtkMILVideoSource2>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Video For Windows ***************************
-  else if ( STRCASECMP("VFWVideo", type)==0) 
-  {
-#ifdef VTK_VFW_SUPPORTS_CAPTURE
-    LOG_DEBUG("Image acquisition type: Video For Windows"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_WIN32); 	
-    vtkSmartPointer<vtkWin32VideoSource2> videoSource = vtkSmartPointer<vtkWin32VideoSource2>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* IC Capturing frame grabber ***************************
-  else if ( STRCASECMP("ICCapturing", type)==0) 
-  {
-#ifdef PLUS_USE_ICCAPTURING_VIDEO
-    LOG_DEBUG("Image acquisition type: IC Capturing"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_ICCAPTURING); 
-    vtkSmartPointer<vtkICCapturingSource> videoSource = vtkSmartPointer<vtkICCapturingSource>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Linux Video ***************************
-  else if ( STRCASECMP("LinuxVideo", type)==0) 
-  {
-#ifdef PLUS_USE_LINUX_VIDEO
-    LOG_DEBUG("Image acquisition type: Linux Video mode"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_LINUX); 
-    vtkSmartPointer<vtkV4L2LinuxSource2> videoSource = vtkSmartPointer<vtkV4L2LinuxSource2>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Noise Video ***************************
-  else if ( STRCASECMP("NoiseVideo", type)==0) 
-  {
-    LOG_DEBUG("Image acquisition type: Noise Video"); 
-    this->SetAcquisitionType(SYNCHRO_VIDEO_NOISE); 
-    vtkSmartPointer<vtkPlusVideoSource> videoSource = vtkSmartPointer<vtkPlusVideoSource>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-  }
-  //******************* Saved dataset ***************************
-  else if ( STRCASECMP("SavedDataset", type)==0 ) 
-  {
-    LOG_DEBUG("Image acquisition type: Saved Dataset");
-    this->SetAcquisitionType(SYNCHRO_VIDEO_SAVEDDATASET); 
-    vtkSmartPointer<vtkSavedDataVideoSource> videoSource = vtkSmartPointer<vtkSavedDataVideoSource>::New();
-    this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
-  }
-  else
-  {
-    this->SetAcquisitionType(SYNCHRO_VIDEO_NONE); 
-    LOG_DEBUG("Image acquisition type: None");
-    this->SetVideoSource(NULL); 
-    this->VideoEnabled = false; 
-  }
+  
+  // No video source 
+  this->VideoEnabled = false; 
   return PLUS_SUCCESS;
 }
 

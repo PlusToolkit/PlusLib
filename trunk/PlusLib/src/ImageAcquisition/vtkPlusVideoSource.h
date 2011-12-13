@@ -52,6 +52,9 @@ public:
   vtkTypeRevisionMacro(vtkPlusVideoSource,vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
+  /*! Hardware device SDK version. This method should be overridden in subclasses. */
+  virtual std::string GetSDKVersion(); 
+
   /*! Read/write main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);

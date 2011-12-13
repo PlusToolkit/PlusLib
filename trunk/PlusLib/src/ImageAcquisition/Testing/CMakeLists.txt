@@ -79,3 +79,11 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkImageAcquisition )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 #Test is to be added.
+
+#*************************** vtkPlusVideoSourceFactoryTest ***************************
+ADD_EXECUTABLE(vtkPlusVideoSourceFactoryTest vtkPlusVideoSourceFactoryTest.cxx)
+TARGET_LINK_LIBRARIES(vtkPlusVideoSourceFactoryTest vtkImageAcquisition vtkPlusCommon)
+ADD_TEST(vtkPlusVideoSourceFactoryTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusVideoSourceFactoryTest
+  )
+SET_TESTS_PROPERTIES( vtkPlusVideoSourceFactoryTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )

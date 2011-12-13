@@ -152,3 +152,10 @@ ADD_TEST(vtkDataCollectorFileTest
   --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_File.xml 
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(PlusVersion PlusVersion.cxx )
+TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkTracking vtkImageAcquisition)
+ADD_TEST(PlusVersion 
+  ${EXECUTABLE_OUTPUT_PATH}/PlusVersion
+  )
