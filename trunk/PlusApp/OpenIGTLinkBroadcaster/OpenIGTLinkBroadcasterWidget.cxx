@@ -5,11 +5,10 @@
 #include "vtkDataCollectorHardwareDevice.h"
 #include "vtkDataCollectorFile.h"
 
+#include "TrackedFrame.h"
 #include "vtkOpenIGTLinkBroadcaster.h"
-#include "vtkSavedDataTracker.h"
-#include "vtkSavedDataVideoSource.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
+#include "vtkTransformRepository.h"
+#include "vtkMatrix4x4.h"
 
 #include "vtkXMLUtilities.h"
 
@@ -20,9 +19,10 @@
 OpenIGTLinkBroadcasterWidget::OpenIGTLinkBroadcasterWidget( QWidget *parent )
   : QWidget( parent )
 {
-  this->m_DataCollector = vtkDataCollector::New();
+  this->m_DataCollector = NULL;
   this->m_OpenIGTLinkBroadcaster = vtkOpenIGTLinkBroadcaster::New();
   this->m_Timer = NULL;
+  this->m_TransformRepository = NULL;
   
   this->Paused = false;
   this->StylusCalibrationOn = false;
@@ -63,6 +63,12 @@ OpenIGTLinkBroadcasterWidget::~OpenIGTLinkBroadcasterWidget()
 		delete m_Timer;
 		m_Timer = NULL;
 	}
+
+  if (m_TransformRepository != NULL)
+  {
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+  }
 }
 
 
@@ -75,7 +81,14 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName )
     LOG_ERROR("Unable to read configuration from file " << configFileName.c_str()); 
     return;
   }
-  
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configRootElement );
+
+  m_TransformRepository = vtkTransformRepository::New();
+  m_TransformRepository->ReadConfiguration( configRootElement );
+
+  // Create data collector
+  this->m_DataCollector = vtkDataCollector::New();
   this->m_DataCollector->ReadConfiguration( configRootElement );
 
 
@@ -173,20 +186,26 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
     }
     else
     {
-      //TODO
-      LOG_WARNING("TEMPORARY ISSUE - cannot print transforms"); // Need to get all toolInfos from broadcaster and get the transforms OR make some logging possible in the broadcaster itself
-      /*
-      TrackedFrameFieldStatus status = FIELD_INVALID;
-      PlusTransformName transformName("Probe", "Reference"); //TODO!!!!!
-      trackedFrame.GetCustomFrameTransform(transformName, mToolToReference); 
-      trackedFrame.GetCustomFrameTransformStatus(transformName, status); 
-      if ( status == FIELD_OK )
+      PlusTransformName stylusTipToReferenceTransformName("StylusTip", "Reference");
+      vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      m_TransformRepository->SetTransforms(trackedFrame); 
+      bool valid = false;
+      if (m_TransformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
       {
-        LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "
-          << mToolToReference->GetElement( 1, 3 ) << " "
-          << mToolToReference->GetElement( 2, 3 ) << " " );
+        std::string transformName; 
+        stylusTipToReferenceTransformName.GetTransformName(transformName); 
+        LOG_ERROR("Cannot get transform '" << transformName << "' from transform repository - cannot send message! (either it is not calibrated (no StylusTip to Stylus transform in CoordinateDefinitions in config file or no Stylus to Reference transform is available)");
+        return;
       }
-      */
+
+      if (!valid)
+      {
+        LOG_WARNING("Stylus is out of view!");
+      }
+
+      LOG_INFO( "StylusTip position: " << stylusTipToReferenceTransformMatrix->GetElement( 0, 3 ) << " "
+        << stylusTipToReferenceTransformMatrix->GetElement( 1, 3 ) << " "
+        << stylusTipToReferenceTransformMatrix->GetElement( 2, 3 ) << " " );
     }
   }
   else

@@ -17,6 +17,7 @@ class QTimer;
 
 class vtkDataCollector;
 class vtkOpenIGTLinkBroadcaster;
+class vtkTransformRepository;
 
 
 class OpenIGTLinkBroadcasterWidget : public QWidget
@@ -51,6 +52,7 @@ private:
   
   vtkDataCollector* m_DataCollector;
   vtkOpenIGTLinkBroadcaster* m_OpenIGTLinkBroadcaster;
+  vtkTransformRepository* m_TransformRepository;
   
   QTimer* m_Timer;
   
