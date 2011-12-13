@@ -1,33 +1,33 @@
 # --------------------------------------------------------------------------
 # Sources
 
-SET (UsFidSegAlgo_SRCS
+SET (PatternLocAlgo_SRCS
   FidSegmentation.cxx
   FidLineFinder.cxx
   FidLabeling.cxx
   FidPatternRecognitionCommon.cxx
   FidPatternRecognition.cxx
-  UsFidSegResultFile.cxx
+  PatternLocResultFile.cxx
   )
 
-SET (UsFidSegAlgo_HDRS)	
+SET (PatternLocAlgo_HDRS)	
 IF (WIN32)	
-	SET (UsFidSegAlgo_HDRS
+	SET (PatternLocAlgo_HDRS
 		FidSegmentation.h
 		FidLineFinder.h
 		FidLabeling.h
 		FidPatternRecognitionCommon.h
 		FidPatternRecognition.h
-		UsFidSegResultFile.h
+		PatternLocResultFile.h
 		)
 ENDIF (WIN32)
 
-SET (UsFidSegAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
+SET (PatternLocAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET(UsFidSegAlgo_LIBS
+SET(PatternLocAlgo_LIBS
   itkvnl_algo
   ITKIO
 	ITKCommon
@@ -39,22 +39,22 @@ SET(UsFidSegAlgo_LIBS
   vtkPlusCommon 
   vtkCommon )
   
-INCLUDE_DIRECTORIES( ${UsFidSegAlgo_INCLUDE_DIRS} )
-ADD_LIBRARY( UsFidSegAlgo STATIC ${UsFidSegAlgo_SRCS} ${UsFidSegAlgo_HDRS} )
-TARGET_LINK_LIBRARIES( UsFidSegAlgo ${UsFidSegAlgo_LIBS})
+INCLUDE_DIRECTORIES( ${PatternLocAlgo_INCLUDE_DIRS} )
+ADD_LIBRARY( PatternLocAlgo STATIC ${PatternLocAlgo_SRCS} ${PatternLocAlgo_HDRS} )
+TARGET_LINK_LIBRARIES( PatternLocAlgo ${PatternLocAlgo_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} UsFidSegAlgo CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} PatternLocAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_UsFidSegAlgo UsFidSegAlgo "${PlusLib_BINARY_DIR}/src/UsFidSegAlgo/UsFidSegAlgo.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_PatternLocAlgo PatternLocAlgo "${PlusLib_BINARY_DIR}/src/PatternLocAlgo/PatternLocAlgo.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
 #
 
-# INSTALL(TARGETS UsFidSegAlgo
+# INSTALL(TARGETS PatternLocAlgo
   # DESTINATION bin
   # COMPONENT RuntimeLibraries)
   

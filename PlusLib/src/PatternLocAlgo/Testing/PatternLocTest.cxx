@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream> 
 #include <strstream>
-#include "UsFidSegResultFile.h"
+#include "PatternLocResultFile.h"
 
 #include "FidPatternRecognition.h"
 

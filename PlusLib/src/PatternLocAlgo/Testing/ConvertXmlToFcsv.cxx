@@ -15,7 +15,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkSmartPointer.h"
 
-#include "UsFidSegResultFile.h"
+#include "PatternLocResultFile.h"
 
 static const int FIDUCIAL_COUNT_PER_SLICE=7;
 static const int MAX_FIDUCIAL_COUNT=50;

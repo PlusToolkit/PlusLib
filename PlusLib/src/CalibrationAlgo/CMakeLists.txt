@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Sources
 
-SET (TrusCalibration_SRCS
+SET (CalibrationAlgo_SRCS
 	vtkProbeCalibrationAlgo.cxx 
   vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
@@ -11,9 +11,9 @@ SET (TrusCalibration_SRCS
   vtkBrachyStepperPhantomRegistrationAlgo.cxx
 	)
 
-SET (TrusCalibration_HDRS)	
+SET (CalibrationAlgo_HDRS)	
 IF (WIN32)	
-	SET (TrusCalibration_HDRS
+	SET (CalibrationAlgo_HDRS
 		vtkProbeCalibrationAlgo.h
     vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
@@ -24,37 +24,37 @@ IF (WIN32)
 		)
 ENDIF (WIN32)
 
-SET (TrusCalibration_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (TrusCalibration_LIBS 
+SET (CalibrationAlgo_LIBS 
   vtkCommon 
   vtkInfovis 
   itkvnl 
   itkvnl_algo 
-  UsFidSegAlgo 
+  PatternLocAlgo 
   vtkPlusCommon
   vtkTracking
   )
 
-INCLUDE_DIRECTORIES( ${TrusCalibration_INCLUDE_DIRS} )
-ADD_LIBRARY( vtkTrusCalibration STATIC ${TrusCalibration_SRCS} ${TrusCalibration_HDRS} )
-TARGET_LINK_LIBRARIES(vtkTrusCalibration ${TrusCalibration_LIBS})
+INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
+ADD_LIBRARY( vtkCalibrationAlgo STATIC ${CalibrationAlgo_SRCS} ${CalibrationAlgo_HDRS} )
+TARGET_LINK_LIBRARIES(vtkCalibrationAlgo ${CalibrationAlgo_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTrusCalibration CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkCalibrationAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkTrusCalibration vtkTrusCalibration "${PlusLib_BINARY_DIR}/src/TrusCalibration/vtkTrusCalibration.vcproj" vtkPlusCommon UsFidSegAlgo CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo "${PlusLib_BINARY_DIR}/src/CalibrationAlgo/vtkCalibrationAlgo.vcproj" vtkPlusCommon PatternLocAlgo CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
 #
 
-# INSTALL(TARGETS vtkTrusCalibration
+# INSTALL(TARGETS vtkCalibrationAlgo
   # DESTINATION bin
   # CONFIGURATIONS Release
   # COMPONENT RuntimeLibraries)

@@ -125,12 +125,12 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTracking@)
       ENDIF()
       
-      IF ("@vcProj_vtkTrusCalibration@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibration@)
+      IF ("@vcProj_vtkCalibrationAlgo@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkCalibrationAlgo@)
       ENDIF()
 
-      IF ("@vcProj_UsFidSegAlgo@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_UsFidSegAlgo@)
+      IF ("@vcProj_PatternLocAlgo@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_PatternLocAlgo@)
       ENDIF()
       
       IF ("@vcProj_vtkVolumeReconstruction@" STRGREATER "")
