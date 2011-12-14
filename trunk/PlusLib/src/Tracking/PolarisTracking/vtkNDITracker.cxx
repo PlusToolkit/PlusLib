@@ -132,7 +132,7 @@ void vtkNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkNDITracker::GetSDKVersion()
+std::string vtkNDITracker::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "NDICAPI-" << NDICAPI_MAJOR_VERSION << "." << NDICAPI_MINOR_VERSION; 
@@ -723,26 +723,6 @@ void vtkNDITracker::ClearVirtualSROM(int tool)
 //----------------------------------------------------------------------------
 // Protected Methods
 
-// helper method to strip whitespace
-static char *vtkStripWhitespace(char *text)
-{
-  int n = strlen(text);
-  // strip from right
-  while (--n >= 0) {
-    if (isspace(text[n])) {
-      text[n] = '\0';
-    }
-    else {
-      break;
-    }
-  }
-  // strip from left
-  while (isspace(*text)) {
-    text++;
-  }
-  return text;
-}
-
 //----------------------------------------------------------------------------
 // Enable all tool ports that have tools plugged into them.
 // The reference port is enabled with NDI_STATIC.
@@ -892,16 +872,16 @@ void vtkNDITracker::EnableToolPorts()
     // decompose identity string from end to front
     ndiGetPHINFToolInfo(this->Device, identity);
     identity[31] = '\0';
-    trackerTool->SetToolSerialNumber(vtkStripWhitespace(&identity[23]));
+    trackerTool->SetToolSerialNumber(PlusCommon::Trim(&identity[23]).c_str());
     identity[23] = '\0';
-    trackerTool->SetToolRevision(vtkStripWhitespace(&identity[20]));
+    trackerTool->SetToolRevision(PlusCommon::Trim(&identity[20]).c_str());
     identity[20] = '\0';
-    trackerTool->SetToolManufacturer(vtkStripWhitespace(&identity[8]));
+    trackerTool->SetToolManufacturer(PlusCommon::Trim(&identity[8]).c_str());
     identity[8] = '\0';
-    trackerTool->SetToolName(vtkStripWhitespace(&identity[0]));
+    trackerTool->SetToolName(PlusCommon::Trim(&identity[0]).c_str());
     ndiGetPHINFPartNumber(this->Device, partNumber);
     partNumber[20] = '\0';
-    trackerTool->SetToolPartNumber(vtkStripWhitespace(partNumber));
+    trackerTool->SetToolPartNumber(PlusCommon::Trim(&partNumber[0]).c_str());
     status = ndiGetPHINFPortStatus(this->Device);
 
     // send the Tool Info to the server

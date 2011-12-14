@@ -109,7 +109,7 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusVideoSource::GetSDKVersion()
+std::string vtkPlusVideoSource::GetSdkVersion()
 {
   // Base class version is the same as the Plus library version
   std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 
@@ -122,7 +122,7 @@ void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "SDK version: " << this->GetSDKVersion() << "\n";
+  os << indent << "SDK version: " << this->GetSdkVersion() << "\n";
   os << indent << "FrameRate: " << this->FrameRate << "\n";
   os << indent << "FrameCount: " << this->FrameCount << "\n";
   os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");

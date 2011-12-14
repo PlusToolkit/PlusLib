@@ -91,7 +91,7 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   //ETX
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSDKVersion();
+  virtual std::string GetSdkVersion();
   /*! Read main configuration from xml data */  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);

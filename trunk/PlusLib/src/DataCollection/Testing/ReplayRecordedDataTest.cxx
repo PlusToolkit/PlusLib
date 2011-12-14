@@ -45,7 +45,7 @@ int main( int argc, char** argv )
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
@@ -56,7 +56,7 @@ int main( int argc, char** argv )
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
@@ -67,7 +67,7 @@ int main( int argc, char** argv )
   if ( dataCollectorHardwareDevice == NULL )
   {
     LOG_ERROR("Failed to create the propertype of data collector!");
-    exit( 1 );
+    return EXIT_FAILURE;
   }
 
   dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
@@ -79,7 +79,7 @@ int main( int argc, char** argv )
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Invalid saved data video source." );
-      exit( 1 );
+      return EXIT_FAILURE;
     }
     videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
     videoSource->SetReplayEnabled( true ); 
@@ -91,7 +91,7 @@ int main( int argc, char** argv )
     if ( tracker == NULL )
     {
       LOG_ERROR( "Invalid saved data tracker source." );
-      exit( 1 );
+      return EXIT_FAILURE;
     }
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( true ); 
@@ -104,5 +104,5 @@ int main( int argc, char** argv )
 
   dataCollectorHardwareDevice->Disconnect();
   
-  return 0;
+  return EXIT_SUCCESS;
 }

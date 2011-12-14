@@ -72,10 +72,12 @@ vtkNDICertusTracker::~vtkNDICertusTracker()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkNDICertusTracker::GetSDKVersion()
+std::string vtkNDICertusTracker::GetSdkVersion()
 {
-  char version[200]; 
-  OAPIGetVersionString(version, 200);
+  const int BUFSIZE=200;
+  char version[BUFSIZE+1];
+  version[BUFSIZE]=0;
+  OAPIGetVersionString(version, BUFSIZE);
   return std::string(version); 
 }
 

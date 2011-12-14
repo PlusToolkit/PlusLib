@@ -90,7 +90,7 @@ vtkMicronTracker::~vtkMicronTracker()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMicronTracker::GetSDKVersion()
+std::string vtkMicronTracker::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "MTC-" << MTCMajorVersion << "." << MTCMinorVersion << "." << MTCBuild << "." << MTCRevision; 

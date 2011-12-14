@@ -76,7 +76,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSDKVersion(); 
+  virtual std::string GetSdkVersion(); 
  
   /*!
     Probe to see if the tracking system is present on the
