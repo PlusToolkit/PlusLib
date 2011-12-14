@@ -262,7 +262,9 @@ public:
   PlusStatus PrintListOfImagingParameters();
 
 protected:
+  /*! Constructor */
   vtkSonixVideoSource();
+  /*! Destructor */
   virtual ~vtkSonixVideoSource();
 
   /*! Connect to device */
@@ -308,8 +310,9 @@ protected:
   int CompressionStatus; 
   int Timeout;
   int ConnectionSetupDelayMs;
-  
+
   char *SonixIP;
+
   /*!
     Indicates if connection to the device has been established. It's not the same as the Connected parameter,
     because Connected indicates that the connection is successfully completed; while UlteriusConnected

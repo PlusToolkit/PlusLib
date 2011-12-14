@@ -40,9 +40,10 @@ public:
 	static void SetInstance(vtkSavedDataVideoSource *instance);
 
 	//BTX
-	// use this as a way of memory management when the
-	// program exits the SmartPointer will be deleted which
-	// will delete the Instance singleton
+	/*! Use this as a way of memory management when the
+	 program exits the SmartPointer will be deleted which
+	 will delete the Instance singleton
+  */
 	static vtkSavedDataVideoSourceCleanup2 Cleanup;
 	//ETX
 
