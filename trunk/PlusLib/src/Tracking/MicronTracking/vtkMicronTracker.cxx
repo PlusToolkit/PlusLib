@@ -50,7 +50,10 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusVideoFrame.h"
 
 #include "MicronTrackerInterface.h"
-#include "MTC.h"
+
+// Do not include "MTC.h" directly (it causes compilation warnings
+// and unnecessary coupling to lower-level MTC functions)!
+// Access all MTC internal functions through MicronTrackerInterface.
 
 /****************************************************************************/
 
@@ -92,9 +95,7 @@ vtkMicronTracker::~vtkMicronTracker()
 //----------------------------------------------------------------------------
 std::string vtkMicronTracker::GetSdkVersion()
 {
-  std::ostringstream version; 
-  version << "MTC-" << MTCMajorVersion << "." << MTCMinorVersion << "." << MTCBuild << "." << MTCRevision; 
-  return version.str(); 
+  return this->MT->GetSdkVersion(); 
 }
 
 //----------------------------------------------------------------------------

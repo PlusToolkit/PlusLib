@@ -10,6 +10,8 @@
 #include "MTVideo.h"
 #include "UtilityFunctions.h"
 #include "Cameras.h"
+#include <sstream>
+
 //------------------------------------------
 /** Destructor */
 MicronTrackerInterface::~MicronTrackerInterface()
@@ -1370,3 +1372,9 @@ std::string MicronTrackerInterface::handleErrors(int errorNum)
   return error;
 }
 
+std::string MicronTrackerInterface::GetSdkVersion()
+{
+  std::ostringstream version; 
+  version << "MTC-" << MTCMajorVersion << "." << MTCMinorVersion << "." << MTCBuild << "." << MTCRevision; 
+  return version.str(); 
+}
