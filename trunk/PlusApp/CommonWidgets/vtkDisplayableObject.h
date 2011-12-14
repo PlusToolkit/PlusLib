@@ -10,8 +10,8 @@
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
+#include "vtkTransform.h"
 
-class vtkTransform;
 class vtkProp3D;
 class vtkMapper;
 
