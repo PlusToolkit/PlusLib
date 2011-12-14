@@ -99,6 +99,9 @@
             <height>23</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -148,6 +151,9 @@
             <height>23</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip">
            <string>Import segmentation parameters</string>
           </property>
@@ -179,6 +185,9 @@
             <width>23</width>
             <height>23</height>
            </size>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
            <string>Show segmentation parameter editing dialog, in which segmentation parameters can be tested and changed</string>

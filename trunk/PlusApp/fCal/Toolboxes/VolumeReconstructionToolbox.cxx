@@ -67,10 +67,12 @@ void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
 
+  /*
   if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
     m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
   }
+  */
 
   // Try to load volume reconstruction configuration from the device set configuration
   if ( (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() != NULL)

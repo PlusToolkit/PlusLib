@@ -10,7 +10,6 @@
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
-#include "vtkTransform.h"
 
 class vtkTransform;
 class vtkProp3D;
@@ -38,8 +37,8 @@ public:
   virtual bool IsDisplayable() = 0;
 
   /*!
-  * Read freehand calibration configuration for fCal
-  * \param aConfig Root element of the input device set configuration XML data
+  * Read displayable object configuration
+  * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
   */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
@@ -103,8 +102,8 @@ public:
   static vtkDisplayableModel *New();
 
   /*!
-  * Read freehand calibration configuration for fCal
-  * \param aConfig Root element of the input device set configuration XML data
+  * Read displayable object configuration
+  * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 

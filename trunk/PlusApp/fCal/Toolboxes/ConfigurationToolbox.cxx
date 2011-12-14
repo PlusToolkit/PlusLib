@@ -108,7 +108,10 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
   LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
   // No state handling in this toolbox
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  if (m_ParentMainWindow->AreDevicesShown() == false)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -208,6 +211,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
+      m_ParentMainWindow->ResetShowDevices();
       m_ParentMainWindow->ResetAllToolboxes();
 
       m_ParentMainWindow->GetToolVisualizer()->ClearDisplayableObjects();

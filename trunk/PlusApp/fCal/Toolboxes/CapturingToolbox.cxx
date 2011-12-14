@@ -73,7 +73,7 @@ void CapturingToolbox::Initialize()
 
   if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
 
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)

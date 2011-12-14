@@ -115,6 +115,9 @@ public:
   /*! Get show devices status */
   bool AreDevicesShown() { return m_ShowDevices; };
 
+  /*! Reset show devices toggle button (on disconnect from devices) */
+  void ResetShowDevices() { ui.pushButton_ShowDevices->setChecked(false); };
+
 protected:
 	/*!
 	* Create toolboxes

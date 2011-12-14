@@ -112,7 +112,7 @@ void FreehandCalibrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
 
     if (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -430,7 +430,7 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   // Load calibration configuration xml
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Imported file does not contain valid phantom registration");
+    LOG_ERROR("Unable to import segmentation parameters!");
     return;
   }
 
@@ -460,6 +460,13 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
 
   // Re-connect realtime image to canvas
   m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetOutput());
+
+  // Update segmentation parameters
+  if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to update segmentation parameters!");
+    return;
+  }
 }
 
 //-----------------------------------------------------------------------------

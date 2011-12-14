@@ -73,7 +73,7 @@ void StylusCalibrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
     if (m_PivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {

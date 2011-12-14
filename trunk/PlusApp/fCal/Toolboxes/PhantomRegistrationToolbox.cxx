@@ -111,7 +111,7 @@ void PhantomRegistrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()) )
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
     if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -351,7 +351,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Done)
   {
-    ui.label_Instructions->setText(tr("Transform is ready to save"));
+    ui.label_Instructions->setText(QString("Registration error is %1 mm\nTransform is ready to save").arg(m_PhantomRegistration->GetRegistrationError(), 0, 'f', 6));
 
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
     ui.pushButton_RecordPoint->setEnabled(false);
