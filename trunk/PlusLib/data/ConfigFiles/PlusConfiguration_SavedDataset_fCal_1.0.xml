@@ -106,16 +106,16 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
-    MorphologicalOpeningCircleRadiusMm="0.47"
+    MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"
     RegionOfInterest="27 27 793 589"
-    MaxLinePairDistanceErrorPercent="10.0"
-    MaxAngleDifferenceDegrees="11"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    AngleToleranceDegrees="10"
-    ThresholdImagePercent="10.0"
-    CollinearPointsMaxDistanceFromLineMm="0.41"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 

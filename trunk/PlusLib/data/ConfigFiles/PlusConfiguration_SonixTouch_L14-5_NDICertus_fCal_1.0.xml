@@ -100,16 +100,16 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
-    MorphologicalOpeningCircleRadiusMm="0.4"
+    MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"
     RegionOfInterest="27 27 793 589"
-    MaxLinePairDistanceErrorPercent="10.0"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    AngleToleranceDegrees="10"
-    ThresholdImagePercent="10.0"
-    CollinearPointsMaxDistanceFromLineMm="1.5"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 

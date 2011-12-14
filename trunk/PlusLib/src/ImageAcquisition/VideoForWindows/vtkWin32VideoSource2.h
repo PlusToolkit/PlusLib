@@ -35,6 +35,11 @@ Authors include: Danielle Pace
 
 class vtkWin32VideoSource2Internal;
 
+/*!
+  \class vtkSonixVideoSource 
+  \brief VTK interface for video input from Video for Windows
+  \ingroup PlusLibImageAcquisition
+*/ 
 class VTK_HYBRID_EXPORT vtkWin32VideoSource2 : public vtkPlusVideoSource
 {
 public:
@@ -42,63 +47,55 @@ public:
   vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  // Description:
-  // Standard VCR functionality: Record incoming video.
+  /*! Standard VCR functionality: Record incoming video. */
   void Record();
 
-  // Description:
-  // Standard VCR functionality: Stop recording.
+  /*! Standard VCR functionality: Stop recording. */
   void Stop();
 
-  // Description:
-  // Grab a single video frame.
+  /*! Grab a single video frame. */
   void Grab();
  
-  // Description:
-  // Request a particular frame size (set the third value to 1).
+  /*! Request a particular frame size (set the third value to 1). */
   void SetFrameSize(int x, int y, int z);
-  virtual void SetFrameSize(int dim[3]) { 
-    this->SetFrameSize(dim[0], dim[1], dim[2]); };
+  /*! Request a particular frame size (set the third value to 1). */
+  virtual void SetFrameSize(int dim[3]) { this->SetFrameSize(dim[0], dim[1], dim[2]); };
   
-  // Description:
-  // Request a particular frame rate (default 30 frames per second).
+  /*! Request a particular frame rate (default 30 frames per second). */
   void SetFrameRate(float rate);
 
-  // Description:
-  // Request a particular output format (default: VTK_RGB).
+  /*! Request a particular output format (default: VTK_RGB). */
   void SetOutputFormat(int format);
 
-  // Description:
-  // Turn on/off the preview (overlay) window.
+  /*! Turn on/off the preview (overlay) window. */
   void SetPreview(int p);
   vtkBooleanMacro(Preview,int);
+  /*! Get state of preview (overlay) window */
   vtkGetMacro(Preview,int);
 
-  // Description:
-  // Bring up a modal dialog box for video format selection.
+  /*! Bring up a modal dialog box for video format selection. */
   void VideoFormatDialog();
 
-  // Description:
-  // Bring up a modal dialog box for video input selection.
+  /*! Bring up a modal dialog box for video input selection. */
   void VideoSourceDialog();
 
-  // Description:
-  // Initialize the driver (this is called automatically when the
-  // first grab is done).
+  /*! Initialize the driver (this is called automatically when the first grab is done) */
   void Initialize();
 
-  // Description:
-  // Free the driver (this is called automatically inside the
+  /*! Free the driver (this is called automatically inside the */
   // destructor).
   void ReleaseSystemResources();
 
-  // Description:
-  // For internal use only
+  /*! Grab - for internal use only */
   void LocalInternalGrab(void*);
+
+  /*! Callback function called on parent window destroyed */
   void OnParentWndDestroy();
 
 protected:
+  /*! Constructor */
   vtkWin32VideoSource2();
+  /*! Destructor */
   ~vtkWin32VideoSource2();
 
   char WndClassName[16];

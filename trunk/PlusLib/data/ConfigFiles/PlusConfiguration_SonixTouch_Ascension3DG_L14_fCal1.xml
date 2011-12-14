@@ -55,6 +55,17 @@
   </DataCollection>
 
 
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
+
+
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
       File="L14-5_38_ProbeModel.stl"
@@ -87,16 +98,16 @@
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
-    MorphologicalOpeningCircleRadiusMm="0.47"
+    MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"
     RegionOfInterest="27 27 793 589"
-    MaxLinePairDistanceErrorPercent="10.0"
+    MaxLinePairDistanceErrorPercent="10"
     AngleToleranceDegrees="10"
-    MaxAngleDifferenceDegrees="11"
+    MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    ThresholdImagePercent="10.0"
-    CollinearPointsMaxDistanceFromLineMm="0.41"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
 

@@ -131,6 +131,7 @@ public:
 	
 protected:
 
+  /*! Structure containing the orientation and position of a transform */
 	struct PositionContainer
 	{
 		double Rx; 
