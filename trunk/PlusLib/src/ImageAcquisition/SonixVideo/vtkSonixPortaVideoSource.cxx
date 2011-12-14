@@ -418,7 +418,10 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   this->Porta.setParam( prmMotorStatus, 1 );
   this->Porta.setParam( prmMotorFrames, FramePerVolume );
   this->Porta.setParam( prmMotorSteps, StepPerFrame );
-
+  if( this->Depth > -1 )
+  {
+	  this->Porta.setParam( prmBImageDepth, this->Depth );
+  }
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
   {
