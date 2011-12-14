@@ -539,6 +539,9 @@ class MicronTrackerInterface
   int renameFile(const std::string &oldName, const std::string &newName, char* dir);
   std::string handleErrors(int errorNum);
 
+  /*! Get the MTC library version (major.minor.build.revision) */
+  std::string GetSdkVersion();
+
 private:
   // Accesses the "MicronTracker.ini" file to retrieve some values from it and then
   // set those values in the Markers interface object. 
