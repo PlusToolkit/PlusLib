@@ -35,8 +35,6 @@ OpenIGTLinkBroadcasterWidget::OpenIGTLinkBroadcasterWidget( QWidget *parent )
   
   connect( ui.pushButton_PlayPause, SIGNAL( released() ),
            this, SLOT( PlayPausePressed() ) );
-  connect( ui.checkBox_StylusCalibration, SIGNAL( stateChanged( int ) ),
-           this, SLOT( StylusCalibrationChanged( int ) ) );
 }
 
 
@@ -180,25 +178,26 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
   if ( m_DataCollector->GetTrackingEnabled() )
   {
     TrackedFrame trackedFrame; 
-    if ( m_DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( m_DataCollector->GetTrackedFrame( &trackedFrame ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tracked frame!"); 
+      LOG_ERROR( "Failed to get tracked frame!" ); 
     }
     else
     {
-      PlusTransformName stylusTipToReferenceTransformName("StylusTip", "Reference");
-      vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      m_TransformRepository->SetTransforms(trackedFrame); 
+      PlusTransformName stylusTipToReferenceTransformName( "StylusTip", "Reference" );
+      vtkSmartPointer< vtkMatrix4x4 > stylusTipToReferenceTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+      m_TransformRepository->SetTransforms( trackedFrame ); 
       bool valid = false;
-      if (m_TransformRepository->GetTransform(stylusTipToReferenceTransformName, stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
+      if (m_TransformRepository->GetTransform( stylusTipToReferenceTransformName, stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS )
       {
         std::string transformName; 
-        stylusTipToReferenceTransformName.GetTransformName(transformName); 
-        LOG_ERROR("Cannot get transform '" << transformName << "' from transform repository - cannot send message! (either it is not calibrated (no StylusTip to Stylus transform in CoordinateDefinitions in config file or no Stylus to Reference transform is available)");
+        stylusTipToReferenceTransformName.GetTransformName( transformName ); 
+        LOG_ERROR( "Cannot get transform '" << transformName << "' from transform repository - cannot send message! (either it is not calibrated"
+             " (no StylusTip to Stylus transform in CoordinateDefinitions in config file or no Stylus to Reference transform is available)" );
         return;
       }
 
-      if (!valid)
+      if ( !valid )
       {
         LOG_WARNING("Stylus is out of view!");
       }
