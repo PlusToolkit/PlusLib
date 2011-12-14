@@ -189,6 +189,14 @@ namespace PlusCommon
     str.erase(str.find_last_not_of(" \t\r\n")+1);
     str.erase(0,str.find_first_not_of(" \t\r\n"));
   }
+
+  static std::string Trim(const char* c)
+  {
+    std::string str = c; 
+    str.erase(str.find_last_not_of(" \t\r\n")+1);
+    str.erase(0,str.find_first_not_of(" \t\r\n"));
+    return str; 
+  }
 };
 
 /*!

@@ -32,7 +32,7 @@ public:
 	void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSDKVersion(); 
+  virtual std::string GetSdkVersion(); 
 
 	/*! Connect to device */
 	PlusStatus Connect();

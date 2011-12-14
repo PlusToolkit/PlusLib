@@ -73,7 +73,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Hardware device SDK version. This method should be overridden in subclasses. */
-  virtual std::string GetSDKVersion(); 
+  virtual std::string GetSdkVersion(); 
 
   /*! 
   Probe to see to see if the tracking system is connected to the 

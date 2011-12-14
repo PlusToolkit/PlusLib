@@ -215,7 +215,7 @@ void vtkSonixPortaVideoSource::SetInstance( vtkSonixPortaVideoSource *instance )
 
 
 //----------------------------------------------------------------------------
-std::string vtkSonixPortaVideoSource::GetSDKVersion()
+std::string vtkSonixPortaVideoSource::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "UltrasonixSDK-" << PLUS_ULTRASONIX_SDK_MAJOR_VERSION << "." << PLUS_ULTRASONIX_SDK_MINOR_VERSION << "." << PLUS_ULTRASONIX_SDK_PATCH_VERSION; 

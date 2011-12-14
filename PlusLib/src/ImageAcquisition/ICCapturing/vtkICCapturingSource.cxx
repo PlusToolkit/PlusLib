@@ -131,7 +131,7 @@ void vtkICCapturingSource::SetInstance(vtkICCapturingSource* instance)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkICCapturingSource::GetSDKVersion()
+std::string vtkICCapturingSource::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "The Imaging Source UDSHL-" << UDSHL_LIB_VERSION_MAJOR << "." << UDSHL_LIB_VERSION_MINOR; 

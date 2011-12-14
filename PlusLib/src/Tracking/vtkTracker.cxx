@@ -74,7 +74,7 @@ void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkTracker::GetSDKVersion()
+std::string vtkTracker::GetSdkVersion()
 {
   // Base class version is the same as the Plus library version
   std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 

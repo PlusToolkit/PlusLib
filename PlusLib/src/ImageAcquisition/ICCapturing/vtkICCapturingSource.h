@@ -56,7 +56,7 @@ public:
 	//ETX
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSDKVersion();
+  virtual std::string GetSdkVersion();
   /*! Read configuration from xml data */	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);

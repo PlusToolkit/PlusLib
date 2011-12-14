@@ -87,7 +87,7 @@ void vtkTrackerFactory::PrintAvailableTrackers(ostream& os, vtkIndent indent)
     if ( it->second != NULL )
     {
       vtkTracker* tracker = (*it->second)(); 
-      os << indent.GetNextIndent() << "- " << it->first << " (ver: " << tracker->GetSDKVersion() << ")" << std::endl; 
+      os << indent.GetNextIndent() << "- " << it->first << " (ver: " << tracker->GetSdkVersion() << ")" << std::endl; 
     }
   }
 }

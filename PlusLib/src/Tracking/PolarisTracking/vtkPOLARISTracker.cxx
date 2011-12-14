@@ -107,7 +107,7 @@ vtkPOLARISTracker::~vtkPOLARISTracker()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPOLARISTracker::GetSDKVersion()
+std::string vtkPOLARISTracker::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "Polaris-" << POLARIS_MAJOR_VERSION << "." << POLARIS_MINOR_VERSION; 
@@ -694,26 +694,6 @@ PlusStatus vtkPOLARISTracker::ClearVirtualSROM(int tool)
 //----------------------------------------------------------------------------
 // Protected Methods
 
-// helper method to strip whitespace
-static char *vtkStripWhitespace(char *text)
-{
-  int n = strlen(text);
-  // strip from right
-  while (--n >= 0) {
-    if (isspace(text[n])) {
-      text[n] = '\0';
-    }
-    else {
-      break;
-    }
-  }
-  // strip from left
-  while (isspace(*text)) {
-    text++;
-  }
-  return text;
-}
-
 //----------------------------------------------------------------------------
 // Enable all tool ports that have tools plugged into them.
 // The reference port is enabled with PL_STATIC.
@@ -852,17 +832,16 @@ PlusStatus vtkPOLARISTracker::EnableToolPorts()
       // decompose identity string from end to front
       plGetPSTATToolInfo(this->Polaris, port, identity);
       identity[30] = '\0';
-      trackerTool->SetToolSerialNumber(
-        vtkStripWhitespace(&identity[22]));
+      trackerTool->SetToolSerialNumber(PlusCommon::Trim(&identity[22]).c_str());
       identity[22] = '\0';
-      trackerTool->SetToolRevision(vtkStripWhitespace(&identity[19]));
+      trackerTool->SetToolRevision(PlusCommon::Trim(&identity[19]).c_str());
       identity[19] = '\0';
-      trackerTool->SetToolManufacturer(vtkStripWhitespace(&identity[7]));
+      trackerTool->SetToolManufacturer(PlusCommon::Trim(&identity[7]).c_str());
       identity[7] = '\0';
-      trackerTool->SetToolName(vtkStripWhitespace(&identity[0]));
+      trackerTool->SetToolName(PlusCommon::Trim(&identity[0]).c_str());
       plGetPSTATPartNumber(this->Polaris, port, partNumber);
       partNumber[20] = '\0';
-      trackerTool->SetToolPartNumber(vtkStripWhitespace(partNumber));
+      trackerTool->SetToolPartNumber(PlusCommon::Trim(&partNumber[0]).c_str());
     }
     else
     {
