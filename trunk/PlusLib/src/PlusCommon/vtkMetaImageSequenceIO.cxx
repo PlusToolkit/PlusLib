@@ -569,6 +569,11 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
 
   // PixelType
   this->PixelType=this->TrackedFrameList->GetPixelType();
+  if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+  {
+    // If the pixel type was not defined, define it to UCHAR
+    this->PixelType = itk::ImageIOBase::UCHAR; 
+  }
   std::string pixelTypeStr;
   vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
