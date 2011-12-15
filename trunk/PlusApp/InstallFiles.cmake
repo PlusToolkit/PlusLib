@@ -2,6 +2,7 @@
 # Install
 # 
 SET ( PLUSLIB_CONFIG_FILES
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_fCal_1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixRP_L14-5_NDICertus_fCal_1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
