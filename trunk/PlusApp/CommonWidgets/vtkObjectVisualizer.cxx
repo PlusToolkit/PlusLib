@@ -6,7 +6,7 @@
 
 #include "PlusConfigure.h"
 
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
@@ -37,11 +37,11 @@
 
 //-----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkToolVisualizer);
+vtkStandardNewMacro(vtkObjectVisualizer);
 
 //-----------------------------------------------------------------------------
 
-vtkToolVisualizer::vtkToolVisualizer()
+vtkObjectVisualizer::vtkObjectVisualizer()
 {
   this->DataCollector = NULL;
   this->TransformRepository = NULL;
@@ -65,7 +65,7 @@ vtkToolVisualizer::vtkToolVisualizer()
 
 //-----------------------------------------------------------------------------
 
-vtkToolVisualizer::~vtkToolVisualizer()
+vtkObjectVisualizer::~vtkObjectVisualizer()
 {
   ClearDisplayableObjects();
 
@@ -99,9 +99,9 @@ vtkToolVisualizer::~vtkToolVisualizer()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::Initialize()
+PlusStatus vtkObjectVisualizer::Initialize()
 {
-  LOG_TRACE("vtkToolVisualizer::Initialize"); 
+  LOG_TRACE("vtkObjectVisualizer::Initialize"); 
 
   if (this->Initialized)
   {
@@ -139,9 +139,9 @@ PlusStatus vtkToolVisualizer::Initialize()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  LOG_TRACE("vtkToolVisualizer::ReadConfiguration");
+  LOG_TRACE("vtkObjectVisualizer::ReadConfiguration");
 
   if (aConfig == NULL)
   {
@@ -241,9 +241,9 @@ PlusStatus vtkToolVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::InitializeBasicVisualization()
+PlusStatus vtkObjectVisualizer::InitializeBasicVisualization()
 {
-  LOG_TRACE("vtkToolVisualizer::InitializeBasicVisualization");
+  LOG_TRACE("vtkObjectVisualizer::InitializeBasicVisualization");
 
   // Input points poly data
   vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -322,9 +322,9 @@ PlusStatus vtkToolVisualizer::InitializeBasicVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ClearDisplayableObjects()
+PlusStatus vtkObjectVisualizer::ClearDisplayableObjects()
 {
-  LOG_TRACE("vtkToolVisualizer::ClearDisplayableObjects");
+  LOG_TRACE("vtkObjectVisualizer::ClearDisplayableObjects");
 
   for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
@@ -348,9 +348,9 @@ PlusStatus vtkToolVisualizer::ClearDisplayableObjects()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
+PlusStatus vtkObjectVisualizer::InitializeObjectVisualization()
 {
-  LOG_TRACE("vtkToolVisualizer::InitializeObjectVisualization");
+  LOG_TRACE("vtkObjectVisualizer::InitializeObjectVisualization");
 
   if (this->DataCollector->GetConnected() == false)
   {
@@ -396,9 +396,9 @@ PlusStatus vtkToolVisualizer::InitializeObjectVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::SetAcquisitionFrameRate(int aFrameRate)
+PlusStatus vtkObjectVisualizer::SetAcquisitionFrameRate(int aFrameRate)
 {
-  LOG_TRACE("vtkToolVisualizer::SetAcquisitionFrameRate(" << aFrameRate << ")");
+  LOG_TRACE("vtkObjectVisualizer::SetAcquisitionFrameRate(" << aFrameRate << ")");
 
   this->AcquisitionFrameRate = aFrameRate;
 
@@ -421,9 +421,9 @@ PlusStatus vtkToolVisualizer::SetAcquisitionFrameRate(int aFrameRate)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::HideAll()
+PlusStatus vtkObjectVisualizer::HideAll()
 {
-  LOG_TRACE("vtkToolVisualizer::HideAll");
+  LOG_TRACE("vtkObjectVisualizer::HideAll");
 
   // Hide all actors from the renderer
   this->InputActor->VisibilityOff();
@@ -440,9 +440,9 @@ PlusStatus vtkToolVisualizer::HideAll()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowAllObjects(bool aOn)
+PlusStatus vtkObjectVisualizer::ShowAllObjects(bool aOn)
 {
-  LOG_TRACE("vtkToolVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
 
   for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
@@ -458,9 +458,9 @@ PlusStatus vtkToolVisualizer::ShowAllObjects(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
+PlusStatus vtkObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
 {
-  LOG_TRACE("vtkToolVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
 
   if (this->DisplayableObjects.find(aObjectCoordinateFrame) != this->DisplayableObjects.end())
   {
@@ -474,9 +474,9 @@ PlusStatus vtkToolVisualizer::ShowObject(const char* aObjectCoordinateFrame, boo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowInput(bool aOn)
+PlusStatus vtkObjectVisualizer::ShowInput(bool aOn)
 {
-  LOG_TRACE("vtkToolVisualizer::ShowInput(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::ShowInput(" << (aOn?"true":"false") << ")");
 
   this->InputActor->SetVisibility(aOn);
   this->CanvasRenderer->Modified();
@@ -486,9 +486,9 @@ PlusStatus vtkToolVisualizer::ShowInput(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowResult(bool aOn)
+PlusStatus vtkObjectVisualizer::ShowResult(bool aOn)
 {
-  LOG_TRACE("vtkToolVisualizer::ShowResult(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::ShowResult(" << (aOn?"true":"false") << ")");
 
   this->ResultActor->SetVisibility(aOn);
   this->CanvasRenderer->Modified();
@@ -498,9 +498,9 @@ PlusStatus vtkToolVisualizer::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableObject)
+PlusStatus vtkObjectVisualizer::GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableObject)
 {
-  LOG_TRACE("vtkToolVisualizer::GetDisplayableObject");
+  LOG_TRACE("vtkObjectVisualizer::GetDisplayableObject");
 
   if (aObjectCoordinateFrame == NULL)
   {
@@ -522,9 +522,9 @@ PlusStatus vtkToolVisualizer::GetDisplayableObject(const char* aObjectCoordinate
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
+PlusStatus vtkObjectVisualizer::EnableImageMode(bool aOn)
 {
-  LOG_TRACE("vtkToolVisualizer::EnableImageMode(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::EnableImageMode(" << (aOn?"true":"false") << ")");
 
   if (this->DataCollector == NULL)
   {
@@ -597,7 +597,7 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
+PlusStatus vtkObjectVisualizer::UpdateObjectVisualization()
 {
   // In image mode there is no need for update objects
   if (this->ImageMode)
@@ -709,9 +709,9 @@ PlusStatus vtkToolVisualizer::UpdateObjectVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::CalculateImageCameraParameters()
+PlusStatus vtkObjectVisualizer::CalculateImageCameraParameters()
 {
-  //LOG_TRACE("vtkToolVisualizer::CalculateImageCameraParameters");
+  //LOG_TRACE("vtkObjectVisualizer::CalculateImageCameraParameters");
 
   // Only set new camera if image actor is visible
   if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0))
@@ -758,9 +758,9 @@ PlusStatus vtkToolVisualizer::CalculateImageCameraParameters()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::EnableCameraMovements(bool aEnabled)
+PlusStatus vtkObjectVisualizer::EnableCameraMovements(bool aEnabled)
 {
-  LOG_TRACE("vtkToolVisualizer::EnableCameraMovements(" << (aEnabled?"true":"false") << ")");
+  LOG_TRACE("vtkObjectVisualizer::EnableCameraMovements(" << (aEnabled?"true":"false") << ")");
 
   if (aEnabled)
   {
@@ -776,9 +776,9 @@ PlusStatus vtkToolVisualizer::EnableCameraMovements(bool aEnabled)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::StartDataCollection()
+PlusStatus vtkObjectVisualizer::StartDataCollection()
 {
-  LOG_TRACE("vtkToolVisualizer::StartDataCollection"); 
+  LOG_TRACE("vtkObjectVisualizer::StartDataCollection"); 
 
   // Delete data collection if already exists
   if (this->DataCollector != NULL)
@@ -835,9 +835,9 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
+PlusStatus vtkObjectVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 {
-  LOG_TRACE("vtkToolVisualizer::DumpBuffersToDirectory");
+  LOG_TRACE("vtkObjectVisualizer::DumpBuffersToDirectory");
 
   if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected()))
   {
@@ -877,7 +877,7 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
+PlusStatus vtkObjectVisualizer::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -914,7 +914,7 @@ PlusStatus vtkToolVisualizer::IsExistingTransform(const char* aTransformFrom, co
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
+PlusStatus vtkObjectVisualizer::GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -923,7 +923,7 @@ PlusStatus vtkToolVisualizer::GetTransformTranslationString(const char* aTransfo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
+PlusStatus vtkObjectVisualizer::GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
 {
   vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (GetTransformMatrix(aTransform, transformMatrix, aValid) != PLUS_SUCCESS)
@@ -942,7 +942,7 @@ PlusStatus vtkToolVisualizer::GetTransformTranslationString(PlusTransformName aT
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkObjectVisualizer::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -951,7 +951,7 @@ PlusStatus vtkToolVisualizer::GetTransformMatrix(const char* aTransformFrom, con
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::GetTransformMatrix(PlusTransformName aTransform, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkObjectVisualizer::GetTransformMatrix(PlusTransformName aTransform, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
 {
   TrackedFrame trackedFrame;
   if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)

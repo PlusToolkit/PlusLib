@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkToolVisualizer_h
-#define __vtkToolVisualizer_h
+#ifndef __vtkObjectVisualizer_h
+#define __vtkObjectVisualizer_h
 
 #include "vtkDataCollector.h"
 #include "TrackedFrame.h"
@@ -28,8 +28,8 @@ class vtkSTLReader;
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkToolVisualizer 
- \brief Class that is responsible for visualizing the tools (and so getting acquired tracked data)
+/*! \class vtkObjectVisualizer 
+ \brief Class that is responsible for visualizing the various objects (models, axes, polydata and image) and also getting acquired tracked data)
 
  Usage: Instantiate, call Initialize function and add its canvas renderer to the vtkRenderWindow (get it by calling QVTKWidget::GetRenderWindow() function)
    that can be reached by calling its GetCanvasRenderer() function. Updating the visualization is done by calling the update() function of the application's
@@ -41,7 +41,7 @@ class vtkSTLReader;
 
  \ingroup PlusAppCommonWidgets
 */
-class vtkToolVisualizer : public QObject, public vtkObject
+class vtkObjectVisualizer : public QObject, public vtkObject
 {
 	Q_OBJECT
 
@@ -49,7 +49,7 @@ public:
 	/*!
 	* New
 	*/
-	static vtkToolVisualizer *New();
+	static vtkObjectVisualizer *New();
 
 public:
 	/*!
@@ -232,12 +232,12 @@ protected:
 	/*!
 	* Constructor
 	*/
-	vtkToolVisualizer();
+	vtkObjectVisualizer();
 
 	/*!
 	* Destructor
 	*/
-	virtual ~vtkToolVisualizer();	
+	virtual ~vtkObjectVisualizer();	
 
 protected:
 	/*! Data collector object */

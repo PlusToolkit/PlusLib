@@ -18,7 +18,7 @@ See License.txt for details.
 #include "SegmentationParameterDialog.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 
 #include "FidPatternRecognition.h"
 
@@ -107,12 +107,12 @@ void FreehandCalibrationToolbox::Initialize()
   }
 
   // Clear results poly data
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+  m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
 
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
 
     if (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -128,7 +128,7 @@ void FreehandCalibrationToolbox::Initialize()
     }
 
     // Check if probe to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
     {
       LOG_ERROR("No transform found between probe and reference!");
       return;
@@ -219,14 +219,14 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
-    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(true);
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
   }
 
   double videoTimeOffset = 0.0;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
   {
-    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
     if ( dataCollectorHardwareDevice )
     {
       if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
@@ -259,8 +259,8 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   else if (m_State == ToolboxState_Idle)
   {
     bool isReadyToStartSpatialCalibration = false;
-    if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+    if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+      && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
     {
       isReadyToStartSpatialCalibration = IsReadyToStartSpatialCalibration();
     }
@@ -387,15 +387,15 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 
   if (valid)
   {
-    if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set phantom registration transform to transform repository!");
       return;
     }
 
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformDate(phantomToReferenceTransformName, transformDate.c_str());
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformError(phantomToReferenceTransformName, transformError);
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformPersistent(phantomToReferenceTransformName, true);
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformDate(phantomToReferenceTransformName, transformDate.c_str());
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformError(phantomToReferenceTransformName, transformError);
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformPersistent(phantomToReferenceTransformName, true);
   }
   else
   {
@@ -440,7 +440,7 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
   // Re-calculate camera parameters
-  m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
+  m_ParentMainWindow->GetObjectVisualizer()->CalculateImageCameraParameters();
 
   SetDisplayAccordingToState();
 
@@ -454,16 +454,16 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
   LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
-  m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(NULL);
+  m_ParentMainWindow->GetObjectVisualizer()->GetImageActor()->SetInput(NULL);
 
   // Show segmentation parameter dialog
-  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
   segmentationParamDialog->exec();
 
   delete segmentationParamDialog;
 
   // Re-connect realtime image to canvas
-  m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetOutput());
+  m_ParentMainWindow->GetObjectVisualizer()->GetImageActor()->SetInput(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetOutput());
 
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -491,8 +491,8 @@ void FreehandCalibrationToolbox::StartTemporal()
   QApplication::processEvents();
 
   // Do the calibration
-  //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-  m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
+  //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
+  m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
 
   //this->ProgressPercent = 0;
 
@@ -508,7 +508,7 @@ void FreehandCalibrationToolbox::CancelTemporal()
   LOG_INFO("Temporal calibration cancelled");
 
   // Cancel synchronization (temporal calibration) in data collector
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
   if (dataCollectorHardwareDevice)
   {
     dataCollectorHardwareDevice->CancelSyncRequestOn();
@@ -531,8 +531,8 @@ void FreehandCalibrationToolbox::StartSpatial()
 
   // Set validation transform names for tracked frame lists
   std::string toolReferenceFrame;
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
-    || (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() == NULL)
+    || (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
   {
     LOG_ERROR("Failed to get tool reference frame name!");
     return;
@@ -584,7 +584,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   {
     LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
 
-    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
       CancelSpatial();
@@ -593,18 +593,18 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
     // Set result for visualization
     vtkDisplayableObject* transducerOriginDisplayable = NULL;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetTransducerOriginCoordinateFrame(), transducerOriginDisplayable) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_Calibration->GetTransducerOriginCoordinateFrame(), transducerOriginDisplayable) == PLUS_SUCCESS)
     {
       transducerOriginDisplayable->DisplayableOn();
     }
     vtkDisplayableObject* imageDisplayable = NULL;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
     {
       imageDisplayable->DisplayableOn();
     }
 
     // Save result in configuration
-    if ( m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+    if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
@@ -643,7 +643,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   // Acquire tracked frames since last acquisition (minimum 1 frame)
   int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
 
-  if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
+  if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
@@ -682,7 +682,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   }
   else
   {
-    m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowResult(false);
   }
 
   // Compute time spent with processing one frame in this round
@@ -740,7 +740,7 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
   delete patternRecognition;
 
   // Determine if there is already a phantom registration present
-  if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_Calibration->GetPhantomCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_Calibration->GetPhantomCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
   {
     ui.label_InstructionsSpatial->setText(tr("Phantom registration needs to be imported"));
     return false;
@@ -775,8 +775,8 @@ void FreehandCalibrationToolbox::DisplaySegmentedPoints()
     vtkPoints* segmentedPoints = trackedFrameListToUse->GetTrackedFrame(i)->GetFiducialPointsCoordinatePx();
     if (segmentedPoints)
     {
-      m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
-      m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
+      m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
+      m_ParentMainWindow->GetObjectVisualizer()->ShowResult(true);
       break;
     }
   }

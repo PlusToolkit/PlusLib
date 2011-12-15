@@ -7,7 +7,7 @@
 #include "CapturingToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 #include "VolumeReconstructionToolbox.h"
 
 #include "vtkDataCollectorFile.h" // Only to get maximum frame rate in file mode
@@ -71,9 +71,9 @@ void CapturingToolbox::Initialize()
 {
 	LOG_TRACE("CapturingToolbox::Initialize"); 
 
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
 
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)
@@ -112,8 +112,8 @@ void CapturingToolbox::SetDisplayAccordingToState()
 
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
-    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(true);
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
   }
 
 	if (m_State == ToolboxState_Uninitialized)
@@ -195,7 +195,7 @@ void CapturingToolbox::TakeSnapshot()
 
 	TrackedFrame trackedFrame;
 
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
@@ -255,7 +255,7 @@ void CapturingToolbox::Record()
   m_RecordedFrameNumberQueue.clear();
 
   vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetToolVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()) == NULL) )
+  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetObjectVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()) == NULL) )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
@@ -277,7 +277,7 @@ void CapturingToolbox::Capture()
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetToolVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()) == NULL) )
+  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetObjectVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()) == NULL) )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
@@ -426,14 +426,14 @@ double CapturingToolbox::GetMaximumFrameRate()
 {
 	LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
-  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetToolVisualizer() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetObjectVisualizer() == NULL || m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() == NULL)
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return 0.0;
   }
 
   double frameRate = 0.0;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get frame rate from data collector!");
   }

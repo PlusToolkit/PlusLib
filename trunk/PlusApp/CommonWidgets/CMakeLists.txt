@@ -14,7 +14,7 @@ SET (CommonWidgets_SRCS
 	ToolStateDisplayWidget.cxx
   ConfigFileSaverDialog.cxx
   SegmentationParameterDialog.cxx
-  vtkToolVisualizer.cxx
+  vtkObjectVisualizer.cxx
   vtkDisplayableObject.cxx
 	)
 
@@ -30,7 +30,7 @@ SET (CommonWidgets_UI_HDRS
 		ToolStateDisplayWidget.h
     ConfigFileSaverDialog.h
     SegmentationParameterDialog.h
-    vtkToolVisualizer.h
+    vtkObjectVisualizer.h
     vtkDisplayableObject.h
 	)
 

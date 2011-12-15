@@ -7,7 +7,7 @@
 #include "VolumeReconstructionToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 #include "CapturingToolbox.h"
 
 #include <QFileDialog>
@@ -68,9 +68,9 @@ void VolumeReconstructionToolbox::Initialize()
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
 
   /*
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
   }
   */
 
@@ -84,7 +84,7 @@ void VolumeReconstructionToolbox::Initialize()
   // Clear results poly data
   if (m_State != ToolboxState_Done)
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+    m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
 
     // Check for new images
     PopulateImageComboBox();
@@ -123,8 +123,8 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
 	if (m_State == ToolboxState_Uninitialized)
@@ -177,9 +177,9 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarText(QString(" Reconstruction done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->VisibilityOn();
-	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->Modified();
-	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+    m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->VisibilityOn();
+	  m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->Modified();
+	  m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
 	}
   else if (m_State == ToolboxState_Error)
   {
@@ -344,7 +344,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 	RefreshContent();
 
   PlusTransformName imageToReferenceTransformName( m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame() );
-  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), imageToReferenceTransformName);
+  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName);
 
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
@@ -354,7 +354,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     RefreshContent();
 
 		// Add this tracked frame to the reconstructor
-    if (m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository(), imageToReferenceTransformName) != PLUS_SUCCESS)
+    if (m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to add tracked frame to reconstructor! Maybe image to probe calibration is not in the configuration file!");
       return PLUS_FAIL;
@@ -398,8 +398,8 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 	vtkSmartPointer<vtkPolyDataMapper> contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	contourMapper->SetInputConnection(contourFilter->GetOutputPort());
 
-  m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->SetMapper(contourMapper);
-	m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->SetMapper(contourMapper);
+	m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 }
 
 //-----------------------------------------------------------------------------

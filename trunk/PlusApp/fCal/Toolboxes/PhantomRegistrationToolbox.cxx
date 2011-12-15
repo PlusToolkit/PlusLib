@@ -7,7 +7,7 @@
 #include "PhantomRegistrationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 #include "vtkDataCollectorHardwareDevice.h"
 
 #include "ConfigFileSaverDialog.h"
@@ -108,10 +108,10 @@ void PhantomRegistrationToolbox::Initialize()
     return;
   }
 
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()) )
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()) )
   {
-    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+    //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
     if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -126,7 +126,7 @@ void PhantomRegistrationToolbox::Initialize()
     }
 
     // Check if stylus tip to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
     {
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -177,7 +177,7 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
   {
     vtkDisplayableObject* phantomDisplayableObject = NULL;
     if ( m_PhantomRegistration->GetPhantomCoordinateFrame() == NULL
-      || m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS )
+      || m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get phantom displayable object!");
       return PLUS_FAIL;
@@ -268,7 +268,7 @@ void PhantomRegistrationToolbox::RefreshContent()
     // Get stylus tip position and display it
     std::string stylusTipPosition;
     bool valid = false;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetTransformTranslationString(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformTranslationString(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get stylus tip to reference transform!");
       return;
@@ -295,8 +295,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
   if (m_State == ToolboxState_Uninitialized)
@@ -340,11 +340,11 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Recording phantom landmarks"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowInput(true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
     if (m_CurrentLandmarkIndex >= 3)
     {
-      m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -361,9 +361,9 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Phantom registration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowInput(true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
 
   }
   else if (m_State == ToolboxState_Error)
@@ -401,13 +401,13 @@ PlusStatus PhantomRegistrationToolbox::Start()
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
   {
     m_CurrentLandmarkIndex = 0;
 
     // Initialize input points poly data in visualizer
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->Initialize();
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
+    m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints()->Initialize();
+    m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->Modified();
 
     // Highlight first landmark
     m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
@@ -479,15 +479,15 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   if (valid)
   {
-    if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransformMatrix) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransformMatrix) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set stylus calibration transform to transform repository!");
       return;
     }
 
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformDate(stylusTipToStylusTransformName, transformDate.c_str());
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformError(stylusTipToStylusTransformName, transformError);
-    m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->SetTransformPersistent(stylusTipToStylusTransformName, true);
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformDate(stylusTipToStylusTransformName, transformDate.c_str());
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformError(stylusTipToStylusTransformName, transformError);
+    m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformPersistent(stylusTipToStylusTransformName, true);
   }
   else
   {
@@ -507,14 +507,14 @@ void PhantomRegistrationToolbox::RecordPoint()
   LOG_TRACE("PhantomRegistrationToolbox::RecordPoint"); 
 
   // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
   if (dataCollectorHardwareDevice)
   {
     vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
     if (fakeTracker != NULL)
     {
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
-      fakeTracker->SetTransformRepository(m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository());
+      fakeTracker->SetTransformRepository(m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository());
       vtkAccurateTimer::Delay(2.1 / fakeTracker->GetFrequency());
     }
   }
@@ -522,7 +522,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   // Acquire point
   vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetTransformMatrix(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformMatrix(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
   {
     LOG_ERROR("No transform found between stylus and reference!");
     return;
@@ -542,8 +542,8 @@ void PhantomRegistrationToolbox::RecordPoint()
   m_PhantomRegistration->GetRecordedLandmarks()->Modified();
 
   // Add recorded point to visualization
-  m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-  m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
+  m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+  m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->Modified();
 
   // Set new current landmark number and reset request flag
   ++m_CurrentLandmarkIndex;
@@ -553,9 +553,9 @@ void PhantomRegistrationToolbox::RecordPoint()
   // If there are at least 3 acuired points then register
   if (m_CurrentLandmarkIndex >= 3)
   {
-    if (m_PhantomRegistration->Register( m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository() ) == PLUS_SUCCESS)
+    if (m_PhantomRegistration->Register( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
-      m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     }
     else
     {
@@ -566,7 +566,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   // If it was the last landmark then write configuration, set status to done and reset landmark counter
   if (m_CurrentLandmarkIndex == m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints())
   {
-    if (m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
       SetState(ToolboxState_Error);
@@ -588,7 +588,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   }
 
   // Reset camera after each recording
-  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+  m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -610,19 +610,19 @@ void PhantomRegistrationToolbox::Undo()
     m_PhantomRegistration->SetPhantomToReferenceTransformMatrix(NULL);
 
     // Delete previously acquired landmark
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
+    m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
+    m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->Modified();
 
     // Highlight previous landmark
     m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
   }
 
   // If tracker is FakeTracker then set counter
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
   if (dataCollectorHardwareDevice)
   {
     vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
@@ -648,8 +648,8 @@ void PhantomRegistrationToolbox::Reset()
 
   // Delete acquired landmarks
   vtkSmartPointer<vtkPoints> landmarkPoints = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->SetPoints(landmarkPoints);
-  m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
+  m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->SetPoints(landmarkPoints);
+  m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->Modified();
 
   // Reset current landmark index
   m_CurrentLandmarkIndex = 0;
@@ -665,10 +665,10 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   // Hide phantom from main canvas
-  m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+  m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
 
   // If tracker is FakeTracker then reset counter
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
   if (dataCollectorHardwareDevice)
   {
     vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());

@@ -12,7 +12,7 @@
 #include "PlusConfigure.h"
 #include <QtGui/QMainWindow>
 
-class vtkToolVisualizer;
+class vtkObjectVisualizer;
 class AbstractToolbox;
 class StatusIcon;
 
@@ -62,10 +62,10 @@ public:
 	void Initialize();
 
 	/*!
-	* Get tool visualizer object
-  * \return Tool visualizer
+	* Get object visualizer object
+  * \return Object visualizer
 	*/
-  vtkToolVisualizer* GetToolVisualizer() { return m_ToolVisualizer; };
+  vtkObjectVisualizer* GetObjectVisualizer() { return m_ObjectVisualizer; };
 
 	/*!
 	* Set status bar text
@@ -174,8 +174,8 @@ protected slots:
   void SaveDeviceSetConfiguration();
 
 protected:
-  /*! Tool visualizer */
-  vtkToolVisualizer*  m_ToolVisualizer;
+  /*! Object visualizer */
+  vtkObjectVisualizer*  m_ObjectVisualizer;
 
 	/*! Label on the left of the statusbar */
 	QLabel*					    m_StatusBarLabel;

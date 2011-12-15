@@ -7,7 +7,7 @@
 #include "ConfigurationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
@@ -110,7 +110,7 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
   // No state handling in this toolbox
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 }
 
@@ -161,7 +161,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 		  QApplication::processEvents();
 
 		  // Connect to devices
-		  if (m_ParentMainWindow->GetToolVisualizer()->StartDataCollection() != PLUS_SUCCESS)
+		  if (m_ParentMainWindow->GetObjectVisualizer()->StartDataCollection() != PLUS_SUCCESS)
       {
 			  LOG_ERROR("Unable to start collecting data!");
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -179,12 +179,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         // Load device models based on the new configuration
-        m_ParentMainWindow->GetToolVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-        m_ParentMainWindow->GetToolVisualizer()->InitializeObjectVisualization();
+        m_ParentMainWindow->GetObjectVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+        m_ParentMainWindow->GetObjectVisualizer()->InitializeObjectVisualization();
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true))
+			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector(), true))
         {
 				  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -202,7 +202,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
-		vtkDataCollector* dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector();
+		vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
 		if ((dataCollector != NULL) && (dataCollector->GetConnected()))
     {
 			dataCollector->Stop();
@@ -214,7 +214,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       m_ParentMainWindow->ResetShowDevices();
       m_ParentMainWindow->ResetAllToolboxes();
 
-      m_ParentMainWindow->GetToolVisualizer()->ClearDisplayableObjects();
+      m_ParentMainWindow->GetObjectVisualizer()->ClearDisplayableObjects();
 		}
 	}
 

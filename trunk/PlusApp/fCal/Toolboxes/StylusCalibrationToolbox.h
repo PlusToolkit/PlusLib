@@ -84,7 +84,7 @@ protected slots:
   void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
 
   /*!
-  * Acquire stylus position and add it to the algorithm (called by the acquisition timer in tool visualizer)
+  * Acquire stylus position and add it to the algorithm (called by the acquisition timer in object visualizer)
   */
   void AddStylusPositionToCalibration();
 

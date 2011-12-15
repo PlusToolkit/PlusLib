@@ -6,7 +6,7 @@
 
 #include "fCalMainWindow.h"
 
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 #include "ConfigurationToolbox.h"
 #include "StylusCalibrationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
@@ -32,7 +32,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_StatusBarProgress(NULL)
 	, m_LockedTabIndex(-1)
 	, m_ActiveToolbox(ToolboxType_Undefined)
-  , m_ToolVisualizer(NULL)
+  , m_ObjectVisualizer(NULL)
   , m_StatusIcon(NULL)
   , m_ImageCoordinateFrame("")
   , m_ProbeCoordinateFrame("")
@@ -50,10 +50,10 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
 fCalMainWindow::~fCalMainWindow()
 {
-	if (m_ToolVisualizer != NULL)
+	if (m_ObjectVisualizer != NULL)
   {
-		m_ToolVisualizer->Delete();
-    m_ToolVisualizer = NULL;
+		m_ObjectVisualizer->Delete();
+    m_ObjectVisualizer = NULL;
 	}
 
   if (m_StatusIcon != NULL)
@@ -92,9 +92,9 @@ void fCalMainWindow::Initialize()
   ui.pushButton_Tools->installEventFilter(this);
 
   // Create visualizer
-  m_ToolVisualizer = vtkToolVisualizer::New();
-  m_ToolVisualizer->Initialize();
-	ui.canvas->GetRenderWindow()->AddRenderer(m_ToolVisualizer->GetCanvasRenderer());
+  m_ObjectVisualizer = vtkObjectVisualizer::New();
+  m_ObjectVisualizer->Initialize();
+	ui.canvas->GetRenderWindow()->AddRenderer(m_ObjectVisualizer->GetCanvasRenderer());
 
 	// Create toolboxes
 	CreateToolboxes();
@@ -333,9 +333,9 @@ void fCalMainWindow::UpdateGUI()
 	}
 
 	// Update canvas
-  if ((m_ToolVisualizer->GetDataCollector() != NULL) && (m_ToolVisualizer->GetDataCollector()->GetConnected()))
+  if ((m_ObjectVisualizer->GetDataCollector() != NULL) && (m_ObjectVisualizer->GetDataCollector()->GetConnected()))
   {
-    m_ToolVisualizer->GetDataCollector()->Modified();
+    m_ObjectVisualizer->GetDataCollector()->Modified();
 	  ui.canvas->update();
   }
 }
@@ -346,8 +346,8 @@ void fCalMainWindow::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("fCalMainWindow::resizeEvent");
 
-  if ((m_ToolVisualizer != NULL) && (m_ToolVisualizer->GetImageMode())) {
-    m_ToolVisualizer->CalculateImageCameraParameters();
+  if ((m_ObjectVisualizer != NULL) && (m_ObjectVisualizer->GetImageMode())) {
+    m_ObjectVisualizer->CalculateImageCameraParameters();
   }
 }
 
@@ -357,7 +357,7 @@ void fCalMainWindow::ResetAllToolboxes()
 {
   LOG_TRACE("fCalMainWindow::ResetAllToolboxes");
 
-  m_ToolVisualizer->HideAll();
+  m_ObjectVisualizer->HideAll();
 
   for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
   {
@@ -405,7 +405,7 @@ void fCalMainWindow::DumpBuffers()
   // Directory open dialog for selecting directory to save the buffers into 
   QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
 
-  if ( (dirName.isNull()) || (m_ToolVisualizer->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
+  if ( (dirName.isNull()) || (m_ObjectVisualizer->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
   {
     LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
   }
@@ -441,20 +441,20 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
 
   if (m_ShowDevices == true)
   {
-    if (m_ToolVisualizer->IsExistingTransform(m_ImageCoordinateFrame.c_str(), m_ProbeCoordinateFrame.c_str()) == PLUS_SUCCESS)
+    if (m_ObjectVisualizer->IsExistingTransform(m_ImageCoordinateFrame.c_str(), m_ProbeCoordinateFrame.c_str()) == PLUS_SUCCESS)
     {
       // Show image
       vtkDisplayableObject* imageDisplayable = NULL;
-      if (m_ToolVisualizer->GetDisplayableObject(m_ImageCoordinateFrame.c_str(), imageDisplayable) == PLUS_SUCCESS)
+      if (m_ObjectVisualizer->GetDisplayableObject(m_ImageCoordinateFrame.c_str(), imageDisplayable) == PLUS_SUCCESS)
       {
         imageDisplayable->DisplayableOn();
       }
     }
 
-    m_ToolVisualizer->HideAll();
-    m_ToolVisualizer->EnableImageMode(false);
-    m_ToolVisualizer->ShowAllObjects(true);
-    m_ToolVisualizer->GetCanvasRenderer()->ResetCamera();
+    m_ObjectVisualizer->HideAll();
+    m_ObjectVisualizer->EnableImageMode(false);
+    m_ObjectVisualizer->ShowAllObjects(true);
+    m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
   }
   else
   {

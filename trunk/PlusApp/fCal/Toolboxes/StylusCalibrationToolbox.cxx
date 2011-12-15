@@ -7,7 +7,7 @@ See License.txt for details.
 #include "StylusCalibrationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkToolVisualizer.h"
+#include "vtkObjectVisualizer.h"
 
 #include "vtkPivotCalibrationAlgo.h"
 #include "ConfigFileSaverDialog.h"
@@ -68,12 +68,12 @@ void StylusCalibrationToolbox::Initialize()
   }
 
   // Clear results poly data
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+  m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
 
-  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+    //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
     if (m_PivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -88,7 +88,7 @@ void StylusCalibrationToolbox::Initialize()
     }
 
     // Check if stylus to reference transform is available
-    if (m_ParentMainWindow->GetToolVisualizer()->IsExistingTransform(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
     {
       LOG_ERROR("No transform found between stylus and reference!");
       return;
@@ -163,7 +163,7 @@ void StylusCalibrationToolbox::RefreshContent()
     // Get stylus tip position and display it
     std::string stylusTipPosition;
     bool valid = false;
-    if (m_ParentMainWindow->GetToolVisualizer()->GetTransformTranslationString(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformTranslationString(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get stylus tip to reference transform!");
       return;
@@ -188,8 +188,8 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
-    m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
-    m_ParentMainWindow->GetToolVisualizer()->HideAll();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
   if (m_State == ToolboxState_Uninitialized)
@@ -237,7 +237,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowInput(true);
 
     ui.pushButton_Stop->setFocus();
   }
@@ -256,10 +256,10 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
-    m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
-    m_ParentMainWindow->GetToolVisualizer()->ShowObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowInput(true);
+    m_ParentMainWindow->GetObjectVisualizer()->ShowResult(true);
+    m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), true);
 
     QApplication::restoreOverrideCursor();
   }
@@ -294,17 +294,17 @@ void StylusCalibrationToolbox::Start()
 
   // Clear input points and result point
   vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->SetPoints(inputPoints);
+  m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->SetPoints(inputPoints);
 
   vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(resultPointsPoint);
+  m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->SetPoints(resultPointsPoint);
 
   // Initialize calibration
   m_PivotCalibration->Initialize();
 
   // Initialize stylus tool
   vtkDisplayableObject* stylusTipDisplayable = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), stylusTipDisplayable) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), stylusTipDisplayable) != PLUS_SUCCESS)
   {
     LOG_ERROR("Stylus tip displayable object not found!");
     return;
@@ -314,7 +314,7 @@ void StylusCalibrationToolbox::Start()
   SetState(ToolboxState_InProgress);
 
   // Connect acquisition function to timer
-  connect( m_ParentMainWindow->GetToolVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
+  connect( m_ParentMainWindow->GetObjectVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
 
   LOG_INFO("Stylus calibration started");
 }
@@ -326,10 +326,10 @@ void StylusCalibrationToolbox::Stop()
   LOG_TRACE("StylusCalibrationToolbox::Stop"); 
 
   // Disonnect acquisition function to timer
-  disconnect( m_ParentMainWindow->GetToolVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
+  disconnect( m_ParentMainWindow->GetObjectVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
 
   // Calibrate
-  PlusStatus success = m_PivotCalibration->DoPivotCalibration( m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository() );
+  PlusStatus success = m_PivotCalibration->DoPivotCalibration( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository() );
 
   if (success == PLUS_SUCCESS)
   {
@@ -338,12 +338,12 @@ void StylusCalibrationToolbox::Stop()
     // Set result point
     double stylustipPosition[3];
     m_PivotCalibration->GetPivotPointPosition(stylustipPosition);
-    vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->GetPoints();
+    vtkPoints* points = m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->GetPoints();
     points->InsertPoint(0, stylustipPosition);
     points->Modified();
 
     // Save result in configuration
-    if ( m_ParentMainWindow->GetToolVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+    if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
@@ -381,7 +381,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   // Get stylus position
   vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetTransformMatrix(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame(), stylusToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformMatrix(m_PivotCalibration->GetObjectMarkerCoordinateFrame(), m_PivotCalibration->GetReferenceCoordinateFrame(), stylusToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
   {
     LOG_ERROR("No transform found between stylus and reference!");
     return;
@@ -398,7 +398,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     m_StylusPositionString = std::string(stylusPositionChars);
 
     // Add point to the input if fulfills the criteria
-    vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints();
+    vtkPoints* points = m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints();
 
     double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds
     double distance_highThreshold_mm = 1000.0;
@@ -441,7 +441,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       // Reset the camera once in a while
       if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5) || (m_CurrentPointNumber >= m_NumberOfPoints)))
       {
-        m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+        m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
       }
 
       // If enough points have been acquired, stop
