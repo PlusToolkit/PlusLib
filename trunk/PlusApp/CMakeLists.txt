@@ -83,7 +83,6 @@ OPTION (PLUSAPP_BUILD_VolumeReconstructor "Build the VolumeReconstructor applica
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
 OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConverter application" ON)
-OPTION (PLUSAPP_BUILD_TrackedUltrasoundCapturing "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
@@ -118,13 +117,6 @@ IF (PLUSAPP_BUILD_DiagnosticTools)
     ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
     ADD_DEPENDENCIES( DiagDataSync ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_DiagnosticTools)
-
-# --------------------------------------------------------------------------
-# Build the TrackedUltrasoundCapturing application (Qt version)
-IF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
-	ADD_SUBDIRECTORY(TrackedUltrasoundCapturing)
-    ADD_DEPENDENCIES( TrackedUltrasoundCapturing ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)
