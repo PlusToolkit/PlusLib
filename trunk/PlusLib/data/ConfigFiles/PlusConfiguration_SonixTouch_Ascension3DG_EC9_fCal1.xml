@@ -6,7 +6,7 @@
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
 
-    <Tracker Type="Ascension3DG" BufferSize="500" Frequency="20" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
+    <Tracker Type="Ascension3DG" BufferSize="500" Frequency="50" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
       <Tool Name="Probe" PortName="0" />
       <Tool Name="Reference" PortName="1" />
       <Tool Name="Stylus" PortName="2" />
