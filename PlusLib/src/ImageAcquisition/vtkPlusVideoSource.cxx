@@ -618,7 +618,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    LOG_WARNING("Unable to find ImageAcquisition NumberOfAveragedItems attribute in configuration file!");
+    LOG_WARNING("Unable to find ImageAcquisition AveragedItemsForFiltering attribute in configuration file!");
   }
 
   double localTimeOffset = 0;
