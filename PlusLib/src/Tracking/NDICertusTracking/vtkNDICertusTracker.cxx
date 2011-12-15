@@ -432,6 +432,12 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
   for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
   {
+    if (this->PortEnabled[tool] == 0)
+    {
+      // The tools that are not connected and not in the configuration file were disabled when connecting
+      continue;
+    }
+
     // convert status flags from Optotrak format to vtkTracker format
     ToolStatus status = TOOL_OK;
     this->InternalSetToolLED(tool, 0, VLEDST_ON);

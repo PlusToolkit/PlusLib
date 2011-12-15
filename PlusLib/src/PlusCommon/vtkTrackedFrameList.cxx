@@ -426,8 +426,17 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
     LOG_ERROR("Unable to get pixel type size: there is no frame in the tracked frame list!"); 
     return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
   }
+  
+  for ( int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      return this->GetTrackedFrame(i)->GetImageData()->GetITKScalarPixelType();
+    }
+  }
 
-  return this->GetTrackedFrame(0)->GetImageData()->GetITKScalarPixelType();
+  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
 }
 
 //----------------------------------------------------------------------------
