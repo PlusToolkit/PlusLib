@@ -353,11 +353,20 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     m_ParentMainWindow->SetStatusBarProgress((int)((100.0 * imgNumber) / numberOfFrames + 0.49));
     RefreshContent();
 
-		// Add this tracked frame to the reconstructor
-    if (m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName) != PLUS_SUCCESS)
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(imgNumber);
+
+    if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransforms(*frame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to add tracked frame to reconstructor! Maybe image to probe calibration is not in the configuration file!");
-      return PLUS_FAIL;
+      LOG_ERROR("Failed to update transform repository with frame #" << imgNumber ); 
+      continue; 
+    }
+
+    // Add this tracked frame to the reconstructor
+    bool insertedIntoVolume=false;
+    if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tracked frame to volume with frame #" << imgNumber); 
+      continue; 
     }
 	}
 	
