@@ -44,13 +44,15 @@ PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory
   LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toAscii().data() << ")");
 
   // Try to parse up directory and set UI according to the result
-	if (ParseDirectory(aDirectory)) {
+	if (ParseDirectory(aDirectory))
+  {
 		ui.lineEdit_ConfigurationDirectory->setText(aDirectory);
 		ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
 
     return PLUS_SUCCESS;
-
-	} else {
+	}
+  else
+  {
 		ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 		ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
 
@@ -69,11 +71,13 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 
 	// Directory open dialog for selecting configuration directory 
 	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
-	if (dirName.isNull()) {
+	if (dirName.isNull())
+  {
 		return;
 	}
 
-  if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS) {
+  if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS)
+  {
     // Save the selected directory to config object
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toAscii().data());
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
@@ -115,6 +119,8 @@ void DeviceSetSelectorWidget::InvokeDisconnect()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
 
+  RefreshFolder();
+
   ui.pushButton_Connect->setEnabled(false);
 
 	emit ConnectToDevicesByConfigFileInvoked("");
@@ -126,7 +132,8 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
 	LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
 
-	if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count())) {
+	if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count()))
+  {
 		return;
 	}
 
@@ -153,8 +160,10 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 	m_ConnectionSuccessful = aConnectionSuccessful;
 
 	// If connect button has been pushed
-	if (ui.pushButton_Connect->text() == "Connect") {
-		if (m_ConnectionSuccessful) {
+	if (ui.pushButton_Connect->text() == "Connect")
+  {
+		if (m_ConnectionSuccessful)
+    {
 			ui.pushButton_Connect->setText(tr("Disconnect"));
       ui.comboBox_DeviceSet->setEnabled(false);
 
@@ -170,13 +179,17 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
       // Set last used device set config file
       vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
-
-		} else {
+		}
+    else
+    {
 			ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
 			ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
 		}
-	} else { // If disconnect button has been pushed
-		if (! m_ConnectionSuccessful) {
+	}
+  else
+  { // If disconnect button has been pushed
+		if (! m_ConnectionSuccessful)
+    {
 			ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
@@ -189,7 +202,9 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
-		} else {
+		}
+    else
+    {
 			LOG_ERROR("Disconnect failed!");
 		}
 	}
@@ -215,8 +230,10 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 	QDir configDir(aDirectory);
 	QStringList fileList(configDir.entryList());
 
-	if (fileList.size() > 200) {
-		if (QMessageBox::No == QMessageBox::question(this, tr("Many files in the directory"), tr("There are more than 200 files in the selected directory. Do you really want to continue parsing the files?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes)) {
+	if (fileList.size() > 200)
+  {
+		if (QMessageBox::No == QMessageBox::question(this, tr("Many files in the directory"), tr("There are more than 200 files in the selected directory. Do you really want to continue parsing the files?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes))
+    {
 			return PLUS_FAIL;
 		}
 	}
@@ -234,30 +251,39 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		QDomDocument doc;
 
 		// If file is not readable then skip
-		if (!file.open(QIODevice::ReadOnly)) {
+		if (!file.open(QIODevice::ReadOnly))
+    {
 			continue;
 		}
 
 		// If parsing is successful then check the content and if data collection config file is found then add it to combo box
-		if (doc.setContent(&file)) {
+		if (doc.setContent(&file))
+    {
 			QDomElement docElem = doc.documentElement();
 			
 			// Check if the root element is PlusConfiguration and contains a USDataCollection child
-			if (! docElem.tagName().compare("PlusConfiguration")) {
+			if (! docElem.tagName().compare("PlusConfiguration"))
+      {
 				QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
-				if (list.count() > 0) { // If it has a USDataCollection children then use the first one
+				if (list.count() > 0)
+        { // If it has a USDataCollection children then use the first one
 					docElem = list.at(0).toElement();
-				} else { // If it does not have a USDataCollection then it cannot be used for connecting
+				}
+        else
+        { // If it does not have a USDataCollection then it cannot be used for connecting
 					continue;
 				}
-			} else {
+			}
+      else
+      {
 				continue;
 			}
 
 			// Add the name attribute to the first node named DeviceSet to the combo box
 			QDomNodeList list(doc.elementsByTagName("DeviceSet"));
-			if (list.size() <= 0) {
+			if (list.size() <= 0)
+      {
 				continue;
 			}
 
@@ -269,7 +295,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 			QVariant userData(datas);
 
 			QString name(elem.attribute("Name"));
-			if (name.isEmpty()) {
+			if (name.isEmpty())
+      {
 				continue;
 			}
 
@@ -280,15 +307,16 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
-      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName())) == QDir::toNativeSeparators(fileName) ) {
+      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName())) == QDir::toNativeSeparators(fileName) )
+      {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
-
 		}
 	}
 
   // If no valid configuration files have been parsed then warn user
-  if (ui.comboBox_DeviceSet->count() < 1) {
+  if (ui.comboBox_DeviceSet->count() < 1)
+  {
     LOG_ERROR("Selected directory does not contain valid device set configuration files!");
 
     return PLUS_FAIL;
@@ -321,7 +349,8 @@ void DeviceSetSelectorWidget::RefreshFolder()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
-  if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory())) != PLUS_SUCCESS) {
+  if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory())) != PLUS_SUCCESS)
+  {
     LOG_ERROR("Parsing up configuration files failed in: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
   }
 }
@@ -345,7 +374,8 @@ void DeviceSetSelectorWidget::EditConfiguration()
   }
   QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable());
 
-  if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0) {
+  if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0)
+  {
     LOG_ERROR("Invalid XML editor application!");
     return;
   }

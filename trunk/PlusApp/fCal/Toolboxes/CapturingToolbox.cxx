@@ -239,13 +239,15 @@ void CapturingToolbox::TakeSnapshot()
   }
 
   SetState(ToolboxState_Done);
+
+  LOG_INFO("Snapshot taken");
 }
 
 //-----------------------------------------------------------------------------
 
 void CapturingToolbox::Record()
 {
-	LOG_TRACE("CapturingToolbox::Record"); 
+  LOG_INFO("Capturing started");
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
@@ -320,7 +322,7 @@ void CapturingToolbox::Capture()
 
 void CapturingToolbox::Stop()
 {
-	LOG_TRACE("CapturingToolbox::Stop"); 
+  LOG_INFO("Capturing stopped");
 
   m_RecordingTimer->stop();
   SetState(ToolboxState_Done);
@@ -370,11 +372,17 @@ void CapturingToolbox::Save()
       volumeReconstructionToolbox->AddImageFileName(fileName);
     }
 
+    // Save config file next to the tracked frame list
+    std::string configFileName = path + "/" + filename + "_config.xml";
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(configFileName.c_str());
+
 	  m_RecordedFrames->Clear(); 
     SetState(ToolboxState_Idle);
 
 		QApplication::restoreOverrideCursor();
 	}	
+
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -391,6 +399,8 @@ void CapturingToolbox::ClearRecordedFrames()
   m_RecordedFrames->Clear();
 
   SetState(ToolboxState_Idle);
+
+  LOG_INFO("Recorded frames cleared");
 }
 
 //-----------------------------------------------------------------------------
@@ -406,6 +416,8 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 
   ui.horizontalSlider_SamplingRate->setToolTip(tr("1 / ").append(QString::number((int)samplingRate)));
   ui.label_RequestedRecordingFrameRate->setText(QString::number(m_RequestedFrameRate, 'f', 2));
+
+  LOG_INFO("Sampling rate changed to " << aValue << " (matching requested frame rate is " << m_RequestedFrameRate << ")");
 }
 
 //-----------------------------------------------------------------------------

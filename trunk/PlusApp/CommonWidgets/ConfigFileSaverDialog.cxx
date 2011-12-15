@@ -42,7 +42,8 @@ void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 
 	// Directory open dialog for selecting configuration directory 
 	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Select destination directory" ) ), m_DestinationDirectory);
-	if (dirName.isNull()) {
+	if (dirName.isNull())
+  {
 		return;
 	}
 
@@ -74,26 +75,30 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 
   // Find Device set element
 	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
-	if (usDataCollection == NULL) {
+	if (usDataCollection == NULL)
+  {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
 	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
-	if (deviceSet == NULL) {
+	if (deviceSet == NULL)
+  {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
   // Get name and description
   const char* name = deviceSet->GetAttribute("Name");
-  if ((name == NULL) || (STRCASECMP(name, "") == 0)) {
+  if ((name == NULL) || (STRCASECMP(name, "") == 0))
+  {
     LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
 
   const char* description = deviceSet->GetAttribute("Description");
-  if ((description == NULL) || (STRCASECMP(description, "") == 0)) {
+  if ((description == NULL) || (STRCASECMP(description, "") == 0))
+  {
     LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
@@ -113,13 +118,15 @@ void ConfigFileSaverDialog::SaveClicked()
 
   // Find Device set element
 	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
-	if (usDataCollection == NULL) {
+	if (usDataCollection == NULL)
+  {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return;
 	}
 
 	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
-	if (deviceSet == NULL) {
+	if (deviceSet == NULL)
+  {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return;
 	}
@@ -133,8 +140,10 @@ void ConfigFileSaverDialog::SaveClicked()
   QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName().c_str());
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
-	if (! fileName.isNull() ) {
+	if (! fileName.isNull() )
+  {
     vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(fileName.toAscii().data());
+    LOG_INFO("Device set configuration saved as '" << fileName.toAscii().data() << "'");
 	}
 
   accept();

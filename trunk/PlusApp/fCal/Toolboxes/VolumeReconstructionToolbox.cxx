@@ -224,6 +224,8 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
   m_VolumeReconstructionConfigFileLoaded = true;
 
 	SetState(ToolboxState_Idle);
+
+  LOG_INFO("Volume reconstruction configuration imported in volume reconstruction toolbox from file '" << fileName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -246,6 +248,8 @@ void VolumeReconstructionToolbox::OpenInputImage()
   PopulateImageComboBox();
 
   ui.comboBox_InputImage->setCurrentIndex( ui.comboBox_InputImage->count() - 1 );
+
+  LOG_INFO("Input image '" << fileName.toAscii().data() << "' opened");
 }
 
 //-----------------------------------------------------------------------------
@@ -263,6 +267,8 @@ void VolumeReconstructionToolbox::Reconstruct()
   }
 
 	QApplication::restoreOverrideCursor();
+
+  LOG_INFO("Volume reconstruction performed successfully");
 }
 
 //-----------------------------------------------------------------------------
@@ -284,6 +290,8 @@ void VolumeReconstructionToolbox::Save()
     }
 
 		QApplication::restoreOverrideCursor();
+
+    LOG_INFO("Reconstructed volume saved into file '" << fileName.toAscii().data() << "'");
 	}	
 }
 

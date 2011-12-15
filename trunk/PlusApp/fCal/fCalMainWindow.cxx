@@ -50,17 +50,20 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
 fCalMainWindow::~fCalMainWindow()
 {
-	if (m_ToolVisualizer != NULL) {
+	if (m_ToolVisualizer != NULL)
+  {
 		m_ToolVisualizer->Delete();
     m_ToolVisualizer = NULL;
 	}
 
-  if (m_StatusIcon != NULL) {
+  if (m_StatusIcon != NULL)
+  {
 		delete m_StatusIcon;
     m_StatusIcon = NULL;
 	}
 
-  if (m_UiRefreshTimer != NULL) {
+  if (m_UiRefreshTimer != NULL)
+  {
     m_UiRefreshTimer->stop();
 		delete m_UiRefreshTimer;
 		m_UiRefreshTimer = NULL;
@@ -123,7 +126,8 @@ void fCalMainWindow::CreateToolboxes()
 
 	// Configuration widget
 	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
-	if (configurationToolbox != NULL) {
+	if (configurationToolbox != NULL)
+  {
 		QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
 		grid->addWidget(configurationToolbox);
 		ui.tab_Configuration->setLayout(grid);
@@ -133,7 +137,8 @@ void fCalMainWindow::CreateToolboxes()
 
 	// Stylus calibration widget
 	StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(this);
-	if (stylusCalibrationToolbox != NULL) {
+	if (stylusCalibrationToolbox != NULL)
+  {
 		QGridLayout* grid = new QGridLayout(ui.tab_StylusCalibration, 1, 1, 0, 0, "");
 		grid->addWidget(stylusCalibrationToolbox);
 		ui.tab_StylusCalibration->setLayout(grid);
@@ -143,7 +148,8 @@ void fCalMainWindow::CreateToolboxes()
 
 	// Phantom registration widget
 	PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
-	if (phantomRegistrationToolbox != NULL) {
+	if (phantomRegistrationToolbox != NULL)
+  {
 		QGridLayout* grid = new QGridLayout(ui.tab_PhantomRegistration, 1, 1, 0, 0, "");
 		grid->addWidget(phantomRegistrationToolbox);
 		ui.tab_PhantomRegistration->setLayout(grid);
@@ -153,7 +159,8 @@ void fCalMainWindow::CreateToolboxes()
 
 	// Freehand calibration widget
 	FreehandCalibrationToolbox* freehandCalibrationToolbox = new FreehandCalibrationToolbox(this);
-	if (freehandCalibrationToolbox != NULL) {
+	if (freehandCalibrationToolbox != NULL)
+  {
 		QGridLayout* grid = new QGridLayout(ui.tab_FreehandCalibration, 1, 1, 0, 0, "");
 		grid->addWidget(freehandCalibrationToolbox);
 		ui.tab_FreehandCalibration->setLayout(grid);
@@ -163,7 +170,8 @@ void fCalMainWindow::CreateToolboxes()
 
 	// Capturing widget
 	CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
-	if (capturingToolbox != NULL) {
+	if (capturingToolbox != NULL)
+  {
     QGridLayout* grid = new QGridLayout(ui.tab_Capturing, 1, 1, 0, 0, "");
 		grid->addWidget(capturingToolbox);
     ui.tab_Capturing->setLayout(grid);
@@ -173,7 +181,8 @@ void fCalMainWindow::CreateToolboxes()
 
   // Volume reconstruction widget
 	VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
-	if (volumeReconstructionToolbox != NULL) {
+	if (volumeReconstructionToolbox != NULL)
+  {
 		QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
 		grid->addWidget(volumeReconstructionToolbox);
 		ui.tab_VolumeReconstruction->setLayout(grid);
@@ -212,25 +221,40 @@ void fCalMainWindow::CurrentTabChanged(int aTabIndex)
   LOG_TRACE("fCalMainWindow::CurrentTabChanged(" << aTabIndex << ")");
 
 	// Initialize new tab
-	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration") {
+	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration")
+  {
 		m_ActiveToolbox = ToolboxType_Configuration;
-	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration") {
+	}
+  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration")
+  {
 		m_ActiveToolbox = ToolboxType_StylusCalibration;
-	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Phantom Registration") {
+	}
+  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Phantom Registration")
+  {
 		m_ActiveToolbox = ToolboxType_PhantomRegistration;
-	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration") {
+	}
+  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration")
+  {
 		m_ActiveToolbox = ToolboxType_FreehandCalibration;
-	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Capturing") {
+	}
+  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Capturing")
+  {
 		m_ActiveToolbox = ToolboxType_Capturing;
-	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction") {
+	}
+  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction")
+  {
 		m_ActiveToolbox = ToolboxType_VolumeReconstruction;
-	} else {
+	}
+  else
+  {
 		LOG_ERROR("No tab with this title found!");
     return;
 	}
 
   m_ToolboxList[m_ActiveToolbox]->Initialize();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+
+  LOG_INFO("Tab changed to " << ui.tabWidgetToolbox->tabText(aTabIndex).toAscii().data());
 }
 
 //-----------------------------------------------------------------------------
@@ -385,6 +409,8 @@ void fCalMainWindow::DumpBuffers()
   {
     LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
   }
+
+  LOG_INFO("Raw buffers dumped into directory '" << dirName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -434,5 +460,7 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
   {
     m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
   }
+
+  LOG_INFO("Show devices " << (aOn?"enabled":"disabled"));
 }
 

@@ -285,7 +285,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
 void StylusCalibrationToolbox::Start()
 {
-  LOG_TRACE("StylusCalibrationToolbox::StartClicked"); 
+  LOG_TRACE("StylusCalibrationToolbox::Start"); 
 
   m_ParentMainWindow->SetTabsEnabled(false);
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -315,13 +315,15 @@ void StylusCalibrationToolbox::Start()
 
   // Connect acquisition function to timer
   connect( m_ParentMainWindow->GetToolVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
+
+  LOG_INFO("Stylus calibration started");
 }
 
 //-----------------------------------------------------------------------------
 
 void StylusCalibrationToolbox::Stop()
 {
-  LOG_TRACE("StylusCalibrationToolbox::StopClicked"); 
+  LOG_TRACE("StylusCalibrationToolbox::Stop"); 
 
   // Disonnect acquisition function to timer
   disconnect( m_ParentMainWindow->GetToolVisualizer()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );

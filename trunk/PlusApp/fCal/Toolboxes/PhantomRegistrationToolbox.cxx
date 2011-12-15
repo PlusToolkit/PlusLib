@@ -496,6 +496,8 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   // Set to InProgress if both stylus calibration and phantom definition are available
   Start();
+
+  LOG_INFO("Stylus calibration imported in phantom registration toolbox from file '" << fileName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -546,6 +548,8 @@ void PhantomRegistrationToolbox::RecordPoint()
   // Set new current landmark number and reset request flag
   ++m_CurrentLandmarkIndex;
 
+  LOG_INFO("Point recorded for phantom registration");
+
   // If there are at least 3 acuired points then register
   if (m_CurrentLandmarkIndex >= 3)
   {
@@ -568,12 +572,13 @@ void PhantomRegistrationToolbox::RecordPoint()
       SetState(ToolboxState_Error);
       return;
     }
-    {
-      SetState(ToolboxState_Done);
-    }
+
+    SetState(ToolboxState_Done);
 
     m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+    LOG_INFO("Phantom registration performed successfully");
   }
   else
   {
@@ -626,6 +631,8 @@ void PhantomRegistrationToolbox::Undo()
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
     }
   }
+
+  LOG_INFO("Undo last step of phantom registration");
 }
 
 //-----------------------------------------------------------------------------
@@ -670,4 +677,6 @@ void PhantomRegistrationToolbox::Reset()
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
     }
   }
+
+  LOG_INFO("Reset phantom registration");
 }

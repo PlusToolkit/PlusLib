@@ -403,6 +403,8 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
   }
 
   SetDisplayAccordingToState();
+
+  LOG_INFO("Phantom registration imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -441,13 +443,15 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
 
   SetDisplayAccordingToState();
+
+  LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::EditSegmentationParameters()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::EditSegmentationParameters");
+  LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
   m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(NULL);
@@ -467,13 +471,15 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
     LOG_ERROR("Unable to update segmentation parameters!");
     return;
   }
+
+  LOG_INFO("Edit segmentation parameters ended");
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::StartTemporal()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::StartTemporal"); 
+  LOG_INFO("Temporal calibration started");
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
@@ -499,7 +505,7 @@ void FreehandCalibrationToolbox::StartTemporal()
 
 void FreehandCalibrationToolbox::CancelTemporal()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::CancelTemporal"); 
+  LOG_INFO("Temporal calibration cancelled");
 
   // Cancel synchronization (temporal calibration) in data collector
   vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
@@ -517,7 +523,7 @@ void FreehandCalibrationToolbox::CancelTemporal()
 
 void FreehandCalibrationToolbox::StartSpatial()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::StartSpatial"); 
+  LOG_INFO("Spatial calibration started");
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
@@ -709,7 +715,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
 void FreehandCalibrationToolbox::CancelSpatial()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::CancelSpatial"); 
+  LOG_INFO("Spatial calibration cancelled");
 
   m_CancelRequest = true;
 
