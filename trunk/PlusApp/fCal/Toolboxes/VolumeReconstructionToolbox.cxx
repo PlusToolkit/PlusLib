@@ -465,9 +465,12 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
 	LOG_TRACE("VolumeReconstructionToolbox::PopulateImageComboBox");
 
   // Clear images combobox
-  for (int i=ui.comboBox_InputImage->count()-1; i>=0; --i)
+  if (ui.comboBox_InputImage->count() > 0)
   {
-    ui.comboBox_InputImage->removeItem(i);
+    for (int i=ui.comboBox_InputImage->count()-1; i>=0; --i)
+    {
+      ui.comboBox_InputImage->removeItem(i);
+    }
   }
 
   // Get recorded tracked frame list from Capturing toolbox
