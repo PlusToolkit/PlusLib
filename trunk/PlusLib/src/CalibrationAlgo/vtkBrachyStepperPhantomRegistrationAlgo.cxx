@@ -42,7 +42,6 @@ vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo
   this->PhantomToReferenceTransform = vtkTransform::New(); 
 
   // TODO: remove it! 
-  this->TransformTemplateHolderToPhantom = NULL; 
   this->TransformReferenceToTemplateHolder = vtkTransform::New(); 
 }
 
@@ -57,11 +56,6 @@ vtkBrachyStepperPhantomRegistrationAlgo::~vtkBrachyStepperPhantomRegistrationAlg
   {
     this->PhantomToReferenceTransform->Delete(); 
     this->PhantomToReferenceTransform = NULL; 
-  }
-  if ( this->TransformTemplateHolderToPhantom != NULL )
-  {
-    this->TransformTemplateHolderToPhantom->Delete(); 
-    this->TransformTemplateHolderToPhantom = NULL; 
   }
   if ( this->TransformReferenceToTemplateHolder != NULL )
   {
@@ -252,9 +246,15 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
   
   /// **************** TemplateHolderToPhantom *********************
   // TODO: remove it!!! 
-  double templateHolderPositionX = this->TransformTemplateHolderToPhantom->GetPosition()[0];
-  double templateHolderPositionY = this->TransformTemplateHolderToPhantom->GetPosition()[1];
-  double templateHolderPositionZ = this->TransformTemplateHolderToPhantom->GetPosition()[2];
+  PlusTransformName tnTemplateHolderToPhantom("TemplateHolder", "Phantom"); 
+  vtkSmartPointer<vtkMatrix4x4> templateHolderToPhantomMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  this->TransformRepository->GetTransform(tnTemplateHolderToPhantom, templateHolderToPhantomMatrix); 
+  vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
+  transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomMatrix); 
+
+  double templateHolderPositionX = transformTemplateHolderToPhantom->GetPosition()[0];
+  double templateHolderPositionY = transformTemplateHolderToPhantom->GetPosition()[1];
+  double templateHolderPositionZ = transformTemplateHolderToPhantom->GetPosition()[2];
 
   vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
   tTemplateHolderToTemplate->Translate( templateHolderPositionX, templateHolderPositionY, templateHolderPositionZ);

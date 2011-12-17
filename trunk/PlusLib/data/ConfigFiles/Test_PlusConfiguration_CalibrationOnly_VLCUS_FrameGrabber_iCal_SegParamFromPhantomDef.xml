@@ -16,6 +16,11 @@
     ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
   />
 
+  <CoordinateDefinitions>
+    <Transform From="TemplateHolder" To="TemplateHome" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
+    <Transform From="TemplateHolder" To="Phantom" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
+  </CoordinateDefinitions> 
+  
   <PhantomDefinition version="1.1">
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
@@ -43,18 +48,6 @@
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
     </Geometry>
-
-    <CustomTransforms TemplateHolderToPhantomTransform="
-          1 0 0 5
-          0 1 0 63.5
-          0 0 1 0
-          0 0 0 1"
-            ImageToPhantomTransform="
-          -1  0 0 0
-           0  1 0 0
-           0  0 -1 0
-           0  0 0  1"/>
-
   </PhantomDefinition>
 
 </PlusConfiguration>

@@ -115,7 +115,11 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrack
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action/*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
 {
-  bool isFrameValid = this->ValidateData(trackedFrame); 
+  bool isFrameValid = true; 
+  if ( action != ADD_INVALID_FRAME )
+  {
+    isFrameValid = this->ValidateData(trackedFrame); 
+  }
 
   if ( !isFrameValid )
   {
