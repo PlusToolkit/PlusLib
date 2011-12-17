@@ -82,7 +82,6 @@ SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSIO
 OPTION (PLUSAPP_BUILD_VolumeReconstructor "Build the VolumeReconstructor application" ON)
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
-OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConverter application" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
@@ -102,13 +101,6 @@ IF (PLUSAPP_BUILD_VolumeReconstructor)
     ADD_SUBDIRECTORY(VolumeReconstructor)
     ADD_DEPENDENCIES( VolumeReconstructor ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_VolumeReconstructor)
-
-# --------------------------------------------------------------------------
-# Build the SequenceMetaFileConverter application 
-IF (PLUSAPP_BUILD_SequenceMetaFileConverter)
-    ADD_SUBDIRECTORY(SequenceMetaFileConverter)
-    ADD_DEPENDENCIES( SequenceMetaFileConverter ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_SequenceMetaFileConverter)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
