@@ -56,9 +56,6 @@ public:
   /*! Get phantom to reference transform */
   virtual PlusStatus GetPhantomToReferenceTransform( vtkTransform* phantomToReferenceTransform);
 
-  /*! \deprecated TODO: remove it just use it for getting the same result as the baseline */
-  vtkGetObjectMacro(TransformReferenceToTemplateHolder, vtkTransform); 
-
   /*! Get phantom coordinate frame */
   vtkGetStringMacro(PhantomCoordinateFrame);
 
@@ -109,9 +106,6 @@ protected:
   /*! Phantom to Reference transform */
   vtkTransform* PhantomToReferenceTransform; 
   
-  /*! \deprecated TODO: remove it! */
-  vtkTransform* TransformReferenceToTemplateHolder; 
-
   /*! When the results were computed. The result is recomputed only if the inputs changed more recently than UpdateTime. */
   vtkTimeStamp UpdateTime;  
 

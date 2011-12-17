@@ -68,8 +68,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 	this->US3DBeamwidthDataReadyOff();
   this->NumUS3DBeamwidthProfileData = -1;
 
-  this->SetCenterOfRotationPx(0,0);
-
 	this->SetCurrentPRE3DdistributionID(0); 
 
 	this->SetIncorporatingUS3DBeamProfile(0);
@@ -78,42 +76,13 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
 	
-	vtkSmartPointer<vtkTransform> transformProbeToReference = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformProbeToReference = NULL;
-	this->SetTransformProbeToReference(transformProbeToReference); 
-
-	vtkSmartPointer<vtkTransform> transformReferenceToTemplateHolderHome = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformReferenceToTemplateHolderHome = NULL;
-	this->SetTransformReferenceToTemplateHolderHome(transformReferenceToTemplateHolderHome); 
-
-	vtkSmartPointer<vtkTransform> transformTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformTemplateHolderToTemplate = NULL;
-	this->SetTransformTemplateHolderToTemplate(transformTemplateHolderToTemplate); 
-
 	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformImageToProbe = NULL;
 	this->SetTransformImageToProbe(transformImageToProbe); 
 
-	vtkSmartPointer<vtkTransform> transformImageToTemplate = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformImageToTemplate = NULL;
-	this->SetTransformImageToTemplate(transformImageToTemplate); 
-
 	vtkSmartPointer<vtkTransform> transformImageToTransducerOriginPixel = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformImageToTransducerOriginPixel = NULL;
 	this->SetTransformImageToTransducerOriginPixel(transformImageToTransducerOriginPixel); 
-
-	vtkSmartPointer<vtkTransform> transformTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformTemplateHomeToTemplate = NULL;
-	this->SetTransformTemplateHomeToTemplate(transformTemplateHomeToTemplate); 
-
-  this->TransformImageToTemplate->Identity(); 
-  this->TransformImageToTemplate->PostMultiply(); 
-  this->TransformImageToTemplate->Concatenate(this->TransformImageToTransducerOriginPixel); 
-  this->TransformImageToTemplate->Concatenate(this->TransformImageToProbe); 
-  this->TransformImageToTemplate->Concatenate(this->TransformProbeToReference); 
-  this->TransformImageToTemplate->Concatenate(this->TransformReferenceToTemplateHolderHome); 
-  this->TransformImageToTemplate->Concatenate(this->TransformTemplateHolderToTemplate);
-  this->TransformImageToTemplate->Update(); 
 
 	// Initialize data containers
 	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_size(0,0);
@@ -144,13 +113,8 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
   // Former ProbeCalibrationController and FreehandCalibraitonController members
-	this->SetTransformImageToTemplate(NULL);
 	this->SetTransformImageToTransducerOriginPixel(NULL);
 	this->SetTransformImageToProbe(NULL);
-	this->SetTransformProbeToReference(NULL);
-	this->SetTransformReferenceToTemplateHolderHome(NULL);
-	this->SetTransformTemplateHolderToTemplate(NULL);
-	this->SetTransformTemplateHomeToTemplate(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -1671,52 +1635,11 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double referenceToTemplateHolderHomeMatrix[16]; 
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++) 
-		{
-			referenceToTemplateHolderHomeMatrix[i*4+j] = this->TransformReferenceToTemplateHolderHome->GetMatrix()->GetElement(i,j); 
-		}
-	}
-
-	double templateHolderToTemplateMatrix[16]; 
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++) 
-		{
-			templateHolderToTemplateMatrix[i*4+j] = this->TransformTemplateHolderToTemplate->GetMatrix()->GetElement(i,j); 
-		}
-	}
-
-	double templateHomeToTemplateMatrix[16]; 
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++) 
-		{
-			templateHomeToTemplateMatrix[i*4+j] = this->TransformTemplateHomeToTemplate->GetMatrix()->GetElement(i,j); 
-		}
-	}
-
-	double imageToTemplateMatrix[16]; 
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++) 
-		{
-			imageToTemplateMatrix[i*4+j] = this->TransformImageToTemplate->GetMatrix()->GetElement(i,j); 
-		}
-	}
-
 	// <CalibrationTransform>
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationTransform = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationTransform->SetName("CalibrationTransform"); 
 	tagCalibrationTransform->SetVectorAttribute("TransformImageToTransducerOriginPixel", 16, imageToTransducerOriginPixelMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformImageToProbe", 16, imageToProbeMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, referenceToTemplateHolderHomeMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHolderToTemplate", 16, templateHolderToTemplateMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHomeToTemplate", 16, templateHomeToTemplateMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformImageToTemplate", 16, imageToTemplateMatrix); 
-
 	tagCalibrationResults->AddNestedElement(tagCalibrationTransform); 
 
 	// <ErrorReports>

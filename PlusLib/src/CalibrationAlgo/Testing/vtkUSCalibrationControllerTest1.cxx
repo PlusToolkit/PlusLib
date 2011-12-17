@@ -139,11 +139,6 @@ int main (int argc, char* argv[])
     LOG_INFO("Center of rotation (px): " << std::fixed << centerOfRotationPx[0] << "  " << centerOfRotationPx[1]); 
   }
 
-	// Initialize the probe calibration controller 
-	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
-	probeCal->ReadConfiguration(configRootElement); 
-	probeCal->Initialize(); 
-
   // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
@@ -167,15 +162,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to register phantom frame to reference frame!"); 
     return EXIT_FAILURE; 
   }
-
-  //******************************************************************
-  // TODO: remove these transforms from vtkProbeCalibrationAlgo
-  PlusTransformName tnTemplateHolderToPhantom("TemplateHolder", "Phantom"); 
-  vtkSmartPointer<vtkMatrix4x4> templateHolderToPhantomMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  transformRepository->GetTransform(tnTemplateHolderToPhantom, templateHolderToPhantomMatrix); 
-  probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(templateHolderToPhantomMatrix); 
-  probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
-  //******************************************************************
 
   // Load and segment validation tracked frame list
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
@@ -209,6 +195,11 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
+  // Initialize the probe calibration algo 
+	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
+	probeCal->ReadConfiguration(configRootElement); 
+	probeCal->Initialize(); 
+
   // Calibrate
   if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
@@ -234,6 +225,7 @@ int main (int argc, char* argv[])
 	return EXIT_SUCCESS; 
 }
 
+//----------------------------------------------------------------------------
 // return the number of differences
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold)
 {
@@ -377,182 +369,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
-						numberOfFailures++;
-					}
-				
-			}
-
-			//********************************* TransformReferenceToTemplateHolderHome *************************************
-			double blTransformReferenceToTemplateHolderHome[16]; 
-			double cTransformReferenceToTemplateHolderHome[16]; 
-
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, blTransformReferenceToTemplateHolderHome))
-			{
-				LOG_ERROR("Baseline TransformReferenceToTemplateHolderHome tag is missing");
-				numberOfFailures++;			
-			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, cTransformReferenceToTemplateHolderHome))
-			{
-				LOG_ERROR("Current TransformReferenceToTemplateHolderHome tag is missing");
-				numberOfFailures++;			
-			}
-			else
-			{ 
-				vtkSmartPointer<vtkMatrix4x4> baseTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				vtkSmartPointer<vtkMatrix4x4> currentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				for ( int i = 0; i < 4; i++) 
-				{
-					for ( int j = 0; j < 4; j++)
-					{
-
-						baseTransMatrix->SetElement(i,j, blTransformReferenceToTemplateHolderHome[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformReferenceToTemplateHolderHome[4*i + j]); 
-					}
-
-				}
-					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
-					if ( translationError > translationErrorThreshold )
-					{
-						LOG_ERROR("TransformReferenceToTemplateHolderHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
-						numberOfFailures++;
-					}
-
-					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
-					if ( rotationError > rotationErrorThreshold )
-					{
-						LOG_ERROR("TransformReferenceToTemplateHolderHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
-						numberOfFailures++;
-					}
-				
-			}
-
-			//********************************* TransformTemplateHolderToTemplate *************************************
-			double blTransformTemplateHolderToTemplate[16]; 
-			double cTransformTemplateHolderToTemplate[16]; 
-
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformTemplateHolderToTemplate", 16, blTransformTemplateHolderToTemplate))
-			{
-				LOG_ERROR("Baseline TransformTemplateHolderToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformTemplateHolderToTemplate", 16, cTransformTemplateHolderToTemplate))
-			{
-				LOG_ERROR("Current TransformTemplateHolderToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else
-			{ 
-				vtkSmartPointer<vtkMatrix4x4> baseTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				vtkSmartPointer<vtkMatrix4x4> currentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				for ( int i = 0; i < 4; i++) 
-				{
-					for ( int j = 0; j < 4; j++)
-					{
-
-						baseTransMatrix->SetElement(i,j, blTransformTemplateHolderToTemplate[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformTemplateHolderToTemplate[4*i + j]); 
-					}
-
-				}
-					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
-					if ( translationError > translationErrorThreshold )
-					{
-						LOG_ERROR("TransformTemplateHolderToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
-						numberOfFailures++;
-					}
-
-					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
-					if ( rotationError > rotationErrorThreshold )
-					{
-						LOG_ERROR("TransformTemplateHolderToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
-						numberOfFailures++;
-					}
-				
-			}
-
-			//********************************* TransformTemplateHomeToTemplate *************************************
-			double blTransformTemplateHomeToTemplate[16]; 
-			double cTransformTemplateHomeToTemplate[16]; 
-
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformTemplateHomeToTemplate", 16, blTransformTemplateHomeToTemplate))
-			{
-				LOG_ERROR("Baseline TransformTemplateHomeToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformTemplateHomeToTemplate", 16, cTransformTemplateHomeToTemplate))
-			{
-				LOG_ERROR("Current TransformTemplateHomeToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else
-			{ 
-				vtkSmartPointer<vtkMatrix4x4> baseTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				vtkSmartPointer<vtkMatrix4x4> currentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				for ( int i = 0; i < 4; i++) 
-				{
-					for ( int j = 0; j < 4; j++)
-					{
-
-						baseTransMatrix->SetElement(i,j, blTransformTemplateHomeToTemplate[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformTemplateHomeToTemplate[4*i + j]); 
-					}
-
-				}
-					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
-					if ( translationError > translationErrorThreshold )
-					{
-						LOG_ERROR("TransformTemplateHomeToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
-						numberOfFailures++;
-					}
-
-					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
-					if ( rotationError > rotationErrorThreshold )
-					{
-						LOG_ERROR("TransformTemplateHomeToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
-						numberOfFailures++;
-					}
-				
-			}
-
-			//********************************* TransformImageToTemplate *************************************
-			double blTransformImageToTemplate[16]; 
-			double cTransformImageToTemplate[16]; 
-
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToTemplate", 16, blTransformImageToTemplate))
-			{
-				LOG_ERROR("Baseline TransformImageToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformImageToTemplate", 16, cTransformImageToTemplate))
-			{
-				LOG_ERROR("Current TransformImageToTemplate tag is missing");
-				numberOfFailures++;			
-			}
-			else
-			{ 
-				vtkSmartPointer<vtkMatrix4x4> baseTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				vtkSmartPointer<vtkMatrix4x4> currentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-				for ( int i = 0; i < 4; i++) 
-				{
-					for ( int j = 0; j < 4; j++)
-					{
-
-						baseTransMatrix->SetElement(i,j, blTransformImageToTemplate[4*i + j]); 
-						currentTransMatrix->SetElement(i,j, cTransformImageToTemplate[4*i + j]); 
-					}
-
-				}
-					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
-					if ( translationError > translationErrorThreshold )
-					{
-						LOG_ERROR("TransformImageToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
-						numberOfFailures++;
-					}
-
-					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
-					if ( rotationError > rotationErrorThreshold )
-					{
-						LOG_ERROR("TransformImageToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
 						numberOfFailures++;
 					}
 				
