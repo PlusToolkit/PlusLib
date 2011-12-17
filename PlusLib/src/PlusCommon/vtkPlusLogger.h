@@ -50,10 +50,15 @@ public:
 
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
+  /*! Display VTK message as Plus LOG_INFO text */
   virtual void DisplayText(const char* text);
+  /*! Display VTK message as Plus LOG_ERROR text */
   virtual void DisplayErrorText(const char* text);
+  /*! Display VTK message as Plus LOG_WARNING text */
   virtual void DisplayWarningText(const char* text);
+  /*! Display VTK message as Plus LOG_WARNING text */
   virtual void DisplayGenericWarningText(const char* text); 
+  /*! Display VTK message as Plus LOG_DEBUG text */
   virtual void DisplayDebugText(const char* text);
 
 protected:

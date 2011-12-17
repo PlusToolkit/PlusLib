@@ -7,7 +7,6 @@
 #include "SerialLine.h"
 #include <assert.h>
 
-
 SerialLine::SerialLine()
 {
 	m_MaxReplyTime=1000;

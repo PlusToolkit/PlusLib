@@ -22,6 +22,7 @@ class VTK_EXPORT vtkHTMLGenerator : public vtkObject
 {
 public: 
 	
+  /*! HTML headings  */
 	enum HEADINGS
 	{
 		H1, 
