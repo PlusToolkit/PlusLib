@@ -3,28 +3,28 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
 IF (PLUS_USE_BRACHY_TRACKER)
-    ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
-    TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkCalibrationAlgo vtkDataCollection )
+    ADD_EXECUTABLE(vtkTRUSCalibrationTest vtkTRUSCalibrationTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkTRUSCalibrationTest itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkCalibrationAlgo vtkDataCollection )
 
-    ADD_TEST(vtkUSCalibrationControllerTest
-            ${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+    ADD_TEST(vtkTRUSCalibrationTest
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
             --input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
             --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
             --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
             --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
             )
-    SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-    ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
-            ${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+    ADD_TEST(vtkTRUSCalibrationTest_FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
             --input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
             --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
             --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
             --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
             )
-    SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ENDIF ()
 		
