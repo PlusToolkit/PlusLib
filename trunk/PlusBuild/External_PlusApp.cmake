@@ -24,8 +24,6 @@ ExternalProject_Add(PlusApp
                 -DPLUSAPP_BUILD_VolumeReconstructor:BOOL=ON
                 -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
                 -DPLUSAPP_BUILD_OpenIGTLinkBroadcaster:BOOL=${PLUSBUILD_USE_OpenIGTLink}
-                -DPLUSAPP_BUILD_SequenceMetaFileConverter:BOOL=ON
-                -DPLUSAPP_BUILD_TrackedUltrasoundCapturing:BOOL=ON
                 -DPLUSAPP_BUILD_fCal:BOOL=ON
                 -DPLUSAPP_TEST_GUI:BOOL=${PLUSAPP_TEST_GUI}
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
