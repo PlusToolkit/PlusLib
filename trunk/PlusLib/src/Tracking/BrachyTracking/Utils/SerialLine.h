@@ -28,22 +28,37 @@ public:
   SerialLine();
   virtual ~SerialLine();
 
+  /*! Open serial port */ 
   bool Open();
+
+  /*! Close serial port */ 
   void Close();
 
+  /*! Write data to the serial port */ 
   int Write(const BYTE data);
+
+  /*! Read data from the serial port */ 
   bool Read(BYTE &data);
 
+  /*! Set the serial port name e.g. COM1 */ 
   void SetPortName(const std::string &name) { m_PortName=name; };
+
+  /*! Get the serial port name */ 
   std::string GetPortName() const { return m_PortName; };
 
+  /*! Set the serial port speed */ 
   void SetSerialPortSpeed(DWORD speed) { m_SerialPortSpeed=speed; };
 
+  /*! Set the serial port max reply time */ 
   void SetMaxReplyTime(int maxreply) { m_MaxReplyTime=maxreply; };
+
+  /*! Get the serial port max reply time */ 
   int GetMaxReplyTime() const { return m_MaxReplyTime; };
 
+  /*! Check the handle alive status */ 
   bool IsHandleAlive() const { return (m_CommHandle != INVALID_HANDLE_VALUE); };
 
+  /*! Clears the device's error flag to enable additional input and output (I/O) operations  */ 
   DWORD ClearError();
 
 private:

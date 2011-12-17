@@ -151,22 +151,43 @@ protected:
   /*! Start video motion detection  */
   virtual PlusStatus DetectVideoMotions(const std::vector<double> &movedTransformTimestamps); 
 
+  /*! Computes the frame threshold */
 	virtual PlusStatus ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
+
+  /*! Find the next available changed frame in the buffer */
 	virtual PlusStatus FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
+
+  /*! Search for still frame in the buffer */
  	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
+  /*! Computes transformation threshold */
 	virtual PlusStatus ComputeTransformThreshold( BufferItemUidType& bufferIndex ); 
+
+  /*! Find the next transform motion in the buffer */
 	virtual PlusStatus FindTransformMotionTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 
+
+  /*! Check if the transform motion is below the threshold */
 	virtual bool IsTransformBelowThreshold( vtkTransform* transform, double timestamp); 
+
+  /*! Search for still transform in the buffer */
 	virtual void FindStillTransform( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
+  /*! Remove outliers from the computation */
 	virtual void RemoveOutliers(); 
 
+  /*! Convert grayscale images to RGB */
 	virtual void ConvertFrameToRGB( vtkImageData* pFrame, vtkImageData* pFrameRGB, double resampleFactor ); 
+
+  /*! Get the difference between two images */
 	virtual double GetFrameDifference(vtkImageData* frame); 
+
+  /*! Returns the image acquisition frame rate */
 	virtual double GetImageAcquisitionFrameRate(double& mean, double& deviation); 
+
+  /*! Returns the position acquisition frame rate */
 	virtual double GetPositionAcquisitionFrameRate(double& mean, double& deviation); 
 
+  /*! Initialze the synchronization report table */
   virtual void InitSyncReportTable(); 
 
 	vtkImageData* BaseFrame; 
