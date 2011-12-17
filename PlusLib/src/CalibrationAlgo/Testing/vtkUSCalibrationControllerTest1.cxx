@@ -142,11 +142,7 @@ int main (int argc, char* argv[])
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
 	probeCal->ReadConfiguration(configRootElement); 
-  probeCal->ReadProbeCalibrationConfiguration(configRootElement);
-
 	probeCal->Initialize(); 
-
-  vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 
 
   // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
@@ -164,7 +160,6 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
   phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()); 
-  phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
 
   vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
   if ( phantomRegistrationAlgo->GetPhantomToReferenceTransform( tPhantomToReference ) != PLUS_SUCCESS )
@@ -172,10 +167,15 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to register phantom frame to reference frame!"); 
     return EXIT_FAILURE; 
   }
-  
+
+  //******************************************************************
   // TODO: remove these transforms from vtkProbeCalibrationAlgo
-  probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
+  PlusTransformName tnTemplateHolderToPhantom("TemplateHolder", "Phantom"); 
+  vtkSmartPointer<vtkMatrix4x4> templateHolderToPhantomMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  transformRepository->GetTransform(tnTemplateHolderToPhantom, templateHolderToPhantomMatrix); 
+  probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(templateHolderToPhantomMatrix); 
   probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
+  //******************************************************************
 
   // Load and segment validation tracked frame list
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();

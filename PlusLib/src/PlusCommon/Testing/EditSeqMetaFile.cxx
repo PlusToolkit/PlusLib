@@ -569,8 +569,9 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
       const char* fieldValue = trackedFrame->GetCustomFrameField(fieldUpdate.FieldName.c_str()); 
       if ( fieldValue != NULL )
       {
+        std::string copyOfFieldValue(fieldValue); 
         trackedFrame->DeleteCustomFrameField(fieldUpdate.FieldName.c_str());
-        trackedFrame->SetCustomFrameField(fieldUpdate.UpdatedFieldName.c_str(), fieldValue ); 
+        trackedFrame->SetCustomFrameField(fieldUpdate.UpdatedFieldName.c_str(), copyOfFieldValue.c_str() ); 
       }
     }
 

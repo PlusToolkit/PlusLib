@@ -57,13 +57,13 @@ public:
   virtual PlusStatus GetPhantomToReferenceTransform( vtkTransform* phantomToReferenceTransform);
 
   /*! \deprecated TODO: remove it just use it for getting the same result as the baseline */
-  vtkSetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform); 
-
-  /*! \deprecated TODO: remove it just use it for getting the same result as the baseline */
-  vtkGetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform); 
-
-  /*! \deprecated TODO: remove it just use it for getting the same result as the baseline */
   vtkGetObjectMacro(TransformReferenceToTemplateHolder, vtkTransform); 
+
+  /*! Get phantom coordinate frame */
+  vtkGetStringMacro(PhantomCoordinateFrame);
+
+  /*! Get reference coordinate frame */
+  vtkGetStringMacro(ReferenceCoordinateFrame);
   
 protected:
   vtkBrachyStepperPhantomRegistrationAlgo();
@@ -109,9 +109,6 @@ protected:
   /*! Phantom to Reference transform */
   vtkTransform* PhantomToReferenceTransform; 
   
-  /*! \deprecated TODO: remove it! */
-  vtkTransform* TransformTemplateHolderToPhantom; 
-
   /*! \deprecated TODO: remove it! */
   vtkTransform* TransformReferenceToTemplateHolder; 
 

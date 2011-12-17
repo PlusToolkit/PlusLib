@@ -90,10 +90,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 	this->TransformTemplateHolderToTemplate = NULL;
 	this->SetTransformTemplateHolderToTemplate(transformTemplateHolderToTemplate); 
 
-  vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformTemplateHolderToPhantom = NULL;
-	this->SetTransformTemplateHolderToPhantom(transformTemplateHolderToPhantom); 
-
 	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformImageToProbe = NULL;
 	this->SetTransformImageToProbe(transformImageToProbe); 
@@ -154,7 +150,6 @@ vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo()
 	this->SetTransformProbeToReference(NULL);
 	this->SetTransformReferenceToTemplateHolderHome(NULL);
 	this->SetTransformTemplateHolderToTemplate(NULL);
-  this->SetTransformTemplateHolderToPhantom(NULL); 
 	this->SetTransformTemplateHomeToTemplate(NULL);
 }
 
@@ -559,47 +554,6 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   this->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDataElement* rootElement )
-{
-	LOG_TRACE("vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration");
-
-	if (rootElement == NULL) 
-	{	
-		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
-		return PLUS_FAIL; 
-	}
-
-	// Custom transforms
-	vtkXMLDataElement* phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
-	if (phantomDefinition == NULL)
-  {
-		LOG_ERROR("No phantom definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-	vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
-	if (customTransforms == NULL) 
-  {
-		LOG_ERROR("Custom transforms are not found in phantom model");
-    return PLUS_FAIL;
-	}
-  
-  double templateHolderToPhantomTransformVector[16]={0}; 
-  if (customTransforms->GetVectorAttribute("TemplateHolderToPhantomTransform", 16, templateHolderToPhantomTransformVector)) 
-  {
-    vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
-    transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomTransformVector); 
-    this->SetTransformTemplateHolderToPhantom( transformTemplateHolderToPhantom  ); 
-  }
-  else
-	{
-		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
-	}
-
-  return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------

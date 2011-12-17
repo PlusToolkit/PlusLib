@@ -52,9 +52,6 @@ public:
   */
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
-	/*! Read XML based configuration for probe calibration */
-  virtual PlusStatus ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData );
-
   /*!
 	  Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
 	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
@@ -227,11 +224,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetObjectMacro(TransformTemplateHolderToTemplate, vtkTransform);
   /*! Get/set the constant transformation between template holder home and template home position. Should be defined in config file. */
 	vtkSetObjectMacro(TransformTemplateHolderToTemplate, vtkTransform);
-	
-  /*! Get/set the constant transformation between template holder home and template home position. Should be defined in config file. */
-  vtkGetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform);
-  /*! Get/set the constant transformation between template holder home and template home position. Should be defined in config file. */
-	vtkSetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform);
 	
 	/*! Get/set the transformation between template home and template position. Should be identical to TransformTemplateHolderHomeToTemplateHolder transformation */
 	vtkGetObjectMacro(TransformTemplateHomeToTemplate, vtkTransform);
@@ -469,9 +461,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 
   /*! Constant transform (specific to the current template), read from file */
 	vtkTransform * TransformTemplateHolderToTemplate;
-
-  /*! Constant transform (specific to the current calibration phantom), read from file */
-  vtkTransform * TransformTemplateHolderToPhantom;
 
   /*! Actual template position, read from stepper */
 	vtkTransform * TransformTemplateHomeToTemplate;
