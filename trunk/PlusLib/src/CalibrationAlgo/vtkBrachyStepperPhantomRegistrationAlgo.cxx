@@ -40,9 +40,6 @@ vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo
   this->ReferenceCoordinateFrame = NULL;
 
   this->PhantomToReferenceTransform = vtkTransform::New(); 
-
-  // TODO: remove it! 
-  this->TransformReferenceToTemplateHolder = vtkTransform::New(); 
 }
 
 //----------------------------------------------------------------------------
@@ -56,11 +53,6 @@ vtkBrachyStepperPhantomRegistrationAlgo::~vtkBrachyStepperPhantomRegistrationAlg
   {
     this->PhantomToReferenceTransform->Delete(); 
     this->PhantomToReferenceTransform = NULL; 
-  }
-  if ( this->TransformReferenceToTemplateHolder != NULL )
-  {
-    this->TransformReferenceToTemplateHolder->Delete(); 
-    this->TransformReferenceToTemplateHolder = NULL; 
   }
 }
 
@@ -234,56 +226,13 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
   LOG_INFO("Wire #6 position in phantom (mm): " << this->NWires[1].Wires[2].EndPointFront[0] << "   " << this->NWires[1].Wires[2].EndPointFront[1]); 
   LOG_INFO("Wire #6 to probe distance (mm): " << wire6ToProbeDistanceInMm[0] << "   " << wire6ToProbeDistanceInMm[1]); 
 
-  double phantomToReferenceDistanceInMm[2] = { 
-    this->NWires[1].Wires[2].EndPointFront[0] + wire6ToProbeDistanceInMm[0], 
-    this->NWires[1].Wires[2].EndPointFront[1] + wire6ToProbeDistanceInMm[1] }; 
-
+  double phantomToReferenceDistanceInMm[3] = { this->NWires[1].Wires[2].EndPointFront[0] + wire6ToProbeDistanceInMm[0], this->NWires[1].Wires[2].EndPointFront[1] + wire6ToProbeDistanceInMm[1], 0 }; 
 
   LOG_INFO("Phantom to probe distance (mm): " << phantomToReferenceDistanceInMm[0] << "   " << phantomToReferenceDistanceInMm[1] ); 
 
-  //////////////////////////////////////////////////////////////////////////////////////
-
-  
-  /// **************** TemplateHolderToPhantom *********************
-  // TODO: remove it!!! 
-  PlusTransformName tnTemplateHolderToPhantom("TemplateHolder", "Phantom"); 
-  vtkSmartPointer<vtkMatrix4x4> templateHolderToPhantomMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->TransformRepository->GetTransform(tnTemplateHolderToPhantom, templateHolderToPhantomMatrix); 
-  vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
-  transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomMatrix); 
-
-  double templateHolderPositionX = transformTemplateHolderToPhantom->GetPosition()[0];
-  double templateHolderPositionY = transformTemplateHolderToPhantom->GetPosition()[1];
-  double templateHolderPositionZ = transformTemplateHolderToPhantom->GetPosition()[2];
-
-  vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
-  tTemplateHolderToTemplate->Translate( templateHolderPositionX, templateHolderPositionY, templateHolderPositionZ);
-  /// **************** TemplateHolderToPhantom *********************
-
-
-  /// **************** ReferenceToTemplateHolder *********************
-  //TODO: compute this transform in the application layer!!!!
-  // Vertical distance from the template mounter hole center to the TRUS Rotation Center (reference)
-  // :TODO: transform with the whole matrix instead of just using the XY position values
-  double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = phantomToReferenceDistanceInMm[1] - templateHolderPositionY; 
-
-  // Horizontal distance from the template mounter hole center to the TRUS Rotation Center (reference)
-  // :TODO: transform with the whole matrix instead of just using the XY position values
-  double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = phantomToReferenceDistanceInMm[0] - templateHolderPositionX; 
-
-  vtkSmartPointer<vtkTransform> tReferenceToTemplateHolder = vtkSmartPointer<vtkTransform>::New();
-  tReferenceToTemplateHolder->Translate( horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, 0);
-  LOG_INFO("Reference to template holder distance (mm): " << horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM << "   " << verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM ); 
-  this->TransformReferenceToTemplateHolder->DeepCopy(tReferenceToTemplateHolder); 
-  /// **************** ReferenceToTemplateHolder *********************
-
-  vtkSmartPointer<vtkTransform> tTemplateToReference = vtkSmartPointer<vtkTransform>::New();
-  tTemplateToReference->PostMultiply(); 
-  tTemplateToReference->Concatenate( tReferenceToTemplateHolder ); 
-  tTemplateToReference->Concatenate( tTemplateHolderToTemplate ); 
-  tTemplateToReference->Inverse(); 
-
-  this->PhantomToReferenceTransform->DeepCopy(tTemplateToReference); 
+  this->PhantomToReferenceTransform->Identity(); 
+  this->PhantomToReferenceTransform->Translate(phantomToReferenceDistanceInMm); 
+  this->PhantomToReferenceTransform->Inverse(); 
 
   // Save result
   if (this->TransformRepository)

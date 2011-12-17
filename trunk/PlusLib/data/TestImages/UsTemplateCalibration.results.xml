@@ -1,9 +1,9 @@
 <USTemplateCalibrationResult version="1.0">
-  <CalibrationFile Timestamp="20111014_174644" FileName="20111014_174644.Calibration.results.xml">
+  <CalibrationFile Timestamp="121711_154152" FileName="121711_154152.Calibration.results.xml">
     # Timestamp format: MM/DD/YY HH:MM:SS
   </CalibrationFile>
   <CalibrationResults>
-    <CalibrationTransform TransformImageToTransducerOriginPixel="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToProbe="0.191876 -0.00747391 -0.024617 -62.0054 -0.0041885 -0.183863 0.0054453 0.744118 -0.0253622 -0.00436686 -0.187138 162.946 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 24.9025 0 1 0 16.2157 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 5 0 1 0 63.5 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="0.191876 -0.00747391 -0.024617 -32.1029 -0.0041885 -0.183863 0.0054453 80.4599 -0.0253622 -0.00436686 -0.187138 162.946 0 0 0 1">
+    <CalibrationTransform TransformImageToTransducerOriginPixel="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToProbe="0.191876 -0.00747391 -0.024617 -62.0054 -0.0041885 -0.183863 0.0054453 0.744118 -0.0253622 -0.00436686 -0.187138 162.946 0 0 0 1">
       
     </CalibrationTransform>
     

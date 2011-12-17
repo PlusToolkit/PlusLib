@@ -148,12 +148,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	*/
 	std::string GetResultString();
 
-  /*! Set phantom to probe distance in mm */
-  vtkSetVector2Macro(PhantomToProbeDistanceInMm, double); 
-
-  /*! Get phantom to probe distance in mm */
-	vtkGetVector2Macro(PhantomToProbeDistanceInMm, double);
-
 	/*! Flag to set if the US 3D beamwidth data is sucessfully loaded */
 	vtkGetMacro(US3DBeamwidthDataReady, bool);
   /*! Flag to set if the US 3D beamwidth data is sucessfully loaded */
@@ -195,11 +189,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
   /*! US 3D beam profile name and path */
 	vtkSetStringMacro(US3DBeamProfileDataFileNameAndPath); 
 
-	/*! Get/set final calibration transform */
-	vtkGetObjectMacro(TransformImageToTemplate, vtkTransform);
-  /*! Get/set final calibration transform */
-	vtkSetObjectMacro(TransformImageToTemplate, vtkTransform);
-
 	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
 	vtkGetObjectMacro(TransformImageToTransducerOriginPixel, vtkTransform);
 	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
@@ -209,36 +198,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
   /*! Get/set the iCAL calibration result transformation between the image and probe home position */
 	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
-	
-	/*! Get/set transformation between the probe home and probe position (e.g read from stepper) */
-	vtkGetObjectMacro(TransformProbeToReference, vtkTransform);
-  /*! Get/set transformation between the probe home and probe position (e.g read from stepper) */
-	vtkSetObjectMacro(TransformProbeToReference, vtkTransform);
-	
-	/*! Get/set the transformation between probe home and template holder home position. Result of the Template To Stepper Calibration. */
-	vtkGetObjectMacro(TransformReferenceToTemplateHolderHome, vtkTransform);
-  /*! Get/set the transformation between probe home and template holder home position. Result of the Template To Stepper Calibration. */
-	vtkSetObjectMacro(TransformReferenceToTemplateHolderHome, vtkTransform);
-
-	/*! Get/set the constant transformation between template holder home and template home position. Should be defined in config file. */
-	vtkGetObjectMacro(TransformTemplateHolderToTemplate, vtkTransform);
-  /*! Get/set the constant transformation between template holder home and template home position. Should be defined in config file. */
-	vtkSetObjectMacro(TransformTemplateHolderToTemplate, vtkTransform);
-	
-	/*! Get/set the transformation between template home and template position. Should be identical to TransformTemplateHolderHomeToTemplateHolder transformation */
-	vtkGetObjectMacro(TransformTemplateHomeToTemplate, vtkTransform);
-  /*! Get/set the transformation between template home and template position. Should be identical to TransformTemplateHolderHomeToTemplateHolder transformation */
-	vtkSetObjectMacro(TransformTemplateHomeToTemplate, vtkTransform);
-
-  /*!
-    Set the rotation center in pixels.
-	  Origin: Left-upper corner (the original image frame)
-	  Positive X: to the right;
-	  Positive Y: to the bottom;
-  */
-	vtkSetVector2Macro(CenterOfRotationPx, double); 
-  /*! Get the rotation center in pixels. */
-	vtkGetVector2Macro(CenterOfRotationPx, double);
 		
 protected:
 	vtkProbeCalibrationAlgo();
@@ -364,9 +323,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 	/*! Track the current position ID of the output in PRE3D distribution data */
 	int CurrentPRE3DdistributionID;
 
-  /*! Center of rotation position in pixels */
-  double CenterOfRotationPx[2];
-
 	/*! US 3D beam profile name and path */
 	char* US3DBeamProfileDataFileNameAndPath;
 				
@@ -442,28 +398,11 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
   */
 	vnl_matrix<double> InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM;
 
-  double PhantomToProbeDistanceInMm[2]; 
-
-  /*! Final calibration transform */
-	vtkTransform * TransformImageToTemplate;
-
 	/*! Transform matrix from the original image frame to the transducer origin (pixel). Constant transform, read from file */
 	vtkTransform * TransformImageToTransducerOriginPixel;
 
   /*! The result of the calibration */
 	vtkTransform * TransformImageToProbe;
-
-  /*! Actual tracker position of the probe in the reference frame */
-	vtkTransform * TransformProbeToReference;
-
-  /*! Result of the TemplateToStepperCalibrator */
-	vtkTransform * TransformReferenceToTemplateHolderHome;
-
-  /*! Constant transform (specific to the current template), read from file */
-	vtkTransform * TransformTemplateHolderToTemplate;
-
-  /*! Actual template position, read from stepper */
-	vtkTransform * TransformTemplateHomeToTemplate;
 
   /*! TODO: clean this up */
   std::map<int, std::vector<double> > LineReconstructionErrors; 
