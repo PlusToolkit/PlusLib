@@ -14,6 +14,7 @@
 
 class vtkProp3D;
 class vtkMapper;
+class vtkPolyData; 
 
 //-----------------------------------------------------------------------------
 
@@ -212,4 +213,52 @@ protected:
   virtual ~vtkDisplayableAxes();
 };
 
+//-----------------------------------------------------------------------------
+
+/*! \class vtkDisplayablePolyData 
+ * \brief Specialized vtkDisplayableObject that displays a poly data
+ * \ingroup PlusAppCommonWidgets
+ */
+class vtkDisplayablePolyData : public vtkDisplayableObject
+{
+public:
+	vtkTypeRevisionMacro(vtkDisplayablePolyData,vtkDisplayableObject);
+
+  static vtkDisplayablePolyData *New();
+
+  /*! Returns displayable status (true if displayable flag is on and valid actor is present) */
+  bool IsDisplayable();
+
+  /*! Set color */
+  void SetColor(double aR, double aG, double aB);
+
+  /* Get poly data */
+  vtkGetObjectMacro(PolyData, vtkPolyData); 
+
+  /* Set poly data */
+  virtual void SetPolyData(vtkPolyData* polyData); 
+
+public:
+  /*! Set opacity */
+  void SetOpacity(double aOpacity);
+  /*! Get opacity */
+  double GetOpacity();
+
+protected:
+
+protected:
+  /*! Constructor */
+  vtkDisplayablePolyData();
+
+  /*! Destructor */
+  virtual ~vtkDisplayablePolyData();
+
+protected:
+
+  vtkPolyData* PolyData; 
+
+};
+
+
 #endif
+

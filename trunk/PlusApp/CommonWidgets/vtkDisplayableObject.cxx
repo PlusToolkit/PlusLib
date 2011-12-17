@@ -18,6 +18,7 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkXMLUtilities.h"
 #include "vtkObjectFactory.h"
+#include "vtkPolyData.h"
 
 //-----------------------------------------------------------------------------
 
@@ -45,6 +46,10 @@ vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
   else if (STRCASECMP(aType, "Axes") == 0)
   {
     return vtkDisplayableAxes::New();
+  }
+  else if (STRCASECMP(aType, "PolyData") == 0)
+  {
+    return vtkDisplayablePolyData::New();
   }
   LOG_ERROR("vtkDisplayableObject::New failed. Unkonwn object type: "<<aType);
   return NULL;
@@ -452,6 +457,140 @@ double vtkDisplayableAxes::GetOpacity()
   if (axesActor)
   {
     return axesActor->GetVisibility() ? 1.0 : 0.0;
+  }
+  else
+  {
+    LOG_WARNING("Invalid actor - cannot get opacity!");
+  }
+
+  return -1.0;
+}
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+vtkCxxRevisionMacro(vtkDisplayablePolyData, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkDisplayablePolyData);
+
+//-----------------------------------------------------------------------------
+
+vtkDisplayablePolyData::vtkDisplayablePolyData()
+  : vtkDisplayableObject()
+{
+  this->PolyData = NULL; 
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+  this->SetPolyData(polyData);
+}
+
+//-----------------------------------------------------------------------------
+
+vtkDisplayablePolyData::~vtkDisplayablePolyData()
+{
+  this->SetPolyData(NULL);
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkDisplayablePolyData::SetPolyData(vtkPolyData* aPolyData)
+{
+  if ( this->PolyData == aPolyData )
+  {
+    return; 
+  }
+
+  vtkPolyData* tempPolyData = this->PolyData; 
+  this->PolyData = aPolyData; 
+  if (this->PolyData != NULL) 
+  { 
+    this->PolyData->Register(this); 
+  } 
+
+  if (tempPolyData != NULL)                                
+  {                                                      
+    tempPolyData->UnRegister(this);                        
+  }                                                      
+  this->Modified();                                        
+
+  if ( this->PolyData == NULL )
+  {
+    return; 
+  }
+
+  if ( this->Actor == NULL )
+  {
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New(); 
+    this->SetActor(actor); 
+  }
+
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if ( actor )
+  {
+    vtkSmartPointer<vtkPolyDataMapper> polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    polyMapper->SetInput(this->PolyData);
+    actor->SetMapper(polyMapper); 
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+bool vtkDisplayablePolyData::IsDisplayable()
+{
+  bool mapperOK = false;
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if ( (actor && actor->GetMapper()) || (!actor) )
+  {
+    mapperOK = true;
+  }
+
+  return ( mapperOK && this->Displayable );
+}
+
+
+//-----------------------------------------------------------------------------
+
+void vtkDisplayablePolyData::SetColor(double aR, double aG, double aB)
+{
+  LOG_TRACE("vtkDisplayableModel::SetColor(" << aR << ", " << aG << ", " << aB << ")");
+
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if (actor)
+  {
+    actor->GetProperty()->SetColor(aR, aG, aB);
+  }
+  else
+  {
+    LOG_WARNING("Invalid actor - cannot set color!");
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkDisplayablePolyData::SetOpacity(double aOpacity)
+{
+  LOG_TRACE("vtkDisplayablePolyData::SetOpacity(" << aOpacity << ")");
+
+   vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if (actor)
+  {
+    actor->GetProperty()->SetOpacity(aOpacity);
+    return;
+  }
+  else
+  {
+    LOG_WARNING("Invalid actor - cannot set opacity!");
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+double vtkDisplayablePolyData::GetOpacity()
+{
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if (actor)
+  {
+    return actor->GetProperty()->GetOpacity();
   }
   else
   {
