@@ -9,12 +9,15 @@
 #include <itkImageDuplicator.h>
 #include <itkOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
-#include <itkCannyEdgeDetectionImageFilter.h>
 #include "itkSobelEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
+#include <itkBasicDilateImageFilter.h>
+#include "itkCannyEdgeDetectionImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
+#include <itkBinaryThinningImageFilter.h>
 
 
-//#include "itkImage.h"
+#include "itkImage.h"
 
 //----------------------------------------------------------------------------
 PlusStatus LineDetection( PlusVideoFrame* videoFrame ); 
@@ -77,43 +80,120 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS; 
 }
 
+
+
 PlusStatus LineDetection( PlusVideoFrame* videoFrame )
 {
 	static int frameIndex=0;
 	frameIndex++;
 
-
 	//create the hough transform filter
+
 	typedef unsigned char PixelType;
-	typedef itk::HoughTransform2DLinesImageFilter<PixelType, PixelType> HoughTransformFilterType;
+	
 	const int Dimension = 2;
+  typedef   float  AccumulatorPixelType;
+  typedef itk::Image<AccumulatorPixelType, Dimension> AccumulatorImageType;
+  typedef itk::HoughTransform2DLinesImageFilter<AccumulatorPixelType, AccumulatorPixelType> HoughTransformFilterType;
 	HoughTransformFilterType::Pointer houghTransform = HoughTransformFilterType::New();
 
 	LOG_DEBUG("Performing LineDetection...");	
 
-	//pass the image to the hough transform
+	//create the hough transform
 	typedef itk::Image<PixelType> ImageType;
 	ImageType::Pointer localImage = videoFrame->GetImage<PixelType>();
 
+  //cast filters
+  typedef itk::Image<bool, 2>  BooleanImageType;
+  typedef itk::Image<float, 2>  FloatImageType;
+  typedef itk::CastImageFilter<ImageType, BooleanImageType> CharToBooleanImageCastFilterType;
+  CharToBooleanImageCastFilterType::Pointer CharToBooleanImageCastFilter = CharToBooleanImageCastFilterType::New();
+  
+  typedef itk::RescaleIntensityImageFilter<ImageType, BooleanImageType>  CharToBooleanImageRescalerFilterType;
+  CharToBooleanImageRescalerFilterType::Pointer CharToBooleanImageRescalerFilter = CharToBooleanImageRescalerFilterType::New(); 
+
+  typedef itk::RescaleIntensityImageFilter<BooleanImageType, ImageType> BooleanToCharImageRescalerFilterType;
+  BooleanToCharImageRescalerFilterType::Pointer BooleanToCharImageRescalerFilter = BooleanToCharImageRescalerFilterType::New();
+
+  typedef itk::RescaleIntensityImageFilter<BooleanImageType, FloatImageType> BooleanToFloatImageRescalerFilterType;
+  BooleanToFloatImageRescalerFilterType::Pointer BooleanToFloatImageRescalerFilter = BooleanToFloatImageRescalerFilterType::New();
+
+  typedef itk::RescaleIntensityImageFilter<ImageType, FloatImageType>  CharToFloatImageRescalerFilterType;
+  CharToFloatImageRescalerFilterType::Pointer CharToFloatImageRescalerFilter = CharToFloatImageRescalerFilterType::New(); 
+
+  //get image threshold based on Otsu's metod
 	typedef itk::OtsuThresholdImageFilter <ImageType, ImageType> OtsuThresholdImageFilterType;
 	OtsuThresholdImageFilterType::Pointer otsuFilter = OtsuThresholdImageFilterType::New();
 	otsuFilter->SetInput(localImage);
 	otsuFilter->Update();
 
+  //create a binary threshold filter, with Otsu's threshold
 	typedef itk::BinaryThresholdImageFilter <ImageType, ImageType> BinaryThresholdImageFilterType;
-
 	BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
 	thresholdFilter->SetInput(localImage);
 	thresholdFilter->SetLowerThreshold(0);
 	thresholdFilter->SetUpperThreshold(otsuFilter->GetThreshold());
 	thresholdFilter->SetInsideValue(0);
 	thresholdFilter->SetOutsideValue(255);
+  thresholdFilter->Update();
 
-	double lineDetectionIntensityThreshold=0;
-	houghTransform->SetInput( thresholdFilter->GetOutput() );
+  //edge thining
+  typedef itk::BinaryThinningImageFilter<BooleanImageType, BooleanImageType> BinaryThinningImageFilterType;
+  BinaryThinningImageFilterType::Pointer thiningFilter = BinaryThinningImageFilterType::New();
+  
+  CharToBooleanImageRescalerFilter->SetInput(thresholdFilter->GetOutput());
+  CharToBooleanImageRescalerFilter->SetOutputMinimum(0);
+  CharToBooleanImageRescalerFilter->SetOutputMaximum(1);
+  CharToBooleanImageRescalerFilter->Update();
+
+  thiningFilter->SetInput(CharToBooleanImageRescalerFilter->GetOutput());
+  thiningFilter->Update();
+  
+  BooleanToCharImageRescalerFilter->SetInput(thiningFilter->GetOutput());
+  BooleanToCharImageRescalerFilter->SetOutputMinimum(0);
+  BooleanToCharImageRescalerFilter->SetOutputMaximum(255);
+  BooleanToCharImageRescalerFilter->Update();
+
+  BooleanToFloatImageRescalerFilter->SetInput(thiningFilter->GetOutput());
+  BooleanToFloatImageRescalerFilter->SetOutputMinimum(0);
+  BooleanToFloatImageRescalerFilter->SetOutputMaximum(1);
+  BooleanToFloatImageRescalerFilter->Update();
+
+  CharToFloatImageRescalerFilter ->SetInput(thresholdFilter->GetOutput());
+  CharToFloatImageRescalerFilter->SetOutputMinimum(0);
+  CharToFloatImageRescalerFilter->SetOutputMaximum(1);
+  CharToFloatImageRescalerFilter->Update();
+
+  
+
+  typedef itk::Image<double, 2>  DoubleImageType;
+ 
+  typedef itk::CannyEdgeDetectionImageFilter <DoubleImageType, DoubleImageType>
+  CannyEdgeDetectionImageFilterType;
+ 
+  typedef itk::CastImageFilter<ImageType, DoubleImageType> cstFilterType;
+  cstFilterType::Pointer cstFilter = cstFilterType::New();
+  cstFilter->SetInput(localImage);
+  cstFilter->Update();
+
+  typedef itk::RescaleIntensityImageFilter<DoubleImageType, ImageType>  RescalerType;
+  RescalerType::Pointer rescaler = RescalerType::New(); 
+
+  CannyEdgeDetectionImageFilterType::Pointer cannyFilter = CannyEdgeDetectionImageFilterType::New();
+  cannyFilter->SetInput(cstFilter->GetOutput());
+  cannyFilter->Update();
+  
+  //perform hough transform of thresholded image
+	double lineDetectionIntensityThreshold = 0;
+  houghTransform->SetInput(CharToFloatImageRescalerFilter->GetOutput());
 	houghTransform->SetThreshold(lineDetectionIntensityThreshold);
 	houghTransform->SetNumberOfLines(6);
+  //houghTransform->SetAngleResolution(10000);
+  houghTransform->SetDiscRadius(1);
 	houghTransform->Update();
+  cout << houghTransform->GetAngleResolution() << "\n";
+  cout << houghTransform->GetDiscRadius()<< "\n";
+  cout << houghTransform->GetVariance()<< "\n";
 
 	
 	typedef float FloatPixelType;
@@ -134,14 +214,28 @@ PlusStatus LineDetection( PlusVideoFrame* videoFrame )
 	typedef itk::CastImageFilter<FloatImageType,ImageType> FloatToCharImageCastFilterType;
 	FloatToCharImageCastFilterType::Pointer floatToCharCastFilter = FloatToCharImageCastFilterType::New();
 	floatToCharCastFilter->SetInput(sobelFilter->GetOutput());
+
+  rescaler->SetInput(cannyFilter->GetOutput());
+  rescaler->SetOutputMinimum(0);
+  rescaler->SetOutputMaximum(255);
+  rescaler->Update();
+
+
+
+	typedef itk::CastImageFilter<DoubleImageType,ImageType> DoubleToCharImageCastFilterType;
+	DoubleToCharImageCastFilterType::Pointer doubleToCharCastFilter = DoubleToCharImageCastFilterType::New();
+  doubleToCharCastFilter->SetInput(cannyFilter->GetOutput());
+
 	std::ostrstream sobelOutputImageFilename; 
 	sobelOutputImageFilename << "SobelResult_" << std::setw(3) << std::setfill('0') << frameIndex << ".jpg" << std::ends;
-	PlusVideoFrame::SaveImageToFile(floatToCharCastFilter->GetOutput(), sobelOutputImageFilename.str());
-
+	//PlusVideoFrame::SaveImageToFile(floatToCharCastFilter->GetOutput(), sobelOutputImageFilename.str());
+  PlusVideoFrame::SaveImageToFile(BooleanToCharImageRescalerFilter->GetOutput(), sobelOutputImageFilename.str());
+  
 	//get the lines of the image into the line-list holder
 	itk::HoughTransform2DLinesImageFilter<PixelType, PixelType>::LinesListType lines = houghTransform->GetLines();
 
 	LOG_DEBUG("Found " << lines.size() << " line(s).");
+
 
 	typedef  unsigned char OutputPixelType;
 	typedef  itk::Image< OutputPixelType, Dimension > OutputImageType;  
@@ -152,23 +246,41 @@ PlusStatus LineDetection( PlusVideoFrame* videoFrame )
 	duplicator->Update();
 	ImageType::Pointer localOutputImage = duplicator->GetOutput();
 
+
+  /*
+  typedef  unsigned char    OutputPixelType;
+  typedef  itk::Image< OutputPixelType, Dimension > OutputImageType;  
+
+  OutputImageType::Pointer  localOutputImage = OutputImageType::New();
+
+  OutputImageType::RegionType region;
+  region.SetSize(localImage->GetLargestPossibleRegion().GetSize());
+  region.SetIndex(localImage->GetLargestPossibleRegion().GetIndex());
+  localOutputImage->SetRegions( region );
+  localOutputImage->SetOrigin(localImage->GetOrigin());
+  localOutputImage->SetSpacing(localImage->GetSpacing());
+  localOutputImage->Allocate();
+  localOutputImage->FillBuffer(0);
+*/
+
 	//  We iterate through the list of lines and we draw them.
 	typedef HoughTransformFilterType::LinesListType::const_iterator LineIterator;
-	LineIterator itLines = lines.begin();
+	typedef HoughTransformFilterType::LineType::PointListType PointListType;
+  LineIterator itLines = lines.begin();
+
 	while( itLines != lines.end() )
 	{  
 		//  We get the list of points which consists of two points to represent a
 		//  straight line.  Then, from these two points, we compute a fixed point
 		//  $u$ and a unit vector $\vec{v}$ to parameterize the line.
-		typedef HoughTransformFilterType::LineType::PointListType  PointListType;
+		PointListType pointsList = (*itLines)->GetPoints();
+		PointListType::const_iterator itPoints = pointsList.begin();
 
-		PointListType                   pointsList = (*itLines)->GetPoints();
-		PointListType::const_iterator   itPoints = pointsList.begin();
-
-		double u[2];
+  	double u[2];
 		u[0] = (*itPoints).GetPosition()[0];
 		u[1] = (*itPoints).GetPosition()[1];
 		itPoints++;
+
 		double v[2];
 		v[0] = u[0]-(*itPoints).GetPosition()[0];
 		v[1] = u[1]-(*itPoints).GetPosition()[1];
@@ -204,36 +316,12 @@ PlusStatus LineDetection( PlusVideoFrame* videoFrame )
 	LOG_DEBUG("Write output to file: "<<outputImageFilename.str());
 	PlusVideoFrame::SaveImageToFile(localOutputImage, outputImageFilename.str());
 
-	//Write the sobel filter image to file
-	/*
-	typedef  itk::ImageFileWriter< FloatImageType > WriterTypeFloatImage;
-	WriterTypeFloatImage::Pointer writerFloat = WriterTypeFloatImage::New();
-	writerFloat ->SetFileName( outputImageFilename1.str() );
-	*/
 	
 	typedef itk::CastImageFilter<FloatImageType,ImageType> CastFilterType;
 	CastFilterType::Pointer castFilter = CastFilterType::New();
 	castFilter->SetInput(sobelFilter->GetOutput());
 	
-/*
-	typedef  itk::Image<FloatImageType, Dimension > OutputImageTypeFloat;  
-	typedef itk::ImageDuplicator< FloatImageType > DuplicatorTypeFloat;
-	DuplicatorTypeFloat::Pointer duplicatorFloat = DuplicatorTypeFloat::New();
-	duplicatorFloat->SetInputImage(castFilter->GetOutput());
-	duplicatorFloat->Update();
-	FloatImageType::Pointer localOutputImageFloat = duplicatorFloat->GetOutput();
 
-	writerFloat->SetInput( localOutputImageFloat);
-	try
-	{
-		writerFloat ->Update();
-	}
-	catch( itk::ExceptionObject & excep )
-	{
-		std::cerr << "Exception caught !" << std::endl;
-		std::cerr << excep << std::endl;
-	}
-*/
 
 	return PLUS_SUCCESS; 
 }
