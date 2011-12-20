@@ -25,6 +25,26 @@ FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX}
   )
 FIND_PACKAGE(Subversion REQUIRED)
 
+#------------------------------------------------------------------------------
+# Update SVN repository if local revision is not equal to server revision
+#------------------------------------------------------------------------------
+IF(Subversion_FOUND)
+  SET ( PLUSBUILD_SVN_REPOSITORY "https://subversion.assembla.com/svn/plus/trunk/PlusBuild")
+  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSBUILD_LOCAL_SVN_INFO)
+  Subversion_WC_INFO(${PLUSBUILD_SVN_REPOSITORY} PLUSBUILD_SERVER_SVN_INFO)
+  IF ( NOT ${PLUSBUILD_LOCAL_SVN_INFO_WC_LAST_CHANGED_REV} EQUAL ${PLUSBUILD_SERVER_SVN_INFO_WC_LAST_CHANGED_REV} )
+    MESSAGE(STATUS "Updating PlusBuild: local last changed revision #${PLUSBUILD_LOCAL_SVN_INFO_WC_LAST_CHANGED_REV} differ from server revision #${PLUSBUILD_SERVER_SVN_INFO_WC_LAST_CHANGED_REV}...") 
+    EXECUTE_PROCESS(COMMAND ${Subversion_SVN_EXECUTABLE} update ${CMAKE_CURRENT_SOURCE_DIR} 
+    OUTPUT_VARIABLE SVN_UPDATE_INFO 
+    RESULT_VARIABLE SVN_INFO_RESULT
+    ERROR_VARIABLE SVN_INFO_ERROR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    IF(NOT ${SVN_INFO_RESULT} EQUAL 0)
+        MESSAGE(SEND_ERROR "Command \"${Subversion_SVN_EXECUTABLE} update ${CMAKE_CURRENT_SOURCE_DIR}\" failed with output:\n${SVN_INFO_ERROR}")
+    ENDIF() 
+  ENDIF()
+ENDIF(Subversion_FOUND) 
+
 #-----------------------------------------------------------------------------
 # ASSEMBLA - Set username and password for assembla 
 # Anonymous user name for Plus assembla server: https://subversion.assembla.com/svn/plus/
@@ -175,7 +195,7 @@ SET(PlusApp_DEPENDENCIES PlusLib)
 #------------------------------------------------------------------------------
 # Conditionnaly include ExternalProject Target
 #------------------------------------------------------------------------------
-
+            
 IF ( PLUSBUILD_USE_3DSlicer )
 
     SET(PLUSBUILD_SLICER_BIN_DIRECTORY "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND" CACHE PATH "Path to 3D Slicer binary directory" )
@@ -238,7 +258,6 @@ IF ( PLUSBUILD_USE_3DSlicer )
             FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
             )
     ENDIF()
-
 ELSE ( PLUSBUILD_USE_3DSlicer )
     INCLUDE(External_VTK.cmake)
     INCLUDE(External_ITK.cmake)
