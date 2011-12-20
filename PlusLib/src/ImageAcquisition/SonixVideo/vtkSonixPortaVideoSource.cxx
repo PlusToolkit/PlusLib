@@ -287,40 +287,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
 
   PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber); 
-  /*
-  // get the pointer to the correct location of the frame buffer,
-  // where this data needs to be copied
-  unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));
-
-  int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
-  outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
-
-  int inBytesPerRow = this->FrameSize[0] * this->FrameBufferBitsPerPixel/8;
-
-  int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
-
-  // acquire an post-processed image
-  this->PtrPorta.getBwImage( 0, this->ImageBuffer, true );
-
-  // 4) copy the data to the local vtk frame buffer
-  if ( outBytesPerRow == inBytesPerRow ) 
-  {
-    memcpy( frameBufferPtr,
-      this->ImageBuffer,
-      inBytesPerRow*rows );
-  }
-  else
-  {
-    while( --rows >= 0 ) 
-    {
-      memcpy( frameBufferPtr,
-        deviceDataPtr,
-        outBytesPerRow );
-      frameBufferPtr += outBytesPerRow;
-      deviceDataPtr += inBytesPerRow;
-    }
-  }*/
-
   this->Modified();
   return status;
   // this->FrameBufferMutex->Unlock();
@@ -348,7 +314,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 	this->PortaLicensePath,
     this->PortaLUTPath,
 	2, 3, 0, 0, 32) )
-	//3, 3, 0, 0, 64) ) 
   {
     this->Porta.getLastError( err, size );
     LOG_ERROR("Initialize: Porta could not be initialized: (" << err << ")" );
@@ -428,12 +393,13 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     LOG_ERROR("Initialize: cannot update sonix params" ); 
   }
 
-
-  // set up the frame buffer
-  // this->FrameBufferMutex->Lock();
-  // Frame buffer is also updated within DoFormatSetup
-  // this->DoFormatSetup(); 
-  // this->FrameBufferMutex->Unlock();
+  // Set up imaging parameters
+  // Parameter value <0 means that the parameter should be kept unchanged
+/*  if (this->Frequency>=0 && SetFrequency(this->Frequency)!=PLUS_SUCCESS) { continue; }
+  if (this->Depth>=0 && SetDepth(this->Depth)!=PLUS_SUCCESS) { continue; }
+  if (this->Gain>=0 && SetGain(this->Gain)!=PLUS_SUCCESS) { continue; }
+  if (this->Zoom>=0 && SetZoom(this->Zoom)!=PLUS_SUCCESS) { continue; }
+*/
 
   // set up the callback function which is invocked upon arrival
   // of a new frame
@@ -442,7 +408,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
 //  this->Porta.setMotorActive(true);
   
-  LOG_DEBUG("Successfully connected to sonix video device");
+  LOG_DEBUG("Successfully connected to sonix porta video device");
   return PLUS_SUCCESS;
 }
 
@@ -549,83 +515,83 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   int depth = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Depth", depth)) 
   {
-      this->SetDepth(depth); 
+      this->Depth = depth; 
   }
 
   int gain = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Gain", gain)) 
   {
-      this->SetGain(gain); 
+      this->Gain = gain; 
   }
 
   int zoom = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Zoom", zoom)) 
   {
-      this->SetZoom(zoom); 
+      this->Zoom = zoom; 
   }
 
   int frequency = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Frequency", frequency)) 
   {
-      this->SetFrequency(frequency); 
+      this->Frequency = frequency;
   }
 
   int timeout = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
   {
-      this->SetTimeout(timeout); 
+      this->Timeout = timeout; 
   }
   
   int framePerVolume = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
   {
-      this->SetFramePerVolume(framePerVolume);
+      this->FramePerVolume = framePerVolume;
   }  
 
   int stepPerFrame = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("StepPerFrame", stepPerFrame)) 
   {
-      this->SetStepPerFrame(stepPerFrame); 
+      this->StepPerFrame = stepPerFrame; 
   }  
 
-  const char* LUTPath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
-  if ( LUTPath != NULL) 
+  const char* portaLUTpath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
+  if ( portaLUTpath != NULL) 
   {
-      this->SetPortaLUTPath(LUTPath); 
+      this->SetPortaLUTPath(portaLUTpath); 
   }
   else
   {
-	  LOG_ERROR("Porta LUT path is not defined: "<<LUTPath);
+	  LOG_ERROR("Porta LUT path is not defined: "<<portaLUTpath);
   }
 
-  const char* SettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
-  if ( SettingPath != NULL) 
+  const char* portaSettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
+  if ( portaSettingPath != NULL) 
   {
-      this->SetPortaSettingPath(SettingPath); 
+      this->SetPortaSettingPath(portaSettingPath); 
   }
   else
   {
-	  LOG_ERROR("Porta Setting path is not defined: "<<SettingPath);
+	  LOG_ERROR("Porta Setting path is not defined: "<<portaSettingPath);
   }
 
-  const char* LicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
-  if ( LicensePath != NULL) 
+  const char* portaLicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
+  if ( portaLicensePath != NULL) 
   {
-      this->SetPortaLicensePath(LicensePath); 
+      this->SetPortaLicensePath(portaLicensePath); 
   }
   else
   {
-	  LOG_ERROR("Porta License path is not defined: "<<LicensePath);
+	  LOG_ERROR("Porta License path is not defined: "<<portaLicensePath);
   }
   
-  const char* FirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
-  if ( FirmwarePath != NULL) 
+  const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
+  if ( portaFirmwarePath != NULL) 
   {
-      this->SetPortaFirmwarePath(FirmwarePath); 
+      this->SetPortaFirmwarePath(portaFirmwarePath); 
   }
   else
   {
-	  LOG_ERROR("Porta Firmware path is not defined: "<<FirmwarePath);
+	  LOG_ERROR("Porta Firmware path is not defined: "<<portaFirmwarePath);
   }
 
   LOG_DEBUG("Porta read the XML configuration");
@@ -638,6 +604,110 @@ PlusStatus vtkSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* confi
   // TODO: implement this
     return Superclass::WriteConfiguration(config); 
 }
+
+//----------------------------------------------------------------------------
+std::string vtkSonixPortaVideoSource::GetLastPortaError()
+{
+  const unsigned int MAX_PORTA_ERROR_MSG_LENGTH=256;
+  char err[MAX_PORTA_ERROR_MSG_LENGTH+1];
+  err[MAX_PORTA_ERROR_MSG_LENGTH]=0; // make sure the string is null-terminated
+  this->Porta.getLastError(err,MAX_PORTA_ERROR_MSG_LENGTH);
+  return err; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetParamValue(char* paramId, int paramValue, int &validatedParamValue)
+{
+  if (!this->Connected)
+  {
+    // Connection has not been established yet. Parameter value will be set upon connection.
+    validatedParamValue=paramValue;
+    return PLUS_SUCCESS;
+  }
+  if (!this->Porta.setParam(paramId, paramValue))
+  {
+		LOG_ERROR("vtkSonixPortaVideoSource::SetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
+    return PLUS_FAIL;
+  }
+  validatedParamValue=paramValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetParamValue(char* paramId, int& paramValue, int &validatedParamValue)
+{
+  if (!this->Connected)
+  {
+    // Connection has not been established yet. Returned the cached value.
+    paramValue=validatedParamValue;
+    return PLUS_SUCCESS;
+  }
+  paramValue=-1;
+	if (!this->Porta.getParam(paramId, paramValue))
+  {
+    LOG_ERROR("vtkSonixPortaVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
+    return PLUS_FAIL;
+  }
+  validatedParamValue=paramValue;
+  return PLUS_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetFrequency(int aFrequency)
+{
+  return SetParamValue("b-freq", aFrequency, this->Frequency);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetFrequency(int& aFrequency)
+{
+  return GetParamValue("b-freq", aFrequency, this->Frequency);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetDepth(int aDepth)
+{
+  return SetParamValue("b-depth", aDepth, this->Depth);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetDepth(int& aDepth)
+{
+  return GetParamValue("b-depth", aDepth, this->Depth);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetGain(int aGain)
+{
+  return SetParamValue("b-gain", aGain, this->Gain);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetGain(int& aGain)
+{
+  return GetParamValue("b-gain", aGain, this->Gain);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetZoom(int aZoom)
+{
+  return SetParamValue("b-initial zoom", aZoom, this->Zoom);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetZoom(int& aZoom)
+{
+  return GetParamValue("b-initial zoom", aZoom, this->Zoom);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetTimeout(int aTimeout)
+{
+	this->Timeout = aTimeout;
+	return PLUS_SUCCESS;
+}
+
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams() 

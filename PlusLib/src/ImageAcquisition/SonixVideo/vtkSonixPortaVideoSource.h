@@ -118,31 +118,30 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   vtkSetStringMacro(PortaLicensePath); 
   vtkGetStringMacro(PortaLicensePath); 
 
-  /*! Frequency corresponds to paramID value of 414 for Uterius SDK */
-  vtkGetMacro(Frequency, int);
-  vtkSetMacro(Frequency, int);
+  /*! Set ultrasound transmitter frequency (MHz) */
+  PlusStatus SetFrequency(int aFrequency);
+  /*! Get ultrasound transmitter frequency (MHz) */
+  PlusStatus GetFrequency(int& aFrequency);
 
-  /*! Get/set the depth (mm) of B-mode ultrasound; valid range: ; in increments of  */
-  // Depth corresponds to paramID value of 206 for Uterius SDK
-  vtkGetMacro(Depth, int);
-  vtkSetMacro(Depth, int);
+  /*! Set the depth (mm) of B-mode ultrasound */
+  PlusStatus SetDepth(int aDepth);
+  /*! Get the depth (mm) of B-mode ultrasound */
+  PlusStatus GetDepth(int& aDepth);
 
-  /*! Get/set the Gain (%) of B-mode ultrasound; valid range: 0-100 ; in increments of  */
-  // Gain corresponds to paramID value of 15 for Uterius SDK
-  vtkGetMacro(Gain, int);
-  vtkSetMacro(Gain, int);
+  /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetGain(int aGain);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetGain(int& aGain);
 
-  /*! Get/set the Zoom (%) of B-mode ultrasound; valid range: 0-100 ; in increments of  */
-  // Zoom corresponds to paramID value of 1176 for Uterius SDK
-  vtkGetMacro(Zoom, int);
-  vtkSetMacro(Zoom, int);
+  /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetZoom(int aZoom);
+  /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetZoom(int& aZoom);
   
-  /*! Get/set the Timeout value for network function calls. */
-  // (Default: -1) 
-  vtkGetMacro(Timeout, int);
-  vtkSetMacro(Timeout, int); 
+  /*! Set the Timeout (ms) value for network function calls. */
+  PlusStatus SetTimeout(int aTimeout);
 
-  
+
   void SetImagingMode(int mode){ImagingMode = mode;};
   void GetImagingMode(int & mode){mode = ImagingMode;};
   
@@ -150,6 +149,11 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   void SetPortaCineSize( int size );
 
   /*! Set the start position */
+  PlusStatus SetPortaMotorStartPosition(int aMotorStartPosition);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetPortaMotorStartPosition(int& aMotorStartPosition);
+
+	/*! Set the start position */
   void SetPortaMotorStartPosition( double v );
   
   /*! Return the start position */
@@ -198,6 +202,9 @@ protected:
   /*! Stop recording or playing. */
   virtual PlusStatus InternalStopRecording();
 
+  /*! Get the last error string returned by Porta */
+  std::string GetLastPortaError();
+
 
   /*! pointer to the hardware */
   porta Porta;
@@ -213,6 +220,12 @@ protected:
   
   /*! for internal use only */
   PlusStatus AddFrameToBuffer( void *param, int id );
+
+  /*! For internal use only */
+  PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
+  /*! For internal use only */
+  PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
+
 			  
 private:
  
