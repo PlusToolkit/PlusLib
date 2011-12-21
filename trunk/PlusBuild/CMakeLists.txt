@@ -295,4 +295,12 @@ IF(PLUSBUILD_BUILD_PLUSAPP)
     INCLUDE(External_PlusApp.cmake)
 ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
 
-
+#-----------------------------------------------------------------------------
+# Generate convenience files for automatic update build and test
+# 
+STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/UpdateBuildAndTest.bat.in 
+	${CMAKE_CURRENT_BINARY_DIR}/UpdateBuildAndTest.bat
+	)
+  
