@@ -137,8 +137,18 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   PlusStatus SetZoom(int aZoom);
   /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetZoom(int& aZoom);
+
+  /*! Set the number of frames per volume */
+  PlusStatus SetFramePerVolume(int aFramePerVolume);
+  /*! Get the number of frames per volume */
+  PlusStatus GetFramePerVolume(int& aFramePerVolume);
   
-  /*! Set the Timeout (ms) value for network function calls. */
+  /*! Set the number of frames per volume */
+  PlusStatus SetStepPerFrame(int aStepPerFrame);
+  /*! Get the number of frames per volume */
+  PlusStatus GetStepPerFrame(int& aStepPerFrame);
+	
+	/*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
 
 
@@ -175,14 +185,6 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
   int GetPortaFrameRate();
 
   
-  /*! Get/set the steps motor moves for each frame */
-  vtkGetMacro(StepPerFrame, int);
-  vtkSetMacro(StepPerFrame, int);
-
-  /*! Get/set the number of frames for each sweep of the motor */
-  vtkGetMacro(FramePerVolume, int);
-  vtkSetMacro(FramePerVolume, int);
-
   
 protected:
   vtkSonixPortaVideoSource();

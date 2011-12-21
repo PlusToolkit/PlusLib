@@ -379,10 +379,14 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   // successfully set to bmode
   this->PortaModeSelected = 1;
 
-  // manual acquisition
+	SetFrequency(this->Frequency);
+	SetDepth(this->Depth);
+	SetGain(this->Gain);
+	SetZoom(this->Zoom);
+	SetFramePerVolume(this->FramePerVolume);
+	SetStepPerFrame(this->StepPerFrame);
+
   this->Porta.setParam( prmMotorStatus, 1 );
-  this->Porta.setParam( prmMotorFrames, FramePerVolume );
-  this->Porta.setParam( prmMotorSteps, StepPerFrame );
   if( this->Depth > -1 )
   {
 	  this->Porta.setParam( prmBImageDepth, this->Depth );
@@ -393,13 +397,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     LOG_ERROR("Initialize: cannot update sonix params" ); 
   }
 
-  // Set up imaging parameters
-  // Parameter value <0 means that the parameter should be kept unchanged
-/*  if (this->Frequency>=0 && SetFrequency(this->Frequency)!=PLUS_SUCCESS) { continue; }
-  if (this->Depth>=0 && SetDepth(this->Depth)!=PLUS_SUCCESS) { continue; }
-  if (this->Gain>=0 && SetGain(this->Gain)!=PLUS_SUCCESS) { continue; }
-  if (this->Zoom>=0 && SetZoom(this->Zoom)!=PLUS_SUCCESS) { continue; }
-*/
+
 
   // set up the callback function which is invocked upon arrival
   // of a new frame
@@ -699,6 +697,30 @@ PlusStatus vtkSonixPortaVideoSource::SetZoom(int aZoom)
 PlusStatus vtkSonixPortaVideoSource::GetZoom(int& aZoom)
 {
   return GetParamValue("b-initial zoom", aZoom, this->Zoom);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetFramePerVolume(int aFramePerVolume)
+{
+  return SetParamValue("4d-frames/vol", aFramePerVolume, this->FramePerVolume);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetFramePerVolume(int& aFramePerVolume)
+{
+  return GetParamValue("4d-frames/vol", aFramePerVolume, this->FramePerVolume);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::SetStepPerFrame(int aStepPerFrame)
+{
+  return SetParamValue("4d-steps/frame", aStepPerFrame, this->FramePerVolume);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixPortaVideoSource::GetStepPerFrame(int& aStepPerFrame)
+{
+  return GetParamValue("4d-steps/frame", aStepPerFrame, this->StepPerFrame);
 }
 
 //----------------------------------------------------------------------------
