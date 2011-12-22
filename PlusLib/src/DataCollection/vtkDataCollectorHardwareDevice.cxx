@@ -1309,17 +1309,6 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadConfiguration(vtkXMLDataElement* 
     return PLUS_FAIL;
   }
 
-  // Check data collection configuration version
-  double dataCollectionVersion = 0; 
-  if ( dataCollectionConfig->GetScalarAttribute("version", dataCollectionVersion) )
-  {
-    if ( dataCollectionVersion < this->DataCollectionConfigVersion )
-    {
-      LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << this->DataCollectionConfigVersion ); 
-      return PLUS_FAIL;
-    }
-  }
-
   // Read StartupDelaySec
   double startupDelaySec(0.0); 
   if ( dataCollectionConfig->GetScalarAttribute("StartupDelaySec", startupDelaySec) )

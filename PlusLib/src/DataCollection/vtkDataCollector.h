@@ -123,9 +123,6 @@ private:
   static vtkDataCollector* CreateDataCollectorAccordingToDeviceSetConfiguration();
 
 protected:
-  /*! Version of the configuration description XML data element */
-  double			              	  DataCollectionConfigVersion; 
-
   /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double                        StartupDelaySec; 
 
