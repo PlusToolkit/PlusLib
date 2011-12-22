@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
       Description="Configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
@@ -118,7 +118,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
   </Rendering>
 
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"

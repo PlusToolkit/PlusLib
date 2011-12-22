@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST Simulation mode for Stylus calibration"
       Description="No Video with Fake tracker in Pivot calibration mode

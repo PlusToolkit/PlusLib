@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
 
     <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
 
@@ -47,7 +47,7 @@
     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
   </iCal>
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"

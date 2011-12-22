@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="SonixTouch TRUS + CIVCO Stepper + iCAL 1.0 + 70mm depth" 
       Description="Configuration file for SonixTouch TRUS + CIVCO + iCal 1.0 + 70mm depth
@@ -120,7 +120,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
   </Rendering>
 
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"

@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="Saved dataset for both video and tracking (fCal)" 
       Description="Configuration file for Saved dataset + fCal 1.0
@@ -120,7 +120,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   />
 
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"

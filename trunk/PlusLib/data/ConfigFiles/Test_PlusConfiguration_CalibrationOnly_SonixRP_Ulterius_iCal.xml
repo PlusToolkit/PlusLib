@@ -20,7 +20,7 @@
     <Transform From="TemplateHolder" To="Phantom" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
   </CoordinateDefinitions> 
   
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"

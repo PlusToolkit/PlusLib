@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="SonixRP L14-5 + NDI Certus" 
       Description="Configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0
@@ -114,7 +114,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
   />
 
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"

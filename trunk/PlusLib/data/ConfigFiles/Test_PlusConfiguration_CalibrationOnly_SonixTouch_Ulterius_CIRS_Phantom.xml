@@ -18,7 +18,7 @@
   />
   
 
-  <PhantomDefinition version="1.1">
+  <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="CIRS Model 045"

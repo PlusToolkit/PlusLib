@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <DataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST Tracking and video data is read from sequence metafile." 
       Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 

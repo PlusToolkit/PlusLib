@@ -32,8 +32,6 @@ vtkDataCollector::vtkDataCollector()
 {	
   this->ProgressBarUpdateCallbackFunction = NULL; 
 
-  this->DataCollectionConfigVersion = 2.0; 
-
   this->StartupDelaySec = 0.0; 
 
   this->ConnectedOff(); 
