@@ -1,0 +1,3 @@
+# This contains the definitions of the hardware ids of the bt878 devices
+Bt 878 Frame Grabber=PCI Frame Grabber
+VEN 109E DEV 036E=Bt 878 Grabber
