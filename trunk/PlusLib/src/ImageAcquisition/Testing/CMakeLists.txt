@@ -103,3 +103,12 @@ ADD_TEST(vtkPlusVideoSourceFactoryTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPlusVideoSourceFactoryTest
   )
 SET_TESTS_PROPERTIES( vtkPlusVideoSourceFactoryTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+
+# --------------------------------------------------------------------------
+# Install
+#
+
+INSTALL(TARGETS MetaImageSequenceViewer
+  DESTINATION bin
+  COMPONENT RuntimeLibraries
+  )

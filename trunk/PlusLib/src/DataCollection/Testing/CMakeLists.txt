@@ -159,3 +159,12 @@ TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkTracking vtkImageAcquisition)
 ADD_TEST(PlusVersion 
   ${EXECUTABLE_OUTPUT_PATH}/PlusVersion
   )
+  
+# --------------------------------------------------------------------------
+# Install
+#
+
+INSTALL(TARGETS PlusVersion
+  DESTINATION bin
+  COMPONENT RuntimeLibraries
+  )
