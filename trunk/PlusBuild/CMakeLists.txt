@@ -279,13 +279,13 @@ ENDIF(PLUSBUILD_BUILD_PLUSAPP)
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic update build and test
 # 
-STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UpdateBuildAndTest.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UpdateBuildAndTest.bat
-	)
-  
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+	)
+
+STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in 
+	${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
 	)
