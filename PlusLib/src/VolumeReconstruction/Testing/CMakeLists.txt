@@ -46,3 +46,12 @@ ADD_TEST(CreateSliceModelsTest
   --input-transform-name=ProbeToReference
   )
 SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+# --------------------------------------------------------------------------
+# Install
+#
+
+INSTALL(TARGETS CreateSliceModels
+  DESTINATION bin
+  COMPONENT RuntimeLibraries
+  )
