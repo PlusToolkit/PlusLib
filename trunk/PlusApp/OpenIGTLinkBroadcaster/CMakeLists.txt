@@ -94,8 +94,21 @@ TARGET_LINK_LIBRARIES( PlusServer
   vtkTracking
   )
 
-  
+# --------------------------------------------------------------------------
+# Install
+#
+
 INSTALL(TARGETS OpenIGTLinkBroadcaster
+  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+  COMPONENT RuntimeLibraries
+  )
+
+INSTALL(TARGETS PlusServer
+  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+  COMPONENT RuntimeLibraries
+  )
+
+INSTALL(TARGETS SendCommands
   DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
   COMPONENT RuntimeLibraries
   )
