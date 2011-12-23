@@ -315,12 +315,14 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     this->PortaLUTPath,
 	2, 3, 0, 0, 32) )
   {
-    this->Porta.getLastError( err, size );
-    LOG_ERROR("Initialize: Porta could not be initialized: (" << err << ")" );
+//    this->Porta.getLastError( err, size );
+    LOG_ERROR("Initialize: Porta could not be initialized: (" << this->GetLastPortaError() << ")" );
     return PLUS_FAIL;
   }
 
-  // select the probe
+	this->Connected = true;
+
+	// select the probe
   if ( this->Porta.isConnected() ) 
   {
     code = (char)this->Porta.getProbeID( 0 );
@@ -335,6 +337,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     char name[MAX_NAME_LENGTH+1];
     name[MAX_NAME_LENGTH]=0;
 
+
     // the 3D/4D probe is always connected to port 0
     this->Porta.activateProbeConnector( 0 );
     this->Porta.getProbeName( name, MAX_NAME_LENGTH, code );
@@ -342,13 +345,14 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     // store the probe name
     SetPortaProbeName(name);
 
-	/*if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+		if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
     {
       LOG_ERROR("Initialize: master preset cannot be found" );
       return PLUS_FAIL;
-    }*/ 
+    }
 
-    if ( !this->Porta.loadPreset( "D:/devel/PlusExperimental-build/PLTools/Ultrasonix/sdk-5.7.1/Porta/dat/presets/imaging/GEN-General (4DC7-3 40mm).xml" ) ) 
+		std::string preset = "D:/t/devel/PLTools/Ultrasonix/sdk-5.6.4/Porta/dat/presets/imaging/GEN-General (4DC7-3 40mm).xml";
+		if ( !this->Porta.loadPreset( name ) )
     {
       LOG_ERROR("Initialize: master preset could not be loaded" );
       return PLUS_FAIL;
@@ -387,10 +391,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 	SetStepPerFrame(this->StepPerFrame);
 
   this->Porta.setParam( prmMotorStatus, 1 );
-  if( this->Depth > -1 )
-  {
-	  this->Porta.setParam( prmBImageDepth, this->Depth );
-  }
+
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
   {
@@ -405,7 +406,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     (void*)this );
 
 //  this->Porta.setMotorActive(true);
-  
+
+
   LOG_DEBUG("Successfully connected to sonix porta video device");
   return PLUS_SUCCESS;
 }
@@ -413,6 +415,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::InternalDisconnect()
 {
+	  this->Porta.setParam( prmMotorStatus, 0 );
   this->Porta.stopImage();
   this->Porta.shutdown();
   return PLUS_SUCCESS;
@@ -654,73 +657,73 @@ PlusStatus vtkSonixPortaVideoSource::GetParamValue(char* paramId, int& paramValu
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetFrequency(int aFrequency)
 {
-  return SetParamValue("b-freq", aFrequency, this->Frequency);
+  return SetParamValue(prmBTxFreq, aFrequency, this->Frequency);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetFrequency(int& aFrequency)
 {
-  return GetParamValue("b-freq", aFrequency, this->Frequency);
+  return GetParamValue(prmBTxFreq, aFrequency, this->Frequency);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetDepth(int aDepth)
 {
-  return SetParamValue("b-depth", aDepth, this->Depth);
+	return SetParamValue(prmBImageDepth, aDepth, this->Depth);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetDepth(int& aDepth)
 {
-  return GetParamValue("b-depth", aDepth, this->Depth);
+  return GetParamValue(prmBImageDepth, aDepth, this->Depth);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetGain(int aGain)
 {
-  return SetParamValue("b-gain", aGain, this->Gain);
+  return SetParamValue(prmBGain, aGain, this->Gain);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetGain(int& aGain)
 {
-  return GetParamValue("b-gain", aGain, this->Gain);
+  return GetParamValue(prmBGain, aGain, this->Gain);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetZoom(int aZoom)
 {
-  return SetParamValue("b-initial zoom", aZoom, this->Zoom);
+  return SetParamValue(prmZoom, aZoom, this->Zoom);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetZoom(int& aZoom)
 {
-  return GetParamValue("b-initial zoom", aZoom, this->Zoom);
+  return GetParamValue(prmZoom, aZoom, this->Zoom);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetFramePerVolume(int aFramePerVolume)
 {
-  return SetParamValue("4d-frames/vol", aFramePerVolume, this->FramePerVolume);
+  return SetParamValue(prmMotorFrames, aFramePerVolume, this->FramePerVolume);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetFramePerVolume(int& aFramePerVolume)
 {
-  return GetParamValue("4d-frames/vol", aFramePerVolume, this->FramePerVolume);
+  return GetParamValue(prmMotorFrames, aFramePerVolume, this->FramePerVolume);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetStepPerFrame(int aStepPerFrame)
 {
-  return SetParamValue("4d-steps/frame", aStepPerFrame, this->FramePerVolume);
+	return SetParamValue(prmMotorSteps, aStepPerFrame, this->FramePerVolume);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::GetStepPerFrame(int& aStepPerFrame)
 {
-  return GetParamValue("4d-steps/frame", aStepPerFrame, this->StepPerFrame);
+  return GetParamValue(prmMotorSteps, aStepPerFrame, this->StepPerFrame);
 }
 
 //----------------------------------------------------------------------------

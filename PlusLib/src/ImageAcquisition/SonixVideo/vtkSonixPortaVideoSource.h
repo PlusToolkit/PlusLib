@@ -216,7 +216,7 @@ protected:
   int Frequency;
   int Gain; 
   int Zoom; 
-  int FrameRate;
+
   int ImagingMode;
   int Timeout; 
   
@@ -241,8 +241,8 @@ private:
   static bool vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header );
 #endif
   
-  // vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
-  // void operator=(const vtkSonixVideoSource&);  // Not implemented.							
+  // vtkSonixPortaVideoSource(const vtkSonixPortaVideoSource&);  // Not implemented.
+  // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.							
   
   /*! Update porta parameters */
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
