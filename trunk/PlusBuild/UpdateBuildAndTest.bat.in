@@ -1,6 +1,9 @@
 
-REM @ECHO off
+@ECHO off
 REM Hide all your directories from users
+
+@REM Update PlusBuild folder 
+${Subversion_SVN_EXECUTABLE} update ${CMAKE_CURRENT_SOURCE_DIR}
 
 @REM run the PlusBuild before we run tests 
 "${CMAKE_COMMAND}" --build "${CMAKE_CURRENT_BINARY_DIR}" --config Release
