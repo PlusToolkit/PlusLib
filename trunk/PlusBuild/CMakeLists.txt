@@ -12,7 +12,7 @@ SET(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules
     ${CMAKE_MODULE_PATH}
     )
-
+ 
 #-----------------------------------------------------------------------------
 # SVN - Let's check if a valid version of SVN is available
 #-----------------------------------------------------------------------------
@@ -132,6 +132,7 @@ ENDIF(PLUSBUILD_BUILD_PLUSAPP)
 # Enable and setup External project global properties
 #-----------------------------------------------------------------------------
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+INCLUDE(CTest)
 
 SET(ep_base "${CMAKE_BINARY_DIR}")
 
@@ -284,3 +285,7 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/UpdateBuildAndTest.bat
 	)
   
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+	)
