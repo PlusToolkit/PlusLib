@@ -294,6 +294,12 @@ private:
   /*!  The number of steps the motor will move while acuqiring a single frame */
   int StepPerFrame;
 
+	/*! Probe information */
+	probeInfo probeInformation;
+
+	/*! Motor degree per step */
+	double degPerStep;
+
   
 };
 
