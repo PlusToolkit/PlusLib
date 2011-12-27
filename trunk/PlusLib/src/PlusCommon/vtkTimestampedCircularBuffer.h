@@ -37,6 +37,8 @@ enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, I
 class VTK_EXPORT TimestampedBufferItem
 {
 public:
+	typedef std::map<std::string, std::string> FieldMapType;
+
 	/*! Get timestamp for the current buffer item in global time (global = local + offset) */
 	double GetTimestamp( double localTimeOffset) { return this->GetFilteredTimestamp(localTimeOffset); }
 	
@@ -59,6 +61,47 @@ public:
 	/*! Set/get unique identifier assigned by the storage buffer */
 	BufferItemUidType GetUid() { return this->Uid; }; 
 	void SetUid(BufferItemUidType uid) { this->Uid = uid; }; 
+
+	/*! Set custom frame field */
+	void SetCustomFrameField(std::string fieldName, std::string fieldValue) { this->CustomFrameFields[fieldName] = fieldValue; }
+
+	/*! Get custom frame field value */ 
+	const char* GetCustomFrameField(const char* fieldName)
+	{
+		if (fieldName == NULL )
+		{
+			LOG_ERROR("Unable to get custom frame field: field name is NULL!"); 
+			return NULL; 
+		}
+
+		FieldMapType::iterator fieldIterator; 
+		fieldIterator = this->CustomFrameFields.find(fieldName); 
+		if ( fieldIterator != this->CustomFrameFields.end() )
+		{
+			return fieldIterator->second.c_str(); 
+		}
+		return NULL; 
+	}
+	
+	/*! Delete custom frame field */
+	PlusStatus DeleteCustomFrameField( const char* fieldName )
+	{
+		if ( fieldName == NULL )
+		{
+			LOG_DEBUG("Failed to delete custom frame field - field name is NULL!"); 
+			return PLUS_FAIL; 
+		}
+
+		FieldMapType::iterator field = this->CustomFrameFields.find(fieldName); 
+		if ( field != this->CustomFrameFields.end() )
+		{
+			this->CustomFrameFields.erase(field); 
+			return PLUS_SUCCESS; 
+		}
+		LOG_DEBUG("Failed to delete custom frame field - could find field " << fieldName ); 
+		return PLUS_FAIL; 
+	}
+
 
 protected: 
 	TimestampedBufferItem() 
@@ -87,6 +130,8 @@ protected:
 
 	/*! unique identifier assigned by the storage buffer */
 	BufferItemUidType Uid; 
+
+	FieldMapType CustomFrameFields;
 }; 
 
 /*!
