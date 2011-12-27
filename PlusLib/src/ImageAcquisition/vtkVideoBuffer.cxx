@@ -271,6 +271,98 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,                               
+                                              US_IMAGE_ORIENTATION  usImageOrientation, 
+                                              const int    frameSizeInPx[2],
+                                              PlusCommon::ITKScalarPixelType pixelType, 
+                                              int	numberOfBytesToSkip, 
+                                              long frameNumber,
+																							std::string customFrameFieldName, 
+																							std::string customFrameFieldValue,
+                                              double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                              double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/
+                                              )
+{
+  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  }
+
+  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      return PLUS_FAIL; 
+    }
+    if (!filteredTimestampProbablyValid)
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+      return PLUS_SUCCESS;
+    }
+  }
+
+  if ( imageDataPtr == NULL )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType) )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
+    return PLUS_FAIL; 
+  }
+
+  int bufferIndex(0); 
+  BufferItemUidType itemUid; 
+  PlusLockGuard<VideoBufferType> videoBufferGuardedLock(this->VideoBuffer);
+  if ( this->VideoBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
+  {
+    // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
+    LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  // get the pointer to the correct location in the frame buffer, where this data needs to be copied
+  VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
+  if ( newObjectInBuffer == NULL )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
+    return PLUS_FAIL; 
+  }
+
+  int receivedFrameSize[2]={0,0};
+  newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize); 
+
+  if ( frameSizeInPx[0] != receivedFrameSize[0] 
+    || frameSizeInPx[1] != receivedFrameSize[1] )
+  {
+    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
+      << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Skip the numberOfBytesToSkip bytes, e.g. header size
+  unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
+  byteImageDataPtr += numberOfBytesToSkip; 
+
+  if (PlusVideoFrame::GetMFOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to convert input US image to MF orientation!"); 
+    return PLUS_FAIL; 
+  }
+
+  newObjectInBuffer->SetFilteredTimestamp(filteredTimestamp); 
+  newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
+  newObjectInBuffer->SetIndex(frameNumber); 
+  newObjectInBuffer->SetUid(itemUid); 
+	newObjectInBuffer->SetCustomFrameField(customFrameFieldName, customFrameFieldValue);
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
   if ( frame == NULL )
