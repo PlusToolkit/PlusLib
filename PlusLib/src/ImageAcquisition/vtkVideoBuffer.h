@@ -103,19 +103,13 @@ public:
   virtual PlusStatus AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
+    Additionally an optional field name&value can be added,
+    which will be saved as a custom field of the added item.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
-  /*!
-    Add a frame plus a timestamp to the buffer with frame index.
-		Additionally a field name together with its value can be added.
-    If the timestamp is  less than or equal to the previous timestamp,
-    or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
-  */
-	virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long   frameNumber, std::string customFrameFieldName, std::string customFrameFieldValue, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, const char* customFrameFieldName=NULL, const char* customFrameFieldValue=NULL); 
 
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);

@@ -291,15 +291,14 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 	double frameIndexInTwoVolumes = (FrameNumber % (FramePerVolume * 2));
 	double currentMotorAngle;
 	if (frameIndexInTwoVolumes <= FramePerVolume) {
-		currentMotorAngle = (frameIndexInTwoVolumes - FramePerVolume / 2) * degPerStep * StepPerFrame;
+		currentMotorAngle = (frameIndexInTwoVolumes - FramePerVolume / 2) * this->MotorRotationPerStepDeg * StepPerFrame;
 	} else {
-		currentMotorAngle = - (frameIndexInTwoVolumes - FramePerVolume *3 / 2) * degPerStep * StepPerFrame;
+		currentMotorAngle = - (frameIndexInTwoVolumes - FramePerVolume *3 / 2) * this->MotorRotationPerStepDeg * StepPerFrame;
 	}
 	std::ostringstream motorAngle;
 	motorAngle << currentMotorAngle;
 
-
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber, "MotorAngle", motorAngle.str()); 
+  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, "MotorAngle", motorAngle.str().c_str()); 
   this->Modified();
   return status;
   // this->FrameBufferMutex->Unlock();
@@ -342,8 +341,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // select the code read and see if it is motorized
   if ( this->Porta.selectProbe( code ) &&
-    this->Porta.getProbeInfo( probeInformation ) &&
-    probeInformation.motorized ) 
+    this->Porta.getProbeInfo( this->ProbeInformation ) &&
+    this->ProbeInformation.motorized ) 
   {
     const int MAX_NAME_LENGTH=100;
     char name[MAX_NAME_LENGTH+1];
@@ -403,7 +402,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 	SetStepPerFrame(this->StepPerFrame);
 
 	// Compute the angle per step
-	degPerStep = (double)probeInformation.motorFov / (double)probeInformation.motorSteps;
+	this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps;
 
 	// Turn on the motor
   this->Porta.setParam( prmMotorStatus, 1 );

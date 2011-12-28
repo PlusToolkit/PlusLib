@@ -203,9 +203,13 @@ namespace PlusCommon
   \class PlusTransformName 
   \brief Stores the from and to coordinate frame names for transforms 
 
-  The PlusTransformName stores and generates the from and to coordinate frame names for transforms. 
+  The PlusTransformName stores and generates the from and to coordinate frame names for transforms.
+  To enable robust serialization to/from a simple string (...To...Transform), the coordinate frame names must
+  start with an uppercase character and it shall not contain "To" followed by an uppercase character. E.g., valid
+  coordinate frame names are Tracker, TrackerBase, Tool; invalid names are tracker, trackerBase, ToImage.
 
   Example usage:
+  Setting a transform name:
   \code
   PlusTransformName tnImageToProbe("Image", "Probe"); 
   \endcode
@@ -214,14 +218,22 @@ namespace PlusCommon
   PlusTransformName tnImageToProbe; 
   if ( tnImageToProbe->SetTransformName("ImageToProbe") != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to set transform name!"); 
+    LOG_ERROR("Failed to set transform name!");
+    return PLUS_FAIL;
   }
-  std::string fromFrame = tnImageToProbe->GetFrom(); 
-  std::string toFrame = tnImageToProbe->GetFrom(); 
+  \endcode
+  Getting coordinate frame or transform names:
+  \code
+  std::string fromFrame = tnImageToProbe->From(); 
+  std::string toFrame = tnImageToProbe->To(); 
+  \endcode
+  or
+  \code
   std::string strImageToProbe; 
   if ( tnImageToProbe->GetTransformName(strImageToProbe) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get transform name!"); 
+    LOG_ERROR("Failed to get transform name!");
+    return PLUS_FAIL;
   }
   \endcode
 
