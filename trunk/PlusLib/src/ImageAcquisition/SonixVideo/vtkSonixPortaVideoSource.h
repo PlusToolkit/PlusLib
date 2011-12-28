@@ -295,10 +295,10 @@ private:
   int StepPerFrame;
 
 	/*! Probe information */
-	probeInfo probeInformation;
+	probeInfo ProbeInformation;
 
-	/*! Motor degree per step */
-	double degPerStep;
+	/*! Motor rotation per step (in degrees) */
+	double MotorRotationPerStepDeg;
 
   
 };
