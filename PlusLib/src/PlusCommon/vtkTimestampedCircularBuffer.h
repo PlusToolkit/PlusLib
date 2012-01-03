@@ -82,7 +82,11 @@ public:
 		}
 		return NULL; 
 	}
-	
+	/*! Gete custom frame field map */
+	FieldMapType& GetCustomFrameFieldMap()
+	{
+	  return this->CustomFrameFields;
+	}
 	/*! Delete custom frame field */
 	PlusStatus DeleteCustomFrameField( const char* fieldName )
 	{
@@ -131,6 +135,7 @@ protected:
 	/*! unique identifier assigned by the storage buffer */
 	BufferItemUidType Uid; 
 
+	/*! Custom frame fields */
 	FieldMapType CustomFrameFields;
 }; 
 
