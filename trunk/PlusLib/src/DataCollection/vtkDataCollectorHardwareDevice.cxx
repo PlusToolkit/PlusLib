@@ -775,7 +775,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideoFrame& frame, double& aTimestamp)
+PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideoFrame& frame, FieldMapType& fieldMap, double& aTimestamp)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameByTime"); 
   if ( this->GetVideoSource() == NULL ) 
@@ -814,6 +814,9 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideo
 
   // Copy frame 
   frame=currentVideoBufferItem.GetFrame(); 
+
+  // Copy all custom fields
+  fieldMap=currentVideoBufferItem.GetCustomFrameFieldMap();
 
   // Copy frame timestamp 
   aTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
@@ -1176,9 +1179,10 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
   if ( this->GetVideoEnabled() )
   {
     PlusVideoFrame frame; 
+		VideoBufferItem::FieldMapType fieldMap;
 
     // Get the frame by time
-    if ( ! this->GetFrameByTime(time, frame, synchronizedTime) )
+    if ( ! this->GetFrameByTime(time, frame, fieldMap, synchronizedTime) )
     {
       LOG_ERROR("Failed to get tracked frame by time: " << std::fixed << time ); 
       return PLUS_FAIL; 
@@ -1186,6 +1190,13 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
 
     //Add all information to the tracked frame
     trackedFrame->SetImageData(frame);
+
+    //Add all custom fields to the tracked frame
+    VideoBufferItem::FieldMapType::iterator fieldIterator;
+    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+	{
+      trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+    }
   }
 
   if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )
