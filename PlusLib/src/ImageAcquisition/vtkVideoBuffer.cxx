@@ -49,6 +49,7 @@ VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem)
   this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
   this->Index = videoItem.Index; 
   this->Uid = videoItem.Uid; 
+  this->CustomFrameFields = videoItem.CustomFrameFields;
 
   return *this;
 }
@@ -265,7 +266,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
   // Add a custom field
   if (customFrameFieldName!=NULL && customFrameFieldValue!=NULL)
   {
-	  newObjectInBuffer->SetCustomFrameField(customFrameFieldName, customFrameFieldValue);
+		newObjectInBuffer->SetCustomFrameField(customFrameFieldName, customFrameFieldValue);
   }
   else if (customFrameFieldName!=NULL && customFrameFieldValue==NULL)
   {
