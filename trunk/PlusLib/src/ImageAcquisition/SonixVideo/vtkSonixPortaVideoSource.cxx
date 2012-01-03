@@ -402,7 +402,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 	SetStepPerFrame(this->StepPerFrame);
 
 	// Compute the angle per step
-	this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps;
+	this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps / 1000;
 
 	// Turn on the motor
   this->Porta.setParam( prmMotorStatus, 1 );
