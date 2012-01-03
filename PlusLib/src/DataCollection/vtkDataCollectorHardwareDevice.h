@@ -38,6 +38,8 @@ public:
   vtkTypeRevisionMacro(vtkDataCollectorHardwareDevice, vtkDataCollector);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
+	typedef std::map<std::string, std::string> FieldMapType;
+
   /*! Read the configuration file in XML format and set up the devices */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
@@ -148,7 +150,7 @@ protected:
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
   /*! Get frame data by time  */
-  virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, double& aTimestamp); 
+	virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, FieldMapType& fieldMap, double & aTimestamp); 
 
   /*! This is called by the superclass. */
   virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
