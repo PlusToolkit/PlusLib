@@ -42,7 +42,6 @@ public:
 protected slots:
   
   void PlayPausePressed();
-  void StylusCalibrationChanged( int newValue );
   void SendMessages();
   
 

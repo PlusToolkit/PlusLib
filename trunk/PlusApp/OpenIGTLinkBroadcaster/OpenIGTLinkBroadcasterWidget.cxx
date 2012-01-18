@@ -154,23 +154,6 @@ void OpenIGTLinkBroadcasterWidget::PlayPausePressed()
 }
 
 
-
-void OpenIGTLinkBroadcasterWidget::StylusCalibrationChanged( int newValue )
-{
-  if ( newValue != 0 )
-    {
-    this->StylusCalibrationOn = true;
-    this->m_OpenIGTLinkBroadcaster->SetApplyStylusCalibration( true );
-    }
-  else
-    {
-    this->StylusCalibrationOn = false;
-    this->m_OpenIGTLinkBroadcaster->SetApplyStylusCalibration( false );
-    }
-}
-
-
-
 void OpenIGTLinkBroadcasterWidget::SendMessages()
 {
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
