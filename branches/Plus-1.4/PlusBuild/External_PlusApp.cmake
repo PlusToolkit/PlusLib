@@ -14,7 +14,7 @@ ExternalProject_Add(PlusApp
             #--Download step--------------
             SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
             SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
-            SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
+            SVN_REPOSITORY https://subversion.assembla.com/svn/plus/branches/Plus-1.4/PlusApp
             ${PLUSBUILD_SVN_REVISION_ARGS}
             #--Configure step-------------
             CMAKE_ARGS 

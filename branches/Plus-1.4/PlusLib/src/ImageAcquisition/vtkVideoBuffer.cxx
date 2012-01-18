@@ -49,6 +49,7 @@ VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem)
   this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
   this->Index = videoItem.Index; 
   this->Uid = videoItem.Uid; 
+  this->CustomFrameFields = videoItem.CustomFrameFields;
 
   return *this;
 }
@@ -181,15 +182,10 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::I
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,                               
-                                              US_IMAGE_ORIENTATION  usImageOrientation, 
-                                              const int    frameSizeInPx[2],
-                                              PlusCommon::ITKScalarPixelType pixelType, 
-                                              int	numberOfBytesToSkip, 
-                                              long   frameNumber,
-                                              double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
-                                              double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/
-                                              )
+PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
+  const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long frameNumber,  
+  double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
+  const char* customFrameFieldName/*=NULL*/, const char* customFrameFieldValue/*=NULL*/)
 {
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
@@ -266,6 +262,20 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,
   newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
+  
+  // Add a custom field
+  if (customFrameFieldName!=NULL && customFrameFieldValue!=NULL)
+  {
+		newObjectInBuffer->SetCustomFrameField(customFrameFieldName, customFrameFieldValue);
+  }
+  else if (customFrameFieldName!=NULL && customFrameFieldValue==NULL)
+  {
+    LOG_WARNING("Custom field is not added to frame: customFrameFieldName is "<<customFrameFieldName<<", but customFrameFieldValue is undefined");
+  }
+  else if (customFrameFieldName==NULL && customFrameFieldValue!=NULL)
+  {
+    LOG_WARNING("Custom field is not added to frame: customFrameFieldValue is "<<customFrameFieldValue<<", but customFrameFieldName is undefined");
+  }
 
   return PLUS_SUCCESS; 
 }
