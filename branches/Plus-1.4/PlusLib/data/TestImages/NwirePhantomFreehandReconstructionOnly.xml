@@ -11,9 +11,8 @@
   </CoordinateDefinitions>
   
   <VolumeReconstruction
-    CalibrationTransformName="ImageToProbe" 
     Interpolation="LINEAR" 
-    Optimization="NONE" 
+    Optimization="FULL" 
     Compounding="On" 
     FillHoles="Off" 
     ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
