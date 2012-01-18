@@ -209,7 +209,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       int frameNumber=0;
       if (PlusCommon::StringToInt(frameNumberStr.c_str(),frameNumber)!=PLUS_SUCCESS)
       {
-        LOG_WARNING("Parsing line failed, cannot get file number from frame field ("<<lineStr<<")");
+        LOG_WARNING("Parsing line failed, cannot get frame number from frame field ("<<lineStr<<")");
         continue;
       }
       SetCustomFrameString(frameNumber, frameFieldName.c_str(), value.c_str());

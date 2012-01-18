@@ -1,13 +1,13 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-#***************************  vtkVolumeReconstructorTest1  ***************************
-ADD_EXECUTABLE(vtkVolumeReconstructorTest vtkVolumeReconstructorTest1.cxx )
-TARGET_LINK_LIBRARIES(vtkVolumeReconstructorTest vtkVolumeReconstruction )
+#***************************  VolumeReconstructor  ***************************
+ADD_EXECUTABLE(VolumeReconstructor VolumeReconstructor.cxx )
+TARGET_LINK_LIBRARIES(VolumeReconstructor vtkVolumeReconstruction )
 
 # Reconstruct a volume from brachy stepper acquisition
 ADD_TEST(vtkVolumeReconstructorTest1
-  ${EXECUTABLE_OUTPUT_PATH}/vtkVolumeReconstructorTest
+  ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
   --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml 
   --input-img-seq-file-name=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
   --output-volume-file-name=vtkVolumeReconstructorTest1Output.vtk
@@ -17,7 +17,7 @@ SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest1 PROPERTIES FAIL_REGULAR_EXPRES
 
 # Reconstruct a volume from freehand acquisition
 ADD_TEST(vtkVolumeReconstructorTest2
-  ${EXECUTABLE_OUTPUT_PATH}/vtkVolumeReconstructorTest
+  ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
   --input-config-file-name=${TestDataDir}/NwirePhantomFreehand.xml 
   --input-img-seq-file-name=${TestDataDir}/NwirePhantomFreehand.mha
   --output-volume-file-name=vtkVolumeReconstructorTest2Output.vtk
@@ -32,7 +32,6 @@ ADD_TEST(vtkVolumeReconstructorTest3
   vtkVolumeReconstructorTest2Output.vtk
   )
 SET_TESTS_PROPERTIES(vtkVolumeReconstructorTest3 PROPERTIES DEPENDS vtkVolumeReconstructorTest2)
-
 
 #***************************  CreateSliceModels  ***************************
 # This program helps debugging geometry problems in volume reconstruction.
@@ -51,7 +50,7 @@ SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 # Install
 #
 
-INSTALL(TARGETS CreateSliceModels
+INSTALL(TARGETS VolumeReconstructor CreateSliceModels
   DESTINATION bin
   COMPONENT RuntimeLibraries
   )
