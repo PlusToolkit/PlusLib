@@ -30,26 +30,38 @@ vtkStandardNewMacro( vtkOpenIGTLinkBroadcaster );
 vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
 {
   this->DataCollector = NULL;
-  this->ApplyStylusCalibration = false;
   this->TransformRepository = NULL;
-  this->ImageSocket = NULL;
+  this->ImageInfo.Name = "Image";
 }
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
 {
-  for ( int i = 0; i < this->SocketInfos.size(); ++ i )
-  {
-    this->SocketInfos[ i ].Socket->CloseSocket();
-  }
-
-  this->SocketInfos.clear();
+  this->DisconnectSockets(); 
 
   if (this->TransformRepository != NULL)
   {
     this->TransformRepository->Delete();
     this->TransformRepository = NULL;
   } 
+}
+
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkBroadcaster::DisconnectSockets()
+{
+  
+  for ( int i = 0; i < this->SocketInfos.size(); ++ i )
+  {
+    this->SocketInfos[ i ].Socket->CloseSocket();
+  }
+  this->SocketInfos.clear(); 
+  this->ToolInfos.clear();
+  
+  if ( this->ImageInfo.IgtlSocketInfo.Socket.IsNotNull() )
+  {
+    //this->ImageInfo.IgtlSocketInfo.Socket->CloseSocket(); 
+    this->ImageInfo.IgtlSocketInfo.Socket = NULL; 
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -76,6 +88,8 @@ PlusStatus vtkOpenIGTLinkBroadcaster::Initialize()
     LOG_ERROR( "Unable to create TransformRepository!" );
     return PLUS_FAIL;
   }
+
+  this->DisconnectSockets(); 
 
   return PLUS_SUCCESS;
 }
@@ -118,33 +132,24 @@ PlusStatus vtkOpenIGTLinkBroadcaster::ReadConfiguration(vtkXMLDataElement* aConf
   {
     vtkXMLDataElement* transformDataElement = openIGTLinkElement->GetNestedElement(transform); 
 
-    SocketInfo socketInfo; 
     const char* sendToLink = transformDataElement->GetAttribute("SendTo");
-    if ( (sendToLink == NULL)
-      || (GetSocketInfoFromSendToLink(sendToLink, socketInfo) != PLUS_SUCCESS) )
-    {
-	    LOG_WARNING("OpenIGTLink Transform element does not contain SendTo attribute - it cannot be broadcasted!");
-      continue;
-    }
 
     if ( STRCASECMP(transformDataElement->GetName(), "Transform") == 0 )
     {
       const char* transformName = transformDataElement->GetAttribute("Name");
-      if (transformName == NULL)
+      if ( this->AddTransformForBroadcasting(transformName, sendToLink) != PLUS_SUCCESS )
       {
-	      LOG_WARNING("OpenIGTLink Transform element does not have a Name element - it cannot be broadcasted!");
-        continue;
+        LOG_ERROR("Failed to add transform for broadcasting!"); 
+        continue; 
       }
-
-      IgtToolInfo info;
-      info.Socket = socketInfo.Socket;
-      info.TransformName = transformName;
-
-      this->ToolInfos.push_back( info );
     }
     else if ( STRCASECMP(transformDataElement->GetName(), "Image") == 0 )
     {
-      this->ImageSocket = socketInfo.Socket;
+      if ( this->AddImageForBroadcasting("Image", sendToLink ) != PLUS_SUCCESS) 
+      {
+        LOG_ERROR("Failed to add image for broadcasting!"); 
+        continue;
+      }
       ++imageElements;
     }
   }
@@ -161,11 +166,121 @@ PlusStatus vtkOpenIGTLinkBroadcaster::ReadConfiguration(vtkXMLDataElement* aConf
 }
 
 //----------------------------------------------------------------------------
-void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
+PlusStatus vtkOpenIGTLinkBroadcaster::AddImageForBroadcasting( const char* aName, const char* aSendToLink )
 {
-  LOG_TRACE("vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration(" << (apply?"TRUE":"FALSE") << ")");
+  if ( aSendToLink == NULL )
+  {
+    LOG_ERROR("Failed to add image for broadcasting - send to link is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-  this->ApplyStylusCalibration = apply;
+  if ( aName == NULL )
+  {
+    LOG_ERROR("Failed to add image for broadcasting - name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  SocketInfo socketInfo; 
+  if ( this->GetSocketInfoFromSendToLink(aSendToLink, socketInfo) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("OpenIGTLink image element does not contain SendTo attribute - it cannot be broadcasted!");
+    return PLUS_FAIL;
+  }
+
+  this->ImageInfo.IgtlSocketInfo = socketInfo;
+  this->ImageInfo.Name = aName; 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::AddTransformForBroadcasting( const char* aTransformName, const char* aSendToLink )
+{
+  if ( aTransformName == NULL )
+  {
+    LOG_ERROR("Failed to add transform for broadcasting - transform name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aSendToLink == NULL )
+  {
+    LOG_ERROR("Failed to add transform for broadcasting - send to link is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  SocketInfo socketInfo; 
+  if ( this->GetSocketInfoFromSendToLink(aSendToLink, socketInfo) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("OpenIGTLink Transform element does not contain SendTo attribute - it cannot be broadcasted!");
+    return PLUS_FAIL;
+  }
+
+  IgtToolInfo toolInfo; 
+  toolInfo.IgtlSocketInfo = socketInfo;
+  toolInfo.Name = aTransformName;
+
+  this->ToolInfos.push_back( toolInfo );
+
+  return PLUS_SUCCESS; 
+
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::RemoveBroadcastedImageInfo()
+{
+  this->ImageInfo.IgtlSocketInfo.Socket = NULL; 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::RemoveBroadcastedToolInfo(const IgtToolInfo& toolInfo)
+{
+  for ( std::vector< IgtToolInfo >::iterator it = this->ToolInfos.begin(); it != this->ToolInfos.end(); ++it )
+  {
+    std::ostringstream toolSendtoLink; 
+    toolSendtoLink << (*it).IgtlSocketInfo.Host << ":" << (*it).IgtlSocketInfo.Port << std::ends; 
+
+    if ( (*it).Name == toolInfo.Name 
+      && (*it).IgtlSocketInfo.Host == toolInfo.IgtlSocketInfo.Host
+      && (*it).IgtlSocketInfo.Port == toolInfo.IgtlSocketInfo.Port )
+    {
+      this->ToolInfos.erase(it); 
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  LOG_WARNING("Unable to remove broadcasted transform: couldn't find transform name '"<< toolInfo.Name 
+    <<"' with send to link '"<< toolInfo.IgtlSocketInfo.Host << ":" << toolInfo.IgtlSocketInfo.Port <<"'!"); 
+  return PLUS_FAIL; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::ChangeImageToolPauseStatus()
+{
+  this->ImageInfo.Paused = !this->ImageInfo.Paused; 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::ChangeBroadcastedToolPauseStatus(const IgtToolInfo& toolInfo)
+{
+  for ( std::vector< IgtToolInfo >::iterator it = this->ToolInfos.begin(); it != this->ToolInfos.end(); ++it )
+  {
+    std::ostringstream toolSendtoLink; 
+    toolSendtoLink << (*it).IgtlSocketInfo.Host << ":" << (*it).IgtlSocketInfo.Port << std::ends; 
+
+    if ( (*it).Name == toolInfo.Name 
+      && (*it).IgtlSocketInfo.Host == toolInfo.IgtlSocketInfo.Host
+      && (*it).IgtlSocketInfo.Port == toolInfo.IgtlSocketInfo.Port )
+    {
+      (*it).Paused = !(*it).Paused; 
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  LOG_WARNING("Unable to change broadcasted transform pause status: couldn't find transform name '"<< toolInfo.Name 
+    <<"' with send to link '"<< toolInfo.IgtlSocketInfo.Host << ":" << toolInfo.IgtlSocketInfo.Port <<"'!"); 
+  return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
@@ -212,7 +327,7 @@ PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* s
 
   // Could find socket in the list, create new socket
   igtl::ClientSocket::Pointer socket = igtl::ClientSocket::New();
-  if ( socket->ConnectToServer( hostname.c_str(), port ) )
+  if ( socket->ConnectToServer( hostname.c_str(), port ) < 0 )
   {
     LOG_WARNING( "Could not connect to OpenIGTLink host: " << sendToLink );
     return PLUS_FAIL;
@@ -234,10 +349,10 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
 
   // Check status and possible errors.
 
-  if ( this->ToolInfos.size() == 0 && this->ImageSocket.IsNull() )
+  if ( this->ToolInfos.size() == 0 && this->ImageInfo.IgtlSocketInfo.Socket.IsNull() )
   {
-    LOG_ERROR( "Broadcaster not initialized (configuration has not been read)!" );
-    return PLUS_FAIL;
+    LOG_DEBUG( "Nothing to broadcast..." );
+    return PLUS_SUCCESS;
   }
 
   if ( this->DataCollector == NULL )
@@ -245,13 +360,6 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
     LOG_ERROR( "Unable to send OpenIGTLink messages without a proper DataCollector" );
     return PLUS_FAIL;
   }
-
-  if ( ! this->DataCollector->GetTrackingEnabled() )
-  {
-    LOG_ERROR( "Unable to send OpenIGTLink messages without starting the tracker." );
-    return PLUS_FAIL;
-  }
-
 
   TrackedFrame trackedFrame;
   this->DataCollector->GetTrackedFrame( &trackedFrame );
@@ -264,28 +372,42 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
 
   double timestamp = trackedFrame.GetTimestamp();
 
+  int numberOfErrors = 0; 
 
   // Read the transforms to be broadcasted
   for ( int igtIndex = 0; igtIndex < this->ToolInfos.size(); ++ igtIndex )
   {
-    vtkSmartPointer< vtkMatrix4x4 > transformMatrix  = vtkSmartPointer< vtkMatrix4x4 >::New();
+    if ( this->ToolInfos[ igtIndex ].Paused )
+    {
+      // Broadcasting paused, no need to send transform
+      continue; 
+    }
 
-    const char* transformNameStr = this->ToolInfos[ igtIndex ].TransformName.c_str();
-    igtl::ClientSocket::Pointer socket = this->ToolInfos[ igtIndex ].Socket;
+    vtkSmartPointer< vtkMatrix4x4 > transformMatrix  = vtkSmartPointer< vtkMatrix4x4 >::New();
+    
+    const char* transformNameStr = this->ToolInfos[ igtIndex ].Name.c_str();
+    igtl::ClientSocket::Pointer socket = this->ToolInfos[ igtIndex ].IgtlSocketInfo.Socket;
         
     PlusTransformName transformName; 
     if ( transformName.SetTransformName(transformNameStr) != PLUS_SUCCESS )
     {
+      this->ToolInfos[igtIndex].Valid = false; 
       LOG_ERROR("Failed to set transform name " << transformNameStr); 
+      numberOfErrors++; 
       continue;
     }
 
     bool valid = false;
     if ( this->TransformRepository->GetTransform(transformName, transformMatrix, &valid) != PLUS_SUCCESS )
     {
+      this->ToolInfos[igtIndex].Valid = false; 
       LOG_ERROR("Cannot get frame transform '" << transformNameStr << "' from tracked frame!");
+      numberOfErrors++; 
       continue;
     }
+
+    // Update transform status 
+    this->ToolInfos[igtIndex].Valid = valid; 
 		if ( !valid )
     {
       LOG_INFO( "Invalid transform: " << transformNameStr );
@@ -323,17 +445,19 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
     if ( success == 0 )
     {
       LOG_WARNING( "Could not broadcast transform: " << transformNameStr );
+      numberOfErrors++; 
     }
   }
 
 
   // If we should broadcast the image slice too, set up the image container.
-  if ( this->DataCollector->GetVideoEnabled() )
+  if ( this->SendImageMessage( &trackedFrame ) != PLUS_SUCCESS )
   {
-    this->SendImageMessage( &trackedFrame );
+    LOG_ERROR("Failed to send image message!"); 
+    numberOfErrors++; 
   }
 
-  return PLUS_SUCCESS;
+  return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 
 //----------------------------------------------------------------------------
@@ -341,13 +465,33 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFra
 {
   //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendImageMessage");
 
-  if ( this->DataCollector == NULL )
+  if ( this->ImageInfo.Paused )
   {
-    LOG_ERROR("Invalid data collector, cannot send message!");
-    return PLUS_FAIL;
+    // Broadcasting paused, no need to send image
+    return PLUS_SUCCESS; 
   }
 
-  igtl::ClientSocket::Pointer defaultSocket = this->ImageSocket;
+  if ( this->ImageInfo.IgtlSocketInfo.Socket.IsNull()
+    || !this->ImageInfo.IgtlSocketInfo.Socket->GetConnected() )
+  {
+    return PLUS_SUCCESS; 
+  }
+
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Failed to send image message - tracked frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  this->ImageInfo.Valid = trackedFrame->GetImageData()->IsImageValid(); 
+
+  if ( !trackedFrame->GetImageData()->IsImageValid() )
+  {
+    LOG_WARNING("Unable to send image message - image data is NOT valid!"); 
+    return PLUS_FAIL; 
+  }
+
+  igtl::ClientSocket::Pointer defaultSocket = this->ImageInfo.IgtlSocketInfo.Socket;
 
   // Read the actual image data with transform.
   double timestamp = trackedFrame->GetTimestamp();
