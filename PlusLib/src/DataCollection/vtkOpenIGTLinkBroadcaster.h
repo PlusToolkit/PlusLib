@@ -20,19 +20,6 @@
 
 class vtkTransformRepository;
 
-
-/*!
-  \class IgtToolInfo 
-  \brief Stores information necessary for broadcasting non reference tools.
-  \ingroup PlusLibDataCollection
-*/
-struct IgtToolInfo
-{
-  std::string                  TransformName;
-  igtl::ClientSocket::Pointer  Socket;
-};
-
-
 /*!
   \class SocketInfo 
   \brief Stores information about a socket connection.
@@ -44,11 +31,36 @@ struct IgtToolInfo
 */
 struct SocketInfo
 {
+  SocketInfo()
+  {
+    this->Host.clear(); 
+    this->Port = 0; 
+    this->Socket = NULL; 
+  }
   std::string                 Host;
   int                         Port;
   igtl::ClientSocket::Pointer Socket;
 };
 
+/*!
+  \class IgtToolInfo 
+  \brief Stores information necessary for broadcasting tools.
+  \ingroup PlusLibDataCollection
+*/
+struct IgtToolInfo
+{
+  IgtToolInfo()
+  {
+    this->Name.clear(); 
+    this->Valid = false; 
+    this->Paused = false; 
+  }
+
+  std::string                  Name;
+  SocketInfo                   IgtlSocketInfo;
+  bool                         Valid; 
+  bool                         Paused; 
+};
 
 /*!
   \class vtkOpenIGTLinkBroadcaster 
@@ -71,14 +83,43 @@ public:
 	vtkTypeRevisionMacro( vtkOpenIGTLinkBroadcaster, vtkObject );
 	virtual void PrintSelf( ostream& os, vtkIndent indent );
 
-  void SetApplyStylusCalibration( bool apply );
+  /*! Disconnect sockets from server */
+  void DisconnectSockets(); 
 
+  /*! Set data collector instance */
   void SetDataCollector( vtkDataCollector* dataCollector );
 
+  /*! Get transforms tool info */
+  std::vector<IgtToolInfo> GetToolInfos() { return this->ToolInfos; } 
+
+  /*! Get image info */
+  IgtToolInfo GetImageInfo() { return this->ImageInfo; }
+
+  /*! Add new transform for broadcasting */ 
+  PlusStatus AddTransformForBroadcasting( const char* aTransformName, const char* aSendToLink ); 
+
+  /*! Remove broadcasted transform tool info from container */ 
+  PlusStatus RemoveBroadcastedToolInfo(const IgtToolInfo& toolInfo); 
+
+  /*! Invert broadcasted tool pause status */ 
+  PlusStatus ChangeBroadcastedToolPauseStatus(const IgtToolInfo& toolInfo); 
+
+  /*! Broadcast image */
+  PlusStatus AddImageForBroadcasting( const char* aName, const char* aSendToLink ); 
+
+  /* Stop image bradcasting */
+  PlusStatus RemoveBroadcastedImageInfo(); 
+
+  /*! Invert broadcasted image pause status */ 
+  PlusStatus ChangeImageToolPauseStatus(); 
+
+  /*! Initialize broadcaster */
   PlusStatus Initialize();
 
+  /*! Read configuration */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
+  /*! Send messages */
   PlusStatus SendMessages();
 
 protected:
@@ -86,8 +127,10 @@ protected:
   vtkOpenIGTLinkBroadcaster();
 	virtual ~vtkOpenIGTLinkBroadcaster();
 
+  /*! Get socket information, create new socket and connect if not yet connected */ 
   PlusStatus GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo ); 
 
+  /*! Send image message */
   PlusStatus SendImageMessage( TrackedFrame* trackedFrame );
 
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
@@ -96,18 +139,17 @@ protected:
 
 private:
   
+  /*! Data collector instance */
   vtkDataCollector*  DataCollector;
 
-  bool               ApplyStylusCalibration;
-  
   /*! List of tools */
   std::vector< IgtToolInfo >  ToolInfos; 
 
   /*! List of sockets */
   std::vector< SocketInfo >   SocketInfos;            
 
-  /*! Socket for image */
-  igtl::ClientSocket::Pointer ImageSocket;
+  /*! Image info */
+  IgtToolInfo ImageInfo;
 
   /*! Transform repository */
   vtkTransformRepository*     TransformRepository;
