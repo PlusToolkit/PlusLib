@@ -79,7 +79,6 @@ ENDIF()
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Install )
 SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
 
-OPTION (PLUSAPP_BUILD_VolumeReconstructor "Build the VolumeReconstructor application" ON)
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
@@ -94,13 +93,6 @@ INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
 # --------------------------------------------------------------------------
 # Build the CommonWidgets library
 ADD_SUBDIRECTORY(CommonWidgets)
-
-# --------------------------------------------------------------------------
-# Build the VolumeReconstructor application
-IF (PLUSAPP_BUILD_VolumeReconstructor)
-    ADD_SUBDIRECTORY(VolumeReconstructor)
-    ADD_DEPENDENCIES( VolumeReconstructor ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_VolumeReconstructor)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
