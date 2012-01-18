@@ -86,7 +86,7 @@
 
   </CoordinateDefinitions>
   
-  <VolumeReconstruction CalibrationTransformName="ImageToProbe" Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
+  <VolumeReconstruction Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
                            ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
                            OutputSpacing="0.5 0.5 0.5" />
 
