@@ -228,13 +228,22 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
   fclose( stream );
 
-  if(STRCASECMP(this->TrackedFrameList->GetCustomString("BinaryData"),"true")==0)
+  const char* binaryDataFieldValue=this->TrackedFrameList->GetCustomString("BinaryData");
+  if (binaryDataFieldValue!=NULL)
   {
-    this->FileType=itk::ImageIOBase::Binary;
+    if(STRCASECMP(binaryDataFieldValue,"true")==0)
+    {
+      this->FileType=itk::ImageIOBase::Binary;
+    }
+    else
+    {
+      this->FileType=itk::ImageIOBase::ASCII;
+    }
   }
   else
   {
-    this->FileType=itk::ImageIOBase::ASCII;
+    LOG_WARNING("BinaryData field has not been found in "<<this->FileName<<". Assume binary data.");
+    this->FileType=itk::ImageIOBase::Binary;
   }
   
   if(this->TrackedFrameList->GetCustomString("CompressedData")!=NULL
