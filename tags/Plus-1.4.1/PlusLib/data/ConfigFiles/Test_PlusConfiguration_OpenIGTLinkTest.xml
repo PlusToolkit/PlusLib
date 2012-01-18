@@ -1,0 +1,32 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    
+    <DeviceSet 
+      Name="TEST Simulated data for OpenIGTLinkBroadcaster test"
+      Description="Simulated data for OpenIGTLinkBroadcaster" 
+    />
+
+    <Tracker Type="SavedDataset" BufferSize="20" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="4">
+      <Tool Name="Tool" PortName="0" />
+    </Tracker>
+
+    <ImageAcquisition
+      Type="SavedDataset" 
+      BufferSize="20" 
+      FrameSize="320 240" 
+      UsImageOrientation="MN"
+      FrameRate="5" 
+      AveragedItemsForFiltering="4" 
+      LocalTimeOffset="0.0" 
+     />
+
+    <Synchronization Type="None" />
+
+    <OpenIGTLink>
+      <Transform Name="ToolToTracker" SendTo="localhost:18944" />
+      <Image SendTo="localhost:18944" />
+    </OpenIGTLink>
+  </DataCollection>
+
+</PlusConfiguration>
