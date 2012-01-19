@@ -30,16 +30,17 @@ PlusBroadcasterDaemonMainWindow::PlusBroadcasterDaemonMainWindow(QWidget *parent
   this->m_DataCollector = NULL; 
   this->m_Broadcaster = NULL; 
   this->m_BroadcastedImageInfo = NULL; 
+  this->m_BroadcastingIntervalMs = 200; 
 
 
   // Set up UI
   this->ui.setupUi(this);
 
   // Connect signals and slots
-  connect( ui.addTransformButton, SIGNAL(clicked()), this, SLOT(openTransformToolInfoEditor()) ); 
-  connect( ui.broadcastImageButton, SIGNAL(clicked()), this, SLOT(openImageToolInfoEditor()) ); 
+
   
 
+  //****************************** Device selector widget ************************
   // Create and setup device set selector widget
   this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( connectToDevicesByConfigFile(std::string) ) );
@@ -63,22 +64,28 @@ PlusBroadcasterDaemonMainWindow::PlusBroadcasterDaemonMainWindow(QWidget *parent
   // Create status icon
   this->m_StatusIcon = new StatusIcon(this);
 
+  //********************** Timers *************************
   // Set up timer for refreshing UI
   this->m_UiRefreshTimer = new QTimer(this);
-  this->m_SendMessageInterval = new QTimer(this);
+  this->m_BroadcastingIntervalTimer = new QTimer(this);
 
   // Set up status bar (message and progress bar)
   this->setupStatusBar();
 
-  // Make connections
+  //*************************** Connections ************************
+  connect( ui.addTransformButton, SIGNAL(clicked()), this, SLOT(openTransformToolInfoEditor()) ); 
+  connect( ui.broadcastImageButton, SIGNAL(clicked()), this, SLOT(openImageToolInfoEditor()) ); 
   //connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( updateGUI() ) );
-  connect( m_SendMessageInterval, SIGNAL( timeout() ), this, SLOT( sendMessages() ) );
+  connect( m_BroadcastingIntervalTimer, SIGNAL( timeout() ), this, SLOT( sendMessages() ) );
+  connect( ui.broadcastingIntervalSpinBox, SIGNAL( valueChanged (int) ), SLOT( setBroadcastingIntervalMs(int) ) ); 
 
   
-  // Start timer
+  // Start timers 
   m_UiRefreshTimer->start(50);
-  m_SendMessageInterval->start(200); 
+  m_BroadcastingIntervalTimer->start(this->m_BroadcastingIntervalMs); 
+  ui.broadcastingIntervalSpinBox->setValue(this->m_BroadcastingIntervalMs); 
+
 }
 
 //-----------------------------------------------------------------------------
@@ -99,11 +106,11 @@ PlusBroadcasterDaemonMainWindow::~PlusBroadcasterDaemonMainWindow()
     this->m_UiRefreshTimer = NULL; 
   }
 
-  if ( this->m_SendMessageInterval != NULL )
+  if ( this->m_BroadcastingIntervalTimer != NULL )
   {
-    this->m_SendMessageInterval->stop(); 
-    delete this->m_SendMessageInterval; 
-    this->m_SendMessageInterval = NULL; 
+    this->m_BroadcastingIntervalTimer->stop(); 
+    delete this->m_BroadcastingIntervalTimer; 
+    this->m_BroadcastingIntervalTimer = NULL; 
   }
 
   if ( this->m_StatusIcon != NULL )
@@ -129,6 +136,13 @@ void PlusBroadcasterDaemonMainWindow::setupStatusBar()
   sizePolicy.setHorizontalPolicy(QSizePolicy::Expanding);
 
   ui.statusbar->addPermanentWidget(m_StatusIcon);
+}
+
+//-----------------------------------------------------------------------------
+void PlusBroadcasterDaemonMainWindow::setBroadcastingIntervalMs(int intervalMs)
+{
+  this->m_BroadcastingIntervalMs = intervalMs; 
+  this->m_BroadcastingIntervalTimer->setInterval(this->m_BroadcastingIntervalMs); 
 }
 
 //-----------------------------------------------------------------------------

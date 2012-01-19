@@ -65,7 +65,7 @@ protected slots:
   /*! Updates every part of the GUI (called by ui refresh timer) */
 	void updateGUI();
  
-  /*! Send messages on m_SendMessageInterval timer timeout */ 
+  /*! Send messages on m_BroadcastingIntervalTimer timer timeout */ 
   void sendMessages(); 
 
   /*! Save current device set configuration */
@@ -104,6 +104,9 @@ protected slots:
   /*! Add new image tool info to broadcaster */ 
   void addNewImageToolInfo(const IgtToolInfo& toolInfo); 
 
+  /*! Set broadcasting interval in ms */
+  void setBroadcastingIntervalMs(int intervalMs); 
+
 protected:
 
   /*! Data collector instance */
@@ -122,7 +125,10 @@ protected:
   QTimer*             m_UiRefreshTimer;
 
   /*! Timer that sends OpenIGTLink messages */
-  QTimer*             m_SendMessageInterval;
+  QTimer*             m_BroadcastingIntervalTimer;
+
+  /*! Broadcasting interval in ms */
+  int m_BroadcastingIntervalMs; 
 
   /*! Status icon instance */
   StatusIcon*         m_StatusIcon;
