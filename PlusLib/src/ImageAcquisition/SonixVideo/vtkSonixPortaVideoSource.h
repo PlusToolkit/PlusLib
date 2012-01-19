@@ -219,6 +219,12 @@ protected:
 
   int ImagingMode;
   int Timeout; 
+
+	/*! Porta initialization parameters */
+	int Usm;
+	int Pci;
+	int HighVoltage;
+	int Channels;
   
   /*! for internal use only */
   PlusStatus AddFrameToBuffer( void *param, int id );
