@@ -322,9 +322,13 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   if ( !this->Porta.init( this->PortaCineSize,
     this->PortaFirmwarePath,
     this->PortaSettingPath,
-	this->PortaLicensePath,
+		this->PortaLicensePath,
     this->PortaLUTPath,
-	2, 3, 0, 0, 32) )
+		this->Usm, 
+		this->Pci,
+		this->HighVoltage,
+		0, 
+		this->Channels) )
   {
 //    this->Porta.getLastError( err, size );
     LOG_ERROR("Initialize: Porta could not be initialized: (" << this->GetLastPortaError() << ")" );
@@ -571,7 +575,31 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
       this->StepPerFrame = stepPerFrame; 
   }  
 
-  const char* portaLUTpath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
+  int usm = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("USM", usm)) 
+  {
+      this->Usm = usm; 
+  }  
+
+  int pci = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("PCI", Pci)) 
+  {
+      this->Pci = pci; 
+  }  
+
+	int highVoltage = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("HighVoltage", highVoltage)) 
+  {
+      this->HighVoltage = highVoltage; 
+  } 
+
+	int channels = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Channels", channels)) 
+  {
+      this->Channels = channels; 
+  } 
+
+	const char* portaLUTpath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
   if ( portaLUTpath != NULL) 
   {
       this->SetPortaLUTPath(portaLUTpath); 
