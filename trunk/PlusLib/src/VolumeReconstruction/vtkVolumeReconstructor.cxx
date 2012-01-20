@@ -363,7 +363,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   catch(vtkstd::bad_alloc& e)
   {
     cerr << e.what() << endl;
-    LOG_ERROR("StartReconstruction failed with due to out of memory. Try to reduce the size or spacing of the output volume.");
+    LOG_ERROR("StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output volume.");
     return PLUS_FAIL;
   }
 
@@ -430,7 +430,7 @@ PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstr
     extract->SetInput(this->Reconstructor->GetReconstructedVolume());
   }
   extract->Update();
-  reconstructedVolume->DeepCopy(extract->GetOutput());
+  reconstructedVolume->ShallowCopy(extract->GetOutput());
   return PLUS_SUCCESS;
 }
 
