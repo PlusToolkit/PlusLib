@@ -288,12 +288,12 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 
 	// Compute the angle of the motor. 
 	// since the motor is sweeping back and forth, the frame index is found for size of two volumes
-	double frameIndexInTwoVolumes = (FrameNumber % (FramePerVolume * 2));
+	double frameIndexInTwoVolumes = (FrameNumber % (this->FramePerVolume * 2));
 	double currentMotorAngle;
 	if (frameIndexInTwoVolumes <= FramePerVolume) {
-		currentMotorAngle = (frameIndexInTwoVolumes - FramePerVolume / 2) * this->MotorRotationPerStepDeg * StepPerFrame;
+		currentMotorAngle = (frameIndexInTwoVolumes - this->FramePerVolume / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
 	} else {
-		currentMotorAngle = - (frameIndexInTwoVolumes - FramePerVolume *3 / 2) * this->MotorRotationPerStepDeg * StepPerFrame;
+		currentMotorAngle = - (frameIndexInTwoVolumes - this->FramePerVolume *3 / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
 	}
 	std::ostringstream motorAngle;
 	motorAngle << currentMotorAngle;
@@ -319,6 +319,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   int size = 256;
   char err[ 256 ];
 
+
+	LOG_TRACE("Some info on the initializaton" << this->Usm << " " << this->Pci );
   if ( !this->Porta.init( this->PortaCineSize,
     this->PortaFirmwarePath,
     this->PortaSettingPath,
@@ -582,7 +584,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }  
 
   int pci = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("PCI", Pci)) 
+  if ( imageAcquisitionConfig->GetScalarAttribute("PCI", pci)) 
   {
       this->Pci = pci; 
   }  
@@ -761,7 +763,7 @@ PlusStatus vtkSonixPortaVideoSource::GetFramePerVolume(int& aFramePerVolume)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::SetStepPerFrame(int aStepPerFrame)
 {
-	return SetParamValue(prmMotorSteps, aStepPerFrame, this->FramePerVolume);
+	return SetParamValue(prmMotorSteps, aStepPerFrame, this->StepPerFrame);
 }
 
 //----------------------------------------------------------------------------
