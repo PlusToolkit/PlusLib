@@ -208,40 +208,41 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   // Start with this buffer because if no compunding is needed then we release memory before allocating memory for the reconstructed image.
 
   vtkImageData* accData = this->GetAccumulationBuffer();
-	if (accData==NULL)
+	if (this->Compounding)
   {
-    LOG_ERROR("Accumulation buffer object is not created");
-    return PLUS_FAIL;
-  }
-
-  int accExtent[6]={0}; // by default set the accumulation buffer to 0 size
-  if (this->Compounding)
-  {
-    // we do compunding, so we need to have an accumulation buffer with the same size as the output image
-    for (int i=0; i<6; i++)
+    if (accData==NULL)
     {
-      accExtent[i]=this->OutputExtent[i];
+      LOG_ERROR("Accumulation buffer object is not created");
+      return PLUS_FAIL;
+    }
+    int accExtent[6]={0}; // by default set the accumulation buffer to 0 size
+    if (this->Compounding)
+    {
+      // we do compunding, so we need to have an accumulation buffer with the same size as the output image
+      for (int i=0; i<6; i++)
+      {
+        accExtent[i]=this->OutputExtent[i];
+      }
+    }
+    accData->SetExtent(accExtent);
+    accData->SetOrigin(this->OutputOrigin);
+    accData->SetSpacing(this->OutputSpacing);
+    accData->SetScalarType(VTK_UNSIGNED_INT);
+    accData->SetNumberOfScalarComponents(1);
+    accData->AllocateScalars();
+    void *accPtr = accData->GetScalarPointerForExtent(accExtent);
+    if (accPtr==NULL)
+    {
+      LOG_ERROR("Cannot allocate memory for accumulation image extent: "<< accExtent[1]-accExtent[0] <<"x"<< accExtent[3]-accExtent[2] <<" x "<< accExtent[5]-accExtent[4]);
+    }
+    else
+    {
+      memset(accPtr,0,((accExtent[1]-accExtent[0]+1)*
+        (accExtent[3]-accExtent[2]+1)*
+        (accExtent[5]-accExtent[4]+1)*
+        accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
     }
   }
-  accData->SetExtent(accExtent);
-  accData->SetOrigin(this->OutputOrigin);
-  accData->SetSpacing(this->OutputSpacing);
-  accData->SetScalarType(VTK_UNSIGNED_INT);
-  accData->SetNumberOfScalarComponents(1);
-  accData->AllocateScalars();
-  void *accPtr = accData->GetScalarPointerForExtent(accExtent);
-  if (accPtr==NULL)
-  {
-    LOG_ERROR("Cannot allocate memory for accumulation image extent: "<< accExtent[1]-accExtent[0] <<"x"<< accExtent[3]-accExtent[2] <<" x "<< accExtent[5]-accExtent[4]);
-  }
-  else
-  {
-    memset(accPtr,0,((accExtent[1]-accExtent[0]+1)*
-      (accExtent[3]-accExtent[2]+1)*
-      (accExtent[5]-accExtent[4]+1)*
-      accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
-  }
-
 	// Allocate memory for the reconstructed image and set all pixels to 0
 
   vtkImageData* outData = this->ReconstructedVolume;
