@@ -138,7 +138,8 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 
   this->UlteriusConnected=false;
 
-  this->SetFrameBufferSize(200); 
+  this->SetFrameBufferSize(200);
+  this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
 }
 
 //----------------------------------------------------------------------------
@@ -418,6 +419,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     this->Ult.setCallback(vtkSonixVideoSourceNewFrameCallback);
     if (this->Timeout>=0 && SetTimeout(this->Timeout)!=PLUS_SUCCESS) { continue; }
 
+	Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
     initializationCompleted=true;
   } 
 
