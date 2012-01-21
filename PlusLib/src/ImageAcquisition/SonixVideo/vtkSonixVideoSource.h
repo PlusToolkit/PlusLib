@@ -252,6 +252,13 @@ public:
   /*! Set the time required for setting up the connection. */
   vtkGetMacro(ConnectionSetupDelayMs, int);
 
+  /*! 
+    Set the SharedMemoryStatus(1) to bypass TCP on local access.
+  */
+  vtkSetMacro(SharedMemoryStatus, int);  
+  /*! Get the SharedMemoryStatus. */
+  vtkGetMacro(SharedMemoryStatus, int);
+
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(int &aFrameRate);
 
@@ -310,6 +317,7 @@ protected:
   int CompressionStatus; 
   int Timeout;
   int ConnectionSetupDelayMs;
+  int SharedMemoryStatus;
 
   char *SonixIP;
 
