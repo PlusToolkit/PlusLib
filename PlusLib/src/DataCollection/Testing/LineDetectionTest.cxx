@@ -14,17 +14,15 @@
 #include <ctype.h>
 #include <time.h>
 
-#include "itkContinuousIndex.h"
-#include "itkLinearInterpolateImageFunction.h"
-
 //----------------------------------------------------------------------------
 
 PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePositionMetric);
-double linearInterpolation(double interpVal, std::vector<double> &origVec, std::vector<double> &originalTimestamp);
-void test(std::vector<double> &origVec, std::vector<double> &interpolatedVector,
+double linearInterpolation(double interpVal, std::vector<double> &origVec, std::vector<double> &originalTimestamp,
+                           std::vector<int> &straddleIndices);
+void interpolateHelper(std::vector<double> &origVec, std::vector<double> &interpolatedVector,
           std::vector<double> &intepolatedTimestamp, std::vector<double> &originalTimestamp);
 void NormalizeMetric(std::vector<double> &translationModulusVector);
-void CalculateTimeOffset(std::vector<double> &translationModulusVector,
+double CalculateTimeOffset(std::vector<double> &translationModulusVector,
                          std::vector<double> &trackerTimestampVector,
                          std::vector<double> &imageModulusVector,
                          std::vector<double> &imageTimestampVector,
@@ -32,6 +30,15 @@ void CalculateTimeOffset(std::vector<double> &translationModulusVector,
                          std::vector<double> &interpolatedTrackerTimestampVector,
                          std::vector<double> &interpolatedImageModulusVector,
                          std::vector<double> &interpolatedImageTimestampVector);
+void interpolate(std::vector<double> &translationModulusVector,
+                 std::vector<double> &trackerTimestampVector,
+                 std::vector<double> &imageModulusVector,
+                 std::vector<double> &imageTimestampVector,
+                 std::vector<double> &interpolatedTrackerModulusVector,
+                 std::vector<double> &interpolatedTrackerTimestampVector,
+                 std::vector<double> &interpolatedImageModulusVector,
+                 std::vector<double> &interpolatedImageTimestampVector);
+int binarySearch(double key, std::vector<double> &originalTimestamp, int low, int high);
 double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, int indexOffset);
 void xcorr(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, std::vector<double> &corrValues);
 
@@ -95,6 +102,16 @@ int main(int argc, char **argv)
   {
     LOG_ERROR("Failed to read US image sequence metafile: " << inputUSImageSequenceMetafile);
     return EXIT_FAILURE;
+  }
+
+  //  make sure all the image data is valid
+  for(int i = 0 ; i < imageList->GetNumberOfTrackedFrames(); ++i)
+  {
+    if(!imageList->GetTrackedFrame(i)->GetImageData()->IsImageValid())
+    {
+      LOG_ERROR("Frame " << i << " is invalid. Exiting.");
+      return EXIT_FAILURE;
+    }
   }
 
   // Declare homogeneous probe-to-tracker transformation matrix, and corresponding frame transform name
@@ -162,13 +179,20 @@ int main(int argc, char **argv)
 
   std::vector<double> linePositionMetric;
   std::vector<double> imageTimestampVector;
+  int failedFrames = 0;
   for ( int frame = 0; frame < imageList->GetNumberOfTrackedFrames(); ++frame )
   {
     imageTimestampVector.push_back(imageList->GetTrackedFrame(frame)->GetTimestamp());
     if ( LineDetection(imageList->GetTrackedFrame(frame)->GetImageData(), linePositionMetric) != PLUS_SUCCESS )
     {
       LOG_ERROR("Line detection failed for frame#" << frame);
+      failedFrames++;
       return EXIT_FAILURE;
+      //if( (float)failedFrames / imageList->GetNumberOfTrackedFrames() > 0.1)
+      //{
+      //  LOG_ERROR("Line detection has failed on more than 10% of the frames. Exiting...");
+      //  return EXIT_FAILURE;
+      //}
     }
 
   }
@@ -193,7 +217,8 @@ int main(int argc, char **argv)
   std::vector<double> interpolatedImageModulusVector;
   std::vector<double> interpolatedImageTimestampVector;
 
-  CalculateTimeOffset(translationModulusVector,
+  double trackerLag; // Time by which the tracker data lags the video data [s]
+  trackerLag = CalculateTimeOffset(translationModulusVector,
                       trackerTimestampVector,
                       linePositionMetric,
                       imageTimestampVector,
@@ -201,31 +226,8 @@ int main(int argc, char **argv)
                       interpolatedTrackerTimestampVector,
                       interpolatedImageModulusVector,
                       interpolatedImageTimestampVector);
-
-  //  Perform cross correlation
-  std::vector<double> corrValues;
-  xcorr(interpolatedTranslationModulusVector, interpolatedImageModulusVector, corrValues);
   
-  //  Find the index offset corresponding to maximum correlation value
-  double maxCorrVal = corrValues.at(0);
-  int maxCorrIndex = 0;
-  for(int i = 1; i < corrValues.size(); ++i)
-  {
-    if(corrValues.at(i) > maxCorrVal)
-    {
-      maxCorrVal = corrValues.at(i);
-      maxCorrIndex = i;
-    }
-  }
-
-  //  Compute the time that the tracker data lags the video data
-  double trackerLag;
-  double maxVideoOffset = 2; //  seconds
-  double videoOffsetResolution = 0.001; //  seconds
-
-  trackerLag = maxVideoOffset - (maxCorrIndex)*videoOffsetResolution;
-  std::cout << trackerLag << std::endl;
-  
+  /*
   // Write the intepolated tracker metric to file
   std::string interpolatedTrackerMetricFileName = "normalizedInterpolatedTrackerMetric_";
   interpolatedTrackerMetricFileName.append(numbers);
@@ -237,6 +239,7 @@ int main(int argc, char **argv)
     interpolatedProbeToReferenceTransformNormalizedFile << interpolatedTranslationModulusVector.at(i) << "," << interpolatedTrackerTimestampVector.at(i) << std::endl;
 
   interpolatedProbeToReferenceTransformNormalizedFile.close();
+  */
 
   //  stop timer
   time_t endTime;
@@ -249,6 +252,16 @@ int main(int argc, char **argv)
   std::ofstream runTimeFile;
   runTimeFile.open(runTimeFileName.c_str());
   runTimeFile << difftime(endTime, startTime) << std::endl;
+  runTimeFile.close();
+
+  std::string trackerLagFilename = "TrackerLag_";
+  trackerLagFilename.append(numbers);
+  trackerLagFilename.append(".txt");
+
+  std::ofstream trackerLagFile;
+  trackerLagFile.open(trackerLagFilename.c_str());
+  trackerLagFile << trackerLag << std::endl;
+  trackerLagFile.close();
 
   return EXIT_SUCCESS;
 }
@@ -258,7 +271,7 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePo
   LOG_DEBUG("Performing LineDetection..." << linePositionMetric.size());
 
   // Update frame counter
-  static int frameIndex(-1); //because frame indices start at zero
+  static int frameIndex = -1; //because frame indices start at zero
   frameIndex++;
 
   // Define some image types and image dimension
@@ -269,6 +282,13 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePo
   
   // Get curent image
   charImageType::Pointer localImage = videoFrame->GetImage<charPixelType>();
+
+  if(localImage.IsNull())
+  {
+    std::cerr << "Frame " << frameIndex << "is invalid." << std::endl;
+    frameIndex--; //  ignore this frame
+    return PLUS_FAIL;
+  }
 
   // Create the hough transform line detection filter
   typedef itk::HoughTransform2DLinesImageFilter<charPixelType, floatPixelType> HoughTransformFilterType;
@@ -292,11 +312,12 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePo
   // Set parameters of the Hough transform filter
   double houghLineDetectionThreshold = 0; //threshold above which pixels will be considered by Hough
   int houghNumberOfLinesToDetect = 1;
-  int houghDiscRadius = 1;
+  int houghDiscRadius = 10;
   houghTransform->SetInput(thresholdFilter->GetOutput());
   houghTransform->SetThreshold(houghLineDetectionThreshold);
   houghTransform->SetNumberOfLines(houghNumberOfLinesToDetect);
   houghTransform->SetDiscRadius(houghDiscRadius);
+  houghTransform->SetAngleResolution(100);
   houghTransform->Update();
 
   LOG_DEBUG("Angle resolution: pi/" << 2 * houghTransform->GetAngleResolution());
@@ -349,8 +370,6 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePo
     double m = v[1] / v[0];
     double b = u[1] - m*u[0];
     linePositionMetric.push_back(m*halfwayPoint + b);
-    //InterceptFile << b << std::endl;
-    //InterceptFile.flush();
   
     double norm = vcl_sqrt(v[0]*v[0]+v[1]*v[1]);
     v[0] /= norm;
@@ -432,7 +451,7 @@ void NormalizeMetric(std::vector<double> &translationModulusVector){
 
 }// End NormalizeMetric()
 
-void CalculateTimeOffset(std::vector<double> &translationModulusVector,
+double CalculateTimeOffset(std::vector<double> &translationModulusVector,
                          std::vector<double> &trackerTimestampVector,
                          std::vector<double> &imageModulusVector,
                          std::vector<double> &imageTimestampVector,
@@ -441,42 +460,76 @@ void CalculateTimeOffset(std::vector<double> &translationModulusVector,
                          std::vector<double> &interpolatedImageModulusVector,
                          std::vector<double> &interpolatedImageTimestampVector)
 {
-  double videoOffset = 0;//  seconds
-  double maxVideoOffset = 2;//  seconds
-  double videoOffsetResolution = 0.001;//  seconds
+  //  Resample the image and tracker signals, preparing them for cross correlation
+  interpolate(translationModulusVector,
+              trackerTimestampVector,
+              imageModulusVector,
+              imageTimestampVector,
+              interpolatedTrackerModulusVector,
+              interpolatedTrackerTimestampVector,
+              interpolatedImageModulusVector,
+              interpolatedImageTimestampVector);
 
-  double translationTimestampMin = trackerTimestampVector.at(1);
-  double translationTimestampMax = trackerTimestampVector.at(1);
-  for(int i = 0; i < translationModulusVector.size(); ++i)
+  //  Perform cross correlation
+  std::vector<double> corrValues;
+  xcorr(interpolatedTrackerModulusVector, interpolatedImageModulusVector, corrValues);
+  
+  //  Find the index offset corresponding to maximum correlation value
+  double maxCorrVal = corrValues.at(0);
+  int maxCorrIndex = 0;
+  for(int i = 1; i < corrValues.size(); ++i)
   {
-      if(trackerTimestampVector.at(i) > translationTimestampMax)
-      {
-        translationTimestampMax = trackerTimestampVector.at(i);
-      }
-      else if(trackerTimestampVector.at(i) < translationTimestampMin)
-      {
-        translationTimestampMin = trackerTimestampVector.at(i);
-      }
-  }// end for-loop
+    if(corrValues.at(i) > maxCorrVal)
+    {
+      maxCorrVal = corrValues.at(i);
+      maxCorrIndex = i;
+    }
+  }
+
+  //  Compute the time that the tracker data lags the video data
+  double trackerLag;
+  double maxVideoOffset = 2; //  seconds
+  double videoOffsetResolution = 0.001; //  seconds
+
+  trackerLag = maxVideoOffset - (maxCorrIndex)*videoOffsetResolution;
+  std::cout << "Tracker stream lags image stream by: " << trackerLag << " [s]" << std::endl;
+
+  return trackerLag; 
+
+}// End CalculateTimeOffset()
+
+ 
+void interpolate(std::vector<double> &translationModulusVector,
+                 std::vector<double> &trackerTimestampVector,
+                 std::vector<double> &imageModulusVector,
+                 std::vector<double> &imageTimestampVector,
+                 std::vector<double> &interpolatedTrackerModulusVector,
+                 std::vector<double> &interpolatedTrackerTimestampVector,
+                 std::vector<double> &interpolatedImageModulusVector,
+                 std::vector<double> &interpolatedImageTimestampVector)
+{
+
+  double maxVideoOffset = 2; //  Maximum anticipated time offset [seconds]
+  double videoOffsetResolution = 0.001; //  Resolution used for re-sampling [seconds]
+
+  //  Find the time-range that is common to both tracker and image signals
+  double translationTimestampMin = trackerTimestampVector.at(1);
+  double translationTimestampMax = trackerTimestampVector.at(trackerTimestampVector.size() - 1);
 
   double imageTimestampMin = imageTimestampVector.at(1);
-  double imageTimestampMax = imageTimestampVector.at(1);
-  for(int i = 0; i < imageModulusVector.size(); ++i)
-  {
-      if(imageTimestampVector.at(i) > imageTimestampMax)
-      {
-        imageTimestampMax = imageTimestampVector.at(i);
-      }
-      else if(imageTimestampVector.at(i) < imageTimestampMin)
-      {
-        imageTimestampMin = imageTimestampVector.at(i);
-      }
-  }// end for-loop
+  double imageTimestampMax = imageTimestampVector.at(imageTimestampVector.size() - 1);
 
-  double commonRangeMin = std::max(imageTimestampMin, translationTimestampMin ); 
+  double commonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
   double commonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
 
-  //  Get resampled timestamps
+  if (commonRangeMin + maxVideoOffset >= commonRangeMax - maxVideoOffset)
+  {
+    std::cerr << "Insufficient overlap between tracking data and image data to compute time offset...Exiting" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
+  //  Get resampled timestamp for the image sequence
   long int n = 0;
   while(commonRangeMin + n * videoOffsetResolution < commonRangeMax)
   {
@@ -484,97 +537,113 @@ void CalculateTimeOffset(std::vector<double> &translationModulusVector,
     ++n;
   }
 
+  //  Get resampled timestamp for the tracker sequence.
   n = 0;
   while((commonRangeMin + maxVideoOffset) + n * videoOffsetResolution < commonRangeMax - maxVideoOffset)
   {
-    interpolatedTrackerTimestampVector.push_back((commonRangeMin + maxVideoOffset) + n * videoOffsetResolution);
+    interpolatedTrackerTimestampVector.push_back( (commonRangeMin + maxVideoOffset) + n * videoOffsetResolution);
     ++n;
   }
 
-  test(imageModulusVector,interpolatedImageModulusVector, interpolatedImageTimestampVector, imageTimestampVector);
-  test(translationModulusVector, interpolatedTrackerModulusVector,interpolatedTrackerTimestampVector, trackerTimestampVector);
+  //  Get resampled image and tracker signals 
+  interpolateHelper(imageModulusVector,interpolatedImageModulusVector, interpolatedImageTimestampVector, imageTimestampVector);
+  interpolateHelper(translationModulusVector, interpolatedTrackerModulusVector,interpolatedTrackerTimestampVector, trackerTimestampVector);
 
-}// End CalculateTimeOffset()
-
-
- 
-void test(std::vector<double> &origVec, std::vector<double> &interpolatedVector,
-          std::vector<double> &interpolatedTimestamp, std::vector<double> &originalTimestamp)
-{
-  for(int i = 0; i < interpolatedTimestamp.size(); ++i)
-  {
-    interpolatedVector.push_back(linearInterpolation(interpolatedTimestamp.at(i), origVec, originalTimestamp));
-  }
 }
 
-double linearInterpolation(double interpVal, std::vector<double> &origVec, std::vector<double> &originalTimestamp)
+void interpolateHelper(std::vector<double> &origVec, std::vector<double> &interpolatedVector,
+          std::vector<double> &interpolatedTimestamp, std::vector<double> &originalTimestamp)
 {
-  double timeEpsilon = 0.0000001; //  resolution under which we consider two time values to be identical
-  double minDiff = std::abs(originalTimestamp.at(0) - interpVal);
-  int minIndex = 0;
-  bool isEqual = false;
-  int i = 1;
-  while(i < originalTimestamp.size() && !isEqual)
+
+  //  For the first interpolated timestamp value, find the index of the closest element in the
+  //  original timestamp array.
+  int closestIndex = 0;
+  int closestVal = std::abs(originalTimestamp.at(closestIndex) - interpolatedTimestamp.at(0));
+  
+  for(int i = 1; i < originalTimestamp.size(); ++i)
   {
-    if(std::abs(originalTimestamp.at(i) - interpVal) < timeEpsilon)
+    if(std::abs(originalTimestamp.at(i) - interpolatedTimestamp.at(0)) < closestVal)
     {
-      minDiff = 0;
-      minIndex = i;
-      isEqual = true;
+      closestIndex = i;
+      closestVal = std::abs(originalTimestamp.at(i) - interpolatedTimestamp.at(0));
     }
-    else if(std::abs(originalTimestamp.at(i) - interpVal) < minDiff)
-    {
-      minDiff = std::abs(originalTimestamp.at(i) - interpVal);
-      minIndex = i;
-    }
-
-    ++i;
-
-  }// end for-loop
-
-  if(isEqual)
-  {
-    return origVec.at(minIndex);
   }
-  else if(interpVal < std::abs(originalTimestamp.at(minIndex)))
+
+  //  Assign two indices that "straddle" the first interpolated timestamp value in the original timstamp sequence
+  int indexHigh;
+  int indexLow;
+  if(closestIndex == 0 || closestIndex == originalTimestamp.size() - 1)
   {
-    if(std::abs( originalTimestamp.at(minIndex) - originalTimestamp.at(minIndex - 1)) < timeEpsilon)
-    {
-      return origVec.at(minIndex);
-    }
-    else
-    {
-      double m = (origVec.at(minIndex) - origVec.at(minIndex - 1)) / (originalTimestamp.at(minIndex) - originalTimestamp.at(minIndex - 1));
-      return origVec.at(minIndex - 1) + (interpVal - originalTimestamp.at(minIndex - 1))*m;
-    }
+    indexHigh = closestIndex;
+    indexLow = indexHigh;
+  }
+  else if(originalTimestamp.at(closestIndex) > interpolatedTimestamp.at(0))
+  {
+   indexHigh = closestIndex;
+   indexLow = closestIndex - 1;
   }
   else
   {
-    if(std::abs( originalTimestamp.at(minIndex) - originalTimestamp.at(minIndex + 1)) < timeEpsilon )
+   indexHigh = closestIndex + 1;
+   indexLow = closestIndex;
+  }
+
+  std::vector<int> straddleIndices;
+  straddleIndices.push_back(indexLow);
+  straddleIndices.push_back(indexHigh);
+
+  interpolatedVector.reserve(interpolatedTimestamp.size()); //  pre-allocate
+  for(int i = 0; i < interpolatedTimestamp.size(); ++i)
+    interpolatedVector.push_back(linearInterpolation(interpolatedTimestamp.at(i), origVec, 
+                                 originalTimestamp, straddleIndices) );
+
+} //  interpolateHelper()
+
+double linearInterpolation(double interpVal, std::vector<double> &origVec, std::vector<double> &originalTimestamp,
+                           std::vector<int> &straddleIndices)
+{
+  const int lowIndex = 0; //  position of low index in "straddleIndices"
+  const int highIndex = 1; // position of high index in "straddleIndices"
+  double timeEpsilon = 0.0000001; //  resolution under which two time values are considered identical
+  
+  //  We assume that we are upsampling (i.e. that the rate of resampling is less than the original sampling rate).
+  if(interpVal > originalTimestamp.at(straddleIndices.at(highIndex)))
+  {
+    if(straddleIndices.at(highIndex) == straddleIndices.at(lowIndex))
     {
-      return origVec.at(minIndex);
+      straddleIndices.at(highIndex) = straddleIndices.at(highIndex) + 1;
     }
     else
     {
-      double m = (origVec.at(minIndex + 1) - origVec.at(minIndex)) / (originalTimestamp.at(minIndex + 1) - originalTimestamp.at(minIndex));
-      return origVec.at(minIndex) + (interpVal - originalTimestamp.at(minIndex))*m;
+      straddleIndices.at(highIndex) = straddleIndices.at(highIndex) + 1;
+      straddleIndices.at(lowIndex) = straddleIndices.at(lowIndex) + 1;
     }
   }
 
-}
+  //  If the time index between the two straddling indices is very small, avoid interpolation to
+  //  prevent divding by a really small number.
+  if(std::abs(originalTimestamp.at(straddleIndices.at(highIndex)) - originalTimestamp.at(straddleIndices.at(lowIndex))) < timeEpsilon)
+    return origVec.at(straddleIndices.at(highIndex));
+  
+  // Peform linear interpolation
+  double m = (origVec.at(straddleIndices.at(highIndex)) - origVec.at(straddleIndices.at(lowIndex))) / 
+             (originalTimestamp.at(straddleIndices.at(highIndex)) - originalTimestamp.at(straddleIndices.at(lowIndex)));
+  return origVec.at(straddleIndices.at(lowIndex)) + (interpVal - originalTimestamp.at(straddleIndices.at(lowIndex))) * m;
+
+}// end linearInterpolation()
  
 
 void xcorr(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, std::vector<double> &corrValues)
 {
-
   int n = 0;
+  corrValues.reserve(imageMetric.size() - trackerMetric.size() + 1); // pre-allocate
   while(n + (trackerMetric.size() - 1) < imageMetric.size())
   {
     corrValues.push_back(computeCorrelation(trackerMetric, imageMetric, n));
     ++n;
   }
 
-}// end xcorr
+}// end xcorr()
 
 double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, int indexOffset){
 
@@ -583,4 +652,6 @@ double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double
     overlapSum += trackerMetric.at(i) * imageMetric.at(i+indexOffset);
 
   return overlapSum;
-}// end computeCorrelation
+
+}// end computeCorrelation()
+
