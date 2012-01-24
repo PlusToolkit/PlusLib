@@ -717,9 +717,10 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
   LOG_ERROR("InternalGrab is not implemented");
   return PLUS_FAIL;
 }
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *NewBuffer)
 {
-	this->Buffer->Delete();
+	//this->Buffer->Delete();
 	this->Buffer = NewBuffer;
 	return PLUS_SUCCESS;
 }
