@@ -167,6 +167,9 @@ public:
   /*! Get the buffer that is used to hold the video frames. */
   virtual vtkVideoBuffer *GetBuffer() { return this->Buffer; };
 
+  virtual PlusStatus SetBuffer(vtkVideoBuffer *NewBuffer);
+
+
   /*!
     The result of GetOutput() will be the frame closest to DesiredTimestamp
     if it is set and if UpdateWithDesiredTimestamp is set on (default off)
@@ -197,7 +200,7 @@ public:
   /*! Set ultrasound image orientation of the device set */
   vtkSetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
   /*! Get ultrasound image orientation of the device set */
-  vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
+  vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION);
 
   /*!
     Add generated html report from video data acquisition to the existing html report
