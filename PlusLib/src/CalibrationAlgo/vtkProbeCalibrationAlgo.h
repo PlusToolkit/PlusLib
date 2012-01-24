@@ -91,24 +91,23 @@ public:
   /*! Set/get the calibration date and time in string format */
 	vtkGetStringMacro(CalibrationDate);
 
-  /*! Flag to identify the calibration state */
-	vtkGetMacro(CalibrationDone, bool);
-  /*! Flag to identify the calibration state */
-	vtkSetMacro(CalibrationDone, bool);
-  /*! Flag to identify the calibration state */
-	vtkBooleanMacro(CalibrationDone, bool);
-
+  /*! Get the image coordinate frame name */
   vtkGetStringMacro(ImageCoordinateFrame);
+  /*! Get the probe coordinate frame name */
   vtkGetStringMacro(ProbeCoordinateFrame);
+  /*! Get the phantom coordinate frame name */
   vtkGetStringMacro(PhantomCoordinateFrame);
+  /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrame);
+  /*! Get the transducer origin coordinate frame name */
   vtkGetStringMacro(TransducerOriginCoordinateFrame);
+  /*! Get the transducer origin pixel coordinate frame name */
   vtkGetStringMacro(TransducerOriginPixelCoordinateFrame);
 
   /*! Reset data containers */
   void ResetDataContainers();
 
-public: // Former ProbeCalibrationController and FreehandCalibraitonController functions
+public: // Former ProbeCalibrationController and FreehandCalibrationController functions
 
 	/*!
     Computes the calibration results: 
@@ -267,9 +266,6 @@ protected: // from former vtkProbeCalibrationControllerIO class
 protected:
 	/*! Flag to show the initialized state */
 	bool Initialized; 
-
-  /*! Flag to identify the calibration state */
-	bool CalibrationDone; 
 
   /*! Calibration date in string format */
   char* CalibrationDate; 

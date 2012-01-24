@@ -54,7 +54,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   : MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
   this->InitializedOff(); 
-  this->CalibrationDoneOff(); 
 
   this->CalibrationDate = NULL;
   this->ImageCoordinateFrame = NULL;
@@ -400,6 +399,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
       mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
       mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
 
+      // TODO Generalize error computation
       for (int i=0; i<2; i++)
       {
         // all the matrices are expected to have the same length, so we need to add each value 
@@ -526,8 +526,6 @@ PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::DoCalibration"); 
 
-  this->CalibrationDoneOff();
-
   if ( mDataPositionsInUSImageFrame.empty() )
   {
     LOG_ERROR("Unable to perform calibration - calibration data is empty!"); 
@@ -578,8 +576,6 @@ PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 	vnl_vector<double> lastRow(4,0);
 	lastRow.put(3, 1);
 	mTransformUSImageFrame2USProbeFrameMatrix4x4.set_row(3, lastRow);
-
-  this->CalibrationDoneOn();
 
 	// Validate the calibration accuracy
 	this->compute3DPointReconstructionError();
@@ -667,7 +663,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 	double zVector[3] = {0,0,0}; 
 
   vtkMath::Cross(xVector, yVector, zVector); 
-					
+
 	// make the z vector have about the same length as x an y,
 	// so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
 	vtkMath::Normalize(zVector);
@@ -698,8 +694,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 
 	// STEP-5. Save the calibration results and error reports into a file 
 	SaveCalibrationResultsAndErrorReportsToXML();
-
-	this->CalibrationDoneOn(); 
 
   return PLUS_SUCCESS; 
 }
@@ -900,7 +894,6 @@ void vtkProbeCalibrationAlgo::ResetDataContainers()
 	LOG_TRACE("vtkProbeCalibrationAlgo::ResetDataContainers");
 
   // Initialize flags
-  this->CalibrationDoneOff();
   this->SetCalibrationDate(NULL);
   
   // Initialize flags
@@ -1015,7 +1008,8 @@ PlusStatus vtkProbeCalibrationAlgo::compute3DPointReconstructionError()
 	//       during the iterative calibration/validation process.
 	if( false == mAreValidationDataMatricesConstructed )
 	{
-    if (constructValidationDataMatrices() != PLUS_SUCCESS) {
+    if (constructValidationDataMatrices() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Failed to construct validation martices!");
       return PLUS_FAIL;
     }
@@ -1131,8 +1125,7 @@ PlusStatus vtkProbeCalibrationAlgo::compute3DPointReconstructionError()
 
 //-----------------------------------------------------------------------------
 
-vnl_vector<double> vtkProbeCalibrationAlgo::getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, 
-			vnl_vector<double> NWirePositionInUSProbeFrame)
+vnl_vector<double> vtkProbeCalibrationAlgo::getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, vnl_vector<double> NWirePositionInUSProbeFrame)
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::getPointLineReconstructionError");
 
@@ -2089,7 +2082,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadUs3DBeamwidthDataFromFile()
 //----------------------------------------------------------------------------
 PlusStatus vtkProbeCalibrationAlgo::LoadUS3DBeamProfileData()
 {
-	this->SetUS3DBeamwidthDataReady(false); 
+	this->US3DBeamwidthDataReadyOff(); 
 
 	// #1. Read the US 3D Beamwidth Data from a pre-populated file
   if (ReadUs3DBeamwidthDataFromFile() != PLUS_SUCCESS)
@@ -2180,7 +2173,7 @@ PlusStatus vtkProbeCalibrationAlgo::LoadUS3DBeamProfileData()
 	}
 
 	// Set the flag to signal the data is now ready
-	this->SetUS3DBeamwidthDataReady(true); 
+	this->US3DBeamwidthDataReadyOn(); 
 
   return PLUS_SUCCESS;
 }
