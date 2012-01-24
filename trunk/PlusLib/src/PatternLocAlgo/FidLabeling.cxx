@@ -488,7 +488,7 @@ void FidLabeling::FindPattern()
   int numberOfCandidateLines = maxPointsLines.size();
   std::vector<int> lineIndices(numberOfLines);
   std::vector<LabelingResults> results;
-  bool foundPattern;
+  bool foundPattern = false;
 
   m_DotsFound = false;
 
@@ -504,17 +504,24 @@ void FidLabeling::FindPattern()
     for (int i=0; i<numberOfLines; i++)
     {
       lineIndices[i]++;
+
+      if (lineIndices[i]==numberOfCandidateLines)
+      {
+        return; //no permutation was valid
+      }
+
       if (lineIndices[i]<numberOfCandidateLines-i)
       {
-        break;//valid permutation
+        break; //valid permutation
       }
-      if(i+1<numberOfLines)
+
+      if (i+1<numberOfLines)
       {
-        if(lineIndices[i+1]<numberOfCandidateLines-i-1)
+        if (lineIndices[i+1]<numberOfCandidateLines-i-1)
         {
           lineIndices[i]=lineIndices[i+1]+2;
         }
-        else if(i+2<numberOfLines)
+        else if (i+2<numberOfLines)
         {
           lineIndices[i]=lineIndices[i+2]+3;
         }
@@ -523,9 +530,9 @@ void FidLabeling::FindPattern()
           return;
         }
       }
-      else//no permutation was valid
+      else
       {
-        return;
+        return; //no permutation was valid
       }
     }
 
@@ -606,7 +613,8 @@ void FidLabeling::FindPattern()
         counter++;
       }
     }
-    foundPattern = true;//assum the pattern is found
+
+    foundPattern = true;//assume the pattern is found
     for(int i=0 ; i<testFlags.size() ; i++)
     {
       if(testFlags[i] != 1)
@@ -614,7 +622,7 @@ void FidLabeling::FindPattern()
         foundPattern = false;//if for one pair of lines the conditions are not met, the pattern is not found
       }
     }
-  }while ((lineIndices[numberOfLines-1]!=numberOfCandidateLines-numberOfLines+2) && (foundPattern==false)); ///
+  } while ((lineIndices[numberOfLines-1]!=numberOfCandidateLines-numberOfLines+2) && (foundPattern==false));
 
   if(foundPattern)//We have the right permutation of lines in lineIndices
   {

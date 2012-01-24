@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Data collection uses sequence metafile in file mode" 
+      Name="Data collection uses sequence metafile in file mode 3 NWires" 
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
     />
 
