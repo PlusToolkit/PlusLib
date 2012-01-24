@@ -718,14 +718,23 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
   return PLUS_FAIL;
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *NewBuffer)
+PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
 {
-	//this->Buffer->Delete();
-	if ( NewBuffer == NULL )
+  if (newBuffer==this->Buffer)
+  {
+    // no action, the buffer has been set already
+    return PLUS_SUCCESS;
+  }
+  if ( newBuffer == NULL )
 	{
-		LOG_ERROR( "The new buffer is NULL!" );
+    // this->Buffer pointer assumed to be valid (non-NULL) pointer throughout the 
+    // vtkPlusVideoSource class and its child classes, therefore setting it to NULL
+    // is not allowed
+		LOG_ERROR( "A valid buffer is required as input for vtkPlusVideoSource::SetBuffer" );
 		return PLUS_FAIL;
 	}
-	this->Buffer = NewBuffer;
+  this->Buffer->UnRegister(this);
+	this->Buffer=newBuffer;
+  this->Buffer->Register(this);
 	return PLUS_SUCCESS;
 }
