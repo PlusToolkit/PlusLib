@@ -721,6 +721,11 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
 PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *NewBuffer)
 {
 	//this->Buffer->Delete();
+	if ( NewBuffer == NULL )
+	{
+		LOG_ERROR( "The new buffer is NULL!" );
+		return PLUS_FAIL;
+	}
 	this->Buffer = NewBuffer;
 	return PLUS_SUCCESS;
 }

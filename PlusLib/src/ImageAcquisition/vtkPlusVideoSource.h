@@ -167,8 +167,11 @@ public:
   /*! Get the buffer that is used to hold the video frames. */
   virtual vtkVideoBuffer *GetBuffer() { return this->Buffer; };
 
+  /*! 
+	There are cases when multiple externally controlled buffers are needed.
+	The previous buffer may be required for processing/saving in a multi-threaded fashion
+  */
   virtual PlusStatus SetBuffer(vtkVideoBuffer *NewBuffer);
-
 
   /*!
     The result of GetOutput() will be the frame closest to DesiredTimestamp
