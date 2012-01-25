@@ -143,6 +143,14 @@ SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 #***************************  LineDetectionTest ***************************
 ADD_EXECUTABLE( LineDetectionTest LineDetectionTest.cxx )
 TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
+#ADD_TEST(TemporalCalibrationTest1 
+#  ${EXECUTABLE_OUTPUT_PATH}/LineDetectionTest
+#  --input-sequence-metafile-tracker-position=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+#  --input-US-image-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+#  --sampling-resolution-sec=0.01
+#  )
+#SET_TESTS_PROPERTIES( TemporalCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 
 #***************************  vtkDataCollectorFileTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)

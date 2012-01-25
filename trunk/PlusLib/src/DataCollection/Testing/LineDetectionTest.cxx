@@ -35,9 +35,9 @@
 
 PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoMetric);
 double linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, std::vector<double> &originalTimestamps,
-                           std::vector<int> &straddleIndices);
+                           std::vector<int> &straddleIndices, double samplingResolutionSec);
 void interpolateHelper(std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-          std::vector<double> &intepolatedTimestamp, std::vector<double> &originalTimestamp);
+          std::vector<double> &intepolatedTimestamp, std::vector<double> &originalTimestamp, double samplingResolutionSec);
 void NormalizeMetric(std::vector<double> &trackerMetric);
 double CalculateTimeOffset(std::vector<double> &trackerMetric,
                          std::vector<double> &trackerTimestamps,
@@ -46,7 +46,8 @@ double CalculateTimeOffset(std::vector<double> &trackerMetric,
                          std::vector<double> &interpolatedTrackerModulusVector,
                          std::vector<double> &resampledTrackerTimestamps,
                          std::vector<double> &resampledVideoMetric,
-                         std::vector<double> &resampledVideoTimestamps);
+                         std::vector<double> &resampledVideoTimestamps,
+                         double samplingResolutionSec);
 void interpolate(std::vector<double> &trackerMetric,
                  std::vector<double> &trackerTimestamps,
                  std::vector<double> &imageModulusVector,
@@ -54,7 +55,8 @@ void interpolate(std::vector<double> &trackerMetric,
                  std::vector<double> &interpolatedTrackerModulusVector,
                  std::vector<double> &resampledTrackerTimestamps,
                  std::vector<double> &resampledVideoMetric,
-                 std::vector<double> &resampledVideoTimestamps);
+                 std::vector<double> &resampledVideoTimestamps,
+                 double samplingResolutionSec);
 int binarySearch(double key, std::vector<double> &originalTimestamp, int low, int high);
 double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, int indexOffset);
 void xcorr(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, std::vector<double> &corrValues);
@@ -66,9 +68,11 @@ int main(int argc, char **argv)
   time (&startTime);
 
   bool printHelp(false);
+  bool plotResults(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   std::string inputTrackerSequenceMetafile;
   std::string inputUSImageSequenceMetafile;
+  double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [seconds]
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -77,7 +81,8 @@ int main(int argc, char **argv)
   args.AddArgument("--input-US-image-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputUSImageSequenceMetafile, "Input US image sequence metafile name with path");
   args.AddArgument("--input-sequence-metafile-tracker-position", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerSequenceMetafile, "Input tracker sequence metafile name with path");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-
+  args.AddArgument("--plot-results",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
+  args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
 
   if ( !args.Parse() )
   {
@@ -257,7 +262,8 @@ int main(int argc, char **argv)
                       resampledTrackerMetric,
                       resampledTrackerTimestamps,
                       resampledVideoMetric,
-                      resampledVideoTimestamps);
+                      resampledVideoTimestamps,
+                      samplingResolutionSec);
 
   //  stop timer
   time_t endTime;
@@ -293,9 +299,12 @@ int main(int argc, char **argv)
    for(int i = 0; i < resampledTrackerTimestamps.size(); ++i)
       alignedTrackerTimestampVector.push_back(resampledTrackerTimestamps.at(i) - trackerLag);
 
-  //  Plot metrics before and after alignment
-  plot(resampledTrackerTimestamps, resampledTrackerMetric, resampledVideoTimestamps, resampledVideoMetric);
-  plot(alignedTrackerTimestampVector, resampledTrackerMetric, resampledVideoTimestamps,  resampledVideoMetric);
+   if (plotResults)
+   {
+     //  Plot metrics before and after alignment
+     plot(resampledTrackerTimestamps, resampledTrackerMetric, resampledVideoTimestamps, resampledVideoMetric);
+     plot(alignedTrackerTimestampVector, resampledTrackerMetric, resampledVideoTimestamps,  resampledVideoMetric);
+   }
 
   return EXIT_SUCCESS;
 }
@@ -492,7 +501,9 @@ double CalculateTimeOffset(std::vector<double> &trackerMetric,
                          std::vector<double> &resampledTrackerMetric,
                          std::vector<double> &resampledTrackerTimestamps,
                          std::vector<double> &resampledVideoMetric,
-                         std::vector<double> &resampledVideoTimestamps)
+                         std::vector<double> &resampledVideoTimestamps,
+                         double samplingResolutionSec
+                         )
 {
   //  Resample the image and tracker signals, preparing them for cross correlation
   interpolate(trackerMetric,
@@ -502,7 +513,8 @@ double CalculateTimeOffset(std::vector<double> &trackerMetric,
               resampledTrackerMetric,
               resampledTrackerTimestamps,
               resampledVideoMetric,
-              resampledVideoTimestamps);
+              resampledVideoTimestamps,
+              samplingResolutionSec);
 
   //  Perform cross correlation
   std::vector<double> corrValues;
@@ -523,9 +535,8 @@ double CalculateTimeOffset(std::vector<double> &trackerMetric,
   //  Compute the time that the tracker data lags the video data
   double trackerLag;  //  Time by which the tracker stream lags the video stream [seconds]
   double maxVideoOffset = 2; //  Maximum anticipated time offset [seconds]
-  double videoOffsetResolution = 0.001; //  Resolution used for re-sampling [seconds]
 
-  trackerLag = maxVideoOffset - (maxCorrIndex)*videoOffsetResolution;
+  trackerLag = maxVideoOffset - (maxCorrIndex)*samplingResolutionSec;
   std::cout << "Tracker stream lags image stream by: " << trackerLag << " [s]" << std::endl;
 
   return trackerLag; 
@@ -540,11 +551,11 @@ void interpolate(std::vector<double> &trackerMetric,
                  std::vector<double> &resampledTrackerMetric,
                  std::vector<double> &resampledTrackerTimestamps,
                  std::vector<double> &resampledVideoMetric,
-                 std::vector<double> &resampledVideoTimestamps)
+                 std::vector<double> &resampledVideoTimestamps,
+                 double samplingResolutionSec)
 {
 
   double maxVideoOffset = 2; //  Maximum anticipated time offset [seconds]
-  double videoOffsetResolution = 0.001; //  Resolution used for re-sampling [seconds]
 
   //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = trackerTimestamps.at(1);
@@ -564,28 +575,28 @@ void interpolate(std::vector<double> &trackerMetric,
 
   //  Get resampled timestamps for the video sequence
   long int n = 0;
-  while(commonRangeMin + n * videoOffsetResolution < commonRangeMax)
+  while(commonRangeMin + n * samplingResolutionSec < commonRangeMax)
   {
-    resampledVideoTimestamps.push_back(commonRangeMin + n * videoOffsetResolution);
+    resampledVideoTimestamps.push_back(commonRangeMin + n * samplingResolutionSec);
     ++n;
   }
 
   //  Get resampled timestamps for the tracker sequence
   n = 0;
-  while((commonRangeMin + maxVideoOffset) + n * videoOffsetResolution < commonRangeMax - maxVideoOffset)
+  while((commonRangeMin + maxVideoOffset) + n * samplingResolutionSec < commonRangeMax - maxVideoOffset)
   {
-    resampledTrackerTimestamps.push_back( (commonRangeMin + maxVideoOffset) + n * videoOffsetResolution);
+    resampledTrackerTimestamps.push_back( (commonRangeMin + maxVideoOffset) + n * samplingResolutionSec);
     ++n;
   }
 
   //  Get resampled metrics for video and tracker sequences
-  interpolateHelper(videoMetric,resampledVideoMetric, resampledVideoTimestamps, videoTimestamps);
-  interpolateHelper(trackerMetric, resampledTrackerMetric,resampledTrackerTimestamps, trackerTimestamps);
+  interpolateHelper(videoMetric,resampledVideoMetric, resampledVideoTimestamps, videoTimestamps, samplingResolutionSec);
+  interpolateHelper(trackerMetric, resampledTrackerMetric,resampledTrackerTimestamps, trackerTimestamps, samplingResolutionSec);
 
 }// End interpolate()
 
 void interpolateHelper(std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-          std::vector<double> &interpolatedTimestamps, std::vector<double> &originalTimestamps)
+          std::vector<double> &interpolatedTimestamps, std::vector<double> &originalTimestamps, double samplingResolutionSec)
 {
 
   //  For the first interpolated timestamp value, find the index of the closest element in the
@@ -626,13 +637,13 @@ void interpolateHelper(std::vector<double> &originalMetric, std::vector<double> 
   for(int i = 0; i < interpolatedTimestamps.size(); ++i)
   {
     interpolatedVector.push_back(linearInterpolation(interpolatedTimestamps.at(i), 
-      originalMetric, originalTimestamps, straddleIndices));
+      originalMetric, originalTimestamps, straddleIndices, samplingResolutionSec));
   }
 
 } // End interpolateHelper()
 
 double linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, 
-                           std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices)
+                           std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec)
 {
   const int lowIndex = 0; //  position of low index in "straddleIndices"
   const int highIndex = 1; // position of high index in "straddleIndices"
