@@ -14,6 +14,21 @@
 #include <ctype.h>
 #include <time.h>
 
+
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindow.h>
+#include <vtkSmartPointer.h>
+#include <vtkChartXY.h>
+#include <vtkTable.h>
+#include <vtkPlot.h>
+#include <vtkFloatArray.h>
+#include <vtkContextView.h>
+#include <vtkContextScene.h>
+#include <vtkPen.h>
+#include <vtkDoubleArray.h>
+
+
 //----------------------------------------------------------------------------
 
 PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &linePositionMetric);
@@ -41,11 +56,13 @@ void interpolate(std::vector<double> &translationModulusVector,
 int binarySearch(double key, std::vector<double> &originalTimestamp, int low, int high);
 double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, int indexOffset);
 void xcorr(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, std::vector<double> &corrValues);
+void plot(std::vector<double> &x1, std::vector<double> &y1, std::vector<double> &x2, std::vector<double> &y2);
 
 int main(int argc, char **argv)
 {
   time_t startTime;
   time (&startTime);
+
 
   bool printHelp(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -60,12 +77,33 @@ int main(int argc, char **argv)
   args.AddArgument("--input-sequence-metafile-tracker-position", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerSequenceMetafile, "Input tracker sequence metafile name with path");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
+
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+
+   // Get the number identifier of the trial (for testing only)
+  std::string numbers;
+  for(int i = 0; i < inputUSImageSequenceMetafile.length(); i++)
+  {
+    if(isdigit(inputUSImageSequenceMetafile.at(i))){
+      numbers.append(inputUSImageSequenceMetafile.substr(i,1));
+    }
+  }
+
+  //  Write file indicating whether test was succesful; initially set to 0 (= 'No')
+  std::string isTestValidFileName = "IsTestValid_";
+  isTestValidFileName.append(numbers);
+  isTestValidFileName.append(".txt");
+
+  std::ofstream isTestValidFile;
+  isTestValidFile.open(isTestValidFileName.c_str());
+  isTestValidFile << 0 << std::endl;
+  isTestValidFile.close();
+
 
   if ( printHelp )
   {
@@ -155,15 +193,6 @@ int main(int argc, char **argv)
 
   // Normalize the metric
   NormalizeMetric(translationModulusVector);
-
-  // Get the number identifier of the trial (for testing only)
-  std::string numbers;
-  for(int i = 0; i < inputUSImageSequenceMetafile.length(); i++)
-  {
-    if(isdigit(inputUSImageSequenceMetafile.at(i))){
-      numbers.append(inputUSImageSequenceMetafile.substr(i,1));
-    }
-  }
 
   // Write the tracker metric to file
   std::string trackerMetricFileName = "normalizedTrackerMetric_";
@@ -262,6 +291,19 @@ int main(int argc, char **argv)
   trackerLagFile.open(trackerLagFilename.c_str());
   trackerLagFile << trackerLag << std::endl;
   trackerLagFile.close();
+
+  //  Write file indicating whether test was succesful; set to 1 (= 'Yes')
+  isTestValidFile.open(isTestValidFileName.c_str());
+  isTestValidFile << 1 << std::endl;
+  isTestValidFile.close();
+
+   std::vector<double> alignedTrackerTimestampVector;
+   for(int i = 0; i < interpolatedTrackerTimestampVector.size(); ++i)
+      alignedTrackerTimestampVector.push_back(interpolatedTrackerTimestampVector.at(i) - trackerLag);
+
+  //  Plot metrics before and after alignment
+  plot(interpolatedTrackerTimestampVector, interpolatedTranslationModulusVector, interpolatedImageTimestampVector, interpolatedImageModulusVector);
+  plot(alignedTrackerTimestampVector, interpolatedTranslationModulusVector, interpolatedImageTimestampVector,  interpolatedImageModulusVector);
 
   return EXIT_SUCCESS;
 }
@@ -569,6 +611,7 @@ void interpolateHelper(std::vector<double> &origVec, std::vector<double> &interp
     }
   }
 
+  
   //  Assign two indices that "straddle" the first interpolated timestamp value in the original timstamp sequence
   int indexHigh;
   int indexLow;
@@ -655,3 +698,79 @@ double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double
 
 }// end computeCorrelation()
 
+void plot(std::vector<double> &x1, std::vector<double> &y1, std::vector<double> &x2, std::vector<double> &y2)
+{
+
+  // Create a table with some points in it
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+  vtkSmartPointer<vtkTable> table2 = vtkSmartPointer<vtkTable>::New();
+
+  vtkSmartPointer<vtkFloatArray> arrX1 = vtkSmartPointer<vtkFloatArray>::New();
+  arrX1->SetName("yime [s]"); 
+  table->AddColumn(arrX1);
+ 
+  vtkSmartPointer<vtkFloatArray> arrY1 = vtkSmartPointer<vtkFloatArray>::New();
+  arrY1->SetName("Tracker Metric");
+  table->AddColumn(arrY1);
+
+  vtkSmartPointer<vtkFloatArray> arrX2 = vtkSmartPointer<vtkFloatArray>::New();
+  arrX2->SetName("time [s]"); 
+  table2->AddColumn(arrX2);
+ 
+  vtkSmartPointer<vtkFloatArray> arrY2 = vtkSmartPointer<vtkFloatArray>::New();
+  arrY2->SetName("Video Metric");
+  table2->AddColumn(arrY2);
+ 
+ 
+  // Fill in the table with some example values
+  table->SetNumberOfRows(x1.size());
+  for (int i = 0; i < x1.size(); ++i)
+  {
+    table->SetValue(i, 0, static_cast<float>(x1.at(i)));
+    table->SetValue(i, 1, static_cast<float>(y1.at(i)));
+  }
+
+  table2->SetNumberOfRows(x2.size());
+  for (int i = 0; i < x2.size(); ++i)
+  {
+    table2->SetValue(i, 0, static_cast<float>(x2.at(i)));
+    table2->SetValue(i, 1, static_cast<float>(y2.at(i)));
+  }
+
+  // Set up the view
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+ 
+  // Add multiple line plots, setting the colors etc
+  vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+#if VTK_MAJOR_VERSION <= 5
+  line->SetInput(table, 0, 1);
+#else
+  line->SetInputData(table, 0, 1);
+#endif
+  line->SetColor(0, 255, 0, 255);
+  line->SetWidth(1.0);
+  line = chart->AddPlot(vtkChart::LINE);
+
+
+vtkPlot *line2 = chart->AddPlot(vtkChart::LINE);
+#if VTK_MAJOR_VERSION <= 5
+  line2->SetInput(table2, 0, 1);
+#else
+  line->SetInputData(table2, 0, 1);
+#endif
+  line2->SetColor(0, 255, 0, 255);
+  line2->SetWidth(1.0);
+  line2->GetPen()->SetColor(255,0, 0);
+  line2 = chart->AddPlot(vtkChart::LINE);
+ 
+ 
+  view->GetRenderWindow()->SetMultiSamples(0);
+ 
+  // Start interactor
+  view->GetInteractor()->Initialize();
+  view->GetInteractor()->Start();
+
+}

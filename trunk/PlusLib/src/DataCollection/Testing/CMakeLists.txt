@@ -142,7 +142,7 @@ SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 
 #***************************  LineDetectionTest ***************************
 ADD_EXECUTABLE( LineDetectionTest LineDetectionTest.cxx )
-TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition)
+TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
 
 #***************************  vtkDataCollectorFileTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
