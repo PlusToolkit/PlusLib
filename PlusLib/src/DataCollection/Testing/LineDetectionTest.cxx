@@ -1,19 +1,8 @@
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-#include "PlusVideoFrame.h"
+
 #include <iostream>
-#include <itkHoughTransform2DLinesImageFilter.h>
-#include <itkImageFileWriter.h>
-#include <itkImageDuplicator.h>
-#include <itkOtsuThresholdImageFilter.h>
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
-#include "vtkMatrix4x4.h"
 #include <ctype.h>
 #include <time.h>
-
 
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
@@ -29,16 +18,40 @@
 #include <vtkDoubleArray.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkPNGWriter.h>
+#include <vtkMatrix4x4.h>
+#include <vtksys/CommandLineArguments.hxx>
 
+#include <itkHoughTransform2DLinesImageFilter.h>
+#include <itkImageFileWriter.h>
+#include <itkImageDuplicator.h>
+#include <itkOtsuThresholdImageFilter.h>
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkRescaleIntensityImageFilter.h>
+
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
+
+//----------------------------------------------------------------------------
+enum NormalizationType
+{
+  NORMALIZE_STDEV,
+  NORMALIZE_MINMAX
+};
+
+const NormalizationType NormalizationMethod=NORMALIZE_MINMAX;
 
 //----------------------------------------------------------------------------
 
 PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoMetric);
+
 double linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, std::vector<double> &originalTimestamps,
                            std::vector<int> &straddleIndices, double samplingResolutionSec);
+
 void interpolateHelper(std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
           std::vector<double> &intepolatedTimestamp, std::vector<double> &originalTimestamp, double samplingResolutionSec);
+
 void NormalizeMetric(std::vector<double> &trackerMetric);
+
 double CalculateTimeOffset(std::vector<double> &trackerMetric,
                          std::vector<double> &trackerTimestamps,
                          std::vector<double> &imageModulusVector,
@@ -48,6 +61,7 @@ double CalculateTimeOffset(std::vector<double> &trackerMetric,
                          std::vector<double> &resampledVideoMetric,
                          std::vector<double> &resampledVideoTimestamps,
                          double samplingResolutionSec);
+
 void interpolate(std::vector<double> &trackerMetric,
                  std::vector<double> &trackerTimestamps,
                  std::vector<double> &imageModulusVector,
@@ -57,10 +71,16 @@ void interpolate(std::vector<double> &trackerMetric,
                  std::vector<double> &resampledVideoMetric,
                  std::vector<double> &resampledVideoTimestamps,
                  double samplingResolutionSec);
+
 int binarySearch(double key, std::vector<double> &originalTimestamp, int low, int high);
+
 double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, int indexOffset);
+
 void xcorr(std::vector<double> &trackerMetric, std::vector<double> &imageMetric, std::vector<double> &corrValues);
+
 void plot(std::vector<double> &resampledTrackerTimestamps, std::vector<double> &resampledTrackerMetric, std::vector<double> &resampledVideoTimestamps, std::vector<double> &resampledVideoMetric);
+
+
 
 int main(int argc, char **argv)
 {
@@ -81,7 +101,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-US-image-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputUSImageSequenceMetafile, "Input US image sequence metafile name with path");
   args.AddArgument("--input-sequence-metafile-tracker-position", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerSequenceMetafile, "Input tracker sequence metafile name with path");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  args.AddArgument("--plot-results",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
+  args.AddArgument("--plot-results",vtksys::CommandLineArguments::NO_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
 
   if ( !args.Parse() )
@@ -91,7 +111,6 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-   // Get the number identifier of the trial (for testing only)
   std::string numbers;
   for(int i = 0; i < inputUSImageSequenceMetafile.length(); i++)
   {
@@ -168,19 +187,15 @@ int main(int argc, char **argv)
   transformName.SetTransformName("ProbeToTrackerTransform");
   PlusTransformName referenceToTrackerTransformName;
   referenceToTrackerTransformName.SetTransformName("ReferenceToTrackerTransform");
-
-
-  double trackerTranslationModulus; //  Euclidean translation of tracker from reference.
-  std::vector<double> trackerMetric;  //  Stores the metric values for the tracker data stream.
-  std::vector<double> trackerTimestamps; // Stores timestamps for the tracker data stream.
   
-  TrackedFrame *trackedFrame;
+  std::vector<double> trackerMetric;  //  Stores the metric values for the tracker data stream.
+  std::vector<double> trackerTimestamps; // Stores timestamps for the tracker data stream.  
 
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < trackedFrameList->GetNumberOfTrackedFrames(); ++frame )
   {
-    trackerTranslationModulus = 0;
-    trackedFrame = trackedFrameList->GetTrackedFrame(frame);
+    double trackerTranslationModulus=0; //  Euclidean translation of tracker from reference.
+    TrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(frame);
     trackerTimestamps.push_back(trackedFrame->GetTimestamp());
     trackedFrame->GetCustomFrameTransform(transformName, probeToTrackerTransform);
     trackedFrame->GetCustomFrameTransform(referenceToTrackerTransformName, referenceToTrackerTransform);
@@ -209,10 +224,10 @@ int main(int argc, char **argv)
   std::ofstream probeToReferenceTransformNormalizedFile;
   probeToReferenceTransformNormalizedFile.open (trackerMetricFileName.c_str());
   for(int i = 0; i < trackerMetric.size(); ++i)
+  {
     probeToReferenceTransformNormalizedFile << trackerMetric.at(i) << "," << trackerTimestamps.at(i) << std::endl;
-
+  }
   probeToReferenceTransformNormalizedFile.close();
-
 
   std::vector<double> videoMetric;
   std::vector<double> imageTimestampVector;
@@ -445,7 +460,16 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoM
 }
 
 
-void NormalizeMetric(std::vector<double> &metric){
+void NormalizeMetric(std::vector<double> &metric)
+{
+
+  /*
+  switch (NormalizationMethod)
+  {
+  case NORMALIZE_STDEV:
+    break;
+  }
+  */
 
   //  Get the mean of the Euclidean distances
   double mu = 0;
@@ -490,7 +514,9 @@ void NormalizeMetric(std::vector<double> &metric){
   double normFactor = std::abs(maxVal) + std::abs(minVal);
 
   for(int i = 0; i < metric.size(); ++i)
+  {
     metric.at(i) /= normFactor; 
+  }
 
 }// End NormalizeMetric()
 
