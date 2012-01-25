@@ -294,15 +294,22 @@ float FidLabeling::ComputeSlope( Line &line )
 
 	float t;
 	if ( fabsf(x) > fabsf(y) )
+  {
 		t = vtkMath::Pi()/2 + atan( y / x );
+  }
 	else 
   {
 		float tanTheta = x / y;
 		if ( tanTheta > 0 )
+    {
 			t = vtkMath::Pi() - atan( tanTheta );
+    }
 		else
+    {
 			t = -atan( tanTheta );
+    }
 	}
+
 	assert( t >= 0 && t <= vtkMath::Pi() );
 	return t;
 }
@@ -505,11 +512,6 @@ void FidLabeling::FindPattern()
     {
       lineIndices[i]++;
 
-      if (lineIndices[i]==numberOfCandidateLines)
-      {
-        return; //no permutation was valid
-      }
-
       if (lineIndices[i]<numberOfCandidateLines-i)
       {
         break; //valid permutation
@@ -531,6 +533,11 @@ void FidLabeling::FindPattern()
         }
       }
       else
+      {
+        return; //no permutation was valid
+      }
+
+      if (lineIndices[i]==numberOfCandidateLines)
       {
         return; //no permutation was valid
       }
