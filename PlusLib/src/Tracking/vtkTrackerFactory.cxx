@@ -13,7 +13,6 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 #ifdef PLUS_USE_POLARIS
-#include "vtkPOLARISTracker.h"
 #include "vtkNDITracker.h"
 #endif
 #ifdef PLUS_USE_CERTUS
