@@ -405,6 +405,7 @@ PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, T
   if (!silent)
   {
     LOG_ERROR("Path not found from "<<aTransformName.From()<<" to "<<aTransformName.To());
+    //this->PrintSelf(std::cout, vtkIndent());
   }
   return PLUS_FAIL;
 }

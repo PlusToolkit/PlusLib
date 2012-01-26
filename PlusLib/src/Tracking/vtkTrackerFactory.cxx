@@ -50,7 +50,7 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["CertusTracker"]=(PointerToTracker)&vtkNDICertusTracker::New; 
 #endif
 #ifdef PLUS_USE_POLARIS
-  TrackerTypes["PolarisTracker"]=(PointerToTracker)&vtkPOLARISTracker::New; 
+  TrackerTypes["PolarisTracker"]=(PointerToTracker)&vtkNDITracker::New; 
 #endif
 #ifdef PLUS_USE_POLARIS
   TrackerTypes["AuroraTracker"]=(PointerToTracker)&vtkNDITracker::New; 
