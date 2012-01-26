@@ -630,9 +630,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 		this->Initialize(); 
 	}
 
-  // Set calibration date
-  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
-
 	// Do final calibration 
 	if ( DoCalibration() != PLUS_SUCCESS )
   {
@@ -650,7 +647,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 			imageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
 		}
 	}
-	
+
   // Check orthogonality
   if ( ! IsImageToProbeTransformOrthogonal() )
   {
@@ -694,6 +691,9 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 
 	// STEP-5. Save the calibration results and error reports into a file 
 	SaveCalibrationResultsAndErrorReportsToXML();
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
 
   return PLUS_SUCCESS; 
 }

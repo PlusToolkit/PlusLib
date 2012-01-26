@@ -175,9 +175,9 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
   const double distanceW1ToW3inMm = fabs(this->NWires[0].Wires[0].EndPointFront[0] - this->NWires[0].Wires[2].EndPointFront[0]); // horizontal distance
   const double distanceW3ToW6inMm = fabs(this->NWires[0].Wires[2].EndPointFront[1] - this->NWires[1].Wires[2].EndPointFront[1]); // vertical  distance 
   
-  for ( int frame = 0; frame < this->GetTrackedFrameList()->GetNumberOfTrackedFrames(); ++frame )
+  for ( int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame )
   {
-    TrackedFrame* trackedFrame = this->GetTrackedFrameList()->GetTrackedFrame(frame); 
+    TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame); 
     if ( trackedFrame == NULL ) 
     {
       LOG_ERROR("Unable to get tracked frame from the list - tracked frame is NULL (position in the list: " << frame << ")!"); 
