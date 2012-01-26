@@ -559,15 +559,15 @@ PlusStatus vtkNDITracker::InternalUpdate()
     flags = 0;
     if ((port_status & mflags) != mflags) 
     {
-      flags |= TOOL_MISSING;
+      flags = TOOL_MISSING;
     }
     else
     {
-      if (absent[tool]) { flags |= TOOL_OUT_OF_VIEW;  }
-      if (port_status & NDI_OUT_OF_VOLUME){ flags |= TOOL_OUT_OF_VOLUME; }
-      if (port_status & NDI_SWITCH_1_ON)  { flags |= TOOL_SWITCH1_IS_ON; }
-      if (port_status & NDI_SWITCH_2_ON)  { flags |= TOOL_SWITCH2_IS_ON; }
-      if (port_status & NDI_SWITCH_3_ON)  { flags |= TOOL_SWITCH3_IS_ON; }
+      if (absent[tool]) { flags = TOOL_OUT_OF_VIEW;  }
+      if (port_status & NDI_OUT_OF_VOLUME){ flags = TOOL_OUT_OF_VOLUME; }
+      //if (port_status & NDI_SWITCH_1_ON)  { flags = TOOL_SWITCH1_IS_ON; } // TODO all these button state flags are on regardless of the actual state
+      //if (port_status & NDI_SWITCH_2_ON)  { flags = TOOL_SWITCH2_IS_ON; }
+      //if (port_status & NDI_SWITCH_3_ON)  { flags = TOOL_SWITCH3_IS_ON; }
     }
 
     // if tracking relative to another tool
@@ -577,16 +577,17 @@ PlusStatus vtkNDITracker::InternalUpdate()
       {
         if (absent[this->ReferenceTool])
         {
-          flags |= TOOL_OUT_OF_VIEW;
+          flags = TOOL_OUT_OF_VIEW;
         }
         if (status[this->ReferenceTool] & NDI_OUT_OF_VOLUME)
         {
-          flags |= TOOL_OUT_OF_VOLUME;
+          flags = TOOL_OUT_OF_VOLUME;
         }
       }
       // pre-multiply transform by inverse of relative tool transform
       ndiRelativeTransform(transform[tool],referenceTransform,transform[tool]);
     }
+
     ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
     this->SendMatrix->Transpose();
 
@@ -605,7 +606,10 @@ PlusStatus vtkNDITracker::InternalUpdate()
     vtkTrackerTool* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      if (flags != TOOL_MISSING)
+      {
+        LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      }
     }
     else
     {
@@ -878,7 +882,7 @@ void vtkNDITracker::EnableToolPorts()
     identity[20] = '\0';
     trackerTool->SetToolManufacturer(PlusCommon::Trim(&identity[8]).c_str());
     identity[8] = '\0';
-    trackerTool->SetToolName(PlusCommon::Trim(&identity[0]).c_str());
+    //trackerTool->SetToolName(PlusCommon::Trim(&identity[0]).c_str()); // Here the tool name that comes from the configuration would be overridden by the tool number (setting also fails)
     ndiGetPHINFPartNumber(this->Device, partNumber);
     partNumber[20] = '\0';
     trackerTool->SetToolPartNumber(PlusCommon::Trim(&partNumber[0]).c_str());
@@ -1325,4 +1329,40 @@ PlusStatus vtkNDITracker::InternalInterpretCommand( char * messageText)
   return PLUS_FAIL;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
+{
+  // Read superclass configuration first
+  Superclass::ReadConfiguration(config); 
 
+  if ( config == NULL ) 
+  {
+    LOG_WARNING("Unable to find NDITracker XML data element");
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  unsigned long serialPort(0); 
+  if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
+  {
+    if ( !this->IsTracking() )
+    {
+      this->SetSerialPort(serialPort); 
+    }
+  }
+
+  return PLUS_SUCCESS;
+}

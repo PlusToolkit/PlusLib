@@ -134,6 +134,9 @@ public:
   /*! Get the full TX reply for a tool */
   double *GetFullTX(int tool) { this->ReturnValue[0] = (double) this->GetFullTX(tool, &this->ReturnValue[1]); return this->ReturnValue; };
 
+  /*! Read BrachyStepper configuration from xml data */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
 protected:
   vtkNDITracker();
   ~vtkNDITracker();
