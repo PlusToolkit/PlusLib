@@ -1364,5 +1364,44 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
+  // Read ROM files for tools
+  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+  {
+    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a Tool element, skip it
+      continue; 
+    }
+
+    const char* portName = toolDataElement->GetAttribute("PortName"); 
+    int portNumber = -1;
+	  if ( portName != NULL ) 
+	  {
+      portNumber = atoi(portName);
+      if (portNumber < 4)
+      {
+        LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
+        continue;
+      }
+      else if (portNumber > 12)
+      {
+        LOG_WARNING("Port number has to be 12 or smaller!");
+        continue;
+      }
+	  }
+	  else
+	  {
+		  LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
+		  continue;
+	  }
+
+    const char* romFileName = toolDataElement->GetAttribute("RomFile");
+    if (romFileName)
+    {
+      this->LoadVirtualSROM(portNumber, romFileName);
+    }
+  }
+
   return PLUS_SUCCESS;
 }
