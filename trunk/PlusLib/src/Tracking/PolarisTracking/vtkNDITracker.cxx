@@ -831,7 +831,8 @@ void vtkNDITracker::EnableToolPorts()
   // get information for all tools
   ndiCommand(this->Device,"PHSR:00");
   ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  for (tool = 0; tool < ntools; tool++)
+  ToolIteratorType it;
+  for ( it = this->GetToolIteratorBegin(), tool = 0; it != this->GetToolIteratorEnd(); ++it, ++tool)
   {
     ph = ndiGetPHSRHandle(this->Device,tool);
     ndiCommand(this->Device,"PHINF:%02X0025",ph);
@@ -864,12 +865,10 @@ void vtkNDITracker::EnableToolPorts()
       }
     }
 
-    std::ostringstream toolPortName; 
-    toolPortName << tool; 
     vtkTrackerTool* trackerTool = NULL; 
-    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    if ( this->GetToolByPortName(it->second->GetPortName(), trackerTool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      LOG_ERROR("Failed to get tool by port name: " << it->second->GetPortName() ); 
       continue; 
     }
 
