@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 # Options
-OPTION (PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
+OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" ON)
@@ -85,13 +85,11 @@ ENDIF (PLUS_USE_CERTUS)
 IF (PLUS_USE_POLARIS)
 
 	SET (Tracking_SRCS ${Tracking_SRCS}
-		PolarisTracking/vtkPOLARISTracker.cxx
 		PolarisTracking/vtkNDITracker.cxx
 	  )
 	
 	if (WIN32)	
 		SET (Tracking_HDRS ${Tracking_HDRS}
-			PolarisTracking/vtkPOLARISTracker.h
 			PolarisTracking/vtkNDITracker.h
 			)
 	endif (WIN32)
