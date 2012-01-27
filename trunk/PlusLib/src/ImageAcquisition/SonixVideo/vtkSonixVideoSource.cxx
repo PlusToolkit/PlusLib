@@ -860,7 +860,7 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
     LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: not connected");
     return PLUS_FAIL;
   }
-  
+
   if ( !this->Ult.getParamValue("frame rate", aFrameRate) )
   {
 	 LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
@@ -883,7 +883,7 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameSize(int &aFrameWidth, int &aFr
 	  LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: cannot retrieve displayed frame size.");
 	  return PLUS_FAIL;
   }
-
+  
   aFrameWidth =  this->DataDescriptor.w;
   aFrameHeight = this->DataDescriptor.h;
 
@@ -900,6 +900,38 @@ PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
   if ( !this->Ult.setParamValue("rf-rf decimation", decimation) )
   {
 	 LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
+	 return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
+{
+  if (!this->UlteriusConnected)
+  {
+    LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: not connected");
+    return PLUS_FAIL;
+  }
+  if ( !this->Ult.setParamValue("b-filter type", filterIndex) )
+  {
+	 LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: cannot set filter value.");
+	 return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
+{
+  if (!this->UlteriusConnected)
+  {
+    LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: not connected");
+    return PLUS_FAIL;
+  }
+  if ( !this->Ult.setParamValue("max fr", frLimit) )
+  {
+	 LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: cannot set maximum frame rate limit value.");
 	 return PLUS_FAIL;
   }
 
