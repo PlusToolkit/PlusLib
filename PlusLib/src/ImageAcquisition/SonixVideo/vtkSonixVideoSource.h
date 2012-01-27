@@ -262,6 +262,9 @@ public:
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(int &aFrameRate);
 
+  /*! Get the displayed frame size. */
+  PlusStatus GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight);
+
   /*! Set RF decimation. */
   PlusStatus SetRFDecimation(int decimation);
 
