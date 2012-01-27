@@ -869,7 +869,26 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
   
   return PLUS_SUCCESS;
 }
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight)
+{
+  if (!this->UlteriusConnected)
+  {
+    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: not connected");
+	return PLUS_FAIL;
+  }
 
+  if(!this->Ult.getDataDescriptor((uData)this->AcquisitionDataType, this->DataDescriptor))
+  {
+	  LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: cannot retrieve displayed frame size.");
+	  return PLUS_FAIL;
+  }
+
+  aFrameWidth =  this->DataDescriptor.w;
+  aFrameHeight = this->DataDescriptor.h;
+
+  return PLUS_SUCCESS;
+}
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
 {
