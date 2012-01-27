@@ -88,8 +88,9 @@ int main(int argc, char **argv)
   bool printHelp(false);
   bool plotResults(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
-  std::string inputTrackerSequenceMetafile;
-  std::string inputUSImageSequenceMetafile;
+  std::string inputTrackerSequenceMetafile = "";
+  std::string inputUSImageSequenceMetafile = "";
+  std::string outputFilepath = "";
   double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [seconds]
 
   vtksys::CommandLineArguments args;
@@ -101,7 +102,8 @@ int main(int argc, char **argv)
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--plot-results",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
-
+  args.AddArgument("--output-filepath", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilepath, "Filepath where the output files will be written");
+  
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -109,19 +111,8 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  std::string numbers;
-  for(int i = 0; i < inputUSImageSequenceMetafile.length(); i++)
-  {
-    if(isdigit(inputUSImageSequenceMetafile.at(i))){
-      numbers.append(inputUSImageSequenceMetafile.substr(i,1));
-    }
-  }
-
   //  Write file indicating whether test was succesful; initially set to 0 (= 'No')
-  std::string isTestValidFileName = "IsTestValid_";
-  isTestValidFileName.append(numbers);
-  isTestValidFileName.append(".txt");
-
+  std::string isTestValidFileName = outputFilepath + "\\IsTestValid.txt"; 
   std::ofstream isTestValidFile;
   isTestValidFile.open(isTestValidFileName.c_str());
   isTestValidFile << 0 << std::endl;
@@ -147,6 +138,14 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  if ( outputFilepath.empty() )
+  {
+    std::cerr << "output-filepath required argument!" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
@@ -215,10 +214,7 @@ int main(int argc, char **argv)
   NormalizeMetric(trackerMetric);
 
   //  Write the tracker metric to file.
-  std::string trackerMetricFileName = "normalizedTrackerMetric_";
-  trackerMetricFileName.append(numbers);
-  trackerMetricFileName.append(".txt");
-
+  std::string trackerMetricFileName = outputFilepath + "\\normalizedTrackerMetric.txt";
   std::ofstream probeToReferenceTransformNormalizedFile;
   probeToReferenceTransformNormalizedFile.open (trackerMetricFileName.c_str());
   for(int i = 0; i < trackerMetric.size(); ++i)
@@ -250,16 +246,13 @@ int main(int argc, char **argv)
   NormalizeMetric(videoMetric);
 
   //  Write image metric to file
-  std::string imageMetricFileName = "normalizedImageMetric_";
-  imageMetricFileName.append(numbers);
-  imageMetricFileName.append(".txt");
-
-
+  std::string imageMetricFileName = outputFilepath +  "\\normalizedImageMetric.txt";
   std::ofstream videoMetricFile;
   videoMetricFile.open(imageMetricFileName.c_str());
   for(int i = 0; i < videoMetric.size(); ++i)
+  {
     videoMetricFile << videoMetric.at(i) << "," << imageTimestampVector.at(i) << std::endl;
-
+  }
   videoMetricFile.close();
 
   std::vector<double> resampledTrackerMetric;
@@ -283,20 +276,14 @@ int main(int argc, char **argv)
   time(&endTime);
 
   //  Write run-time to file.
-  std::string runTimeFileName = "RunTime_";
-  runTimeFileName.append(numbers);
-  runTimeFileName.append(".txt");
-
+  std::string runTimeFileName =  outputFilepath + "\\Runtime.txt";
   std::ofstream runTimeFile;
   runTimeFile.open(runTimeFileName.c_str());
   runTimeFile << difftime(endTime, startTime) << std::endl;
   runTimeFile.close();
 
   //  Write the calculated tracker lag to file.
-  std::string trackerLagFilename = "TrackerLag_";
-  trackerLagFilename.append(numbers);
-  trackerLagFilename.append(".txt");
-
+  std::string trackerLagFilename =  outputFilepath + "\\TrackerLag.txt";
   std::ofstream trackerLagFile;
   trackerLagFile.open(trackerLagFilename.c_str());
   trackerLagFile << trackerLag << std::endl;
@@ -310,7 +297,9 @@ int main(int argc, char **argv)
   //  Create an aligned Tracker timestamp vector.
    std::vector<double> alignedTrackerTimestampVector;
    for(int i = 0; i < resampledTrackerTimestamps.size(); ++i)
+   {
       alignedTrackerTimestampVector.push_back(resampledTrackerTimestamps.at(i) - trackerLag);
+   }
 
    if (plotResults)
    {
@@ -429,7 +418,9 @@ void NormalizeMetric(std::vector<double> &metric)
   //  Get the mean of the Euclidean distances
   double mu = 0;
   for(int i = 0; i < metric.size(); ++i)
+  {
     mu += metric.at(i);
+  }
 
   mu /= metric.size();
 
@@ -670,7 +661,9 @@ double computeCorrelation(std::vector<double> &trackerMetric, std::vector<double
 
   double overlapSum = 0;
   for(long int i = 0; i < trackerMetric.size(); ++i)
+  {
     overlapSum += trackerMetric.at(i) * videoMetric.at(i + indexOffset);
+  }
 
   return overlapSum;
 
