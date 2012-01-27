@@ -1,7 +1,6 @@
 #include "PlusConfigure.h"
 
 #include <iostream>
-#include <ctype.h>
 #include <time.h>
 
 #include <vtkRenderer.h>
@@ -11,13 +10,12 @@
 #include <vtkChartXY.h>
 #include <vtkTable.h>
 #include <vtkPlot.h>
-#include <vtkFloatArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkPen.h>
 #include <vtkDoubleArray.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkPNGWriter.h>
 #include <vtkMatrix4x4.h>
 #include <vtksys/CommandLineArguments.hxx>
 
@@ -358,20 +356,11 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoM
   otsuFilter->SetInput(localImage);
   otsuFilter->Update();
 
-  // Create a threshold filter and use Otsu's threshold for thresholding value
-  typedef itk::BinaryThresholdImageFilter<charImageType, charImageType> binaryThresholdImageFilterType;
-  binaryThresholdImageFilterType::Pointer thresholdFilter = binaryThresholdImageFilterType::New();
-  thresholdFilter->SetInput(localImage);
-  thresholdFilter->SetLowerThreshold(0);
-  thresholdFilter->SetUpperThreshold(otsuFilter->GetThreshold());
-  thresholdFilter->SetInsideValue(0);
-  thresholdFilter->SetOutsideValue(255);
-
   // Set parameters of the Hough transform filter
-  double houghLineDetectionThreshold = 0; //threshold above which pixels will be considered by Hough
+  double houghLineDetectionThreshold = otsuFilter->GetThreshold(); // set Hough threshold to Otsu threshold.
   int houghNumberOfLinesToDetect = 1;
   int houghDiscRadius = 10;
-  houghTransform->SetInput(thresholdFilter->GetOutput());
+  houghTransform->SetInput(localImage);
   houghTransform->SetThreshold(houghLineDetectionThreshold);
   houghTransform->SetNumberOfLines(houghNumberOfLinesToDetect);
   houghTransform->SetDiscRadius(houghDiscRadius);
@@ -387,17 +376,6 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoM
 
   LOG_DEBUG("Found " << lines.size() << " line(s).");
 
-  // Define output image
-  typedef unsigned char outputPixelType;
-  typedef itk::Image<outputPixelType, imageDimension> outputCharImageType;
-
-  // Duplicate the original image to get a copy to draw detected lines on
-  typedef itk::ImageDuplicator<charImageType> DuplicatorType;
-  DuplicatorType::Pointer duplicator = DuplicatorType::New();
-  duplicator->SetInputImage(localImage);
-  duplicator->Update();
-  charImageType::Pointer localOutputImage = duplicator->GetOutput();
-  
   // Iterate through the list of lines and we draw them.
   typedef HoughTransformFilterType::LinesListType::const_iterator LineIterator;
   typedef HoughTransformFilterType::LineType::PointListType PointListType;
@@ -405,7 +383,7 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoM
 
   //std::ofstream InterceptFile;
   //InterceptFile.open ("InterceptFile.txt", std::ios::app);
-  itk::Size<2> size = localOutputImage->GetLargestPossibleRegion().GetSize();
+  itk::Size<2> size = localImage->GetLargestPossibleRegion().GetSize();
   int halfwayPoint = static_cast<int> ((float) size[0]) / 2;
 
   while( itLines != lines.end() )
@@ -429,29 +407,6 @@ PlusStatus LineDetection(PlusVideoFrame* videoFrame, std::vector<double> &videoM
     double b = u[1] - m*u[0];
     videoMetric.push_back(m*halfwayPoint + b);
   
-    double norm = vcl_sqrt(v[0]*v[0]+v[1]*v[1]);
-    v[0] /= norm;
-    v[1] /= norm;
-
-    // Draw a white pixels in the output image to represent the line.
-    charImageType::IndexType localIndex;
-    float diag = vcl_sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
-
-    float p_1 = 0;
-
-
-    for(int i = static_cast<int>(-diag); i<static_cast<int>(diag); i++)
-    {
-      localIndex[0]=(long int)(u[0]+i*v[0]);
-      localIndex[1]=(long int)(u[1]+i*v[1]);
-
-      outputCharImageType::RegionType outputRegion = localOutputImage->GetLargestPossibleRegion();
-
-      if(outputRegion.IsInside(localIndex))
-      {
-        localOutputImage->SetPixel(localIndex, 255);
-      }
-    }
 
     itLines++;
   }
@@ -729,22 +684,22 @@ void plot(std::vector<double> &resampledTrackerTimestamps, std::vector<double> &
   vtkSmartPointer<vtkTable> table2 = vtkSmartPointer<vtkTable>::New();
 
   //  Create array correpsonding to the time values of the tracker plot
-  vtkSmartPointer<vtkFloatArray> arrResampledTrackerTimestamps = vtkSmartPointer<vtkFloatArray>::New();
+  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledTrackerTimestamps->SetName("Time [s]"); 
   table->AddColumn(arrResampledTrackerTimestamps);
  
   //  Create array corresponding to the metric values of the tracker plot
-  vtkSmartPointer<vtkFloatArray> arrResampledTrackerMetric = vtkSmartPointer<vtkFloatArray>::New();
+  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerMetric = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledTrackerMetric->SetName("Tracker Metric");
   table->AddColumn(arrResampledTrackerMetric);
 
   //  Create array correpsonding to the time values of the video plot
-  vtkSmartPointer<vtkFloatArray> arrResampledVideoTimestamps = vtkSmartPointer<vtkFloatArray>::New();
+  vtkSmartPointer<vtkDoubleArray> arrResampledVideoTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledVideoTimestamps->SetName("Time [s]"); 
   table2->AddColumn(arrResampledVideoTimestamps);
  
   //  Create array corresponding to the metric values of the video plot
-  vtkSmartPointer<vtkFloatArray> arrResampledVideoMetric = vtkSmartPointer<vtkFloatArray>::New();
+  vtkSmartPointer<vtkDoubleArray> arrResampledVideoMetric = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledVideoMetric->SetName("Video Metric");
   table2->AddColumn(arrResampledVideoMetric);
  
@@ -752,16 +707,16 @@ void plot(std::vector<double> &resampledTrackerTimestamps, std::vector<double> &
   table->SetNumberOfRows(resampledTrackerTimestamps.size());
   for (int i = 0; i < resampledTrackerTimestamps.size(); ++i)
   {
-    table->SetValue(i, 0, static_cast<float>(resampledTrackerTimestamps.at(i)));
-    table->SetValue(i, 1, static_cast<float>(resampledTrackerMetric.at(i)));
+    table->SetValue(i, 0, (resampledTrackerTimestamps.at(i)));
+    table->SetValue(i, 1, (resampledTrackerMetric.at(i)));
   }
 
   // Set the video data
   table2->SetNumberOfRows(resampledVideoTimestamps.size());
   for (int i = 0; i < resampledVideoTimestamps.size(); ++i)
   {
-    table2->SetValue(i, 0, static_cast<float>(resampledVideoTimestamps.at(i)));
-    table2->SetValue(i, 1, static_cast<float>(resampledVideoMetric.at(i)));
+    table2->SetValue(i, 0, (resampledVideoTimestamps.at(i)));
+    table2->SetValue(i, 1, (resampledVideoMetric.at(i)));
   }
 
   // Set up the view
