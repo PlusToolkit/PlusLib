@@ -265,8 +265,14 @@ public:
   /*! Get the displayed frame size. */
   PlusStatus GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight);
 
-  /*! Set RF decimation. */
+  /*! Set RF decimation. This requires ultrerius be connected. */
   PlusStatus SetRFDecimation(int decimation);
+
+  /*! Set speckle reduction filter (filterIndex: 0=off,1,2). This requires ultrerius be connected.  */
+  PlusStatus SetPPFilter(int filterIndex);
+
+   /*! Set maximum frame rate limit on exam software (frLimit=403 means 40.3Hz). This requires ultrerius be connected.  */
+  PlusStatus SetFrameRateLimit(int frLimit);
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
