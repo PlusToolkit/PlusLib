@@ -67,9 +67,10 @@ class FidLabeling
         resultLine1: left-most, resultLine2: diagonal, resultLine3: right-most*/
     void UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3);
 
-    /*! Update the NWires results once the pattern has been found, the order of the lines is:
-        resultLine1: top, resultLine2: bottom */
-    void UpdateNWiresResults(Line resultLine1, Line resultLine2);
+    /*! Update the NWires results once the pattern has been found
+     \param resultLines Found lines in ascending order of their origin's Y coordinate (top line is first, bottom line is last)
+    */
+    void UpdateNWiresResults(std::vector<Line*> resultLines);
 
     /*! Sort the points of a line from right to left */
 		void SortRightToLeft( Line *line );
@@ -100,7 +101,7 @@ class FidLabeling
     void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
 
     /*! Get the intensity of a pair of lines */
-    float GetLinePairIntensity() { return m_LinePairIntensity; };
+    float GetPatternIntensity() { return m_PatternIntensity; };
 
     /*! Set to true if the algorithm is successful and the correct dots are found, false otherwise */
     void SetDotsFound(bool value) { m_DotsFound = value; };
@@ -147,7 +148,7 @@ class FidLabeling
 
     float   m_AngleToleranceRad;
     float   m_InclinedLineAngle;
-		float		m_LinePairIntensity;
+		float		m_PatternIntensity;
 		
 		std::vector<Dot>		  m_DotsVector;
     std::vector<Line>     m_FoundLines;

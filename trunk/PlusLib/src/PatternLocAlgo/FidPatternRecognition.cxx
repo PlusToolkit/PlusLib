@@ -61,7 +61,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   }
 
   //Set the results
-	patternRecognitionResult.SetIntensity(m_FidLabeling.GetLinePairIntensity());
+	patternRecognitionResult.SetIntensity(m_FidLabeling.GetPatternIntensity());
 	patternRecognitionResult.SetNumDots(m_FidLabeling.GetDotsVector().size()); 
 	patternRecognitionResult.SetDotsFound(m_FidLabeling.GetDotsFound());
 	patternRecognitionResult.SetFoundDotsCoordinateValue(m_FidLabeling.GetFoundDotsCoordinateValue());
@@ -294,8 +294,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 					continue;
 				}
 
-			  NWire * nWire = new NWire;
-        CoplanarParallelWires * coplanarParallelWires = new CoplanarParallelWires;
+			  NWire * nWire = new NWire();
+        CoplanarParallelWires * coplanarParallelWires = new CoplanarParallelWires();
 
 			  int numberOfWires = patternElement->GetNumberOfNestedElements();
 

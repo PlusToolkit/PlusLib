@@ -6,32 +6,23 @@
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
     />
 
-    <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
+    <File SequenceMetafile="fCal_Test_Calibration_3NWires.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
 
   <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 410 0 1 0 5 0 0 1 0 0 0 0 1"
+      Date="2011.12.06 17:57:00"
+    />
     <Transform From="Phantom" To="Reference"
-      Matrix="0.9968 0.0075 -0.0795 -35.6089
-              0.0794 0.0055 0.9968 -124.9852
-              0.0079 -1.0000 0.0049 -16.7
-              0 0 0 1"
-      Date="2011.12.01 17:57:00" Error="0.0"
+      Matrix="0.00898765 -0.0136951 -0.999866 9.59137 0.0246163 -0.9996 0.0139127 36.0012 -0.999657 -0.024738 -0.00864693 87.8909 0 0 0 1"
+      Error="0.404711" Date="012712_152104"
     />
     <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
-              0 1 0 0
-              0 0 1 0
-              0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    /> 
-    <Transform From="Image" To="TransducerOriginPixel"
-      Matrix="1 0 0 410
-              0 1 0 5
-              0 0 1 0
-              0 0 0 1"
-      Date="2011.12.06 17:57:00" Error="0.0"
-    />    
+      Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
+      Error="0.582721" Date="012712_152030"
+    />
   </CoordinateDefinitions> 
   
 

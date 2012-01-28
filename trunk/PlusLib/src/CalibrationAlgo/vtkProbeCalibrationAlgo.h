@@ -26,7 +26,7 @@ class TrackedFrame;
 class vtkTrackedFrameList; 
 class vtkTransformRepository;
 class vtkXMLDataElement; 
-struct NWire;
+class NWire;
 
 /*!
   \class vtkProbeCalibrationAlgo 
