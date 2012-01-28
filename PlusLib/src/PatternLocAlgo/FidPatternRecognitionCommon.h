@@ -141,8 +141,8 @@ class Line
 struct Wire
 {
   std::string Name;
-	double EndPointFront[3];
-	double EndPointBack[3];
+  double EndPointFront[3];
+  double EndPointBack[3];
 };
 
 //-----------------------------------------------------------------------------
@@ -153,11 +153,14 @@ struct Wire
          distances.
   \ingroup PlusLibPatternRecognition
 */
-struct Pattern
+class Pattern
 {
+public:
+  virtual ~Pattern() { };
+
   std::vector<Wire> Wires;
-  std::vector<float> DistanceToOriginMm;//These distances are in mm.
-  std::vector<float> DistanceToOriginToleranceMm;//These tolerances are in mm.
+  std::vector<float> DistanceToOriginMm; //These distances are in mm.
+  std::vector<float> DistanceToOriginToleranceMm; //These tolerances are in mm.
 
   //unused iterator to iterate only through one type of Patterns.
 /*
@@ -193,8 +196,11 @@ struct Pattern
          between lines 1 and 2, and, 2 and 3.
   \ingroup PlusLibPatternRecognition
 */
-struct NWire : public Pattern
+class NWire : public Pattern
 {
+public:
+  virtual ~NWire() { };
+
   double  IntersectPosW12[3];
   double  IntersectPosW32[3];
 };
@@ -206,8 +212,10 @@ struct NWire : public Pattern
          parallel fiducial wires.
   \ingroup PlusLibPatternRecognition
 */
-struct CoplanarParallelWires : public Pattern
+class CoplanarParallelWires : public Pattern
 {
+public:
+  virtual ~CoplanarParallelWires() { };
 };
 
 //-----------------------------------------------------------------------------

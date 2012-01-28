@@ -29,7 +29,7 @@ FidLabeling::FidLabeling()
 	
 	m_DotsFound = false;
 
-	m_LinePairIntensity = -1.0;
+	m_PatternIntensity = -1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -47,42 +47,33 @@ void FidLabeling::UpdateParameters()
 	// Distance between lines (= distance between planes of the N-wires)
 	double maxNPlaneDistance = -1.0;
 	double minNPlaneDistance = FLT_MAX;
-	int numOfNWires = m_Patterns.size();
+	int numOfPatterns = m_Patterns.size();
 	double epsilon = 0.001;
-  std::vector<NWire> nWires;
 
-  for( int i=0 ; i< m_Patterns.size() ; i++)
-  {
-    NWire* nWire = static_cast<NWire*>(m_Patterns.at(i));
-    if(nWire)//if it is a NWire*
-    {
-      nWires.push_back(*nWire);
-    }
-  }
-
-	// Compute normal of each NWire and evaluate the other wire endpoints if they are on the computed plane
+	// Compute normal of each pattern and evaluate the other wire endpoints if they are on the computed plane
 	std::vector<vtkSmartPointer<vtkPlane>> planes;
-	for (int i=0; i<numOfNWires; ++i) 
+	for (int i=0; i<numOfPatterns; ++i) 
   {
 		double normal[3];
-		vtkTriangle::ComputeNormal(nWires.at(i).Wires[0].EndPointFront, nWires.at(i).Wires[0].EndPointBack, nWires.at(i).Wires[2].EndPointFront, normal);
+		vtkTriangle::ComputeNormal(m_Patterns[i]->Wires[0].EndPointFront, m_Patterns[i]->Wires[0].EndPointBack, m_Patterns[i]->Wires[2].EndPointFront, normal);
 
 		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
 		plane->SetNormal(normal);
-		plane->SetOrigin(nWires.at(i).Wires[0].EndPointFront);
+		plane->SetOrigin(m_Patterns[i]->Wires[0].EndPointFront);
 		planes.push_back(plane);
 
-		double distance1F = plane->DistanceToPlane(nWires.at(i).Wires[1].EndPointFront);
-		double distance1B = plane->DistanceToPlane(nWires.at(i).Wires[1].EndPointBack);
-		double distance2B = plane->DistanceToPlane(nWires.at(i).Wires[2].EndPointBack);
+		double distance1F = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointFront);
+		double distance1B = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointBack);
+		double distance2B = plane->DistanceToPlane(m_Patterns[i]->Wires[2].EndPointBack);
 
-		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon) {
-			LOG_ERROR("NWire number " << i << " is invalid: the endpoints are not on the same plane");
+		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
+    {
+			LOG_ERROR("Pattern number " << i << " is invalid: the endpoints are not on the same plane");
 		}
 	}
 
 	// Compute distances between each NWire pairs and determine the smallest and the largest distance
-	for (int i=numOfNWires-1; i>0; --i) 
+	for (int i=numOfPatterns-1; i>0; --i) 
   {
 		for (int j=i-1; j>=0; --j) 
     {
@@ -374,50 +365,41 @@ float FidLabeling::ComputeShift(Line line1, Line line2)
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::UpdateNWiresResults(Line resultLine1, Line resultLine2)//result line 1 is the top line in the image
+void FidLabeling::UpdateNWiresResults(std::vector<Line*> resultLines)
 {
+  int numberOfLines = m_Patterns.size(); //the number of lines in the pattern
   float intensity = 0;
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
-  SortRightToLeft(&resultLine1);
-  SortRightToLeft(&resultLine2);
-
-  for(int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
+  for (int i=0; i<numberOfLines; ++i)
   {
-    LabelingResults result;
-    result.x = m_DotsVector[resultLine1.GetPoint(i)].GetX();
-    dotCoords.push_back(result.x);
-    result.y = m_DotsVector[resultLine1.GetPoint(i)].GetY();
-    dotCoords.push_back(result.y);
-    result.patternId = 0;
-    result.wireId = i;
-    m_Results.push_back(result);
-    foundDotsCoordinateValues.push_back(dotCoords);
-    dotCoords.clear();
+    SortRightToLeft(resultLines[i]);
   }
-  intensity += resultLine1.GetIntensity();
 
-  for(int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
+  for (int line=0; line<numberOfLines; ++line)
   {
-    LabelingResults result;
-    result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();
-    dotCoords.push_back(result.x);
-    result.y = m_DotsVector[resultLine2.GetPoint(i)].GetY();
-    dotCoords.push_back(result.y);
-    result.patternId = 1;
-    result.wireId = i;
-    m_Results.push_back(result);
-    foundDotsCoordinateValues.push_back(dotCoords);
-    dotCoords.clear();
-  }
-  intensity += resultLine2.GetIntensity();
+    for(int i=0 ; i<resultLines[line]->GetPoints()->size() ; i++)
+    {
+      LabelingResults result;
+      result.x = m_DotsVector[resultLines[line]->GetPoint(i)].GetX();
+      dotCoords.push_back(result.x);
+      result.y = m_DotsVector[resultLines[line]->GetPoint(i)].GetY();
+      dotCoords.push_back(result.y);
+      result.patternId = 0;
+      result.wireId = i;
+      m_Results.push_back(result);
+      foundDotsCoordinateValues.push_back(dotCoords);
+      dotCoords.clear();
+    }
 
-  m_FoundLines.push_back(resultLine1);
-  m_FoundLines.push_back(resultLine2);
+    intensity += resultLines[line]->GetIntensity();
+
+    m_FoundLines.push_back(*(resultLines[line]));
+  }
 
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
-  m_LinePairIntensity = intensity;
+  m_PatternIntensity = intensity;
   m_DotsFound = true;
 }
 
@@ -480,7 +462,7 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   m_FoundLines.push_back(resultLine3);
 
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
-  m_LinePairIntensity = intensity;
+  m_PatternIntensity = intensity;
   m_DotsFound = true;
 }
 
@@ -634,20 +616,31 @@ void FidLabeling::FindPattern()
   if(foundPattern)//We have the right permutation of lines in lineIndices
   {
     //Update the results, this part is not generic but depends on the Pattern we are looking for
-    if(numberOfLines == 2)//2 Nwires
+    NWire* nWire = dynamic_cast<NWire*>(m_Patterns.at(0));
+    CoplanarParallelWires* coplanarParallelWire = dynamic_cast<CoplanarParallelWires*>(m_Patterns.at(0));
+    if (nWire) // NWires
     {
-      Line resultLine1 = maxPointsLines[lineIndices[0]];
-      Line resultLine2 = maxPointsLines[lineIndices[1]];
-      if(m_DotsVector[resultLine1.GetOrigin()].GetY() < m_DotsVector[resultLine2.GetOrigin()].GetY())//Line1 is the top one in the image
+      std::vector<Line*> resultLines(numberOfLines);
+      std::vector<double> resultLineOriginYs(0);
+
+      for (std::vector<int>::iterator it = lineIndices.begin(); it != lineIndices.end(); ++it)
       {
-        UpdateNWiresResults(resultLine1, resultLine2);
+        resultLineOriginYs.push_back( m_DotsVector[maxPointsLines[*it].GetOrigin()].GetY() );
       }
-      else
+
+      // Sort result lines according to origin Y's
+      std::vector<double>::iterator originYsBeginIt = resultLineOriginYs.begin();
+      for (int i=0; i<numberOfLines; ++i)
       {
-        UpdateNWiresResults(resultLine2, resultLine1);
+        std::vector<double>::iterator originYsMinIt = std::min_element(originYsBeginIt, resultLineOriginYs.end());
+        int minIndex = (int)std::distance(originYsBeginIt,originYsMinIt);
+        resultLines[i] = &maxPointsLines[lineIndices[minIndex]];
+        (*originYsMinIt) = DBL_MAX;
       }
+
+      UpdateNWiresResults(resultLines);
     }
-    else if(numberOfLines == 3)//CIRS phantom
+    else if (coplanarParallelWire) // CIRS phantom
     {
       Line resultLine1 = maxPointsLines[lineIndices[0]];
       Line resultLine2 = maxPointsLines[lineIndices[1]];
