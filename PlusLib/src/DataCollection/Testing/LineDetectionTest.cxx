@@ -88,9 +88,9 @@ int main(int argc, char **argv)
   bool printHelp(false);
   bool plotResults(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
-  std::string inputTrackerSequenceMetafile = "";
-  std::string inputUSImageSequenceMetafile = "";
-  std::string outputFilepath = "";
+  std::string inputTrackerSequenceMetafile;
+  std::string inputUSImageSequenceMetafile;
+  std::string outputFilepath;
   double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [seconds]
 
   vtksys::CommandLineArguments args;
