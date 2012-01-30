@@ -46,7 +46,7 @@ vtkTrackedFrameList::~vtkTrackedFrameList()
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::RemoveTrackedFrame( int frameNumber )
 {
-  if ( frameNumber <= 0 || frameNumber > this->GetNumberOfTrackedFrames() )
+  if ( frameNumber < 0 || frameNumber >= this->GetNumberOfTrackedFrames() )
   {
     LOG_WARNING("Failed to remove tracked frame from list - invalid frame number: " << frameNumber ); 
     return PLUS_FAIL; 
@@ -54,6 +54,25 @@ PlusStatus vtkTrackedFrameList::RemoveTrackedFrame( int frameNumber )
 
   delete this->TrackedFrameList[frameNumber]; 
   this->TrackedFrameList.erase(this->TrackedFrameList.begin()+frameNumber); 
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::RemoveTrackedFrameRange( int frameNumberFrom, int frameNumberTo )
+{
+  if ( frameNumberFrom < 0 || frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo)
+  {
+    LOG_WARNING("Failed to remove tracked frame from list - invalid frame number range: (" << frameNumberFrom << ", " << frameNumberTo << ")" ); 
+    return PLUS_FAIL; 
+  }
+
+  for (int i=frameNumberFrom; i<=frameNumberTo; ++i)
+  {
+    delete this->TrackedFrameList[i];
+  }
+
+  this->TrackedFrameList.erase(this->TrackedFrameList.begin()+frameNumberFrom, this->TrackedFrameList.begin()+frameNumberTo+1);
 
   return PLUS_SUCCESS;
 }
