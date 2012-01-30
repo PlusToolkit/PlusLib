@@ -47,6 +47,7 @@ int main (int argc, char* argv[])
 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
+  std::string resultConfigFileName = "";
 
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
@@ -65,7 +66,9 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
   cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
 
-	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--save-result-configuration", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name");	
+
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !cmdargs.Parse() )
   {
@@ -142,6 +145,18 @@ int main (int argc, char* argv[])
   {
     LOG_ERROR("Calibration failed!");
     return EXIT_FAILURE;
+  }
+
+  // Save result to configuration file
+  if (resultConfigFileName.size() > 0)
+  {
+    if ( transformRepository->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
+      return EXIT_FAILURE;
+    }
+
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(resultConfigFileName.c_str());
   }
 
   // Compare results
