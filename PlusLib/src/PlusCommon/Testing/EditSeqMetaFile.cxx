@@ -488,19 +488,20 @@ int main(int argc, char **argv)
 PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, int aFirstFrameIndex, int aLastFrameIndex )
 {
   LOG_INFO("Trim sequence metafile from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex ); 
-  if ( aLastFrameIndex > aTrackedFrameList->GetNumberOfTrackedFrames() - 1 ) 
+  if ( aFirstFrameIndex < 0 || aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex)
   {
-    LOG_WARNING("Last frame index is less then desired: " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 ); 
+    LOG_ERROR("Invalid input range: (" << aFirstFrameIndex << ", " << aLastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")");
+    return PLUS_FAIL;
   }
 
-  for ( int i = aLastFrameIndex + 1; i < aTrackedFrameList->GetNumberOfTrackedFrames(); i++ )
+  if (aLastFrameIndex != aTrackedFrameList->GetNumberOfTrackedFrames()-1)
   {
-    aTrackedFrameList->RemoveTrackedFrame(i); 
+    aTrackedFrameList->RemoveTrackedFrameRange(aLastFrameIndex+1, aTrackedFrameList->GetNumberOfTrackedFrames()-1);
   }
 
-  for ( int i = 0; i < aFirstFrameIndex; i++ )
+  if (aFirstFrameIndex != 0)
   {
-    aTrackedFrameList->RemoveTrackedFrame(i); 
+    aTrackedFrameList->RemoveTrackedFrameRange(0, aFirstFrameIndex-1);
   }
 
   return PLUS_SUCCESS; 

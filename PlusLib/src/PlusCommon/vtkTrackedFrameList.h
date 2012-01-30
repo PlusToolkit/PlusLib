@@ -78,8 +78,16 @@ public:
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
 
-  /*! Remove tracked frame from the list and free up memory */
+  /*! Remove a tracked frame from the list and free up memory
+    \param frameNumber Index of tracked frame to remove (from 0 to NumberOfFrames-1)
+  */
   virtual PlusStatus RemoveTrackedFrame( int frameNumber ); 
+
+  /*! Remove a range of tracked frames from the list and free up memory
+    \param frameNumberFrom First frame to be removed (inclusive)
+    \param frameNumberTo Last frame to be removed (inclusive)
+  */
+  virtual PlusStatus RemoveTrackedFrameRange( int frameNumberFrom, int frameNumberTo ); 
 
   /*! Clear tracked frame list and free memory */
   virtual void Clear(); 
