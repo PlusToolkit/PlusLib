@@ -12,7 +12,7 @@ if "%1" == "-C" goto continuous
 if "%1" == "-I" goto individual
 
 :experimental
-"${CMAKE_CTEST_COMMAND}" -D Experimental --output-on-failure
+"${CMAKE_CTEST_COMMAND}" -D Experimental --output-on-failure --build-and-test
 goto END
 
 :nightly
@@ -20,7 +20,7 @@ goto END
 goto END
 
 :continuous
-"${CMAKE_CTEST_COMMAND}" -D Continuous
+"${CMAKE_CTEST_COMMAND}" -D Continuous --build-and-test
 @REM Wait for some time before continue to allow checking the results of the executions
 timeout /t 15
 goto END

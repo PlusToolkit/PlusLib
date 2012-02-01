@@ -7,10 +7,11 @@
 #
 
 SET( NDIOAPI_PATH_HINTS 
-    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/NDI/Oapi-3.0.0.66
-    ../PLTools/NDI/Oapi-3.0.0.66
-    ../trunk/PLTools/NDI/Oapi-3.0.0.66
     ../NDI/Oapi-3.0.0.66
+    ../PLTools/NDI/Oapi-3.0.0.66
+    ../../PLTools/NDI/Oapi-3.0.0.66
+    ../trunk/PLTools/NDI/Oapi-3.0.0.66    
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/NDI/Oapi-3.0.0.66
     )
 
 FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h 

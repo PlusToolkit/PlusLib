@@ -9,10 +9,11 @@ IF ( NOT "${ULTRASONIX_SDK_VERSION}" STREQUAL "${PLUS_ULTRASONIX_SDK_MAJOR_VERSI
 ENDIF()
 
 SET( ULTRASONIX_SDK_PATH_HINTS 
-    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Ultrasonix
-    ../PLTools/Ultrasonix
-    ../PLTools/trunk/Ultrasonix
     ../Ultrasonix
+    ../PLTools/Ultrasonix
+    ../../PLTools/Ultrasonix
+    ../PLTools/trunk/Ultrasonix
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Ultrasonix
     )
 
 FIND_PATH(ULTRASONIX_SDK_DIR bin/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
