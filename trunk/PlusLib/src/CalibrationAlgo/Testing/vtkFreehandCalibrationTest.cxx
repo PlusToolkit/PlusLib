@@ -37,13 +37,11 @@ See License.txt for details.
 const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
 
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
-double GetCalibrationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 
 int main (int argc, char* argv[])
 {
-  std::string inputFreehandMotion1SeqMetafile;
-  std::string inputFreehandMotion2SeqMetafile;
+  std::string inputCalibrationSeqMetafile;
+  std::string inputValidationSeqMetafile;
 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
@@ -57,8 +55,8 @@ int main (int argc, char* argv[])
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument("--input-freehand-motion-1-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFreehandMotion1SeqMetafile, "Sequence metafile name of saved freehand motion 1 dataset.");
-  cmdargs.AddArgument("--input-freehand-motion-2-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFreehandMotion2SeqMetafile, "Sequence metafile name of saved freehand motion 2 dataset.");
+  cmdargs.AddArgument("--input-calibration-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset.");
+  cmdargs.AddArgument("--input-validation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset.");
 
   cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
   cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
@@ -101,16 +99,14 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
 
-  freehandCalibration->Initialize();
-
   FidPatternRecognition patternRecognition;
   patternRecognition.ReadConfiguration(configRootElement);
 
   // Load and segment calibration image
   vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if (calibrationTrackedFrameList->ReadFromSequenceMetafile(inputFreehandMotion1SeqMetafile.c_str()) != PLUS_SUCCESS)
+  if (calibrationTrackedFrameList->ReadFromSequenceMetafile(inputCalibrationSeqMetafile.c_str()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Reading calibration images from '" << inputFreehandMotion1SeqMetafile << "' failed!"); 
+    LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
   }
 
@@ -125,9 +121,9 @@ int main (int argc, char* argv[])
 
   // Load and segment validation image
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if (validationTrackedFrameList->ReadFromSequenceMetafile(inputFreehandMotion2SeqMetafile.c_str()) != PLUS_SUCCESS)
+  if (validationTrackedFrameList->ReadFromSequenceMetafile(inputValidationSeqMetafile.c_str()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Reading validation images from '" << inputFreehandMotion2SeqMetafile << "' failed!"); 
+    LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
   }
 
@@ -184,18 +180,17 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     vtkXMLUtilities::ReadElementFromFile(baselineFileName));
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
+
   // check to make sure we have the right element
   if (baselineRootElem == NULL )
   {
     LOG_ERROR("Reading baseline data file failed: " << baselineFileName);
-    numberOfFailures++;
-    return numberOfFailures;
+    return ++numberOfFailures;
   }
   if (currentRootElem == NULL )
   {
     LOG_ERROR("Reading newly generated data file failed: " << currentResultFileName);
-    numberOfFailures++;
-    return numberOfFailures;
+    return ++numberOfFailures;
   }
 
   {	//<CalibrationResults>
@@ -205,47 +200,57 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     if ( calibrationResultsBaseline == NULL) 
     {
       LOG_ERROR("Reading baseline CalibrationResults tag failed: " << baselineFileName);
-      numberOfFailures++;
-      return numberOfFailures;
+      return ++numberOfFailures;
     }
 
     if ( calibrationResults == NULL) 
     {
       LOG_ERROR("Reading current CalibrationResults tag failed: " << currentResultFileName);
-      numberOfFailures++;
-      return numberOfFailures;
+      return ++numberOfFailures;
     }
 
-    {	// <CalibrationTransform>
-      vtkXMLDataElement* calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
-      vtkXMLDataElement* calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
+    {	// <Transform>
+      vtkXMLDataElement* transformBaseline = calibrationResultsBaseline->FindNestedElementWithName("Transform"); 
+      vtkXMLDataElement* transform = calibrationResults->FindNestedElementWithName("Transform");
 
-      if ( calibrationTransformBaseline == NULL) 
+      if ( transformBaseline == NULL) 
       {
-        LOG_ERROR("Reading baseline CalibrationTransform tag failed: " << baselineFileName);
-        numberOfFailures++;
-        return numberOfFailures;
+        LOG_ERROR("Reading baseline Transform tag failed: " << baselineFileName);
+        return ++numberOfFailures;
       }
 
-      if ( calibrationTransform == NULL) 
+      if ( transform == NULL) 
       {
-        LOG_ERROR("Reading current CalibrationTransform tag failed: " << currentResultFileName);
-        numberOfFailures++;
-        return numberOfFailures;
+        LOG_ERROR("Reading current Transform tag failed: " << currentResultFileName);
+        return ++numberOfFailures;
       }
 
-      //********************************* TransformImageToProbe *************************************
+      //********************************* Transform ImageToProbe *************************************
       double blTransformImageToProbe[16]; 
       double cTransformImageToProbe[16]; 
+      const char* blFrom = transformBaseline->GetAttribute("From");
+      const char* cFrom = transform->GetAttribute("From");
+      const char* blTo = transformBaseline->GetAttribute("To");
+      const char* cTo = transform->GetAttribute("To");
 
-      if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToProbe", 16, blTransformImageToProbe))
+      if (STRCASECMP(blFrom, "Image") != 0 || STRCASECMP(blTo, "Probe"))
       {
-        LOG_ERROR("Baseline TransformImageToProbe tag is missing");
+        LOG_ERROR("Baseline From and To tags are invalid!");
         numberOfFailures++;			
       }
-      else if (!calibrationTransform->GetVectorAttribute("TransformImageToProbe", 16, cTransformImageToProbe))
+      else if (STRCASECMP(cFrom, "Image") != 0 || STRCASECMP(cTo, "Probe"))
       {
-        LOG_ERROR("Current TransformImageToProbe tag is missing");
+        LOG_ERROR("Current From and To tags are invalid!");
+        numberOfFailures++;			
+      }
+      else if (!transformBaseline->GetVectorAttribute("Matrix", 16, blTransformImageToProbe))
+      {
+        LOG_ERROR("Baseline Matrix tag is missing");
+        numberOfFailures++;			
+      }
+      else if (!transform->GetVectorAttribute("Matrix", 16, cTransformImageToProbe))
+      {
+        LOG_ERROR("Current Matrix tag is missing");
         numberOfFailures++;			
       }
       else
@@ -256,11 +261,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         {
           for ( int j = 0; j < 4; j++)
           {
-
             baseTransMatrix->SetElement(i,j, blTransformImageToProbe[4*i + j]); 
             currentTransMatrix->SetElement(i,j, cTransformImageToProbe[4*i + j]); 
           }
-
         }
 
         double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
@@ -277,205 +280,411 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
           numberOfFailures++;
         }
       }
+    } // </Transforms>
+  } // </CalibrationResults>
 
-    }//</CalibrationTransform>
 
-  }//</CalibrationResults>
+  {	// <ErrorReport>
+    vtkXMLDataElement* errorReportBaseline = baselineRootElem->FindNestedElementWithName("ErrorReport"); 
+    vtkXMLDataElement* errorReport = currentRootElem->FindNestedElementWithName("ErrorReport");
 
-  {	// <ErrorReports>
-    vtkXMLDataElement* errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
-    vtkXMLDataElement* errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
-
-    if ( errorReportsBaseline == NULL) 
+    if ( errorReportBaseline == NULL) 
     {
       LOG_ERROR("Reading baseline ErrorReports tag failed: " << baselineFileName);
-      numberOfFailures++;
-      return numberOfFailures;
+      return ++numberOfFailures;
     }
 
-    if ( errorReports == NULL) 
+    if ( errorReport == NULL) 
     {
       LOG_ERROR("Reading current ErrorReports tag failed: " << currentResultFileName);
-      numberOfFailures++;
-      return numberOfFailures;
+      return ++numberOfFailures;
     }
 
-    {	// <PointReconstructionErrorAnalysis>
-      vtkXMLDataElement* pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
-      vtkXMLDataElement* pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
+    double blReprojectionError3DMeanMm = 0.0;
+    double blReprojectionError3DStdDevMm = 0.0;
+	  if ( ! errorReportBaseline->GetScalarAttribute("ReprojectionError3DMeanMm", blReprojectionError3DMeanMm)
+      || ! errorReportBaseline->GetScalarAttribute("ReprojectionError3DStdDevMm", blReprojectionError3DStdDevMm) )
+    {
+      LOG_ERROR("Reading baseline ReprojectionError3D statistics failed: " << baselineFileName);
+      return ++numberOfFailures;
+    }
 
-      if ( pointReconstructionErrorAnalysisBaseline == NULL) 
+    double cReprojectionError3DMeanMm = 0.0;
+    double cReprojectionError3DStdDevMm = 0.0;
+	  if ( ! errorReport->GetScalarAttribute("ReprojectionError3DMeanMm", cReprojectionError3DMeanMm)
+      || ! errorReport->GetScalarAttribute("ReprojectionError3DStdDevMm", cReprojectionError3DStdDevMm) )
+    {
+      LOG_ERROR("Reading current ReprojectionError3D statistics failed: " << currentResultFileName);
+      return ++numberOfFailures;
+    }
+
+    double ratioMean = 1.0 * blReprojectionError3DMeanMm / cReprojectionError3DMeanMm; 
+    if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
+    {
+      LOG_ERROR("ReprojectionError3DMeanMm mismatch: current=" << cReprojectionError3DMeanMm << ", baseline=" << blReprojectionError3DMeanMm);
+      return ++numberOfFailures;
+    }
+    double ratioStdDev = 1.0 * blReprojectionError3DStdDevMm / cReprojectionError3DStdDevMm; 
+    if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+    {
+      LOG_ERROR("ReprojectionError3DStdDevMm mismatch: current=" << cReprojectionError3DStdDevMm << ", baseline=" << blReprojectionError3DStdDevMm);
+      return ++numberOfFailures;
+    }
+
+    double blReprojectionError2DMeanPx[2];
+    double blReprojectionError2DStdDevPx[2];
+	  if ( ! errorReportBaseline->GetVectorAttribute("ReprojectionError2DMeanPx", 2, blReprojectionError2DMeanPx)
+      || ! errorReportBaseline->GetVectorAttribute("ReprojectionError2DStdDevPx", 2, blReprojectionError2DStdDevPx) )
+    {
+      LOG_ERROR("Reading baseline ReprojectionError2D statistics failed: " << baselineFileName);
+      return ++numberOfFailures;
+    }
+
+    double cReprojectionError2DMeanPx[2];
+    double cReprojectionError2DStdDevPx[2];
+	  if ( ! errorReport->GetVectorAttribute("ReprojectionError2DMeanPx", 2, cReprojectionError2DMeanPx)
+      || ! errorReport->GetVectorAttribute("ReprojectionError2DStdDevPx", 2, cReprojectionError2DStdDevPx) )
+    {
+      LOG_ERROR("Reading current ReprojectionError2D statistics failed: " << baselineFileName);
+      return ++numberOfFailures;
+    }
+
+    for ( int i = 0; i < 2; i++) 
+    {
+      double ratioMean = 1.0 * blReprojectionError2DMeanPx[i] / cReprojectionError2DMeanPx[i]; 
+      if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
       {
-        LOG_ERROR("Reading baseline PointReconstructionErrorAnalysis tag failed: " << baselineFileName);
-        numberOfFailures++;
-        return numberOfFailures;
+        LOG_ERROR("ReprojectionError2DMeanPx mismatch: current=" << cReprojectionError2DMeanPx[i] << ", baseline=" << blReprojectionError2DMeanPx[i]);
+        return ++numberOfFailures;
+      }
+      double ratioStdDev = 1.0 * blReprojectionError2DStdDevPx[i] / cReprojectionError2DStdDevPx[i]; 
+      if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+      {
+        LOG_ERROR("ReprojectionError2DStdDevPx mismatch: current=" << cReprojectionError2DStdDevPx[i] << ", baseline=" << blReprojectionError2DStdDevPx[i]);
+        return ++numberOfFailures;
+      }
+    }
+
+    {	// <ValidationData>
+      vtkXMLDataElement* validationDataBaseline = errorReportBaseline->FindNestedElementWithName("ValidationData"); 
+      vtkXMLDataElement* validationData = errorReport->FindNestedElementWithName("ValidationData");
+
+      if ( validationDataBaseline == NULL || validationData == NULL ) 
+      {
+        LOG_ERROR("Reading ValidationData tag failed");
+        return ++numberOfFailures;
       }
 
-      if ( pointReconstructionErrorAnalysis == NULL) 
+      for ( int frameIndex = 0; frameIndex < validationDataBaseline->GetNumberOfNestedElements(); ++frameIndex ) // <Frame>
       {
-        LOG_ERROR("Reading current PointReconstructionErrorAnalysis tag failed: " << currentResultFileName);
-        numberOfFailures++;
-        return numberOfFailures;
-      }
-
-      double blPRE[9]; 
-      double cPRE[9]; 
-
-      if (!pointReconstructionErrorAnalysisBaseline->GetVectorAttribute("PRE", 9, blPRE))
-      {
-        LOG_ERROR("Baseline PRE is missing");
-        numberOfFailures++;			
-      }
-      else if (!pointReconstructionErrorAnalysis->GetVectorAttribute("PRE", 9, cPRE))
-      {
-        LOG_ERROR("Current PRE is missing");
-        numberOfFailures++;			
-      }
-      else
-      {
-        for ( int i = 0; i < 9; i++) 
+        vtkXMLDataElement* frameBaseline = validationDataBaseline->GetNestedElement(frameIndex); 
+        vtkXMLDataElement* frame = validationData->GetNestedElement(frameIndex); 
+        if ( !frameBaseline || !frame || STRCASECMP( frameBaseline->GetName(), "Frame" ) != 0 || STRCASECMP( frame->GetName(), "Frame" ) != 0 )
         {
-          double ratio = 1.0 * blPRE[i] / cPRE[i]; 
-
-          if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
-          {
-            LOG_ERROR("PRE element (" << i << ") mismatch: current=" << cPRE[i]<< ", baseline=" << blPRE[i]);
-            numberOfFailures++;
-          }
+          LOG_ERROR("Invalid Frame element #" << frameIndex);
+          ++numberOfFailures;
+          continue;
         }
-      }
 
-      double blValidationDataConfidenceLevel, cValidationDataConfidenceLevel; 
-      if (!pointReconstructionErrorAnalysisBaseline->GetScalarAttribute("ValidationDataConfidenceLevel", blValidationDataConfidenceLevel))
-      {
-        LOG_ERROR("Baseline PRE ValidationDataConfidenceLevel is missing");
-        numberOfFailures++;			
-      }
-      else if (!pointReconstructionErrorAnalysis->GetScalarAttribute("ValidationDataConfidenceLevel", cValidationDataConfidenceLevel))
-      {
-        LOG_ERROR("Current PRE ValidationDataConfidenceLevel is missing");
-        numberOfFailures++;			
-      }
-      else
-      {
-        double ratio = 1.0 * blValidationDataConfidenceLevel / cValidationDataConfidenceLevel; 
+        const char* segmentationStatusBaseline = frameBaseline->GetAttribute("SegmentationStatus"); 
+        const char* segmentationStatus = frame->GetAttribute("SegmentationStatus"); 
 
-        if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+        if ( STRCASECMP( segmentationStatusBaseline, segmentationStatus ) != 0 )
         {
-          LOG_ERROR("PRE ValidationDataConfidenceLevel mismatch: current=" << cValidationDataConfidenceLevel << ", baseline=" << blValidationDataConfidenceLevel);
-          numberOfFailures++;
+          LOG_ERROR("SegmentationStatus mismatch in Frame #" << frameIndex << ": current=" << segmentationStatus << ", baseline=" << segmentationStatusBaseline);
+          ++numberOfFailures;
+          continue;
         }
-      }
 
-    }// </PointReconstructionErrorAnalysis>
-
-    {	// <PointLineDistanceErrorAnalysis>
-      vtkXMLDataElement* pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
-      vtkXMLDataElement* pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
-
-      if ( pointLineDistanceErrorAnalysisBaseline == NULL) 
-      {
-        LOG_ERROR("Reading baseline PointLineDistanceErrorAnalysis tag failed: " << baselineFileName);
-        numberOfFailures++;
-        return numberOfFailures;
-      }
-
-      if ( pointLineDistanceErrorAnalysis == NULL) 
-      {
-        LOG_ERROR("Reading current PointLineDistanceErrorAnalysis tag failed: " << currentResultFileName);
-        numberOfFailures++;
-        return numberOfFailures;
-      }
-
-      double blPLDE[3]; 
-      double cPLDE[3]; 
-
-      if (!pointLineDistanceErrorAnalysisBaseline->GetVectorAttribute("PLDE", 3, blPLDE))
-      {
-        LOG_ERROR("Baseline PLDE is missing");
-        numberOfFailures++;			
-      }
-      else if (!pointLineDistanceErrorAnalysis->GetVectorAttribute("PLDE", 3, cPLDE))
-      {
-        LOG_ERROR("Current PLDE is missing");
-        numberOfFailures++;			
-      }
-      else
-      {
-        for ( int i = 0; i < 3; i++) 
+        if ( STRCASECMP( segmentationStatusBaseline, "OK" ) == 0 )
         {
-          double ratio = 1.0 * blPLDE[i] / cPLDE[i]; 
+          { // <SegmentedPoints>
+            vtkXMLDataElement* segmentedPointsBaseline = frameBaseline->FindNestedElementWithName("SegmentedPoints"); 
+            vtkXMLDataElement* segmentedPoints = frame->FindNestedElementWithName("SegmentedPoints");
 
-          if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
-          {
-            LOG_ERROR("PLDE element (" << i << ") mismatch: current=" << cPLDE[i]<< ", baseline=" << blPLDE[i]);
-            numberOfFailures++;
-          }
-        }
+            if ( segmentedPointsBaseline == NULL || segmentedPoints == NULL ) 
+            {
+              LOG_ERROR("Reading SegmentedPoints tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <Point>
+            for ( int pointIndex = 0; pointIndex < segmentedPointsBaseline->GetNumberOfNestedElements(); ++pointIndex )
+            {
+              vtkXMLDataElement* pointBaseline = segmentedPointsBaseline->GetNestedElement(pointIndex); 
+              vtkXMLDataElement* point = segmentedPoints->GetNestedElement(pointIndex); 
+              if ( !pointBaseline || !point || STRCASECMP( pointBaseline->GetName(), "Point" ) != 0 || STRCASECMP( point->GetName(), "Point" ) != 0 )
+              {
+                LOG_ERROR("Invalid Point element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blPosition[3];
+              double cPosition[3];
+              if ( ! pointBaseline->GetVectorAttribute("Position", 3, blPosition)
+                || ! point->GetVectorAttribute("Position", 3, cPosition) )
+              {
+                LOG_ERROR("Reading Position of Point #" << pointIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 3; i++) 
+              {
+                double ratio = 1.0 * blPosition[i] / cPosition[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+            }
+          } // </SegmentedPoints>
+
+          { // <ReprojectionError3DList>
+            vtkXMLDataElement* reprojectionError3DListBaseline = frameBaseline->FindNestedElementWithName("ReprojectionError3DList"); 
+            vtkXMLDataElement* reprojectionError3DList = frame->FindNestedElementWithName("ReprojectionError3DList");
+
+            if ( reprojectionError3DListBaseline == NULL || reprojectionError3DList == NULL ) 
+            {
+              LOG_ERROR("Reading ReprojectionError3DList tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <ReprojectionError3D>
+            for ( int reprojectionError3DIndex = 0; reprojectionError3DIndex < reprojectionError3DListBaseline->GetNumberOfNestedElements(); ++reprojectionError3DIndex )
+            {
+              vtkXMLDataElement* reprojectionErrorBaseline = reprojectionError3DListBaseline->GetNestedElement(reprojectionError3DIndex); 
+              vtkXMLDataElement* reprojectionError = reprojectionError3DList->GetNestedElement(reprojectionError3DIndex); 
+              if ( !reprojectionErrorBaseline || !reprojectionError || STRCASECMP( reprojectionErrorBaseline->GetName(), "ReprojectionError3D" ) != 0 || STRCASECMP( reprojectionError->GetName(), "ReprojectionError3D" ) != 0 )
+              {
+                LOG_ERROR("Invalid ReprojectionError3D element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blErrorMm = 0.0;
+              double cErrorMm = 0.0;
+	            if ( ! reprojectionErrorBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+                || ! reprojectionError->GetScalarAttribute("ErrorMm", cErrorMm) )
+              {
+                LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              double ratio = 1.0 * blErrorMm / cErrorMm; 
+              if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+              {
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                ++numberOfFailures;
+                continue;
+              }
+            }
+          } // </ReprojectionError3DList>
+
+          { // <ReprojectionError2DList>
+            vtkXMLDataElement* reprojectionError2DListBaseline = frameBaseline->FindNestedElementWithName("ReprojectionError2DList"); 
+            vtkXMLDataElement* reprojectionError2DList = frame->FindNestedElementWithName("ReprojectionError2DList");
+
+            if ( reprojectionError2DListBaseline == NULL || reprojectionError2DList == NULL ) 
+            {
+              LOG_ERROR("Reading ReprojectionError2DList tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <ReprojectionError2D>
+            for ( int reprojectionError2DIndex = 0; reprojectionError2DIndex < reprojectionError2DListBaseline->GetNumberOfNestedElements(); ++reprojectionError2DIndex )
+            {
+              vtkXMLDataElement* reprojectionError2DBaseline = reprojectionError2DListBaseline->GetNestedElement(reprojectionError2DIndex); 
+              vtkXMLDataElement* reprojectionError2D = reprojectionError2DList->GetNestedElement(reprojectionError2DIndex); 
+              if ( !reprojectionError2DBaseline || !reprojectionError2D || STRCASECMP( reprojectionError2DBaseline->GetName(), "ReprojectionError2D" ) != 0 || STRCASECMP( reprojectionError2D->GetName(), "ReprojectionError2D" ) != 0 )
+              {
+                LOG_ERROR("Invalid ReprojectionError2D element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blErrorPx[3];
+              double cErrorPx[3];
+              if ( ! reprojectionError2DBaseline->GetVectorAttribute("ErrorPx", 3, blErrorPx)
+                || ! reprojectionError2D->GetVectorAttribute("ErrorPx", 3, cErrorPx) )
+              {
+                LOG_ERROR("Reading ErrorPx of reprojectionError2D #" << reprojectionError2DIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 3; i++) 
+              {
+                double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+            }
+          } // </ReprojectionError2DList>
+        } // If SegmentationStatus is OK
+      } // </Frame>
+    } // </ValidationData>
+
+    {	// <CalibrationData>
+      vtkXMLDataElement* calibrationDataBaseline = errorReportBaseline->FindNestedElementWithName("CalibrationData"); 
+      vtkXMLDataElement* calibrationData = errorReport->FindNestedElementWithName("CalibrationData");
+
+      if ( calibrationDataBaseline == NULL || calibrationData == NULL ) 
+      {
+        LOG_ERROR("Reading CalibrationData tag failed");
+        return ++numberOfFailures;
       }
 
-      double blValidationDataConfidenceLevel, cValidationDataConfidenceLevel; 
-      if (!pointLineDistanceErrorAnalysisBaseline->GetScalarAttribute("ValidationDataConfidenceLevel", blValidationDataConfidenceLevel))
+      for ( int frameIndex = 0; frameIndex < calibrationDataBaseline->GetNumberOfNestedElements(); ++frameIndex ) // <Frame>
       {
-        LOG_ERROR("Baseline PLDE ValidationDataConfidenceLevel is missing");
-        numberOfFailures++;			
-      }
-      else if (!pointLineDistanceErrorAnalysis->GetScalarAttribute("ValidationDataConfidenceLevel", cValidationDataConfidenceLevel))
-      {
-        LOG_ERROR("Current PLDE ValidationDataConfidenceLevel is missing");
-        numberOfFailures++;			
-      }
-      else
-      {
-        double ratio = 1.0 * blValidationDataConfidenceLevel / cValidationDataConfidenceLevel; 
-
-        if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+        vtkXMLDataElement* frameBaseline = calibrationDataBaseline->GetNestedElement(frameIndex); 
+        vtkXMLDataElement* frame = calibrationData->GetNestedElement(frameIndex); 
+        if ( !frameBaseline || !frame || STRCASECMP( frameBaseline->GetName(), "Frame" ) != 0 || STRCASECMP( frame->GetName(), "Frame" ) != 0 )
         {
-          LOG_ERROR("PLDE ValidationDataConfidenceLevel mismatch: current=" << cValidationDataConfidenceLevel << ", baseline=" << blValidationDataConfidenceLevel);
-          numberOfFailures++;
+          LOG_ERROR("Invalid Frame element #" << frameIndex);
+          ++numberOfFailures;
+          continue;
         }
-      }
 
-    }// </PointLineDistanceErrorAnalysis>
-  } //</ErrorReports>
+        const char* segmentationStatusBaseline = frameBaseline->GetAttribute("SegmentationStatus"); 
+        const char* segmentationStatus = frame->GetAttribute("SegmentationStatus"); 
 
-  return numberOfFailures; 
+        if ( STRCASECMP( segmentationStatusBaseline, segmentationStatus ) != 0 )
+        {
+          LOG_ERROR("SegmentationStatus mismatch in Frame #" << frameIndex << ": current=" << segmentationStatus << ", baseline=" << segmentationStatusBaseline);
+          ++numberOfFailures;
+          continue;
+        }
 
+        if ( STRCASECMP( segmentationStatusBaseline, "OK" ) == 0 )
+        {
+          { // <SegmentedPoints>
+            vtkXMLDataElement* segmentedPointsBaseline = frameBaseline->FindNestedElementWithName("SegmentedPoints"); 
+            vtkXMLDataElement* segmentedPoints = frame->FindNestedElementWithName("SegmentedPoints");
+
+            if ( segmentedPointsBaseline == NULL || segmentedPoints == NULL ) 
+            {
+              LOG_ERROR("Reading SegmentedPoints tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <Point>
+            for ( int pointIndex = 0; pointIndex < segmentedPointsBaseline->GetNumberOfNestedElements(); ++pointIndex )
+            {
+              vtkXMLDataElement* pointBaseline = segmentedPointsBaseline->GetNestedElement(pointIndex); 
+              vtkXMLDataElement* point = segmentedPoints->GetNestedElement(pointIndex); 
+              if ( !pointBaseline || !point || STRCASECMP( pointBaseline->GetName(), "Point" ) != 0 || STRCASECMP( point->GetName(), "Point" ) != 0 )
+              {
+                LOG_ERROR("Invalid Point element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blPosition[3];
+              double cPosition[3];
+              if ( ! pointBaseline->GetVectorAttribute("Position", 3, blPosition)
+                || ! point->GetVectorAttribute("Position", 3, cPosition) )
+              {
+                LOG_ERROR("Reading Position of Point #" << pointIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 3; i++) 
+              {
+                double ratio = 1.0 * blPosition[i] / cPosition[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+            }
+          } // </SegmentedPoints>
+
+          { // <MiddleWires>
+            vtkXMLDataElement* middleWiresBaseline = frameBaseline->FindNestedElementWithName("MiddleWires"); 
+            vtkXMLDataElement* middleWires = frame->FindNestedElementWithName("MiddleWires");
+
+            if ( middleWiresBaseline == NULL || middleWires == NULL ) 
+            {
+              LOG_ERROR("Reading MiddleWires tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <MiddleWire>
+            for ( int middleWireIndex = 0; middleWireIndex < middleWiresBaseline->GetNumberOfNestedElements(); ++middleWireIndex )
+            {
+              vtkXMLDataElement* middleWireBaseline = middleWiresBaseline->GetNestedElement(middleWireIndex); 
+              vtkXMLDataElement* middleWire = middleWires->GetNestedElement(middleWireIndex); 
+              if ( !middleWireBaseline || !middleWire || STRCASECMP( middleWireBaseline->GetName(), "MiddleWire" ) != 0 || STRCASECMP( middleWire->GetName(), "MiddleWire" ) != 0 )
+              {
+                LOG_ERROR("Invalid MiddleWire element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blPositionInImageFrame[3];
+              double cPositionInImageFrame[3];
+              if ( ! middleWireBaseline->GetVectorAttribute("PositionInImageFrame", 3, blPositionInImageFrame)
+                || ! middleWire->GetVectorAttribute("PositionInImageFrame", 3, cPositionInImageFrame) )
+              {
+                LOG_ERROR("Reading PositionInImageFrame of MiddleWire #" << middleWireIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 3; i++) 
+              {
+                double ratio = 1.0 * blPositionInImageFrame[i] / cPositionInImageFrame[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+
+              double blPositionInProbeFrame[3];
+              double cPositionInProbeFrame[3];
+              if ( ! middleWireBaseline->GetVectorAttribute("PositionInProbeFrame", 3, blPositionInProbeFrame)
+                || ! middleWire->GetVectorAttribute("PositionInProbeFrame", 3, cPositionInProbeFrame) )
+              {
+                LOG_ERROR("Reading PositionInProbeFrame of MiddleWire #" << middleWireIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 3; i++) 
+              {
+                double ratio = 1.0 * blPositionInProbeFrame[i] / cPositionInProbeFrame[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+            }
+          } // </MiddleWires>
+        } // If SegmentationStatus is OK
+      } // </Frame>
+    } // </CalibrationData>
+  } // </ErrorReport>
+
+  return numberOfFailures;
 }
-
-double GetCalibrationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-  vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
-  baseTransform->SetMatrix(baseTransMatrix); 
-
-  vtkSmartPointer<vtkTransform> currentTransform = vtkSmartPointer<vtkTransform>::New(); 
-  currentTransform->SetMatrix(currentTransMatrix); 
-
-  double bx = baseTransform->GetPosition()[0]; 
-  double by = baseTransform->GetPosition()[1]; 
-  double bz = baseTransform->GetPosition()[2]; 
-
-  double cx = currentTransform->GetPosition()[0]; 
-  double cy = currentTransform->GetPosition()[1]; 
-  double cz = currentTransform->GetPosition()[2]; 
-
-  // Euclidean distance
-  double distance = sqrt( pow(bx-cx,2) + pow(by-cy,2) + pow(bz-cz,2) ); 
-
-  return distance; 
-}
-
-// Callback function for error and warning redirects
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata)
-{
-  if ( eid == vtkCommand::GetEventIdFromString("WarningEvent") )
-  {
-    LOG_WARNING((const char*)calldata);
-  }
-  else if ( eid == vtkCommand::GetEventIdFromString("ErrorEvent") )
-  {
-    LOG_ERROR((const char*)calldata);
-  }
-}
-
-

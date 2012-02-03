@@ -85,10 +85,10 @@ public:
 	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 
   /*! Print VTK matrix into STL stream */
-  static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream);
+  static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision = 3);
 
   /*! Print VTK matrix into log as info */
-  static void LogVtkMatrix(vtkMatrix4x4* matrix);
+  static void LogVtkMatrix(vtkMatrix4x4* matrix, int precision = 3);
 
   /*! 
   The 'floor' function on x86 and mips is 4-10 times slower than these
