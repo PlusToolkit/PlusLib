@@ -91,70 +91,6 @@ protected:
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkDisplayableModel 
- * \brief Specialized vtkDisplayableObject that displays a model
- * \ingroup PlusAppCommonWidgets
- */
-class vtkDisplayableModel : public vtkDisplayableObject
-{
-public:
-	vtkTypeRevisionMacro(vtkDisplayableModel,vtkDisplayableObject);
-
-  static vtkDisplayableModel *New();
-
-  /*!
-  * Read displayable object configuration
-  * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
-  */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
-
-  /*! Returns displayable status (true if displayable flag is on and valid actor is present) */
-  bool IsDisplayable();
-
-  /*! Set color (does not work for vtkImageActor) */
-  void SetColor(double aR, double aG, double aB);
-
-public:
-  /*! Set STL modle file name */
-	vtkSetStringMacro(STLModelFileName);
-  /*! Get STL modle file name */
-	vtkGetStringMacro(STLModelFileName);
-
-  /*! Get model to tool transform */
-	vtkGetObjectMacro(ModelToObjectTransform, vtkTransform);
-
-  /*! Set opacity */
-  void SetOpacity(double aOpacity);
-  /*! Get opacity */
-  double GetOpacity();
-
-protected:
-  /*! Set model to tool transform */
-	vtkSetObjectMacro(ModelToObjectTransform, vtkTransform);
-
-	/*!
-	* Assemble and set default stylus model for stylus tool actor
-	*/
-	PlusStatus SetDefaultStylusModel();
-
-protected:
-  /*! Constructor */
-  vtkDisplayableModel();
-
-  /*! Destructor */
-  virtual ~vtkDisplayableModel();
-
-protected:
-  /*! Name of the STL file containing the 3D model of this tool */
-  char*               STLModelFileName;
-
-  /* Model to tool transform */
-  vtkTransform*       ModelToObjectTransform;
-
-};
-
-//-----------------------------------------------------------------------------
-
 /*! \class vtkDisplayableImage 
  * \brief Specialized vtkDisplayableObject that displays an image
  * \ingroup PlusAppCommonWidgets
@@ -245,8 +181,6 @@ public:
   double GetOpacity();
 
 protected:
-
-protected:
   /*! Constructor */
   vtkDisplayablePolyData();
 
@@ -254,11 +188,63 @@ protected:
   virtual ~vtkDisplayablePolyData();
 
 protected:
-
+  /*! Displayed poly data */
   vtkPolyData* PolyData; 
+};
+
+//-----------------------------------------------------------------------------
+
+/*! \class vtkDisplayableModel 
+ * \brief Specialized vtkDisplayableObject that displays a model
+ * \ingroup PlusAppCommonWidgets
+ */
+class vtkDisplayableModel : public vtkDisplayablePolyData
+{
+public:
+	vtkTypeRevisionMacro(vtkDisplayableModel,vtkDisplayablePolyData);
+
+  static vtkDisplayableModel *New();
+
+  /*!
+  * Read displayable object configuration
+  * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
+  /*! Appends a polydata to the already existing one */
+  PlusStatus AppendPolyData(vtkPolyData* aPolyData);
+
+public:
+  /*! Set STL modle file name */
+	vtkSetStringMacro(STLModelFileName);
+  /*! Get STL modle file name */
+	vtkGetStringMacro(STLModelFileName);
+
+  /*! Get model to tool transform */
+	vtkGetObjectMacro(ModelToObjectTransform, vtkTransform);
+
+protected:
+  /*! Set model to tool transform */
+	vtkSetObjectMacro(ModelToObjectTransform, vtkTransform);
+
+	/*! Assemble and set default stylus model for stylus tool actor	*/
+	PlusStatus SetDefaultStylusModel();
+
+protected:
+  /*! Constructor */
+  vtkDisplayableModel();
+
+  /*! Destructor */
+  virtual ~vtkDisplayableModel();
+
+protected:
+  /*! Name of the STL file containing the 3D model of this tool */
+  char*               STLModelFileName;
+
+  /* Model to tool transform */
+  vtkTransform*       ModelToObjectTransform;
 
 };
 
 
 #endif
-

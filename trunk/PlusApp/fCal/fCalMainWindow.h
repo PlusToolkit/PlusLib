@@ -210,6 +210,9 @@ protected:
   /*! Show devices flag */
   bool m_ShowDevices;
 
+  /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
+  bool m_ShowPoints;
+
 private:
 	Ui::fCalMainWindow	ui;
 

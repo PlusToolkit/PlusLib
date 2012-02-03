@@ -38,6 +38,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
   , m_ProbeCoordinateFrame("")
   , m_ReferenceCoordinateFrame("")
   , m_ShowDevices(false)
+  , m_ShowPoints(false)
 {
 	// Set up UI
 	ui.setupUi(this);
@@ -454,6 +455,8 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
     m_ObjectVisualizer->HideAll();
     m_ObjectVisualizer->EnableImageMode(false);
     m_ObjectVisualizer->ShowAllObjects(true);
+    m_ObjectVisualizer->ShowInput(m_ShowPoints);
+    m_ObjectVisualizer->ShowResult(m_ShowPoints);
     m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
   }
   else

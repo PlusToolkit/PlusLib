@@ -606,7 +606,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     // Save result in configuration
     if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
+      LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
       return;
     }

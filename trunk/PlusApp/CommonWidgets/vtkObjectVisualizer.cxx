@@ -713,8 +713,8 @@ PlusStatus vtkObjectVisualizer::CalculateImageCameraParameters()
 {
   //LOG_TRACE("vtkObjectVisualizer::CalculateImageCameraParameters");
 
-  // Only set new camera if image actor is visible
-  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0))
+  // Only set new camera if image actor is visible and data collector is connected
+  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0) || (this->DataCollector->GetConnected() == false))
   {
     return PLUS_SUCCESS;
   }

@@ -8,6 +8,8 @@
 
 #include "fCalMainWindow.h"
 #include "vtkObjectVisualizer.h"
+#include "vtkPhantomRegistrationAlgo.h"
+#include "FidPatternRecognition.h"
 
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
@@ -17,7 +19,8 @@
 
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
-#include "vtksys/SystemTools.hxx" 
+#include "vtksys/SystemTools.hxx"
+#include "vtkLineSource.h"
 
 //-----------------------------------------------------------------------------
 
@@ -189,7 +192,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 				  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 			  }
-		  }
+
+        if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
+        {
+          LOG_WARNING("Phnatom wires visualization failed!");
+        }
+      }
 
 		  // Close dialog
 		  connectDialog->done(0);
@@ -371,6 +379,73 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
 
   m_ParentMainWindow->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
+{
+	LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
+
+  // Get phantom coordinate frame name and phantom displayable model object
+  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+
+  if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Reading phantom registration algorithm configuration failed!");
+    return PLUS_FAIL;
+  }
+
+  vtkDisplayableObject* phantomDisplayableObject = NULL;
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(phantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Unable to find phantom displayable object '" << phantomRegistration->GetPhantomCoordinateFrame() << "'");
+    return PLUS_FAIL;
+  }
+
+  vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantomDisplayableObject);
+  if (phantomDisplayableModel == NULL)
+  {
+    LOG_ERROR("Phantom displayable object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  // Get wire pattern
+  FidPatternRecognition patternRecognition;
+  if (patternRecognition.ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read phantom wire configuration!");
+    return PLUS_FAIL;
+  }
+
+  std::vector<Pattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
+
+  vtkSmartPointer<vtkMatrix4x4> phantomModelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  phantomModelToPhantomTransformMatrix->DeepCopy(phantomDisplayableModel->GetModelToObjectTransform()->GetMatrix());
+  vtkSmartPointer<vtkMatrix4x4> phantomToPhantomModelTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Invert(phantomModelToPhantomTransformMatrix, phantomToPhantomModelTransformMatrix);
+
+  // Construct wires poly data
+  for (std::vector<Pattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
+  {
+    for (std::vector<Wire>::iterator wireIt = (*patternIt)->Wires.begin(); wireIt != (*patternIt)->Wires.end(); ++wireIt)
+    {
+      double endPointFrontInPhantomFrame[4] = { wireIt->EndPointFront[0], wireIt->EndPointFront[1], wireIt->EndPointFront[2], 1.0 };
+      double endPointBackInPhantomFrame[4] = { wireIt->EndPointBack[0], wireIt->EndPointBack[1], wireIt->EndPointBack[2], 1.0 };
+      double endPointFrontInPhantomModelFrame[4];
+      double endPointBackInPhantomModelFrame[4];
+      phantomToPhantomModelTransformMatrix->MultiplyPoint(endPointFrontInPhantomFrame, endPointFrontInPhantomModelFrame);
+      phantomToPhantomModelTransformMatrix->MultiplyPoint(endPointBackInPhantomFrame, endPointBackInPhantomModelFrame);
+
+      vtkSmartPointer<vtkLineSource> wireLineSource = vtkSmartPointer<vtkLineSource>::New();
+      wireLineSource->SetPoint1(endPointFrontInPhantomModelFrame);
+      wireLineSource->SetPoint2(endPointBackInPhantomModelFrame);
+
+      phantomDisplayableModel->AppendPolyData(wireLineSource->GetOutput());
+    }
+  }
 
   return PLUS_SUCCESS;
 }

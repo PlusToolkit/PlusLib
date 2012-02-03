@@ -67,6 +67,9 @@ protected:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
+  /*! Read wire pattern and add it to visualization */
+  PlusStatus ReadAndAddPhantomWiresToVisualization();
+
 signals:
 	/*!
 	* Executes operations needed after stopping the process
