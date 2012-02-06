@@ -114,6 +114,14 @@ protected:
   /*! Set the Connected flag  */
   vtkBooleanMacro(Connected, bool); 
 
+  /*!
+    Verifies if the specified configuration data is valid (e.g., configuration version
+    is specified and supported by the current software version).
+    If any of the checks fails then it logs the error and returns PLUS_FAIL.
+    If all the checks pass then it returns PLUS_SUCCESS.
+  */  
+  static PlusStatus VerifyDeviceSetConfigurationData(vtkXMLDataElement* rootElement);
+  
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();

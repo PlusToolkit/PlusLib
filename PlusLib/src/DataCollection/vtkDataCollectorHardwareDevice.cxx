@@ -1298,18 +1298,11 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadConfiguration(vtkXMLDataElement* 
     LOG_ERROR("Input configuration element is invalid");
     return PLUS_FAIL;
   }
-
-  // Check plus configuration version
-  double plusConfigurationVersion = 0;
-  if (aConfigurationData->GetScalarAttribute("version", plusConfigurationVersion))
+  
+  if (VerifyDeviceSetConfigurationData(aConfigurationData)!=PLUS_SUCCESS)
   {
-    double currentVersion = (double)PLUSLIB_VERSION_MAJOR + ((double)PLUSLIB_VERSION_MINOR / 10.0);
-
-    if (plusConfigurationVersion < currentVersion)
-    {
-      LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << currentVersion); 
-      return PLUS_FAIL;
-    }
+    LOG_ERROR("Data collector cannot be instantiated because the device set configuration data is invalid");
+    return PLUS_FAIL;
   }
 
   // Get data collection configuration element
