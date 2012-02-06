@@ -53,30 +53,49 @@ void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::VerifyDeviceSetConfigurationData(vtkXMLDataElement* rootElement)
+{
+  if (rootElement == NULL)
+  {
+    LOG_ERROR("DeviceSetConfigurationData is invalid");
+    return PLUS_FAIL;
+  }
+  // Check plus configuration version. There were significant changes in the configuration file structure,
+  // so reject processing older ones.
+  const double minimumRequiredPlusConfigurationVersion=1.4;
+  double plusConfigurationVersion = 0;
+  if (!rootElement->GetScalarAttribute("version", plusConfigurationVersion))
+  {
+    LOG_ERROR("Version is not specified in the device set configuration. Minimum required version: " 
+      << std::fixed << minimumRequiredPlusConfigurationVersion << ".");
+    return PLUS_FAIL;
+  }
+  if (plusConfigurationVersion < minimumRequiredPlusConfigurationVersion)
+  {
+    LOG_ERROR("This version ("<< std::fixed << plusConfigurationVersion << ") of the device set configuration is no longer supported. Minimum required version: " 
+      << std::fixed << minimumRequiredPlusConfigurationVersion << ".");            
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfiguration()
 {
   LOG_TRACE("vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfiguration");
-
+  
   vtkXMLDataElement* rootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
   if (rootElement == NULL)
   {
     LOG_ERROR("Data collector cannot be instantiated because of missing device set configuration data!");
     return NULL;
   }
-
-  // Check plus configuration version
-  double plusConfigurationVersion = 0;
-  if (rootElement->GetScalarAttribute("version", plusConfigurationVersion))
+  if (VerifyDeviceSetConfigurationData(rootElement)!=PLUS_SUCCESS)
   {
-    double currentVersion = (double)PLUSLIB_VERSION_MAJOR + ((double)PLUSLIB_VERSION_MINOR / 10.0);
-
-    if (plusConfigurationVersion < currentVersion)
-    {
-      LOG_ERROR("Data collector cannot be instantiated: This version of configuration file is no longer supported! Please update to version " << std::fixed << currentVersion); 
-      return NULL;
-    }
+    LOG_ERROR("Data collector cannot be instantiated because the device set configuration data is invalid");
+    return NULL;
   }
-
+  
   // Get data collection configuration element
   vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
