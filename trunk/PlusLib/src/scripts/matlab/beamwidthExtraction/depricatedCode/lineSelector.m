@@ -27,14 +27,48 @@ function [goodLines, lines, ...
     hscores = zeros(length(lines),1); % Horizontal
     iscores = zeros(length(lines),1); % Intensity
     
-    imageMeans = mean(image,2);
+% OLD CODE
+%     imageMeans = mean(image,2);
+% 
+%     for i = 1:1:length(lines)
+%         dscores(i) = lineSelectorDirScore(lines(i),imageMeans,N);
+%         hscores(i) = lineSelectorHrzScore(lines(i));
+%         iscores(i) = lineSelectorIntScore(lines(i),imageMeans);
+%         
+%         scores(i) = dscores(i) * hscores(i) * iscores(i);
+%     end
+    
+% NEW CODE
+    NUMITER = 16;
+    imageMeans = zeros(size(image,1),NUMITER);
+    for i = 1:1:NUMITER %TODO Parameter
+        lower = round((i-1)*(size(image,2)/NUMITER));
+        if lower <= 0
+            lower = 1;
+        end
+        upper = round((i  )*(size(image,2)/NUMITER));
+        if upper >  size(image,2)
+            upper = size(image,2);
+        end
+        imageMeans(:,i) = mean(image(:,lower:upper),2);
+    end
     for i = 1:1:length(lines)
-        dscores(i) = lineSelectorDirScore(lines(i),imageMeans,N);
+        sumdscores = 0;
+        for j = 1:1:NUMITER
+            sumdscores = sumdscores + lineSelectorDirScore(lines(i),imageMeans(:,j),N);
+        end
+        dscores(i) = sumdscores/NUMITER;
+        
         hscores(i) = lineSelectorHrzScore(lines(i));
-        iscores(i) = lineSelectorIntScore(lines(i),imageMeans);
+
+        sumiscores = 0;
+        for j = 1:1:NUMITER
+            sumiscores = sumiscores + lineSelectorIntScore(lines(i),imageMeans(:,j));
+        end
+        iscores(i) = sumiscores/NUMITER;
+        
         scores(i) = dscores(i) * hscores(i) * iscores(i);
     end
-    
     
     % ===== FIND BEST LINES BASED ON SCORES =====
     minIndex = 0;

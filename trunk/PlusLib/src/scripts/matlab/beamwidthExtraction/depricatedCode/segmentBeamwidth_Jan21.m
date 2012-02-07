@@ -1,15 +1,8 @@
 function segmentBeamwidth(originalImage,         ...
                           f_path,                ...
                           f_index,               ...
-                          p_USE_medianFilter,    ... % added
-                          p_USE_blurFilter,      ... % added
-                          p_USE_stickFilter,     ... % added
                           p_medianFilterSize,    ...
-                          p_blurFilterSize,      ... % added
-                          p_blurFilterSigma,     ... % added
-                          p_stickFilterLength,   ... % added
-                          p_stickFilterWidth,    ... % added
-                          g_GradientMatrix,      ...
+                          p_GradientMatrix,      ...
                           h_numberLinesToFind,   ...
                           h_dtheta,              ...
                           h_drho,                ...
@@ -25,29 +18,47 @@ function segmentBeamwidth(originalImage,         ...
     % Create file names
     [lname sname tname] = generateFileNames(f_path,f_index);
 
-    % Load image
+    % Preprocessor
     image = double(originalImage);
     image = image(:,:,1);
-    
-    % Preprocessor
-    for i = 1:1:3
-        if (i == p_USE_medianFilter)
-            image = medfilt2(image,p_medianFilterSize, 'symmetric');
-        elseif (i == p_USE_blurFilter)
-            image = preprocessBlur(image,p_blurFilterSize,p_blurFilterSigma);
-        elseif (i == p_USE_stickFilter)
-            image = sf(image,p_stickFilterLength,p_stickFilterWidth);
-        end
-    end    
-    
-    % Gradient application
-    image = imfilter(image,g_GradientMatrix,'symmetric');
+    image = medfilt2(image,[p_medianFilterSize p_medianFilterSize], 'symmetric');
+    image = imfilter(image,p_GradientMatrix,'symmetric');
     image = abs(image);
-
-    % Hough Line Detection
+    
+%     % TODO Remove this short section
+%     figure;
+%     imshow(image,[min(image(:)),max(image(:))]);
+%     return;
+    
+    % Hough Operations
+    % Process h_dtheta as per the process outlined by
+    % Rafael C. Gonzalez
+    % Richard E. Woods
+    % Steven L. Eddubs
+    % Digital Image Processing Using MATLAB, Pearson/Prentice Hall 2004
+    
+    
     [houghTransform theta rho] = hough(image,...
                'ThetaResolution', h_dtheta, ...
                'RhoResolution', h_drho); %#ok<HOUGH>
+           imshow(houghTransform,[min(houghTransform(:)),max(houghTransform(:))]);
+           figure;
+%            houghTransform
+
+
+%     [houghTransform theta rho] = hough(image',h_dtheta,h_drho);
+%            imshow(houghTransform,[min(houghTransform(:)),max(houghTransform(:))]);
+%            figure;
+
+%     [r c] = houghpeaks(houghTransform, h_numberLinesToFind,...
+%         h_thresholdMultiplier*max(houghTransform(:)),h_neighborhood);
+%     houghLs = houghlines(originalImage,theta,rho,r,c,...
+%                h_fillgap,h_minlength);
+%     hTheta = linspace(-90, 0, ceil(90/h_dtheta)+1);
+%     hTheta = [hTheta -fliplr(hTheta(2:end-1))];
+%     [houghTransform theta rho] = hough(image,...
+%                'Theta', hTheta, ...
+%                'RhoResolution', h_drho);
     hpeaks = houghpeaks(houghTransform, h_numberLinesToFind,...
                'Threshold',h_thresholdMultiplier*max(houghTransform(:)),...
                'NHoodSize',h_neighborhood);
@@ -55,7 +66,7 @@ function segmentBeamwidth(originalImage,         ...
                'FillGap',h_fillgap,...
                'MinLength',h_minlength);
 
-    % Line Selection
+    % Find the beamwidth from the possible lines
     [ beamBoundaries candidates scores dscores hscores iscores ] = ...
         lineSelector(originalImage,houghLs,l_searchArea, ...
                      l_transducerArea,l_minNumLines,l_scoringThreshold);

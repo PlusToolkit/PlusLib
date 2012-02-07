@@ -1,4 +1,4 @@
-function writeParamData(Path,i1,i2,i3,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q)
+function writeParamData(Path,i1,i2,i3,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r)
 
     file = strcat(Path,'parameters');
     fid = fopen(file,'w+');
@@ -47,9 +47,10 @@ function writeParamData(Path,i1,i2,i3,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q)
         fprintf(fid,'Hough fillgap: %d\n', l);
         fprintf(fid,'Hough minimum line length: %d\n', m);
         fprintf(fid,'Radius to search from in line filtering: %d\n', n);
-        fprintf(fid,'Area from transducer to ignore lines: %d\n', o);
-        fprintf(fid,'Min # of lines detected for validity: %d\n', p);
-        fprintf(fid,'Scoring threshold in line selection: %.4f\n', q);
+        fprintf(fid,'Direction score multiplier: %d\n', o);
+        fprintf(fid,'Area from transducer to ignore lines: %d\n', p);
+        fprintf(fid,'Min # of lines detected for validity: %d\n', q);
+        fprintf(fid,'Scoring threshold in line selection: %.4f\n', r);
         fprintf(fid,'Any parameters not included are default.\n\n\n');
         fclose(fid);
     end
