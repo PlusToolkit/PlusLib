@@ -2,9 +2,9 @@
 
 function Blurred = preprocessBlur(Image,... % Image to be blurred
                                   sizes,... % [x y] size of blur filter
-                                  sigma=2)  % Radial decay
-
-blur = fspecial('gaussian',[size,size],sigma);
+                                  sigma)  % Radial decay
+                   
+blur = fspecial('gaussian',sizes,sigma);
 Blurred = imfilter(Image,blur,'replicate','same');
 
 end
