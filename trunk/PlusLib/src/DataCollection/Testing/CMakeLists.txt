@@ -142,9 +142,9 @@ SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 
 #***************************  LineDetectionTest ***************************
 
-# Temporarily disabled building of LineDetectionTest because of the missing test.cxx file
-#ADD_EXECUTABLE(LineDetectionTest TemporalCalibration.cxx TemporalCalibration.h test.cxx)
-#TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
+
+ADD_EXECUTABLE(LineDetectionTest TemporalCalibration.cxx TemporalCalibration.h TemporalCalibrationTest.cxx)
+TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
 
 #ADD_TEST(TemporalCalibrationTest1 
 #  ${EXECUTABLE_OUTPUT_PATH}/LineDetectionTest
