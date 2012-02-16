@@ -121,8 +121,8 @@
 
 
   <fCal
-    NumberOfCalibrationImagesToAcquire="200"
-    NumberOfValidationImagesToAcquire="100"
+    NumberOfCalibrationImagesToAcquire="140"
+    NumberOfValidationImagesToAcquire="70"
     NumberOfStylusCalibrationPointsToAcquire="200"
     RecordingIntervalMs="100"
     MaxTimeSpentWithProcessingMs="70"

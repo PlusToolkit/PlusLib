@@ -111,10 +111,9 @@ protected:
     Calculate and add positions of an individual image for calibration or validation
     \param trackedFrame The actual tracked frame (already segmented) to add for calibration or validation
     \param transformRepository Transform repository object to be able to get the default transform
-    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation );
+	PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, bool isValidation );
 
   /*!
     Calculate 3D reprojection errors
@@ -122,9 +121,8 @@ protected:
     \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
     \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
     \param transformRepository Transform repository object to be able to get the default transform
-    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus ComputeReprojectionErrors3D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires );
+  PlusStatus ComputeReprojectionErrors3D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository );
 
   /*!
     Calculate 2D reprojection errors
@@ -132,9 +130,8 @@ protected:
     \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
     \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
     \param transformRepository Transform repository object to be able to get the default transform
-    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus ComputeReprojectionErrors2D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires );
+  PlusStatus ComputeReprojectionErrors2D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository );
 
   /*! Set ImageToProbe calibration result matrix and validate it */
   void SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
@@ -205,13 +202,13 @@ protected:
   */
   std::vector< std::vector< vnl_vector<double> > > MiddleWirePositionsInPhantomFrame;
 
-  /*! Vector holding the 3D reprojection errors for all NWires
+  /*! Vector holding the 3D reprojection errors for each NWire in all images (outer vector is for the NWires, inner one is for the images)
     Computed as a distance between the actual segmented position of the middle wire transformed into phantom frame and the computed positions (see MiddleWirePositionsInPhantomFrame)
   */
-  std::vector<double> ReprojectionError3DList;
+  std::vector< std::vector<double> > ReprojectionError3Ds;
 
-  /*! Indices of the 3D reprojection errors in ascending order in ReprojectionError3DList */
-  std::vector<int> SortedReprojectionError3DIndices;
+  /*! Indices of the 3D reprojection errors in ascending order in ReprojectionError3Ds */
+  std::vector< std::vector<int> > SortedReprojectionError3DIndices;
 
   /*! Mean 3D reprojection error */
   double ReprojectionError3DMean;
@@ -219,19 +216,22 @@ protected:
   /*! Standard deviation of 3D reprojection errors */
   double ReprojectionError3DStdDev;
 
-  /*! Vector holding the 2D reprojection errors for all Wires (two elements in the inner vector, first for the X axis and the other for Y)
+  /*! Vector holding the 2D reprojection errors for each wire in all images (outermost vector holds the wires, the one inside it holds the images, and the inner holds the X and Y errors)
     Computed as X and Y distances between the actual segmented position of the wires and the intersections of the wires with the image planes
   */
-  std::vector< std::vector<double> > ReprojectionError2DList;
+  std::vector< std::vector< std::vector<double> > > ReprojectionError2Ds;
 
-  /*! Indices of the 2D reprojection errors in ascending order in ReprojectionError2DList */
-  std::vector<int> SortedReprojectionError2DIndices;
+  /*! Indices of the 2D reprojection errors in ascending order for each wire in ReprojectionError2Ds */
+  std::vector< std::vector<int> > SortedReprojectionError2DIndices;
 
-  /*! Mean 2D reprojection error (two elements, first for the X axis and the other for Y) */
-  std::vector<double> ReprojectionError2DMean;
+  /*! Mean 2D reprojection error for each wire (two elements, first for the X axis and the other for Y) */
+  std::vector< std::vector<double> > ReprojectionError2DMeans;
 
-  /*! Standard deviation of 2D reprojection errors (two elements, first for the X axis and the other for Y) */
-  std::vector<double> ReprojectionError2DStdDev;
+  /*! Standard deviation of 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) */
+  std::vector< std::vector<double> > ReprojectionError2DStdDevs;
+
+  /*! List of NWires used for calibration and error computation */
+  std::vector<NWire> NWires;
 
 private:
 	vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);
