@@ -58,15 +58,17 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 
   this->ValidationDataConfidenceLevel = 0.95;
 
-  this->ReprojectionError3DList.clear();
+  this->ReprojectionError3Ds.clear();
   this->SortedReprojectionError3DIndices.clear();
   this->ReprojectionError3DMean = -1.0;
   this->ReprojectionError3DStdDev = -1.0;
 
-  this->ReprojectionError2DList.clear();
+  this->ReprojectionError2Ds.clear();
   this->SortedReprojectionError2DIndices.clear();
-  this->ReprojectionError2DMean.clear();
-  this->ReprojectionError2DStdDev.clear();
+  this->ReprojectionError2DMeans.clear();
+  this->ReprojectionError2DStdDevs.clear();
+
+  this->NWires.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -191,6 +193,8 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     calibrationEndFrame = numberOfCalibrationFrames;
   }
 
+  this->NWires = nWires;
+
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
   this->MiddleWirePositionsInPhantomFrame.clear();
@@ -200,7 +204,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   {
     LOG_DEBUG("\n----------------------------------");
     LOG_DEBUG("Add frame #" << frameNumber << " for validation data");
-    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, nWires, true) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
@@ -211,7 +215,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   {
     LOG_DEBUG("\n----------------------------------");
     LOG_DEBUG("Add frame #" << frameNumber << " for calibration data");
-    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, nWires, false) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
       continue;
@@ -257,7 +261,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   PlusMath::LogVtkMatrix(this->TransformImageToProbe->GetMatrix(), 6);
 
   // Compute 3D reprojection errors
-  if ( ComputeReprojectionErrors3D(validationTrackedFrameList, validationStartFrame, validationEndFrame, transformRepository, nWires) != PLUS_SUCCESS )
+  if ( ComputeReprojectionErrors3D(validationTrackedFrameList, validationStartFrame, validationEndFrame, transformRepository) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to compute 3D reprojection errors!");
     return PLUS_FAIL;
@@ -268,14 +272,16 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   LOG_INFO("3D Reprojection Error - Mean: " << this->ReprojectionError3DMean << "mm, StDdev: " << this->ReprojectionError3DStdDev << "mm");
 
   // Compute 2D reprojection errors
-  if ( ComputeReprojectionErrors2D(validationTrackedFrameList, validationStartFrame, validationEndFrame, transformRepository, nWires) != PLUS_SUCCESS )
+  if ( ComputeReprojectionErrors2D(validationTrackedFrameList, validationStartFrame, validationEndFrame, transformRepository) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to compute 2D reprojection errors!");
     return PLUS_FAIL;
   }
 
-  LOG_INFO("2D Reprojection Error - Mean: (" << this->ReprojectionError2DMean[0] << "px, " << this->ReprojectionError2DMean[1] << "px), StdDev: (" << this->ReprojectionError2DStdDev[0] << "px, " << this->ReprojectionError2DStdDev[1] << "px)");
-
+  for (int i=0; i<this->NWires.size()*3; ++i)
+  {
+    LOG_INFO("2D Reprojection Error for wire #" << i << ":" << this->NWires[i/3].Wires[i%3].Name << " - Mean: (" << this->ReprojectionError2DMeans[i][0] << "px, " << this->ReprojectionError2DMeans[i][1] << "px), StdDev: (" << this->ReprojectionError2DStdDevs[i][0] << "px, " << this->ReprojectionError2DStdDevs[i][1] << "px)");
+  }
 
 	// Save the calibration results and error reports into a file 
 	if ( SaveCalibrationResultAndErrorReportToXML(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame) != PLUS_SUCCESS )
@@ -289,7 +295,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires, bool isValidation )
+PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
@@ -379,7 +385,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
 
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
-  for (int n = 0; n < nWires.size(); ++n)
+  for (int n = 0; n < this->NWires.size(); ++n)
   {
     // Calcuate the alpha value
     vnl_vector<double> vectorCi2Xi = segmentedPoints[n*3 + 1] - segmentedPoints[n*3];
@@ -393,8 +399,8 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
     for (int i=0; i<3; ++i)
     {
-      intersectPosW12[i] = nWires[n].IntersectPosW12[i];
-      intersectPosW32[i] = nWires[n].IntersectPosW32[i];
+      intersectPosW12[i] = this->NWires[n].IntersectPosW12[i];
+      intersectPosW32[i] = this->NWires[n].IntersectPosW32[i];
     }
 
     intersectPosW12[3] = 1.0;
@@ -503,12 +509,22 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D");
 
-  this->ReprojectionError3DList.clear();
+  // Initialize objects
+  for (int i=0; i<this->ReprojectionError3Ds.size(); ++i)
+  {
+    this->ReprojectionError3Ds[i].clear();
+    this->SortedReprojectionError3DIndices[i].clear();
+  }
+  this->ReprojectionError3Ds.clear();
   this->SortedReprojectionError3DIndices.clear();
+
+  this->ReprojectionError3Ds.resize( this->NWires.size() );
+  this->SortedReprojectionError3DIndices.resize( this->NWires.size() );
+
 
   std::vector< std::vector< vnl_vector<double> > >::iterator middleWirePositionsIt = this->MiddleWirePositionsInPhantomFrame.begin();
 
@@ -528,7 +544,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
     // Compute 3D error for each NWire
     bool valid = false;
 
-    for (int n = 0; n < nWires.size(); ++n)
+    for (int n = 0; n < this->NWires.size(); ++n)
     {
       // Transform point to phantom frame
       double point[3];
@@ -560,7 +576,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
         computedPointInPhantomFrame[i] = middleWirePositionsIt->at(n).get(i);
       }
 
-      this->ReprojectionError3DList.push_back( sqrt( vtkMath::Distance2BetweenPoints(segmentedPointInPhantomFrame, computedPointInPhantomFrame) ) );
+      this->ReprojectionError3Ds[n].push_back( sqrt( vtkMath::Distance2BetweenPoints(segmentedPointInPhantomFrame, computedPointInPhantomFrame) ) );
 
     } // For all NWires
 
@@ -570,34 +586,49 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
   } // For all frames
 
   // Compute the sorted indices array
-  std::vector<double> tempReprojectionError3DList( this->ReprojectionError3DList );
-  this->SortedReprojectionError3DIndices.resize( this->ReprojectionError3DList.size() );
-
-  std::vector<double>::iterator tempReprojectionError3DListBeginIt = tempReprojectionError3DList.begin();
-  for (int i=0; i<this->ReprojectionError3DList.size(); ++i)
+  std::vector< std::vector<double> > tempReprojectionError3Ds( this->ReprojectionError3Ds.size() );
+  for (int i=0; i<this->ReprojectionError3Ds.size(); ++i)
   {
-    std::vector<double>::iterator reprojectionError3DMinIt = std::min_element(tempReprojectionError3DListBeginIt, tempReprojectionError3DList.end());
-    int minIndex = (int)std::distance(tempReprojectionError3DListBeginIt,reprojectionError3DMinIt);
-    this->SortedReprojectionError3DIndices[i] = minIndex;
-    (*reprojectionError3DMinIt) = DBL_MAX;
+    tempReprojectionError3Ds[i] = this->ReprojectionError3Ds[i];
   }
+
+  for (int i=0; i<this->ReprojectionError3Ds.size(); ++i)
+  {
+    this->SortedReprojectionError3DIndices[i].resize( this->ReprojectionError3Ds[i].size() );
+    std::vector<double>::iterator tempReprojectionError3DsBeginIt = tempReprojectionError3Ds[i].begin();
+
+    for (int j=0; j<this->ReprojectionError3Ds[i].size(); ++j)
+    {
+      std::vector<double>::iterator reprojectionError3DMinIt = std::min_element(tempReprojectionError3DsBeginIt, tempReprojectionError3Ds[i].end());
+      int minIndex = (int)std::distance(tempReprojectionError3DsBeginIt,reprojectionError3DMinIt);
+      this->SortedReprojectionError3DIndices[i][j] = minIndex;
+      (*reprojectionError3DMinIt) = DBL_MAX;
+    }
+  }
+
+  int numberOfTopRankedData = ROUND( (double)this->ReprojectionError3Ds[0].size() * this->ValidationDataConfidenceLevel );
 
   // Compute mean and standard deviation
-  int numberOfTopRankedData = ROUND( (double)this->ReprojectionError3DList.size() * this->ValidationDataConfidenceLevel );
   double sum = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
+  for (int i=0; i<this->ReprojectionError3Ds.size(); ++i)
   {
-    sum += this->ReprojectionError3DList[ this->SortedReprojectionError3DIndices[i] ];
+    for (int j=0; j<numberOfTopRankedData; ++j)
+    {
+      sum += this->ReprojectionError3Ds[i][ this->SortedReprojectionError3DIndices[i][j] ];
+    }
   }
-  this->ReprojectionError3DMean = sum / this->ReprojectionError3DList.size();
-  
+  this->ReprojectionError3DMean = sum / (this->ReprojectionError3Ds.size() * numberOfTopRankedData);
+    
   double squareDiffSum = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
+  for (int i=0; i<this->ReprojectionError3Ds.size(); ++i)
   {
-    double diff = this->ReprojectionError3DList[ this->SortedReprojectionError3DIndices[i] ] - this->ReprojectionError3DMean;
-    squareDiffSum += diff * diff;
+    for (int j=0; j<numberOfTopRankedData; ++j)
+    {
+      double diff = this->ReprojectionError3Ds[i][ this->SortedReprojectionError3DIndices[i][j] ] - this->ReprojectionError3DMean;
+      squareDiffSum += diff * diff;
+    }
   }
-  double variance = squareDiffSum / this->ReprojectionError3DList.size();
+  double variance = squareDiffSum / (this->ReprojectionError3Ds.size() * numberOfTopRankedData);
   this->ReprojectionError3DStdDev = sqrt(variance);
 
   return PLUS_SUCCESS;
@@ -605,14 +636,32 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTransformRepository* transformRepository )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D");
 
-  this->ReprojectionError2DList.clear();
+  // Initialize objects
+  for (int i=0; i<this->ReprojectionError2Ds.size(); ++i)
+  {
+    for (int j=0; j<this->ReprojectionError2Ds[i].size(); ++j)
+    {
+      this->ReprojectionError2Ds[i][j].clear();
+    }
+    this->ReprojectionError2Ds[i].clear();
+    this->SortedReprojectionError2DIndices[i].clear();
+    this->ReprojectionError2DMeans[i].clear();
+    this->ReprojectionError2DStdDevs[i].clear();
+  }
+  this->ReprojectionError2Ds.clear();
   this->SortedReprojectionError2DIndices.clear();
-  this->ReprojectionError2DMean.clear();
-  this->ReprojectionError2DStdDev.clear();
+  this->ReprojectionError2DMeans.clear();
+  this->ReprojectionError2DStdDevs.clear();
+
+  this->ReprojectionError2Ds.resize( this->NWires.size() * 3 );
+  this->SortedReprojectionError2DIndices.resize( this->NWires.size() * 3 );
+  this->ReprojectionError2DMeans.resize( this->NWires.size() * 3 );
+  this->ReprojectionError2DStdDevs.resize( this->NWires.size() * 3 );
+
 
   bool valid = false;
 
@@ -650,7 +699,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
     for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); ++i)
     {
       // Get wire endpoints in image coordinate system
-      Wire wire = nWires[i/3].Wires[i%3];
+      Wire wire = this->NWires[i/3].Wires[i%3];
       double wireEndPointFrontInPhantomFrame[4] = { wire.EndPointFront[0], wire.EndPointFront[1], wire.EndPointFront[2], 1.0 };
       double wireEndPointBackInPhantomFrame[4] = { wire.EndPointBack[0], wire.EndPointBack[1], wire.EndPointBack[2], 1.0 };
       double wireEndPointFrontInImageFrame[4];
@@ -667,7 +716,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
 		    LOG_WARNING("Image plane and wire are parallel!");
 
         std::vector<double> reprojectionError2D(2, DBL_MAX);
-        this->ReprojectionError2DList.push_back( reprojectionError2D );
+        this->ReprojectionError2Ds[i].push_back( reprojectionError2D );
 
         continue;
 	    }
@@ -675,67 +724,66 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
       double* segmentedPositionInImagePlane = segmentedPointsVtk->GetPoint(i);
 
       std::vector<double> reprojectionError2D(2);
-      reprojectionError2D[0] = fabs( segmentedPositionInImagePlane[0]-computedPositionInImagePlane[0] );
-      reprojectionError2D[1] = fabs( segmentedPositionInImagePlane[1]-computedPositionInImagePlane[1] );
-      this->ReprojectionError2DList.push_back( reprojectionError2D );
+      reprojectionError2D[0] = segmentedPositionInImagePlane[0] - computedPositionInImagePlane[0];
+      reprojectionError2D[1] = segmentedPositionInImagePlane[1] - computedPositionInImagePlane[1];
+
+      this->ReprojectionError2Ds[i].push_back( reprojectionError2D );
     }
 
   } // For all frames
 
   // Create error vector containing the sum of squares of X and Y errors (so that the minimum can be searched)
-  std::vector<double> tempReprojectionError2DList( this->ReprojectionError2DList.size() );
-  for (int i=0; i<this->ReprojectionError2DList.size(); ++i)
+  std::vector< std::vector<double> > tempReprojectionError2Ds( this->ReprojectionError2Ds.size() );
+  for (int i=0; i<this->ReprojectionError2Ds.size(); ++i)
   {
-    tempReprojectionError2DList[i] = this->ReprojectionError2DList[i][0] * this->ReprojectionError2DList[i][0] + this->ReprojectionError2DList[i][1] * this->ReprojectionError2DList[i][1];
+    std::vector<double> tempReprojectionError2DsPerWire( this->ReprojectionError2Ds[i].size() );
+    for (int j=0; j<this->ReprojectionError2Ds[i].size(); ++j)
+    {
+      tempReprojectionError2DsPerWire[j] = this->ReprojectionError2Ds[i][j][0] * this->ReprojectionError2Ds[i][j][0] + this->ReprojectionError2Ds[i][j][1] * this->ReprojectionError2Ds[i][j][1];
+    }
+    tempReprojectionError2Ds[i] = tempReprojectionError2DsPerWire;
   }
 
-  // Compute the sorted indices array
-  this->SortedReprojectionError2DIndices.resize( this->ReprojectionError2DList.size() );
+  // Compute the sorted indices array for each wire
+  for (int i=0; i<this->ReprojectionError2Ds.size(); ++i)
+  {
+    this->SortedReprojectionError2DIndices[i].resize( this->ReprojectionError2Ds[i].size() );
+    std::vector<double>::iterator tempReprojectionError2DsBeginIt = tempReprojectionError2Ds[i].begin();
 
-  std::vector<double>::iterator tempReprojectionError2DListBeginIt = tempReprojectionError2DList.begin();
-  for (int i=0; i<this->ReprojectionError2DList.size(); ++i)
-  {
-    std::vector<double>::iterator reprojectionError2DMinIt = std::min_element(tempReprojectionError2DListBeginIt, tempReprojectionError2DList.end());
-    int minIndex = (int)std::distance(tempReprojectionError2DListBeginIt,reprojectionError2DMinIt);
-    this->SortedReprojectionError2DIndices[i] = minIndex;
-    (*reprojectionError2DMinIt) = DBL_MAX;
+    for (int j=0; j<this->ReprojectionError2Ds[i].size(); ++j)
+    {
+      std::vector<double>::iterator reprojectionError2DMinIt = std::min_element(tempReprojectionError2DsBeginIt, tempReprojectionError2Ds[i].end());
+      int minIndex = (int)std::distance(tempReprojectionError2DsBeginIt,reprojectionError2DMinIt);
+      this->SortedReprojectionError2DIndices[i][j] = minIndex;
+      (*reprojectionError2DMinIt) = DBL_MAX;
+    }
   }
 
-  int numberOfTopRankedData = ROUND( (double)this->ReprojectionError2DList.size() * this->ValidationDataConfidenceLevel );
+  int numberOfTopRankedData = ROUND( (double)this->ReprojectionError2Ds[0].size() * this->ValidationDataConfidenceLevel );
 
-  // Compute mean and standard deviation for X
-  double sumX = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
+  // Compute statistics for each wire
+  for (int i=0; i<this->ReprojectionError2Ds.size(); ++i)
   {
-    sumX += this->ReprojectionError2DList[ this->SortedReprojectionError2DIndices[i] ][0];
+    // Compute mean and standard deviation for X and Y
+    for (int k=0; k<2; ++k)
+    {
+      double sum = 0;
+      for (int j=0; j<numberOfTopRankedData; ++j)
+      {
+        sum += this->ReprojectionError2Ds[i][ this->SortedReprojectionError2DIndices[i][j] ][k];
+      }
+      this->ReprojectionError2DMeans[i].push_back( sum / numberOfTopRankedData );
+      
+      double squareDiffSum = 0;
+      for (int j=0; j<numberOfTopRankedData; ++j)
+      {
+        double diff = this->ReprojectionError2Ds[i][ this->SortedReprojectionError2DIndices[i][j] ][k] - this->ReprojectionError2DMeans[i][k];
+        squareDiffSum += diff * diff;
+      }
+      double variance = squareDiffSum / numberOfTopRankedData;
+      this->ReprojectionError2DStdDevs[i].push_back( sqrt(variance) );
+    }
   }
-  this->ReprojectionError2DMean.push_back( sumX / this->ReprojectionError2DList.size() );
-  
-  double squareDiffSumX = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
-  {
-    double diff = this->ReprojectionError2DList[ this->SortedReprojectionError2DIndices[i] ][0] - this->ReprojectionError2DMean[0];
-    squareDiffSumX += diff * diff;
-  }
-  double varianceX = squareDiffSumX / this->ReprojectionError2DList.size();
-  this->ReprojectionError2DStdDev.push_back( sqrt(varianceX) );
-
-  // Compute mean and standard deviation for Y
-  double sumY = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
-  {
-    sumY += this->ReprojectionError2DList[ this->SortedReprojectionError2DIndices[i] ][1];
-  }
-  this->ReprojectionError2DMean.push_back( sumY / this->ReprojectionError2DList.size() );
-  
-  double squareDiffSumY = 0;
-  for (int i=0; i<numberOfTopRankedData; ++i)
-  {
-    double diff = this->ReprojectionError2DList[ this->SortedReprojectionError2DIndices[i] ][1] - this->ReprojectionError2DMean[1];
-    squareDiffSumY += diff * diff;
-  }
-  double varianceY = squareDiffSumY / this->ReprojectionError2DList.size();
-  this->ReprojectionError2DStdDev.push_back( sqrt(varianceY) );
 
   return PLUS_SUCCESS;
 }
@@ -762,17 +810,23 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 
 	std::ostringstream errorsStringStream;
 
-  errorsStringStream << std::fixed << std::setprecision(precision) << "3D Reprojection Error" << std::endl << 
-    "  Mean: " << this->ReprojectionError3DMean << "mm" << std::endl << 
+  errorsStringStream << std::fixed << std::setprecision(precision) << "3D Reprojection Error" << std::endl <<
+    "  Mean: " << this->ReprojectionError3DMean << "mm" << std::endl <<
     "  StdDev: " << this->ReprojectionError3DStdDev << "mm" << std::endl;
-  errorsStringStream << std::fixed << std::setprecision(precision) << "2D Reprojection Error" << std::endl << 
-    "  Mean: (" << this->ReprojectionError2DMean[0] << "px, " << this->ReprojectionError2DMean[1] << "px)" << std::endl << 
-    "  StdDev: (" << this->ReprojectionError2DStdDev[0] << "px, " << this->ReprojectionError2DStdDev[1] << "px)" << std::endl;
+
+  errorsStringStream << "2D Reprojection Errors" << std::endl;;
+  for (int i=0; i<this->NWires.size()*3; ++i)
+  {
+      errorsStringStream << std::fixed << std::setprecision(precision) <<
+      " Wire #" << i << " (" << this->NWires[i/3].Wires[i%3].Name << ")" << std::endl <<
+      "  Mean: (" << this->ReprojectionError2DMeans[i][0] << "px, " << this->ReprojectionError2DMeans[i][1] << "px)" << std::endl;
+      //"  StdDev: (" << this->ReprojectionError2DStdDevs[i][0] << "px, " << this->ReprojectionError2DStdDevs[i][1] << "px)" << std::endl;
+  }
 
 	std::ostringstream resultStringStream;
-	resultStringStream << matrixStringStream.str() << std::endl << errorsStringStream.str() << std::endl;
+	resultStringStream << matrixStringStream.str() << std::endl << errorsStringStream.str();
 
-	resultStringStream << "Validation confidence: " << (int)(this->ValidationDataConfidenceLevel*100) << "%";
+	//resultStringStream << std::endl << "Validation confidence: " << (int)(this->ValidationDataConfidenceLevel*100) << "%";
 
 	return resultStringStream.str();
 }
@@ -856,12 +910,30 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   // Error report
 	vtkSmartPointer<vtkXMLDataElement> errorReport = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	errorReport->SetName("ErrorReport");
-  errorReport->SetDoubleAttribute("ReprojectionError3DMeanMm", this->ReprojectionError3DMean); 
-  errorReport->SetDoubleAttribute("ReprojectionError3DStdDevMm", this->ReprojectionError3DStdDev); 
-  double mean2D[2] = { this->ReprojectionError2DMean[0], this->ReprojectionError2DMean[1] };
-  double stddev2D[2] = { this->ReprojectionError2DStdDev[0], this->ReprojectionError2DStdDev[1] };
-  errorReport->SetVectorAttribute("ReprojectionError2DMeanPx", 2, mean2D);
-  errorReport->SetVectorAttribute("ReprojectionError2DStdDevPx", 2, stddev2D);
+
+  // ReprojectionError3D
+	vtkSmartPointer<vtkXMLDataElement> reprojectionError3DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	reprojectionError3DStatistics->SetName("ReprojectionError3DStatistics");
+  reprojectionError3DStatistics->SetDoubleAttribute("MeanMm", this->ReprojectionError3DMean); 
+  reprojectionError3DStatistics->SetDoubleAttribute("StdDevMm", this->ReprojectionError3DStdDev); 
+
+  // ReprojectionError2D
+	vtkSmartPointer<vtkXMLDataElement> reprojectionError2DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	reprojectionError2DStatistics->SetName("ReprojectionError2DStatistics");
+
+  for (int i=0; i<this->NWires.size()*3; ++i)
+  {
+	  vtkSmartPointer<vtkXMLDataElement> wire = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	  wire->SetName("Wire");
+    wire->SetAttribute("Name", this->NWires[i/3].Wires[i%3].Name.c_str());
+
+    double mean2D[2] = { this->ReprojectionError2DMeans[i][0], this->ReprojectionError2DMeans[i][1] };
+    double stddev2D[2] = { this->ReprojectionError2DStdDevs[i][0], this->ReprojectionError2DStdDevs[i][1] };
+    wire->SetVectorAttribute("MeanPx", 2, mean2D);
+    wire->SetVectorAttribute("StdDevPx", 2, stddev2D);
+
+    reprojectionError2DStatistics->AddNestedElement( wire );
+  }
 
   // ValidationData
 	vtkSmartPointer<vtkXMLDataElement> validationData = vtkSmartPointer<vtkXMLDataElement>::New(); 
@@ -909,38 +981,41 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
 
 	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	    pointElement->SetName("Point");
+      pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
 	  }
 
-    // ReprojectionError3DList
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError3DList = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError3DList->SetName("ReprojectionError3DList");
+    // ReprojectionError3Ds
+	  vtkSmartPointer<vtkXMLDataElement> reprojectionError3Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	  reprojectionError3Ds->SetName("ReprojectionError3DList");
 
-    for (int i = numberOfSegmentedFramesSoFar*numberOfSegmentedPoints/3; i < (numberOfSegmentedFramesSoFar+1)*numberOfSegmentedPoints/3; ++i)
+    for (int i = 0; i < numberOfSegmentedPoints/3; ++i)
     {
-	    vtkSmartPointer<vtkXMLDataElement> reprojectionError3D = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    reprojectionError3D->SetName("ReprojectionError3D");
-      reprojectionError3D->SetDoubleAttribute("ErrorMm", this->ReprojectionError3DList[i]);
-      reprojectionError3DList->AddNestedElement( reprojectionError3D );
+	    vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	    reprojectionError3DElement->SetName("ReprojectionError3D");
+      reprojectionError3DElement->SetAttribute("WireName", this->NWires[i].Wires[1].Name.c_str());
+      reprojectionError3DElement->SetDoubleAttribute("ErrorMm", this->ReprojectionError3Ds[i][numberOfSegmentedFramesSoFar]);
+      reprojectionError3Ds->AddNestedElement( reprojectionError3DElement );
     }
 
-    // ReprojectionError2DList
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError2DList = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError2DList->SetName("ReprojectionError2DList");
+    // ReprojectionError2Ds
+	  vtkSmartPointer<vtkXMLDataElement> reprojectionError2Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	  reprojectionError2Ds->SetName("ReprojectionError2DList");
 
-    for (int i = numberOfSegmentedFramesSoFar*numberOfSegmentedPoints; i < (numberOfSegmentedFramesSoFar+1)*numberOfSegmentedPoints; ++i)
+    for (int i = 0; i < numberOfSegmentedPoints; ++i)
     {
-      double reprojectionError2D[2] = { this->ReprojectionError2DList[i][0], this->ReprojectionError2DList[i][1] };
+      double reprojectionError2D[2] = { this->ReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][0], this->ReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][1] };
 	    vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	    reprojectionError2DElement->SetName("ReprojectionError2D");
+      reprojectionError2DElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       reprojectionError2DElement->SetVectorAttribute("ErrorPx", 2, reprojectionError2D);
-      reprojectionError2DList->AddNestedElement( reprojectionError2DElement );
+      reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
     }
 
     frame->AddNestedElement( segmentedPoints );
-    frame->AddNestedElement( reprojectionError3DList );
-    frame->AddNestedElement( reprojectionError2DList );
+    frame->AddNestedElement( reprojectionError3Ds );
+    frame->AddNestedElement( reprojectionError2Ds );
 
     validationData->AddNestedElement( frame );
 
@@ -993,6 +1068,7 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
 
 	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	    pointElement->SetName("Point");
+      pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
 	  }
@@ -1026,6 +1102,8 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
     numberOfSegmentedFramesSoFar++;
   }
 
+  errorReport->AddNestedElement( reprojectionError3DStatistics );
+  errorReport->AddNestedElement( reprojectionError2DStatistics );
   errorReport->AddNestedElement( validationData );
   errorReport->AddNestedElement( calibrationData );
 
