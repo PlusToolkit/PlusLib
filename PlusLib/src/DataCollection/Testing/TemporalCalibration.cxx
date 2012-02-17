@@ -14,6 +14,8 @@ TemporalCalibration::TemporalCalibration(std::string inputTrackerSequenceMetafil
 
   trackerFrames_ = vtkSmartPointer<vtkTrackedFrameList>::New();
   USVideoFrames_ = vtkSmartPointer<vtkTrackedFrameList>::New();
+  trackerTable_ = vtkSmartPointer<vtkTable>::New();
+  videoTable_ = vtkSmartPointer<vtkTable>::New();
 
   readFiles(); // Read the video frames and tracker frames
 
@@ -517,4 +519,55 @@ void TemporalCalibration::writeMetric(std::string &outputFilepath, std::string h
     outputFile << timestampArr.at(i) << "," << metricArr.at(i) << std::endl;
   }
   outputFile.close();
+
+}
+
+void TemporalCalibration::getPlotTables(vtkTable *trackerTable, vtkTable *videoTable)
+{
+  createPlotTables();
+  
+}
+
+void TemporalCalibration::createPlotTables()
+{
+
+   //  Create table
+  vtkSmartPointer<vtkTable> trackerTable_ = vtkSmartPointer<vtkTable>::New();
+  vtkSmartPointer<vtkTable> videoTable_ = vtkSmartPointer<vtkTable>::New();
+
+  //  Create array correpsonding to the time values of the tracker plot
+  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
+  arrResampledTrackerTimestamps->SetName("Time [s]"); 
+  trackerTable_->AddColumn(arrResampledTrackerTimestamps);
+ 
+  //  Create array corresponding to the metric values of the tracker plot
+  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerMetric = vtkSmartPointer<vtkDoubleArray>::New();
+  arrResampledTrackerMetric->SetName("Tracker Metric");
+  trackerTable_->AddColumn(arrResampledTrackerMetric);
+
+  //  Create array correpsonding to the time values of the video plot
+  vtkSmartPointer<vtkDoubleArray> arrResampledVideoTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
+  arrResampledVideoTimestamps->SetName("Time [s]"); 
+  videoTable_->AddColumn(arrResampledVideoTimestamps);
+ 
+  //  Create array corresponding to the metric values of the video plot
+  vtkSmartPointer<vtkDoubleArray> arrResampledVideoMetric = vtkSmartPointer<vtkDoubleArray>::New();
+  arrResampledVideoMetric->SetName("Video Metric");
+  videoTable_->AddColumn(arrResampledVideoMetric);
+ 
+  // Set the tracker data
+  trackerTable_->SetNumberOfRows(resampledTrackerTimestamps_.size());
+  for (int i = 0; i < resampledTrackerTimestamps_.size(); ++i)
+  {
+    trackerTable_->SetValue(i, 0, (resampledTrackerTimestamps_.at(i)));
+    trackerTable_->SetValue(i, 1, (resampledTrackerMetric_.at(i)));
+  }
+
+  // Set the video data
+  videoTable_->SetNumberOfRows(resampledVideoTimestamps_.size());
+  for (int i = 0; i < resampledVideoTimestamps_.size(); ++i)
+  {
+    videoTable_->SetValue(i, 0, (resampledVideoTimestamps_.at(i)));
+    videoTable_->SetValue(i, 1, (resampledVideoMetric_.at(i)));
+  }
 }
