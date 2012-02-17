@@ -58,7 +58,8 @@ class TemporalCalibration
     void writeTrackerMetric();
     void writeResampledVideoMetric();
     void writeResampledTrackerMetric();
-    void getPlotTables(vtkTable *trackerTable, vtkTable *videoTable);
+    void getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
+                       vtkTable *trackerTableAfter, vtkTable *videoTableAfter);
 
   private:
     PlusStatus readFiles();
@@ -81,7 +82,10 @@ class TemporalCalibration
     const double maxVideoOffset_;//  Maximum anticipated time offset [seconds]
     vtkSmartPointer<vtkTable> trackerTable_;
     vtkSmartPointer<vtkTable> videoTable_;
-    void createPlotTables();
+    void createPlotTables(std::vector<double> &resampledTrackerTimestamps, 
+                         std::vector<double> &resampledTrackerMetric, 
+                         std::vector<double> &resampledVideoTimestamps, 
+                         std::vector<double> &resampledVideoMetric);
 
 
     void NormalizeMetric(std::vector<double> &metric);
