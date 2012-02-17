@@ -810,17 +810,17 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 
 	std::ostringstream errorsStringStream;
 
-  errorsStringStream << std::fixed << std::setprecision(precision) << "3D Reprojection Error" << std::endl <<
-    "  Mean: " << this->ReprojectionError3DMean << "mm" << std::endl <<
-    "  StdDev: " << this->ReprojectionError3DStdDev << "mm" << std::endl;
+  errorsStringStream << std::fixed << std::setprecision(precision) << "3D Reprojection Error (mm)" << std::endl <<
+    " Mean: " << this->ReprojectionError3DMean <<
+    ", StdDev: " << this->ReprojectionError3DStdDev << std::endl << std::endl;
 
-  errorsStringStream << "2D Reprojection Errors" << std::endl;;
+  errorsStringStream << "2D Reprojection Errors (px)" << std::endl;;
   for (int i=0; i<this->NWires.size()*3; ++i)
   {
-      errorsStringStream << std::fixed << std::setprecision(precision) <<
-      " Wire #" << i << " (" << this->NWires[i/3].Wires[i%3].Name << ")" << std::endl <<
-      "  Mean: (" << this->ReprojectionError2DMeans[i][0] << "px, " << this->ReprojectionError2DMeans[i][1] << "px)" << std::endl;
-      //"  StdDev: (" << this->ReprojectionError2DStdDevs[i][0] << "px, " << this->ReprojectionError2DStdDevs[i][1] << "px)" << std::endl;
+      errorsStringStream << std::fixed << std::setprecision(precision-1) <<
+      "Wire #" << i << " (" << this->NWires[i/3].Wires[i%3].Name << ")" << std::endl <<
+      " M:(" << this->ReprojectionError2DMeans[i][0] << "," << this->ReprojectionError2DMeans[i][1] << ")" <<
+      " SD:(" << this->ReprojectionError2DStdDevs[i][0] << "," << this->ReprojectionError2DStdDevs[i][1] << ")" << std::endl;
   }
 
 	std::ostringstream resultStringStream;
