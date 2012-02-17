@@ -41,16 +41,10 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->ProbeCoordinateFrame = NULL;
   this->PhantomCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
-  this->TransducerOriginCoordinateFrame = NULL; // TODO move to fCal
-  this->TransducerOriginPixelCoordinateFrame = NULL; // TODO move to fCal
 
 	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformImageToProbe = NULL;
 	this->SetTransformImageToProbe(transformImageToProbe); 
-
-	vtkSmartPointer<vtkTransform> transformImageToTransducerOriginPixel = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformImageToTransducerOriginPixel = NULL;
-	this->SetTransformImageToTransducerOriginPixel(transformImageToTransducerOriginPixel);
 
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
@@ -85,7 +79,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 //----------------------------------------------------------------------------
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
-	this->SetTransformImageToTransducerOriginPixel(NULL);
 	this->SetTransformImageToProbe(NULL);
 }
 
@@ -144,24 +137,6 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
-  // Transducer origin (mm) coordinate frame name
-  const char* transducerOriginCoordinateFrame = probeCalibrationElement->GetAttribute("TransducerOriginCoordinateFrame");
-  if (transducerOriginCoordinateFrame == NULL)
-  {
-	  LOG_ERROR("TransducerOriginCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetTransducerOriginCoordinateFrame(transducerOriginCoordinateFrame);
-
-  // Transducer origin (pixel) coordinate frame name
-  const char* transducerOriginPixelCoordinateFrame = probeCalibrationElement->GetAttribute("TransducerOriginPixelCoordinateFrame");
-  if (transducerOriginPixelCoordinateFrame == NULL)
-  {
-	  LOG_ERROR("TransducerOriginPixelCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   return PLUS_SUCCESS;
 }
@@ -328,12 +303,6 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
-  if (this->TransformImageToTransducerOriginPixel == NULL)
-  {
-    LOG_ERROR("Invalid Image to User image transform!");
-    return PLUS_FAIL;
-  }
-
   // Get segmentation points and check its validity
   vtkPoints* segmentedPointsVtk = trackedFrame->GetFiducialPointsCoordinatePx();
 
@@ -380,10 +349,6 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 		vnlPoint[3] = 1.0;
 		segmentedPoints.push_back(vnlPoint);
 	}
-
-  // Convert Image to User image transform to vnl
-  vnl_matrix<double> imageToTransducerOriginPixelTransformMatrix(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToTransducerOriginPixel->GetMatrix(), imageToTransducerOriginPixelTransformMatrix); 
 
   // Get phantom registration matrix and convert it to vnl
   PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
@@ -520,15 +485,6 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
   transformRepository->SetTransform(imageToProbeTransformName, this->TransformImageToProbe->GetMatrix());
   transformRepository->SetTransformPersistent(imageToProbeTransformName, true);
   transformRepository->SetTransformDate(imageToProbeTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
-
-  double* imageToProbeScale = this->TransformImageToProbe->GetScale();
-  vtkSmartPointer<vtkTransform> transducerOriginPixelToTransducerOriginTransform = vtkSmartPointer<vtkTransform>::New();
-  transducerOriginPixelToTransducerOriginTransform->Identity();
-  transducerOriginPixelToTransducerOriginTransform->Scale(imageToProbeScale);
-  PlusTransformName transducerOriginPixelToTransducerOriginTransformName(this->TransducerOriginPixelCoordinateFrame, this->TransducerOriginCoordinateFrame);
-  transformRepository->SetTransform(transducerOriginPixelToTransducerOriginTransformName, transducerOriginPixelToTransducerOriginTransform->GetMatrix());
-  transformRepository->SetTransformPersistent(transducerOriginPixelToTransducerOriginTransformName, true);
-  transformRepository->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result matrix
   this->TransformImageToProbe->SetMatrix( imageToProbeMatrix );
