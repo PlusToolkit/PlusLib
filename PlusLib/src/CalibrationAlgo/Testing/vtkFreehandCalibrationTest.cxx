@@ -225,7 +225,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         return ++numberOfFailures;
       }
 
-      //********************************* Transform ImageToProbe *************************************
+      // ImageToProbe
       double blTransformImageToProbe[16]; 
       double cTransformImageToProbe[16]; 
       const char* blFrom = transformBaseline->GetAttribute("From");
@@ -310,34 +310,65 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         return ++numberOfFailures;
       }
 
-      double blReprojectionError3DMeanMm = 0.0;
-      double blReprojectionError3DStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("MeanMm", blReprojectionError3DMeanMm)
-        || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("StdDevMm", blReprojectionError3DStdDevMm) )
+      double blReprojectionError3DValidationMeanMm = 0.0;
+      double blReprojectionError3DValidationStdDevMm = 0.0;
+	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationMeanMm", blReprojectionError3DValidationMeanMm)
+        || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationStdDevMm", blReprojectionError3DValidationStdDevMm) )
       {
-        LOG_ERROR("Reading baseline ReprojectionError3DStatistics statistics failed: " << baselineFileName);
+        LOG_ERROR("Reading baseline validation ReprojectionError3DStatistics statistics failed: " << baselineFileName);
         return ++numberOfFailures;
       }
 
-      double cReprojectionError3DMeanMm = 0.0;
-      double cReprojectionError3DStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("MeanMm", cReprojectionError3DMeanMm)
-        || ! reprojectionError3DStatistics->GetScalarAttribute("StdDevMm", cReprojectionError3DStdDevMm) )
+      double cReprojectionError3DValidationMeanMm = 0.0;
+      double cReprojectionError3DValidationStdDevMm = 0.0;
+	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("ValidationMeanMm", cReprojectionError3DValidationMeanMm)
+        || ! reprojectionError3DStatistics->GetScalarAttribute("ValidationStdDevMm", cReprojectionError3DValidationStdDevMm) )
       {
-        LOG_ERROR("Reading current ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
+        LOG_ERROR("Reading current validation ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
         return ++numberOfFailures;
       }
 
-      double ratioMean = 1.0 * blReprojectionError3DMeanMm / cReprojectionError3DMeanMm; 
-      if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
+      double ratioValidationMean = 1.0 * blReprojectionError3DValidationMeanMm / cReprojectionError3DValidationMeanMm; 
+      if ( ratioValidationMean > 1 + ERROR_THRESHOLD || ratioValidationMean < 1 - ERROR_THRESHOLD )
       {
-        LOG_ERROR("ReprojectionError3DStatistics/MeanMm mismatch: current=" << cReprojectionError3DMeanMm << ", baseline=" << blReprojectionError3DMeanMm);
+        LOG_ERROR("ReprojectionError3DStatistics/ValidationMeanMm mismatch: current=" << cReprojectionError3DValidationMeanMm << ", baseline=" << blReprojectionError3DValidationMeanMm);
         return ++numberOfFailures;
       }
-      double ratioStdDev = 1.0 * blReprojectionError3DStdDevMm / cReprojectionError3DStdDevMm; 
-      if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+      double ratioValidationStdDev = 1.0 * blReprojectionError3DValidationStdDevMm / cReprojectionError3DValidationStdDevMm; 
+      if ( ratioValidationStdDev > 1 + ERROR_THRESHOLD || ratioValidationStdDev < 1 - ERROR_THRESHOLD )
       {
-        LOG_ERROR("ReprojectionError3DStatistics/StdDevMm mismatch: current=" << cReprojectionError3DStdDevMm << ", baseline=" << blReprojectionError3DStdDevMm);
+        LOG_ERROR("ReprojectionError3DStatistics/ValidationStdDevMm mismatch: current=" << cReprojectionError3DValidationStdDevMm << ", baseline=" << blReprojectionError3DValidationStdDevMm);
+        return ++numberOfFailures;
+      }
+
+      double blReprojectionError3DCalibrationMeanMm = 0.0;
+      double blReprojectionError3DCalibrationStdDevMm = 0.0;
+	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationMeanMm", blReprojectionError3DCalibrationMeanMm)
+        || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationStdDevMm", blReprojectionError3DCalibrationStdDevMm) )
+      {
+        LOG_ERROR("Reading baseline calibration ReprojectionError3DStatistics statistics failed: " << baselineFileName);
+        return ++numberOfFailures;
+      }
+
+      double cReprojectionError3DCalibrationMeanMm = 0.0;
+      double cReprojectionError3DCalibrationStdDevMm = 0.0;
+	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationMeanMm", cReprojectionError3DCalibrationMeanMm)
+        || ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationStdDevMm", cReprojectionError3DCalibrationStdDevMm) )
+      {
+        LOG_ERROR("Reading current calibration ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
+        return ++numberOfFailures;
+      }
+
+      double ratioCalibrationMean = 1.0 * blReprojectionError3DCalibrationMeanMm / cReprojectionError3DCalibrationMeanMm; 
+      if ( ratioCalibrationMean > 1 + ERROR_THRESHOLD || ratioCalibrationMean < 1 - ERROR_THRESHOLD )
+      {
+        LOG_ERROR("ReprojectionError3DStatistics/CalibrationMeanMm mismatch: current=" << cReprojectionError3DCalibrationMeanMm << ", baseline=" << blReprojectionError3DCalibrationMeanMm);
+        return ++numberOfFailures;
+      }
+      double ratioCalibrationStdDev = 1.0 * blReprojectionError3DCalibrationStdDevMm / cReprojectionError3DCalibrationStdDevMm; 
+      if ( ratioCalibrationStdDev > 1 + ERROR_THRESHOLD || ratioCalibrationStdDev < 1 - ERROR_THRESHOLD )
+      {
+        LOG_ERROR("ReprojectionError3DStatistics/CalibrationStdDevMm mismatch: current=" << cReprojectionError3DCalibrationStdDevMm << ", baseline=" << blReprojectionError3DCalibrationStdDevMm);
         return ++numberOfFailures;
       }
     } // </ReprojectionError3DStatistics>
@@ -371,38 +402,74 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
           continue;
         }
 
-        double blMeanPx[2];
-        double blStdDevPx[2];
-	      if ( ! wireBaseline->GetVectorAttribute("MeanPx", 2, blMeanPx)
-          || ! wireBaseline->GetVectorAttribute("StdDevPx", 2, blStdDevPx) )
+        double blValidationMeanPx[2];
+        double blValidationStdDevPx[2];
+	      if ( ! wireBaseline->GetVectorAttribute("ValidationMeanPx", 2, blValidationMeanPx)
+          || ! wireBaseline->GetVectorAttribute("ValidationStdDevPx", 2, blValidationStdDevPx) )
         {
-          LOG_ERROR("Reading baseline ReprojectionError2DStatistics failed for wire " << wireIndex);
+          LOG_ERROR("Reading baseline validation ReprojectionError2DStatistics failed for wire " << wireIndex);
           ++numberOfFailures;
           continue;
         }
 
-        double cMeanPx[2];
-        double cStdDevPx[2];
-	      if ( ! wire->GetVectorAttribute("MeanPx", 2, cMeanPx)
-          || ! wire->GetVectorAttribute("StdDevPx", 2, cStdDevPx) )
+        double cValidationMeanPx[2];
+        double cValidationStdDevPx[2];
+	      if ( ! wire->GetVectorAttribute("ValidationMeanPx", 2, cValidationMeanPx)
+          || ! wire->GetVectorAttribute("ValidationStdDevPx", 2, cValidationStdDevPx) )
         {
-          LOG_ERROR("Reading current ReprojectionError2DStatistics failed for wire " << wireIndex);
+          LOG_ERROR("Reading current validation ReprojectionError2DStatistics failed for wire " << wireIndex);
           ++numberOfFailures;
           continue;
         }
 
         for ( int i = 0; i < 2; i++) 
         {
-          double ratioMean = 1.0 * blMeanPx[i] / cMeanPx[i]; 
+          double ratioMean = 1.0 * blValidationMeanPx[i] / cValidationMeanPx[i]; 
           if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
           {
-            LOG_ERROR("MeanPx mismatch for wire " << wireIndex << ": current=" << cMeanPx[i] << ", baseline=" << blMeanPx[i]);
+            LOG_ERROR("ValidationMeanPx mismatch for wire " << wireIndex << ": current=" << cValidationMeanPx[i] << ", baseline=" << blValidationMeanPx[i]);
             return ++numberOfFailures;
           }
-          double ratioStdDev = 1.0 * blStdDevPx[i] / cStdDevPx[i]; 
+          double ratioStdDev = 1.0 * blValidationStdDevPx[i] / cValidationStdDevPx[i]; 
           if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
           {
-            LOG_ERROR("StdDevPx mismatch for wire " << wireIndex << ": current=" << cStdDevPx[i] << ", baseline=" << blStdDevPx[i]);
+            LOG_ERROR("ValidationStdDevPx mismatch for wire " << wireIndex << ": current=" << cValidationStdDevPx[i] << ", baseline=" << blValidationStdDevPx[i]);
+            return ++numberOfFailures;
+          }
+        }
+
+        double blCalibrationMeanPx[2];
+        double blCalibrationStdDevPx[2];
+	      if ( ! wireBaseline->GetVectorAttribute("CalibrationMeanPx", 2, blCalibrationMeanPx)
+          || ! wireBaseline->GetVectorAttribute("CalibrationStdDevPx", 2, blCalibrationStdDevPx) )
+        {
+          LOG_ERROR("Reading baseline calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
+          ++numberOfFailures;
+          continue;
+        }
+
+        double cCalibrationMeanPx[2];
+        double cCalibrationStdDevPx[2];
+	      if ( ! wire->GetVectorAttribute("CalibrationMeanPx", 2, cCalibrationMeanPx)
+          || ! wire->GetVectorAttribute("CalibrationStdDevPx", 2, cCalibrationStdDevPx) )
+        {
+          LOG_ERROR("Reading current calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
+          ++numberOfFailures;
+          continue;
+        }
+
+        for ( int i = 0; i < 2; i++) 
+        {
+          double ratioMean = 1.0 * blCalibrationMeanPx[i] / cCalibrationMeanPx[i]; 
+          if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
+          {
+            LOG_ERROR("CalibrationMeanPx mismatch for wire " << wireIndex << ": current=" << cCalibrationMeanPx[i] << ", baseline=" << blCalibrationMeanPx[i]);
+            return ++numberOfFailures;
+          }
+          double ratioStdDev = 1.0 * blCalibrationStdDevPx[i] / cCalibrationStdDevPx[i]; 
+          if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+          {
+            LOG_ERROR("CalibrationStdDevPx mismatch for wire " << wireIndex << ": current=" << cCalibrationStdDevPx[i] << ", baseline=" << blCalibrationStdDevPx[i]);
             return ++numberOfFailures;
           }
         }
@@ -575,17 +642,17 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 continue;
               }
 
-              double blErrorPx[3];
-              double cErrorPx[3];
-              if ( ! reprojectionError2DBaseline->GetVectorAttribute("ErrorPx", 3, blErrorPx)
-                || ! reprojectionError2D->GetVectorAttribute("ErrorPx", 3, cErrorPx) )
+              double blErrorPx[2];
+              double cErrorPx[2];
+              if ( ! reprojectionError2DBaseline->GetVectorAttribute("ErrorPx", 2, blErrorPx)
+                || ! reprojectionError2D->GetVectorAttribute("ErrorPx", 2, cErrorPx) )
               {
                 LOG_ERROR("Reading ErrorPx of reprojectionError2D #" << reprojectionError2DIndex << " in Frame #" << frameIndex << "failed!");
                 ++numberOfFailures;
                 continue;
               }
 
-              for ( int i = 0; i < 3; i++) 
+              for ( int i = 0; i < 2; i++) 
               {
                 double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
                 if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
@@ -753,6 +820,109 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               }
             }
           } // </MiddleWires>
+
+          { // <ReprojectionError3DList>
+            vtkXMLDataElement* reprojectionError3DListBaseline = frameBaseline->FindNestedElementWithName("ReprojectionError3DList"); 
+            vtkXMLDataElement* reprojectionError3DList = frame->FindNestedElementWithName("ReprojectionError3DList");
+
+            if ( reprojectionError3DListBaseline == NULL || reprojectionError3DList == NULL ) 
+            {
+              LOG_ERROR("Reading ReprojectionError3DList tag in Frame #" << frameIndex << " failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <ReprojectionError3D>
+            for ( int reprojectionError3DIndex = 0; reprojectionError3DIndex < reprojectionError3DListBaseline->GetNumberOfNestedElements(); ++reprojectionError3DIndex )
+            {
+              vtkXMLDataElement* reprojectionError3DBaseline = reprojectionError3DListBaseline->GetNestedElement(reprojectionError3DIndex); 
+              vtkXMLDataElement* reprojectionError3D = reprojectionError3DList->GetNestedElement(reprojectionError3DIndex); 
+              if ( !reprojectionError3DBaseline || !reprojectionError3D || STRCASECMP( reprojectionError3DBaseline->GetName(), "ReprojectionError3D" ) != 0 || STRCASECMP( reprojectionError3D->GetName(), "ReprojectionError3D" ) != 0 )
+              {
+                LOG_ERROR("Invalid ReprojectionError3D element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              if ( STRCASECMP( reprojectionError3DBaseline->GetAttribute("WireName"), reprojectionError3D->GetAttribute("WireName") ) != 0 )
+              {
+                LOG_ERROR("Wire name mismatch: " << reprojectionError3DBaseline->GetAttribute("Name") << " <> " << reprojectionError3D->GetAttribute("Name"));
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blErrorMm = 0.0;
+              double cErrorMm = 0.0;
+	            if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+                || ! reprojectionError3D->GetScalarAttribute("ErrorMm", cErrorMm) )
+              {
+                LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              double ratio = 1.0 * blErrorMm / cErrorMm; 
+              if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+              {
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                ++numberOfFailures;
+                continue;
+              }
+            }
+          } // </ReprojectionError3DList>
+
+          { // <ReprojectionError2DList>
+            vtkXMLDataElement* reprojectionError2DListBaseline = frameBaseline->FindNestedElementWithName("ReprojectionError2DList"); 
+            vtkXMLDataElement* reprojectionError2DList = frame->FindNestedElementWithName("ReprojectionError2DList");
+
+            if ( reprojectionError2DListBaseline == NULL || reprojectionError2DList == NULL ) 
+            {
+              LOG_ERROR("Reading ReprojectionError2DList tag in Frame #" << frameIndex << "failed");
+              ++numberOfFailures;
+              continue;
+            }
+
+            // <ReprojectionError2D>
+            for ( int reprojectionError2DIndex = 0; reprojectionError2DIndex < reprojectionError2DListBaseline->GetNumberOfNestedElements(); ++reprojectionError2DIndex )
+            {
+              vtkXMLDataElement* reprojectionError2DBaseline = reprojectionError2DListBaseline->GetNestedElement(reprojectionError2DIndex); 
+              vtkXMLDataElement* reprojectionError2D = reprojectionError2DList->GetNestedElement(reprojectionError2DIndex); 
+              if ( !reprojectionError2DBaseline || !reprojectionError2D || STRCASECMP( reprojectionError2DBaseline->GetName(), "ReprojectionError2D" ) != 0 || STRCASECMP( reprojectionError2D->GetName(), "ReprojectionError2D" ) != 0 )
+              {
+                LOG_ERROR("Invalid ReprojectionError2D element in Frame #" << frameIndex);
+                ++numberOfFailures;
+                continue;
+              }
+
+              if ( STRCASECMP( reprojectionError2DBaseline->GetAttribute("WireName"), reprojectionError2D->GetAttribute("WireName") ) != 0 )
+              {
+                LOG_ERROR("Wire name mismatch: " << reprojectionError2DBaseline->GetAttribute("Name") << " <> " << reprojectionError2D->GetAttribute("Name"));
+                ++numberOfFailures;
+                continue;
+              }
+
+              double blErrorPx[2];
+              double cErrorPx[2];
+              if ( ! reprojectionError2DBaseline->GetVectorAttribute("ErrorPx", 2, blErrorPx)
+                || ! reprojectionError2D->GetVectorAttribute("ErrorPx", 2, cErrorPx) )
+              {
+                LOG_ERROR("Reading ErrorPx of reprojectionError2D #" << reprojectionError2DIndex << " in Frame #" << frameIndex << "failed!");
+                ++numberOfFailures;
+                continue;
+              }
+
+              for ( int i = 0; i < 2; i++) 
+              {
+                double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
+                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                {
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  ++numberOfFailures;
+                  continue;
+                }
+              }
+            }
+          } // </ReprojectionError2DList>
         } // If SegmentationStatus is OK
       } // </Frame>
     } // </CalibrationData>
