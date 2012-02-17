@@ -1,4 +1,14 @@
-#include "TemporalCalibration.h"
+#include "vtkTransformRepository.h"
+#include "TemporalCalibrationAlgo.h"
+#include "vtkMath.h"
+
+// Line detection parameters
+
+const int HOUGH_DISC_RADIUS = 10;
+const float HOUGH_ANGLE_RESOLUTION = 100;
+
+///////////////
+
 
 TemporalCalibration::TemporalCalibration(std::string inputTrackerSequenceMetafile, 
                                          std::string inputUSImageSequenceMetafile,
@@ -53,35 +63,33 @@ std::string TemporalCalibration::getOutputFilepath()
 
 PlusStatus TemporalCalibration::CalculateTrackerMetric()
 {
-  // Declare probe-to-reference transform, and intermediate transforms
-  vtkSmartPointer<vtkMatrix4x4> probeToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  vtkSmartPointer<vtkMatrix4x4> referenceToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  vtkSmartPointer<vtkMatrix4x4> trackerToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  
   PlusTransformName transformName;
-  transformName.SetTransformName("ProbeToTrackerTransform"); // TODO: Change to command-line arg.
-  PlusTransformName referenceToTrackerTransformName;
-  referenceToTrackerTransformName.SetTransformName("ReferenceToTrackerTransform");  // TODO: Change to command-line arg.
-
+  transformName.SetTransformName("ProbeToReferenceTransform"); // TODO: Change to command-line arg.
+  
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < trackerFrames_->GetNumberOfTrackedFrames(); ++frame )
   {
     double trackerTranslationModulus=0; //  Euclidean translation of tracker from reference.
     TrackedFrame *trackedFrame = trackerFrames_->GetTrackedFrame(frame);
     trackerTimestamps_.push_back(trackedFrame->GetTimestamp());
-    trackedFrame->GetCustomFrameTransform(transformName, probeToTrackerTransform);
-    trackedFrame->GetCustomFrameTransform(referenceToTrackerTransformName, referenceToTrackerTransform);
-    referenceToTrackerTransform->Invert(referenceToTrackerTransform,trackerToReferenceTransform);
-    vtkMatrix4x4::Multiply4x4(trackerToReferenceTransform, probeToTrackerTransform, probeToReferenceTransform);
-  
-    //  Get the squared Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)
+    transformRepository->SetTransforms(*trackedFrame);
+    bool valid = false;
+    vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform=vtkSmartPointer<vtkMatrix4x4>::New();
+    transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
+    if (!valid)
+    {
+      // there is no available transform for this frame, just skip that
+      continue;
+    }  
+    //  Get the squared Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)    
     for(int i = 0; i < 3; ++i)
     {
       trackerTranslationModulus += probeToReferenceTransform->GetElement(i, 3) * 
                                    probeToReferenceTransform->GetElement(i, 3);
-    }
-    
+    }    
     // Take the square-root, to find the Euclidean probe-to-reference distance (tx^2 + ty^2 + tz^2)^(1/2)
     trackerTranslationModulus = std::sqrt(trackerTranslationModulus);
     trackerMetric_.push_back(trackerTranslationModulus);
@@ -102,6 +110,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
   //  For each video frame, detect line and extract mindpoint and slope parameters
   for(int frameNumber = 0; frameNumber < USVideoFrames_->GetNumberOfTrackedFrames(); ++frameNumber)
   {
+    LOG_DEBUG("Calculate video metric for frame "<<frameNumber);
     // Define image types and image dimension
     const int imageDimension(2);
     typedef unsigned char charPixelType; // The natural type of the input image
@@ -116,7 +125,8 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
     
     if(localImage.IsNull())
     {
-      return PLUS_FAIL;
+      // dropped frame
+      continue;
     }
 
     // Create the hough transform line detection filter
@@ -132,12 +142,11 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
     // Set parameters of the Hough transform filter
     double houghLineDetectionThreshold = otsuFilter->GetThreshold(); // set Hough threshold to Otsu threshold.
     int houghNumberOfLinesToDetect = 1;
-    int houghDiscRadius = 10;
     houghTransform->SetInput(localImage);
     houghTransform->SetThreshold(houghLineDetectionThreshold);
     houghTransform->SetNumberOfLines(houghNumberOfLinesToDetect);
-    houghTransform->SetDiscRadius(houghDiscRadius);
-    houghTransform->SetAngleResolution(100);
+    houghTransform->SetDiscRadius(HOUGH_DISC_RADIUS);
+    houghTransform->SetAngleResolution(HOUGH_ANGLE_RESOLUTION);
     houghTransform->Update();
 
     LOG_DEBUG("Angle resolution: pi/" << 2 * houghTransform->GetAngleResolution());
@@ -156,7 +165,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 
     //std::ofstream InterceptFile;
     //InterceptFile.open ("InterceptFile.txt", std::ios::app);
-    itk::Size<2> size = localImage->GetLargestPossibleRegion().GetSize();
+    itk::Size<imageDimension> size = localImage->GetLargestPossibleRegion().GetSize();
     int halfwayPoint = static_cast<int> ((float) size[0]) / 2;
 
     while( itLines != lines.end() )
@@ -195,7 +204,6 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 
 void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
-
   /*
   switch (NormalizationMethod)
   {
@@ -258,8 +266,8 @@ void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 
 }// End NormalizeMetric()
 
-double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, 
-                           std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec)
+double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, const std::vector<double> &originalMetric, 
+                           const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec)
 {
   const int lowIndex = 0; //  Position of low index in "straddleIndices"
   const int highIndex = 1; // Position of high index in "straddleIndices"
@@ -285,8 +293,8 @@ double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, st
 
 } // End linearInterpolation()
 
-void TemporalCalibration::interpolateHelper(std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-          std::vector<double> &interpolatedTimestamps, std::vector<double> &originalTimestamps, double samplingResolutionSec)
+void TemporalCalibration::interpolateHelper(const std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
+          std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, double samplingResolutionSec)
 {
 
   //  For the first interpolated timestamp value, find the index of the closest element in the
@@ -304,8 +312,8 @@ void TemporalCalibration::interpolateHelper(std::vector<double> &originalMetric,
   }
   
   //  Assign two indices that "straddle" the first interpolated timestamp value in the original timstamp sequence
-  int indexHigh;
-  int indexLow;
+  int indexHigh = 0;
+  int indexLow = 0;
 
   if(originalTimestamps.at(closestIndex) > interpolatedTimestamps.at(0))
   {
@@ -431,25 +439,6 @@ void TemporalCalibration::interpolate()
 
 PlusStatus TemporalCalibration::readFiles()
 {
-
- if ( inputTrackerSequenceMetafile_.empty() )
-  {
-    std::cerr << "input-sequence-metafile required argument!" << std::endl;
-    return PLUS_FAIL;
-  }
-
-  if ( inputUSImageSequenceMetafile_.empty() )
-  {
-    std::cerr << "input-US-image-sequence-metafile required argument!" << std::endl;
-    return PLUS_FAIL;
-  }
-
-  if ( outputFilepath_.empty() )
-  {
-    std::cerr << "output-filepath required argument!" << std::endl;
-    return PLUS_FAIL;
-  }
-
   if ( trackerFrames_->ReadFromSequenceMetafile(inputTrackerSequenceMetafile_.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputTrackerSequenceMetafile_);

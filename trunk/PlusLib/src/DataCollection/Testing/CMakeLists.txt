@@ -140,19 +140,19 @@ ADD_TEST( ReplayRecordedDataTest
 SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 
 
-#***************************  LineDetectionTest ***************************
+#***************************  TemporalCalibrationAlgoTest ***************************
 
 
-ADD_EXECUTABLE(LineDetectionTest TemporalCalibration.cxx TemporalCalibration.h TemporalCalibrationTest.cxx)
-TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
+ADD_EXECUTABLE(TemporalCalibrationAlgoTest TemporalCalibrationAlgo.cxx TemporalCalibrationAlgo.h TemporalCalibrationAlgoTest.cxx)
+TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition vtkCharts)
 
-#ADD_TEST(TemporalCalibrationTest1 
-#  ${EXECUTABLE_OUTPUT_PATH}/LineDetectionTest
+#ADD_TEST(TemporalCalibrationAlgoTest1 
+#  ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
 #  --input-sequence-metafile-tracker-position=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
 #  --input-US-image-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
 #  --sampling-resolution-sec=0.01
 #  )
-#SET_TESTS_PROPERTIES( TemporalCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+#SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 
 #***************************  vtkDataCollectorFileTest ***************************
