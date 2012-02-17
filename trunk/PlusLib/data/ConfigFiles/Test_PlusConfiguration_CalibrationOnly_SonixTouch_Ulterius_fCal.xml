@@ -81,8 +81,6 @@
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 </PlusConfiguration>

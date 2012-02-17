@@ -166,6 +166,8 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 
@@ -188,8 +190,6 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 </PlusConfiguration>

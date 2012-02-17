@@ -97,8 +97,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 

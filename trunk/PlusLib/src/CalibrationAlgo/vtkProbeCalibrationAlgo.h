@@ -95,15 +95,6 @@ public:
   vtkGetStringMacro(PhantomCoordinateFrame);
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrame);
-  /*! Get the transducer origin coordinate frame name */
-  vtkGetStringMacro(TransducerOriginCoordinateFrame);
-  /*! Get the transducer origin pixel coordinate frame name */
-  vtkGetStringMacro(TransducerOriginPixelCoordinateFrame);
-
-	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
-	vtkGetObjectMacro(TransformImageToTransducerOriginPixel, vtkTransform);
-	/*! Get/set image home to transducer origin (pixel) constant transform. Should be defined in config file */
-	vtkSetObjectMacro(TransformImageToTransducerOriginPixel, vtkTransform);
 	
 	/*! Get/set the iCAL calibration result transformation between the image and probe home position */
 	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
@@ -158,10 +149,6 @@ protected:
   vtkSetStringMacro(PhantomCoordinateFrame);
   /*! Set the reference coordinate frame name */
   vtkSetStringMacro(ReferenceCoordinateFrame);
-  /*! Set the transducer origin coordinate frame name */
-  vtkSetStringMacro(TransducerOriginCoordinateFrame);
-  /*! Set the transducer origin pixel coordinate frame name */
-  vtkSetStringMacro(TransducerOriginPixelCoordinateFrame);
 
 protected:
 	vtkProbeCalibrationAlgo();
@@ -182,15 +169,6 @@ protected:
 
   /*! Name of the reference coordinate frame (eg. Reference) */
   char* ReferenceCoordinateFrame;
-
-  /*! Name of the transducer origin (mm) coordinate frame (eg. TransducerOrigin) */
-  char* TransducerOriginCoordinateFrame;
-
-  /*! Name of the transducer origin (pixel) coordinate frame (eg. TransducerOriginPixel) */
-  char* TransducerOriginPixelCoordinateFrame;
-
-	/*! Transform matrix from the original image frame to the transducer origin (pixel). Constant transform, read from file */
-	vtkTransform* TransformImageToTransducerOriginPixel;
 
   /*! The result of the calibration */
 	vtkTransform* TransformImageToProbe;

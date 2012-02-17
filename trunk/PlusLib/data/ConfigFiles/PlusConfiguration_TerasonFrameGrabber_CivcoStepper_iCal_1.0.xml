@@ -95,8 +95,6 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 

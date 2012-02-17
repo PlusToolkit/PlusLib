@@ -172,6 +172,8 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 
@@ -194,8 +196,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 </PlusConfiguration>
