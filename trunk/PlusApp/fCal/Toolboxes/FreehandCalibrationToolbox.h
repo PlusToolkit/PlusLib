@@ -76,6 +76,9 @@ protected:
   */
   void DisplaySegmentedPoints();
 
+  /*! Set and save calibration results */
+  PlusStatus SetAndSaveResults();
+
 protected slots:
   /*!
   * Acquire tracked frames and segment them. Runs calibration if acquisition is ready

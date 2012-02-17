@@ -37,6 +37,8 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
   , m_ImageCoordinateFrame("")
   , m_ProbeCoordinateFrame("")
   , m_ReferenceCoordinateFrame("")
+  , m_TransducerOriginCoordinateFrame("")
+  , m_TransducerOriginPixelCoordinateFrame("")
   , m_ShowDevices(false)
   , m_ShowPoints(false)
 {

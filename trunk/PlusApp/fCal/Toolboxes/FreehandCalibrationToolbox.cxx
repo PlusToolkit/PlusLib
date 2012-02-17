@@ -591,23 +591,10 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
       return;
     }
 
-    // Set result for visualization
-    vtkDisplayableObject* transducerOriginDisplayable = NULL;
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_Calibration->GetTransducerOriginCoordinateFrame(), transducerOriginDisplayable) == PLUS_SUCCESS)
+    if (SetAndSaveResults() != PLUS_SUCCESS)
     {
-      transducerOriginDisplayable->DisplayableOn();
-    }
-    vtkDisplayableObject* imageDisplayable = NULL;
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_Calibration->GetImageCoordinateFrame(), imageDisplayable) == PLUS_SUCCESS)
-    {
-      imageDisplayable->DisplayableOn();
-    }
-
-    // Save result in configuration
-    if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
-      SetState(ToolboxState_Error);
+      LOG_ERROR("Setting and saving results failed!");
+      CancelSpatial();
       return;
     }
 
@@ -709,6 +696,46 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   LOG_DEBUG("Waiting time: " << waitTimeMs);
 
   QTimer::singleShot(waitTimeMs , this, SLOT(DoSpatialCalibration())); 
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus FreehandCalibrationToolbox::SetAndSaveResults()
+{
+  LOG_TRACE("FreehandCalibrationToolbox::SetAndSaveResults");
+
+  // Set transducer origin related transforms
+  double* imageToProbeScale = m_Calibration->GetTransformImageToProbe()->GetScale();
+  vtkSmartPointer<vtkTransform> transducerOriginPixelToTransducerOriginTransform = vtkSmartPointer<vtkTransform>::New();
+  transducerOriginPixelToTransducerOriginTransform->Identity();
+  transducerOriginPixelToTransducerOriginTransform->Scale(imageToProbeScale);
+
+  PlusTransformName transducerOriginPixelToTransducerOriginTransformName(m_ParentMainWindow->GetTransducerOriginPixelCoordinateFrame(), m_ParentMainWindow->GetTransducerOriginCoordinateFrame());
+  m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransform(transducerOriginPixelToTransducerOriginTransformName, transducerOriginPixelToTransducerOriginTransform->GetMatrix());
+  m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformPersistent(transducerOriginPixelToTransducerOriginTransformName, true);
+  m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+
+  // Set result for visualization
+  vtkDisplayableObject* transducerOriginDisplayable = NULL;
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str(), transducerOriginDisplayable) == PLUS_SUCCESS)
+  {
+    transducerOriginDisplayable->DisplayableOn();
+  }
+  vtkDisplayableObject* imageDisplayable = NULL;
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetImageCoordinateFrame().c_str(), imageDisplayable) == PLUS_SUCCESS)
+  {
+    imageDisplayable->DisplayableOn();
+  }
+
+  // Save result in configuration
+  if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
+    SetState(ToolboxState_Error);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

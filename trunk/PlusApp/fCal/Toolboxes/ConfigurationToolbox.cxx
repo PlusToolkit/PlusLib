@@ -338,7 +338,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   if (aConfig == NULL)
   {
     LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
+    return PLUS_FAIL;
   }
 
   // Read tracker tool names
@@ -347,7 +347,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   if (fCalElement == NULL)
   {
     LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    return PLUS_FAIL;     
+    return PLUS_FAIL;
   }
 
   // Image coordinate frame
@@ -355,7 +355,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   if (imageCoordinateFrame == NULL)
   {
 	  LOG_ERROR("Image coordinate frame is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
+    return PLUS_FAIL;
   }
 
   m_ParentMainWindow->SetImageCoordinateFrame(imageCoordinateFrame);
@@ -365,7 +365,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   if (probeCoordinateFrame == NULL)
   {
 	  LOG_ERROR("Probe coordinate frame is not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
+    return PLUS_FAIL;
   }
 
   m_ParentMainWindow->SetProbeCoordinateFrame(probeCoordinateFrame);
@@ -375,10 +375,30 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   if (referenceCoordinateFrame == NULL)
   {
 	  LOG_ERROR("Reference coordinate frame not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;     
+    return PLUS_FAIL;
   }
 
   m_ParentMainWindow->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  // Transducer origin coordinate frame
+  const char* transducerOriginCoordinateFrame = fCalElement->GetAttribute("TransducerOriginCoordinateFrame");
+  if (transducerOriginCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("Transducer origin coordinate frame not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;
+  }
+
+  m_ParentMainWindow->SetTransducerOriginCoordinateFrame(transducerOriginCoordinateFrame);
+
+  // Transducer origin pixel coordinate frame
+  const char* transducerOriginPixelCoordinateFrame = fCalElement->GetAttribute("TransducerOriginPixelCoordinateFrame");
+  if (transducerOriginPixelCoordinateFrame == NULL)
+  {
+	  LOG_ERROR("Transducer origin pixel coordinate frame not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;
+  }
+
+  m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   return PLUS_SUCCESS;
 }

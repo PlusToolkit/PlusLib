@@ -112,6 +112,16 @@ public:
   /*! Set reference coordinate frame name */
   void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame) { m_ReferenceCoordinateFrame = aReferenceCoordinateFrame; };
 
+  /*! Get transducer origin coordinate frame name */
+  std::string GetTransducerOriginCoordinateFrame() { return m_TransducerOriginCoordinateFrame; };
+  /*! Set transducer origin coordinate frame name */
+  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame) { m_TransducerOriginCoordinateFrame = aTransducerOriginCoordinateFrame; };
+
+  /*! Get transducer origin pixel coordinate frame name */
+  std::string GetTransducerOriginPixelCoordinateFrame() { return m_TransducerOriginPixelCoordinateFrame; };
+  /*! Set transducer origin pixel coordinate frame name */
+  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
+
   /*! Get show devices status */
   bool AreDevicesShown() { return m_ShowDevices; };
 
@@ -206,6 +216,12 @@ protected:
 
   /*! Reference coordinate frame name for Capturing */
   std::string m_ReferenceCoordinateFrame;
+
+  /*! Transducer origin (mm) coordinate frame name for Rendering */
+  std::string m_TransducerOriginCoordinateFrame;
+
+  /*! Transducer origin (pixel) coordinate frame name for Rendering */
+  std::string m_TransducerOriginPixelCoordinateFrame;
 
   /*! Show devices flag */
   bool m_ShowDevices;
