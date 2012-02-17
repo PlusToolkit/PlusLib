@@ -38,6 +38,8 @@
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 
+
+
 class TemporalCalibration
 {
   public:
@@ -52,8 +54,11 @@ class TemporalCalibration
     std::string getOutputFilepath(); // Get output filename
     void CalculateTimeOffset();
     double getTimeOffset();
+    void writeVideoMetric();
+    void writeTrackerMetric();
+    void writeResampledVideoMetric();
+    void writeResampledTrackerMetric();
 
-    
   private:
     PlusStatus readFiles();
     std::string inputTrackerSequenceMetafile_;
@@ -71,7 +76,8 @@ class TemporalCalibration
     std::vector<double> resampledVideoMetric_;
     std::vector<double> resampledVideoTimestamps_;
     std::vector<double> corrValues_;
-    double trackerLag_; 
+    double trackerLag_;
+    const double maxVideoOffset_;//  Maximum anticipated time offset [seconds]
 
     void NormalizeMetric(std::vector<double> &metric);
     PlusStatus CalculateVideoMetric();
@@ -80,11 +86,10 @@ class TemporalCalibration
           std::vector<double> &interpolatedTimestamps, std::vector<double> &originalTimestamps, double samplingResolutionSec);
     double linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, 
                            std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec);
-   
     void interpolate();
-
     void xcorr();
     double computeCorrelation(std::vector<double> &trackerMetric_, std::vector<double> &videoMetric_, int indexOffset);
+    void writeMetric(std::string &outputFilepath, std::string headerMessage, std::vector<double> &metricArr, std::vector<double> &timestampArr);
 };
 
 
