@@ -110,6 +110,10 @@ public:
   /*! Get/set the iCAL calibration result transformation between the image and probe home position */
 	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
 
+public:
+  /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
+  PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
+
 protected:
   /*!
     Calculate and add positions of an individual image for calibration or validation

@@ -864,6 +864,36 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation)
+{
+  xMean = yMean = xStdDev = yStdDev = -1.0;
+
+  if (wireNumber < 1 || wireNumber > this->NWires.size())
+  {
+    LOG_ERROR("Invalid wire number: " << wireNumber);
+    return PLUS_FAIL;
+  }
+
+  if (isValidation)
+  {
+    xMean = this->ValidationReprojectionError2DMeans[wireNumber][0];
+    yMean = this->ValidationReprojectionError2DMeans[wireNumber][1];
+    xStdDev = this->ValidationReprojectionError2DStdDevs[wireNumber][0];
+    yStdDev = this->ValidationReprojectionError2DStdDevs[wireNumber][1];
+  }
+  else
+  {
+    xMean = this->CalibrationReprojectionError2DMeans[wireNumber][0];
+    yMean = this->CalibrationReprojectionError2DMeans[wireNumber][1];
+    xStdDev = this->CalibrationReprojectionError2DStdDevs[wireNumber][0];
+    yStdDev = this->CalibrationReprojectionError2DStdDevs[wireNumber][1];
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
