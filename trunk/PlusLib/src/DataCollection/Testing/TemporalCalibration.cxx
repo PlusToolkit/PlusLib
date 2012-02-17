@@ -522,52 +522,56 @@ void TemporalCalibration::writeMetric(std::string &outputFilepath, std::string h
 
 }
 
-void TemporalCalibration::getPlotTables(vtkTable *trackerTable, vtkTable *videoTable)
+void TemporalCalibration::getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
+                                        vtkTable *trackerTableAfter, vtkTable *videoTableAfter)
 {
-  createPlotTables();
+  createPlotTables(resampledTrackerTimestamps_, resampledTrackerMetric_,resampledVideoTimestamps_, resampledVideoMetric_);                                  
   
 }
 
-void TemporalCalibration::createPlotTables()
+void TemporalCalibration::createPlotTables(std::vector<double> &resampledTrackerTimestamps, 
+                                           std::vector<double> &resampledTrackerMetric, 
+                                           std::vector<double> &resampledVideoTimestamps, 
+                                           std::vector<double> &resampledVideoMetric)
 {
 
-   //  Create table
-  vtkSmartPointer<vtkTable> trackerTable_ = vtkSmartPointer<vtkTable>::New();
-  vtkSmartPointer<vtkTable> videoTable_ = vtkSmartPointer<vtkTable>::New();
+ //  Create table
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+  vtkSmartPointer<vtkTable> table2 = vtkSmartPointer<vtkTable>::New();
 
   //  Create array correpsonding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrResampledTrackerTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledTrackerTimestamps->SetName("Time [s]"); 
-  trackerTable_->AddColumn(arrResampledTrackerTimestamps);
+  table->AddColumn(arrResampledTrackerTimestamps);
  
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrResampledTrackerMetric = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledTrackerMetric->SetName("Tracker Metric");
-  trackerTable_->AddColumn(arrResampledTrackerMetric);
+  table->AddColumn(arrResampledTrackerMetric);
 
   //  Create array correpsonding to the time values of the video plot
   vtkSmartPointer<vtkDoubleArray> arrResampledVideoTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledVideoTimestamps->SetName("Time [s]"); 
-  videoTable_->AddColumn(arrResampledVideoTimestamps);
+  table2->AddColumn(arrResampledVideoTimestamps);
  
   //  Create array corresponding to the metric values of the video plot
   vtkSmartPointer<vtkDoubleArray> arrResampledVideoMetric = vtkSmartPointer<vtkDoubleArray>::New();
   arrResampledVideoMetric->SetName("Video Metric");
-  videoTable_->AddColumn(arrResampledVideoMetric);
+  table2->AddColumn(arrResampledVideoMetric);
  
   // Set the tracker data
-  trackerTable_->SetNumberOfRows(resampledTrackerTimestamps_.size());
-  for (int i = 0; i < resampledTrackerTimestamps_.size(); ++i)
+  table->SetNumberOfRows(resampledTrackerTimestamps.size());
+  for (int i = 0; i < resampledTrackerTimestamps.size(); ++i)
   {
-    trackerTable_->SetValue(i, 0, (resampledTrackerTimestamps_.at(i)));
-    trackerTable_->SetValue(i, 1, (resampledTrackerMetric_.at(i)));
+    table->SetValue(i, 0, (resampledTrackerTimestamps.at(i)));
+    table->SetValue(i, 1, (resampledTrackerMetric.at(i)));
   }
 
   // Set the video data
-  videoTable_->SetNumberOfRows(resampledVideoTimestamps_.size());
-  for (int i = 0; i < resampledVideoTimestamps_.size(); ++i)
+  table2->SetNumberOfRows(resampledVideoTimestamps.size());
+  for (int i = 0; i < resampledVideoTimestamps.size(); ++i)
   {
-    videoTable_->SetValue(i, 0, (resampledVideoTimestamps_.at(i)));
-    videoTable_->SetValue(i, 1, (resampledVideoMetric_.at(i)));
+    table2->SetValue(i, 0, (resampledVideoTimestamps.at(i)));
+    table2->SetValue(i, 1, (resampledVideoMetric.at(i)));
   }
 }
