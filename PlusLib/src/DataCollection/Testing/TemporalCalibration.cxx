@@ -7,12 +7,16 @@ TemporalCalibration::TemporalCalibration(std::string inputTrackerSequenceMetafil
                                          inputTrackerSequenceMetafile_(inputTrackerSequenceMetafile),
                                          inputUSImageSequenceMetafile_(inputUSImageSequenceMetafile),
                                          outputFilepath_(outputFilepath),
-                                         samplingResolutionSec_(samplingResolutionSec)
+                                         samplingResolutionSec_(samplingResolutionSec),
+                                         trackerLag_(0),
+                                         maxVideoOffset_(2.0)
 {
+
   trackerFrames_ = vtkSmartPointer<vtkTrackedFrameList>::New();
   USVideoFrames_ = vtkSmartPointer<vtkTrackedFrameList>::New();
-  trackerLag_ = 0;
-  readFiles();
+
+  readFiles(); // Read the video frames and tracker frames
+
 }
 
 double TemporalCalibration::getSamplingResolution()
@@ -22,14 +26,13 @@ double TemporalCalibration::getSamplingResolution()
 
 void TemporalCalibration::setSamplingResolution(double samplingResolutionSec)
 {
-  samplingResolutionSec_  = samplingResolutionSec;
+  samplingResolutionSec_ = samplingResolutionSec;
 }
 
 std::string TemporalCalibration::getInputTrackerSequenceMetafile()
 {
   return inputTrackerSequenceMetafile_;
 }
-
 
 std::string TemporalCalibration::getInputUSImageSequenceMetafile()
 {
@@ -48,16 +51,16 @@ std::string TemporalCalibration::getOutputFilepath()
 
 PlusStatus TemporalCalibration::CalculateTrackerMetric()
 {
-  // Declare homogeneous probe-to-tracker transformation matrix, and corresponding frame transform name.
+  // Declare probe-to-reference transform, and intermediate transforms
   vtkSmartPointer<vtkMatrix4x4> probeToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New(); 
   vtkSmartPointer<vtkMatrix4x4> referenceToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New(); 
   vtkSmartPointer<vtkMatrix4x4> trackerToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 
   PlusTransformName transformName;
-  transformName.SetTransformName("ProbeToTrackerTransform");
+  transformName.SetTransformName("ProbeToTrackerTransform"); // TODO: Change to command-line arg.
   PlusTransformName referenceToTrackerTransformName;
-  referenceToTrackerTransformName.SetTransformName("ReferenceToTrackerTransform");
+  referenceToTrackerTransformName.SetTransformName("ReferenceToTrackerTransform");  // TODO: Change to command-line arg.
 
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < trackerFrames_->GetNumberOfTrackedFrames(); ++frame )
@@ -70,15 +73,17 @@ PlusStatus TemporalCalibration::CalculateTrackerMetric()
     referenceToTrackerTransform->Invert(referenceToTrackerTransform,trackerToReferenceTransform);
     vtkMatrix4x4::Multiply4x4(trackerToReferenceTransform, probeToTrackerTransform, probeToReferenceTransform);
   
-    //  Get the Euclidean distance of tracker from reference = (tx^2 + ty^2 + tz^2)^(1/2)
+    //  Get the squared Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)
     for(int i = 0; i < 3; ++i)
     {
       trackerTranslationModulus += probeToReferenceTransform->GetElement(i, 3) * 
                                    probeToReferenceTransform->GetElement(i, 3);
     }
     
+    // Take the square-root, to find the Euclidean probe-to-reference distance (tx^2 + ty^2 + tz^2)^(1/2)
     trackerTranslationModulus = std::sqrt(trackerTranslationModulus);
     trackerMetric_.push_back(trackerTranslationModulus);
+
   }
 
   //  Normalize the tracker metric.
@@ -92,12 +97,13 @@ PlusStatus TemporalCalibration::CalculateTrackerMetric()
 PlusStatus TemporalCalibration::CalculateVideoMetric()
 {
 
+  //  For each video frame, detect line and extract mindpoint and slope parameters
   for(int frameNumber = 0; frameNumber < USVideoFrames_->GetNumberOfTrackedFrames(); ++frameNumber)
   {
-    // Define some image types and image dimension
+    // Define image types and image dimension
     const int imageDimension(2);
-    typedef unsigned char charPixelType; //the natural type of the input image
-    typedef float floatPixelType; //the type of pixel used for the Hough accumulator
+    typedef unsigned char charPixelType; // The natural type of the input image
+    typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
     typedef itk::Image<charPixelType,imageDimension> charImageType;
     
     //  Get timestamp for image frame
@@ -182,7 +188,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 
   return PLUS_SUCCESS;
 
-} //  end LineDetection
+} //  End LineDetection
 
 
 void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
@@ -195,6 +201,9 @@ void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
     break;
   }
   */
+
+  //  TODO: Add option to change between normalization methods: (opt1) X' = \frrac{X - \mu}{\sigma}
+  //  (opt2) X' = \frrac{X - \mu}{max(X- \mu) - min(X- \mu)}
 
   //  Get the mean of the Euclidean distances
   double mu = 0;
@@ -250,9 +259,9 @@ void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, std::vector<double> &originalMetric, 
                            std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec)
 {
-  const int lowIndex = 0; //  position of low index in "straddleIndices"
-  const int highIndex = 1; // position of high index in "straddleIndices"
-  double timeEpsilon = 0.0001; //  resolution under which two time values are considered identical
+  const int lowIndex = 0; //  Position of low index in "straddleIndices"
+  const int highIndex = 1; // Position of high index in "straddleIndices"
+  double timeEpsilon = 0.0001; //  Resolution under which two time values are considered identical
   
   //  We assume that we are upsampling (i.e. that the rate of resampling is less than the original sampling rate).
   if(interpolatedTimestamp > originalTimestamps.at(straddleIndices.at(highIndex)))
@@ -344,7 +353,7 @@ void TemporalCalibration::xcorr()
     ++n;
   }
 
-} // end xcorr()
+} // End xcorr()
 
 void TemporalCalibration::CalculateTimeOffset()
 {
@@ -372,17 +381,13 @@ void TemporalCalibration::CalculateTimeOffset()
   }
 
   //  Compute the time that the tracker data lags the video data
-  double maxVideoOffset = 2; //  Maximum anticipated time offset [seconds]
-
-  trackerLag_ = maxVideoOffset - (maxCorrIndex)*samplingResolutionSec_;
+  trackerLag_ = maxVideoOffset_ - (maxCorrIndex)*samplingResolutionSec_;
   std::cout << "Tracker stream lags image stream by: " << trackerLag_ << " [s]" << std::endl;
 
 }// End CalculateTimeOffset()
 
 void TemporalCalibration::interpolate()
 {
-
-  double maxVideoOffset = 2; //  Maximum anticipated time offset [seconds]
 
   //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = trackerTimestamps_.at(1);
@@ -394,7 +399,7 @@ void TemporalCalibration::interpolate()
   double commonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
   double commonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
 
-  if (commonRangeMin + maxVideoOffset >= commonRangeMax - maxVideoOffset)
+  if (commonRangeMin + maxVideoOffset_ >= commonRangeMax - maxVideoOffset_)
   {
     std::cerr << "Insufficient overlap between tracking data and image data to compute time offset...Exiting" << std::endl;
     exit(EXIT_FAILURE);
@@ -410,9 +415,9 @@ void TemporalCalibration::interpolate()
 
   //  Get resampled timestamps for the tracker sequence
   n = 0;
-  while((commonRangeMin + maxVideoOffset) + n * samplingResolutionSec_ < commonRangeMax - maxVideoOffset)
+  while((commonRangeMin + maxVideoOffset_) + n * samplingResolutionSec_ < commonRangeMax - maxVideoOffset_)
   {
-    resampledTrackerTimestamps_.push_back( (commonRangeMin + maxVideoOffset) + n * samplingResolutionSec_);
+    resampledTrackerTimestamps_.push_back( (commonRangeMin + maxVideoOffset_) + n * samplingResolutionSec_);
     ++n;
   }
 
@@ -466,4 +471,50 @@ PlusStatus TemporalCalibration::readFiles()
   }
 
   return PLUS_SUCCESS;
+}
+
+//  TODO: Write .cvs files (w/ header) rather than .txt files
+void TemporalCalibration::writeVideoMetric()
+{
+ std::string videoMetricFilename = outputFilepath_ +  "\\VideoMetric.txt";
+ std::string headerMessage = "$Header: Video metric. First column = timestamp, second column = video metric.$";
+ writeMetric(videoMetricFilename, headerMessage, videoMetric_, videoTimestamps_);
+
+}
+
+void TemporalCalibration::writeTrackerMetric()
+{
+ std::string trackerMetricFilename = outputFilepath_ + "\\TrackerMetric.txt";
+ std::string headerMessage = "$Header: Tracker metric. First column = timestamp, second column = tracker metric.$";
+ writeMetric(trackerMetricFilename, headerMessage, trackerMetric_, trackerTimestamps_);
+
+}
+
+void TemporalCalibration::writeResampledVideoMetric()
+{
+ std::string videoMetricFilename = outputFilepath_ +  "\\ResampledVideoMetric.txt";
+ std::string headerMessage = "$Header: Resampled video metric. First column = timestamp, second column = resampled video metric.$";
+ writeMetric(videoMetricFilename, headerMessage, resampledVideoMetric_, resampledVideoTimestamps_);
+
+}
+
+void TemporalCalibration::writeResampledTrackerMetric()
+{
+ std::string trackerMetricFilename = outputFilepath_ + "\\ResampledTrackerMetric.txt";
+ std::string headerMessage = "$Header: Resampled tracker metric. First column = timestamp, second column = resampled tracker metric.$";
+ writeMetric(trackerMetricFilename, headerMessage, resampledTrackerMetric_, resampledTrackerTimestamps_);
+
+}
+
+void TemporalCalibration::writeMetric(std::string &outputFilepath, std::string headerMessage, std::vector<double> &metricArr, std::vector<double> &timestampArr)
+{
+  
+  std::ofstream outputFile;
+  outputFile.open(outputFilepath.c_str());
+  outputFile << headerMessage << std::endl;
+  for(int i = 0; i < metricArr.size(); ++i)
+  {
+    outputFile << timestampArr.at(i) << "," << metricArr.at(i) << std::endl;
+  }
+  outputFile.close();
 }
