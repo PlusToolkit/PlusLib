@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*=========================================================================
@@ -64,8 +64,8 @@ struct InsertSliceThreadFunctionInfoStruct
 {
   vtkImageData* InputFrameImage;
   vtkMatrix4x4* TransformImageToReference;
-	vtkImageData* OutputVolume;
-	vtkImageData* Accumulator;
+  vtkImageData* OutputVolume;
+  vtkImageData* Accumulator;
   vtkPasteSliceIntoVolume::OptimizationType Optimization;
   int Compounding;
   vtkPasteSliceIntoVolume::InterpolationType InterpolationMode;
@@ -84,35 +84,37 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   this->AccumulationBuffer=vtkImageData::New();
   this->Threader=vtkMultiThreader::New();
 
-  this->OutputOrigin[0] = 0;
-	this->OutputOrigin[1] = 0;
-	this->OutputOrigin[2] = 0;
+  this->OutputOrigin[0] = 0.0;
+  this->OutputOrigin[1] = 0.0;
+  this->OutputOrigin[2] = 0.0;
 
-	this->OutputSpacing[0] = 1.0;
-	this->OutputSpacing[1] = 1.0;
-	this->OutputSpacing[2] = 1.0;
+  this->OutputSpacing[0] = 1.0;
+  this->OutputSpacing[1] = 1.0;
+  this->OutputSpacing[2] = 1.0;
 
-	this->OutputExtent[0] = 0;
-	this->OutputExtent[1] = 255;
-	this->OutputExtent[2] = 0;
-	this->OutputExtent[3] = 255;
-	this->OutputExtent[4] = 0;
-	this->OutputExtent[5] = 255;
+  // Set to invalid values by default
+  // If the user doesn't set the correct values then inserting the slice will be refused
+  this->OutputExtent[0] = 0;
+  this->OutputExtent[1] = 0;
+  this->OutputExtent[2] = 0;
+  this->OutputExtent[3] = 0;
+  this->OutputExtent[4] = 0;
+  this->OutputExtent[5] = 0;
 
-	this->ClipRectangleOrigin[0] = 0;
-	this->ClipRectangleOrigin[1] = 0;
-	this->ClipRectangleSize[0] = 0;
-	this->ClipRectangleSize[1] = 0;
+  this->ClipRectangleOrigin[0] = 0;
+  this->ClipRectangleOrigin[1] = 0;
+  this->ClipRectangleSize[0] = 0;
+  this->ClipRectangleSize[1] = 0;
 
-	this->FanAngles[0] = 0.0;
-	this->FanAngles[1] = 0.0;
-	this->FanOrigin[0] = 0.0;
-	this->FanOrigin[1] = 0.0;
-	this->FanDepth = 1.0;
+  this->FanAngles[0] = 0.0;
+  this->FanAngles[1] = 0.0;
+  this->FanOrigin[0] = 0.0;
+  this->FanOrigin[1] = 0.0;
+  this->FanDepth = 1.0;
 
-	// reconstruction options
-	this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
-	this->Optimization = FULL_OPTIMIZATION;
+  // reconstruction options
+  this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
+  this->Optimization = FULL_OPTIMIZATION;
   this->Compounding = 0;
 
   this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
@@ -143,34 +145,34 @@ void vtkPasteSliceIntoVolume::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   if (this->ReconstructedVolume)
-	{
-		os << indent << "ReconstructedVolume:\n";
-		this->ReconstructedVolume->PrintSelf(os,indent.GetNextIndent());
-	}
-	if (this->AccumulationBuffer)
-	{
-		os << indent << "AccumulationBuffer:\n";
-		this->AccumulationBuffer->PrintSelf(os,indent.GetNextIndent());
-	}
-	os << indent << "OutputOrigin: " << this->OutputOrigin[0] << " " <<
-		this->OutputOrigin[1] << " " << this->OutputOrigin[2] << "\n";
-	os << indent << "OutputSpacing: " << this->OutputSpacing[0] << " " <<
-		this->OutputSpacing[1] << " " << this->OutputSpacing[2] << "\n";
-	os << indent << "OutputExtent: " << this->OutputExtent[0] << " " <<
-		this->OutputExtent[1] << " " << this->OutputExtent[2] << " " <<
-		this->OutputExtent[3] << " " << this->OutputExtent[4] << " " <<
-		this->OutputExtent[5] << "\n";
-	os << indent << "ClipRectangleOrigin: " << this->ClipRectangleOrigin[0] << " " <<
-		this->ClipRectangleOrigin[1] << "\n";
+  {
+    os << indent << "ReconstructedVolume:\n";
+    this->ReconstructedVolume->PrintSelf(os,indent.GetNextIndent());
+  }
+  if (this->AccumulationBuffer)
+  {
+    os << indent << "AccumulationBuffer:\n";
+    this->AccumulationBuffer->PrintSelf(os,indent.GetNextIndent());
+  }
+  os << indent << "OutputOrigin: " << this->OutputOrigin[0] << " " <<
+    this->OutputOrigin[1] << " " << this->OutputOrigin[2] << "\n";
+  os << indent << "OutputSpacing: " << this->OutputSpacing[0] << " " <<
+    this->OutputSpacing[1] << " " << this->OutputSpacing[2] << "\n";
+  os << indent << "OutputExtent: " << this->OutputExtent[0] << " " <<
+    this->OutputExtent[1] << " " << this->OutputExtent[2] << " " <<
+    this->OutputExtent[3] << " " << this->OutputExtent[4] << " " <<
+    this->OutputExtent[5] << "\n";
+  os << indent << "ClipRectangleOrigin: " << this->ClipRectangleOrigin[0] << " " <<
+    this->ClipRectangleOrigin[1] << "\n";
   os << indent << "ClipRectangleSize: " << this->ClipRectangleSize[0] << " " <<
-		this->ClipRectangleSize[1] << "\n";
-	os << indent << "FanAngles: " << this->FanAngles[0] << " " <<
-		this->FanAngles[1] << "\n";
-	os << indent << "FanOrigin: " << this->FanOrigin[0] << " " <<
-		this->FanOrigin[1] << "\n";
-	os << indent << "FanDepth: " << this->FanDepth << "\n";
+    this->ClipRectangleSize[1] << "\n";
+  os << indent << "FanAngles: " << this->FanAngles[0] << " " <<
+    this->FanAngles[1] << "\n";
+  os << indent << "FanOrigin: " << this->FanOrigin[0] << " " <<
+    this->FanOrigin[1] << "\n";
+  os << indent << "FanDepth: " << this->FanDepth << "\n";
   os << indent << "InterpolationMode: " << this->GetInterpolationModeAsString(this->InterpolationMode) << "\n";
-	os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
+  os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
   os << indent << "Compounding: " << (this->Compounding ? "On\n":"Off\n");
   os << indent << "NumberOfThreads: ";
   if (this->NumberOfThreads>0)
@@ -208,7 +210,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   // Start with this buffer because if no compunding is needed then we release memory before allocating memory for the reconstructed image.
 
   vtkImageData* accData = this->GetAccumulationBuffer();
-	if (this->Compounding)
+  if (this->Compounding)
   {
     if (accData==NULL)
     {
@@ -243,20 +245,20 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
         accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
     }
   }
-	// Allocate memory for the reconstructed image and set all pixels to 0
+  // Allocate memory for the reconstructed image and set all pixels to 0
 
   vtkImageData* outData = this->ReconstructedVolume;
-	if (outData==NULL)
+  if (outData==NULL)
   {
     LOG_ERROR("Output image object is not created");
     return PLUS_FAIL;
   }
-  
+
   int *outExtent=this->OutputExtent;
   outData->SetExtent(outExtent);
   outData->SetOrigin(this->OutputOrigin);
   outData->SetSpacing(this->OutputSpacing);
-	outData->SetScalarType(VTK_UNSIGNED_CHAR);
+  outData->SetScalarType(VTK_UNSIGNED_CHAR);
   outData->SetNumberOfScalarComponents(2); // first component: image intensity; second component: if the pixel was set (0 = not set (hole), 1 = set)
   outData->AllocateScalars();
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
@@ -272,7 +274,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
       (outExtent[5]-outExtent[4]+1)*
       outData->GetScalarSize()*outData->GetNumberOfScalarComponents()));
   }
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -280,7 +282,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
 // Set compounding setting
 void vtkPasteSliceIntoVolume::SetCompounding(int compound)
 {
-	this->Compounding = compound;
+  this->Compounding = compound;
   ResetOutput();
 }
 
@@ -293,8 +295,18 @@ void vtkPasteSliceIntoVolume::SetCompounding(int compound)
 // Basically, just calls Multithread()
 PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x4* transformImageToReference)
 {
-	InsertSliceThreadFunctionInfoStruct str;
-	str.InputFrameImage = image;
+  if (this->OutputExtent[0]>=this->OutputExtent[1]
+  && this->OutputExtent[2]>=this->OutputExtent[3]
+  && this->OutputExtent[4]>=this->OutputExtent[5])
+  {
+    LOG_ERROR("Invalid output volume extent ["<<this->OutputExtent[0]<<","<<this->OutputExtent[1]<<","
+      <<this->OutputExtent[2]<<","<<this->OutputExtent[3]<<","<<this->OutputExtent[4]<<","<<this->OutputExtent[5]<<"]."
+      <<" Cannot insert slice into the volume. Set the correct output volume origin, spacing, and extent before inserting slices.");
+    return PLUS_FAIL;
+  }
+
+  InsertSliceThreadFunctionInfoStruct str;
+  str.InputFrameImage = image;
   str.TransformImageToReference = transformImageToReference;
   str.OutputVolume = this->ReconstructedVolume;
   str.Accumulator = this->AccumulationBuffer;
@@ -313,13 +325,13 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
 
   if (this->NumberOfThreads>0)
   {
-	  this->Threader->SetNumberOfThreads(this->NumberOfThreads);
+    this->Threader->SetNumberOfThreads(this->NumberOfThreads);
   }
-	this->Threader->SetSingleMethod(InsertSliceThreadFunction, &str);
-	this->Threader->SingleMethodExecute();
+  this->Threader->SetSingleMethod(InsertSliceThreadFunction, &str);
+  this->Threader->SingleMethodExecute();
 
-	this->Modified();
-  
+  this->Modified();
+
   return PLUS_SUCCESS;
 }
 
@@ -327,45 +339,45 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
 VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void *arg )
 {
   vtkMultiThreader::ThreadInfo* threadInfo = static_cast<vtkMultiThreader::ThreadInfo *>(arg);
- 	InsertSliceThreadFunctionInfoStruct *str = static_cast<InsertSliceThreadFunctionInfoStruct*>(threadInfo->UserData);
+  InsertSliceThreadFunctionInfoStruct *str = static_cast<InsertSliceThreadFunctionInfoStruct*>(threadInfo->UserData);
 
   // Compute what extent of the input image will be processed by this thread
-	int threadId = threadInfo->ThreadID;
-	int threadCount = threadInfo->NumberOfThreads;
+  int threadId = threadInfo->ThreadID;
+  int threadCount = threadInfo->NumberOfThreads;
   int inputFrameExtent[6];
   str->InputFrameImage->GetExtent(inputFrameExtent);
   int inputFrameExtentForCurrentThread[6];
-	int totalUsedThreads = vtkPasteSliceIntoVolume::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
+  int totalUsedThreads = vtkPasteSliceIntoVolume::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
 
-	if (threadId >= totalUsedThreads)
-	{
+  if (threadId >= totalUsedThreads)
+  {
     //   don't use this thread. Sometimes the threads dont
-	  //   break up very well and it is just as efficient to leave a 
-	  //   few threads idle.
+    //   break up very well and it is just as efficient to leave a 
+    //   few threads idle.
     return VTK_THREAD_RETURN_VALUE;
-	}
+  }
 
-	// this filter expects that input is the same type as output.
+  // this filter expects that input is the same type as output.
   if (str->InputFrameImage->GetScalarType() != str->OutputVolume->GetScalarType())
-	{
-		LOG_ERROR("OptimizedInsertSlice: input ScalarType (" << str->InputFrameImage->GetScalarType()<<") "
-			<< " must match out ScalarType ("<<str->OutputVolume->GetScalarType()<<")");
-		return VTK_THREAD_RETURN_VALUE;
-	}
+  {
+    LOG_ERROR("OptimizedInsertSlice: input ScalarType (" << str->InputFrameImage->GetScalarType()<<") "
+      << " must match out ScalarType ("<<str->OutputVolume->GetScalarType()<<")");
+    return VTK_THREAD_RETURN_VALUE;
+  }
 
   // Get input frame extent and pointer
   vtkImageData *inData=str->InputFrameImage;  
-	void *inPtr = inData->GetScalarPointerForExtent(inputFrameExtentForCurrentThread);
+  void *inPtr = inData->GetScalarPointerForExtent(inputFrameExtentForCurrentThread);
   // Get output volume extent and pointer
   vtkImageData *outData=str->OutputVolume;
   int *outExt = outData->GetExtent();
-	void *outPtr = outData->GetScalarPointerForExtent(outExt);
+  void *outPtr = outData->GetScalarPointerForExtent(outExt);
 
   void *accPtr = NULL; 
-	if (str->Compounding)
-	{
-		accPtr = str->Accumulator->GetScalarPointerForExtent(outExt);
-	}
+  if (str->Compounding)
+  {
+    accPtr = str->Accumulator->GetScalarPointerForExtent(outExt);
+  }
 
   // Transform chain:
   // ImagePixToVolumePix = 
@@ -391,67 +403,67 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   vtkSmartPointer<vtkMatrix4x4> mImagePixToVolumePix = vtkSmartPointer<vtkMatrix4x4>::New();
   tImagePixToVolumePix->GetMatrix(mImagePixToVolumePix);
 
-	if (str->Optimization == FULL_OPTIMIZATION)
-	{
+  if (str->Optimization == FULL_OPTIMIZATION)
+  {
     // use fixed-point math
-		// change transform matrix so that instead of taking 
-		// input coords -> output coords it takes output indices -> input indices
-		fixed newmatrix[4][4]; // fixed because optimization = 2
-		for (int i = 0; i < 4; i++)
-		{
+    // change transform matrix so that instead of taking 
+    // input coords -> output coords it takes output indices -> input indices
+    fixed newmatrix[4][4]; // fixed because optimization = 2
+    for (int i = 0; i < 4; i++)
+    {
       newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
-			newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
-			newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
-			newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
-		}
+      newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
+      newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
+      newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
+    }
 
-		switch (str->InputFrameImage->GetScalarType())
-		{
-		case VTK_SHORT:
-			vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
-				(unsigned short *)(accPtr), 
-				str->InputFrameImage, (short *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
+    switch (str->InputFrameImage->GetScalarType())
+    {
+    case VTK_SHORT:
+      vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (short *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		case VTK_UNSIGNED_SHORT:
-			vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
-				(unsigned short *)(accPtr), 
-				str->InputFrameImage, (unsigned short *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
+      break;
+    case VTK_UNSIGNED_SHORT:
+      vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (unsigned short *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		case VTK_UNSIGNED_CHAR:
-			vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
-				(unsigned short *)(accPtr), 
-				str->InputFrameImage, (unsigned char *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
+      break;
+    case VTK_UNSIGNED_CHAR:
+      vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (unsigned char *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		default:
-			LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
-			return VTK_THREAD_RETURN_VALUE;
-		}
-	}
+      break;
+    default:
+      LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
+      return VTK_THREAD_RETURN_VALUE;
+    }
+  }
   else
-	{
+  {
     // if we are not using fixed point math for optimization = 2, we are either:
     // doing no optimization (0) OR
     // breaking into x, y, z components with no bounds checking for nearest neighbor (1)
 
-		// change transform matrix so that instead of taking 
-		// input coords -> output coords it takes output indices -> input indices
-		double newmatrix[4][4];
-		for (int i = 0; i < 4; i++)
-		{
-			newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
-			newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
-			newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
-			newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
-		}
+    // change transform matrix so that instead of taking 
+    // input coords -> output coords it takes output indices -> input indices
+    double newmatrix[4][4];
+    for (int i = 0; i < 4; i++)
+    {
+      newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
+      newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
+      newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
+      newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
+    }
 
 
     if (str->Optimization==PARTIAL_OPTIMIZATION)
@@ -519,9 +531,9 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         LOG_ERROR("UnoptimizedInsertSlice: Unknown input ScalarType");
       }
     }
-	}
+  }
 
-	return VTK_THREAD_RETURN_VALUE;
+  return VTK_THREAD_RETURN_VALUE;
 }
 
 //----------------------------------------------------------------------------
@@ -533,56 +545,56 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
 // If 1 is returned, the extent cannot be split.
 int vtkPasteSliceIntoVolume::SplitSliceExtent(int splitExt[6], int fullExt[6], int threadId, int requestedNumberOfThreads)
 {
-	
-	int min, max; // the min and max indices of the axis of interest
 
-	LOG_TRACE("SplitSliceExtent: ( " << fullExt[0] << ", " 
-		<< fullExt[1] << ", "
-		<< fullExt[2] << ", " << fullExt[3] << ", "
-		<< fullExt[4] << ", " << fullExt[5] << "), " 
-		<< threadId << " of " << requestedNumberOfThreads);
+  int min, max; // the min and max indices of the axis of interest
 
-	// start with same extent
-	memcpy(splitExt, fullExt, 6 * sizeof(int));
+  LOG_TRACE("SplitSliceExtent: ( " << fullExt[0] << ", " 
+    << fullExt[1] << ", "
+    << fullExt[2] << ", " << fullExt[3] << ", "
+    << fullExt[4] << ", " << fullExt[5] << "), " 
+    << threadId << " of " << requestedNumberOfThreads);
 
-	// determine which axis we should split along - preference is z, then y, then x
-	// as long as we can possibly split along that axis (i.e. as long as z0 != z1)
+  // start with same extent
+  memcpy(splitExt, fullExt, 6 * sizeof(int));
+
+  // determine which axis we should split along - preference is z, then y, then x
+  // as long as we can possibly split along that axis (i.e. as long as z0 != z1)
   int splitAxis = 2; // the axis we should split along, try with z first
-	min = fullExt[4];
-	max = fullExt[5];
-	while (min == max)
-	{
-		--splitAxis;
-		// we cannot split if the input extent is something like [50, 50, 100, 100, 0, 0]!
-		if (splitAxis < 0)
-		{ 
-			LOG_DEBUG("Cannot split the extent to multiple threads");
-			return 1;
-		}
-		min = fullExt[splitAxis*2];
-		max = fullExt[splitAxis*2+1];
-	}
+  min = fullExt[4];
+  max = fullExt[5];
+  while (min == max)
+  {
+    --splitAxis;
+    // we cannot split if the input extent is something like [50, 50, 100, 100, 0, 0]!
+    if (splitAxis < 0)
+    { 
+      LOG_DEBUG("Cannot split the extent to multiple threads");
+      return 1;
+    }
+    min = fullExt[splitAxis*2];
+    max = fullExt[splitAxis*2+1];
+  }
 
-	// determine the actual number of pieces that will be generated
-	int range = max - min + 1;
-	// split the range over the maximum number of threads
-	int valuesPerThread = (int)ceil(range/(double)requestedNumberOfThreads);
-	// figure out the largest thread id used
-	int maxThreadIdUsed = (int)ceil(range/(double)valuesPerThread) - 1;
-	// if we are in a thread that will work on part of the extent, then figure
-	// out the range that this thread should work on
-	if (threadId < maxThreadIdUsed)
-	{
-		splitExt[splitAxis*2] = splitExt[splitAxis*2] + threadId*valuesPerThread;
-		splitExt[splitAxis*2+1] = splitExt[splitAxis*2] + valuesPerThread - 1;
-	}
-	if (threadId == maxThreadIdUsed)
-	{
-		splitExt[splitAxis*2] = splitExt[splitAxis*2] + threadId*valuesPerThread;
-	}
+  // determine the actual number of pieces that will be generated
+  int range = max - min + 1;
+  // split the range over the maximum number of threads
+  int valuesPerThread = (int)ceil(range/(double)requestedNumberOfThreads);
+  // figure out the largest thread id used
+  int maxThreadIdUsed = (int)ceil(range/(double)valuesPerThread) - 1;
+  // if we are in a thread that will work on part of the extent, then figure
+  // out the range that this thread should work on
+  if (threadId < maxThreadIdUsed)
+  {
+    splitExt[splitAxis*2] = splitExt[splitAxis*2] + threadId*valuesPerThread;
+    splitExt[splitAxis*2+1] = splitExt[splitAxis*2] + valuesPerThread - 1;
+  }
+  if (threadId == maxThreadIdUsed)
+  {
+    splitExt[splitAxis*2] = splitExt[splitAxis*2] + threadId*valuesPerThread;
+  }
 
-	// return the number of threads used
-	return maxThreadIdUsed + 1;
+  // return the number of threads used
+  return maxThreadIdUsed + 1;
 }
 
 //****************************************************************************
@@ -591,11 +603,11 @@ char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType ty
 {
   switch (type)
   {
-    case NEAREST_NEIGHBOR_INTERPOLATION: return "NEAREST_NEIGHBOR";
-    case LINEAR_INTERPOLATION: return "LINEAR";
-    default:
-      LOG_ERROR("Unknown interpolation option: "<<type);
-      return "unknown";
+  case NEAREST_NEIGHBOR_INTERPOLATION: return "NEAREST_NEIGHBOR";
+  case LINEAR_INTERPOLATION: return "LINEAR";
+  default:
+    LOG_ERROR("Unknown interpolation option: "<<type);
+    return "unknown";
   }
 }
 
@@ -603,12 +615,12 @@ char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationType type
 {
   switch (type)
   {
-    case FULL_OPTIMIZATION: return "FULL";
-    case PARTIAL_OPTIMIZATION: return "PARTIAL";
-    case NO_OPTIMIZATION: return "NONE";
-    default:
-      LOG_ERROR("Unknown optimization option: "<<type);
-      return "unknown";
+  case FULL_OPTIMIZATION: return "FULL";
+  case PARTIAL_OPTIMIZATION: return "PARTIAL";
+  case NO_OPTIMIZATION: return "NONE";
+  default:
+    LOG_ERROR("Unknown optimization option: "<<type);
+    return "unknown";
   }
 }
 
