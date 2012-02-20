@@ -57,19 +57,32 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkSmartPointer<vtkTrackedFrameList> trackerFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> USVideoFrames = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-  TemporalCalibration testTemporalCalibrationObject(inputTrackerSequenceMetafile,inputVideoSequenceMetafile, outputFilepath, samplingResolutionSec);
+  //  read tracker frames
+  if ( trackerFrames->ReadFromSequenceMetafile(inputTrackerSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputTrackerSequenceMetafile);
+    exit(EXIT_FAILURE);
+  }
+
+  //  read US video frames
+  if ( USVideoFrames->ReadFromSequenceMetafile(inputVideoSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read US image sequence metafile: " << inputVideoSequenceMetafile);
+    exit(EXIT_FAILURE);
+  }
+
+
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  TemporalCalibration testTemporalCalibrationObject(trackerFrames,USVideoFrames,samplingResolutionSec);
   
+  //  Calculate the time-offset
   testTemporalCalibrationObject.CalculateTimeOffset();
 
   LOG_DEBUG("Time offset: " << testTemporalCalibrationObject.getTimeOffset() << " sec (>0 if the tracker data lags)");
 
-  //  Test file-writing
-  testTemporalCalibrationObject.writeTrackerMetric();
-  testTemporalCalibrationObject.writeVideoMetric();
-  testTemporalCalibrationObject.writeResampledTrackerMetric();
-  testTemporalCalibrationObject.writeResampledVideoMetric();
 
   return 0;
 }
