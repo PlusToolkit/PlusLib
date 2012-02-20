@@ -296,6 +296,11 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is NULL!"); 
     return PLUS_FAIL; 
   }
+  if ( trackedFrameList->GetNumberOfTrackedFrames() == 0)
+  {
+    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is empty!"); 
+    return PLUS_FAIL; 
+  }
 
   if ( transformRepository == NULL )
   {

@@ -62,7 +62,12 @@ public:
   */
   virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName);
 
-  /*! Inserts the tracked frame into the volume */
+  /*! 
+    Inserts the tracked frame into the volume. The origin, spacing, and extent of the output volume
+    must be set before calling this method (either by calling the SetOutputExtentFromFrameList method
+    or setting the OutputSpacing, OutputOrigin, and OutputExtent attributes in the configuration data
+    element).
+  */
   virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume=NULL);
 
   /*! Returns the reconstructed volume */
