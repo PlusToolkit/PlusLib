@@ -38,6 +38,8 @@
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 
+
+// May be used later--currently not used
 struct TimestampedValueType
 {
   std::vector<double> value;
@@ -53,6 +55,7 @@ struct TimestampedValueType
 class TemporalCalibration
 {
 public:
+
   TemporalCalibration();
 
   /*! Sets sampling resolution [s] */  
@@ -78,16 +81,11 @@ public:
   If the lag < 0, the tracker stream leads the video stream */  
   double CalculateTrackerLagSec();
 
-
-
+  /*! INCOMPLETE */  
   PlusStatus Update(); 
 
-  /*! INCOMPLETE */  
-  void getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
-    vtkTable *trackerTableAfter, vtkTable *videoTableAfter);
-
-
 private:
+
   double m_SamplingResolutionSec; //  Resolution used for re-sampling [s] TODO: Add comment about upsampling
   vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
   vtkSmartPointer<vtkTrackedFrameList> m_USVideoFrames; 
@@ -104,20 +102,9 @@ private:
   double m_MaxTrackerLagSec; // Maximum allowed tracker lag--if lag is greater, will exit computation
   std::string m_TransformName;
 
-  /* IN PROGRESS--Switching to VTK table data structure */
-  vtkSmartPointer<vtkTable> m_TrackerTable;
-  vtkSmartPointer<vtkTable> m_VideoTable;
-  vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
-  void createPlotTables(std::vector<double> &resampledTrackerTimestamps, 
-  std::vector<double> &resampledTrackerMetric, 
-  std::vector<double> &resampledVideoTimestamps, 
-  std::vector<double> &resampledVideoMetric);
-  void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
-
-  
-  void NormalizeMetric(std::vector<double> &metric);
-  PlusStatus CalculateVideoMetric();
-  PlusStatus CalculateTrackerPositionMetric();
+  PlusStatus NormalizeMetric(std::vector<double> &metric);
+  PlusStatus ComputeVideoPositionMetric();
+  PlusStatus ComputeTrackerPositionMetric();
   void interpolateHelper(const std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
                          std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, 
                          double samplingResolutionSec);
@@ -125,8 +112,16 @@ private:
                              const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, 
                              double samplingResolutionSec);
   void interpolate();
-  void xcorr();
-  double computeCorrelation(std::vector<double> &m_TrackerPositionMetric, std::vector<double> &m_VideoPositionMetric, int indexOffset);
+  void CalculateCrossCorrelationBetweenVideoAndTrackerMetrics();
+  double ComputeCorrelationSumForGivenLagIndex(std::vector<double> &m_TrackerPositionMetric, 
+                                          std::vector<double> &m_VideoPositionMetric, int indexOffset);
+
+  /* IN PROGRESS--Switching to VTK table data structure */
+  vtkSmartPointer<vtkTable> m_TrackerTable;
+  vtkSmartPointer<vtkTable> m_VideoTable;
+  vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
+  void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
+
 };
 
 
