@@ -46,7 +46,7 @@ struct TimestampedValueType
 
 /*!
   \class TemporalCalibration
-  \brief Computes the time-offset between the tracker stream and the US video stream.
+  \brief Computes the lag--or time offset--of the US probe's tracker stream relativce to the US video stream.
   \ingroup PlusLibCalibrationAlgorithm
 */
 
@@ -55,35 +55,56 @@ class TemporalCalibration
 public:
   TemporalCalibration();
 
-  /*! Returns sampling resolution [s] */ 
-  void setSamplingResolutionSec(double samplingResolutionSec); //  Sets sampling resolution [s]
-  void CalculateTimeOffset();
-  double getTimeOffset();
+  /*! Sets sampling resolution [s] */  
+  void setSamplingResolutionSec(double samplingResolutionSec); 
+
+  /*! Sets the tracker frames containing the position and orientation (pose) of the US probe */  
+  void SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames);
+
+  /*! Sets the US video frames */  
+  void SetUSVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> USVideoFrames);
+
+  /*! Sets the name of the transform (e.g. "ProbeToReference") to be used for tracking data*/  
+  void SetTransformName(std::string transformName);
+
+  /*! Sets the maximum allowable lag--or time offset--between the tracker and US video streams */  
+  void SetMaximumVideoTrackerLagSec(double maxLagSec);
+
+  /*! Returns the time [s] by which the tracker stream lags the video stream. 
+  If the lag < 0, the tracker stream leads the video stream */  
+  double GetTrackerLagSec();
+
+  /*! Calculates the time [s] by which the tracker stream lags the video stream. 
+  If the lag < 0, the tracker stream leads the video stream */  
+  double CalculateTrackerLagSec();
+
+
+
+  PlusStatus Update(); 
+
+  /*! INCOMPLETE */  
   void getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
     vtkTable *trackerTableAfter, vtkTable *videoTableAfter);
-  void SetTrackerFrames(vtkSmartPointer<vtkTrackedFrameList> trackerFrames);
-  void SetUSVideoFrames(vtkSmartPointer<vtkTrackedFrameList> USVideoFrames);
-  void SetTransformName(std::string transformName);
-  void SetMaximumVideoTrackerLagSec(double maxLagSec);
 
 
 private:
-  double m_SamplingResolutionSec; //  Resolution used for re-sampling [seconds]
-  vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; //  Pointer to the tracker (pose) frames
-  vtkSmartPointer<vtkTrackedFrameList> m_USVideoFrames; // Pointer to the US image frames
-  /* TimestampedValueType m_VideoPositionMetric; TODO: use this kind of format */
-  std::vector<double> m_VideoMetric; //  Contains metric values for the video stream (i.e. detect. line values)
-  std::vector<double> m_VideoTimestamps; // Contains timestamp data for image data stream
-  std::vector<double> m_TrackerMetric; //  Contains the metric values for the tracker (i.e. pose) stream
-  std::vector<double> m_TrackerTimestamps; // Contains timestamp data for tracker (i.e. pose) stream
-  std::vector<double> m_ResampledTrackerMetric;
+  double m_SamplingResolutionSec; //  Resolution used for re-sampling [s] TODO: Add comment about upsampling
+  vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
+  vtkSmartPointer<vtkTrackedFrameList> m_USVideoFrames; 
+  std::vector<double> m_VideoPositionMetric; //  Position metric values for the video stream (i.e. detect. line positions)
+  std::vector<double> m_VideoTimestamps; 
+  std::vector<double> m_TrackerPositionMetric; 
+  std::vector<double> m_TrackerTimestamps; 
+  std::vector<double> m_ResampledTrackerPositionMetric;
   std::vector<double> m_ResampledTrackerTimestamps;
-  std::vector<double> m_ResampledVideoMetric;
+  std::vector<double> m_ResampledVideoPositionMetric;
   std::vector<double> m_ResampledVideoTimestamps;
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
-  double m_TrackerLag; // TODO: comment neg/pos; include unit in name
-  double m_MaxTrackerLagSec;
+  double m_TrackerLagSec; // Time [s] that tracker lags video. If lag < 0, the tracker leads the video
+  double m_MaxTrackerLagSec; // Maximum allowed tracker lag--if lag is greater, will exit computation
   std::string m_TransformName;
+
+  /* IN PROGRESS--Switching to VTK table data structure */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
   vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
@@ -93,17 +114,19 @@ private:
   std::vector<double> &resampledVideoMetric);
   void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
 
-
+  
   void NormalizeMetric(std::vector<double> &metric);
   PlusStatus CalculateVideoMetric();
-  PlusStatus CalculateTrackerMetric();
+  PlusStatus CalculateTrackerPositionMetric();
   void interpolateHelper(const std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-    std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, double samplingResolutionSec);
+                         std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, 
+                         double samplingResolutionSec);
   double linearInterpolation(double interpolatedTimestamp, const std::vector<double> &originalMetric, 
-    const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec);
+                             const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, 
+                             double samplingResolutionSec);
   void interpolate();
   void xcorr();
-  double computeCorrelation(std::vector<double> &m_TrackerMetric, std::vector<double> &m_VideoMetric, int indexOffset);
+  double computeCorrelation(std::vector<double> &m_TrackerPositionMetric, std::vector<double> &m_VideoPositionMetric, int indexOffset);
 };
 
 

@@ -84,9 +84,9 @@ int main(int argc, char **argv)
 
   
   //  Calculate the time-offset
-  testTemporalCalibrationObject.CalculateTimeOffset();
+  testTemporalCalibrationObject.CalculateTrackerLagSec();
 
-  LOG_DEBUG("Time offset: " << testTemporalCalibrationObject.getTimeOffset() << " sec (>0 if the tracker data lags)");
+  LOG_DEBUG("Time offset: " << testTemporalCalibrationObject.GetTrackerLagSec() << " sec (>0 if the tracker data lags)");
 
 
   return 0;

@@ -3,36 +3,83 @@
 #include "vtkMath.h"
 
 // Line detection parameters
-
 const int HOUGH_DISC_RADIUS = 10;
 const float HOUGH_ANGLE_RESOLUTION = 100;
 
-///////////////
+// Default algorithm parameters
+const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001;
+const double DEFAULT_TRACKER_LAG_SEC = 0.001;
+const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
+const std::string DEFAULT_TRANSFORM_NAME = "ProbeToReference";
 
 
-TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(0.001),
-                                             m_TrackerLag(0),
-                                             m_MaxTrackerLagSec(2.0),
-                                             m_TransformName("ProbeToReference")
+TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
+                                             m_TrackerLagSec(DEFAULT_TRACKER_LAG_SEC),
+                                             m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
+                                             m_TransformName(DEFAULT_TRANSFORM_NAME)
 {
-  m_TrackerFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
-  m_USVideoFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+  
+  /* IN PROGRESS--Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
   m_VideoTable = vtkSmartPointer<vtkTable>::New();
-
-  //  For eventual replacement
   m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();
   
 }
 
-void TemporalCalibration::SetTrackerFrames(vtkSmartPointer<vtkTrackedFrameList> trackerFrames)
+PlusStatus TemporalCalibration::Update()
 {
+  //  make sure video frame list is not empty
+  if(m_USVideoFrames->GetNumberOfTrackedFrames() == 0)
+  {
+    LOG_ERROR("US video data contains no frames...Exiting");
+    return PLUS_FAIL;
+  }
+
+  //  make sure video frame list is not empty
+  if(m_TrackerFrames->GetNumberOfTrackedFrames() == 0)
+  {
+    LOG_ERROR("US tracker data contains no frames...Exiting");
+    return PLUS_FAIL;
+  }
+
+   //  check that all the image data is valid
+  int totalNumberOfInvalidVideoFrames = 0;
+  int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
+  int currentNumberOfConsecutiveInvalidVideoFrames = 0;
+  for(int i = 0 ; i < m_USVideoFrames->GetNumberOfTrackedFrames(); ++i)
+  {
+    if(!m_USVideoFrames->GetTrackedFrame(i)->GetImageData()->IsImageValid())
+    {
+      ++totalNumberOfInvalidVideoFrames;
+      ++currentNumberOfConsecutiveInvalidVideoFrames;
+    }
+    else
+    {
+      if(currentNumberOfConsecutiveInvalidVideoFrames > greatestNumberOfConsecutiveInvalidVideoFrames)
+      {
+        greatestNumberOfConsecutiveInvalidVideoFrames = currentNumberOfConsecutiveInvalidVideoFrames ;
+      } 
+      currentNumberOfConsecutiveInvalidVideoFrames = 0;
+    }
+  }
+
+  // TODO: Maybe output an warning message.
+
+  //  TODO: Validate the resampling frequency
+  
+}
+
+void TemporalCalibration::SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames)
+{
+  // m_TrackerFrames = trackerFrames->NewInstance();
+  // TODO: Do I worry about aliasing here?
   m_TrackerFrames = trackerFrames;
 }
 
-void TemporalCalibration::SetUSVideoFrames(vtkSmartPointer<vtkTrackedFrameList> USVideoFrames)
+void TemporalCalibration::SetUSVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> USVideoFrames)
 {
-   m_USVideoFrames = USVideoFrames;
+   // m_USVideoFrames = USVideoFrames->NewInstance();
+    m_USVideoFrames = USVideoFrames;
 }
 
 void TemporalCalibration::setSamplingResolutionSec(double samplingResolutionSec)
@@ -51,13 +98,13 @@ void TemporalCalibration::SetMaximumVideoTrackerLagSec(double maxLagSec)
 }
 
 
-double TemporalCalibration::getTimeOffset()
+double TemporalCalibration::GetTrackerLagSec()
 {
-  return m_TrackerLag;
+  return m_TrackerLagSec;
 }
 
 
-PlusStatus TemporalCalibration::CalculateTrackerMetric()
+PlusStatus TemporalCalibration::CalculateTrackerPositionMetric()
 {
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
@@ -85,32 +132,31 @@ PlusStatus TemporalCalibration::CalculateTrackerMetric()
                                    probeToReferenceTransform->GetElement(i, 3);
     }    
     trackerTranslationModulus = std::sqrt(trackerTranslationModulus);
-    m_TrackerMetric.push_back(trackerTranslationModulus);
+    m_TrackerPositionMetric.push_back(trackerTranslationModulus);
     m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
 
   }
 
+  NormalizeMetric(m_TrackerPositionMetric);
+
+  /* IN PROGRESS--Switching to VTK table data structure */
   vtkSmartPointer<vtkDoubleArray> trackerTimestampsArray = vtkSmartPointer<vtkDoubleArray>::New();
   trackerTimestampsArray->SetName("Tracker Timestamps [s]"); 
-
+  
   vtkSmartPointer<vtkDoubleArray> trackerPositionMetricArray = vtkSmartPointer<vtkDoubleArray>::New();
   trackerPositionMetricArray->SetName("Tracker Position Metric"); 
-
+  
   m_TrackerTimestampedMetric->AddColumn(trackerTimestampsArray);
   m_TrackerTimestampedMetric->AddColumn(trackerPositionMetricArray);
 
-  m_TrackerTimestampedMetric->SetNumberOfRows(m_TrackerMetric.size());
+  m_TrackerTimestampedMetric->SetNumberOfRows(m_TrackerPositionMetric.size());
 
   for(int i = 0; i < m_TrackerTimestampedMetric->GetNumberOfRows(); ++i)
   {
     m_TrackerTimestampedMetric->SetValue(i, 0, m_TrackerTimestamps.at(i));
-    m_TrackerTimestampedMetric->SetValue(i, 1, m_TrackerMetric.at(i));
+    m_TrackerTimestampedMetric->SetValue(i, 1, m_TrackerPositionMetric.at(i));
   }
 
-  std::cout << m_TrackerTimestampedMetric->GetValue(0,0) << std::endl;
-
-  //  Normalize the tracker metric.
-  NormalizeMetric(m_TrackerMetric);
   NormalizeTableColumn( m_TrackerTimestampedMetric, 1);
   
   return PLUS_SUCCESS;
@@ -201,7 +247,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 
       double m = v[1] / v[0];
       double b = u[1] - m*u[0];
-      m_VideoMetric.push_back(m*halfwayPoint + b);
+      m_VideoPositionMetric.push_back(m*halfwayPoint + b);
 
       itLines++;
     }
@@ -209,7 +255,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
   }// end frameNum loop
   
   //  Normalize the video metric
-  NormalizeMetric(m_VideoMetric);
+  NormalizeMetric(m_VideoPositionMetric);
 
   return PLUS_SUCCESS;
 
@@ -394,19 +440,19 @@ double TemporalCalibration::computeCorrelation(std::vector<double> &metricA, std
 void TemporalCalibration::xcorr()
 {
   int n = 0;
-  while(n + (m_ResampledTrackerMetric.size() - 1) < m_ResampledVideoMetric.size())
+  while(n + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
   {
-    m_CorrValues.push_back(computeCorrelation(m_ResampledTrackerMetric, m_ResampledVideoMetric, n));
+    m_CorrValues.push_back(computeCorrelation(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, n));
     ++n;
   }
 
 } // End xcorr()
 
-void TemporalCalibration::CalculateTimeOffset()
+double TemporalCalibration::CalculateTrackerLagSec()
 {
 
   // Calculate the (normalized) metrics for the video and tracker data streams
-  CalculateTrackerMetric();
+  CalculateTrackerPositionMetric();
   CalculateVideoMetric();
   
 
@@ -429,10 +475,13 @@ void TemporalCalibration::CalculateTimeOffset()
   }
 
   //  Compute the time that the tracker data lags the video data
-  m_TrackerLag = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
-  LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLag << " [s]");
+  m_TrackerLagSec = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
 
-}// End CalculateTimeOffset()
+  LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
+
+  return m_TrackerLagSec;
+
+}// End CalculateTrackerLagSec()
 
 void TemporalCalibration::interpolate()
 {
@@ -470,8 +519,8 @@ void TemporalCalibration::interpolate()
   }
 
   //  Get resampled metrics for video and tracker sequences
-  interpolateHelper(m_VideoMetric,m_ResampledVideoMetric, m_ResampledVideoTimestamps, m_VideoTimestamps, m_SamplingResolutionSec);
-  interpolateHelper(m_TrackerMetric, m_ResampledTrackerMetric,m_ResampledTrackerTimestamps, m_TrackerTimestamps, m_SamplingResolutionSec);
+  interpolateHelper(m_VideoPositionMetric,m_ResampledVideoPositionMetric, m_ResampledVideoTimestamps, m_VideoTimestamps, m_SamplingResolutionSec);
+  interpolateHelper(m_TrackerPositionMetric, m_ResampledTrackerPositionMetric,m_ResampledTrackerTimestamps, m_TrackerTimestamps, m_SamplingResolutionSec);
 
 }// End interpolate()
 
@@ -479,7 +528,7 @@ void TemporalCalibration::interpolate()
 void TemporalCalibration::getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
                                         vtkTable *trackerTableAfter, vtkTable *videoTableAfter)
 {
-  createPlotTables(m_ResampledTrackerTimestamps, m_ResampledTrackerMetric,m_ResampledVideoTimestamps, m_ResampledVideoMetric);                                  
+  createPlotTables(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric,m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric);                                  
   
 }
 
