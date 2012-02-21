@@ -4,10 +4,13 @@
 
 // Line detection parameters
 const int HOUGH_DISC_RADIUS = 10;
+const int NUMBER_OF_LINES_TO_DETECT = 1;
 const float HOUGH_ANGLE_RESOLUTION = 100;
 
 // Default algorithm parameters
-const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001;
+const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker metric "swings" less than this, abort
+const double METRIC_SIGNAL_EPSILON = 0.0001; // Temporal resolution below which two time values are considered identical
+const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
 const double DEFAULT_TRACKER_LAG_SEC = 0.001;
 const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 const std::string DEFAULT_TRANSFORM_NAME = "ProbeToReference";
@@ -28,21 +31,21 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
 
 PlusStatus TemporalCalibration::Update()
 {
-  //  make sure video frame list is not empty
+  //  Make sure video frame list is not empty
   if(m_USVideoFrames->GetNumberOfTrackedFrames() == 0)
   {
     LOG_ERROR("US video data contains no frames...Exiting");
     return PLUS_FAIL;
   }
 
-  //  make sure video frame list is not empty
+  //  Make sure video frame list is not empty
   if(m_TrackerFrames->GetNumberOfTrackedFrames() == 0)
   {
     LOG_ERROR("US tracker data contains no frames...Exiting");
     return PLUS_FAIL;
   }
 
-   //  check that all the image data is valid
+   //  Check that all the image data is valid
   int totalNumberOfInvalidVideoFrames = 0;
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
@@ -64,7 +67,6 @@ PlusStatus TemporalCalibration::Update()
   }
 
   // TODO: Maybe output an warning message.
-
   //  TODO: Validate the resampling frequency
   
 }
@@ -104,7 +106,7 @@ double TemporalCalibration::GetTrackerLagSec()
 }
 
 
-PlusStatus TemporalCalibration::CalculateTrackerPositionMetric()
+PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 {
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
@@ -122,7 +124,7 @@ PlusStatus TemporalCalibration::CalculateTrackerPositionMetric()
     transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
     if (!valid)
     {
-      // there is no available transform for this frame, just skip that frame
+      // There is no available transform for this frame; skip that frame
       continue;
     }  
     //  Get the Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)^(1/2)   
@@ -140,6 +142,7 @@ PlusStatus TemporalCalibration::CalculateTrackerPositionMetric()
   NormalizeMetric(m_TrackerPositionMetric);
 
   /* IN PROGRESS--Switching to VTK table data structure */
+  /*
   vtkSmartPointer<vtkDoubleArray> trackerTimestampsArray = vtkSmartPointer<vtkDoubleArray>::New();
   trackerTimestampsArray->SetName("Tracker Timestamps [s]"); 
   
@@ -158,19 +161,20 @@ PlusStatus TemporalCalibration::CalculateTrackerPositionMetric()
   }
 
   NormalizeTableColumn( m_TrackerTimestampedMetric, 1);
-  
+  */
   return PLUS_SUCCESS;
 
 }
 
 
-PlusStatus TemporalCalibration::CalculateVideoMetric()
+PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 {
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
   for(int frameNumber = 0; frameNumber < m_USVideoFrames->GetNumberOfTrackedFrames(); ++frameNumber)
   {
-    LOG_DEBUG("Calculate video metric for frame "<<frameNumber);
+    LOG_DEBUG("Calculating video position metric for frame " << frameNumber);
+
     // Define image types and image dimension
     const int imageDimension(2);
     typedef unsigned char charPixelType; // The natural type of the input image
@@ -185,7 +189,7 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
     
     if(localImage.IsNull())
     {
-      // dropped frame
+      // Dropped frame
       continue;
     }
 
@@ -201,30 +205,21 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 
     // Set parameters of the Hough transform filter
     double houghLineDetectionThreshold = otsuFilter->GetThreshold(); // set Hough threshold to Otsu threshold.
-    int houghNumberOfLinesToDetect = 1;
     houghTransform->SetInput(localImage);
     houghTransform->SetThreshold(houghLineDetectionThreshold);
-    houghTransform->SetNumberOfLines(houghNumberOfLinesToDetect);
+    houghTransform->SetNumberOfLines(NUMBER_OF_LINES_TO_DETECT);
     houghTransform->SetDiscRadius(HOUGH_DISC_RADIUS);
     houghTransform->SetAngleResolution(HOUGH_ANGLE_RESOLUTION);
     houghTransform->Update();
 
-    LOG_DEBUG("Angle resolution: pi/" << 2 * houghTransform->GetAngleResolution());
-    LOG_DEBUG("Disc radius: " << houghTransform->GetDiscRadius());
-    LOG_DEBUG("Variance of Gaussian filter: " << houghTransform->GetVariance());
-
     // Get the lines of the image into the line-list holder
     itk::HoughTransform2DLinesImageFilter<charPixelType, charPixelType>::LinesListType lines = houghTransform->GetLines();
-
-    LOG_DEBUG("Found " << lines.size() << " line(s).");
 
     // Iterate through the list of lines and we draw them.
     typedef HoughTransformFilterType::LinesListType::const_iterator LineIterator;
     typedef HoughTransformFilterType::LineType::PointListType PointListType;
     LineIterator itLines = lines.begin();
 
-    //std::ofstream InterceptFile;
-    //InterceptFile.open ("InterceptFile.txt", std::ios::app);
     itk::Size<imageDimension> size = localImage->GetLargestPossibleRegion().GetSize();
     int halfwayPoint = static_cast<int> ((float) size[0]) / 2;
 
@@ -262,45 +257,52 @@ PlusStatus TemporalCalibration::CalculateVideoMetric()
 } //  End LineDetection
 
 
-void TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
+PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
-  //  Get the mean of the Euclidean distances
+  //  Calculate the metric mean
   double mu = 0;
   for(int i = 0; i < metric.size(); ++i)
   {
     mu += metric.at(i);
   }
-
   mu /= metric.size();
 
-  //  Normalize each measurement, s, as s' = (s-mu)/sigma
+  //  Subtract the metric mean from each metric value as: s' = s - mu
   for(int i = 0; i < metric.size(); ++i)
   {
     metric.at(i) -= mu;
   }
 
-  //  Get the maximum and minimum signal values
-  double maxVal = metric.at(1);
-  double minVal = metric.at(1);
+  //  Calculate maximum and minimum metric values
+  double maxMetricValue = metric.at(0);
+  double minMetricValue = metric.at(0);
 
   for(int i = 1; i < metric.size(); ++i)
   {
-    if(metric.at(i) > maxVal)
+    if(metric.at(i) > maxMetricValue)
     {
-      maxVal = metric.at(i);
+      maxMetricValue = metric.at(i);
     }
-    else if(metric.at(i) < minVal)
+    else if(metric.at(i) < minMetricValue)
     {
-       minVal = metric.at(i);
+       minMetricValue = metric.at(i);
     }
   }
 
-  // normalize signal
-  double normFactor = std::abs(maxVal) + std::abs(minVal);
+  // Normalize the signal between [-0.5, +0.5]--i.e. maximum of unity amplitude--by dividing by max peak-to-peak
+  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
+
+  // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
+  // not work for our purposes
+  if(maxPeakToPeak < MINIMUM_SIGNAL_PEAK_TO_PEAK)
+  {
+    LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant...Exiting");
+    return PLUS_FAIL;
+  }
 
   for(int i = 0; i < metric.size(); ++i)
   {
-    metric.at(i) /= normFactor; 
+    metric.at(i) /= maxPeakToPeak; 
   }
 
 }// End NormalizeMetric()
@@ -354,7 +356,6 @@ double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, co
 {
   const int lowIndex = 0; //  Position of low index in "straddleIndices"
   const int highIndex = 1; // Position of high index in "straddleIndices"
-  double timeEpsilon = 0.0001; //  Resolution under which two time values are considered identical
   
   //  We assume that we are upsampling (i.e. that the rate of resampling is less than the original sampling rate).
   if(interpolatedTimestamp > originalTimestamps.at(straddleIndices.at(highIndex)))
@@ -365,7 +366,7 @@ double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, co
 
   //  If the time index between the two straddling indices is very small, avoid interpolation (to
   //  prevent divding by a really small number).
-  if(std::abs(originalTimestamps.at(straddleIndices.at(highIndex)) - originalTimestamps.at(straddleIndices.at(lowIndex))) < timeEpsilon)
+  if(std::abs(originalTimestamps.at(straddleIndices.at(highIndex)) - originalTimestamps.at(straddleIndices.at(lowIndex))) < METRIC_SIGNAL_EPSILON)
     return originalMetric.at(straddleIndices.at(highIndex));
   
   // Peform linear interpolation
@@ -424,45 +425,45 @@ void TemporalCalibration::interpolateHelper(const std::vector<double> &originalM
 } // End interpolateHelper()
 
 
-double TemporalCalibration::computeCorrelation(std::vector<double> &metricA, std::vector<double> &metricB, int indexOffset)
+void TemporalCalibration::CalculateCrossCorrelationBetweenVideoAndTrackerMetrics()
+{
+  int trackerLagIndex = 0;
+  while(trackerLagIndex + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
+  {
+    m_CorrValues.push_back(ComputeCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
+    ++trackerLagIndex;
+  }
+
+} // End CalculateCrossCorrelationBetweenVideoAndTrackerMetrics()
+
+double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(std::vector<double> &metricA, std::vector<double> &metricB, int indexOffset)
 {
 
-  double overlapSum = 0;
+  double multipliedSignalSum = 0;
   for(long int i = 0; i < metricA.size(); ++i)
   {
-    overlapSum += metricA.at(i) * metricB.at(i + indexOffset);
+    multipliedSignalSum += metricA.at(i) * metricB.at(i + indexOffset);
   }
 
-  return overlapSum;
+  return multipliedSignalSum;
 
-} // End computeCorrelation()
-
-void TemporalCalibration::xcorr()
-{
-  int n = 0;
-  while(n + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
-  {
-    m_CorrValues.push_back(computeCorrelation(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, n));
-    ++n;
-  }
-
-} // End xcorr()
+} // End ComputeCorrelationSumForGivenLagIndex()
 
 double TemporalCalibration::CalculateTrackerLagSec()
 {
 
-  // Calculate the (normalized) metrics for the video and tracker data streams
-  CalculateTrackerPositionMetric();
-  CalculateVideoMetric();
+  //  Calculate the (normalized) metrics for the video and tracker data streams
+  ComputeTrackerPositionMetric();
+  ComputeVideoPositionMetric();
   
 
-  //  Resample the image and tracker signals, preparing them for cross correlation
+  //  Resample the image and tracker metrics; this prepares the two signals for cross correlation
   interpolate();
 
   //  Perform cross correlation
-  xcorr();
+  CalculateCrossCorrelationBetweenVideoAndTrackerMetrics();
   
-  //  Find the index offset corresponding to maximum correlation value
+  //  Find the index offset corresponding to the maximum correlation sum
   double maxCorrVal = m_CorrValues.at(0);
   int maxCorrIndex = 0;
   for(int i = 1; i < m_CorrValues.size(); ++i)
@@ -474,7 +475,7 @@ double TemporalCalibration::CalculateTrackerLagSec()
     }
   }
 
-  //  Compute the time that the tracker data lags the video data
+  //  Compute the time that the tracker data lags the video data using the maximum index
   m_TrackerLagSec = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
@@ -524,58 +525,3 @@ void TemporalCalibration::interpolate()
 
 }// End interpolate()
 
-
-void TemporalCalibration::getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
-                                        vtkTable *trackerTableAfter, vtkTable *videoTableAfter)
-{
-  createPlotTables(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric,m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric);                                  
-  
-}
-
-void TemporalCalibration::createPlotTables(std::vector<double> &resampledTrackerTimestamps, 
-                                           std::vector<double> &resampledTrackerMetric, 
-                                           std::vector<double> &resampledVideoTimestamps, 
-                                           std::vector<double> &resampledVideoMetric)
-{
-
- //  Create table
-  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-  vtkSmartPointer<vtkTable> table2 = vtkSmartPointer<vtkTable>::New();
-
-  //  Create array correpsonding to the time values of the tracker plot
-  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
-  arrResampledTrackerTimestamps->SetName("Time [s]"); 
-  table->AddColumn(arrResampledTrackerTimestamps);
- 
-  //  Create array corresponding to the metric values of the tracker plot
-  vtkSmartPointer<vtkDoubleArray> arrResampledTrackerMetric = vtkSmartPointer<vtkDoubleArray>::New();
-  arrResampledTrackerMetric->SetName("Tracker Metric");
-  table->AddColumn(arrResampledTrackerMetric);
-
-  //  Create array correpsonding to the time values of the video plot
-  vtkSmartPointer<vtkDoubleArray> arrResampledVideoTimestamps = vtkSmartPointer<vtkDoubleArray>::New();
-  arrResampledVideoTimestamps->SetName("Time [s]"); 
-  table2->AddColumn(arrResampledVideoTimestamps);
- 
-  //  Create array corresponding to the metric values of the video plot
-  vtkSmartPointer<vtkDoubleArray> arrResampledVideoMetric = vtkSmartPointer<vtkDoubleArray>::New();
-  arrResampledVideoMetric->SetName("Video Metric");
-  table2->AddColumn(arrResampledVideoMetric);
- 
-  
-  // Set the tracker data
-  table->SetNumberOfRows(resampledTrackerTimestamps.size());
-  for (int i = 0; i < resampledTrackerTimestamps.size(); ++i)
-  {
-    table->SetValue(i, 0, (resampledTrackerTimestamps.at(i)));
-    table->SetValue(i, 1, (resampledTrackerMetric.at(i)));
-  }
-
-  // Set the video data
-  table2->SetNumberOfRows(resampledVideoTimestamps.size());
-  for (int i = 0; i < resampledVideoTimestamps.size(); ++i)
-  {
-    table2->SetValue(i, 0, (resampledVideoTimestamps.at(i)));
-    table2->SetValue(i, 1, (resampledVideoMetric.at(i)));
-  }
-}
