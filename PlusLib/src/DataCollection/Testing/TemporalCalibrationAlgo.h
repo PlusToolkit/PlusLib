@@ -53,9 +53,7 @@ struct TimestampedValueType
 class TemporalCalibration
 {
 public:
-  TemporalCalibration(vtkSmartPointer<vtkTrackedFrameList>trackerFrames, 
-                      vtkSmartPointer<vtkTrackedFrameList> USVideoFrames,
-                      double samplingResolutionSec);
+  TemporalCalibration();
 
   /*! Returns sampling resolution [s] */ 
   void setSamplingResolutionSec(double samplingResolutionSec); //  Sets sampling resolution [s]
@@ -63,11 +61,16 @@ public:
   double getTimeOffset();
   void getPlotTables(vtkTable *trackerTableBefore, vtkTable *videoTableBefore, 
     vtkTable *trackerTableAfter, vtkTable *videoTableAfter);
+  void SetTrackerFrames(vtkSmartPointer<vtkTrackedFrameList> trackerFrames);
+  void SetUSVideoFrames(vtkSmartPointer<vtkTrackedFrameList> USVideoFrames);
+  void SetTransformName(std::string transformName);
+  void SetMaximumVideoTrackerLagSec(double maxLagSec);
+
 
 private:
-  double samplingResolutionSec_; //  Resolution used for re-sampling [seconds]
-  vtkSmartPointer<vtkTrackedFrameList> trackerFrames_; //  Pointer to the tracker (pose) frames
-  vtkSmartPointer<vtkTrackedFrameList> USVideoFrames_; // Pointer to the US image frames
+  double m_SamplingResolutionSec; //  Resolution used for re-sampling [seconds]
+  vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; //  Pointer to the tracker (pose) frames
+  vtkSmartPointer<vtkTrackedFrameList> m_USVideoFrames; // Pointer to the US image frames
   /* TimestampedValueType m_VideoPositionMetric; TODO: use this kind of format */
   std::vector<double> m_VideoMetric; //  Contains metric values for the video stream (i.e. detect. line values)
   std::vector<double> m_VideoTimestamps; // Contains timestamp data for image data stream
@@ -79,13 +82,16 @@ private:
   std::vector<double> m_ResampledVideoTimestamps;
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
   double m_TrackerLag; // TODO: comment neg/pos; include unit in name
-  const double m_MaxVideoOffset;//  Maximum anticipated time offset [seconds]
+  double m_MaxTrackerLagSec;
+  std::string m_TransformName;
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
+  vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
   void createPlotTables(std::vector<double> &resampledTrackerTimestamps, 
   std::vector<double> &resampledTrackerMetric, 
   std::vector<double> &resampledVideoTimestamps, 
   std::vector<double> &resampledVideoMetric);
+  void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
 
 
   void NormalizeMetric(std::vector<double> &metric);

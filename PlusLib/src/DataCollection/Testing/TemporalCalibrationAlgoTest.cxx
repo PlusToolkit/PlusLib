@@ -76,7 +76,12 @@ int main(int argc, char **argv)
 
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  TemporalCalibration testTemporalCalibrationObject(trackerFrames,USVideoFrames,samplingResolutionSec);
+  TemporalCalibration testTemporalCalibrationObject;
+
+  testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
+  testTemporalCalibrationObject.SetUSVideoFrames(USVideoFrames);
+  testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
+
   
   //  Calculate the time-offset
   testTemporalCalibrationObject.CalculateTimeOffset();
