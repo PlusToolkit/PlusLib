@@ -66,6 +66,7 @@ PlusStatus TemporalCalibration::Update()
     }
   }
 
+  return PLUS_SUCCESS;
   // TODO: Maybe output an warning message.
   //  TODO: Validate the resampling frequency
   
