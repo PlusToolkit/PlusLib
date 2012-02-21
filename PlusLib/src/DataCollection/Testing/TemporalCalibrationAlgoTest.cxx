@@ -6,7 +6,15 @@ See License.txt for details.
 
 /*!
   \file TemporalCalibrationAlgoTest.cxx
-  \brief This program tests the temporal calibraiton algo by computing the time offset between a video and a tracking data. The input files shall be acquired while imaging a plane and moving the transducer periodically. 
+  \brief This program tests the temporal calibration algorithm by computing the time by which the inputted tracker data lags the inputted US video data.
+  
+  The inputted data--video and tracker--is assumed to be collected by a US probe imaging a planar object; furthermore,
+  it is assumed that the probe is undergoing uni-dirctional periodic motion in the direction perpendicular to the
+  plane's face (E.g. moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).
+  The inputted data is assumed to contain at least ?five? full periods (although the algorithm may work for fewer periods
+  it has not been tested under these conditions.
+
+  \ingroup PlusLibCalibrationAlgorithm
 */ 
 
 #include "TemporalCalibrationAlgo.h"
@@ -15,10 +23,9 @@ int main(int argc, char **argv)
 {
   bool printHelp(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
-  std::string inputTrackerSequenceMetafile;
-  std::string inputVideoSequenceMetafile;
-  std::string outputFilepath;
-  double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [seconds]
+  std::string inputTrackerSequenceMetafile; // Raw-buffer tracker file
+  std::string inputVideoSequenceMetafile; // Corresponding raw-buffer video file
+  double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [s]
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -28,7 +35,6 @@ int main(int argc, char **argv)
   args.AddArgument("--input-tracker-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerSequenceMetafile, "Input tracker sequence metafile name with path");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
-  args.AddArgument("--output-filepath", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilepath, "Filepath where the output files will be written");
 
   if ( !args.Parse() )
   {
@@ -60,34 +66,32 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkTrackedFrameList> trackerFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   vtkSmartPointer<vtkTrackedFrameList> USVideoFrames = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-  //  read tracker frames
+  //  Read tracker frames
   if ( trackerFrames->ReadFromSequenceMetafile(inputTrackerSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputTrackerSequenceMetafile);
+    LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputTrackerSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
 
-  //  read US video frames
+  //  Read US video frames
   if ( USVideoFrames->ReadFromSequenceMetafile(inputVideoSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to read US image sequence metafile: " << inputVideoSequenceMetafile);
+    LOG_ERROR("Failed to read US image sequence metafile: " << inputVideoSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
 
-
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
+  //  Creat temporal calibration object; Set pertinent parameters
   TemporalCalibration testTemporalCalibrationObject;
-
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
   testTemporalCalibrationObject.SetUSVideoFrames(USVideoFrames);
   testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
 
-  
   //  Calculate the time-offset
-  testTemporalCalibrationObject.CalculateTrackerLagSec();
+  testTemporalCalibrationObject.Update();
 
-  LOG_DEBUG("Time offset: " << testTemporalCalibrationObject.GetTrackerLagSec() << " sec (>0 if the tracker data lags)");
-
+  LOG_DEBUG("Time offset: " <<  testTemporalCalibrationObject.GetTrackerLagSec() << " sec (>0 if the tracker data lags)");
 
   return 0;
 }
