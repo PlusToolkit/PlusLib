@@ -21,7 +21,6 @@ ExternalProject_Add(PlusApp
                 -DPLUS_EXECUTABLE_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
-                -DPLUSAPP_BUILD_VolumeReconstructor:BOOL=ON
                 -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
                 -DPLUSAPP_BUILD_OpenIGTLinkBroadcaster:BOOL=${PLUSBUILD_USE_OpenIGTLink}
                 -DPLUSAPP_BUILD_fCal:BOOL=ON

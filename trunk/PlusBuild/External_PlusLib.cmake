@@ -86,7 +86,6 @@ ExternalProject_Add(PlusLib
                 -DPLUS_USE_HEARTSIGNALBOX:BOOL=${PLUS_USE_HEARTSIGNALBOX}
                 -DPLUS_USE_USBECGBOX:BOOL=${PLUS_USE_USBECGBOX} 
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
-                -DQT_BINARY_DIR:PATH=${QT_BINARY_DIR}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
             #--Build step-----------------
