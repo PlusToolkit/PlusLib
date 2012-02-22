@@ -161,7 +161,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         }
         inPtrTmp = inPtr;
         outPtrTmp = outPtr+idx[j];
-        accPtrTmp = accPtr+ ((unsigned short)(idx[j]/outInc[0]));
+        accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
         f = fdx[j];
         r = F((*accPtrTmp)/255);
         a = f + r;

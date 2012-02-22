@@ -229,7 +229,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
     accData->SetExtent(accExtent);
     accData->SetOrigin(this->OutputOrigin);
     accData->SetSpacing(this->OutputSpacing);
-    accData->SetScalarType(VTK_UNSIGNED_INT);
+    accData->SetScalarType(VTK_UNSIGNED_SHORT); // changed from unsigned int, since the hole filler assumes unsigned short
     accData->SetNumberOfScalarComponents(1);
     accData->AllocateScalars();
     void *accPtr = accData->GetScalarPointerForExtent(accExtent);
