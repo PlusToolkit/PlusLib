@@ -1,25 +1,32 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "vtkTransformRepository.h"
 #include "TemporalCalibrationAlgo.h"
 #include "vtkMath.h"
 
 // Line detection parameters
-const int HOUGH_DISC_RADIUS = 10;
+const int HOUGH_DISC_RADIUS = 10; // TODO: find out the unit (pixel/mm)
 const int NUMBER_OF_LINES_TO_DETECT = 1;
-const float HOUGH_ANGLE_RESOLUTION = 100;
+const float HOUGH_ANGLE_RESOLUTION = 100; // TODO: find out the unit (deg/rad/other?)
 
 // Default algorithm parameters
+// TODO: have separate SIGNAL P2P for video and tracker (one in mm the other in pixels)
 const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker metric "swings" less than this, abort
-const double TIMESTAMP_EPSILON = 0.0001; // Temporal resolution below which two time values are considered identical
-const double MINIMUM_SAMPLING_RESOLUTION = 0.00001;
+const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
+const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
 const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
 const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
-const std::string DEFAULT_TRANSFORM_NAME = "ProbeToReference";
+const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 
-
+//-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
                                              m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
-                                             m_TransformName(DEFAULT_TRANSFORM_NAME),
-                                             m_TrackerLagUpToDate(false), m_NeverUpdated(true)
+                                             m_ProbeToReferenceTransformName(DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME),
+                                             m_NeverUpdated(true)
 {
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
@@ -28,33 +35,35 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
   
 }
 
+//-----------------------------------------------------------------------------
+// TODO: Finish error checking et cetera
 PlusStatus TemporalCalibration::Update()
 {
   // Check if video frames have been assigned
-  if(m_USVideoFrames == NULL)
+  if(m_VideoFrames == NULL)
   {
-    LOG_ERROR("US video data is not assigned...Exiting");
+    LOG_ERROR("Video data is not assigned");
     return PLUS_FAIL;
   }
 
   //  Check if tracker frames have been assigned
   if(m_TrackerFrames == NULL)
   {
-    LOG_ERROR("US video data is not assigned...Exiting");
+    LOG_ERROR("US video data is not assigned");
     return PLUS_FAIL;
   }
 
   //  Make sure video frame list is not empty
-  if(m_USVideoFrames->GetNumberOfTrackedFrames() == 0)
+  if(m_VideoFrames->GetNumberOfTrackedFrames() == 0)
   {
-    LOG_ERROR("US video data contains no frames...Exiting");
+    LOG_ERROR("Video data contains no frames");
     return PLUS_FAIL;
   }
 
   //  Make sure video frame list is not empty
   if(m_TrackerFrames->GetNumberOfTrackedFrames() == 0)
   {
-    LOG_ERROR("US tracker data contains no frames...Exiting");
+    LOG_ERROR("US tracker data contains no frames");
     return PLUS_FAIL;
   }
 
@@ -62,9 +71,9 @@ PlusStatus TemporalCalibration::Update()
   int totalNumberOfInvalidVideoFrames = 0;
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
-  for(int i = 0 ; i < m_USVideoFrames->GetNumberOfTrackedFrames(); ++i)
+  for(int i = 0 ; i < m_VideoFrames->GetNumberOfTrackedFrames(); ++i)
   {
-    if(!m_USVideoFrames->GetTrackedFrame(i)->GetImageData()->IsImageValid())
+    if(!m_VideoFrames->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
       ++totalNumberOfInvalidVideoFrames;
       ++currentNumberOfConsecutiveInvalidVideoFrames;
@@ -79,18 +88,17 @@ PlusStatus TemporalCalibration::Update()
     }
   }
 
-  /*  TODO: Validate the resampling frequency */
+  // TODO: print a warning if totalNumberOfInvalidVideoFrames or currentNumberOfConsecutiveInvalidVideoFrames is too high
 
-  if(m_SamplingResolutionSec < MINIMUM_SAMPLING_RESOLUTION)
+  if(m_SamplingResolutionSec < MINIMUM_SAMPLING_RESOLUTION_SEC)
   {
-    LOG_ERROR("Specified resampling resolution too small. Sampling resolution must be greater than:" << 
-              MINIMUM_SAMPLING_RESOLUTION << " seconds...Exiting");
+    LOG_ERROR("Specified resampling resolution ("<<m_SamplingResolutionSec<<" seconds) is too small. Sampling resolution must be greater than: " << 
+      MINIMUM_SAMPLING_RESOLUTION_SEC << " seconds");
     return PLUS_FAIL;
   }
 
   ComputeTrackerLagSec();
 
-  m_TrackerLagUpToDate = true;
   m_NeverUpdated = false;
 
   return PLUS_SUCCESS;
@@ -99,69 +107,62 @@ PlusStatus TemporalCalibration::Update()
   
 }
 
+//-----------------------------------------------------------------------------
 void TemporalCalibration::SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames)
 {
-  m_TrackerLagUpToDate = false;
   m_TrackerFrames = trackerFrames;
 }
 
-void TemporalCalibration::SetUSVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> USVideoFrames)
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> videoFrames)
 {
-    m_TrackerLagUpToDate = false;
-    m_USVideoFrames = USVideoFrames;
+    m_VideoFrames = videoFrames;
 }
 
+//-----------------------------------------------------------------------------
 void TemporalCalibration::setSamplingResolutionSec(double samplingResolutionSec)
 {
-  m_TrackerLagUpToDate = false;
   m_SamplingResolutionSec = samplingResolutionSec;
 }
 
-void TemporalCalibration::SetTransformName(std::string transformName)
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetProbeToReferenceTransformName(const std::string& transformName)
 {
-  m_TrackerLagUpToDate = false;
-  m_TransformName = transformName;
+  m_ProbeToReferenceTransformName = transformName;
 }
 
+//-----------------------------------------------------------------------------
 void TemporalCalibration::SetMaximumVideoTrackerLagSec(double maxLagSec)
 {
-  m_TrackerLagUpToDate = false;
   m_MaxTrackerLagSec = maxLagSec;
 }
 
-
-double TemporalCalibration::GetTrackerLagSec()
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 {
   if(m_NeverUpdated)
   {
     LOG_ERROR("You must call the Update() to compute the tracker lag.");
-    return -999;
-    //TODO: What to return here?
+    return PLUS_FAIL;
   }
-
-  if(m_TrackerLagUpToDate)
-  {
-    return m_TrackerLagSec;
-  }
-
-  LOG_ERROR("You have updated the function parameters since you last called Update(); the returned tracker lag does not reflect"
-    << "these changes. Call Update() to get the up-to-date tracker lag");
-  return m_TrackerLagSec;
-
+  lag=m_TrackerLagSec;
+  return PLUS_SUCCESS;
 }
 
-
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 {
-
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   PlusTransformName transformName;
-  transformName.SetTransformName(m_TransformName.c_str());
+  if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
+    return PLUS_FAIL;
+  }
   
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
-    double trackerTranslationModulus=0; //  Euclidean translation of tracker from reference.
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
     vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -173,15 +174,16 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
       continue;
     }  
     //  Get the Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)^(1/2)   
+    // TODO: compute the distance from the mean position instead of the reference coordinate frame origin
+    double trackerTranslationDistance=0; //  Euclidean translation of tracker from reference.
     for(int i = 0; i < 3; ++i)
     {
-      trackerTranslationModulus += probeToReferenceTransform->GetElement(i, 3) * 
+      trackerTranslationDistance += probeToReferenceTransform->GetElement(i, 3) * 
                                    probeToReferenceTransform->GetElement(i, 3);
     }    
-    trackerTranslationModulus = std::sqrt(trackerTranslationModulus);
-    m_TrackerPositionMetric.push_back(trackerTranslationModulus);
+    trackerTranslationDistance = std::sqrt(trackerTranslationDistance);
+    m_TrackerPositionMetric.push_back(trackerTranslationDistance);
     m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
-
   }
 
   NormalizeMetric(m_TrackerPositionMetric);
@@ -211,26 +213,26 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
 }
 
-
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 {
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
-  for(int frameNumber = 0; frameNumber < m_USVideoFrames->GetNumberOfTrackedFrames(); ++frameNumber)
+  for(int frameNumber = 0; frameNumber < m_VideoFrames->GetNumberOfTrackedFrames(); ++frameNumber)
   {
     LOG_DEBUG("Calculating video position metric for frame " << frameNumber);
 
     // Define image types and image dimension
-    const int imageDimension(2);
+    const int imageDimension=2;
     typedef unsigned char charPixelType; // The natural type of the input image
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
     typedef itk::Image<charPixelType,imageDimension> charImageType;
     
     //  Get timestamp for image frame
-    m_VideoTimestamps.push_back(m_USVideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
+    m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
 
     // Get curent image
-    charImageType::Pointer localImage = m_USVideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
+    charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
     
     if(localImage.IsNull())
     {
@@ -263,11 +265,11 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Iterate through the list of lines and we draw them.
     typedef HoughTransformFilterType::LinesListType::const_iterator LineIterator;
     typedef HoughTransformFilterType::LineType::PointListType PointListType;
-    LineIterator itLines = lines.begin();
 
     itk::Size<imageDimension> size = localImage->GetLargestPossibleRegion().GetSize();
     int halfwayPoint = static_cast<int> ((float) size[0]) / 2;
-
+    
+    LineIterator itLines = lines.begin();
     while( itLines != lines.end() )
     {
       // Get the list of points which consists of two points to represent a
@@ -302,8 +304,15 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 } //  End LineDetection
 
 
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
+  if (metric.size()==0)
+  {
+    LOG_ERROR("NormalizeMetric failed, the metric vector is empty");
+    return PLUS_FAIL;
+  }
+
   //  Calculate the metric mean
   double mu = 0;
   for(int i = 0; i < metric.size(); ++i)
@@ -341,7 +350,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
   // not work for our purposes
   if(maxPeakToPeak < MINIMUM_SIGNAL_PEAK_TO_PEAK)
   {
-    LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant...Exiting");
+    LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant");
     return PLUS_FAIL;
   }
 
@@ -354,6 +363,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 }// End NormalizeMetric()
 
 
+//-----------------------------------------------------------------------------
 void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column)
 {
   //  Get the mean of the Euclidean distances
@@ -398,8 +408,15 @@ void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, 
 }// End NormalizeMetric()
 
 
-void TemporalCalibration::ResamplePositionMetrics()
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::ResamplePositionMetrics()
 {
+  if (m_TrackerTimestamps.size()==0)
+  {
+    LOG_ERROR("ResamplePositionMetrics failed, the TrackerTimestamps vector is empty");
+    return PLUS_FAIL;
+  }
+
   //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = m_TrackerTimestamps.at(0);
   double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
@@ -412,12 +429,12 @@ void TemporalCalibration::ResamplePositionMetrics()
 
   if (commonRangeMin + m_MaxTrackerLagSec >= commonRangeMax - m_MaxTrackerLagSec)
   {
-    LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset...Exiting"); 
-    exit(EXIT_FAILURE);
+    LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
+    return PLUS_FAIL;
   }
 
   //  Get resampled timestamps for the video sequence
-  long int n = 0;
+  long int n = 0;  
   while(commonRangeMin + n * m_SamplingResolutionSec < commonRangeMax)
   {
     m_ResampledVideoTimestamps.push_back(commonRangeMin + n * m_SamplingResolutionSec);
@@ -433,14 +450,18 @@ void TemporalCalibration::ResamplePositionMetrics()
   }
   
   //  Get resampled position metric for the US video data
+  LOG_DEBUG("InterpolatePositionMetric for video data");
   InterpolatePositionMetric(m_VideoTimestamps, m_ResampledVideoTimestamps, m_VideoPositionMetric, m_ResampledVideoPositionMetric);
+  LOG_DEBUG("InterpolatePositionMetric for tracker data");
   InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
-                                                                                                                                                                              
+            
+  return PLUS_SUCCESS;
 }
 
-void TemporalCalibration::InterpolatePositionMetric(std::vector<double> &originalTimestamps,
-                                                    std::vector<double> &resampledTimestamps,
-                                                    std::vector<double> &originalMetric,
+//-----------------------------------------------------------------------------
+void TemporalCalibration::InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
+                                                    const std::vector<double> &resampledTimestamps,
+                                                    const std::vector<double> &originalMetric,
                                                     std::vector<double> &resampledPositionMetric)
                                                                  
 {
@@ -457,13 +478,14 @@ void TemporalCalibration::InterpolatePositionMetric(std::vector<double> &origina
   }                                            
 }
 
-double TemporalCalibration::LinearInterpolation(double resampledTimeValue, std::vector<double> &originalTimestamps, 
-                                                   std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
+//-----------------------------------------------------------------------------
+double TemporalCalibration::LinearInterpolation(double resampledTimeValue, const std::vector<double> &originalTimestamps, 
+                                                   const std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
                                                     
 {
   //  If the time index between the two straddling indices is very small, avoid interpolation (to
   //  prevent divding by a really small number).
-  if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < TIMESTAMP_EPSILON)
+  if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < TIMESTAMP_EPSILON_SEC)
     return originalMetric.at(upperStraddleIndex);
   
   // Peform linear interpolation
@@ -474,7 +496,8 @@ double TemporalCalibration::LinearInterpolation(double resampledTimeValue, std::
 
 } // End linearInterpolation()
 
-void TemporalCalibration::GetStraddleIndices(std::vector<double> &originalTimestamps, std::vector<double> &resampledTimestamps, 
+//-----------------------------------------------------------------------------
+void TemporalCalibration::GetStraddleIndices(const std::vector<double> &originalTimestamps, const std::vector<double> &resampledTimestamps, 
                                              std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices)
 {
   //  Find the straddle indices; that is, the indices of the original timestamp series that "straddle", or lie on either side of,
@@ -488,86 +511,96 @@ void TemporalCalibration::GetStraddleIndices(std::vector<double> &originalTimest
   //  For each subsequent resampled timestamp value, find the straddle indices
   for(long int timestampIndex = 0; timestampIndex < resampledTimestamps.size(); ++timestampIndex)
   {
-    currLowerStraddleIndex = FindLowerStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currLowerStraddleIndex);
+    currLowerStraddleIndex = FindSubsequentLowerStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currLowerStraddleIndex);
     lowerStraddleIndices.push_back(currLowerStraddleIndex);
 
-    currUpperStraddleIndex = FindUpperStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currUpperStraddleIndex);
+    currUpperStraddleIndex = FindSubsequentUpperStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currUpperStraddleIndex);
     upperStraddleIndices.push_back(currUpperStraddleIndex);
   }
 
 }
-int TemporalCalibration::FindFirstLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp)                                                    
+
+//-----------------------------------------------------------------------------
+int TemporalCalibration::FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp)                                                    
 {
+  if(originalTimestamps.size()==0)
+  {
+    LOG_WARNING("FindFirstLowerStraddleIndex failed, timestamps vector is empty");
+    return 0;
+  }
 
-    //  No original timestamps lie below the desired resampled timestamp--cannot interpolate
-    if(originalTimestamps.at(0) > resampledTimestamp)
-    {
-      LOG_ERROR("TODO");
-    }
+  //  No original timestamps lie below the desired resampled timestamp--cannot interpolate
+  if(originalTimestamps.at(0) > resampledTimestamp)
+  {
+    LOG_WARNING("FindFirstLowerStraddleIndex failed to find a value within the valid time range, cannot interpolate");
+    return 0;
+  }
 
-    int currIndex = 0;
-    while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) <= resampledTimestamp)
-    {
-      ++currIndex;
-    }
-    --currIndex;
-
-    return currIndex;
-}
-
-int TemporalCalibration::FindFirstUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp)
-{
-    //  No original timestamps lie past the desired resampled timestamp--cannot interpolate
-    if(originalTimestamps.at(originalTimestamps.size() - 1) < resampledTimestamp)
-    {
-      LOG_ERROR("TODO");
-    }
-
-    int currIndex = originalTimestamps.size() - 1;
-    while(currIndex >= 0 && originalTimestamps.at(currIndex) >= resampledTimestamp)
-    {
-      --currIndex;
-    }
-
+  int currIndex = 0;
+  while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) <= resampledTimestamp)
+  {
     ++currIndex;
+  }
+  --currIndex;
 
-    return currIndex;
+  return currIndex;
 }
 
-
-int TemporalCalibration::FindLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currLowerStraddleIndex)
+//-----------------------------------------------------------------------------
+int TemporalCalibration::FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp)
 {
-  
+  if(originalTimestamps.size()==0)
+  {
+    LOG_WARNING("FindFirstUpperStraddleIndex failed, timestamps vector is empty");
+    return 0;
+  }
+  //  No original timestamps lie past the desired resampled timestamp--cannot interpolate
+  if(originalTimestamps.at(originalTimestamps.size() - 1) < resampledTimestamp)
+  {
+    LOG_WARNING("FindFirstUpperStraddleIndex failed to find a value within the valid time range, cannot interpolate");
+    return originalTimestamps.size() - 1;
+  }
+
+  int currIndex = originalTimestamps.size() - 1;
+  while(currIndex >= 0 && originalTimestamps.at(currIndex) >= resampledTimestamp)
+  {
+    --currIndex;
+  }
+  ++currIndex;
+
+  return currIndex;
+}
+
+//-----------------------------------------------------------------------------
+int TemporalCalibration::FindSubsequentLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
+                                                       int currLowerStraddleIndex)
+{  
     int currIndex = currLowerStraddleIndex;
     while(currIndex < originalTimestamps.size() && originalTimestamps.at(currIndex) <= resampledTimestamp)
     {
      ++currIndex;
     }
-
     --currIndex;
-
     return currIndex;
 }
 
-int TemporalCalibration::FindUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
+//-----------------------------------------------------------------------------
+int TemporalCalibration::FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
                                                        int currUpperStraddleIndex)
 {
     if(originalTimestamps.at(currUpperStraddleIndex) >= resampledTimestamp)
     {
       return currUpperStraddleIndex;
     }
-
     int currIndex = currUpperStraddleIndex;
     while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) < resampledTimestamp)
     {
       ++currIndex;
     }
-
     return currIndex;
 }
 
-
+//-----------------------------------------------------------------------------
 void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
 {
   int trackerLagIndex = 0;
@@ -576,37 +609,34 @@ void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
     m_CorrValues.push_back(ComputeCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
     ++trackerLagIndex;
   }
+}
 
-} // End ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
-
-double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(std::vector<double> &metricA, std::vector<double> &metricB, int indexOffset)
+//-----------------------------------------------------------------------------
+double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
 {
-
   double multipliedSignalSum = 0;
   for(long int i = 0; i < metricA.size(); ++i)
   {
     multipliedSignalSum += metricA.at(i) * metricB.at(i + indexOffset);
   }
-
   return multipliedSignalSum;
+}
 
-} // End ComputeCorrelationSumForGivenLagIndex()
-
+//-----------------------------------------------------------------------------
 void TemporalCalibration::ComputeTrackerLagSec()
 {
-
-  //  Calculate the (normalized) metrics for the video and tracker data streams
+  // Calculate the (normalized) metrics for the video and tracker data streams
   ComputeTrackerPositionMetric();
   ComputeVideoPositionMetric();
   
-  //  Resample the image and tracker metrics; this prepares the two signals for cross correlation
-  //interpolate();
+  // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
   ResamplePositionMetrics();
 
-  //  Perform cross correlation
+  //  Compute cross correlation
+  LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics");
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   
-  //  Find the index offset corresponding to the maximum correlation sum
+  // Find the index offset corresponding to the maximum correlation sum
   double maxCorrVal = m_CorrValues.at(0);
   int maxCorrIndex = 0;
   for(int i = 1; i < m_CorrValues.size(); ++i)
@@ -618,11 +648,9 @@ void TemporalCalibration::ComputeTrackerLagSec()
     }
   }
 
-  //  Compute the time that the tracker data lags the video data using the maximum index
+  // Compute the time that the tracker data lags the video data using the maximum index
   m_TrackerLagSec = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
-
-}// End ComputeTrackerLagSec()
-
+}

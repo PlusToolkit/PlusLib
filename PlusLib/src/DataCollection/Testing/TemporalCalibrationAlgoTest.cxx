@@ -49,6 +49,8 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS);
   }
 
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+
   if ( inputTrackerSequenceMetafile.empty() )
   {
     std::cerr << "input-tracker-sequence-metafile required argument!" << std::endl;
@@ -64,9 +66,10 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
-  vtkSmartPointer<vtkTrackedFrameList> USVideoFrames = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-
+  vtkSmartPointer<vtkTrackedFrameList> videoFrames = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  
   //  Read tracker frames
+  LOG_DEBUG("Read tracker data from "<<inputTrackerSequenceMetafile);
   if ( trackerFrames->ReadFromSequenceMetafile(inputTrackerSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputTrackerSequenceMetafile << ". Exiting...");
@@ -74,24 +77,34 @@ int main(int argc, char **argv)
   }
 
   //  Read US video frames
-  if ( USVideoFrames->ReadFromSequenceMetafile(inputVideoSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  LOG_DEBUG("Read video data from "<<inputVideoSequenceMetafile);
+  if ( videoFrames->ReadFromSequenceMetafile(inputVideoSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US image sequence metafile: " << inputVideoSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   
   //  Creat temporal calibration object; Set pertinent parameters
   TemporalCalibration testTemporalCalibrationObject;
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
-  testTemporalCalibrationObject.SetUSVideoFrames(USVideoFrames);
+  testTemporalCalibrationObject.SetVideoFrames(videoFrames);
   testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
 
   //  Calculate the time-offset
-  testTemporalCalibrationObject.Update();
+  if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
 
-  LOG_DEBUG("Time offset: " <<  testTemporalCalibrationObject.GetTrackerLagSec() << " sec (>0 if the tracker data lags)");
+  double trackerLagSec=0;
+  if (testTemporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
 
-  return 0;
+  LOG_DEBUG("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
+
+  return EXIT_SUCCESS;
 }
