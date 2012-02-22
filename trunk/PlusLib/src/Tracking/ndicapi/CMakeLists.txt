@@ -28,6 +28,6 @@ TARGET_LINK_LIBRARIES( vtkndicapi )
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkndicapi CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkndicapi vtkndicapi "${PlusLib_BINARY_DIR}/src/Tracking/ndicapi/vtkndicapi.vcproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkndicapi vtkndicapi;"${PlusLib_BINARY_DIR}/src/Tracking/ndicapi/vtkndicapi.vcproj" CACHE INTERNAL "" FORCE)
 
 INSTALL_TARGETS(/lib vtkndicapi)

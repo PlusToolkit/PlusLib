@@ -48,4 +48,4 @@ ADD_LIBRARY(MicronTrackerInterface STATIC ${MicronTrackerInterface_SRCS})
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MicronTrackerInterface CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_MicronTrackerInterface MicronTrackerInterface "${PlusLib_BINARY_DIR}/src/Tracking/MicronTracking/Utils/MicronTrackerInterface.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE) 
+SET(vcProj_MicronTrackerInterface MicronTrackerInterface;"${PlusLib_BINARY_DIR}/src/Tracking/MicronTracking/Utils/MicronTrackerInterface.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE) 

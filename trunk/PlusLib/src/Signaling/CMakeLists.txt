@@ -79,7 +79,7 @@ TARGET_LINK_LIBRARIES(	vtkSignaling ${Signaling_LIBS} )
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkSignaling CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkSignaling vtkSignaling "${PlusLib_BINARY_DIR}/src/Signaling/vtkSignaling.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkSignaling vtkSignaling;"${PlusLib_BINARY_DIR}/src/Signaling/vtkSignaling.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install

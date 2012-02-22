@@ -288,7 +288,7 @@ TARGET_LINK_LIBRARIES( vtkTracking ${Tracking_LIBS} )
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTracking CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkTracking vtkTracking "${PlusLib_BINARY_DIR}/src/Tracking/vtkTracking.vcproj" vtkPlusCommon vtkImageAcquisition CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkTracking vtkTracking;"${PlusLib_BINARY_DIR}/src/Tracking/vtkTracking.vcproj";vtkPlusCommon;vtkImageAcquisition CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
