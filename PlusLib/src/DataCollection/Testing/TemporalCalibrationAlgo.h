@@ -88,7 +88,8 @@ public:
   PlusStatus Update(); 
 
 private:
-
+  bool m_TrackerLagUpToDate; // Stores whether the user has called Update(); will not return tracker lag until set to "true"
+  bool m_NeverUpdated; // Has the user ever succsfully called Update();
   double m_SamplingResolutionSec; //  Resolution used for re-sampling [s] TODO: Add comment about upsampling
   vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
   vtkSmartPointer<vtkTrackedFrameList> m_USVideoFrames; 
@@ -104,37 +105,28 @@ private:
   double m_TrackerLagSec; // Time [s] that tracker lags video. If lag < 0, the tracker leads the video
   double m_MaxTrackerLagSec; // Maximum allowed tracker lag--if lag is greater, will exit computation
   std::string m_TransformName;
-  void GetStraddleIndices(std::vector<double> &originalTimestamps, std::vector<double> &resampledTimestamps, 
-                          std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices);
-  int FindLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currLowerStraddleIndex);
-  int FindUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currLowerStraddleIndex);
-  int FindFirstLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
-  int FindFirstUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
 
+  
   void ResamplePositionMetrics();
   void InterpolatePositionMetric(std::vector<double> &originalTimestamps,
-                                                    std::vector<double> &resampledTimestamps,
-                                                    std::vector<double> &originalMetric,
-                                                    std::vector<double> &resampledPositionMetric);
-  double linearInterpolationMod(double resampledTimeValue, std::vector<double> &originalTimestamps, 
-                                std::vector<double> &originalMetric, int lowerStraddleIndex, 
-                                int upperStraddleIndex);
-  void CalculateTrackerLagSec();
+                                 std::vector<double> &resampledTimestamps,
+                                 std::vector<double> &originalMetric,
+                                 std::vector<double> &resampledPositionMetric);
+  double LinearInterpolation(double resampledTimeValue, std::vector<double> &originalTimestamps, 
+                             std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex);
+  void GetStraddleIndices(std::vector<double> &originalTimestamps, std::vector<double> &resampledTimestamps, 
+                          std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices);
+  int FindLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,int currLowerStraddleIndex);
+  int FindUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,int currLowerStraddleIndex);
+  int FindFirstLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
+  int FindFirstUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);                       
+  void ComputeTrackerLagSec();
   PlusStatus NormalizeMetric(std::vector<double> &metric);
   PlusStatus ComputeVideoPositionMetric();
   PlusStatus ComputeTrackerPositionMetric();
-  void interpolateHelper(const std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-                         std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, 
-                         double samplingResolutionSec);
-  double linearInterpolation(double interpolatedTimestamp, const std::vector<double> &originalMetric, 
-                             const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, 
-                             double samplingResolutionSec);
-  void interpolate();
-  void CalculateCrossCorrelationBetweenVideoAndTrackerMetrics();
-  double ComputeCorrelationSumForGivenLagIndex(std::vector<double> &m_TrackerPositionMetric, 
-                                          std::vector<double> &m_VideoPositionMetric, int indexOffset);
+  void ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
+  double ComputeCorrelationSumForGivenLagIndex(std::vector<double> &m_TrackerPositionMetric,
+                                               std::vector<double> &m_VideoPositionMetric, int indexOffset);
 
   /* TODO: Switching to VTK table data structure */
   vtkSmartPointer<vtkTable> m_TrackerTable;

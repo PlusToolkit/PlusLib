@@ -9,21 +9,18 @@ const float HOUGH_ANGLE_RESOLUTION = 100;
 
 // Default algorithm parameters
 const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker metric "swings" less than this, abort
-const double METRIC_SIGNAL_EPSILON = 0.0001; // Temporal resolution below which two time values are considered identical
+const double TIMESTAMP_EPSILON = 0.0001; // Temporal resolution below which two time values are considered identical
+const double MINIMUM_SAMPLING_RESOLUTION = 0.00001;
 const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-const double DEFAULT_TRACKER_LAG_SEC = 0.001;
 const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 const std::string DEFAULT_TRANSFORM_NAME = "ProbeToReference";
-const int LOWER_STRADDLE_INDEX = 0;
-const int UPPER_STRADDLE_INDEX = 1;
 
 
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
-                                             m_TrackerLagSec(DEFAULT_TRACKER_LAG_SEC),
                                              m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
-                                             m_TransformName(DEFAULT_TRANSFORM_NAME)
+                                             m_TransformName(DEFAULT_TRANSFORM_NAME),
+                                             m_TrackerLagUpToDate(false), m_NeverUpdated(true)
 {
-  
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
   m_VideoTable = vtkSmartPointer<vtkTable>::New();
@@ -83,7 +80,18 @@ PlusStatus TemporalCalibration::Update()
   }
 
   /*  TODO: Validate the resampling frequency */
-  CalculateTrackerLagSec();
+
+  if(m_SamplingResolutionSec < MINIMUM_SAMPLING_RESOLUTION)
+  {
+    LOG_ERROR("Specified resampling resolution too small. Sampling resolution must be greater than:" << 
+              MINIMUM_SAMPLING_RESOLUTION << " seconds...Exiting");
+    return PLUS_FAIL;
+  }
+
+  ComputeTrackerLagSec();
+
+  m_TrackerLagUpToDate = true;
+  m_NeverUpdated = false;
 
   return PLUS_SUCCESS;
   /* TODO: Maybe output an warning message. */
@@ -93,36 +101,53 @@ PlusStatus TemporalCalibration::Update()
 
 void TemporalCalibration::SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames)
 {
-  // m_TrackerFrames = trackerFrames->NewInstance();
-  // TODO: Do I worry about aliasing here?
+  m_TrackerLagUpToDate = false;
   m_TrackerFrames = trackerFrames;
 }
 
 void TemporalCalibration::SetUSVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> USVideoFrames)
 {
-   // m_USVideoFrames = USVideoFrames->NewInstance();
+    m_TrackerLagUpToDate = false;
     m_USVideoFrames = USVideoFrames;
 }
 
 void TemporalCalibration::setSamplingResolutionSec(double samplingResolutionSec)
 {
+  m_TrackerLagUpToDate = false;
   m_SamplingResolutionSec = samplingResolutionSec;
 }
 
 void TemporalCalibration::SetTransformName(std::string transformName)
 {
+  m_TrackerLagUpToDate = false;
   m_TransformName = transformName;
 }
 
 void TemporalCalibration::SetMaximumVideoTrackerLagSec(double maxLagSec)
 {
+  m_TrackerLagUpToDate = false;
   m_MaxTrackerLagSec = maxLagSec;
 }
 
 
 double TemporalCalibration::GetTrackerLagSec()
 {
+  if(m_NeverUpdated)
+  {
+    LOG_ERROR("You must call the Update() to compute the tracker lag.");
+    return -999;
+    //TODO: What to return here?
+  }
+
+  if(m_TrackerLagUpToDate)
+  {
+    return m_TrackerLagSec;
+  }
+
+  LOG_ERROR("You have updated the function parameters since you last called Update(); the returned tracker lag does not reflect"
+    << "these changes. Call Update() to get the up-to-date tracker lag");
   return m_TrackerLagSec;
+
 }
 
 
@@ -372,77 +397,6 @@ void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, 
 
 }// End NormalizeMetric()
 
-double TemporalCalibration::linearInterpolation(double interpolatedTimestamp, const std::vector<double> &originalMetric, 
-                           const std::vector<double> &originalTimestamps, std::vector<int> &straddleIndices, double samplingResolutionSec)
-{
-  const int lowIndex = 0; //  Position of low index in "straddleIndices"
-  const int highIndex = 1; // Position of high index in "straddleIndices"
-  
-  //  We assume that we are upsampling (i.e. that the resampled period is less than the original sampling period).
-  if(interpolatedTimestamp > originalTimestamps.at(straddleIndices.at(highIndex)))
-  {
-      straddleIndices.at(highIndex) = straddleIndices.at(highIndex) + 1;
-      straddleIndices.at(lowIndex) = straddleIndices.at(lowIndex) + 1;
-  }
-
-  //  If the time index between the two straddling indices is very small, avoid interpolation (to
-  //  prevent divding by a really small number).
-  if(std::abs(originalTimestamps.at(straddleIndices.at(highIndex)) - originalTimestamps.at(straddleIndices.at(lowIndex))) < METRIC_SIGNAL_EPSILON)
-    return originalMetric.at(straddleIndices.at(highIndex));
-  
-  // Peform linear interpolation
-  double m = (originalMetric.at(straddleIndices.at(highIndex)) - originalMetric.at(straddleIndices.at(lowIndex))) / 
-             (originalTimestamps.at(straddleIndices.at(highIndex)) - originalTimestamps.at(straddleIndices.at(lowIndex)));
-
-  return originalMetric.at(straddleIndices.at(lowIndex)) + (interpolatedTimestamp - originalTimestamps.at(straddleIndices.at(lowIndex))) * m;
-
-} // End linearInterpolation()
-
-void TemporalCalibration::interpolateHelper(const std::vector<double> &originalMetric, std::vector<double> &interpolatedVector,
-          std::vector<double> &interpolatedTimestamps, const std::vector<double> &originalTimestamps, double samplingResolutionSec)
-{
-
-  //  For the first interpolated timestamp value, find the index of the closest element in the
-  //  original timestamp array.
-  int closestIndex = 0;
-  double closestVal = std::abs(originalTimestamps.at(closestIndex) - interpolatedTimestamps.at(0));
-  
-  for(int i = 1; i < originalTimestamps.size(); ++i)
-  {
-    if(std::abs(originalTimestamps.at(i) - interpolatedTimestamps.at(0)) < closestVal)
-    {
-      closestIndex = i;
-      closestVal = std::abs(originalTimestamps.at(i) - interpolatedTimestamps.at(0));
-    }
-  }
-  
-  //  Assign two indices that "straddle" the first interpolated timestamp value in the original timstamp sequence
-  int indexHigh = 0;
-  int indexLow = 0;
-
-  if(originalTimestamps.at(closestIndex) > interpolatedTimestamps.at(0))
-  {
-   indexHigh = closestIndex;
-   indexLow = closestIndex - 1;
-  }
-  else
-  {
-   indexHigh = closestIndex + 1;
-   indexLow = closestIndex;
-  }
-
-  std::vector<int> straddleIndices; 
-  straddleIndices.push_back(indexLow);
-  straddleIndices.push_back(indexHigh);
-
-  //  For each interpolated timestamp, find the corresponding metric value
-  for(int i = 0; i < interpolatedTimestamps.size(); ++i)
-  {
-    interpolatedVector.push_back(linearInterpolation(interpolatedTimestamps.at(i), 
-      originalMetric, originalTimestamps, straddleIndices, samplingResolutionSec));
-  }
-
-} // End interpolateHelper()
 
 void TemporalCalibration::ResamplePositionMetrics()
 {
@@ -496,20 +450,20 @@ void TemporalCalibration::InterpolatePositionMetric(std::vector<double> &origina
 
   for(long int resampledTimeValueIndex = 0; resampledTimeValueIndex < resampledTimestamps.size(); ++resampledTimeValueIndex)
   {
-    resampledPositionMetric.push_back(linearInterpolationMod(resampledTimestamps.at(resampledTimeValueIndex), originalTimestamps, 
+    resampledPositionMetric.push_back(LinearInterpolation(resampledTimestamps.at(resampledTimeValueIndex), originalTimestamps, 
                                                              originalMetric, 
                                                              lowerStraddleIndices.at(resampledTimeValueIndex), 
                                                              upperStraddleIndices.at(resampledTimeValueIndex)));
   }                                            
 }
 
-double TemporalCalibration::linearInterpolationMod(double resampledTimeValue, std::vector<double> &originalTimestamps, 
+double TemporalCalibration::LinearInterpolation(double resampledTimeValue, std::vector<double> &originalTimestamps, 
                                                    std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
                                                     
 {
   //  If the time index between the two straddling indices is very small, avoid interpolation (to
   //  prevent divding by a really small number).
-  if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < METRIC_SIGNAL_EPSILON)
+  if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < TIMESTAMP_EPSILON)
     return originalMetric.at(upperStraddleIndex);
   
   // Peform linear interpolation
@@ -614,7 +568,7 @@ int TemporalCalibration::FindUpperStraddleIndex(std::vector<double> &originalTim
 }
 
 
-void TemporalCalibration::CalculateCrossCorrelationBetweenVideoAndTrackerMetrics()
+void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
 {
   int trackerLagIndex = 0;
   while(trackerLagIndex + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
@@ -623,7 +577,7 @@ void TemporalCalibration::CalculateCrossCorrelationBetweenVideoAndTrackerMetrics
     ++trackerLagIndex;
   }
 
-} // End CalculateCrossCorrelationBetweenVideoAndTrackerMetrics()
+} // End ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
 
 double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(std::vector<double> &metricA, std::vector<double> &metricB, int indexOffset)
 {
@@ -638,7 +592,7 @@ double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(std::vector<do
 
 } // End ComputeCorrelationSumForGivenLagIndex()
 
-void TemporalCalibration::CalculateTrackerLagSec()
+void TemporalCalibration::ComputeTrackerLagSec()
 {
 
   //  Calculate the (normalized) metrics for the video and tracker data streams
@@ -650,7 +604,7 @@ void TemporalCalibration::CalculateTrackerLagSec()
   ResamplePositionMetrics();
 
   //  Perform cross correlation
-  CalculateCrossCorrelationBetweenVideoAndTrackerMetrics();
+  ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   
   //  Find the index offset corresponding to the maximum correlation sum
   double maxCorrVal = m_CorrValues.at(0);
@@ -670,46 +624,5 @@ void TemporalCalibration::CalculateTrackerLagSec()
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
 
-}// End CalculateTrackerLagSec()
-
-void TemporalCalibration::interpolate()
-{
-
-  //  Find the time-range that is common to both tracker and image signals
-  double translationTimestampMin = m_TrackerTimestamps.at(1);
-  double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
-
-  double imageTimestampMin = m_VideoTimestamps.at(1);
-  double imageTimestampMax = m_VideoTimestamps.at(m_VideoTimestamps.size() - 1);
-
-  double commonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
-  double commonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
-
-  if (commonRangeMin + m_MaxTrackerLagSec >= commonRangeMax - m_MaxTrackerLagSec)
-  {
-    std::cerr << "Insufficient overlap between tracking data and image data to compute time offset...Exiting" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  //  Get resampled timestamps for the video sequence
-  long int n = 0;
-  while(commonRangeMin + n * m_SamplingResolutionSec < commonRangeMax)
-  {
-    m_ResampledVideoTimestamps.push_back(commonRangeMin + n * m_SamplingResolutionSec);
-    ++n;
-  }
-
-  //  Get resampled timestamps for the tracker sequence
-  n = 0;
-  while((commonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec < commonRangeMax - m_MaxTrackerLagSec)
-  {
-    m_ResampledTrackerTimestamps.push_back( (commonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
-    ++n;
-  }
-
-  //  Get resampled metrics for video and tracker sequences
-  interpolateHelper(m_VideoPositionMetric,m_ResampledVideoPositionMetric, m_ResampledVideoTimestamps, m_VideoTimestamps, m_SamplingResolutionSec);
-  interpolateHelper(m_TrackerPositionMetric, m_ResampledTrackerPositionMetric,m_ResampledTrackerTimestamps, m_TrackerTimestamps, m_SamplingResolutionSec);
-
-}// End interpolate()
+}// End ComputeTrackerLagSec()
 
