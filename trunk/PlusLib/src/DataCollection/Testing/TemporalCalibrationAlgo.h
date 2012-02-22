@@ -104,11 +104,23 @@ private:
   double m_TrackerLagSec; // Time [s] that tracker lags video. If lag < 0, the tracker leads the video
   double m_MaxTrackerLagSec; // Maximum allowed tracker lag--if lag is greater, will exit computation
   std::string m_TransformName;
-  void TemporalCalibration::GetStraddleIndices(std::vector<double> originalTimestamp, std::vector<double> resampledTimestamp, 
-                                             std::vector<std::vector<double>> straddleIndices);
-  int findClosestLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
-  int findClosestUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
+  void GetStraddleIndices(std::vector<double> &originalTimestamps, std::vector<double> &resampledTimestamps, 
+                          std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices);
+  int FindLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
+                                                       int currLowerStraddleIndex);
+  int FindUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp,
+                                                       int currLowerStraddleIndex);
+  int FindFirstLowerStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
+  int FindFirstUpperStraddleIndex(std::vector<double> &originalTimestamps, double resampledTimestamp);
 
+  void ResamplePositionMetrics();
+  void InterpolatePositionMetric(std::vector<double> &originalTimestamps,
+                                                    std::vector<double> &resampledTimestamps,
+                                                    std::vector<double> &originalMetric,
+                                                    std::vector<double> &resampledPositionMetric);
+  double linearInterpolationMod(double resampledTimeValue, std::vector<double> &originalTimestamps, 
+                                std::vector<double> &originalMetric, int lowerStraddleIndex, 
+                                int upperStraddleIndex);
   void CalculateTrackerLagSec();
   PlusStatus NormalizeMetric(std::vector<double> &metric);
   PlusStatus ComputeVideoPositionMetric();
