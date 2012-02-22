@@ -7,6 +7,9 @@
 IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   SET(PLUSLIB_USE_FILE_INCLUDED 1)
   
+  CMAKE_POLICY(PUSH)
+  CMAKE_POLICY(SET CMP0012 NEW) # if() recognizes numbers and boolean constants
+  
   ## Set Plus binary dir path 
   SET(PLUSLIB_DIR "@PlusLib_BINARY_DIR@" )
   
@@ -127,5 +130,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       ENDIF()
     ENDIF ()
   endmacro()
-    
+
+  CMAKE_POLICY(POP)
+  
 ENDIF(NOT PLUSLIB_USE_FILE_INCLUDED)
