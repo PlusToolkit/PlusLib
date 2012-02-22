@@ -67,7 +67,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkDataCollection CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkDataCollection vtkDataCollection ${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj vtkPlusCommon vtkImageAcquisition vtkTracking CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkImageAcquisition;vtkTracking CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install

@@ -26,26 +26,26 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   SET(SIKULI_BIN_DIR "@SIKULI_BIN_DIR@" )
 
   ## Find ITK 
-  FIND_PACKAGE(ITK PATHS @ITK_DIR@ NO_DEFAULT_PATH)
+  FIND_PACKAGE(ITK PATHS "@ITK_DIR@" NO_DEFAULT_PATH)
   IF (ITK_FOUND)
-    INCLUDE(@ITK_USE_FILE@)
+    INCLUDE("@ITK_USE_FILE@")
   ELSE (ITK_FOUND)
     MESSAGE(FATAL_ERROR "Please set ITK.")
   ENDIF (ITK_FOUND)
 
   ## Find VTK 
-  FIND_PACKAGE(VTK PATHS @VTK_DIR@ NO_DEFAULT_PATH)
+  FIND_PACKAGE(VTK PATHS "@VTK_DIR@" NO_DEFAULT_PATH)
   IF (VTK_FOUND)
-    INCLUDE(@VTK_USE_FILE@)
+    INCLUDE("@VTK_USE_FILE@")
   ELSE (VTK_FOUND)
     MESSAGE(FATAL_ERROR "Please set VTK.")
   ENDIF (VTK_FOUND)
   
   SET(PLUS_USE_OpenIGTLink @PLUS_USE_OpenIGTLink@)
   IF(PLUS_USE_OpenIGTLink)
-    FIND_PACKAGE(OpenIGTLink PATHS @OpenIGTLink_DIR@ NO_DEFAULT_PATH)
+    FIND_PACKAGE(OpenIGTLink PATHS "@OpenIGTLink_DIR@" NO_DEFAULT_PATH)
     IF (OpenIGTLink_USE_FILE)
-      INCLUDE (@OpenIGTLink_USE_FILE@)
+      INCLUDE ("@OpenIGTLink_USE_FILE@")
     ELSE (OpenIGTLink_USE_FILE)
       MESSAGE( FATAL_ERROR "Please set OpenIGTLink.")
     ENDIF (OpenIGTLink_USE_FILE)
@@ -53,18 +53,18 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   
   SET(PLUS_USE_SLICER @PLUS_USE_SLICER@)
   IF(PLUS_USE_SLICER)
-    SET(SLICER_BIN_DIRECTORY @SLICER_BIN_DIRECTORY@)
+    SET(SLICER_BIN_DIRECTORY "@SLICER_BIN_DIRECTORY@")
   ENDIF(PLUS_USE_SLICER)
   
   # Add include directories needed to use PlusLib library 
-  INCLUDE_DIRECTORIES(@PLUSLIB_INCLUDE_DIRS@)
+  INCLUDE_DIRECTORIES("@PLUSLIB_INCLUDE_DIRS@")
   
   # Add link directories needed to use Plus library
-  LINK_DIRECTORIES(@PLUSLIB_LIBRARY_DIRS@)
+  LINK_DIRECTORIES("@PLUSLIB_LIBRARY_DIRS@")
   
   SET(PLUSLIB_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
   
-  SET(QT_QMAKE_EXECUTABLE @QT_QMAKE_EXECUTABLE@)
+  SET(QT_QMAKE_EXECUTABLE "@QT_QMAKE_EXECUTABLE@")
   
   ## Find SVN 
   SET (SVN_FOUND @Subversion_FOUND@)
@@ -81,11 +81,11 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   SET(PLUS_ULTRASONIX_SDK_PATCH_VERSION @PLUS_ULTRASONIX_SDK_PATCH_VERSION@)
   
   ## Set third party lib path variables
-  SET(ICCAPTURING_BIN_DIR @ICCAPTURING_BIN_DIR@)
-  SET(NDIOAPI_BINARY_DIR @NDIOAPI_BINARY_DIR@)
-  SET(ULTRASONIX_SDK_BINARY_DIR @ULTRASONIX_SDK_BINARY_DIR@)
-  SET(ATC_TRAKSTAR_BINARY_DIR @ATC_TRAKSTAR_BINARY_DIR@)
-  SET(USDIGITAL_SEI_BINARY_DIR @USDIGITAL_SEI_BINARY_DIR@)
+  SET(ICCAPTURING_BIN_DIR "@ICCAPTURING_BIN_DIR@")
+  SET(NDIOAPI_BINARY_DIR "@NDIOAPI_BINARY_DIR@")
+  SET(ULTRASONIX_SDK_BINARY_DIR "@ULTRASONIX_SDK_BINARY_DIR@")
+  SET(ATC_TRAKSTAR_BINARY_DIR "@ATC_TRAKSTAR_BINARY_DIR@")
+  SET(USDIGITAL_SEI_BINARY_DIR "@USDIGITAL_SEI_BINARY_DIR@")
   
   ## Set Plus use variables 
   SET(PLUS_USE_ULTRASONIX_VIDEO @PLUS_USE_ULTRASONIX_VIDEO@)
@@ -105,47 +105,24 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   
   macro(INCLUDE_PLUSLIB_MS_PROJECTS)
     IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
-      IF ("@vcProj_vtkImageAcquisition@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkImageAcquisition@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkDataCollection@" STRGREATER "" )
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkDataCollection@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkSignaling@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkSignaling@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkPlusCommon@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusCommon@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkTracking@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTracking@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkCalibrationAlgo@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkCalibrationAlgo@)
-      ENDIF()
-
-      IF ("@vcProj_PatternLocAlgo@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_PatternLocAlgo@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkVolumeReconstruction@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
-      ENDIF()
-      
-      IF ("@vcProj_BrachyStepper@" STRGREATER "")
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusCommon@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkImageAcquisition@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTracking@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkDataCollection@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkCalibrationAlgo@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_PatternLocAlgo@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkSignaling@)                  
+      # if PLUS_USE_BRACHY_TRACKER
+      IF (@PLUS_USE_BRACHY_TRACKER@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
-      ENDIF()
-      
-      IF ("@vcProj_vtkndicapi@" STRGREATER "")
+      ENDIF()      
+      # if PLUS_USE_CERTUS OR PLUS_USE_POLARIS
+      IF (@PLUS_USE_CERTUS@ OR @PLUS_USE_POLARIS@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
-      ENDIF()
-      
-      IF ("@vcProj_MicrontrackerInterface@" STRGREATER "")
+      ENDIF()      
+      # if PLUS_USE_MICRONTRACKER
+      IF (@PLUS_USE_MICRONTRACKER@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_MicrontrackerInterface@)
       ENDIF()
     ENDIF ()
