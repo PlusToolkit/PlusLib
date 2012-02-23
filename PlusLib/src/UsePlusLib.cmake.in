@@ -58,12 +58,22 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   IF(PLUS_USE_SLICER)
     SET(SLICER_BIN_DIRECTORY "@SLICER_BIN_DIRECTORY@")
   ENDIF(PLUS_USE_SLICER)
-  
+
   # Add include directories needed to use PlusLib library 
-  INCLUDE_DIRECTORIES(@PLUSLIB_INCLUDE_DIRS@)
+  # Use a temporary CMake variable to store the list of directory paths
+  # (it is required because this way directory names
+  # that do not contain space and those that do contain space
+  # work equally well).
+  SET(PLUSLIB_INCLUDE_DIRS_TEMP "@PLUSLIB_INCLUDE_DIRS@")
+  INCLUDE_DIRECTORIES(${PLUSLIB_INCLUDE_DIRS_TEMP})
   
   # Add link directories needed to use Plus library
-  LINK_DIRECTORIES(@PLUSLIB_LIBRARY_DIRS@)
+  # Use a temporary CMake variable to store the list of directory paths
+  # (it is required because this way directory names
+  # that do not contain space and those that do contain space
+  # work equally well).
+  SET(PLUSLIB_LIBRARY_DIRS_TEMP "@PLUSLIB_LIBRARY_DIRS@")
+  LINK_DIRECTORIES(${PLUSLIB_LIBRARY_DIRS_TEMP})
   
   SET(PLUSLIB_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
   
