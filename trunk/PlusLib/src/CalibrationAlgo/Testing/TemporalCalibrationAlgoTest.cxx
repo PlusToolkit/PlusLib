@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-  //  Creat temporal calibration object; Set pertinent parameters
+  //  Create temporal calibration object; Set pertinent parameters
   TemporalCalibration testTemporalCalibrationObject;
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
   testTemporalCalibrationObject.SetVideoFrames(videoFrames);

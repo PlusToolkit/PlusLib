@@ -35,6 +35,10 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
+#include "itkIdentityTransform.h"
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkResampleImageFilter.h"
+
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 
@@ -51,8 +55,12 @@
   \ingroup PlusLibCalibrationAlgorithm
 */
 
+
 class TemporalCalibration
 {
+
+
+
 public:
 
   TemporalCalibration();
@@ -86,28 +94,38 @@ public:
 private:
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
   bool m_TrackerLagUpToDate; 
+ 
   /*! Has the user ever succsfully called Update() */
   bool m_NeverUpdated;
+  
   /*! Resolution used for re-sampling [s] TODO: Add comment about upsampling */
   double m_SamplingResolutionSec;
   vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
   vtkSmartPointer<vtkTrackedFrameList> m_VideoFrames; 
+  
   /*! Position metric values for the video stream (i.e. detect. line positions) */
   std::vector<double> m_VideoPositionMetric; 
   std::vector<double> m_VideoTimestamps; 
   std::vector<double> m_TrackerPositionMetric; 
   std::vector<double> m_TrackerTimestamps; 
+  
   /*! Resampled tracker metric used for correlation */
   std::vector<double> m_ResampledTrackerPositionMetric; // 
+ 
   /*! Resampled tracker time stamps used for correlation */
   std::vector<double> m_ResampledTrackerTimestamps; 
+  
   /*! Resampled video metric used for correlation */
   std::vector<double> m_ResampledVideoPositionMetric; 
+ 
   /*! Resampled video time stamps used for correlation */
   std::vector<double> m_ResampledVideoTimestamps;
+  
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
+  
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
   double m_TrackerLagSec;
+  
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
   double m_MaxTrackerLagSec; 
   std::string m_ProbeToReferenceTransformName;
