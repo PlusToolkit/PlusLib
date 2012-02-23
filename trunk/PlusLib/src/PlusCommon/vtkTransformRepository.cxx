@@ -404,8 +404,34 @@ PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, T
   }
   if (!silent)
   {
-    LOG_ERROR("Path not found from "<<aTransformName.From()<<" to "<<aTransformName.To());
-    //this->PrintSelf(std::cout, vtkIndent());
+    // Print available transforms into a string, for troubleshooting information
+    std::ostringstream osAvailableTransforms; 
+    bool firstPrintedTransform=true;
+    for (CoordFrameToCoordFrameToTransformMapType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
+    {        
+      for (CoordFrameToTransformMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
+      {
+        if (transformInfo->second.m_IsComputed)
+        {
+          // only print original transforms
+          continue;
+        }
+        // don't print separator before the first transform
+        if (firstPrintedTransform)
+        {
+          firstPrintedTransform=false;
+        }
+        else
+        {
+          osAvailableTransforms << ", ";
+        }
+        osAvailableTransforms << coordFrame->first << "To" << transformInfo->first << " (" 
+          << (transformInfo->second.m_IsValid?"valid":"invalid") << ", " 
+          << (transformInfo->second.m_IsPersistent?"persistent":"non-persistent") << ")";
+      }
+    }
+    LOG_ERROR("Transform path not found from "<<aTransformName.From()<<" to "<<aTransformName.To()<<" coordinate system."
+      <<" Available transforms in the repository (including the inverse of these transforms): "<<osAvailableTransforms.str());
   }
   return PLUS_FAIL;
 }
