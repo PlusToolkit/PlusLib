@@ -109,7 +109,7 @@ IF (PLUSAPP_TEST_GUI)
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
           --device-set-configuration-directory-path=${ConfigFilesDir}
-          --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_EC9_fCal1.xml
+          --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_EC9_fCal1.0.xml
           --image-directory-path=${TestDataDir}
       )
   SET_TESTS_PROPERTIES( StatusIconTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

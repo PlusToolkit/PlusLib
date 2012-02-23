@@ -9,10 +9,7 @@ def getCommandFromArguments(plusDir=''):
     
     # Concatenate the command line arguments to the executable name
     for argnum in range(2,len(sys.argv)):
-      if argnum == 2:
-        exe = exe + ' ' + sys.argv[argnum]
-      else:
-        exe = exe + ' "' + sys.argv[argnum] + '"'
+      exe = exe + ' "' + sys.argv[argnum] + '"'
   else:
     # Temporary setting of the executable (for trying in Sikuli IDE)
     if plusDir == '':

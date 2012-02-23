@@ -317,8 +317,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   // If no valid configuration files have been parsed then warn user
   if (ui.comboBox_DeviceSet->count() < 1)
   {
-    LOG_ERROR("Selected directory does not contain valid device set configuration files!");
-
+    LOG_ERROR("Selected directory ("<<aDirectory.toAscii().data()<<") does not contain valid device set configuration files!");
     return PLUS_FAIL;
   }
 
