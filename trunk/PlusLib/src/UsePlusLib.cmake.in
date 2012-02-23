@@ -136,7 +136,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       ENDIF()      
       # if PLUS_USE_MICRONTRACKER
       IF (@PLUS_USE_MICRONTRACKER@)
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_MicrontrackerInterface@)
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_MicronTrackerInterface@)
       ENDIF()
     ENDIF ()
   endmacro()
