@@ -633,7 +633,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       // divide by outInc[0] to accomodate for the difference
       // in the number of scalar pointers between the output
       // and the accumulation buffer
-      unsigned short *accPtr1 = accPtr + ((unsigned short)(inc/outInc[0]));
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]);
       unsigned short newa = *accPtr1 + ((unsigned short)(255));
       int i = numscalars;
       do 
