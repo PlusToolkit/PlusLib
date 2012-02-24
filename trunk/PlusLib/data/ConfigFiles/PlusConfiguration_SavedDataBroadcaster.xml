@@ -6,37 +6,9 @@
       Name="Saved Data Broadcaster"
       Description="Replays a recorded procedure for OpenIGTLinkBroadcaster" 
       />
-
-    <Tracker
-	  Type="SavedDataset"
-      SequenceMetafile="FacetInPlaneInsertion.mha"
-      ReplayEnabled="TRUE"
-      BufferSize="20"
-      Frequency="5"
-      LocalTimeOffset="0.0"
-      AveragedItemsForFiltering="4"
-      >
-      
-	  <Tool Name="Probe"     PortName="0" />
-      <Tool Name="Reference" PortName="1" />
-      <Tool Name="Stylus"    PortName="2" />
     
-	</Tracker>
-
-    <ImageAcquisition
-      Type="SavedDataset"
-      SequenceMetafile="FacetInPlaneInsertion.mha"
-      ReplayEnabled="TRUE"
-      BufferSize="20" 
-      FrameSize="820 616" 
-      UsImageOrientation="MN"
-      FrameRate="5" 
-      AveragedItemsForFiltering="4" 
-      LocalTimeOffset="0.0" 
-     />
-
-    <Synchronization Type="None" />
-
+    <File SequenceMetafile="FacetInPlaneInsertion.mha" ReplayEnabled="TRUE" />
+    
     <OpenIGTLink>
       <Transform SendTo="localhost:18944" Name="StylusTipToReference"/>
       <Transform SendTo="localhost:18944" Name="ProbeToReference"/>
