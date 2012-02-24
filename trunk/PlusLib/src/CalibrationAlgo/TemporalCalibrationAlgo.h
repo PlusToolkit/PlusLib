@@ -35,12 +35,15 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include "itkIdentityTransform.h"
-#include "itkBSplineInterpolateImageFunction.h"
+//#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
+//#include "itkBinaryThinningImageFilter.h"
+//#include "itkRescaleIntensityImageFilter.h"
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+
+#include <itkCastImageFilter.h>
 
 /*!
   \class TemporalCalibration
