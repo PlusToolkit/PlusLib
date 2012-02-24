@@ -35,6 +35,7 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
+  this->HoleFiller = vtkFillHolesInVolume::New();  
   this->FillHoles=0;
 }
 
@@ -45,6 +46,8 @@ vtkVolumeReconstructor::~vtkVolumeReconstructor()
   {
     this->Reconstructor->Delete();
     this->Reconstructor=NULL;
+    this->HoleFiller->Delete();
+    this->HoleFiller=NULL;
   }
 }
 
@@ -166,6 +169,7 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   if (reconConfig->GetScalarAttribute("NumberOfThreads", numberOfThreads))
   {
     this->Reconstructor->SetNumberOfThreads(numberOfThreads);
+	this->HoleFiller->SetNumberOfThreads(numberOfThreads);
   }
 
   int fillHoles=0;
@@ -422,11 +426,10 @@ PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstr
   extract->SetComponents(0);
   if (this->FillHoles)
   {
-    vtkSmartPointer<vtkFillHolesInVolume> holeFiller = vtkSmartPointer<vtkFillHolesInVolume>::New();
-    holeFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
-    holeFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
-    holeFiller->Update();
-    extract->SetInput(holeFiller->GetOutput());
+    HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
+    HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
+    HoleFiller->Update();
+    extract->SetInput(HoleFiller->GetOutput());
   }
   else
   {
