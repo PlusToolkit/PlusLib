@@ -78,6 +78,8 @@ vtkFillHolesInVolume::vtkFillHolesInVolume()
   this->SetNumberOfInputPorts(2);
   this->SetNumberOfOutputPorts(1);
   this->Compounding=0;
+  this->SetNumberOfThreads(1); // TODO: Fix multithreading. Algorithm will
+							   // crash unless the number of threads is set to 1
 }
 
 //----------------------------------------------------------------------------
@@ -100,7 +102,7 @@ int vtkFillHolesInVolume::RequestInformation(vtkInformation* vtkNotUsed(request)
 
   // get the info objects
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
-  vtkInformation* inInfo = inputVector[INPUT_PORT_RECONSTRUCTED_VOLUME]->GetInformationObject(0);
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0); // TODO: find out whic 0 refers to the port number and use the const
 
   // invalid setting, it has not been set, so default to whole Extent
   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent);
@@ -119,7 +121,7 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 
   // get the info objects
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
-  vtkInformation *inInfo = inputVector[INPUT_PORT_RECONSTRUCTED_VOLUME]->GetInformationObject(0);
+  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0); // TODO: find out whic 0 refers to the port number and use the const
 
   // invalid setting, it has not been set, so default to whole Extent
   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 
@@ -130,66 +132,6 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
   inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), inUExt, 6);  
 
   return 1;
-}
-
-//----------------------------------------------------------------------------
-template <class T>
-int vtkFillHolesInVolume::fillVolumeRangeN   (T* inputData,	           // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
-											  int* accOffsets,
-											  int* inputComp,		   // the component index of interest
-											  int* bounds,             // the boundaries of the volume, outputExtent
-											  int N,				   // The size of the neighborhood, odd positive integer
-											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
-											  T* returnVal)			   // The value of the pixel being calculated (unknown)
-{
-
-	if (N%2 != 1 || N <= 1)
-	{
-		LOG_ERROR("vtkFillHolesInVolume::fillVolumeRange: N must be a positive odd integer greater or equal to 3");
-		return 0;
-	}
-
-	// set the x, y, and z range
-	int range = (N-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
-	int minX = thisPixel[0] - range;
-	int minY = thisPixel[1] - range;
-	int minZ = thisPixel[2] - range;
-	int maxX = thisPixel[0] + range;
-	int maxY = thisPixel[1] + range;
-	int maxZ = thisPixel[2] + range;
-
-	unsigned long int sumIntensities(0); // unsigned long because these rise in value quickly
-	unsigned long int sumAccumulator(0);
-
-	for (int x = minX; x <= maxX; x++)
-	{
-		for (int y = minY; y <= maxY; y++)
-		{
-			for (int z = minZ; z <= maxZ; z++)
-			{
-				if (x <= bounds[1] && x >= bounds[0] &&
-					y <= bounds[3] && y >= bounds[2] &&
-					z <= bounds[5] && z >= bounds[4] ) // check bounds
-				{
-					int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+(*inputComp);
-					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					sumIntensities += inputData[volIndex] * accData[accIndex];
-					sumAccumulator +=   accData[accIndex];
-				} // end boundary check
-			} // end z loop
-		} // end y loop
-	} // end x loop
-
-	if (sumAccumulator == 0) // no voxels set in the area
-		return 0;
-
-	// TODO: Overflow protection
-	*returnVal = (T)(sumIntensities/sumAccumulator);
-
-	return 1;
-
 }
 
 //----------------------------------------------------------------------------
@@ -216,73 +158,39 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
     return;
   }
 
-	// get increments for volume and for accumulation buffer
-	int byteIncVol[3]; //x,y,z
-	outData->GetIncrements(byteIncVol[0],byteIncVol[1],byteIncVol[2]);
-	int byteIncAcc[3]; //x,y,z
-	accData->GetIncrements(byteIncAcc[0],byteIncAcc[1],byteIncAcc[2]);
+  // might need to clip the extent by 1 on either side
 
-	// this will store the position of the pixel being looked at currently
-	int currentPos[3]; //x,y,z
+	// get increments for output and for accumulation buffer
+	int byteIncOutputX=0;
+	int byteIncOutputY=0;
+	int byteIncOutputZ=0;
+	outData->GetIncrements(byteIncOutputX, byteIncOutputY, byteIncOutputZ);
+	int byteIncAccX=0;
+	int byteIncAccY=0;
+	int byteIncAccZ=0;
+	accData->GetIncrements(byteIncAccX, byteIncAccY, byteIncAccZ);
 
-	int numVolumeComponents = outData->GetNumberOfScalarComponents() - 1; // subtract 1 because of the alpha channel
-	
-	T alphaMax = 255;  // TODO: should be the maximum value for type T
+	int numOutputComponents = outData->GetNumberOfScalarComponents();
 
-	// iterate through each voxel. When the accumulation buffer is 0, fill that hole, and continue.
-	for (currentPos[2] = outExt[4]; currentPos[2] <= outExt[5]; currentPos[2]++)
+	// for now, just copy the input into the output. This is *not* hole-filling.
+	for (int idZ = outExt[4]; idZ <= outExt[5]; idZ++)
 	{
-		for (currentPos[1] = outExt[2]; currentPos[1] <= outExt[3]; currentPos[1]++)
+		for (int idY = outExt[2]; idY <= outExt[3]; idY++)
 		{
-			for (currentPos[0] = outExt[0]; currentPos[0] <= outExt[1]; currentPos[0]++)
+			for (int idX = outExt[0]; idX <= outExt[1]; idX++)
 			{
-				// accumulator index and volume alpha index should not depend on which individual component is being interpolated
-				int accIndex = (currentPos[0]*byteIncAcc[0])+(currentPos[1]*byteIncAcc[1])+(currentPos[2]*byteIncAcc[2]);
-				int volAlphaIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+numVolumeComponents;
-				if (accPtr[accIndex] == 0) // if not hit by accumulation during vtkPasteSliceIntoVolume
+				for (int c = 0; c < numOutputComponents; c++)
 				{
-					bool alphaSet = false; // set true once alpha has been evaluated (only donce once)
-					for (int c = 0; c < numVolumeComponents; c++)
-					{
-						// volume index for this component
-						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
-						int result = 0;
-						int N = 3; // starts at 5, since will be += 2 in the loop
-						while (N < 5 && result == 0)
-						{
-							N += 2;
-							result = vtkFillHolesInVolume::fillVolumeRangeN (inVolPtr,accPtr,byteIncVol,byteIncAcc,&c,outExt,N,currentPos,&outPtr[volCompIndex]);
-						} // end while
-						if (!result) // if there are no voxels within range, just set this one (and its alpha) to zero
-						{
-							outPtr[volCompIndex] = 0;
-						} // end checking interpolation success
-						if (!alphaSet)
-						{
-							alphaSet = true; // only do this check once
-							if (!result) // if there are no voxels within range, alpha should be 0
-							{
-								outPtr[volAlphaIndex] = 0;
-							}
-							else // found a result, should set the alpha channel to its maximum value
-							{
-								outPtr[volAlphaIndex] = alphaMax;
-							} // end checking interpolation success
-						}
-					} // end component loop
+					// assumes that the input and output share the same number of components...
+					// this is *not* safe for the final version of the code. Only placeholder.
+					outPtr[(idX*byteIncOutputX)+(idY*byteIncOutputY)+(idZ*byteIncOutputZ)+c] =
+					inVolPtr[(idX*byteIncOutputX)+(idY*byteIncOutputY)+(idZ*byteIncOutputZ)+c];
 				}
-				else // if hit, just use the apparent value
-				{
-					for (int c = 0; c < numVolumeComponents; c++)
-					{
-						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
-						outPtr[volCompIndex] = inVolPtr[volCompIndex];
-					} // end component loop
-					outPtr[volAlphaIndex] = alphaMax;
-				} // end accumulation check
-			} // end x loop
-		} // end y loop
-	} // end z loop
+			}
+		}
+	}
+
+	// might need to add an alpha conversion section, 1 -> 255
 
 }
 
@@ -295,7 +203,7 @@ void vtkFillHolesInVolume::ThreadedRequestData(vtkInformation *request,
     int outExt[6], int threadId)
 {
   vtkImageData* outVolData = outData[0];  
-  void *outVolPtr = outVolData->GetScalarPointer();  
+  void *outVolPtr = outVolData->GetScalarPointerForExtent(outExt);  
 
   vtkImageData* inVolData=inData[0][0];
   void *inVolPtr = inVolData->GetScalarPointer();
@@ -306,10 +214,10 @@ void vtkFillHolesInVolume::ThreadedRequestData(vtkInformation *request,
   // this filter expects that input is the same type as output.
   if (inVolData->GetScalarType() != outVolData->GetScalarType())
     {
-    LOG_ERROR("Execute: input data type, " 
-              << inVolData->GetScalarType()
-              << ", must match out ScalarType " 
-              << outVolData->GetScalarType());
+    vtkErrorMacro(<< "Execute: input data type, " 
+                  << inVolData->GetScalarType()
+                  << ", must match out ScalarType " 
+                  << outVolData->GetScalarType());
     return;
     }
   
@@ -323,7 +231,7 @@ void vtkFillHolesInVolume::ThreadedRequestData(vtkInformation *request,
                                        static_cast<VTK_TT *>(outVolPtr), outExt,
                                        threadId));
     default:
-      LOG_ERROR("Execute: Unknown ScalarType");
+      vtkErrorMacro(<< "Execute: Unknown ScalarType");
       return;
     }
 }

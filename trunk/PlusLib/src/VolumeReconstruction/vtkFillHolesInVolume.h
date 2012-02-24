@@ -89,21 +89,6 @@ public:
   */
   void SetAccumulationBuffer(vtkImageData *accumulationBuffer);
 
-  /*!
-	Perform Interpolation between the nearest NxNxN voxels, and store at 
-	the address provided in returnVal. Returns 1 on success and 0 on failure.
-  */
-  template <class T>
-  static int fillVolumeRangeN   (T* inputData,
-						  unsigned short* accData,
-						  int* inputOffsets,
-						  int* accOffsets,
-						  int* inputComp,
-						  int* bounds, 
-					      int N,
-						  int* thisPixel,
-						  T* returnVal);
-
 protected:
   vtkFillHolesInVolume();
   ~vtkFillHolesInVolume();
