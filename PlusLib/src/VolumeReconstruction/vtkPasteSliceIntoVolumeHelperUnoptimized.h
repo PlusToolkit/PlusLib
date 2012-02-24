@@ -111,7 +111,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
         *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
         outPtr++;
       }
-      *outPtr = 255; // set the alpha value to opaque
+      *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
       *accPtr = 65535; // set to 0xFFFF by default for overflow protection
       if (newa < 65535)
       {
@@ -125,7 +125,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       {
         *outPtr++ = *inPtr++;
       }
-      *outPtr = 255;
+      *outPtr = (T)OPAQUE_ALPHA;
     }
     return 1;
   }

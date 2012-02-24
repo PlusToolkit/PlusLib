@@ -60,6 +60,10 @@ POSSIBILITY OF SUCH DAMAGES.
 static const int INPUT_PORT_RECONSTRUCTED_VOLUME=0;
 static const int INPUT_PORT_ACCUMULATION_BUFFER=1;
 
+#ifndef OPAQUE_ALPHA
+static const unsigned char OPAQUE_ALPHA=255;
+#endif
+
 ///////////
 
 vtkStandardNewMacro(vtkFillHolesInVolume);
@@ -134,25 +138,25 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 
 //----------------------------------------------------------------------------
 template <class T>
-int vtkFillHolesInVolume::fillVolumeRangeN   (T* inputData,	           // contains the dataset being interpolated between
+int vtkFillHolesInVolume::weightedAverageOverNeighborhood(T* inputData,// contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
 											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
 											  int* accOffsets,
-											  int* inputComp,		   // the component index of interest
+											  const int& inputComp,	   // the component index of interest
 											  int* bounds,             // the boundaries of the volume, outputExtent
-											  int N,				   // The size of the neighborhood, odd positive integer
+											  const int& neighborSize, // The size of the neighborhood, odd positive integer
 											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
-											  T* returnVal)			   // The value of the pixel being calculated (unknown)
+											  T& returnVal)           // The value of the pixel being calculated (unknown)
 {
 
-	if (N%2 != 1 || N <= 1)
+	if (neighborSize%2 != 1 || neighborSize <= 1)
 	{
-		LOG_ERROR("vtkFillHolesInVolume::fillVolumeRange: N must be a positive odd integer greater or equal to 3");
+		LOG_ERROR("vtkFillHolesInVolume::weightedAverageOverNeighborhood: 'neighborSize' must be a positive odd integer greater or equal to 3");
 		return 0;
 	}
 
 	// set the x, y, and z range
-	int range = (N-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+	int range = (neighborSize-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
 	int minX = thisPixel[0] - range;
 	int minY = thisPixel[1] - range;
 	int minZ = thisPixel[2] - range;
@@ -173,7 +177,7 @@ int vtkFillHolesInVolume::fillVolumeRangeN   (T* inputData,	           // contai
 					y <= bounds[3] && y >= bounds[2] &&
 					z <= bounds[5] && z >= bounds[4] ) // check bounds
 				{
-					int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+(*inputComp);
+					int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
 					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
 					sumIntensities += inputData[volIndex] * accData[accIndex];
 					sumAccumulator +=   accData[accIndex];
@@ -186,7 +190,7 @@ int vtkFillHolesInVolume::fillVolumeRangeN   (T* inputData,	           // contai
 		return 0;
 
 	// TODO: Overflow protection
-	*returnVal = (T)(sumIntensities/sumAccumulator);
+	returnVal = (T)(sumIntensities/sumAccumulator);
 
 	return 1;
 
@@ -226,8 +230,6 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 	int currentPos[3]; //x,y,z
 
 	int numVolumeComponents = outData->GetNumberOfScalarComponents() - 1; // subtract 1 because of the alpha channel
-	
-	T alphaMax = 255;  // TODO: should be the maximum value for type T
 
 	// iterate through each voxel. When the accumulation buffer is 0, fill that hole, and continue.
 	for (currentPos[2] = outExt[4]; currentPos[2] <= outExt[5]; currentPos[2]++)
@@ -247,11 +249,11 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 						// volume index for this component
 						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
 						int result = 0;
-						int N = 3; // starts at 5, since will be += 2 in the loop
-						while (N < 5 && result == 0)
+						int N = 1; // starts at 5, since will be += 2 in the loop
+						while (N < 3 && result == 0)
 						{
 							N += 2;
-							result = vtkFillHolesInVolume::fillVolumeRangeN (inVolPtr,accPtr,byteIncVol,byteIncAcc,&c,outExt,N,currentPos,&outPtr[volCompIndex]);
+							result = vtkFillHolesInVolume::weightedAverageOverNeighborhood(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,N,currentPos,outPtr[volCompIndex]);
 						} // end while
 						if (!result) // if there are no voxels within range, just set this one (and its alpha) to zero
 						{
@@ -266,7 +268,7 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 							}
 							else // found a result, should set the alpha channel to its maximum value
 							{
-								outPtr[volAlphaIndex] = alphaMax;
+								outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
 							} // end checking interpolation success
 						}
 					} // end component loop
@@ -278,7 +280,7 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
 						outPtr[volCompIndex] = inVolPtr[volCompIndex];
 					} // end component loop
-					outPtr[volAlphaIndex] = alphaMax;
+					outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
 				} // end accumulation check
 			} // end x loop
 		} // end y loop
