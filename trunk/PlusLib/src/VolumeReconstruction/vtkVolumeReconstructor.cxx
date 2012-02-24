@@ -173,7 +173,6 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   {
     if (STRCASECMP(reconConfig->GetAttribute("FillHoles"), "On") == 0) 
     {
-      LOG_WARNING("Hole filling is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/wiki/Volume_reconstruction_algorithm");
       this->FillHoles=1;
     }
     else
