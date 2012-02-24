@@ -12,6 +12,7 @@
 #include "vtkPasteSliceIntoVolume.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
+#include "vtkFillHolesInVolume.h"
 
 class vtkPasteSliceIntoVolume;
 class vtkTrackedFrameList;
@@ -88,6 +89,7 @@ protected:
   static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref);
 
   vtkPasteSliceIntoVolume* Reconstructor; 
+  vtkFillHolesInVolume* HoleFiller; 
   
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   int FillHoles;
