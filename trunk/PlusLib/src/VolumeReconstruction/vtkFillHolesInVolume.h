@@ -94,15 +94,15 @@ public:
 	the address provided in returnVal. Returns 1 on success and 0 on failure.
   */
   template <class T>
-  static int fillVolumeRangeN   (T* inputData,
-						  unsigned short* accData,
-						  int* inputOffsets,
-						  int* accOffsets,
-						  int* inputComp,
-						  int* bounds, 
-					      int N,
-						  int* thisPixel,
-						  T* returnVal);
+  static int weightedAverageOverNeighborhood( T* inputData,             // contains the dataset being interpolated between
+											  unsigned short* accData, // contains the weights of each voxel
+											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  int* accOffsets,
+											  const int& inputComp,	   // the component index of interest
+											  int* bounds,             // the boundaries of the volume, outputExtent
+											  const int& neighborSize, // The size of the neighborhood, odd positive integer
+											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
+											  T& returnVal);           // The value of the pixel being calculated (unknown)
 
 protected:
   vtkFillHolesInVolume();

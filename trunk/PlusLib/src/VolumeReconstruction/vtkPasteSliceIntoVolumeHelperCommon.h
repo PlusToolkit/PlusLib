@@ -59,6 +59,11 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusMath.h"
 
 
+#ifndef OPAQUE_ALPHA
+static const unsigned char OPAQUE_ALPHA=255;
+#endif
+
+
 /*!
   Implements trilinear interpolation
 
@@ -176,7 +181,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         while (i);
 
         *accPtrTmp = 65535;
-        *outPtrTmp = 255;
+        *outPtrTmp = (T)OPAQUE_ALPHA; //alpha set to opaque
         a *= 255;
         // don't allow accumulation buffer overflow
         if (a < F(65535))
@@ -227,7 +232,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
           }
           while (i);
         }          
-        *outPtrTmp = 255;
+        *outPtrTmp = (T)OPAQUE_ALPHA;
       }
       while (j);
     }

@@ -533,7 +533,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       // divide by outInc[0] to accomodate for the difference
       // in the number of scalar pointers between the output
       // and the accumulation buffer
-      unsigned short *accPtr1 = accPtr + ((unsigned short)(inc/outInc[0]));
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]); // removed cast to unsigned short because it might cause loss in larger numbers
       unsigned short newa = *accPtr1 + ((unsigned short)(255)); 
       int i = numscalars;
       do 
@@ -544,7 +544,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       }
       while (i);
 
-      *outPtr1 = 255;
+      *outPtr1 = (T)OPAQUE_ALPHA;
       *accPtr1 = 65535;
       if (newa < 65535)
       {
@@ -586,7 +586,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         *outPtr1++ = *inPtr++;
       }
       while (i);
-      *outPtr1 = 255;
+      *outPtr1 = (T)OPAQUE_ALPHA;
     }
   } 
 }
@@ -644,7 +644,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       }
       while (i);
 
-      *outPtr1 = 255;
+      *outPtr1 = (T)OPAQUE_ALPHA;
       *accPtr1 = 65535;
       if (newa < 65535)
       {
@@ -685,7 +685,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         *outPtr1++ = *inPtr++;
       }
       while (i);
-      *outPtr1 = 255;
+      *outPtr1 = (T)OPAQUE_ALPHA;
 
       outPoint[0] += xAxis[0];
       outPoint[1] += xAxis[1];
