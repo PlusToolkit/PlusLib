@@ -163,7 +163,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         outPtrTmp = outPtr+idx[j];
         accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
         f = fdx[j];
-        r = F((*accPtrTmp)/255);
+        r = F((*accPtrTmp)/255.);	// added division by float or double, since this always returned 0 otherwise
         a = f + r;
 
         int i = numscalars;
