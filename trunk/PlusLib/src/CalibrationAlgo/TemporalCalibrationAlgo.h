@@ -20,6 +20,7 @@
 #include <vtkTable.h>
 #include <vtkPlot.h>
 #include <vtkIntArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkPen.h>
@@ -136,10 +137,11 @@ private:
   double m_MaxTrackerLagSec; 
   std::string m_ProbeToReferenceTransformName;
 
-  void plot(std::vector<int> intensityValues);
+  void plotIntArray(std::vector<int> intensityValues);
+  void plotDoubleArray(std::vector<double> intensityValues);
   PlusStatus FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
                            int startOfMaxArea, int &startOfPeak);
-PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
+  PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
                                                 int &MaxFromLargestAreaIndex, int &startOfMaxArea);
   
   PlusStatus ResamplePositionMetrics();

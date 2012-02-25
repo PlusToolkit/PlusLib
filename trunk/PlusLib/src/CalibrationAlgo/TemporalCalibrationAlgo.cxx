@@ -257,19 +257,26 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     it.GoToBegin();
     while (!it.IsAtEnd())
     {
-      std::cout << (int)it.Get() << std::endl;
       intensityProfile.push_back((int)it.Get());
       it.Set(255);
       ++it;
     }
-
+    
+   bool writeSampleLineImageToFile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+   if(writeSampleLineImageToFile)
+   {
     // Write image showing the sampling line to file
     std::ostrstream downsampledVideoFrameFilename;
     downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
     PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
+   }
 
+   bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+   if(plotIntensityProfile)
+   {
     // Plot the intensity profile
-    plot(intensityProfile);
+    plotIntArray(intensityProfile);
+   }
 
     // Find the max intensity value from the peak with the largest area
     int MaxFromLargestArea = -1;
@@ -277,22 +284,29 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     int startOfMaxArea = -1;
     FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex,startOfMaxArea);
     
-    std::cout << "Max intensity value: " << MaxFromLargestArea << std::endl;
-    std::cout << "Max intensity index: " << MaxFromLargestAreaIndex << std::endl;
+    LOG_TRACE("Max intensity value: " << MaxFromLargestArea);
+    LOG_TRACE("Max intensity index: " << MaxFromLargestAreaIndex);
 
     int startOfPeak = -1;
     FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
+    m_VideoPositionMetric.push_back(startOfPeak);
 
-    std::cout << "Fifty-percent peak start: " << startOfPeak << std::endl;
-                                               
+    LOG_TRACE("Fifty-percent peak start: " << startOfPeak);
 
-
-    std::cout << "done" << std::endl;
+                                            
   }// end frameNum loop
   
-  //  Normalize the video metric
-  //NormalizeMetric(m_VideoPositionMetric);
+   bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+   if(plotVideoMetric)
+   {
+    plotDoubleArray(m_VideoPositionMetric);
+   }
 
+
+  //  Normalize the video metric
+  NormalizeMetric(m_VideoPositionMetric);
+
+  
   return PLUS_SUCCESS;
 
 } //  End LineDetection
@@ -722,7 +736,7 @@ void TemporalCalibration::ComputeTrackerLagSec()
 }
 
 
-void TemporalCalibration::plot(std::vector<int> intensityValues)
+void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 {
 
   //  Create table
@@ -735,6 +749,56 @@ void TemporalCalibration::plot(std::vector<int> intensityValues)
  
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkIntArray> arrIntensityProfile = vtkSmartPointer<vtkIntArray>::New();
+  arrIntensityProfile->SetName("Intensity Profile");
+  table->AddColumn(arrIntensityProfile);
+ 
+  // Set the tracker data
+  table->SetNumberOfRows(intensityValues.size());
+  for (int i = 0; i < intensityValues.size(); ++i)
+  {
+    table->SetValue(i, 0, i);
+    table->SetValue(i, 1, (intensityValues.at(i)));
+  }
+
+  // Set up the view
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+ 
+  // Add the two line plots
+  vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+
+  #if VTK_MAJOR_VERSION <= 5
+    line->SetInput(table, 0, 1);
+  #else
+    line->SetInputData(table, 0, 1);
+  #endif
+
+  line->SetColor(0, 255, 0, 255);
+  line->SetWidth(1.0);
+  line = chart->AddPlot(vtkChart::LINE);
+
+  // Start interactor
+  view->GetInteractor()->Initialize();
+  view->GetInteractor()->Start();
+
+} //  End plot()
+
+
+void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
+{
+
+  //  Create table
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+
+  //  Create array correpsonding to the time values of the tracker plot
+  vtkSmartPointer<vtkDoubleArray> arrPixelPositions = vtkSmartPointer<vtkDoubleArray>::New();
+  arrPixelPositions->SetName("Pixel Positions"); 
+  table->AddColumn(arrPixelPositions);
+ 
+  //  Create array corresponding to the metric values of the tracker plot
+  vtkSmartPointer<vtkDoubleArray> arrIntensityProfile = vtkSmartPointer<vtkDoubleArray>::New();
   arrIntensityProfile->SetName("Intensity Profile");
   table->AddColumn(arrIntensityProfile);
  
