@@ -137,6 +137,8 @@ private:
   std::string m_ProbeToReferenceTransformName;
 
   void plot(std::vector<int> intensityValues);
+  PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
+                                                int &MaxFromLargestAreaIndex);
   
   PlusStatus ResamplePositionMetrics();
   void InterpolatePositionMetric(const std::vector<double> &originalTimestamps,

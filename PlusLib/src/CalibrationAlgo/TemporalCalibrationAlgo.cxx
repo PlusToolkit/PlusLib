@@ -257,6 +257,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     it.GoToBegin();
     while (!it.IsAtEnd())
     {
+      std::cout << (int)it.Get() << std::endl;
       intensityProfile.push_back((int)it.Get());
       it.Set(255);
       ++it;
@@ -270,6 +271,14 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Plot the intensity profile
     plot(intensityProfile);
 
+    // Find the max intensity value from the peak with the largest area
+    int MaxFromLargestArea = -1;
+    int MaxFromLargestAreaIndex = -1;
+    FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex);
+    
+    std::cout << "Max intensity value: " << MaxFromLargestArea << std::endl;
+    std::cout << "Max intensity index: " << MaxFromLargestAreaIndex << std::endl;
+
     std::cout << "done" << std::endl;
   }// end frameNum loop
   
@@ -280,6 +289,54 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 
 } //  End LineDetection
 
+PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
+                                                int &MaxFromLargestAreaIndex)
+{
+  int currentLargestArea = 0;
+  int currentArea = 0;
+  int currentMaxFromLargestArea = 0;
+  int currentMaxFromLargestAreaIndex = 0;
+  int currentMax = 0;
+  int currentMaxIndex = 0;
+  bool underPeak = false;
+
+  for(int pixelLoc = 0; pixelLoc < intensityProfile.size(); ++pixelLoc)
+  {
+    if(intensityProfile.at(pixelLoc) > 0 && !underPeak)
+    {
+      underPeak = true;
+      currentMax = intensityProfile.at(pixelLoc);
+      currentMaxIndex = pixelLoc;
+      currentArea = intensityProfile.at(pixelLoc);
+    }
+
+    if(intensityProfile.at(pixelLoc) > 0 && underPeak)
+    {
+      currentArea += intensityProfile.at(pixelLoc);
+      
+      if(intensityProfile.at(pixelLoc) > currentMax)
+      {
+        currentMax = intensityProfile.at(pixelLoc);
+        currentMaxIndex = pixelLoc;
+      }
+    }
+
+    if(intensityProfile.at(pixelLoc) == 0 && underPeak)
+    {
+      underPeak = false;
+      if(currentArea > currentLargestArea)
+      {
+        currentLargestArea = currentArea;
+        currentMaxFromLargestArea = currentMax;
+        currentMaxFromLargestAreaIndex = currentMaxIndex;
+      }
+    }
+  } //end loop through intensity profile
+
+  MaxFromLargestArea = currentMaxFromLargestArea;
+  MaxFromLargestAreaIndex = currentMaxFromLargestAreaIndex;
+  return PLUS_SUCCESS;
+}
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
