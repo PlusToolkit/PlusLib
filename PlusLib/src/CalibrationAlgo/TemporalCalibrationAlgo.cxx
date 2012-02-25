@@ -235,7 +235,6 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 
     // Get curent image
     charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
-    charImageType::Pointer originalImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
 
     if(localImage.IsNull())
     {
@@ -243,140 +242,39 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       continue;
     }
 
-     // Setup types
-    typedef itk::Image< float, 2 > FloatImageType;
-    typedef itk::DiscreteGaussianImageFilter<charImageType, FloatImageType>  filterType;
-
-    // Create and setup a Gaussian filter
-    filterType::Pointer gaussianFilter = filterType::New();
-    gaussianFilter->SetInput(localImage);
-    gaussianFilter->SetVariance(2.0);
-    FloatImageType::Pointer gaussianBlurredImage = gaussianFilter->GetOutput();
-
-    // Cast the image back from a float to an unsigned char
-    typedef itk::CastImageFilter< FloatImageType, charImageType> T_floatImageToCharImageConverter;
-
-    T_floatImageToCharImageConverter::Pointer floatImageToCharImageConverter = T_floatImageToCharImageConverter::New();
-    floatImageToCharImageConverter->SetInput(gaussianBlurredImage);
-    floatImageToCharImageConverter->Update();
-    floatImageToCharImageConverter->GetOutput();
+    charImageType::RegionType region = localImage->GetLargestPossibleRegion();
     
-    localImage = floatImageToCharImageConverter->GetOutput();
+    charImageType::IndexType startPixel;
+    startPixel[0] = static_cast<int>(region.GetSize()[0] / 2.0);
+    startPixel[1] = 0;
 
-    // Typedef's for pixel, image
-    typedef unsigned char T_InputPixel;
-    typedef unsigned char T_OutputPixel;
-    typedef itk::Image<T_InputPixel, 2> T_Image;
-  
-    // Resampler type 
-    typedef itk::ResampleImageFilter<T_Image, T_Image> T_ResampleFilter;  
+    charImageType::IndexType endPixel;
+    endPixel[0] = startPixel[0];
+    endPixel[1] = region.GetSize()[1] - 1;
    
-    // Instantiate the resampler. 
-    T_ResampleFilter::Pointer resamplerFilter = T_ResampleFilter::New();
-   
-    // Set the output origin (i.e. unchanged)
-    const double reaamplerOutputOrigin[2]  = { 0.0, 0.0 };
-    resamplerFilter->SetOutputOrigin(reaamplerOutputOrigin);
-
-    // Fetch original image size.
-    const T_Image::RegionType& inputRegion = localImage->GetLargestPossibleRegion();
-    const T_Image::SizeType& vnInputSize = inputRegion.GetSize();
-    unsigned int nOldWidth = vnInputSize[0];
-    unsigned int nOldHeight = vnInputSize[1];
-    unsigned int nNewWidth = static_cast<unsigned int>(nOldWidth / IMAGE_DOWSAMPLING_FACTOR_X );
-    unsigned int nNewHeight = static_cast<unsigned int>(nOldHeight / IMAGE_DOWSAMPLING_FACTOR_Y );
-
-    // Fetch original image spacing.
-    const T_Image::SpacingType& vfInputSpacing = localImage->GetSpacing();
-                                              
-    double vfOutputSpacing[2];
-    vfOutputSpacing[0] = vfInputSpacing[0] * (double) nOldWidth / (double) nNewWidth;
-    vfOutputSpacing[1] = vfInputSpacing[1] * (double) nOldHeight / (double) nNewHeight;
-   
-    // Set the output spacing
-    resamplerFilter->SetOutputSpacing(vfOutputSpacing);
-   
-    // Set the output size as specified on the command line.
-    itk::Size<2> vnOutputSize = { {nNewWidth, nNewHeight} };
-    resamplerFilter->SetSize(vnOutputSize);
-   
-    // Specify the input.
-    resamplerFilter->SetInput(localImage);
-   
-    // Get output of resampler filter (default interpolation is linear interpolation)
-    localImage = resamplerFilter->GetOutput();
-
-    bool writeFidFoundRatioToFile = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
-    if(writeFidFoundRatioToFile)
+    std::vector<int> intensityProfile; // Holds intensity profile of the line
+    itk::LineIterator<charImageType> it(localImage, startPixel, endPixel);
+    it.GoToBegin();
+    while (!it.IsAtEnd())
     {
-      std::ostrstream downsampledVideoFrameFilename;
-      downsampledVideoFrameFilename << "downsampledVideoFrame" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-      PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
-
-      std::ostrstream originalVideoFrameFilename;
-      originalVideoFrameFilename << "originalVideoFrame" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-      PlusVideoFrame::SaveImageToFile(originalImage , originalVideoFrameFilename.str());
+      intensityProfile.push_back((int)it.Get());
+      it.Set(255);
+      ++it;
     }
 
-    // Create the hough transform line detection filter
-    typedef itk::HoughTransform2DLinesImageFilter<charPixelType, floatPixelType> HoughTransformFilterType;
-    HoughTransformFilterType::Pointer houghTransform = HoughTransformFilterType::New();
+    // Write image showing the sampling line to file
+    std::ostrstream downsampledVideoFrameFilename;
+    downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+    PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
 
-    // Get threshold value via Otsu's metod
-    typedef itk::OtsuThresholdImageFilter <charImageType, charImageType> otsuThresholdImageFilterType;
-    otsuThresholdImageFilterType::Pointer otsuFilter = otsuThresholdImageFilterType::New();
-    otsuFilter->SetInput(localImage);
-    otsuFilter->Update();
+    // Plot the intensity profile
+    plot(intensityProfile);
 
-    // Set parameters of the Hough transform filter
-    double houghLineDetectionThreshold = otsuFilter->GetThreshold(); // set Hough threshold to Otsu threshold.
-    houghTransform->SetInput(localImage);
-    houghTransform->SetThreshold(houghLineDetectionThreshold);
-    houghTransform->SetNumberOfLines(NUMBER_OF_LINES_TO_DETECT);
-    houghTransform->SetDiscRadius(HOUGH_DISC_RADIUS);
-    houghTransform->SetAngleResolution(HOUGH_ANGLE_RESOLUTION);
-    houghTransform->Simplify();
-    houghTransform->Update();
-
-    // Get the lines of the image into the line-list holder
-    itk::HoughTransform2DLinesImageFilter<charPixelType, charPixelType>::LinesListType lines = houghTransform->GetLines();
-
-    // Iterate through the list of lines and we draw them.
-    typedef HoughTransformFilterType::LinesListType::const_iterator LineIterator;
-    typedef HoughTransformFilterType::LineType::PointListType PointListType;
-
-    itk::Size<imageDimension> size = localImage->GetLargestPossibleRegion().GetSize();
-    int halfwayPoint = static_cast<int> ((float) size[0]) / 2;
-    
-    LineIterator itLines = lines.begin();
-    while( itLines != lines.end() )
-    {
-      // Get the list of points which consists of two points to represent a
-      // straight line.  Then, from these two points, we compute a fixed point
-      // $u$ and a unit vector $\vec{v}$ to parameterize the line.
-      PointListType pointsList = (*itLines)->GetPoints();
-      PointListType::const_iterator itPoints = pointsList.begin();
-     
-      double u[2];
-      u[0] = (*itPoints).GetPosition()[0];
-      u[1] = (*itPoints).GetPosition()[1];
-      itPoints++;
-
-      double v[2];
-      v[0] = u[0]-(*itPoints).GetPosition()[0];
-      v[1] = u[1]-(*itPoints).GetPosition()[1];
-
-      double m = v[1] / v[0];
-      double b = u[1] - m*u[0];
-      m_VideoPositionMetric.push_back(m*halfwayPoint + b);
-
-      itLines++;
-    }
-
+    std::cout << "done" << std::endl;
   }// end frameNum loop
   
   //  Normalize the video metric
-  NormalizeMetric(m_VideoPositionMetric);
+  //NormalizeMetric(m_VideoPositionMetric);
 
   return PLUS_SUCCESS;
 
@@ -732,3 +630,53 @@ void TemporalCalibration::ComputeTrackerLagSec()
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
 }
+
+
+void TemporalCalibration::plot(std::vector<int> intensityValues)
+{
+
+  //  Create table
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+
+  //  Create array correpsonding to the time values of the tracker plot
+  vtkSmartPointer<vtkIntArray> arrPixelPositions = vtkSmartPointer<vtkIntArray>::New();
+  arrPixelPositions->SetName("Pixel Positions"); 
+  table->AddColumn(arrPixelPositions);
+ 
+  //  Create array corresponding to the metric values of the tracker plot
+  vtkSmartPointer<vtkIntArray> arrIntensityProfile = vtkSmartPointer<vtkIntArray>::New();
+  arrIntensityProfile->SetName("Intensity Profile");
+  table->AddColumn(arrIntensityProfile);
+ 
+  // Set the tracker data
+  table->SetNumberOfRows(intensityValues.size());
+  for (int i = 0; i < intensityValues.size(); ++i)
+  {
+    table->SetValue(i, 0, i);
+    table->SetValue(i, 1, (intensityValues.at(i)));
+  }
+
+  // Set up the view
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+ 
+  // Add the two line plots
+  vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+
+  #if VTK_MAJOR_VERSION <= 5
+    line->SetInput(table, 0, 1);
+  #else
+    line->SetInputData(table, 0, 1);
+  #endif
+
+  line->SetColor(0, 255, 0, 255);
+  line->SetWidth(1.0);
+  line = chart->AddPlot(vtkChart::LINE);
+
+  // Start interactor
+  view->GetInteractor()->Initialize();
+  view->GetInteractor()->Start();
+
+} //  End plot()
