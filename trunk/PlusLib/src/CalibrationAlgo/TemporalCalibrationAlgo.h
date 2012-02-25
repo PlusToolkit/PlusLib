@@ -19,7 +19,7 @@
 #include <vtkChartXY.h>
 #include <vtkTable.h>
 #include <vtkPlot.h>
-#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkPen.h>
@@ -34,6 +34,9 @@
 #include <itkOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
+
+#include "itkImageRegionIterator.h"
+#include "itkLineIterator.h"
 
 //#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
@@ -132,6 +135,8 @@ private:
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
   double m_MaxTrackerLagSec; 
   std::string m_ProbeToReferenceTransformName;
+
+  void plot(std::vector<int> intensityValues);
   
   PlusStatus ResamplePositionMetrics();
   void InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
