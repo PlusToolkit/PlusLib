@@ -274,10 +274,18 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Find the max intensity value from the peak with the largest area
     int MaxFromLargestArea = -1;
     int MaxFromLargestAreaIndex = -1;
-    FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex);
+    int startOfMaxArea = -1;
+    FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex,startOfMaxArea);
     
     std::cout << "Max intensity value: " << MaxFromLargestArea << std::endl;
     std::cout << "Max intensity index: " << MaxFromLargestAreaIndex << std::endl;
+
+    int startOfPeak = -1;
+    FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
+
+    std::cout << "Fifty-percent peak start: " << startOfPeak << std::endl;
+                                               
+
 
     std::cout << "done" << std::endl;
   }// end frameNum loop
@@ -289,8 +297,27 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 
 } //  End LineDetection
 
+PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
+                                              int startOfMaxArea, int &startOfPeak)
+
+{
+  // Start of peak is defined as the location at which it reaches 50% of its maximum value.
+
+  double startPeakValue = MaxFromLargestArea * 0.50;
+
+   int pixelIndex = startOfMaxArea;
+
+  while( intensityProfile.at(pixelIndex) <= startPeakValue)
+  {
+    ++pixelIndex;
+  }
+  
+  startOfPeak = --pixelIndex;
+
+  return PLUS_SUCCESS;
+}
 PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
-                                                int &MaxFromLargestAreaIndex)
+                                                int &MaxFromLargestAreaIndex, int &startOfMaxArea)
 {
   int currentLargestArea = 0;
   int currentArea = 0;
@@ -299,6 +326,8 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
   int currentMax = 0;
   int currentMaxIndex = 0;
   bool underPeak = false;
+  int currentStartOfMaxArea = 0;
+  int currentStart = 0;
 
   for(int pixelLoc = 0; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
@@ -308,6 +337,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
       currentMax = intensityProfile.at(pixelLoc);
       currentMaxIndex = pixelLoc;
       currentArea = intensityProfile.at(pixelLoc);
+      currentStart = pixelLoc;
     }
 
     if(intensityProfile.at(pixelLoc) > 0 && underPeak)
@@ -329,12 +359,15 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
         currentLargestArea = currentArea;
         currentMaxFromLargestArea = currentMax;
         currentMaxFromLargestAreaIndex = currentMaxIndex;
+        currentStartOfMaxArea = currentStart;
       }
     }
   } //end loop through intensity profile
 
   MaxFromLargestArea = currentMaxFromLargestArea;
   MaxFromLargestAreaIndex = currentMaxFromLargestAreaIndex;
+  startOfMaxArea = currentStartOfMaxArea;
+
   return PLUS_SUCCESS;
 }
 //-----------------------------------------------------------------------------
