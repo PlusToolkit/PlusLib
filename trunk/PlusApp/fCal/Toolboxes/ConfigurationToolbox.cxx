@@ -195,7 +195,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
         {
-          LOG_WARNING("Phnatom wires visualization failed!");
+          LOG_WARNING("Unable to initialize phantom wires visualization");
         }
       }
 
@@ -409,7 +409,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 {
 	LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
 
-  // Get phantom coordinate frame name and phantom displayable model object
+  // Get phantom coordinate frame name
+  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomRegistrationAlgo::GetConfigurationElementName().c_str() ); 
+  if (phantomRegistrationElement == NULL)
+  {
+    LOG_INFO("No phantom registration algorithm configuration are found - no phantom will be shown");
+    return PLUS_SUCCESS;
+  }
+
   vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
 
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -418,10 +425,11 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
     return PLUS_FAIL;
   }
 
+  // Get phantom displayable model object
   vtkDisplayableObject* phantomDisplayableObject = NULL;
   if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(phantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS)
   {
-    LOG_WARNING("Unable to find phantom displayable object '" << phantomRegistration->GetPhantomCoordinateFrame() << "'");
+    LOG_WARNING("Unable to find phantom displayable object '" << phantomRegistration->GetPhantomCoordinateFrame() << "' - phantom will not be shown");
     return PLUS_FAIL;
   }
 
