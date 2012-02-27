@@ -49,6 +49,9 @@ public:
 	*/
   std::string GetDefinedLandmarkName(int aIndex) { return this->DefinedLandmarkNames[aIndex]; };
 
+  /*! Get configuration element name */
+  static std::string GetConfigurationElementName() { return vtkPhantomRegistrationAlgo::ConfigurationElementName; };
+
 public:
 
   vtkGetMacro(RegistrationError, double);
@@ -106,6 +109,9 @@ protected:
 
   /*! Name of the stylus tip coordinate frame (eg. StylusTip) */
   char*                     StylusTipCoordinateFrame;
+
+  /*! Name of the phantom registration configuration element */
+  static std::string        ConfigurationElementName;
 
 };
 

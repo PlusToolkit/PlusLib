@@ -21,6 +21,8 @@
 vtkCxxRevisionMacro(vtkPhantomRegistrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPhantomRegistrationAlgo);
 
+std::string vtkPhantomRegistrationAlgo::ConfigurationElementName = "vtkPhantomRegistrationAlgo";
+
 //-----------------------------------------------------------------------------
 
 vtkPhantomRegistrationAlgo::vtkPhantomRegistrationAlgo()
@@ -220,11 +222,11 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   }
 
   // vtkPhantomRegistrationAlgo section
-  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName("vtkPhantomRegistrationAlgo"); 
+  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName(vtkPhantomRegistrationAlgo::ConfigurationElementName.c_str()); 
 
   if (phantomRegistrationElement == NULL)
   {
-    LOG_ERROR("Unable to find vtkPhantomRegistrationAlgo element in XML tree!"); 
+    LOG_ERROR("Unable to find " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element in XML tree!"); 
     return PLUS_FAIL;     
   }
 
@@ -232,7 +234,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
   if (phantomCoordinateFrame == NULL)
   {
-	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+	  LOG_ERROR("PhantomCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
@@ -241,7 +243,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+	  LOG_ERROR("ReferenceCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
@@ -250,7 +252,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* stylusTipCoordinateFrame = phantomRegistrationElement->GetAttribute("StylusTipCoordinateFrame");
   if (stylusTipCoordinateFrame == NULL)
   {
-	  LOG_ERROR("StylusTipCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+	  LOG_ERROR("StylusTipCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetStylusTipCoordinateFrame(stylusTipCoordinateFrame);
