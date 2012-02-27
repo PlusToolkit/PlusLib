@@ -9,8 +9,6 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
 
     <Tracker Type="AuroraTracker" SerialPort="4" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
       <Tool Name="Needle" PortName="0" />
-      <Tool Name="Reference" PortName="1" />
-      <Tool Name="Probe" PortName="2" />
     </Tracker>
 
     <ImageAcquisition Type="None" />
@@ -19,8 +17,6 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
   </DataCollection>
 
   <Rendering WorldCoordinateFrame="Tracker">
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Reference" />
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Probe" />
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Needle" />
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Tracker" />
   </Rendering>
@@ -72,6 +68,8 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
   />
 
 </PlusConfiguration>

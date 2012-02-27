@@ -1378,12 +1378,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
 	  if ( portName != NULL ) 
 	  {
       portNumber = atoi(portName);
-      if (portNumber < 4)
-      {
-        LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
-        continue;
-      }
-      else if (portNumber > 12)
+      if (portNumber > 12)
       {
         LOG_WARNING("Port number has to be 12 or smaller!");
         continue;
@@ -1398,6 +1393,13 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
     const char* romFileName = toolDataElement->GetAttribute("RomFile");
     if (romFileName)
     {
+      // Passive tools (that need Rom files) must have port number 4 or higher
+      if (portNumber < 4)
+      {
+        LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
+        continue;
+      }
+
       this->LoadVirtualSROM(portNumber, romFileName);
     }
   }
