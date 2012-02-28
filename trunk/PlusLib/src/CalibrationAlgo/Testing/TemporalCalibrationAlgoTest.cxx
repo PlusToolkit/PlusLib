@@ -85,26 +85,26 @@ int main(int argc, char **argv)
   }
   
   //  Create temporal calibration object; Set pertinent parameters
-  //TemporalCalibration testTemporalCalibrationObject;
-  //testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
-  //testTemporalCalibrationObject.SetVideoFrames(videoFrames);
-  //testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
+  TemporalCalibration testTemporalCalibrationObject;
+  testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
+  testTemporalCalibrationObject.SetVideoFrames(videoFrames);
+  testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
 
   //  Calculate the time-offset
-  //if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
-  //{
-  //  LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
-  //  exit(EXIT_FAILURE);
-  //}
+  if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
 
-  //double trackerLagSec=0;
-  //if (testTemporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
-  //{
-  //  LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
-  //  exit(EXIT_FAILURE);
-  //}
+  double trackerLagSec=0;
+  if (testTemporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
 
-  //LOG_DEBUG("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
+  LOG_DEBUG("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
   return EXIT_SUCCESS;
 }
