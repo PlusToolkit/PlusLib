@@ -126,15 +126,15 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
 
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
-      <Pattern Type="NWire" Name="top">
-        <Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
-        <Wire Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
-        <Wire Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
+      <Pattern Type="NWire">
+        <Wire Name="Wire1" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
+        <Wire Name="Wire2" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
+        <Wire Name="Wire3" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
       </Pattern>
-      <Pattern Type="NWire" Name="bottom">
-        <Wire Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
-        <Wire Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
-        <Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
+      <Pattern Type="NWire">
+        <Wire Name="Wire4" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
+        <Wire Name="Wire5" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
+        <Wire Name="Wire6" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
 
       <Landmarks>
