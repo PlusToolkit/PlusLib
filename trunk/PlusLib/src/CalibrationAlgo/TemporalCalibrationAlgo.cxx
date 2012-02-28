@@ -287,11 +287,17 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     LOG_TRACE("Max intensity value: " << MaxFromLargestArea);
     LOG_TRACE("Max intensity index: " << MaxFromLargestAreaIndex);
 
-    int startOfPeak = -1;
-    FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
-    m_VideoPositionMetric.push_back(startOfPeak);
+    /* Using 50% max-peak starting point*/
+    double centerOfGravity = -1;
+    ComputeCenterOfGravity(intensityProfile, startOfMaxArea, centerOfGravity);
+    m_VideoPositionMetric.push_back(centerOfGravity);
+    LOG_TRACE("Center of gravity of max-peak: " << centerOfGravity);
 
-    LOG_TRACE("Fifty-percent peak start: " << startOfPeak);
+    /* Using 50% max-peak starting point*/
+    //int startOfPeak = -1;
+    //FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
+    //m_VideoPositionMetric.push_back(startOfPeak);
+    //LOG_TRACE("Fifty-percent peak start: " << startOfPeak);
 
                                             
   }// end frameNum loop
@@ -310,6 +316,8 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
   return PLUS_SUCCESS;
 
 } //  End LineDetection
+
+//-----------------------------------------------------------------------------
 
 PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
                                               int startOfMaxArea, int &startOfPeak)
@@ -330,6 +338,9 @@ PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile
 
   return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+
 PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
                                                 int &MaxFromLargestAreaIndex, int &startOfMaxArea)
 {
@@ -384,6 +395,32 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
 
   return PLUS_SUCCESS;
 }
+//-----------------------------------------------------------------------------
+
+PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
+                                                       double &centerOfGravity)
+{
+ int pixelLoc = startOfMaxArea;
+ int pointsInPeak = 0;
+ double intensitySum = 0;
+ while(intensityProfile.at(pixelLoc) != 0)
+ {
+  intensitySum += pixelLoc * intensityProfile.at(pixelLoc);
+  pointsInPeak += intensityProfile.at(pixelLoc);
+  ++pixelLoc;
+ }
+
+ if(pointsInPeak == 0)
+ {
+   // no peak!
+   return PLUS_FAIL;
+ }
+
+ centerOfGravity = intensitySum / pointsInPeak;
+
+ return PLUS_SUCCESS;
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
@@ -735,7 +772,7 @@ void TemporalCalibration::ComputeTrackerLagSec()
 
 }
 
-
+//-----------------------------------------------------------------------------
 void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 {
 
@@ -785,7 +822,7 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 
 } //  End plot()
 
-
+//-----------------------------------------------------------------------------
 void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
 {
 

@@ -143,6 +143,8 @@ private:
                            int startOfMaxArea, int &startOfPeak);
   PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
                                                 int &MaxFromLargestAreaIndex, int &startOfMaxArea);
+  PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
+                                                         double &centerOfGravity);
   
   PlusStatus ResamplePositionMetrics();
   void InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
