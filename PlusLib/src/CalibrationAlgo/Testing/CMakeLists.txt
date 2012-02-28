@@ -26,7 +26,17 @@ IF (PLUS_USE_BRACHY_TRACKER)
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ENDIF ()
+    ADD_TEST(vtkTRUSCalibrationTest_3NWires
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
+            --input-calibration-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionCalibration.mha 
+            --input-validation-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionValidation.mha 
+            --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha
+            --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+            --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
+            )
+    SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+    ENDIF ()
 		
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
