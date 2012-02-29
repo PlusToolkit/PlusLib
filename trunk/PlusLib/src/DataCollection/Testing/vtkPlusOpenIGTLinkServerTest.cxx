@@ -51,10 +51,6 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
     &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &inputVideoBufferMetafile, "Video buffer sequence metafile." );
-  args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
     &port, "Port number for OpenIGTLink communication." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
@@ -84,41 +80,11 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-    LOG_ERROR("Failed to create the propertype of data collector!");
-    exit( 1 );
-  }
-
-  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
-
-  if ( !inputVideoBufferMetafile.empty() )
-  {
-    vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
-    if ( videoSource == NULL )
-    {
-      LOG_ERROR( "Invalid saved data video source." );
-      exit( 1 );
-    }
-    videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
-    videoSource->SetReplayEnabled( true ); 
-  }
-
-  if ( !inputTrackerBufferMetafile.empty() )
-  {
-    vtkSavedDataTracker* tracker = dynamic_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
-    if ( tracker == NULL )
-    {
-      LOG_ERROR( "Invalid saved data tracker source." );
-      exit( 1 );
-    }
-    tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
-    tracker->SetReplayEnabled( true ); 
-  }
-
+  dataCollector->ReadConfiguration( configRootElement );
+  
+  
   LOG_DEBUG( "Initializing data collector... " );
-  dataCollectorHardwareDevice->Connect();
+  dataCollector->Connect();
 
 
   // Create a server.

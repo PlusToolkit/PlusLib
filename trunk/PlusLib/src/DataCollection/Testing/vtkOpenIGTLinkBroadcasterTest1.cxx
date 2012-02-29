@@ -20,7 +20,7 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLUtilities.h"
 
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 
@@ -121,10 +121,6 @@ int main( int argc, char** argv )
   
   args.AddArgument( "--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                     &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-                    &inputVideoBufferMetafile, "Video buffer sequence metafile." );
-  args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-                    &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT,
                     &inputReplay, "Replay tracked frames after reached the latest one." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
@@ -149,51 +145,20 @@ int main( int argc, char** argv )
     // Prepare data collector object.
   
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  if (configRootElement == NULL)
+  if ( configRootElement == NULL )
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return BC_EXIT_FAILURE;
   }
 
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configRootElement );
 
   vtkDataCollector* dataCollector = vtkDataCollector::New();
-
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-    LOG_ERROR("Failed to create the propertype of data collector!");
-    exit( BC_EXIT_FAILURE );
-  }
-
-  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
   
-  if ( !inputVideoBufferMetafile.empty() )
-  {
-    vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
-    if ( videoSource == NULL )
-    {
-      LOG_ERROR("Invalid saved data video source.");
-      exit( BC_EXIT_FAILURE );
-    }
-    videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
-    videoSource->SetReplayEnabled( inputReplay ); 
-  }
-
-  if ( !inputTrackerBufferMetafile.empty() )
-  {
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
-    if ( tracker == NULL )
-    {
-      LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
-      exit( BC_EXIT_FAILURE );
-    }
-    tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
-    tracker->SetReplayEnabled( inputReplay ); 
-  }
+  dataCollector->ReadConfiguration( configRootElement );
   
   LOG_INFO("Initializing data collector... ");
-  dataCollectorHardwareDevice->Connect();
+  dataCollector->Connect();
   
   
     // Prepare server to receive messages.
@@ -222,21 +187,12 @@ int main( int argc, char** argv )
     // Starting data collector.
   
   LOG_INFO("Start data collector... ");
-  dataCollectorHardwareDevice->Start();
-  
+  dataCollector->Start();
   
     // Determine number of iterations the broadcaster should run for.
   
-  unsigned int numberOfBroadcastedMessages = UINT_MAX;
+  unsigned int numberOfBroadcastedMessages = 10;
   
-  if ( dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()) != NULL ) 
-  {
-    numberOfBroadcastedMessages = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize();
-    if ( inputReplay )
-    {
-      numberOfBroadcastedMessages = UINT_MAX; 
-    }
-  }
   
     // Send messages in each itreation.
   
@@ -250,7 +206,7 @@ int main( int argc, char** argv )
       LOG_ERROR( "Broadcaster couldn't send messages!" );
     }
 
-    PrintActualTransforms( dataCollectorHardwareDevice );
+    PrintActualTransforms( dataCollector );
   }
 
   
@@ -262,8 +218,7 @@ int main( int argc, char** argv )
   
   
   LOG_INFO("Stopping data collector... ");
-  dataCollectorHardwareDevice->Stop();
-  dataCollector->Delete();
+  dataCollector->Stop();
   
   return BC_EXIT_SUCCESS;
 }
