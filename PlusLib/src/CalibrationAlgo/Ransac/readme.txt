@@ -28,8 +28,5 @@ files corresponding to the least squares and RANSAC based estimates.
 
 Testing/*.cxx - Tests of the two parameter estimators.
 
-Utility/coin3dSceneViewer.cxx - Viewer for open inventor scene files. Requires Coin3D
-and SoWin libraries (www.coin3d.org)
-
 Common/RandomNumberGenerator.h - Wrapper for the vnl random number generator. Used by
 the testing code and the example code.

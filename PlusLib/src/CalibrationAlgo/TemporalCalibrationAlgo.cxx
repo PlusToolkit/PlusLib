@@ -7,6 +7,9 @@
 #include "vtkTransformRepository.h"
 #include "TemporalCalibrationAlgo.h"
 #include "vtkMath.h"
+#include "RANSAC.h"
+#include "PlaneParametersEstimator.h"
+
 
 // Line detection parameters
 const int HOUGH_DISC_RADIUS = 10; // TODO: find out the unit (pixel/mm)
@@ -871,3 +874,87 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
   view->GetInteractor()->Start();
 
 } //  End plot()
+
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::ComputeLineParameters()
+{
+  const unsigned int DIMENSION = 2;
+
+  typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;
+  typedef itk::RANSAC<itk::Point<double, DIMENSION>, double> RANSACType;
+
+  std::vector< itk::Point<double,DIMENSION> > data;
+  std::vector<double> truePlaneParameters, planeParameters; 
+  double outlierDistance = 20.0;
+  unsigned int i;  
+  double dotProduct;
+
+  std::cout<<"Known (hyper)plane parameters [n,a]\n\t [ ";
+  for( i=0; i<(2*DIMENSION-1); i++ )
+    std::cout<<truePlaneParameters[i]<<", ";
+  std::cout<<truePlaneParameters[i]<<"]\n\n";
+
+  //create and initialize the parameter estimator
+  double maximalDistanceFromPlane = 0.5;
+  PlaneEstimatorType::Pointer planeEstimator = PlaneEstimatorType::New();
+  planeEstimator->SetDelta( maximalDistanceFromPlane );
+  planeEstimator->LeastSquaresEstimate( data, planeParameters );
+  if( planeParameters.empty() )
+    std::cout<<"Least squares estimate failed, degenerate configuration?\n";
+  else
+  {
+    std::cout<<"Least squares hyper(plane) parameters: [n,a]\n\t [ ";
+    for( i=0; i<(2*DIMENSION-1); i++ )
+      std::cout<<planeParameters[i]<<", ";
+    std::cout<<planeParameters[i]<<"]\n\n";
+    //cos(theta), theta is the angle between the two unit normals
+    dotProduct = 0.0;
+    for( i=0; i<DIMENSION; i++ )
+      dotProduct+= planeParameters[i]*truePlaneParameters[i];
+    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
+    std::cout<<dotProduct<<"\n";
+    //distance between known hyper(plane) and estimated point on plane
+    dotProduct = 0.0;
+    for( i=0; i<DIMENSION; i++ )
+      dotProduct+= (planeParameters[DIMENSION+i] - 
+      truePlaneParameters[DIMENSION+i])*truePlaneParameters[i];
+    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
+    std::cout<<dotProduct<<"\n\n";
+  }
+
+  //create and initialize the RANSAC algorithm
+  double desiredProbabilityForNoOutliers = 0.999;
+  double percentageOfDataUsed;
+  RANSACType::Pointer ransacEstimator = RANSACType::New();
+  ransacEstimator->SetData( data );
+  ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
+  percentageOfDataUsed = 
+    ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+  if( planeParameters.empty() )
+    std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
+  else
+  {
+    std::cout<<"RANSAC hyper(plane) parameters: [n,a]\n\t [ ";
+    for( i=0; i<(2*DIMENSION-1); i++ )
+      std::cout<<planeParameters[i]<<", ";
+    std::cout<<planeParameters[i]<<"]\n\n";
+    //cos(theta), theta is the angle between the two unit normals
+    dotProduct = 0.0;
+    for( i=0; i<DIMENSION; i++ )
+      dotProduct+= planeParameters[i]*truePlaneParameters[i];
+    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
+    std::cout<<dotProduct<<"\n";
+    //distance between known hyper(plane) and estimated point on plane
+    dotProduct = 0.0;
+    for( i=0; i<DIMENSION; i++ )
+      dotProduct+= ( planeParameters[DIMENSION+i] - 
+      truePlaneParameters[DIMENSION+i] )*truePlaneParameters[i];
+    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
+    std::cout<<dotProduct<<"\n\n";
+    std::cout<<"\tPercentage of points which were used for final estimate: ";
+    std::cout<<percentageOfDataUsed<<"\n\n";
+
+  }
+  return PLUS_SUCCESS;
+}
