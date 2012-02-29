@@ -23,29 +23,6 @@ void GenerateData( unsigned int numInliers, unsigned int numOutliers,
                    std::vector<double> &sphereParameters );
 
 /**
- * This function only works in 3D.
- *
- * Save an open inventor ASCII scene file showing the points identified as
- * inliers/outliers and the estimated sphere. The output file is 
- * "sphereEstimation.iv". The format is compatible with the viewers available in 
- * the open source coin3D toolkit (www.coin3d.org).
- *
- * @param outputFileName Write the scene to this file.
- * @param data The 3D points.
- * @param estimatedSphereParameters [c,r], sphere center and radius. Sphere is 
- *                                  defined as the set of points p such that 
- *                                 (p-c)^T(p-c)=r^2. 
- * @param parameterEstimator The sphere parameter estimator whoes Agree() method
- *                           is used to identify inliers.
- */
-template<unsigned int dimension>
-void SaveOIVFile( std::string &outputFileName,
-                  std::vector< itk::Point<double,dimension> > &data, 
-                  std::vector<double> &estimatedSphereParameters,
-                  typename itk::SphereParametersEstimator<dimension>::Pointer 
-                  parameterEstimator );
-
-/**
  * Given the hard coded dimension, and number of outliers and inliers generate
  * a random dataset accordingly. Then estimate the (hyper)sphere parameter values
  * using a least squares estimate and the RANSAC algorithm. Compare the results
@@ -102,8 +79,6 @@ int main(int argc, char *argv[])
     std::cout<<tmp.GetNorm()<<"\n";
     std::cout<<"\t Difference between estimated and known sphere radius [0=correct]: ";
     std::cout<<fabs( sphereParameters[DIMENSION] - trueSphereParameters[DIMENSION] )<<"\n";
-              //save scene file (works only in 3D)
-    SaveOIVFile( leastSquaresOutputFileName, data, sphereParameters, sphereEstimator );
   }
                           //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
@@ -129,8 +104,6 @@ int main(int argc, char *argv[])
     std::cout<<tmp.GetNorm()<<"\n";
     std::cout<<"\t Difference between estimated and known sphere radius [0=correct]: ";
     std::cout<<fabs( sphereParameters[DIMENSION] - trueSphereParameters[DIMENSION] )<<"\n";
-            //save scene file (works only in 3D)
-    SaveOIVFile( ransacOutputFileName, data, sphereParameters, sphereEstimator );
   }
   return EXIT_SUCCESS;
 }
@@ -184,72 +157,4 @@ void GenerateData( unsigned int numInliers, unsigned int numOutliers,
     else
       i--;
   }
-}
-
-
-template<unsigned int dimension>
-void SaveOIVFile( std::string &outputFileName,
-                  std::vector< itk::Point<double,dimension> > &data, 
-                  std::vector<double> &estimatedSphereParameters,
-                  typename itk::SphereParametersEstimator<dimension>::Pointer 
-                  parameterEstimator )
-{
-  if( dimension != 3 )
-    return;
-
-  double dataSphereRadius = 50.0;
-               //outliers are metalic red 
-  std::string outlierMaterial = "Material {\n";
-  outlierMaterial+="\tambientColor 1.0 0.0 0.0\n";
-  outlierMaterial+="\tdiffuseColor 0.27 0.15 0.0\n";
-  outlierMaterial+="\tspecularColor 1.0 0.0 0.0\n";
-  outlierMaterial+="}\n";
-
-               //inliers are metalic green 
-  std::string inlierMaterial = "\tMaterial {\n";
-  inlierMaterial+="\t\tambientColor 0.0 1.0 0.0\n";
-  inlierMaterial+="\t\tdiffuseColor 0.0 0.27 0.15\n";
-  inlierMaterial+="\t\tspecularColor 0.0 1.0 0.0\n";
-  inlierMaterial+="\t}\n";
-
-             //estimated sphere is gray
-  std::string sphereMaterial = "\tMaterial {\n";
-  sphereMaterial+="\t\tambientColor 0.5 0.5 0.5\n";
-  sphereMaterial+="\t\tdiffuseColor 0.2 0.2 0.2\n";
-  sphereMaterial+="\t\tspecularColor 0.8 0.8 0.8\n";
-  sphereMaterial+="\ttransparency   0.4\n";
-  sphereMaterial+="\t}\n";
-
-  std::ofstream out( outputFileName.c_str() );
-
-  out<<"#Inventor V2.1 ascii\n\n";
-               //go over all the points and write 
-               //the outliers and inliers to the scene graph
-  for( unsigned int i=0; i<data.size(); i++ ) {
-    out<<"Separator {\n";
-    if( parameterEstimator->Agree( estimatedSphereParameters, data[i] ) ) {
-      out<<inlierMaterial;     
-    }
-    else
-      out<<outlierMaterial;
-    out<<"\tTransform {\n";
-    out<<"\t\ttranslation "<<(data[i])[0]<<" "<<(data[i])[1]<<" "<<(data[i])[2]<<"\n";
-    out<<"\t}\n";
-    out<<"\tSphere {\n";
-    out<<"\t\tradius  "<<dataSphereRadius<<"\n";
-    out<<"\t}\n";
-    out<<"}\n";
-  }
-       //write estimated sphere to file  
-  out<<"Separator {\n";
-  out<<sphereMaterial;
-  out<<"\tTransform {\n";
-  out<<"\t\ttranslation "<<estimatedSphereParameters[0]<<" "<<estimatedSphereParameters[1]<<" "<<estimatedSphereParameters[2]<<"\n";
-  out<<"\t}\n";
-  out<<"\tSphere {\n";
-  out<<"\t\tradius  "<<estimatedSphereParameters[3]<<"\n";
-  out<<"\t}\n";
-  out<<"}\n";
-  
-  out.close();
 }
