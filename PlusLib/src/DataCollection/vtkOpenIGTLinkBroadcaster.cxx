@@ -433,11 +433,14 @@ PlusStatus vtkOpenIGTLinkBroadcaster::SendMessages()
 
 
     // Create and send OpenIGTLink Message for non ref transforms.
-
+    
+    std::string strTransformName;
+    transformName.GetTransformName( strTransformName );
+    
     igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New();
     transformMessage->SetMatrix( igtlMatrix );
     transformMessage->SetTimeStamp( igtlTime );
-    transformMessage->SetDeviceName( transformName.From().c_str() );
+    transformMessage->SetDeviceName( strTransformName.c_str() );
     transformMessage->Pack();
 
     int success = socket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
