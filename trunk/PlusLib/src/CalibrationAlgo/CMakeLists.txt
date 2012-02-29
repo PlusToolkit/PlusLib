@@ -52,6 +52,8 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/CalibrationAlgo/vtkCalibrationAlgo.vcproj";vtkPlusCommon;PatternLocAlgo CACHE INTERNAL "" FORCE)
 
+ADD_SUBDIRECTORY (Ransac)
+
 # --------------------------------------------------------------------------
 # Install
 #
