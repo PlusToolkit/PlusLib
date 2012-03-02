@@ -36,6 +36,7 @@ int main(int argc, char **argv)
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
 
+  
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
