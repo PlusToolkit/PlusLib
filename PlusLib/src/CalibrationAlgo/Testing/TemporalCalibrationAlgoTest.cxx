@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  LOG_DEBUG("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
+  LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
   return EXIT_SUCCESS;
 }

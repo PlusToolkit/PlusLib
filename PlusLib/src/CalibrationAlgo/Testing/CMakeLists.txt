@@ -126,11 +126,11 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_
 ADD_EXECUTABLE(TemporalCalibrationAlgoTest TemporalCalibrationAlgoTest.cxx)
 TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkImageAcquisition vtkCharts)
 
-#Disable the test for now, it takes too long time to execute
-#ADD_TEST(TemporalCalibrationAlgoTest1 
-#  ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
-#  --input-sequence-metafile-tracker-position=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-#  --input-US-image-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-#  --sampling-resolution-sec=0.01
-#  )
-#SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ADD_TEST(TemporalCalibrationAlgoTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
+  --input-tracker-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+  --input-video-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+  --sampling-resolution-sec=0.01
+  --verbose=2
+  )
+SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
