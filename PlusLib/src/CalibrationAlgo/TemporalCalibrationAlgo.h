@@ -140,7 +140,7 @@ private:
   void plotIntArray(std::vector<int> intensityValues);
   void plotDoubleArray(std::vector<double> intensityValues);
   PlusStatus FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
-                           int startOfMaxArea, int &startOfPeak);
+                           int startOfMaxArea, double &startOfPeak);
   PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
                                                 int &MaxFromLargestAreaIndex, int &startOfMaxArea);
   PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
