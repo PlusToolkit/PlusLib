@@ -26,6 +26,8 @@ const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
+const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
+const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
                                              m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
@@ -192,27 +194,6 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
   NormalizeMetric(m_TrackerPositionMetric);
 
-  /* TODO: Switching to VTK table data structure */
-  /*
-  vtkSmartPointer<vtkDoubleArray> trackerTimestampsArray = vtkSmartPointer<vtkDoubleArray>::New();
-  trackerTimestampsArray->SetName("Tracker Timestamps [s]"); 
-  
-  vtkSmartPointer<vtkDoubleArray> trackerPositionMetricArray = vtkSmartPointer<vtkDoubleArray>::New();
-  trackerPositionMetricArray->SetName("Tracker Position Metric"); 
-  
-  m_TrackerTimestampedMetric->AddColumn(trackerTimestampsArray);
-  m_TrackerTimestampedMetric->AddColumn(trackerPositionMetricArray);
-
-  m_TrackerTimestampedMetric->SetNumberOfRows(m_TrackerPositionMetric.size());
-
-  for(int i = 0; i < m_TrackerTimestampedMetric->GetNumberOfRows(); ++i)
-  {
-    m_TrackerTimestampedMetric->SetValue(i, 0, m_TrackerTimestamps.at(i));
-    m_TrackerTimestampedMetric->SetValue(i, 1, m_TrackerPositionMetric.at(i));
-  }
-
-  NormalizeTableColumn( m_TrackerTimestampedMetric, 1);
-  */
   return PLUS_SUCCESS;
 
 }
@@ -245,68 +226,109 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       continue;
     }
 
+    std::vector<itk::Point<double,2>> intensityPeakPositions;
     charImageType::RegionType region = localImage->GetLargestPossibleRegion();
-    
-    charImageType::IndexType startPixel;
-    startPixel[0] = static_cast<int>(region.GetSize()[0] / 2.0);
-    startPixel[1] = 0;
-
-    charImageType::IndexType endPixel;
-    endPixel[0] = startPixel[0];
-    endPixel[1] = region.GetSize()[1] - 1;
-   
-    std::vector<int> intensityProfile; // Holds intensity profile of the line
-    itk::LineIterator<charImageType> it(localImage, startPixel, endPixel);
-    it.GoToBegin();
-    while (!it.IsAtEnd())
+    int numOfValidScanlines = 0;
+    for(int currScanlineNum = 0; currScanlineNum < NUMBER_OF_SCANLINES; ++currScanlineNum)
     {
-      intensityProfile.push_back((int)it.Get());
-      it.Set(255);
-      ++it;
-    }
+      // Set the scanline start pixel
+      charImageType::IndexType startPixel;
+      int scanlineSpacingPix = static_cast<int>(region.GetSize()[0] / (NUMBER_OF_SCANLINES + 1) );
+      startPixel[0] = scanlineSpacingPix * (currScanlineNum + 1);
+      startPixel[1] = 0;
+
+      // Set the scanline end pixel
+      charImageType::IndexType endPixel;
+      endPixel[0] = startPixel[0];
+      endPixel[1] = region.GetSize()[1] - 1;
+     
+      std::vector<int> intensityProfile; // Holds intensity profile of the line
+      itk::LineIterator<charImageType> it(localImage, startPixel, endPixel);
+      it.GoToBegin();
+      while (!it.IsAtEnd())
+      {
+        intensityProfile.push_back((int)it.Get());
+        it.Set(255);
+        ++it;
+      }
+      
+     bool writeSampleLineImageToFile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+     if(writeSampleLineImageToFile)
+     {
+      // Write image showing the sampling line to file
+      std::ostrstream downsampledVideoFrameFilename;
+      downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+      PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
+     }
+
+     bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+     if(plotIntensityProfile)
+     {
+      // Plot the intensity profile
+      plotIntArray(intensityProfile);
+     }
+
+      // Find the max intensity value from the peak with the largest area
+      int MaxFromLargestArea = -1;
+      int MaxFromLargestAreaIndex = -1;
+      int startOfMaxArea = -1;
+      if(FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
+      {
+      
+        LOG_TRACE("Max intensity value: " << MaxFromLargestArea);
+        LOG_TRACE("Max intensity index: " << MaxFromLargestAreaIndex);
+
+        double currPeakPos_y = -1; 
+        if(USE_COG_AS_PEAK_METRIC)
+        {
+           /* Use center-of-gravity (COG) as peak-position metric*/
+          ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y);
+          //
+          LOG_TRACE("Center of gravity of max-peak: " << currPeakPos_y);
+        }
+        else
+        {
+          /* Use center-of-gravity (COG) as peak-position metric*/
+          //TODO: Change to double--no need for round-off error
+          //FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
+          //m_VideoPositionMetric.push_back(startOfPeak);
+          //LOG_TRACE("Fifty-percent peak start: " << startOfPeak);
+        }
+     
+        itk::Point<double, 2> currPeakPos;
+        currPeakPos[0] = static_cast<double>(startPixel[0]);
+        currPeakPos[1] = currPeakPos_y;
+        intensityPeakPositions.push_back(currPeakPos);
+
+        ++numOfValidScanlines;
+      }
+
+    }// end currScanlineNum loop
     
-   bool writeSampleLineImageToFile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-   if(writeSampleLineImageToFile)
+            
+   for(int i = 0; i < numOfValidScanlines; ++i)
    {
-    // Write image showing the sampling line to file
-    std::ostrstream downsampledVideoFrameFilename;
-    downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-    PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
+     LOG_DEBUG("Peak position " << i << " is: (" << intensityPeakPositions.at(i)[0] << "," << intensityPeakPositions.at(i)[1] << ")" );
    }
 
-   bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-   if(plotIntensityProfile)
+   std::vector<double> planeParameters;
+   ComputeLineParameters(intensityPeakPositions, planeParameters);
+
+   double r_x = - planeParameters.at(1);
+   double r_y = planeParameters.at(0);
+   double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; //TODO: check divide-by-zero of r_x
+   m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
+   
+   if(numOfValidScanlines == 0)
    {
-    // Plot the intensity profile
-    plotIntArray(intensityProfile);
+     LOG_DEBUG("No valid scanlines for this frame");
+     //TODO: drop the frame from the analysis
    }
-
-    // Find the max intensity value from the peak with the largest area
-    int MaxFromLargestArea = -1;
-    int MaxFromLargestAreaIndex = -1;
-    int startOfMaxArea = -1;
-    FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex,startOfMaxArea);
-    
-    LOG_TRACE("Max intensity value: " << MaxFromLargestArea);
-    LOG_TRACE("Max intensity index: " << MaxFromLargestAreaIndex);
-
-    /* Using 50% max-peak starting point*/
-    double centerOfGravity = -1;
-    ComputeCenterOfGravity(intensityProfile, startOfMaxArea, centerOfGravity);
-    m_VideoPositionMetric.push_back(centerOfGravity);
-    LOG_TRACE("Center of gravity of max-peak: " << centerOfGravity);
-
-    /* Using 50% max-peak starting point*/
-    //int startOfPeak = -1;
-    //FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, startOfPeak);
-    //m_VideoPositionMetric.push_back(startOfPeak);
-    //LOG_TRACE("Fifty-percent peak start: " << startOfPeak);
-
-                                            
+   int tmt = 0;
   }// end frameNum loop
   
    bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-   if(plotVideoMetric)
+   if(true)
    {
     plotDoubleArray(m_VideoPositionMetric);
    }
@@ -396,6 +418,12 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
   MaxFromLargestAreaIndex = currentMaxFromLargestAreaIndex;
   startOfMaxArea = currentStartOfMaxArea;
 
+  if(currentLargestArea == 0)
+  {
+    // No peak for this scanline
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 //-----------------------------------------------------------------------------
@@ -415,7 +443,7 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 
  if(pointsInPeak == 0)
  {
-   // no peak!
+   // no peak! TODO: Handle no-peak case
    return PLUS_FAIL;
  }
 
@@ -877,23 +905,14 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::ComputeLineParameters()
+PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters)
 {
   const unsigned int DIMENSION = 2;
 
   typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;
   typedef itk::RANSAC<itk::Point<double, DIMENSION>, double> RANSACType;
 
-  std::vector< itk::Point<double,DIMENSION> > data;
-  std::vector<double> truePlaneParameters, planeParameters; 
-  double outlierDistance = 20.0;
   unsigned int i;  
-  double dotProduct;
-
-  std::cout<<"Known (hyper)plane parameters [n,a]\n\t [ ";
-  for( i=0; i<(2*DIMENSION-1); i++ )
-    std::cout<<truePlaneParameters[i]<<", ";
-  std::cout<<truePlaneParameters[i]<<"]\n\n";
 
   //create and initialize the parameter estimator
   double maximalDistanceFromPlane = 0.5;
@@ -901,26 +920,17 @@ PlusStatus TemporalCalibration::ComputeLineParameters()
   planeEstimator->SetDelta( maximalDistanceFromPlane );
   planeEstimator->LeastSquaresEstimate( data, planeParameters );
   if( planeParameters.empty() )
-    std::cout<<"Least squares estimate failed, degenerate configuration?\n";
+  {
+    //std::cout<<"Least squares estimate failed, degenerate configuration?\n";
+  }
   else
   {
-    std::cout<<"Least squares hyper(plane) parameters: [n,a]\n\t [ ";
+    //std::cout<<"Least squares hyper(plane) parameters: [n,a]\n\t [ ";
     for( i=0; i<(2*DIMENSION-1); i++ )
-      std::cout<<planeParameters[i]<<", ";
-    std::cout<<planeParameters[i]<<"]\n\n";
-    //cos(theta), theta is the angle between the two unit normals
-    dotProduct = 0.0;
-    for( i=0; i<DIMENSION; i++ )
-      dotProduct+= planeParameters[i]*truePlaneParameters[i];
-    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
-    std::cout<<dotProduct<<"\n";
-    //distance between known hyper(plane) and estimated point on plane
-    dotProduct = 0.0;
-    for( i=0; i<DIMENSION; i++ )
-      dotProduct+= (planeParameters[DIMENSION+i] - 
-      truePlaneParameters[DIMENSION+i])*truePlaneParameters[i];
-    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
-    std::cout<<dotProduct<<"\n\n";
+    {
+     // std::cout<<planeParameters[i]<<", ";
+    }
+    //std::cout<<planeParameters[i]<<"]\n\n";
   }
 
   //create and initialize the RANSAC algorithm
@@ -929,32 +939,24 @@ PlusStatus TemporalCalibration::ComputeLineParameters()
   RANSACType::Pointer ransacEstimator = RANSACType::New();
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
-  percentageOfDataUsed = 
-    ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+  percentageOfDataUsed = ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
   if( planeParameters.empty() )
-    std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
+  {
+    //std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
+  }
   else
   {
     std::cout<<"RANSAC hyper(plane) parameters: [n,a]\n\t [ ";
     for( i=0; i<(2*DIMENSION-1); i++ )
-      std::cout<<planeParameters[i]<<", ";
-    std::cout<<planeParameters[i]<<"]\n\n";
-    //cos(theta), theta is the angle between the two unit normals
-    dotProduct = 0.0;
-    for( i=0; i<DIMENSION; i++ )
-      dotProduct+= planeParameters[i]*truePlaneParameters[i];
-    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
-    std::cout<<dotProduct<<"\n";
-    //distance between known hyper(plane) and estimated point on plane
-    dotProduct = 0.0;
-    for( i=0; i<DIMENSION; i++ )
-      dotProduct+= ( planeParameters[DIMENSION+i] - 
-      truePlaneParameters[DIMENSION+i] )*truePlaneParameters[i];
-    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
-    std::cout<<dotProduct<<"\n\n";
-    std::cout<<"\tPercentage of points which were used for final estimate: ";
-    std::cout<<percentageOfDataUsed<<"\n\n";
+    {
+      //std::cout<<planeParameters[i]<<", ";
+    }
+    //std::cout<<planeParameters[i]<<"]\n\n";
+    
+    //std::cout<<"\tPercentage of points which were used for final estimate: ";
+    //std::cout<<percentageOfDataUsed<<"\n\n";
 
   }
+
   return PLUS_SUCCESS;
 }

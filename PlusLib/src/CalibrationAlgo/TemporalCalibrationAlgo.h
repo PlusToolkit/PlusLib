@@ -167,7 +167,7 @@ private:
   double ComputeCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
 
-  PlusStatus ComputeLineParameters();
+  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
 
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
