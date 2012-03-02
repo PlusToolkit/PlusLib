@@ -211,7 +211,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     typedef unsigned char charPixelType; // The natural type of the input image
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
     typedef itk::Image<charPixelType,imageDimension> charImageType;
-
+    
     // Get curent image
     charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
 
@@ -246,7 +246,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         intensityProfile.push_back((int)it.Get());
         if(writeSampleLineImageToFile)
         {
-          it.Set(255);
+        it.Set(255);
         }
         ++it;
       }
@@ -264,7 +264,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       int startOfMaxArea = -1;
       if(FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
       {
-
+      
         double currPeakPos_y = -1; 
         if(USE_COG_AS_PEAK_METRIC)
         {
@@ -273,7 +273,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
           {
             // unable to compute center-of-gravity; this scanline is invalid
             continue;
-          }
+        }
         }
         else
         {
@@ -282,7 +282,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
           {
             // unable to compute peak start; this scanline is invalid
             continue;
-          }
+        }
         }
      
         itk::Point<double, 2> currPeakPos;
@@ -294,7 +294,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       }
 
     }// end currScanlineNum loop
-
+    
    if(writeSampleLineImageToFile)
    {
     // Write image showing the sampling line to file
@@ -302,26 +302,26 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
     PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
    }
-
+            
    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
    {
      //TODO: drop the frame from the analysis
      LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame.");
    }
-   
+
    std::vector<double> planeParameters;
    if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
    {
      /* Find the y coordinate on the line at half the image width */
-     double r_x = - planeParameters.at(1);
-     double r_y = planeParameters.at(0);
-     
+   double r_x = - planeParameters.at(1);
+   double r_y = planeParameters.at(0);
+   
      if(r_x < 0.01)
-     {
+   {
        // Line is vertical, cannot compute metric
        // TODO: Remove hardcoding of this number and deal with this issue.
        continue;
-     }
+   }
 
      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
      m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
@@ -333,7 +333,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
   }// end frameNum loop
   
    bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-   if(plotVideoMetric)
+   if (plotVideoMetric)
    {
     plotDoubleArray(m_VideoPositionMetric);
    }
@@ -910,7 +910,7 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters)
 {
-  
+
   typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;
   typedef itk::RANSAC<itk::Point<double, DIMENSION>, double> RANSACType;
 
@@ -921,8 +921,15 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
   planeEstimator->LeastSquaresEstimate( data, planeParameters );
   if( planeParameters.empty() )
   {
-    /* Unable to fit line through points with LSQ*/
-    LOG_TRACE("Least squares estimate failed, degenerate configuration?");
+    LOG_ERROR("Unable to fit line through points with least squares estimation");
+  }
+  else
+  {
+    LOG_DEBUG("Least squares line parameters (n, a):");
+    for(int i=0; i<(2*DIMENSION-1); i++ )
+    {
+      LOG_DEBUG(" LS parameter: "<<planeParameters[i]);
+    }      
   }
 
 
@@ -936,12 +943,16 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
   
   if( planeParameters.empty() )
   {
-    /* Unable to fit line through points with Ransac*/
-    LOG_DEBUG("RANSAC estimate failed, degenerate configuration?");
+    LOG_ERROR(" Unable to fit line through points with RANSAC, temporal calibration failed");
     return PLUS_FAIL;
   }
 
-  LOG_TRACE("Percentage of points which were used for final estimate: " << percentageOfDataUsed);
+  LOG_DEBUG("RANSAC line fitting parameters (n, a):");
+  for(int i=0; i<(2*DIMENSION-1); i++ )
+  {
+    LOG_DEBUG(" RANSAC parameter: "<<planeParameters[i]);
+  }    
+  LOG_DEBUG("Percentage of points which were used for final estimate: " << std::cout<<percentageOfDataUsed);
 
   return PLUS_SUCCESS;
 }
