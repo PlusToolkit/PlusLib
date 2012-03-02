@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "vtkTransformRepository.h"
@@ -22,22 +22,28 @@ const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
-const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
 const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 
+enum PEAK_POS_METRIC_TYPES
+{
+  PEAK_POS_COG,
+  PEAK_POS_START
+};
+const bool PEAK_POS_METRIC=PEAK_POS_COG; // use the COG as peak-position metric (rather than peak-start)
+
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
-                                             m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
-                                             m_ProbeToReferenceTransformName(DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME),
-                                             m_NeverUpdated(true)
+m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
+m_ProbeToReferenceTransformName(DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME),
+m_NeverUpdated(true)
 {
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
   m_VideoTable = vtkSmartPointer<vtkTable>::New();
   m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();
-  
+
 }
 
 //-----------------------------------------------------------------------------
@@ -72,7 +78,7 @@ PlusStatus TemporalCalibration::Update()
     return PLUS_FAIL;
   }
 
-   //  Check that all the image data is valid
+  //  Check that all the image data is valid
   int totalNumberOfInvalidVideoFrames = 0;
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
@@ -108,8 +114,8 @@ PlusStatus TemporalCalibration::Update()
 
   return PLUS_SUCCESS;
   /* TODO: Maybe output an warning message. */
-  
-  
+
+
 }
 
 //-----------------------------------------------------------------------------
@@ -121,7 +127,7 @@ void TemporalCalibration::SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrame
 //-----------------------------------------------------------------------------
 void TemporalCalibration::SetVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> videoFrames)
 {
-    m_VideoFrames = videoFrames;
+  m_VideoFrames = videoFrames;
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +170,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
     return PLUS_FAIL;
   }
-  
+
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
@@ -184,7 +190,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     for(int i = 0; i < 3; ++i)
     {
       trackerTranslationDistance += probeToReferenceTransform->GetElement(i, 3) * 
-                                   probeToReferenceTransform->GetElement(i, 3);
+        probeToReferenceTransform->GetElement(i, 3);
     }    
     trackerTranslationDistance = std::sqrt(trackerTranslationDistance);
     m_TrackerPositionMetric.push_back(trackerTranslationDistance);
@@ -211,7 +217,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     typedef unsigned char charPixelType; // The natural type of the input image
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
     typedef itk::Image<charPixelType,imageDimension> charImageType;
-    
+
     // Get curent image
     charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
 
@@ -237,7 +243,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       charImageType::IndexType endPixel;
       endPixel[0] = startPixel[0];
       endPixel[1] = region.GetSize()[1] - 1;
-     
+
       std::vector<int> intensityProfile; // Holds intensity profile of the line
       itk::LineIterator<charImageType> it(localImage, startPixel, endPixel);
       it.GoToBegin();
@@ -246,17 +252,17 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         intensityProfile.push_back((int)it.Get());
         if(writeSampleLineImageToFile)
         {
-        it.Set(255);
+          it.Set(255);
         }
         ++it;
       }
-      
-     bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-     if(plotIntensityProfile)
-     {
-      // Plot the intensity profile
-      plotIntArray(intensityProfile);
-     }
+
+      bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+      if(plotIntensityProfile)
+      {
+        // Plot the intensity profile
+        plotIntArray(intensityProfile);
+      }
 
       // Find the max intensity value from the peak with the largest area
       int MaxFromLargestArea = -1;
@@ -264,27 +270,30 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       int startOfMaxArea = -1;
       if(FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
       {
-      
+
         double currPeakPos_y = -1; 
-        if(USE_COG_AS_PEAK_METRIC)
+        switch (PEAK_POS_METRIC)
         {
-           /* Use center-of-gravity (COG) as peak-position metric*/
-          if(ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+        case PEAK_POS_COG:
           {
-            // unable to compute center-of-gravity; this scanline is invalid
-            continue;
-        }
-        }
-        else
-        {
-          /* Use peak start as peak-position metric*/
-          if(FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            /* Use center-of-gravity (COG) as peak-position metric*/
+            if(ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            {
+              // unable to compute center-of-gravity; this scanline is invalid
+              continue;
+            }
+          }
+        case PEAK_POS_START:
           {
-            // unable to compute peak start; this scanline is invalid
-            continue;
+            /* Use peak start as peak-position metric*/
+            if(FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            {
+              // unable to compute peak start; this scanline is invalid
+              continue;
+            }
+          }
         }
-        }
-     
+
         itk::Point<double, 2> currPeakPos;
         currPeakPos[0] = static_cast<double>(startPixel[0]);
         currPeakPos[1] = currPeakPos_y;
@@ -294,54 +303,54 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       }
 
     }// end currScanlineNum loop
-    
-   if(writeSampleLineImageToFile)
-   {
-    // Write image showing the sampling line to file
-    std::ostrstream downsampledVideoFrameFilename;
-    downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-    PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
-   }
-            
-   if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
-   {
-     //TODO: drop the frame from the analysis
-     LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame.");
-   }
 
-   std::vector<double> planeParameters;
-   if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
-   {
-     /* Find the y coordinate on the line at half the image width */
-   double r_x = - planeParameters.at(1);
-   double r_y = planeParameters.at(0);
-   
-     if(r_x < 0.01)
-   {
-       // Line is vertical, cannot compute metric
-       // TODO: Remove hardcoding of this number and deal with this issue.
-       continue;
-   }
+    if(writeSampleLineImageToFile)
+    {
+      // Write image showing the sampling line to file
+      std::ostrstream downsampledVideoFrameFilename;
+      downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+      PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
+    }
 
-     double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
-     m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
+    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
+    {
+      //TODO: drop the frame from the analysis
+      LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame.");
+    }
 
-    //  Get timestamp for image frame
-    m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
-   }
+    std::vector<double> planeParameters;
+    if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
+    {
+      /* Find the y coordinate on the line at half the image width */
+      double r_x = - planeParameters.at(1);
+      double r_y = planeParameters.at(0);
+
+      if(r_x < 0.01)
+      {
+        // Line is vertical, cannot compute metric
+        // TODO: Remove hardcoding of this number and deal with this issue.
+        continue;
+      }
+
+      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
+      m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
+
+      //  Get timestamp for image frame
+      m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
+    }
 
   }// end frameNum loop
-  
-   bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-   if (plotVideoMetric)
-   {
+
+  bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+  if (plotVideoMetric)
+  {
     plotDoubleArray(m_VideoPositionMetric);
-   }
+  }
 
   //  Normalize the video metric
   NormalizeMetric(m_VideoPositionMetric);
 
-  
+
   return PLUS_SUCCESS;
 
 } //  End LineDetection
@@ -355,13 +364,13 @@ PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile
   // Start of peak is defined as the location at which it reaches 50% of its maximum value.
   double startPeakValue = MaxFromLargestArea * 0.50;
 
-   int pixelIndex = startOfMaxArea;
+  int pixelIndex = startOfMaxArea;
 
   while( intensityProfile.at(pixelIndex) <= startPeakValue)
   {
     ++pixelIndex;
   }
-  
+
   startOfPeak = --pixelIndex;
 
   return PLUS_SUCCESS;
@@ -396,7 +405,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
     if(intensityProfile.at(pixelLoc) > 0 && underPeak)
     {
       currentArea += intensityProfile.at(pixelLoc);
-      
+
       if(intensityProfile.at(pixelLoc) > currentMax)
       {
         currentMax = intensityProfile.at(pixelLoc);
@@ -434,25 +443,25 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
 PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
                                                        double &centerOfGravity)
 {
- int pixelLoc = startOfMaxArea;
- int pointsInPeak = 0;
- double intensitySum = 0;
- while(intensityProfile.at(pixelLoc) != 0)
- {
-  intensitySum += pixelLoc * intensityProfile.at(pixelLoc);
-  pointsInPeak += intensityProfile.at(pixelLoc);
-  ++pixelLoc;
- }
+  int pixelLoc = startOfMaxArea;
+  int pointsInPeak = 0;
+  double intensitySum = 0;
+  while(intensityProfile.at(pixelLoc) != 0)
+  {
+    intensitySum += pixelLoc * intensityProfile.at(pixelLoc);
+    pointsInPeak += intensityProfile.at(pixelLoc);
+    ++pixelLoc;
+  }
 
- if(pointsInPeak == 0)
- {
-   // no peak! TODO: Handle no-peak case
-   return PLUS_FAIL;
- }
+  if(pointsInPeak == 0)
+  {
+    // no peak! TODO: Handle no-peak case
+    return PLUS_FAIL;
+  }
 
- centerOfGravity = intensitySum / pointsInPeak;
+  centerOfGravity = intensitySum / pointsInPeak;
 
- return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -490,7 +499,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
     }
     else if(metric.at(i) < minMetricValue)
     {
-       minMetricValue = metric.at(i);
+      minMetricValue = metric.at(i);
     }
   }
 
@@ -544,7 +553,7 @@ void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, 
     }
     else if(table->GetValue(i,column) < minVal)
     {
-       minVal = table->GetValue(i,column).ToDouble();
+      minVal = table->GetValue(i,column).ToDouble();
     }
   }
 
@@ -599,13 +608,13 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics()
     m_ResampledTrackerTimestamps.push_back( (commonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
     ++n;
   }
-  
+
   //  Get resampled position metric for the US video data
   LOG_DEBUG("InterpolatePositionMetric for video data");
   InterpolatePositionMetric(m_VideoTimestamps, m_ResampledVideoTimestamps, m_VideoPositionMetric, m_ResampledVideoPositionMetric);
   LOG_DEBUG("InterpolatePositionMetric for tracker data");
   InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
-            
+
   return PLUS_SUCCESS;
 }
 
@@ -614,7 +623,7 @@ void TemporalCalibration::InterpolatePositionMetric(const std::vector<double> &o
                                                     const std::vector<double> &resampledTimestamps,
                                                     const std::vector<double> &originalMetric,
                                                     std::vector<double> &resampledPositionMetric)
-                                                                 
+
 {
   std::vector<int> lowerStraddleIndices;
   std::vector<int> upperStraddleIndices;
@@ -623,25 +632,25 @@ void TemporalCalibration::InterpolatePositionMetric(const std::vector<double> &o
   for(long int resampledTimeValueIndex = 0; resampledTimeValueIndex < resampledTimestamps.size(); ++resampledTimeValueIndex)
   {
     resampledPositionMetric.push_back(LinearInterpolation(resampledTimestamps.at(resampledTimeValueIndex), originalTimestamps, 
-                                                             originalMetric, 
-                                                             lowerStraddleIndices.at(resampledTimeValueIndex), 
-                                                             upperStraddleIndices.at(resampledTimeValueIndex)));
+      originalMetric, 
+      lowerStraddleIndices.at(resampledTimeValueIndex), 
+      upperStraddleIndices.at(resampledTimeValueIndex)));
   }                                            
 }
 
 //-----------------------------------------------------------------------------
 double TemporalCalibration::LinearInterpolation(double resampledTimeValue, const std::vector<double> &originalTimestamps, 
-                                                   const std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
-                                                    
+                                                const std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
+
 {
   //  If the time index between the two straddling indices is very small, avoid interpolation (to
   //  prevent divding by a really small number).
   if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < TIMESTAMP_EPSILON_SEC)
     return originalMetric.at(upperStraddleIndex);
-  
+
   // Peform linear interpolation
   double m = (originalMetric.at(upperStraddleIndex) - originalMetric.at(lowerStraddleIndex)) / 
-             (originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex));
+    (originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex));
 
   return originalMetric.at(lowerStraddleIndex) + (resampledTimeValue - originalTimestamps.at(lowerStraddleIndex)) * m;
 
@@ -724,31 +733,31 @@ int TemporalCalibration::FindFirstUpperStraddleIndex(const std::vector<double> &
 
 //-----------------------------------------------------------------------------
 int TemporalCalibration::FindSubsequentLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currLowerStraddleIndex)
+                                                          int currLowerStraddleIndex)
 {  
-    int currIndex = currLowerStraddleIndex;
-    while(currIndex < originalTimestamps.size() && originalTimestamps.at(currIndex) <= resampledTimestamp)
-    {
-     ++currIndex;
-    }
-    --currIndex;
-    return currIndex;
+  int currIndex = currLowerStraddleIndex;
+  while(currIndex < originalTimestamps.size() && originalTimestamps.at(currIndex) <= resampledTimestamp)
+  {
+    ++currIndex;
+  }
+  --currIndex;
+  return currIndex;
 }
 
 //-----------------------------------------------------------------------------
 int TemporalCalibration::FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currUpperStraddleIndex)
+                                                          int currUpperStraddleIndex)
 {
-    if(originalTimestamps.at(currUpperStraddleIndex) >= resampledTimestamp)
-    {
-      return currUpperStraddleIndex;
-    }
-    int currIndex = currUpperStraddleIndex;
-    while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) < resampledTimestamp)
-    {
-      ++currIndex;
-    }
-    return currIndex;
+  if(originalTimestamps.at(currUpperStraddleIndex) >= resampledTimestamp)
+  {
+    return currUpperStraddleIndex;
+  }
+  int currIndex = currUpperStraddleIndex;
+  while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) < resampledTimestamp)
+  {
+    ++currIndex;
+  }
+  return currIndex;
 }
 
 //-----------------------------------------------------------------------------
@@ -779,14 +788,14 @@ void TemporalCalibration::ComputeTrackerLagSec()
   // Calculate the (normalized) metrics for the video and tracker data streams
   ComputeTrackerPositionMetric();
   ComputeVideoPositionMetric();
-  
+
   // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
   ResamplePositionMetrics();
 
   //  Compute cross correlation
   LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics");
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
-  
+
   // Find the index offset corresponding to the maximum correlation sum
   double maxCorrVal = m_CorrValues.at(0);
   int maxCorrIndex = 0;
@@ -817,12 +826,12 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
   vtkSmartPointer<vtkIntArray> arrPixelPositions = vtkSmartPointer<vtkIntArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
- 
+
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkIntArray> arrIntensityProfile = vtkSmartPointer<vtkIntArray>::New();
   arrIntensityProfile->SetName("Intensity Profile");
   table->AddColumn(arrIntensityProfile);
- 
+
   // Set the tracker data
   table->SetNumberOfRows(intensityValues.size());
   for (int i = 0; i < intensityValues.size(); ++i)
@@ -834,17 +843,17 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
- 
+
   // Add the two line plots
   vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-  #if VTK_MAJOR_VERSION <= 5
-    line->SetInput(table, 0, 1);
-  #else
-    line->SetInputData(table, 0, 1);
-  #endif
+#if VTK_MAJOR_VERSION <= 5
+  line->SetInput(table, 0, 1);
+#else
+  line->SetInputData(table, 0, 1);
+#endif
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
@@ -867,12 +876,12 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
   vtkSmartPointer<vtkDoubleArray> arrPixelPositions = vtkSmartPointer<vtkDoubleArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
- 
+
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrIntensityProfile = vtkSmartPointer<vtkDoubleArray>::New();
   arrIntensityProfile->SetName("Intensity Profile");
   table->AddColumn(arrIntensityProfile);
- 
+
   // Set the tracker data
   table->SetNumberOfRows(intensityValues.size());
   for (int i = 0; i < intensityValues.size(); ++i)
@@ -884,17 +893,17 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
- 
+
   // Add the two line plots
   vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-  #if VTK_MAJOR_VERSION <= 5
-    line->SetInput(table, 0, 1);
-  #else
-    line->SetInputData(table, 0, 1);
-  #endif
+#if VTK_MAJOR_VERSION <= 5
+  line->SetInput(table, 0, 1);
+#else
+  line->SetInputData(table, 0, 1);
+#endif
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
@@ -940,7 +949,7 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
   percentageOfDataUsed = ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
-  
+
   if( planeParameters.empty() )
   {
     LOG_ERROR(" Unable to fit line through points with RANSAC, temporal calibration failed");
