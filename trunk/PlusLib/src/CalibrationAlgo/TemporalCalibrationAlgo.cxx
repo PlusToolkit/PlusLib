@@ -27,6 +27,13 @@ const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 
+enum PEAK_POS_METRIC_TYPES
+{
+  PEAK_POS_COG,
+  PEAK_POS_START
+};
+
+const bool PEAK_POS_METRIC = PEAK_POS_COG;
 
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
@@ -306,22 +313,27 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       {
       
         double currPeakPos_y = -1; 
-        if(USE_COG_AS_PEAK_METRIC)
+         switch (PEAK_POS_METRIC)
         {
-          /* Use center-of-gravity (COG) as peak-position metric*/
-          if(ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+          case PEAK_POS_COG:
           {
-            // unable to compute center-of-gravity; this scanline is invalid
-            continue;
+            /* Use center-of-gravity (COG) as peak-position metric*/
+            if(ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            {
+              // unable to compute center-of-gravity; this scanline is invalid
+              continue;
+            }
+            break;
           }
-        }
-        else
-        {
-          /* Use peak start as peak-position metric*/
-          if(FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+          case PEAK_POS_START:
           {
-            // unable to compute peak start; this scanline is invalid
-            continue;
+            /* Use peak start as peak-position metric*/
+            if(FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            {
+              // unable to compute peak start; this scanline is invalid
+              continue;
+            }
+            break;
           }
         }
      
