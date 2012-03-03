@@ -98,6 +98,11 @@ public:
   */  
   PlusStatus GetTrackerLagSec(double &lag);
 
+  vtkSmartPointer<vtkTable> GetVideoPositionSignal();
+  vtkSmartPointer<vtkTable> GetUncalibratedTrackerPositionSignal();
+  vtkSmartPointer<vtkTable> GetCalibratedTrackerPositionSignal();
+
+
 private:
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
   bool m_TrackerLagUpToDate; 
@@ -135,7 +140,14 @@ private:
   
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
   double m_MaxTrackerLagSec; 
+
+  vtkSmartPointer<vtkTable> m_VideoPositionSignal;
+  vtkSmartPointer<vtkTable> m_UncalibratedTrackerPositionSignal;
+  vtkSmartPointer<vtkTable> m_CalibratedTrackerPositionSignal;
+
   std::string m_ProbeToReferenceTransformName;
+
+
 
   void plotIntArray(std::vector<int> intensityValues);
   void plotDoubleArray(std::vector<double> intensityValues);
@@ -168,7 +180,7 @@ private:
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
-
+  void ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table, double timeCorrection); 
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;

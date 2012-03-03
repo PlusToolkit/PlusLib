@@ -107,5 +107,43 @@ int main(int argc, char **argv)
 
   LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
+  /* Plot the results */
+  vtkSmartPointer<vtkTable> videoPositionMetric = testTemporalCalibrationObject.GetVideoPositionSignal();
+  vtkSmartPointer<vtkTable> trackerPositionMetric = testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal();
+
+  // Set up the view
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+ 
+  // Add the two line plots
+  vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+
+  #if VTK_MAJOR_VERSION <= 5
+    line->SetInput(videoPositionMetric, 0, 1);
+  #else
+    line->SetInputData(table, 0, 1);
+  #endif
+
+  line->SetColor(0, 255, 0, 255);
+  line->SetWidth(1.0);
+  line = chart->AddPlot(vtkChart::LINE);
+
+  vtkPlot *line2 = chart->AddPlot(vtkChart::LINE);
+  #if VTK_MAJOR_VERSION <= 5
+    line2->SetInput(trackerPositionMetric, 0, 1);
+  #else
+    line2->SetInputData(table, 0, 1);
+  #endif
+
+  line2->SetColor(0, 0, 255, 255);
+  line2->SetWidth(1.0);
+  line2 = chart->AddPlot(vtkChart::LINE);
+
+  // Start interactor
+  view->GetInteractor()->Initialize();
+  view->GetInteractor()->Start();
+
   return EXIT_SUCCESS;
 }
