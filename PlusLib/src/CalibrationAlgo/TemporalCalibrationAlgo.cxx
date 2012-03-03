@@ -164,6 +164,9 @@ vtkSmartPointer<vtkTable> TemporalCalibration::GetVideoPositionSignal()
 {
   ConstructTableSignal(m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric, m_VideoPositionSignal, 0); 
 
+  m_VideoPositionSignal->GetColumn(0)->SetName("Time [s]");
+  m_VideoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
+
   return m_VideoPositionSignal;
 }
 
@@ -171,6 +174,9 @@ vtkSmartPointer<vtkTable> TemporalCalibration::GetVideoPositionSignal()
 vtkSmartPointer<vtkTable> TemporalCalibration::GetUncalibratedTrackerPositionSignal()
 {
   ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_UncalibratedTrackerPositionSignal, 0); 
+
+  m_UncalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
+  m_UncalibratedTrackerPositionSignal->GetColumn(1)->SetName("Uncalibrated Tracker Position Metric");
 
   return m_UncalibratedTrackerPositionSignal;
 }
@@ -181,6 +187,9 @@ vtkSmartPointer<vtkTable> TemporalCalibration::GetCalibratedTrackerPositionSigna
 
   ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_CalibratedTrackerPositionSignal, 
     m_TrackerLagSec); 
+
+  m_CalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
+  m_CalibratedTrackerPositionSignal->GetColumn(1)->SetName("Calibrated Tracker Position Metric");
 
   return m_CalibratedTrackerPositionSignal;
 }
@@ -895,12 +904,10 @@ void TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vect
 
   //  Create array correpsonding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrX = vtkSmartPointer<vtkDoubleArray>::New();
-  arrX->SetName("time"); 
   table->AddColumn(arrX);
  
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrY = vtkSmartPointer<vtkDoubleArray>::New();
-  arrY->SetName("metric value");
   table->AddColumn(arrY);
  
   // Set the tracker data
