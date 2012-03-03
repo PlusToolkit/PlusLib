@@ -198,6 +198,98 @@ int vtkFillHolesInVolume::weightedAverageOverNeighborhood(T* inputData,// contai
 
 //----------------------------------------------------------------------------
 template <class T>
+int vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
+											  T* inputData,            // contains the dataset being interpolated between
+											  unsigned short* accData, // contains the weights of each voxel
+											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  int* accOffsets,
+											  const int& inputComp,	   // the component index of interest
+											  int* bounds,             // the boundaries of the volume, outputExtent
+											  const int& neighborSize, // The size of the neighborhood, odd positive integer
+											  unsigned int* kernel,    // the gaussian kernel matrix
+											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
+											  T& returnVal)            // The value of the pixel being calculated (unknown)
+{
+
+	if (neighborSize%2 != 1 || neighborSize <= 1)
+	{
+		LOG_ERROR("vtkFillHolesInVolume::weightedAverageOverNeighborhood: 'neighborSize' must be a positive odd integer greater or equal to 3");
+		return 0;
+	}
+
+	// set the x, y, and z range
+	int range = (neighborSize-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+	int minX = thisPixel[0] - range;
+	int minY = thisPixel[1] - range;
+	int minZ = thisPixel[2] - range;
+	int maxX = thisPixel[0] + range;
+	int maxY = thisPixel[1] + range;
+	int maxZ = thisPixel[2] + range;
+
+	unsigned long long sumIntensities(0); // unsigned long because these rise in value quickly
+	unsigned long long sumAccumulator(0);
+
+	for (int x = minX; x <= maxX; x++)
+	{
+		for (int y = minY; y <= maxY; y++)
+		{
+			for (int z = minZ; z <= maxZ; z++)
+			{
+				if (x <= bounds[1] && x >= bounds[0] &&
+					y <= bounds[3] && y >= bounds[2] &&
+					z <= bounds[5] && z >= bounds[4] ) // check bounds
+				{
+					int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+					int kerIndex = neighborSize*neighborSize*(z-minZ)+neighborSize*(y-minY)+(x-minX);
+					unsigned long long weight = (unsigned long long)accData[accIndex] * (unsigned long long)kernel[kerIndex];
+					sumIntensities += (unsigned long long)inputData[volIndex] * weight;
+					sumAccumulator += weight;
+				} // end boundary check
+			} // end z loop
+		} // end y loop
+	} // end x loop
+
+	if (sumAccumulator == 0) // no voxels set in the area
+		return 0;
+
+	// TODO: Overflow protection
+	returnVal = (T)(sumIntensities/sumAccumulator);
+
+	return 1;
+
+}
+//----------------------------------------------------------------------------
+
+void vtkFillHolesInVolume::calculateGaussianMatrix(const int& size, unsigned int* matrix)
+{
+	// voxels outside 3 * rho are considered insignificant, so if we want to have a filter that adds up to 1,
+	double rho = (size-1)/6.;
+	double range = (size-1)/2.;
+	double min(0);
+	double Pi = 3.1415926535897932384626433832795;
+	double commonDivisor = rho * rho * 2.;
+	int index(0);
+	for (int z = 0; z < size; z++)
+	{
+		for (int y = 0; y < size; y++)
+		{
+			for (int x = 0; x < size; x++)
+			{
+				double dimsSq = pow((double)x-range,2)+pow((double)y-range,2)+pow((double)z-range,2);
+				double calcVal = 1./(pow((double)(Pi*commonDivisor),1.5))*exp((double)(-dimsSq/commonDivisor));
+				if (!min)
+					min = calcVal;
+				matrix[index] = PlusMath::Round(calcVal/min);
+				index++;
+			}
+		}
+	}
+
+}
+
+//----------------------------------------------------------------------------
+template <class T>
 void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
   vtkImageData *inVolData, T *inVolPtr, vtkImageData *accData,
   unsigned short *accPtr, vtkImageData *outData, T *outPtr,
@@ -219,6 +311,9 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
     LOG_ERROR("vtkPasteSliceIntoVolumeFillHolesInOutput accPtr is invalid");
     return;
   }
+	int FILTER_SIZE = 3;
+	unsigned int* kernel = new unsigned int[FILTER_SIZE*FILTER_SIZE*FILTER_SIZE];
+	vtkFillHolesInVolume::calculateGaussianMatrix(FILTER_SIZE, kernel);
 
 	// get increments for volume and for accumulation buffer
 	int byteIncVol[3]; //x,y,z
@@ -249,12 +344,7 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 						// volume index for this component
 						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
 						int result = 0;
-						int N = 1; // starts at 5, since will be += 2 in the loop
-						while (N < 3 && result == 0)
-						{
-							N += 2;
-							result = vtkFillHolesInVolume::weightedAverageOverNeighborhood(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,N,currentPos,outPtr[volCompIndex]);
-						} // end while
+						result = vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,FILTER_SIZE,kernel,currentPos,outPtr[volCompIndex]);
 						if (!result) // if there are no voxels within range, just set this one (and its alpha) to zero
 						{
 							outPtr[volCompIndex] = 0;
@@ -285,6 +375,8 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 			} // end x loop
 		} // end y loop
 	} // end z loop
+
+	delete[] kernel;
 
 }
 
