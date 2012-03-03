@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
-  /* Plot the results */
+  /* Plot the temporally uncalibrated tracker and video streams */
   vtkSmartPointer<vtkTable> videoPositionMetric = testTemporalCalibrationObject.GetVideoPositionSignal();
   vtkSmartPointer<vtkTable> trackerPositionMetric = testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal();
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     line->SetInputData(table, 0, 1);
   #endif
 
-  line->SetColor(0, 255, 0, 255);
+  line->SetColor(1,0,0);
   line->SetWidth(1.0);
   line = chart->AddPlot(vtkChart::LINE);
 
@@ -137,13 +137,50 @@ int main(int argc, char **argv)
     line2->SetInputData(table, 0, 1);
   #endif
 
-  line2->SetColor(0, 0, 255, 255);
+  line2->SetColor(0,1,0);
   line2->SetWidth(1.0);
   line2 = chart->AddPlot(vtkChart::LINE);
 
   // Start interactor
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
+
+  /* Plot the temporally calibrated tracker and video streams */
+  vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric = testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal();
+
+  // Set up the view
+  vtkSmartPointer<vtkContextView> calibratedView = vtkSmartPointer<vtkContextView>::New();
+  calibratedView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+ 
+  // Add the two line plots
+  vtkSmartPointer<vtkChartXY> chartCalibrated =  vtkSmartPointer<vtkChartXY>::New();
+  calibratedView->GetScene()->AddItem(chartCalibrated);
+  vtkPlot *lineCalibrated = chartCalibrated ->AddPlot(vtkChart::LINE);
+
+  #if VTK_MAJOR_VERSION <= 5
+    lineCalibrated->SetInput(videoPositionMetric, 0, 1);
+  #else
+    line->SetInputData(table, 0, 1);
+  #endif
+
+  lineCalibrated->SetColor(0,0,1);
+  lineCalibrated->SetWidth(1.0);
+  lineCalibrated = chartCalibrated->AddPlot(vtkChart::LINE);
+
+  vtkPlot *lineCalibrated2 = chartCalibrated->AddPlot(vtkChart::LINE);
+  #if VTK_MAJOR_VERSION <= 5
+    lineCalibrated2->SetInput(calibratedTrackerPositionMetric, 0, 1);
+  #else
+    line2->SetInputData(table, 0, 1);
+  #endif
+
+  lineCalibrated2->SetColor(1,0,0);
+  lineCalibrated2->SetWidth(1.0);
+  lineCalibrated2 = chartCalibrated->AddPlot(vtkChart::LINE);
+
+  // Start interactor
+  calibratedView->GetInteractor()->Initialize();
+  calibratedView->GetInteractor()->Start();
 
   return EXIT_SUCCESS;
 }
