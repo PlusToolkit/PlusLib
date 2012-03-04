@@ -381,14 +381,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       }
 
     }// end currScanlineNum loop
-    
-   if(SAVE_IMAGES == true)
-   {
-    // Write image showing the scan lines to file
-    std::ostrstream scanLineImageFilename;
-    scanLineImageFilename << "scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-    PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
-   }
+   
             
    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
    {
@@ -399,23 +392,108 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
    std::vector<double> planeParameters;
    if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
    {
-     /* Find the y coordinate on the line at half the image width */
-   double r_x = - planeParameters.at(1);
-   double r_y = planeParameters.at(0);
-   
+       /* Find the y coordinate on the line at half the image width */
+     double r_x = - planeParameters.at(1);
+     double r_y = planeParameters.at(0);
+     
      if(r_x < 0.01)
-   {
-       // Line is vertical, cannot compute metric
-       // TODO: Remove hardcoding of this number and deal with this issue.
-       continue;
-   }
+     {
+         // Line is vertical, cannot compute metric
+         // TODO: Remove hardcoding of this number and deal with this issue.
+         continue;
+     }
 
      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
      m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
 
-    //  Get timestamp for image frame
-    m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
+     //  Get timestamp for image frame
+     m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
+
+     if(SAVE_IMAGES == true)
+     {
+        // Write image showing the scan lines to file
+        std::ostrstream scanLineImageFilename;
+        scanLineImageFilename << "scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+        PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
+
+        // Test writing of colour image to file
+        typedef itk::RGBPixel<unsigned char> rgbPixelType;
+        typedef itk::Image<rgbPixelType, 2> rgbImageType;
+        rgbImageType::Pointer rgbImageCopy = rgbImageType::New();
+
+        rgbImageType::IndexType start;
+        start[0] =   0;  // first index on X
+        start[1] =   0;  // first index on Y
+        
+        rgbImageType::SizeType  size;
+        size[0]  = region.GetSize()[0];  // size along X
+        size[1]  = region.GetSize()[1];  // size along Y
+
+        rgbImageType::RegionType region;
+        region.SetSize( size );
+        region.SetIndex( start );
+
+        rgbImageCopy->SetRegions( region );
+        rgbImageCopy->Allocate();
+
+        for(unsigned int x_coord = 0; x_coord  < region.GetSize()[0]; ++x_coord)
+        {
+          for(unsigned int y_coord = 0; y_coord < region.GetSize()[1]; ++y_coord)
+          {
+            rgbImageType::IndexType currRgbImageIndex;
+            currRgbImageIndex[0] = x_coord;
+            currRgbImageIndex[1] = y_coord;
+
+            charImageType::IndexType currLocalImageIndex;
+            currLocalImageIndex[0] = x_coord;
+            currLocalImageIndex[1] = y_coord;
+
+            charPixelType currLocalImagePixelVal = localImage->GetPixel(currLocalImageIndex);
+            rgbPixelType currRgbImagePixelVal;
+            currRgbImagePixelVal.Set(currLocalImagePixelVal, currLocalImagePixelVal, currLocalImagePixelVal);
+            rgbImageCopy->SetPixel(currRgbImageIndex, currRgbImagePixelVal);
+          }
+        }
+
+        int xStartCoord = 0;
+        int xEndCoord = region.GetSize()[0] - 1;
+        int yStartCoord = static_cast<int>(r_y * ( - planeParameters.at(2) / r_x) + planeParameters.at(3));
+        int yEndCoord = static_cast<int>(r_y * ( (xEndCoord - planeParameters.at(2)) / r_x) + planeParameters.at(3));
+      
+        rgbImageType::IndexType startLineIndex;
+        startLineIndex[0] =   xStartCoord;  // first index on X
+        startLineIndex[1] =   yStartCoord;  // first index on Y
+
+        rgbImageType::IndexType endLineIndex;
+        endLineIndex[0] =   xEndCoord;  // first index on X
+        endLineIndex[1] =   yEndCoord;  // first index on Y
+
+        itk::LineIterator<rgbImageType> it(rgbImageCopy, startLineIndex, endLineIndex); 
+        it.GoToBegin();
+
+        while (!it.IsAtEnd())
+        {
+          rgbPixelType currRgbImagePixelVal;
+          currRgbImagePixelVal.Set(255, 0, 0);
+          it.Set(currRgbImagePixelVal);
+          ++it;
+        }
+
+        std::ostrstream rgbImageFilename;
+        rgbImageFilename << "rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
+
+        typedef itk::ImageFileWriter<rgbImageType> rgbImageWriterType;
+        rgbImageWriterType::Pointer rgbImageWriter = rgbImageWriterType::New();
+
+        rgbImageWriter->SetFileName(rgbImageFilename.str());
+        rgbImageWriter->SetInput(rgbImageCopy);
+        rgbImageWriter->Update();
+     }// end writing color image
+
+
    }
+
+
 
   }// end frameNum loop
   
