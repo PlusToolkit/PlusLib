@@ -35,6 +35,8 @@
 #include <itkOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
+#include "itkRGBPixel.h"
+#include <itkImageFileWriter.h>
 
 #include "itkImageRegionIterator.h"
 #include "itkLineIterator.h"
