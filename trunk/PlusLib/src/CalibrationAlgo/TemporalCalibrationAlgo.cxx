@@ -26,6 +26,7 @@ const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric
 const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
+const bool SAVE_IMAGES = false;
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -262,6 +263,21 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Get curent image
     charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
 
+    // Create an image duplicator to copy the original image
+    typedef itk::ImageDuplicator<charImageType> DuplicatorType;
+    DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    if(SAVE_IMAGES == true)
+    {
+      duplicator->SetInputImage(localImage);
+      duplicator->Update();
+    }
+
+    // Create an image copy to draw the scanlines on
+    charImageType::Pointer scanlineImage = duplicator->GetOutput();
+
+    // Create an image copy to draw the detected intensity peaks and Ransac line
+    charImageType::Pointer IntensityPeakAndRansacLineImage = duplicator->GetOutput();
+
     if(localImage.IsNull())
     {
       // Dropped frame
@@ -271,7 +287,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     std::vector<itk::Point<double,2>> intensityPeakPositions;
     charImageType::RegionType region = localImage->GetLargestPossibleRegion();
     int numOfValidScanlines = 0;
-    bool writeSampleLineImageToFile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
+    
     for(int currScanlineNum = 0; currScanlineNum < NUMBER_OF_SCANLINES; ++currScanlineNum)
     {
       // Set the scanline start pixel
@@ -286,18 +302,37 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       endPixel[1] = region.GetSize()[1] - 1;
      
       std::vector<int> intensityProfile; // Holds intensity profile of the line
-      itk::LineIterator<charImageType> it(localImage, startPixel, endPixel);
+      itk::LineIterator<charImageType> it(localImage, startPixel, endPixel); 
       it.GoToBegin();
+
+      itk::LineIterator<charImageType> *itScanlineImage = NULL;
+      if(SAVE_IMAGES == true)
+      {
+        // Iterator for the scanline image copy
+        itScanlineImage = new itk::LineIterator<charImageType>(scanlineImage, startPixel, endPixel);
+        itScanlineImage->GoToBegin();
+      }
+
+      
       while (!it.IsAtEnd())
       {
         intensityProfile.push_back((int)it.Get());
-        if(writeSampleLineImageToFile)
+        if(SAVE_IMAGES == true)
         {
-        it.Set(255);
+          // Set the pixels on the scanline image copy to white
+          itScanlineImage->Set(255);
+          ++(*itScanlineImage);
         }
         ++it;
       }
       
+     // Delete the iterator declared with new()
+     if(itScanlineImage != NULL)
+     {
+      delete itScanlineImage;
+      itScanlineImage = NULL;
+     }
+
      bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
      if(plotIntensityProfile)
      {
@@ -347,12 +382,12 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 
     }// end currScanlineNum loop
     
-   if(writeSampleLineImageToFile)
+   if(SAVE_IMAGES == true)
    {
-    // Write image showing the sampling line to file
-    std::ostrstream downsampledVideoFrameFilename;
-    downsampledVideoFrameFilename << "lineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-    PlusVideoFrame::SaveImageToFile(localImage , downsampledVideoFrameFilename.str());
+    // Write image showing the scan lines to file
+    std::ostrstream scanLineImageFilename;
+    scanLineImageFilename << "scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+    PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
    }
             
    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
