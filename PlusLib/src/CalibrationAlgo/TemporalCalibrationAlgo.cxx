@@ -485,6 +485,27 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
           ++it;
         }
 
+        for(int i = 0; i < numOfValidScanlines; ++i)
+        {
+          unsigned int x_coord = static_cast<unsigned int>(intensityPeakPositions.at(i).GetElement(0));
+          unsigned int y_coord = static_cast<unsigned int>(intensityPeakPositions.at(i).GetElement(1));
+          
+          for(int j = x_coord - 3; j < x_coord + 3; ++j)
+          {
+            for(int k = y_coord - 3; k < y_coord + 3; ++k)
+            {
+              rgbImageType::IndexType currIndex;
+              currIndex[0] =  j;  // index on X
+              currIndex[1] =  k;  // index on Y
+
+              rgbPixelType currRgbImagePixelVal;
+              currRgbImagePixelVal.Set(0, 0, 255);
+
+              rgbImageCopy->SetPixel(currIndex, currRgbImagePixelVal);
+            }
+          }
+        }
+          
         std::ostrstream rgbImageFilename;
         rgbImageFilename << "rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
