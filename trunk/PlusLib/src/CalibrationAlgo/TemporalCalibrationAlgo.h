@@ -89,6 +89,8 @@ public:
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
 
+  void SetSaveIntermediateImagesToOn(bool saveIntermediateImages);
+
   /*! Compute the tracker lag */  
   PlusStatus Update(); 
 
@@ -109,6 +111,9 @@ private:
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
   bool m_TrackerLagUpToDate; 
  
+  /*! If "true" then images of intermediate steps (i.e. scanlines used, detected lines) are saved in local directory */
+  bool m_SaveIntermediateImages;
+
   /*! Has the user ever succsfully called Update() */
   bool m_NeverUpdated;
   

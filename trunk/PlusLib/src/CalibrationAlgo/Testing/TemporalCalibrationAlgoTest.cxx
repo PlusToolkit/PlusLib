@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 {
   bool printHelp(false);
   bool plotResults(false);
+  bool saveIntermediateImages(false);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   std::string inputTrackerSequenceMetafile; // Raw-buffer tracker file
   std::string inputVideoSequenceMetafile; // Corresponding raw-buffer video file
@@ -37,7 +38,7 @@ int main(int argc, char **argv)
   args.AddArgument("--plot-results",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
-
+  args.AddArgument("--save-intermediate-images",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveIntermediateImages, "Save images of intermediate steps (scanlines used, and detected lines)");
   
   if ( !args.Parse() )
   {
@@ -92,6 +93,7 @@ int main(int argc, char **argv)
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
   testTemporalCalibrationObject.SetVideoFrames(videoFrames);
   testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
+  testTemporalCalibrationObject.SetSaveIntermediateImagesToOn(saveIntermediateImages);
 
   //  Calculate the time-offset
   if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
