@@ -26,7 +26,6 @@ const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric
 const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-const bool SAVE_IMAGES = false;
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -40,7 +39,8 @@ const bool PEAK_POS_METRIC = PEAK_POS_COG;
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
                                              m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
                                              m_ProbeToReferenceTransformName(DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME),
-                                             m_NeverUpdated(true)
+                                             m_NeverUpdated(true),
+                                             m_SaveIntermediateImages(false)
 {
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
@@ -123,6 +123,12 @@ PlusStatus TemporalCalibration::Update()
   /* TODO: Maybe output an warning message. */
   
   
+}
+
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetSaveIntermediateImagesToOn(bool saveIntermediateImages)
+{
+  m_SaveIntermediateImages = saveIntermediateImages;
 }
 
 //-----------------------------------------------------------------------------
@@ -266,7 +272,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Create an image duplicator to copy the original image
     typedef itk::ImageDuplicator<charImageType> DuplicatorType;
     DuplicatorType::Pointer duplicator = DuplicatorType::New();
-    if(SAVE_IMAGES == true)
+    if(m_SaveIntermediateImages == true)
     {
       duplicator->SetInputImage(localImage);
       duplicator->Update();
@@ -306,7 +312,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       it.GoToBegin();
 
       itk::LineIterator<charImageType> *itScanlineImage = NULL;
-      if(SAVE_IMAGES == true)
+      if(m_SaveIntermediateImages == true)
       {
         // Iterator for the scanline image copy
         itScanlineImage = new itk::LineIterator<charImageType>(scanlineImage, startPixel, endPixel);
@@ -317,7 +323,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       while (!it.IsAtEnd())
       {
         intensityProfile.push_back((int)it.Get());
-        if(SAVE_IMAGES == true)
+        if(m_SaveIntermediateImages == true)
         {
           // Set the pixels on the scanline image copy to white
           itScanlineImage->Set(255);
@@ -409,7 +415,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
      //  Get timestamp for image frame
      m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
 
-     if(SAVE_IMAGES == true)
+     if(m_SaveIntermediateImages == true)
      {
         // Write image showing the scan lines to file
         std::ostrstream scanLineImageFilename;
