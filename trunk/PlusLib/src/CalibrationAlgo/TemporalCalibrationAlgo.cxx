@@ -26,6 +26,7 @@ const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric
 const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
+const char PEAK_INTENSITY_THRESHOLD = 10;
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -576,7 +577,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
 
   for(int pixelLoc = 0; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
-    if(intensityProfile.at(pixelLoc) > 0 && !underPeak)
+    if(intensityProfile.at(pixelLoc) > PEAK_INTENSITY_THRESHOLD  && !underPeak)
     {
       underPeak = true;
       currentMax = intensityProfile.at(pixelLoc);
@@ -585,7 +586,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
       currentStart = pixelLoc;
     }
 
-    if(intensityProfile.at(pixelLoc) > 0 && underPeak)
+    if(intensityProfile.at(pixelLoc) > PEAK_INTENSITY_THRESHOLD  && underPeak)
     {
       currentArea += intensityProfile.at(pixelLoc);
       
@@ -596,7 +597,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
       }
     }
 
-    if(intensityProfile.at(pixelLoc) == 0 && underPeak)
+    if(intensityProfile.at(pixelLoc) < PEAK_INTENSITY_THRESHOLD && underPeak)
     {
       underPeak = false;
       if(currentArea > currentLargestArea)
