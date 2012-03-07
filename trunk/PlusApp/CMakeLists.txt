@@ -96,6 +96,10 @@ INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
 ADD_SUBDIRECTORY(CommonWidgets)
 
 # --------------------------------------------------------------------------
+# Build various utilities
+ADD_SUBDIRECTORY(PointSetExtractor)
+
+# --------------------------------------------------------------------------
 # Build the DiagnosticTools 
 IF (PLUSAPP_BUILD_DiagnosticTools)
     ADD_SUBDIRECTORY(DiagnosticTools)
