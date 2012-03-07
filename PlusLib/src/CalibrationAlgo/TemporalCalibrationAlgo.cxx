@@ -14,19 +14,19 @@
 
 // Default algorithm parameters
 // TODO: have separate SIGNAL P2P for video and tracker (one in mm the other in pixels)
-const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker metric "swings" less than this, abort
-const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
-const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
-const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
-const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
-const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
-const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
-const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
-const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
-const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
-const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-const char PEAK_INTENSITY_THRESHOLD = 50;
+static const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker metric "swings" less than this, abort
+static const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
+static const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
+static const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
+static const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
+static const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
+static const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
+static const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
+static const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
+static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
+static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
+static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
+static const char PEAK_INTENSITY_THRESHOLD = 50;
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -316,10 +316,10 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       if(m_SaveIntermediateImages == true)
       {
         // Iterator for the scanline image copy
+        // TODO: explain that it's expensive to instantiate this object
         itScanlineImage = new itk::LineIterator<charImageType>(scanlineImage, startPixel, endPixel);
         itScanlineImage->GoToBegin();
       }
-
       
       while (!it.IsAtEnd())
       {
@@ -573,19 +573,32 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
   int currentStartOfMaxArea = 0;
   int currentStart = 0;
 
+  double intensityMax = intensityProfile.at(0);
+  for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
+  {
+    if(intensityProfile.at(pixelLoc) > intensityMax)
+    {
+      intensityMax = intensityProfile.at(pixelLoc);
+    }
+  }
+
+  double peakIntensityThreshold = intensityMax * 0.8; // TODO: magic number etc
+  LOG_INFO("peakIntensityThreshold="<<peakIntensityThreshold);
+
   for(int pixelLoc = 0; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
-    if(intensityProfile.at(pixelLoc) > PEAK_INTENSITY_THRESHOLD  && !underPeak)
+    if(intensityProfile.at(pixelLoc) > peakIntensityThreshold  && !underPeak)
     {
+      // reached start of the peak
       underPeak = true;
       currentMax = intensityProfile.at(pixelLoc);
       currentMaxIndex = pixelLoc;
       currentArea = intensityProfile.at(pixelLoc);
       currentStart = pixelLoc;
     }
-
-    if(intensityProfile.at(pixelLoc) > PEAK_INTENSITY_THRESHOLD  && underPeak)
+    else if(intensityProfile.at(pixelLoc) > peakIntensityThreshold  && underPeak)
     {
+      // still under the the peak, cumulate the area
       currentArea += intensityProfile.at(pixelLoc);
       
       if(intensityProfile.at(pixelLoc) > currentMax)
@@ -594,9 +607,10 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
         currentMaxIndex = pixelLoc;
       }
     }
-
-    if(intensityProfile.at(pixelLoc) < PEAK_INTENSITY_THRESHOLD && underPeak)
+    else if(intensityProfile.at(pixelLoc) < peakIntensityThreshold && underPeak)
     {
+      // exit the peak area
+
       underPeak = false;
       if(currentArea > currentLargestArea)
       {
@@ -625,10 +639,23 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
 PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
                                                        double &centerOfGravity)
 {
+
+  double intensityMax = intensityProfile.at(0);
+  for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
+  {
+    if(intensityProfile.at(pixelLoc) > intensityMax)
+    {
+      intensityMax = intensityProfile.at(pixelLoc);
+    }
+  }
+
+  double peakIntensityThreshold = intensityMax * 0.8; // TODO: magic number etc
+
+
  int pixelLoc = startOfMaxArea;
  int pointsInPeak = 0;
  double intensitySum = 0;
- while(intensityProfile.at(pixelLoc) != 0)
+ while(intensityProfile.at(pixelLoc) > peakIntensityThreshold)
  {
   intensitySum += pixelLoc * intensityProfile.at(pixelLoc);
   pointsInPeak += intensityProfile.at(pixelLoc);
@@ -972,7 +999,7 @@ void TemporalCalibration::ComputeTrackerLagSec()
   ComputeVideoPositionMetric();
   
   // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
-  ResamplePositionMetrics();
+  ResamplePositionMetrics(); //TODO: if this fails then the app crashes
 
   //  Compute cross correlation
   LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics");
