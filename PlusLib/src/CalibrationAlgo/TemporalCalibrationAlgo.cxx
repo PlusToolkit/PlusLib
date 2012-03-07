@@ -23,10 +23,10 @@ const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference"
 const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
 const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
-const int NUMBER_OF_SCANLINES = 20; // number of scan-lines for line detection
+const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-const char PEAK_INTENSITY_THRESHOLD = 10;
+const char PEAK_INTENSITY_THRESHOLD = 50;
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -399,9 +399,11 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
    std::vector<double> planeParameters;
    if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
    {
-       /* Find the y coordinate on the line at half the image width */
+      
      double r_x = - planeParameters.at(1);
      double r_y = planeParameters.at(0);
+     double x_0 = planeParameters.at(2);
+     double y_0 = planeParameters.at(3);
      
      if(r_x < 0.01)
      {
@@ -462,30 +464,26 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
           }
         }
 
-        int xStartCoord = 0;
-        int xEndCoord = region.GetSize()[0] - 1;
-        int yStartCoord = static_cast<int>(r_y * ( - planeParameters.at(2) / r_x) + planeParameters.at(3));
-        int yEndCoord = static_cast<int>(r_y * ( (xEndCoord - planeParameters.at(2)) / r_x) + planeParameters.at(3));
-      
-        rgbImageType::IndexType startLineIndex;
-        startLineIndex[0] =   xStartCoord;  // first index on X
-        startLineIndex[1] =   yStartCoord;  // first index on Y
+        float diag = vcl_sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
 
-        rgbImageType::IndexType endLineIndex;
-        endLineIndex[0] =   xEndCoord;  // first index on X
-        endLineIndex[1] =   yEndCoord;  // first index on Y
-
-        itk::LineIterator<rgbImageType> it(rgbImageCopy, startLineIndex, endLineIndex); 
-        it.GoToBegin();
-
-        while (!it.IsAtEnd())
+        // Draw line
+        for(int i = static_cast<int>(-diag); i < static_cast<int>(diag); ++i)
         {
-          rgbPixelType currRgbImagePixelVal;
-          currRgbImagePixelVal.Set(255, 0, 0);
-          it.Set(currRgbImagePixelVal);
-          ++it;
+          rgbImageType::IndexType currIndex;
+          currIndex[0]= static_cast<int>(x_0 + i * r_x);
+          currIndex[1]= static_cast<int>(y_0 + i * r_y);
+
+          charImageType::RegionType outputRegion = localImage->GetLargestPossibleRegion();
+
+          if(outputRegion.IsInside(currIndex))
+          {
+            rgbPixelType currRgbImagePixelVal;
+            currRgbImagePixelVal.Set(0, 0, 255);
+            rgbImageCopy->SetPixel(currIndex, currRgbImagePixelVal);
+          }
         }
 
+        // Draw intensity peaks (as squares)
         for(int i = 0; i < numOfValidScanlines; ++i)
         {
           unsigned int x_coord = static_cast<unsigned int>(intensityPeakPositions.at(i).GetElement(0));
@@ -1152,24 +1150,23 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
 
   //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
-  double percentageOfDataUsed;
   RANSACType::Pointer ransacEstimator = RANSACType::New();
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
-  percentageOfDataUsed = ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+  ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
   
   if( planeParameters.empty() )
   {
-    LOG_ERROR(" Unable to fit line through points with RANSAC, temporal calibration failed");
+    LOG_ERROR("Unable to fit line through points with RANSAC, temporal calibration failed");
     return PLUS_FAIL;
   }
 
   LOG_DEBUG("RANSAC line fitting parameters (n, a):");
+
   for(int i=0; i<(2*DIMENSION-1); i++ )
   {
-    LOG_DEBUG(" RANSAC parameter: "<<planeParameters[i]);
+    LOG_DEBUG(" RANSAC parameter: " << planeParameters[i]);
   }    
-  LOG_DEBUG("Percentage of points which were used for final estimate: " << std::cout<<percentageOfDataUsed);
 
   return PLUS_SUCCESS;
 }
