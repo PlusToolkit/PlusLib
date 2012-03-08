@@ -56,8 +56,7 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-validation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input random stepper motion validation dataset.");
 	cmdargs.AddArgument("--input-probe-rotation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeRotationSeqMetafile, "Sequence metafile name of input probe rotation dataset.");
 	
-  cmdargs.AddArgument("--input-probe-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeToReferenceTransformName, "Name of the probe to reference transform (Default: ProbeToTracker)");
-	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+  cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
@@ -418,13 +417,13 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       if ( ratioCalibrationMean > 1 + ERROR_THRESHOLD || ratioCalibrationMean < 1 - ERROR_THRESHOLD )
       {
         LOG_ERROR("ReprojectionError3DStatistics/CalibrationMeanMm mismatch: current=" << cReprojectionError3DCalibrationMeanMm << ", baseline=" << blReprojectionError3DCalibrationMeanMm);
-        return ++numberOfFailures;
+        ++numberOfFailures;
       }
       double ratioCalibrationStdDev = 1.0 * blReprojectionError3DCalibrationStdDevMm / cReprojectionError3DCalibrationStdDevMm; 
       if ( ratioCalibrationStdDev > 1 + ERROR_THRESHOLD || ratioCalibrationStdDev < 1 - ERROR_THRESHOLD )
       {
         LOG_ERROR("ReprojectionError3DStatistics/CalibrationStdDevMm mismatch: current=" << cReprojectionError3DCalibrationStdDevMm << ", baseline=" << blReprojectionError3DCalibrationStdDevMm);
-        return ++numberOfFailures;
+        ++numberOfFailures;
       }
     } // </ReprojectionError3DStatistics>
 
@@ -454,7 +453,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         {
           LOG_ERROR("Wire name mismatch: " << wireBaseline->GetAttribute("Name") << " <> " << wire->GetAttribute("Name"));
           ++numberOfFailures;
-          continue;
         }
 
         double blValidationMeanPx[2];
@@ -483,13 +481,13 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
           if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
           {
             LOG_ERROR("ValidationMeanPx mismatch for wire " << wireIndex << ": current=" << cValidationMeanPx[i] << ", baseline=" << blValidationMeanPx[i]);
-            return ++numberOfFailures;
+            ++numberOfFailures;
           }
           double ratioStdDev = 1.0 * blValidationStdDevPx[i] / cValidationStdDevPx[i]; 
           if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
           {
             LOG_ERROR("ValidationStdDevPx mismatch for wire " << wireIndex << ": current=" << cValidationStdDevPx[i] << ", baseline=" << blValidationStdDevPx[i]);
-            return ++numberOfFailures;
+            ++numberOfFailures;
           }
         }
 
@@ -519,13 +517,13 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
           if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
           {
             LOG_ERROR("CalibrationMeanPx mismatch for wire " << wireIndex << ": current=" << cCalibrationMeanPx[i] << ", baseline=" << blCalibrationMeanPx[i]);
-            return ++numberOfFailures;
+            ++numberOfFailures;
           }
           double ratioStdDev = 1.0 * blCalibrationStdDevPx[i] / cCalibrationStdDevPx[i]; 
           if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
           {
             LOG_ERROR("CalibrationStdDevPx mismatch for wire " << wireIndex << ": current=" << cCalibrationStdDevPx[i] << ", baseline=" << blCalibrationStdDevPx[i]);
-            return ++numberOfFailures;
+            ++numberOfFailures;
           }
         }
       } // </Wire>
@@ -559,7 +557,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         {
           LOG_ERROR("SegmentationStatus mismatch in Frame #" << frameIndex << ": current=" << segmentationStatus << ", baseline=" << segmentationStatusBaseline);
           ++numberOfFailures;
-          continue;
         }
 
         if ( STRCASECMP( segmentationStatusBaseline, "OK" ) == 0 )
@@ -584,14 +581,12 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Invalid Point element in Frame #" << frameIndex);
                 ++numberOfFailures;
-                continue;
               }
 
               if ( STRCASECMP( pointBaseline->GetAttribute("WireName"), point->GetAttribute("WireName") ) != 0 )
               {
                 LOG_ERROR("Wire name mismatch: " << pointBaseline->GetAttribute("Name") << " <> " << point->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blPosition[3];
@@ -611,7 +606,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 {
                   LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
             }
@@ -644,7 +638,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Wire name mismatch: " << reprojectionError3DBaseline->GetAttribute("Name") << " <> " << reprojectionError3D->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blErrorMm = 0.0;
@@ -662,7 +655,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
                 ++numberOfFailures;
-                continue;
               }
             }
           } // </ReprojectionError3DList>
@@ -694,7 +686,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Wire name mismatch: " << reprojectionError2DBaseline->GetAttribute("Name") << " <> " << reprojectionError2D->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blErrorPx[2];
@@ -714,7 +705,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 {
                   LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
             }
@@ -751,7 +741,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         {
           LOG_ERROR("SegmentationStatus mismatch in Frame #" << frameIndex << ": current=" << segmentationStatus << ", baseline=" << segmentationStatusBaseline);
           ++numberOfFailures;
-          continue;
         }
 
         if ( STRCASECMP( segmentationStatusBaseline, "OK" ) == 0 )
@@ -783,7 +772,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Wire name mismatch: " << pointBaseline->GetAttribute("Name") << " <> " << point->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blPosition[3];
@@ -803,7 +791,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 {
                   LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
             }
@@ -847,9 +834,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double ratio = 1.0 * blPositionInImageFrame[i] / cPositionInImageFrame[i]; 
                 if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
                 {
-                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
+                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch (MiddleWire #" << middleWireIndex << " in Frame #" << frameIndex << "): current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
 
@@ -868,9 +854,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double ratio = 1.0 * blPositionInProbeFrame[i] / cPositionInProbeFrame[i]; 
                 if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
                 {
-                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
+                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch (MiddleWire #" << middleWireIndex << " in Frame #" << frameIndex << "): current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
             }
@@ -903,7 +888,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Wire name mismatch: " << reprojectionError3DBaseline->GetAttribute("Name") << " <> " << reprojectionError3D->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blErrorMm = 0.0;
@@ -919,9 +903,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               double ratio = 1.0 * blErrorMm / cErrorMm; 
               if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
               {
-                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                LOG_ERROR("ReprojectionError3D ErrorMm mismatch (Frame #" << frameIndex <<"): current=" << cErrorMm << ", baseline=" << blErrorMm);
                 ++numberOfFailures;
-                continue;
               }
             }
           } // </ReprojectionError3DList>
@@ -953,7 +936,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               {
                 LOG_ERROR("Wire name mismatch: " << reprojectionError2DBaseline->GetAttribute("Name") << " <> " << reprojectionError2D->GetAttribute("Name"));
                 ++numberOfFailures;
-                continue;
               }
 
               double blErrorPx[2];
@@ -971,9 +953,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
                 if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
                 {
-                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  LOG_ERROR("ReprojectionError2D ErrorPx component " << i << " mismatch (Frame #" << frameIndex << "): current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
                   ++numberOfFailures;
-                  continue;
                 }
               }
             }

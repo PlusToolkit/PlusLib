@@ -34,19 +34,25 @@ bin(x,width)=width*floor(x/width)
 ## Plot the histogram  
 if (w==1) \
 	set title "Wire #1 Distance from Rotation Center Histogram" ; \
-	plot f using (bin(($8),binwidth)):(1.0) smooth freq with boxes; \
+	plot f using (bin(($5),binwidth)):(1.0) smooth freq with boxes; \
 else if (w==3) \
 	set title "Wire #3 Distance from Rotation Center Histogram" ; \
 	plot f using (bin(($9),binwidth)):(1.0) smooth freq with boxes; \
 else if (w==4) \
 	set title "Wire #4 Distance from Rotation Center Histogram" ; \
-	plot f using (bin(($10),binwidth)):(1.0) smooth freq with boxes; \
+	plot f using (bin(($13),binwidth)):(1.0) smooth freq with boxes; \
 else if (w==6) \
 	set title "Wire #6 Distance from Rotation Center Histogram" ; \
-	plot f using (bin(($11),binwidth)):(1.0) smooth freq with boxes; \
+	plot f using (bin(($17),binwidth)):(1.0) smooth freq with boxes; \
+else if (w==7) \
+	set title "Wire #7 Distance from Rotation Center Histogram" ; \
+	plot f using (bin(($21),binwidth)):(1.0) smooth freq with boxes; \
+else if (w==9) \
+	set title "Wire #9 Distance from Rotation Center Histogram" ; \
+	plot f using (bin(($25),binwidth)):(1.0) smooth freq with boxes; \
 else \
 	set title "Wire #1 Distance from Rotation Center Histogram" ; \
-	plot f using (bin(($8),binwidth)):(1.0) smooth freq with boxes; 
+	plot f using (bin(($5),binwidth)):(1.0) smooth freq with boxes; 
 
 
 ## This will keep the graph on the screen and wait for return after

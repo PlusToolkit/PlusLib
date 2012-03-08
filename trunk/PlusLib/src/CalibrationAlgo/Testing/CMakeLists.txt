@@ -102,6 +102,14 @@ ADD_TEST(CenterOfRotationCalibration-FrameGrabber
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+ADD_TEST(CenterOfRotationCalibration-3NWires
+        ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
+        --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --input-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
+        --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
+        )
+SET_TESTS_PROPERTIES( CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
 TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkImageAcquisition )
@@ -121,6 +129,14 @@ ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(SpacingCalibAlgoTest-3NWires
+        ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
+        --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --input-sequence-metafiles ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
+        --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
+        )
+SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(TemporalCalibrationAlgoTest TemporalCalibrationAlgoTest.cxx)

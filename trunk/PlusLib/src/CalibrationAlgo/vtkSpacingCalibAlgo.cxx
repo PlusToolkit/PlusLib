@@ -171,10 +171,19 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
     return PLUS_FAIL; 
   }
 
-  // Compute wire distance from phantom definition 
-  const double distanceW1ToW3inMm = fabs(this->NWires[0].Wires[0].EndPointFront[0] - this->NWires[0].Wires[2].EndPointFront[0]); // horizontal distance
-  const double distanceW3ToW6inMm = fabs(this->NWires[0].Wires[2].EndPointFront[1] - this->NWires[1].Wires[2].EndPointFront[1]); // vertical  distance 
-  
+  std::vector<double> verticalDistanceMm; 
+  std::vector<double> horizontalDistanceMm; 
+  for ( int i = 0; i < this->NWires.size() - 1; ++i )
+  {
+    // Distance between the two parallel stem of the N fiducial 
+    double hd = fabs(this->NWires[i].Wires[0].EndPointFront[0] - this->NWires[i].Wires[2].EndPointFront[0]); // horizontal distance
+    horizontalDistanceMm.push_back(hd); 
+    
+    // Distance between the neighbouring N wire patterns
+    double vd = fabs(this->NWires[i].Wires[2].EndPointFront[1] - this->NWires[i+1].Wires[2].EndPointFront[1]); // vertical  distance 
+    verticalDistanceMm.push_back(vd); 
+  }
+
   for ( int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame); 
@@ -197,41 +206,47 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
       continue; 
     }
 
-    double w1px[3] = {0}; 
-    fiduacialPointsCoordinatePx->GetPoint(0, w1px); 
+    for ( int w = 0; w < this->NWires.size() - 1; ++w )
+    {
+      double wRightPx[3] = {0};  
+      fiduacialPointsCoordinatePx->GetPoint(w*3, wRightPx); 
 
-    double w3px[3] = {0}; 
-    fiduacialPointsCoordinatePx->GetPoint(2, w3px); 
+      double wLeftPx[3] = {0};  
+      fiduacialPointsCoordinatePx->GetPoint(w*3 + 2, wLeftPx); 
 
-    double w6px[3] = {0}; 
-    fiduacialPointsCoordinatePx->GetPoint(5, w6px); 
+      double wTopPx[3] = {0};  
+      fiduacialPointsCoordinatePx->GetPoint((w + 1)*3+2, wTopPx); 
 
-    // Compute distance between wire #1 and #3 
-    double xDistanceW1ToW3Px = fabs(w1px[0] - w3px[0]); 
-    double yDistanceW1ToW3Px = fabs(w1px[1] - w3px[1]); 
+      double wBottomPx[3] = {0};  
+      fiduacialPointsCoordinatePx->GetPoint(w*3+2, wBottomPx);
 
-    // Populate the sparse matrix with squared distances in pixel 
-    vnl_vector<double> scaleFactorW1ToW3(2,0); 
-    scaleFactorW1ToW3.put(0, pow(xDistanceW1ToW3Px, 2));
-    scaleFactorW1ToW3.put(1, pow(yDistanceW1ToW3Px, 2));
-    aMatrix.push_back(scaleFactorW1ToW3); 
+      // Compute horizontal distance 
+      double xHorizontalDistance = fabs(wRightPx[0] - wLeftPx[0]); 
+      double yHorizontalDistance = fabs(wRightPx[1] - wLeftPx[1]); 
 
-    // Add the squared distance in mm 
-    bVector.push_back(pow(distanceW1ToW3inMm, 2));
+      // Populate the sparse matrix with squared distances in pixel 
+      vnl_vector<double> scaleFactorHorizontal(2,0); 
+      scaleFactorHorizontal.put(0, pow(xHorizontalDistance, 2));
+      scaleFactorHorizontal.put(1, pow(yHorizontalDistance, 2));
+      aMatrix.push_back(scaleFactorHorizontal); 
 
-    // Compute distance between wire #3 and #6 
-    double xDistanceW3ToW6Px = fabs(w3px[0] - w6px[0]); 
-    double yDistanceW3ToW6Px = fabs(w3px[1] - w6px[1]); 
+      // Add the squared distance in mm 
+      bVector.push_back(pow(horizontalDistanceMm[w], 2));
 
-    // Populate the sparse matrix with squared distances in pixel 
-    vnl_vector<double> scaleFactorW3ToW6(2,0); 
-    scaleFactorW3ToW6.put(0, pow(xDistanceW3ToW6Px, 2));
-    scaleFactorW3ToW6.put(1, pow(yDistanceW3ToW6Px, 2));
-    aMatrix.push_back(scaleFactorW3ToW6); 
+      // Compute vertical distance 
+      double xVerticalDistance = fabs(wBottomPx[0] - wTopPx[0]); 
+      double yVerticalDistance = fabs(wBottomPx[1] - wTopPx[1]); 
 
-    // Add the squared distance in mm 
-    bVector.push_back(pow(distanceW3ToW6inMm, 2));
+      // Populate the sparse matrix with squared distances in pixel 
+      vnl_vector<double> scaleFactorVertical(2,0); 
+      scaleFactorVertical.put(0, pow(xVerticalDistance, 2));
+      scaleFactorVertical.put(1, pow(yVerticalDistance, 2));
+      aMatrix.push_back(scaleFactorVertical); 
 
+      // Add the squared distance in mm 
+      bVector.push_back(pow(verticalDistanceMm[w], 2));
+
+    }
   } // end of frames 
 
   return PLUS_SUCCESS; 

@@ -222,7 +222,7 @@ int main(int argc, char **argv)
       if ( fabs(baseCenterOfRotationPx[0] - centerOfRotationPx[0]) > DOUBLE_DIFF 
         || fabs(baseCenterOfRotationPx[1] - centerOfRotationPx[1]) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation result in pixel differ from baseline: current(" << centerOfRotationPx[0] << ", " << centerOfRotationPx[1] 
+        LOG_ERROR("Center of rotation result in pixel differ from baseline: current(" << std::fixed << centerOfRotationPx[0] << ", " << centerOfRotationPx[1] 
         << ") base (" << baseCenterOfRotationPx[0] << ", " << baseCenterOfRotationPx[1] << ")."); 
         numberOfFailures++;
       }
@@ -239,7 +239,7 @@ int main(int argc, char **argv)
     {
       if ( fabs(baseErrorMean - errorMean) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
+        LOG_ERROR("Center of rotation mean error differ from baseline: current(" << std::fixed << errorMean << ") base (" << baseErrorMean << ")."); 
         numberOfFailures++;
       }
     }
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
     {
       if ( fabs(baseErrorStdev - errorStdev) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
+        LOG_ERROR("Center of rotation stdev of error differ from baseline: current(" << std::fixed << errorStdev << ") base (" << baseErrorStdev << ")."); 
         numberOfFailures++;
       }
     }
