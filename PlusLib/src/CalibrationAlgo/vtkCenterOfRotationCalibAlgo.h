@@ -77,12 +77,14 @@ public:
 
   /*!
     Add generated html report from center of rotation calibration to the existing html report
+    \param numberOfNWirePatterns Number of N-wire structure used 
     \param htmlReport Has to be defined by the caller function
     \param plotter Has to be defined by the caller function
     \param reportTable Computed output
     \param centerOfRotationPx Computed output
   */
-  static PlusStatus GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
+  static PlusStatus GenerateCenterOfRotationReport( int numberOfNWirePatterns, 
+    vtkHTMLGenerator* htmlReport, 
     vtkGnuplotExecuter* plotter, 
     vtkTable* reportTable,
     double centerOfRotationPx[2]); 
@@ -93,6 +95,9 @@ protected:
 
   /*! Set tracked frame indices used for calibration */
   virtual void SetTrackedFrameListIndices( std::vector<int> &indices ); 
+
+  /*! Get the number of N-wire patterns used in the tracked frame list */ 
+  int GetNumberOfNWirePatterns(); 
 
   /*! Set the input tracked frame list */
   vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 

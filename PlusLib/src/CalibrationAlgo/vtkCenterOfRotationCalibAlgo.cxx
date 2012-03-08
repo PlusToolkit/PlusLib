@@ -163,6 +163,61 @@ PlusStatus vtkCenterOfRotationCalibAlgo::Update()
 
 }
 
+//----------------------------------------------------------------------------
+int vtkCenterOfRotationCalibAlgo::GetNumberOfNWirePatterns()
+{
+  int numberOfNWirePatterns = 0; 
+
+  if ( this->TrackedFrameList == NULL )
+  {
+    LOG_WARNING("Unable to compute number of N wire patterns - tracked frame list is NULL!"); 
+    return numberOfNWirePatterns; 
+  }
+  
+  for ( int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame )
+  {
+    TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame); 
+    if ( trackedFrame == NULL ) 
+    {
+      LOG_ERROR("Unable to get tracked frame from the list - tracked frame is NULL (position in the list: " << frame << ")!"); 
+      continue; 
+    }
+
+    vtkPoints* fiduacialPointsCoordinatePx = trackedFrame->GetFiducialPointsCoordinatePx(); 
+    if ( fiduacialPointsCoordinatePx == NULL )
+    {
+      LOG_ERROR("Unable to get segmented fiducial points from tracked frame - FiducialPointsCoordinatePx is NULL, frame is not yet segmented (position in the list: " << frame << ")!" ); 
+      continue; 
+    }
+
+    if ( fiduacialPointsCoordinatePx->GetNumberOfPoints() == 0 )
+    {
+      //LOG_DEBUG("Unable to get segmented fiducial points from tracked frame - couldn't segment image (position in the list: " << frame << ")!" ); 
+      continue; 
+    }
+
+    // Make sure we have 3 points for each N wire pattern 
+    if ( fiduacialPointsCoordinatePx->GetNumberOfPoints() % 3 != 0 )
+    {
+      LOG_WARNING("Unrecognized wire patterns for frame #" << frame); 
+      continue; 
+    }
+
+    // Every N fiducial has 3 points on the image: numberOfNFiducials = NumberOfPoints / 3 
+    int patterns = fiduacialPointsCoordinatePx->GetNumberOfPoints() / 3; 
+    
+    // Make sure all the frames has the same number of patterns
+    if ( numberOfNWirePatterns > 0 && patterns != numberOfNWirePatterns )
+    {
+      LOG_ERROR( "Number of N-wire patterns different between frames!"); // this shouldn't happen
+      return 0; 
+    }
+
+    numberOfNWirePatterns = patterns; 
+  }
+
+  return numberOfNWirePatterns; 
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
@@ -177,7 +232,32 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
     return PLUS_FAIL; 
   }
 
-  const int numberOfFrames = this->TrackedFrameListIndices.size(); 
+  const int numberOfNFiduacials = this->GetNumberOfNWirePatterns(); 
+
+  //******************* Count the number of frames used for calibration *****************
+  int numberOfFrames = 0; 
+  for ( unsigned int index = 0; index < this->TrackedFrameListIndices.size(); ++index )
+  {
+    // Get the next frame index used for calibration 
+    int frameNumber = this->TrackedFrameListIndices[index]; 
+    
+    // Get tracked frame from list 
+    TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber); 
+
+    // Skip frame if it was not segmented
+    if ( trackedFrame->GetFiducialPointsCoordinatePx() == NULL )
+    {
+      continue; 
+    }
+
+    // Skip frame if the segmentation was not successful 
+    if ( trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0 )
+    {
+      continue;
+    }
+
+    numberOfFrames++; 
+  }
 
   if ( numberOfFrames < 30 )
   {
@@ -185,19 +265,14 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
     return PLUS_FAIL; 
   }
 
-  typedef std::vector<vtkSmartPointer<vtkPoints>> VectorPoints; 
-  VectorPoints vectorOfWirePoints; 
-  for ( int i = 0; i < numberOfFrames; ++i )
-  {
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New(); 
-    points->SetDataTypeToDouble(); 
-    vectorOfWirePoints.push_back(points); 
-  }
+  // Reserve memory for wire points 
+  std::vector<vtkSmartPointer<vtkPoints>> vectorOfWirePoints; 
+  vectorOfWirePoints.reserve(numberOfFrames); 
 
-  for ( int index = 0; index < numberOfFrames; ++index )
+  for ( int i = 0; i < this->TrackedFrameListIndices.size(); ++i )
   {
     // Get the next frame index used for calibration 
-    int frameNumber = this->TrackedFrameListIndices[index]; 
+    int frameNumber = this->TrackedFrameListIndices[i]; 
     
     // Get tracked frame from list 
     TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber); 
@@ -208,23 +283,31 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
       continue; 
     }
 
-    // Every N fiducial has 3 points on the image: numberOfNFiducials = NumberOfPoints / 3 
-    const int numberOfNFiduacials = trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() / 3; 
-    vectorOfWirePoints[index]->SetNumberOfPoints(numberOfNFiduacials*2); // Use only the two non-moving points of the N fiducial 
-    int vectorID(0); // ID used for point position in vtkPoints for faster execution 
-    for ( int i = 0; i < trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints(); ++i )
+    if ( trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0 )
     {
-      if ( ( (i+1) % 3 ) != 2 ) // wire #1,#3,#4,#6... => use only non moving points of the N-wire 
+      continue; 
+    }
+
+    vtkSmartPointer<vtkPoints> point = vtkSmartPointer<vtkPoints>::New(); 
+    point->SetDataTypeToDouble(); 
+    point->SetNumberOfPoints(numberOfNFiduacials*2); // Use only the two non-moving points of the N fiducial 
+    
+    int vectorID(0); // ID used for point position in vtkPoints for faster execution 
+    for ( int p = 0; p < trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints(); ++p )
+    {
+      if ( ( (p+1) % 3 ) != 2 ) // wire #1,#3,#4,#6... => use only non moving points of the N-wire 
       {
-        double* wireCoordinatePx = trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint(i); 
-        vectorOfWirePoints[index]->SetPoint(vectorID++, wireCoordinatePx[0], wireCoordinatePx[1], wireCoordinatePx[2]); 
+        double* wireCoordinatePx = trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint(p); 
+        point->SetPoint(vectorID++, wireCoordinatePx[0], wireCoordinatePx[1], wireCoordinatePx[2]); 
       }
     }
+
+    vectorOfWirePoints.push_back(point); 
   }
 
   for ( unsigned int i = 0; i <= vectorOfWirePoints.size() - 2; i++ )
   {
-    for( unsigned int j = i + 1; j <= vectorOfWirePoints.size() - 1; j++ )
+    for( unsigned int j = i + 1; j <= vectorOfWirePoints.size() - 1; j = j + 2 )
     {
       if ( vectorOfWirePoints[i]->GetNumberOfPoints() != vectorOfWirePoints[j]->GetNumberOfPoints() )
       {
@@ -271,28 +354,46 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     this->AddNewColumnToReportTable("ProbeRotation"); 
     this->AddNewColumnToReportTable("TemplatePosition"); 
 #endif
-    this->AddNewColumnToReportTable("Wire#1Radius"); 
-    this->AddNewColumnToReportTable("Wire#3Radius"); 
-    this->AddNewColumnToReportTable("Wire#4Radius"); 
-    this->AddNewColumnToReportTable("Wire#6Radius");
-    this->AddNewColumnToReportTable("Wire#1RadiusDistanceFromMean"); 
-    this->AddNewColumnToReportTable("Wire#3RadiusDistanceFromMean"); 
-    this->AddNewColumnToReportTable("Wire#4RadiusDistanceFromMean"); 
-    this->AddNewColumnToReportTable("Wire#6RadiusDistanceFromMean");
-    this->AddNewColumnToReportTable("w1xPx"); 
-    this->AddNewColumnToReportTable("w1yPx"); 
-    this->AddNewColumnToReportTable("w3xPx"); 
-    this->AddNewColumnToReportTable("w3yPx"); 
-    this->AddNewColumnToReportTable("w4xPx"); 
-    this->AddNewColumnToReportTable("w4yPx");
-    this->AddNewColumnToReportTable("w6xPx"); 
-    this->AddNewColumnToReportTable("w6yPx"); 
+    for ( int i = 0; i < this->GetNumberOfNWirePatterns(); ++i )
+    {
+      std::ostringstream columnNameRightRadius; 
+      columnNameRightRadius << "Wire#" << (i*3 + 1 )<< "Radius"; 
+      this->AddNewColumnToReportTable(columnNameRightRadius.str().c_str());
+
+      std::ostringstream columnNameRightRadiusDistanceFromMean; 
+      columnNameRightRadiusDistanceFromMean << "Wire#" << (i*3 + 1 )<< "RadiusDistanceFromMean"; 
+      this->AddNewColumnToReportTable(columnNameRightRadiusDistanceFromMean.str().c_str()); 
+
+       std::ostringstream columnNameRightWireX; 
+      columnNameRightWireX << "w" << (i*3 + 1 )<< "xPx"; 
+      this->AddNewColumnToReportTable(columnNameRightWireX.str().c_str()); 
+
+      std::ostringstream columnNameRightWireY; 
+      columnNameRightWireY << "w" << (i*3 + 1 )<< "yPx"; 
+      this->AddNewColumnToReportTable(columnNameRightWireY.str().c_str()); 
+
+      std::ostringstream columnNameLeftRadius; 
+      columnNameLeftRadius << "Wire#" << (i*3 + 3 )<< "Radius"; 
+      this->AddNewColumnToReportTable(columnNameLeftRadius.str().c_str());
+
+      std::ostringstream columnNameLeftRadiusDistanceFromMean; 
+      columnNameLeftRadiusDistanceFromMean << "Wire#" << (i*3 + 3 )<< "RadiusDistanceFromMean"; 
+      this->AddNewColumnToReportTable(columnNameLeftRadiusDistanceFromMean.str().c_str());
+
+      std::ostringstream columnNameLeftWireX; 
+      columnNameLeftWireX << "w" << (i*3 + 3 )<< "xPx"; 
+      this->AddNewColumnToReportTable(columnNameLeftWireX.str().c_str()); 
+
+      std::ostringstream columnNameLeftWireY; 
+      columnNameLeftWireY << "w" << (i*3 + 3 )<< "yPx"; 
+      this->AddNewColumnToReportTable(columnNameLeftWireY.str().c_str()); 
+    }
   }
 
   const double sX = this->Spacing[0]; 
   const double sY = this->Spacing[1]; 
-  std::vector<std::vector<double>> wireRadiusVector(4); 
-  std::vector<std::vector<double>> wirePositions(8); 
+  std::vector<std::vector<double>> wireRadiusVector(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
+  std::vector<std::vector<double>> wirePositions(this->GetNumberOfNWirePatterns()*4); // each wire has 2 point and each point has 2 coordinates 
 
 #ifdef PLUS_USE_BRACHY_TRACKER
   std::vector<double> probePosVector; 
@@ -324,58 +425,46 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     templatePosVector.push_back(templatePos); 
 #endif
   
-    // TODO: it works only with double N phantom 
-    // Compute radius from Wire #1, #3, #4, #6
-    double w1x = frame->GetFiducialPointsCoordinatePx()->GetPoint(0)[0]; 
-    double w1y = frame->GetFiducialPointsCoordinatePx()->GetPoint(0)[1]; 
+    // Compute radius 
+    for ( int w = 0; w < this->GetNumberOfNWirePatterns(); ++w )
+    {
+      double w1x = frame->GetFiducialPointsCoordinatePx()->GetPoint(w*3)[0]; 
+      double w1y = frame->GetFiducialPointsCoordinatePx()->GetPoint(w*3)[1]; 
+      double w1Radius = sqrt( pow( (w1x - this->CenterOfRotationPx[0])*sX, 2) + pow((w1y - this->CenterOfRotationPx[1])*sY, 2) ); 
 
-    double w3x = frame->GetFiducialPointsCoordinatePx()->GetPoint(2)[0]; 
-    double w3y = frame->GetFiducialPointsCoordinatePx()->GetPoint(2)[1]; 
+      wirePositions[4*w].push_back(w1x); 
+      wirePositions[4*w+1].push_back(w1y);
+      wireRadiusVector[2*w].push_back(w1Radius); 
 
-    double w4x = frame->GetFiducialPointsCoordinatePx()->GetPoint(3)[0]; 
-    double w4y = frame->GetFiducialPointsCoordinatePx()->GetPoint(3)[1]; 
-    
-    double w6x = frame->GetFiducialPointsCoordinatePx()->GetPoint(5)[0]; 
-    double w6y = frame->GetFiducialPointsCoordinatePx()->GetPoint(5)[1]; 
 
-    wirePositions[0].push_back(w1x); 
-    wirePositions[1].push_back(w1y); 
-    wirePositions[2].push_back(w3x); 
-    wirePositions[3].push_back(w3y); 
-    wirePositions[4].push_back(w4x); 
-    wirePositions[5].push_back(w4y); 
-    wirePositions[6].push_back(w6x); 
-    wirePositions[7].push_back(w6y); 
+      double w3x = frame->GetFiducialPointsCoordinatePx()->GetPoint(w*3+2)[0]; 
+      double w3y = frame->GetFiducialPointsCoordinatePx()->GetPoint(w*3+2)[1]; 
+      double w3Radius = sqrt( pow( (w3x - this->CenterOfRotationPx[0])*sX, 2) + pow((w3y - this->CenterOfRotationPx[1])*sY, 2) ); 
 
-    double w1Radius = sqrt( pow( (w1x - this->CenterOfRotationPx[0])*sX, 2) + pow((w1y - this->CenterOfRotationPx[1])*sY, 2) ); 
-    double w3Radius = sqrt( pow( (w3x - this->CenterOfRotationPx[0])*sX, 2) + pow((w3y - this->CenterOfRotationPx[1])*sY, 2) ); 
-    double w4Radius = sqrt( pow( (w4x - this->CenterOfRotationPx[0])*sX, 2) + pow((w4y - this->CenterOfRotationPx[1])*sY, 2) ); 
-    double w6Radius = sqrt( pow( (w6x - this->CenterOfRotationPx[0])*sX, 2) + pow((w6y - this->CenterOfRotationPx[1])*sY, 2) ); 
-
-    wireRadiusVector[0].push_back(w1Radius); 
-    wireRadiusVector[1].push_back(w3Radius); 
-    wireRadiusVector[2].push_back(w4Radius); 
-    wireRadiusVector[3].push_back(w6Radius); 
+      wirePositions[4*w+2].push_back(w3x); 
+      wirePositions[4*w+3].push_back(w3y);
+      wireRadiusVector[2*w+1].push_back(w3Radius);
+    }
   }
 
   const int numberOfElements = wireRadiusVector[0].size(); 
-  std::vector<double> wireRadiusMean(4, 0);
+  std::vector<double> wireRadiusMean(this->GetNumberOfNWirePatterns()*2, 0); // each wire has two points 
   
   for ( int i = 0; i < numberOfElements; ++i )
   {
-    wireRadiusMean[0] += wireRadiusVector[0][i] / (1.0 * numberOfElements); 
-    wireRadiusMean[1] += wireRadiusVector[1][i] / (1.0 * numberOfElements); 
-    wireRadiusMean[2] += wireRadiusVector[2][i] / (1.0 * numberOfElements); 
-    wireRadiusMean[3] += wireRadiusVector[3][i] / (1.0 * numberOfElements); 
+    for ( int w = 0; w < this->GetNumberOfNWirePatterns()*2; ++w)
+    {
+      wireRadiusMean[w] += wireRadiusVector[w][i] / (1.0 * numberOfElements); 
+    }
   }
 
-  std::vector<std::vector<double>> wireDistancesFromMeanRadius(4);
+  std::vector<std::vector<double>> wireDistancesFromMeanRadius(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
   for ( int i = 0; i < numberOfElements; ++i ) 
   {
-    wireDistancesFromMeanRadius[0].push_back( wireRadiusMean[0] - wireRadiusVector[0][i] ); 
-    wireDistancesFromMeanRadius[1].push_back( wireRadiusMean[1] - wireRadiusVector[1][i] ); 
-    wireDistancesFromMeanRadius[2].push_back( wireRadiusMean[2] - wireRadiusVector[2][i] ); 
-    wireDistancesFromMeanRadius[3].push_back( wireRadiusMean[3] - wireRadiusVector[3][i] ); 
+    for ( int w = 0; w < this->GetNumberOfNWirePatterns()*2; ++w)
+    {
+      wireDistancesFromMeanRadius[w].push_back( wireRadiusMean[w] - wireRadiusVector[w][i] ); 
+    }
   }
 
   for ( int row = 0; row < numberOfElements; ++row )
@@ -387,25 +476,13 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     tableRow->InsertNextValue(probeRotVector[row]); //ProbeRotation
     tableRow->InsertNextValue(templatePosVector[row]); //TemplatePosition
 #endif
-
-    tableRow->InsertNextValue( wireRadiusVector[0][row] ); //Wire#1Radius
-    tableRow->InsertNextValue( wireRadiusVector[1][row] ); //Wire#3Radius
-    tableRow->InsertNextValue( wireRadiusVector[2][row] ); //Wire#4Radius
-    tableRow->InsertNextValue( wireRadiusVector[3][row] ); //Wire#6Radius
-
-    tableRow->InsertNextValue( wireDistancesFromMeanRadius[0][row] ); //Wire#1RadiusDistanceFromMean
-    tableRow->InsertNextValue( wireDistancesFromMeanRadius[1][row] ); //Wire#3RadiusDistanceFromMean
-    tableRow->InsertNextValue( wireDistancesFromMeanRadius[2][row] ); //Wire#4RadiusDistanceFromMean
-    tableRow->InsertNextValue( wireDistancesFromMeanRadius[3][row] ); //Wire#6RadiusDistanceFromMean
-
-    tableRow->InsertNextValue(wirePositions[0][row]); //w1xPx
-    tableRow->InsertNextValue(wirePositions[1][row]); //w1yPx
-    tableRow->InsertNextValue(wirePositions[2][row]); //w3xPx
-    tableRow->InsertNextValue(wirePositions[3][row]); //w3yPx
-    tableRow->InsertNextValue(wirePositions[4][row]); //w4xPx
-    tableRow->InsertNextValue(wirePositions[5][row]); //w4yPx
-    tableRow->InsertNextValue(wirePositions[6][row]); //w6xPx
-    tableRow->InsertNextValue(wirePositions[7][row]); //w6yPx
+    for ( int w = 0; w < this->GetNumberOfNWirePatterns()*2; ++w)
+    {
+      tableRow->InsertNextValue( wireRadiusVector[w][row] ); //Wire Radius
+      tableRow->InsertNextValue( wireDistancesFromMeanRadius[w][row] ); //Wire RadiusDistanceFromMean
+      tableRow->InsertNextValue(wirePositions[2*w][row]); //wire pixel coordinate x
+      tableRow->InsertNextValue(wirePositions[2*w+1][row]); //wire pixel coordinate y
+    }
 
     if ( tableRow->GetNumberOfTuples() == this->ReportTable->GetNumberOfColumns() )
     {
@@ -465,11 +542,13 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
     return PLUS_FAIL;
   }
 
-  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(htmlReport, plotter, this->ReportTable, this->CenterOfRotationPx); 
+  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(this->GetNumberOfNWirePatterns(), htmlReport, plotter, this->ReportTable, this->CenterOfRotationPx); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
+//static
+PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numberOfNWirePatterns, 
+                                                                        vtkHTMLGenerator* htmlReport, 
                                                                         vtkGnuplotExecuter* plotter, 
                                                                         vtkTable* reportTable,
                                                                         double centerOfRotationPx[2])
@@ -542,10 +621,19 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
   htmlReport->AddParagraph(report.str().c_str()); 
 
 #ifdef PLUS_USE_BRACHY_TRACKER
+ 
+  // Every N wire has 2 plots, one for w#1 and w#3 
+  const int numOfPlots = numberOfNWirePatterns * 2; 
 
-  const int wires[4] = {1, 3, 4, 6}; 
+  // Create wire labels 
+  int *wires = new int[numOfPlots]; // = {1, 3, 4, 6, ... }; 
+  for ( int i = 0; i < numberOfNWirePatterns; ++i )
+  {
+    wires[2*i] = i*3 + 1; 
+    wires[2*i+1] = i*3 + 3; 
+  }
 
-  for ( int i = 0; i < 4; i++ )
+  for ( int i = 0; i < numOfPlots; i++ )
   {
     std::ostringstream wireName; 
     wireName << "Wire #" << wires[i] << std::ends; 
@@ -591,6 +679,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
     htmlReport->AddImage(imageSourceHistogram.str().c_str(), imageAltHistogram.str().c_str()); 
   }
 
+  delete[] wires; 
 #endif
 
   htmlReport->AddHorizontalLine(); 
