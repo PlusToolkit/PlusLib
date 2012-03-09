@@ -26,7 +26,7 @@ static const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-static const char PEAK_INTENSITY_THRESHOLD = 50;
+static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.8; // threshold (as the percentage of the peak intensity along a scanline) for COG
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -219,7 +219,48 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
     return PLUS_FAIL;
   }
+
+   //  Find the mean tracker position
+
+  itk::Point<double, 3> meanTrackerPosition;
+  std::vector<itk::Point<double, 3>> trackerPositions;
+
+  int numberOfValidFrames = 0;
+  for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+  {
+    TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
+    transformRepository->SetTransforms(*trackedFrame);
+    vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+    bool valid = false;
+    transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
+    if (!valid)
+    {
+      // There is no available transform for this frame; skip that frame
+      continue;
+    }  
   
+    itk::Point<double, 3> currTrackerPosition;
+    currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
+    currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
+    currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
+    trackerPositions.push_back(currTrackerPosition);
+
+    meanTrackerPosition[0] = meanTrackerPosition[0] + probeToReferenceTransform->GetElement(0, 3);
+    meanTrackerPosition[1] = meanTrackerPosition[1] + probeToReferenceTransform->GetElement(1, 3);
+    meanTrackerPosition[2] = meanTrackerPosition[2] + probeToReferenceTransform->GetElement(2, 3);
+    ++numberOfValidFrames;
+  }
+
+  itk::Point<double,3> principalAxis;
+  ComputePrincipalAxis(trackerPositions, principalAxis, numberOfValidFrames);
+
+  meanTrackerPosition[0] = ( meanTrackerPosition[0] / static_cast<double>(numberOfValidFrames) );
+  meanTrackerPosition[1] = ( meanTrackerPosition[1] / static_cast<double>(numberOfValidFrames) );
+  meanTrackerPosition[2] = ( meanTrackerPosition[2] / static_cast<double>(numberOfValidFrames) );
+
+  double meanTrackerPositionProjection = meanTrackerPosition[0] * principalAxis[0] 
+                                       + meanTrackerPosition[1] * principalAxis[1] 
+                                       + meanTrackerPosition[2] * principalAxis[2];
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
@@ -235,13 +276,12 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     }  
     //  Get the Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)^(1/2)   
     // TODO: compute the distance from the mean position instead of the reference coordinate frame origin
-    double trackerTranslationDistance=0; //  Euclidean translation of tracker from reference.
-    for(int i = 0; i < 3; ++i)
-    {
-      trackerTranslationDistance += probeToReferenceTransform->GetElement(i, 3) * 
-                                   probeToReferenceTransform->GetElement(i, 3);
-    }    
-    trackerTranslationDistance = std::sqrt(trackerTranslationDistance);
+    double currTrackerPositionProjection = probeToReferenceTransform->GetElement(0, 3) * principalAxis[0]
+                                         + probeToReferenceTransform->GetElement(1, 3) * principalAxis[1]
+                                         + probeToReferenceTransform->GetElement(2, 3) * principalAxis[2];
+
+    double trackerTranslationDistance = currTrackerPositionProjection - meanTrackerPositionProjection;
+
     m_TrackerPositionMetric.push_back(trackerTranslationDistance);
     m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
   }
@@ -253,6 +293,75 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 }
 
 //-----------------------------------------------------------------------------
+void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
+                                               itk::Point<double,3> &principalAxis, int numValidFrames)
+{
+
+  // Set the X-values
+  const char m0Name[] = "M0";
+  vtkSmartPointer<vtkDoubleArray> dataset1Arr = vtkSmartPointer<vtkDoubleArray>::New();
+  dataset1Arr->SetNumberOfComponents(1);
+  dataset1Arr->SetName( m0Name );
+  for(int i = 0; i < numValidFrames; ++i)
+  {
+    dataset1Arr->InsertNextValue(trackerPositions[i].GetElement(0));
+  }
+  
+
+ 
+  // Set the Y-values
+  const char m1Name[] = "M1";
+  vtkSmartPointer<vtkDoubleArray> dataset2Arr = vtkSmartPointer<vtkDoubleArray>::New();
+  dataset2Arr->SetNumberOfComponents(1);
+  dataset2Arr->SetName( m1Name );
+  for(int i = 0; i < numValidFrames; ++i)
+  {
+    dataset2Arr->InsertNextValue(trackerPositions[i].GetElement(1));
+  }
+  
+ 
+  // Set the Z-values
+  const char m2Name[] = "M2";
+  vtkSmartPointer<vtkDoubleArray> dataset3Arr = vtkSmartPointer<vtkDoubleArray>::New();
+  dataset3Arr->SetNumberOfComponents(1);
+  dataset3Arr->SetName( m2Name );
+  for(int i = 0; i < numValidFrames; ++i)
+  {
+    dataset3Arr->InsertNextValue(trackerPositions[i].GetElement(2));
+  }
+ 
+  vtkSmartPointer<vtkTable> datasetTable = vtkSmartPointer<vtkTable>::New();
+  datasetTable->AddColumn(dataset1Arr);
+  datasetTable->AddColumn(dataset2Arr);
+  datasetTable->AddColumn(dataset3Arr);
+ 
+  vtkSmartPointer<vtkPCAStatistics> pcaStatistics = vtkSmartPointer<vtkPCAStatistics>::New();
+
+#if VTK_MAJOR_VERSION <= 5
+  pcaStatistics->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, datasetTable );
+#else
+  pcaStatistics->SetInputData( vtkStatisticsAlgorithm::INPUT_DATA, datasetTable );
+#endif
+ 
+  pcaStatistics->SetColumnStatus("M0", 1 );
+  pcaStatistics->SetColumnStatus("M1", 1 );
+  pcaStatistics->SetColumnStatus("M2", 1 );
+  pcaStatistics->RequestSelectedColumns();
+  pcaStatistics->SetDeriveOption(true);
+  pcaStatistics->Update();
+ 
+  ///////// Eigenvectors ////////////
+  vtkSmartPointer<vtkDoubleArray> eigenvector = vtkSmartPointer<vtkDoubleArray>::New();
+  pcaStatistics->GetEigenvector(0, eigenvector);
+
+  for(int i = 0; i < eigenvector->GetNumberOfComponents(); ++i)
+  {
+    principalAxis[i] = eigenvector->GetComponent(0,i);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 {
 
@@ -413,7 +522,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
      }
 
      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
-     m_VideoPositionMetric.push_back(planeParameters.at(3) + t*r_y);
+     m_VideoPositionMetric.push_back( std::abs( planeParameters.at(3) + t * r_y ) );
 
      //  Get timestamp for image frame
      m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
@@ -519,8 +628,6 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
 
    }
 
-
-
   }// end frameNum loop
   
    bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
@@ -544,7 +651,7 @@ PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile
 
 {
   // Start of peak is defined as the location at which it reaches 50% of its maximum value.
-  double startPeakValue = MaxFromLargestArea * 0.50;
+  double startPeakValue = MaxFromLargestArea * 0.5;
 
    int pixelIndex = startOfMaxArea;
 
@@ -582,8 +689,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
     }
   }
 
-  double peakIntensityThreshold = intensityMax * 0.8; // TODO: magic number etc
-  LOG_INFO("peakIntensityThreshold="<<peakIntensityThreshold);
+  double peakIntensityThreshold = intensityMax * INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK; 
 
   for(int pixelLoc = 0; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
@@ -609,8 +715,7 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
     }
     else if(intensityProfile.at(pixelLoc) < peakIntensityThreshold && underPeak)
     {
-      // exit the peak area
-
+      // exited the peak area
       underPeak = false;
       if(currentArea > currentLargestArea)
       {
@@ -649,7 +754,7 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
     }
   }
 
-  double peakIntensityThreshold = intensityMax * 0.8; // TODO: magic number etc
+  double peakIntensityThreshold = intensityMax * INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK; 
 
 
  int pixelLoc = startOfMaxArea;
@@ -688,6 +793,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
   {
     mu += metric.at(i);
   }
+
   mu /= metric.size();
 
   //  Subtract the metric mean from each metric value as: s' = s - mu
@@ -712,7 +818,8 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
     }
   }
 
-  // Normalize the signal between [-0.5, +0.5]--i.e. maximum of unity amplitude--by dividing by max peak-to-peak
+
+  // Normalize the signal by dividing by max peak-to-peak
   double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
 
   // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will

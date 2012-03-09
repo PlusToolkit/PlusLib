@@ -28,6 +28,7 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkMatrix4x4.h>
 #include <vtksys/CommandLineArguments.hxx>
+#include "vtkPCAStatistics.h"
 
 #include <itkHoughTransform2DLinesImageFilter.h>
 #include <itkImageFileWriter.h>
@@ -155,7 +156,6 @@ private:
   std::string m_ProbeToReferenceTransformName;
 
 
-
   void plotIntArray(std::vector<int> intensityValues);
   void plotDoubleArray(std::vector<double> intensityValues);
   PlusStatus FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
@@ -193,6 +193,9 @@ private:
   vtkSmartPointer<vtkTable> m_VideoTable;
   vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
   void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
+
+  void ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
+                                               itk::Point<double,3> &principalAxis,  int numValidFrames);
 
 };
 
