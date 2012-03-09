@@ -17,36 +17,34 @@ PatternRecognitionResult::PatternRecognitionResult()
 }
 
 //-----------------------------------------------------------------------------
-
 float Line::ComputeAngle(Line &line)
 {
-  float x = line.GetDirectionVector(0);
-  float y = line.GetDirectionVector(1);
-  
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
-  float angle = atan2(y,x);
+  float angle = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
 
   return angle;
 }
 
-//-----------------------------------------------------------------------------
 
-float Line::ComputeHalfSpaceAngle(Line &line)
+float Line::ComputeAngle(Line &line1, Line &line2)
 {
-  float x = line.GetDirectionVector(0);
-  float y = line.GetDirectionVector(1);
- 
-  //atan2 return the angle between the line and the x-axis from -Pi to Pi
-  float angle = atan2(y,x);
-
-  //here, we want the angles to be between -Pi/2 and Pi/2
-  if(angle > vtkMath::Pi()/2)
-    angle -= vtkMath::Pi();
-  else if(angle < -vtkMath::Pi()/2)
-    angle += vtkMath::Pi();
-
-  return angle;
+  // a * b = |a| * |b| * cos(alpha)
+  const float* a=line1.GetDirectionVector();
+  const float* b=line2.GetDirectionVector();
+  float angleBetweenLines=acos(a[0]*b[0]+a[1]*b[1]/sqrt(a[0]*a[0]+a[1]*a[1])/sqrt(b[0]*b[0]+b[1]*b[1]));
+  // Normalize between -pi/2 .. +pi/2
+  if (angleBetweenLines>vtkMath::Pi()/2)
+  {
+    angleBetweenLines -= vtkMath::Pi();
+  }
+  else if (angleBetweenLines<-vtkMath::Pi()/2)
+  {
+    angleBetweenLines += vtkMath::Pi();
+  }
+  // Return the absolute value (0..+pi/2)
+  return fabs(angleBetweenLines);
 }
+
 
 //-----------------------------------------------------------------------------
 

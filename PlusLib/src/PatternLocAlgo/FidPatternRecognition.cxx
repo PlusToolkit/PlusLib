@@ -214,7 +214,7 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 	for ( int l = 0; l < foundLines.size(); l++ )
 	{
     double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetY()};
-    double directionVector[2] = {foundLines[l].GetDirectionVector(0) , foundLines[l].GetDirectionVector(1)};
+    double directionVector[2] = { foundLines[l].GetDirectionVector()[0], foundLines[l].GetDirectionVector()[1]};
     if(directionVector[0] < 0)
     {
       directionVector[0] = -directionVector[0];

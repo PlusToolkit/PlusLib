@@ -24,6 +24,8 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkPoints.h" 
 
+static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=10; // minimum number of successfully calibrated frames required for calibration
+
 vtkCxxRevisionMacro(vtkProbeCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationAlgo);
 
@@ -218,6 +220,13 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Do calibration for all dimensions and assemble output matrix
   const int m = this->DataPositionsInImageFrame.size();
   const int n = this->DataPositionsInImageFrame.begin()->size();
+
+  // If we attempt to run least square with not enough points then vnl_lsqr crashes. Return with an error if there are very few frames to avoid crashing.
+  if (m/3<MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES)
+  {
+    LOG_ERROR("Unable to perform calibration - there are "<<n<<" frames with segmented points and minimum "<<MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES<<" frames are needed"); 
+    return PLUS_FAIL; 
+  }
 
   vnl_matrix<double> imageToProbeTransformMatrixVnl;
   imageToProbeTransformMatrixVnl.set_size(n, n);
