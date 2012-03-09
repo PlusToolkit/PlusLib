@@ -1,5 +1,5 @@
 <StepperCalibrationResults>
   <SapcingCalibrationResult Spacing="0.202485 0.190130" />
   <RotationAxisCalibrationResult  RotationAxisOrientation="0.00191243 -0.0227306 1" ErrorMean="0.000000" ErrorStdev="0.258311"/>
-  <CenterOfRotationCalibrationResult CenterOfRotationPx="319.803161 5.214911"/>
+  <CenterOfRotationCalibrationResult CenterOfRotationPx="319.804139 5.201518"/>
 </StepperCalibrationResults>
