@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "FidLabeling.h"
@@ -18,18 +18,19 @@
 
 FidLabeling::FidLabeling()
 {
-	m_ApproximateSpacingMmPerPixel = -1.0;
-	m_MaxAngleDiff = -1.0;
-	m_MinLinePairDistMm = -1.0; 	
-	m_MaxLinePairDistMm = -1.0;
-	m_MaxLinePairDistanceErrorPercent = -1.0;
-	m_MinTheta = -1.0;
-	m_MaxTheta = -1.0;
+  m_ApproximateSpacingMmPerPixel = -1.0;
+  m_MaxAngleDiff = -1.0;
+  m_MinLinePairDistMm = -1.0; 	
+  m_MaxLinePairDistMm = -1.0;
+  m_MaxLineShiftMm = 25; // TODO: make it adjustable (https://www.assembla.com/spaces/plus/tickets/449)
+  m_MaxLinePairDistanceErrorPercent = -1.0;
+  m_MinTheta = -1.0;
+  m_MaxTheta = -1.0;
   m_AngleToleranceRad = -1.0;
-	
-	m_DotsFound = false;
 
-	m_PatternIntensity = -1.0;
+  m_DotsFound = false;
+
+  m_PatternIntensity = -1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -42,131 +43,129 @@ FidLabeling::~FidLabeling()
 
 void FidLabeling::UpdateParameters()
 {
-	LOG_TRACE("FidLabeling::UpdateParameters");
+  LOG_TRACE("FidLabeling::UpdateParameters");
 
-	// Distance between lines (= distance between planes of the N-wires)
-	double maxNPlaneDistance = -1.0;
-	double minNPlaneDistance = FLT_MAX;
-	int numOfPatterns = m_Patterns.size();
-	double epsilon = 0.001;
+  // Distance between lines (= distance between planes of the N-wires)
+  int numOfPatterns = m_Patterns.size();
+  double epsilon = 0.001;
 
-	// Compute normal of each pattern and evaluate the other wire endpoints if they are on the computed plane
-	std::vector<vtkSmartPointer<vtkPlane>> planes;
-	for (int i=0; i<numOfPatterns; ++i) 
+  // Compute normal of each pattern and evaluate the other wire endpoints if they are on the computed plane
+  std::vector<vtkSmartPointer<vtkPlane>> planes;
+  for (int i=0; i<numOfPatterns; ++i) 
   {
-		double normal[3];
-		vtkTriangle::ComputeNormal(m_Patterns[i]->Wires[0].EndPointFront, m_Patterns[i]->Wires[0].EndPointBack, m_Patterns[i]->Wires[2].EndPointFront, normal);
+    double normal[3];
+    vtkTriangle::ComputeNormal(m_Patterns[i]->Wires[0].EndPointFront, m_Patterns[i]->Wires[0].EndPointBack, m_Patterns[i]->Wires[2].EndPointFront, normal);
 
-		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
-		plane->SetNormal(normal);
-		plane->SetOrigin(m_Patterns[i]->Wires[0].EndPointFront);
-		planes.push_back(plane);
+    vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+    plane->SetNormal(normal);
+    plane->SetOrigin(m_Patterns[i]->Wires[0].EndPointFront);
+    planes.push_back(plane);
 
-		double distance1F = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointFront);
-		double distance1B = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointBack);
-		double distance2B = plane->DistanceToPlane(m_Patterns[i]->Wires[2].EndPointBack);
+    double distance1F = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointFront);
+    double distance1B = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointBack);
+    double distance2B = plane->DistanceToPlane(m_Patterns[i]->Wires[2].EndPointBack);
 
-		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
+    if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
     {
-			LOG_ERROR("Pattern number " << i << " is invalid: the endpoints are not on the same plane");
-		}
-	}
-
-	// Compute distances between each NWire pairs and determine the smallest and the largest distance
-	for (int i=numOfPatterns-1; i>0; --i) 
+      LOG_ERROR("Pattern number " << i << " is invalid: the endpoints are not on the same plane");
+    }
+  }
+  // Compute distances between each NWire pairs and determine the smallest and the largest distance
+  double maxNPlaneDistance = -1.0;
+  double minNPlaneDistance = FLT_MAX;
+  for (int i=numOfPatterns-1; i>0; --i) 
   {
-		for (int j=i-1; j>=0; --j) 
+    for (int j=i-1; j>=0; --j) 
     {
-			double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
-
-			if (maxNPlaneDistance < distance) 
+      double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
+      if (maxNPlaneDistance < distance) 
       {
-				maxNPlaneDistance = distance;
-			}
-			if (minNPlaneDistance > distance) 
+        maxNPlaneDistance = distance;
+      }
+      if (minNPlaneDistance > distance) 
       {
-				minNPlaneDistance = distance;
-			}
-		}
-	}
+        minNPlaneDistance = distance;
+      }
+    }
+  }
 
-	m_MaxLinePairDistMm = maxNPlaneDistance * (1.0 + (m_MaxLinePairDistanceErrorPercent / 100.0));
-	m_MinLinePairDistMm = minNPlaneDistance * (1.0 - (m_MaxLinePairDistanceErrorPercent / 100.0));
-	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << m_MinLinePairDistMm << ", max: " << m_MaxLinePairDistMm);
+  m_MaxLinePairDistMm = maxNPlaneDistance * (1.0 + (m_MaxLinePairDistanceErrorPercent / 100.0));
+  m_MinLinePairDistMm = minNPlaneDistance * (1.0 - (m_MaxLinePairDistanceErrorPercent / 100.0));
+  LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << m_MinLinePairDistMm << ", max: " << m_MaxLinePairDistMm);
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double minTheta, double maxTheta )
 {
-	LOG_TRACE("FidLabeling::ReadConfiguration");
+  LOG_TRACE("FidLabeling::ReadConfiguration");
 
-	if ( configData == NULL) 
-	{
-		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
-		return PLUS_FAIL; 
-	}
+  if ( configData == NULL) 
+  {
+    LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
+    return PLUS_FAIL; 
+  }
 
   vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
-	if (segmentationParameters == NULL)
+  if (segmentationParameters == NULL)
   {
     LOG_ERROR("Cannot find Segmentation element in XML tree!");
     return PLUS_FAIL;
-	}
+  }
 
   double approximateSpacingMmPerPixel(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
-	{
-		m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
-	}
+  if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
+  {
+    m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
+  }
   else
   {
     LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
   }
 
-	//if the tolerance parameters are computed automatically
-	int computeSegmentationParametersFromPhantomDefinition(0);
-	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
-		&& computeSegmentationParametersFromPhantomDefinition!=0 )
-	{
+  //if the tolerance parameters are computed automatically
+  int computeSegmentationParametersFromPhantomDefinition(0);
+  if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
+    && computeSegmentationParametersFromPhantomDefinition!=0 )
+  {
     LOG_WARNING("Automatic computation of the MaxLinePairDistanceErrorPercent and MaxAngleDifferenceDegrees parameters are not yet supported, use the values that are in the config file");
-	}
-	
-	double maxLinePairDistanceErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-	{
-		m_MaxLinePairDistanceErrorPercent = maxLinePairDistanceErrorPercent; 
-	}
+  }
+
+  double maxLinePairDistanceErrorPercent(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+  {
+    m_MaxLinePairDistanceErrorPercent = maxLinePairDistanceErrorPercent; 
+  }
   else
   {
     LOG_WARNING("Could not read maxLinePairDistanceErrorPercent from configuration file.");
   }
 
-	double maxAngleDifferenceDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
-	{
+  double maxAngleDifferenceDegrees(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
+  {
     m_MaxAngleDiff = maxAngleDifferenceDegrees * vtkMath::Pi() / 180.0; 
-	}
+  }
   else
   {
     LOG_WARNING("Could not read maxAngleDifferenceDegrees from configuration file.");
   }
 
   double angleToleranceDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
-	{
+  if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
+  {
     m_AngleToleranceRad = angleToleranceDegrees * vtkMath::Pi() / 180.0; 
-	}
+  }
   else
   {
     LOG_WARNING("Could not read AngleToleranceDegrees from configuration file.");
   }
 
   double inclinedLineAngleDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("InclinedLineAngleDegrees", inclinedLineAngleDegrees) )
-	{
+  if ( segmentationParameters->GetScalarAttribute("InclinedLineAngleDegrees", inclinedLineAngleDegrees) )
+  {
     m_InclinedLineAngle = inclinedLineAngleDegrees * vtkMath::Pi() / 180.0; 
-	}
+  }
   else
   {
     LOG_DEBUG("Could not read InclinedLineAngleDegrees from configuration file.");
@@ -174,8 +173,8 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 
   UpdateParameters();
 
-	m_MinTheta = minTheta;
-	m_MaxTheta = maxTheta;
+  m_MinTheta = minTheta;
+  m_MaxTheta = maxTheta;
 
   return PLUS_SUCCESS; 
 }
@@ -184,7 +183,7 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 
 void FidLabeling::Clear()
 {
-	//LOG_TRACE("FidLabeling::Clear");
+  //LOG_TRACE("FidLabeling::Clear");
   m_DotsVector.clear();
   m_LinesVector.clear();
   m_FoundDotsCoordinateValue.clear();
@@ -200,7 +199,7 @@ void FidLabeling::Clear()
 
 void FidLabeling::SetFrameSize(int frameSize[2])
 {
-	LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
+  LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
 
   if ((m_FrameSize[0] == frameSize[0]) && (m_FrameSize[1] == frameSize[1]))
   {
@@ -239,7 +238,7 @@ bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<do
 
 Line FidLabeling::SortPointsByDistanceFromOrigin(Line fiducials) 
 {
-	//LOG_TRACE("FidLabeling::SortPointsByDistanceFromOrigin");
+  //LOG_TRACE("FidLabeling::SortPointsByDistanceFromOrigin");
 
   std::vector<std::vector<double>> temporaryLine;
   Dot origin = m_DotsVector[fiducials.GetOrigin()];
@@ -270,39 +269,39 @@ Line FidLabeling::SortPointsByDistanceFromOrigin(Line fiducials)
 
 float FidLabeling::ComputeSlope( Line &line )
 {
-	//LOG_TRACE("FidLineFinder::ComputeSlope");
+  //LOG_TRACE("FidLineFinder::ComputeSlope");
   Dot dot1 = m_DotsVector[line.GetOrigin()];
   Dot dot2 = m_DotsVector[line.GetEndPoint()];
 
   float x1 = dot1.GetX();
-	float y1 = dot1.GetY();
+  float y1 = dot1.GetY();
 
-	float x2 = dot2.GetX();
-	float y2 = dot2.GetY();
+  float x2 = dot2.GetX();
+  float y2 = dot2.GetY();
 
-	float y = (y2 - y1);
-	float x = (x2 - x1);
+  float y = (y2 - y1);
+  float x = (x2 - x1);
 
-	float t;
-	if ( fabsf(x) > fabsf(y) )
+  float t;
+  if ( fabsf(x) > fabsf(y) )
   {
-		t = vtkMath::Pi()/2 + atan( y / x );
+    t = vtkMath::Pi()/2 + atan( y / x );
   }
-	else 
+  else 
   {
-		float tanTheta = x / y;
-		if ( tanTheta > 0 )
+    float tanTheta = x / y;
+    if ( tanTheta > 0 )
     {
-			t = vtkMath::Pi() - atan( tanTheta );
+      t = vtkMath::Pi() - atan( tanTheta );
     }
-		else
+    else
     {
-			t = -atan( tanTheta );
+      t = -atan( tanTheta );
     }
-	}
+  }
 
-	assert( t >= 0 && t <= vtkMath::Pi() );
-	return t;
+  assert( t >= 0 && t <= vtkMath::Pi() );
+  return t;
 }
 
 //-----------------------------------------------------------------------------
@@ -470,8 +469,8 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
 
 void FidLabeling::FindPattern()
 {
-	//LOG_TRACE("FidLabeling::FindPattern");
-  
+  //LOG_TRACE("FidLabeling::FindPattern");
+
   std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
   int numberOfLines = m_Patterns.size();//the number of lines in the pattern
   int numberOfCandidateLines = maxPointsLines.size();
@@ -532,16 +531,14 @@ void FidLabeling::FindPattern()
     for( int i=0 ; i<numberOfLines-1 ; i++)
     {
       Line currentLine1 = maxPointsLines[lineIndices[i]];
-      float angle1 = Line::ComputeHalfSpaceAngle(currentLine1);
       for( int j=i+1 ; j<numberOfLines ; j++)
       {
         Line currentLine2 = maxPointsLines[lineIndices[j]];
-        float angle2 = Line::ComputeHalfSpaceAngle(currentLine2);
-        float angleDifference = fabsf( angle2 - angle1 );//the angle between the 2 lines
+        float angleDifference = Line::ComputeAngle(currentLine1,currentLine2);
         float distance = -1;
         float shift = -1;
         int commonPointIndex = -1;
-        
+
         if(angleDifference < m_AngleToleranceRad)//The angle between 2 lines is close to 0
         {
           distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetOrigin()], currentLine2);//the distance between the parrallel lines
@@ -572,14 +569,14 @@ void FidLabeling::FindPattern()
         {
           commonPointTest = true;//so we set the commonpoint test to true (as it is meaningless in this case)
           int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	        int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+          int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );        
 
           if((distance < maxLinePairDistPx) && (distance > minLinePairDistPx))//check the distance between the 2 lines is in the range
           {
             distanceTest = true;
           }
         }
-        else
+        else 
         {
           distanceTest = true;//no distance is computed, so we set this to true as it is meaningless
           //if there is a common point, we check that the angle difference is correct (45 degres in CIRS phantom)
@@ -587,13 +584,13 @@ void FidLabeling::FindPattern()
           {
             commonPointTest = true;
           }
-          
+
         }
         //TODO make the shift threshold a parameter
         if(shift != -1 && fabs(shift) < 35)//check the shift
         {
           shiftTest=true;
-        }
+        }          
         //if the conditions are verified
         if(distanceTest && commonPointTest && shiftTest)
         {
@@ -629,6 +626,7 @@ void FidLabeling::FindPattern()
       }
 
       // Sort result lines according to origin Y's
+      // TODO: If the wire pattern is asymmetric then use the pattern geometry to match the lines to the intersection points instead of just sort them by Y value (https://www.assembla.com/spaces/plus/tickets/435)
       std::vector<double>::iterator originYsBeginIt = resultLineOriginYs.begin();
       for (int i=0; i<numberOfLines; ++i)
       {
@@ -692,21 +690,21 @@ void FidLabeling::FindPattern()
 
 void FidLabeling::SortRightToLeft( Line *line )
 {
-	//LOG_TRACE("FidLabeling::SortRightToLeft");
+  //LOG_TRACE("FidLabeling::SortRightToLeft");
 
-	std::vector<std::vector<Dot>::iterator> pointsIterator(line->GetPoints()->size());
+  std::vector<std::vector<Dot>::iterator> pointsIterator(line->GetPoints()->size());
 
   for (int i=0; i<line->GetPoints()->size() ; i++)
-	{
-		pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
-	}
+  {
+    pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
+  }
 
-	std::sort(pointsIterator.begin(), pointsIterator.end(), Dot::PositionLessThan);
+  std::sort(pointsIterator.begin(), pointsIterator.end(), Dot::PositionLessThan);
 
-	for (int i=0; i<line->GetPoints()->size(); i++)
-	{
-		line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
-	}
+  for (int i=0; i<line->GetPoints()->size(); i++)
+  {
+    line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
+  }
 }
 
 //-----------------------------------------------------------------------------
