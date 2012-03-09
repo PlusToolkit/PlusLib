@@ -379,6 +379,8 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
 
   std::ostringstream report; 
   report << "Image spacing (mm/px): " << this->Spacing[0] << "     " << this->Spacing[1] << "</br>" ; 
+  report << "Mean error (mm): " << this->ErrorMean << "</br>" ; 
+  report << "Standard deviation (mm): " << this->ErrorStdev << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
   plotter->ClearArguments(); 

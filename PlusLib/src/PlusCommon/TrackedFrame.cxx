@@ -58,6 +58,70 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
+{
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Unable to print tracked frame to XML - input XML data is NULL"); 
+    return PLUS_FAIL; 
+  }
+  
+ 	trackedFrame->SetName("TrackedFrame"); 
+	trackedFrame->SetDoubleAttribute("Timestamp", this->Timestamp); 
+  trackedFrame->SetAttribute("ImageDataValid", (this->GetImageData()->IsImageValid()?"true":"false")); 
+  if ( this->GetImageData()->IsImageValid() )
+  {
+    trackedFrame->SetIntAttribute("NumberOfBits", this->GetNumberOfBitsPerPixel() ); 
+    trackedFrame->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
+  }
+  for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++) 
+  {
+    vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    customField->SetName("CustomFrameField");
+    customField->SetAttribute("Name", it->first.c_str() );
+    customField->SetAttribute("Value", it->second.c_str() );
+    trackedFrame->AddNestedElement( customField );
+  }
+
+  if ( FiducialPointsCoordinatePx != NULL )
+  {
+    vtkSmartPointer<vtkXMLDataElement> segmentation = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    segmentation->SetName("Segmentation");
+
+    if ( FiducialPointsCoordinatePx->GetNumberOfPoints() == 0 )
+    {
+      segmentation->SetAttribute("SegmentationStatus", "Failed");
+    }
+    else if ( FiducialPointsCoordinatePx->GetNumberOfPoints() % 3 != 0 )
+    {
+      segmentation->SetAttribute("SegmentationStatus", "InvalidPatterns");
+    }
+    else
+    {
+      segmentation->SetAttribute("SegmentationStatus", "OK");
+    }
+    
+    vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	  segmentedPoints->SetName("SegmentedPoints");
+
+    for (int i=0; i<FiducialPointsCoordinatePx->GetNumberOfPoints(); i++)
+	  {
+      double point[3]={0};
+      FiducialPointsCoordinatePx->GetPoint(i, point);
+
+	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	    pointElement->SetName("Point");
+      pointElement->SetIntAttribute("ID", i);
+      pointElement->SetVectorAttribute("Position", 3, point);
+      segmentedPoints->AddNestedElement( pointElement );
+	  }
+    segmentation->AddNestedElement(segmentedPoints); 
+    trackedFrame->AddNestedElement(segmentation); 
+  }
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
 int* TrackedFrame::GetFrameSize()
 {
   this->ImageData.GetFrameSize(this->FrameSize);

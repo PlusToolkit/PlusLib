@@ -833,7 +833,9 @@ PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMe
 {
   xMean = yMean = xStdDev = yStdDev = -1.0;
 
-  if (wireNumber < 1 || wireNumber > this->NWires.size())
+  int wireIndex = wireNumber - 1; 
+
+  if (wireIndex < 0 || wireIndex >= this->NWires.size()*3)
   {
     LOG_ERROR("Invalid wire number: " << wireNumber);
     return PLUS_FAIL;
@@ -841,17 +843,17 @@ PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMe
 
   if (isValidation)
   {
-    xMean = this->ValidationReprojectionError2DMeans[wireNumber][0];
-    yMean = this->ValidationReprojectionError2DMeans[wireNumber][1];
-    xStdDev = this->ValidationReprojectionError2DStdDevs[wireNumber][0];
-    yStdDev = this->ValidationReprojectionError2DStdDevs[wireNumber][1];
+    xMean = this->ValidationReprojectionError2DMeans[wireIndex][0];
+    yMean = this->ValidationReprojectionError2DMeans[wireIndex][1];
+    xStdDev = this->ValidationReprojectionError2DStdDevs[wireIndex][0];
+    yStdDev = this->ValidationReprojectionError2DStdDevs[wireIndex][1];
   }
   else
   {
-    xMean = this->CalibrationReprojectionError2DMeans[wireNumber][0];
-    yMean = this->CalibrationReprojectionError2DMeans[wireNumber][1];
-    xStdDev = this->CalibrationReprojectionError2DStdDevs[wireNumber][0];
-    yStdDev = this->CalibrationReprojectionError2DStdDevs[wireNumber][1];
+    xMean = this->CalibrationReprojectionError2DMeans[wireIndex][0];
+    yMean = this->CalibrationReprojectionError2DMeans[wireIndex][1];
+    xStdDev = this->CalibrationReprojectionError2DStdDevs[wireIndex][0];
+    yStdDev = this->CalibrationReprojectionError2DStdDevs[wireIndex][1];
   }
 
   return PLUS_SUCCESS;
@@ -938,17 +940,19 @@ bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal()
   return true; 
 }
 
+
 //----------------------------------------------------------------------------
 
 PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame)
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML");
+  LOG_TRACE("vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML");
 
   std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
 	std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 
   // ProbeCalibrationResult
 	vtkSmartPointer<vtkXMLDataElement> probeCalibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  // ProbeCalibrationResult
 	probeCalibrationResult->SetName("ProbeCalibrationResult"); 
 	probeCalibrationResult->SetAttribute("version", "2.0"); 
 
@@ -958,6 +962,43 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
 	calibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()); 
 	calibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 
+  PlusStatus status = this->GetXMLCalibrationResultAndErrorReport(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame, probeCalibrationResult); 
+  
+  if ( status == PLUS_SUCCESS )
+  {
+    probeCalibrationResult->AddNestedElement( calibrationFile );
+    probeCalibrationResult->PrintXML(calibrationResultFileNameWithPath.c_str()); 
+  }
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult)
+{
+	LOG_TRACE("vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport");
+
+  std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+	std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+
+  if ( probeCalibrationResult == NULL )
+  {
+    LOG_ERROR("Unable to get xml calibration result and error report - xml data element is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( validationTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get xml calibration result and error report - validationTrackedFrameList is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( calibrationTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get xml calibration result and error report - calibrationTrackedFrameList is NULL"); 
+    return PLUS_FAIL; 
+  }
 
   // CalibrationResults
 	vtkSmartPointer<vtkXMLDataElement> calibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
@@ -1092,6 +1133,12 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
     frame->AddNestedElement( reprojectionError3Ds );
     frame->AddNestedElement( reprojectionError2Ds );
 
+    vtkSmartPointer<vtkXMLDataElement> trackedFrame = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    if ( validationTrackedFrameList->GetTrackedFrame(frameNumber)->PrintToXML(trackedFrame) == PLUS_SUCCESS )
+    {
+      frame->AddNestedElement(trackedFrame); 
+    }
+
     validationData->AddNestedElement( frame );
 
     numberOfSegmentedFramesSoFar++;
@@ -1201,6 +1248,12 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
     frame->AddNestedElement( reprojectionError3Ds );
     frame->AddNestedElement( reprojectionError2Ds );
 
+    vtkSmartPointer<vtkXMLDataElement> trackedFrame = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    if ( calibrationTrackedFrameList->GetTrackedFrame(frameNumber)->PrintToXML(trackedFrame) == PLUS_SUCCESS )
+    {
+      frame->AddNestedElement(trackedFrame); 
+    }
+
     calibrationData->AddNestedElement( frame );
 
     numberOfSegmentedFramesSoFar++;
@@ -1211,12 +1264,8 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   errorReport->AddNestedElement( validationData );
   errorReport->AddNestedElement( calibrationData );
 
-
-  probeCalibrationResult->AddNestedElement( calibrationFile );
   probeCalibrationResult->AddNestedElement( calibrationResults );
   probeCalibrationResult->AddNestedElement( errorReport );
-
-  probeCalibrationResult->PrintXML(calibrationResultFileNameWithPath.c_str()); 
 
   return PLUS_SUCCESS;
 }

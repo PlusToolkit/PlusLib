@@ -72,6 +72,20 @@ public:
 	*/
 	std::string GetResultString(int precision = 3);
 
+  /*!
+	  Get calibration result and error report in XML format 
+	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+    \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
+    \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
+	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+    \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
+    \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
+    \param probeCalibrationResult Output XML data element 
+	*/
+  PlusStatus GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, 
+    int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, 
+    vtkXMLDataElement* probeCalibrationResult); 
+
 public:
   /*! Set/get the calibration date and time in string format */
 	vtkSetStringMacro(CalibrationDate); 
