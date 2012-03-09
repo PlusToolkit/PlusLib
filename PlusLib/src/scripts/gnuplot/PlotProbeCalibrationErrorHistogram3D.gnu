@@ -26,20 +26,20 @@ set style fill solid 1.0 border -1
 set grid 
 
 ## Set the x axis range
-set xrange [0:5]
+set xrange [0:10]
 
 # Function to generate histogram  
 bin(x,width)=width*floor(x/width)
 	
 ## Plot the histogram  
 if (w==2) \
-	set title "Wire#2 3D error histogram" ; \
+	set title "Wire#2 3D error histogram (px)" ; \
 	plot f using (bin(($8),binwidth)):(1.0) smooth freq with boxes; \
 else if (w==5) \
-	set title "Wire#5 3D error histogram" ; \
+	set title "Wire#5 3D error histogram (px)" ; \
 	plot f using (bin(($15),binwidth)):(1.0) smooth freq with boxes; \
 else if (w==8) \
-	set title "Wire#8 3D error histogram" ; \
+	set title "Wire#8 3D error histogram (px)" ; \
 	plot f using (bin(($22),binwidth)):(1.0) smooth freq with boxes; \
 else \
 	exit -1;
