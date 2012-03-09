@@ -16,7 +16,7 @@ set terminal jpeg
 set output "w".w."_".o.".jpg"
 
 ## Set the histogram bin width size
-binwidth=0.1
+binwidth=0.3
 
 ## Set the plot properties 
 set key bmargin vertical Right noreverse noautotitle nobox

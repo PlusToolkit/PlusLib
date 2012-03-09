@@ -123,6 +123,9 @@ public:
   /*! Write image with image to tracker transform to file */ 
   PlusStatus WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker);
 
+  /*! Print tracked frame human readable serialization data to XML data */ 
+  PlusStatus PrintToXML(vtkXMLDataElement* xmlData); 
+
   /*! Convert from field status string to field status enum */
   static TrackedFrameFieldStatus ConvertFieldStatusFromString(const char* statusStr);
 
