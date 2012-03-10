@@ -38,6 +38,18 @@ public:
   /*! Set the pattern structure vector, this defines the patterns that the algorthm finds */
   void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
 
+  /*! Set the approximate spacing in Mm per pixel */
+  void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+
+  /*! Set the minimum angle allowed for a line, in degrees */
+  void SetMinThetaDeg(double angleDeg);
+
+  /*! Set the maximum angle allowed for a line, in degrees */
+  void SetMaxThetaDeg(double angleDeg);
+
+  /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
+  void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
+
   /*! Read the configuration file from a vtk XML data element */
   PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
@@ -100,18 +112,6 @@ protected:
 
   /*! Get the image to phantom transform matrix */
   double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
-
-  /*! Set the approximate spacing in Mm per pixel */
-  void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
-
-  /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
-  void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
-
-  /*! Set the minimum angle allowed for a line, in degrees */
-  void SetMinThetaDeg(double value);
-
-  /*! Set the maximum angle allowed for a line, in degrees */
-  void SetMaxThetaDeg(double value);
 
 protected:
   int					m_FrameSize[2];
