@@ -33,7 +33,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
 	  --rendering-off
 	  )
-	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
+	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 

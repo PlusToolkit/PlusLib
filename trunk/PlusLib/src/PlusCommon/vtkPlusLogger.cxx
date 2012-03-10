@@ -122,6 +122,7 @@ vtkPlusLogger::vtkPlusLogger()
 	vtkSmartPointer<vtkPlusLoggerOutputWindow> vtkLogger = vtkSmartPointer<vtkPlusLoggerOutputWindow>::New();
 	vtkOutputWindow::SetInstance(vtkLogger);
 
+  this->m_LogStream << "time|level|timeoffset|message|location" << std::endl; 
   std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
   this->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", 121); 
 }
@@ -211,33 +212,33 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 	switch (level)
 	{
 	case LOG_LEVEL_ERROR:
-		log << "[ERROR]  ";
+		log << "|ERROR";
 		break;
 	case LOG_LEVEL_WARNING:
-		log << "[WARNING]"; 
+		log << "|WARNING"; 
 		break;
 	case LOG_LEVEL_INFO:
-		log << "[INFO]   "; 
+		log << "|INFO"; 
 		break;
 	case LOG_LEVEL_DEBUG:
-		log << "[DEBUG]  "; 
+		log << "|DEBUG"; 
 		break;
 	case LOG_LEVEL_TRACE:
-		log << "[TRACE]  "; 
+		log << "|TRACE"; 
 		break;
 	default:
-		log << "[UNKNOWN]"; 
+		log << "|UNKNOWN"; 
 		break;
 	}
 
   // Add timestamp to the log message
   double currentTime = vtkAccurateTimer::GetSystemTime(); 
-  log << " [" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime << "] "; 
+  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime; 
 
-	log << msg;
+	log << "|" << msg;
   if ( m_LogLevel > LOG_LEVEL_INFO || level != LOG_LEVEL_INFO )
 	{
-		log << " [in " << fileName << "(" << lineNumber << ")]"; // add filename and line number
+		log << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
 	}
 
   m_CriticalSection->Lock(); 
@@ -299,7 +300,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     }
 
     // Add to log stream (file)
-    this->m_LogStream << std::setw(17) << std::left << timestamp << " " << log.str() << std::endl; 
+    this->m_LogStream << std::setw(17) << std::left << timestamp << log.str() << std::endl; 
 	}
 
   this->Flush(); 

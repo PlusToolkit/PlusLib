@@ -177,6 +177,6 @@ std::string vtkAccurateTimer::GetDateAndTimeMSecString()
 
 	// DATE AND TIME WITH MS IN STRING: [MMDDYY_HHMMSS.MS]
 	std::ostringstream dateAndTimeMs; 
-	dateAndTimeMs << date << "_"  << time << "." << ms;  
+	dateAndTimeMs << date << "_"  << time << "." << std::setw(3) << std::right << std::setfill('0') << ms;  
 	return dateAndTimeMs.str(); 
 }
