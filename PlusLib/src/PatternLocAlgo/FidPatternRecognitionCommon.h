@@ -45,6 +45,9 @@ public:
   /*! Get the intensity of the dot */
   float	GetDotIntensity() { return m_DotIntensity; };
 
+  /*! Get Euclidean distance from another point */
+  float	GetDistanceFrom(Dot &d);
+
   /*! Compare two dots, coordinate-wise */
   bool operator== (const Dot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
 
@@ -72,10 +75,10 @@ public:
   static bool compareLines( Line line1, Line line2 );
 
   /*! Compute the angle in radians between the line and the positive x-axis, value between -Pi and +Pi */
-  static float ComputeAngle(Line &line1);
+  static float ComputeAngleRad(Line &line1);
 
   /*! Compute the angle difference in radians between two lines, the result value is between 0 and Pi/2 */
-  static float ComputeAngle(Line &line1, Line &line2);
+  static float ComputeAngleRad(Line &line1, Line &line2);
 
   /*! Set the point of line
   \param aIndex is the index in the dots vector fo the line
@@ -107,17 +110,17 @@ public:
   /*! Get the direction vector that defines the line */
   const float*	GetDirectionVector() const{ return &(m_DirectionVector[0]); };
 
-  /*! Set the Origin of the line. It is the index of the origin in the m_DotsVector */
-  void  SetOrigin(int value) { m_Origin = value; };
+  /*! Set the start point index of the line. It is an index in the m_DotsVector */
+  void  SetStartPointIndex(int index) { m_StartPointIndex = index; };
 
-  /*! Get the Origin of the line. It is the index of the origin in the m_DotsVector */
-  int   GetOrigin() { return m_Origin; };
+  /*! Get the start point index of the line. It is an index in the m_DotsVector */
+  int   GetStartPointIndex() { return m_StartPointIndex; };
 
   /*! Set the other end point of the line. It is the index of the end poin in the m_DotsVector */
-  void  SetEndPoint(int value) { m_EndPoint = value; };
+  void  SetEndPointIndex(int index) { m_EndPointIndex = index; };
 
   /*! Get the other end point of the line. It is the index of the end poin in the m_DotsVector */
-  int   GetEndPoint() { return m_EndPoint; };
+  int   GetEndPointIndex() { return m_EndPointIndex; };
 
 
 protected:
@@ -125,8 +128,8 @@ protected:
   float				m_Intensity;
   float				m_Length;
   float       m_DirectionVector[2];
-  int         m_Origin;//index of the line origin
-  int         m_EndPoint;//Index of the endpoint of the line
+  int         m_StartPointIndex;//index of startpoint of the line, all the other line points are towards the positive m_DirectionVector direction from this point
+  int         m_EndPointIndex;//Index of the endpoint of the line
 
 
 };

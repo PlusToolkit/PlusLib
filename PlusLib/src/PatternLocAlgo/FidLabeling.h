@@ -46,7 +46,7 @@ public:
   void Clear();
 
   /*! Read the configuration file from a vtk XML data element */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* rootConfigElement, double minTheta, double maxTheta);
+  PlusStatus ReadConfiguration( vtkXMLDataElement* rootConfigElement, double minThetaRad, double maxThetaRad);
 
   /*! Set the size of the frame as an array */
   void SetFrameSize(int frameSize[2]);
@@ -68,18 +68,18 @@ public:
   void UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3);
 
   /*! Update the NWires results once the pattern has been found
-  \param resultLines Found lines in ascending order of their origin's Y coordinate (top line is first, bottom line is last)
+  \param resultLines Found lines in ascending order of their StartPoint's Y coordinate (top line is first, bottom line is last)
   */
   void UpdateNWiresResults(std::vector<Line*> resultLines);
 
   /*! Sort the points of a line from right to left */
   void SortRightToLeft( Line *line );
 
-  /*! Sort the points of a line, used for sorting the points by distance from origin */
+  /*! Sort the points of a line, used for sorting the points by distance from StartPoint */
   static bool   SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2);
 
-  /*! Sort points of a line by their distance from the origin of the line */
-  Line SortPointsByDistanceFromOrigin(Line fiducials); 
+  /*! Sort points of a line by their distance from the start point of the line */
+  Line SortPointsByDistanceFromStartPoint(Line fiducials); 
 
   //Accessors and mutators
   /*! Get the vector of dots found by FidSegmentation */
@@ -125,10 +125,10 @@ public:
   void SetMaxAngleDifferenceDegrees(double value) { m_MaxAngleDiff = value; };
 
   /*! Set the minimum angle allowed for a line, in degrees */
-  void SetMinThetaDegrees(double value) { m_MinTheta = value; };
+  void SetMinThetaDegrees(double value);
 
   /*! Set the maximum angle allowed for a line, in degrees */
-  void SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
+  void SetMaxThetaDegrees(double value);
 
   /*! Set the angle tolerance on the angle between two lines, in degrees */
   void SetAngleToleranceDegrees(double value);
@@ -137,18 +137,20 @@ protected:
   int			m_FrameSize[2];
 
   double	m_ApproximateSpacingMmPerPixel;
-  double 	m_MaxAngleDiff;
-  double 	m_MinLinePairDistMm; 	
-  double 	m_MaxLinePairDistMm;
+  double 	m_MaxAngleDiff; // not used
+  double 	m_MinLinePairDistMm; 	// minimum distance between any two lines
+  double 	m_MaxLinePairDistMm;  // maximum distance between any two lines
+  double  m_MinLinePairAngleRad; // minimum angle between any two lines
+  double  m_MaxLinePairAngleRad; // maximum angle between any two lines
   double 	m_MaxLineShiftMm; // maximum in-plane shift of the midpoint of the N fiducials
   double 	m_MaxLinePairDistanceErrorPercent;
-  double 	m_MinTheta;
-  double 	m_MaxTheta;
+  double 	m_MinThetaRad;
+  double 	m_MaxThetaRad;
 
   bool		m_DotsFound;
 
   float   m_AngleToleranceRad;
-  float   m_InclinedLineAngle;
+  float   m_InclinedLineAngleRad;
   float		m_PatternIntensity;
 
   std::vector<Dot>		  m_DotsVector;
