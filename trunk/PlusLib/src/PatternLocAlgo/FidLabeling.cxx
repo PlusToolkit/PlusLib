@@ -247,7 +247,7 @@ void FidLabeling::SetFrameSize(int frameSize[2])
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::SetAngleToleranceDegrees(double value)
+void FidLabeling::SetAngleToleranceDeg(double value)
 {
   m_AngleToleranceRad = vtkMath::RadiansFromDegrees(value);
 }
@@ -722,12 +722,12 @@ void FidLabeling::SortRightToLeft( Line *line )
 }
 
 //-----------------------------------------------------------------------------
-void FidLabeling::SetMinThetaDegrees(double value) 
+void FidLabeling::SetMinThetaDeg(double value) 
 { 
   m_MinThetaRad = vtkMath::RadiansFromDegrees(value); 
 }
 
-void FidLabeling::SetMaxThetaDegrees(double value) 
+void FidLabeling::SetMaxThetaDeg(double value) 
 { 
   m_MaxThetaRad = vtkMath::RadiansFromDegrees(value); 
 }

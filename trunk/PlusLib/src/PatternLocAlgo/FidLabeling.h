@@ -125,13 +125,13 @@ public:
   void SetMaxAngleDifferenceDegrees(double value) { m_MaxAngleDiff = value; };
 
   /*! Set the minimum angle allowed for a line, in degrees */
-  void SetMinThetaDegrees(double value);
+  void SetMinThetaDeg(double value);
 
   /*! Set the maximum angle allowed for a line, in degrees */
-  void SetMaxThetaDegrees(double value);
+  void SetMaxThetaDeg(double value);
 
   /*! Set the angle tolerance on the angle between two lines, in degrees */
-  void SetAngleToleranceDegrees(double value);
+  void SetAngleToleranceDeg(double value);
 
 protected:
   int			m_FrameSize[2];

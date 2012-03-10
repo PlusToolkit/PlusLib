@@ -779,3 +779,13 @@ void FidLineFinder::FindLines( )
 }
 
 //-----------------------------------------------------------------------------
+void FidLineFinder::SetMinThetaDeg(double angleDeg)
+{
+  m_MinThetaRad=vtkMath::RadiansFromDegrees(angleDeg);
+}
+
+//-----------------------------------------------------------------------------
+void FidLineFinder::SetMaxThetaDeg(double angleDeg)
+{
+  m_MaxThetaRad=vtkMath::RadiansFromDegrees(angleDeg);
+}
