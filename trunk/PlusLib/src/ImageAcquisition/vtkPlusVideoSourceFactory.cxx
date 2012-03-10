@@ -89,6 +89,8 @@ void vtkPlusVideoSourceFactory::PrintAvailableVideoSources(ostream& os, vtkInden
     {
       vtkPlusVideoSource* videoSource = (*it->second)(); 
       os << indent.GetNextIndent() << "- " << it->first << " (ver: " << videoSource->GetSdkVersion() << ")" << std::endl; 
+      videoSource->Delete();
+      videoSource=NULL;
     }
   }
 }

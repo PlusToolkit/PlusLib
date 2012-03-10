@@ -55,7 +55,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create None tracker instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( tracker != NULL )
   {
     LOG_ERROR("NULL tracker expected!"); 
@@ -71,7 +70,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create None tracker instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( tracker != NULL )
   {
     LOG_ERROR("NULL tracker expected!"); 
@@ -87,7 +85,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create SavedDataset tracker instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( dynamic_cast<vtkSavedDataTracker*>(tracker) == NULL )
   {
     LOG_ERROR("Failed to create SavedDataset tracker instance!"); 
@@ -103,12 +100,13 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create FakeTracker tracker instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( dynamic_cast<vtkFakeTracker*>(tracker) == NULL )
   {
     LOG_ERROR("Failed to create FakeTracker tracker instance!"); 
     return EXIT_FAILURE; 
   }
+  tracker->Delete();
+  tracker=NULL;
   
   LOG_INFO("Test finished successfully!"); 
   return EXIT_SUCCESS;

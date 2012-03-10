@@ -18,11 +18,11 @@ int main(int argc, char **argv)
   std::ostringstream supportedTrackers; 
   trackerFactory->PrintAvailableTrackers(supportedTrackers, vtkIndent()); 
   LOG_INFO(supportedTrackers.str()); 
-
+  
   vtkSmartPointer<vtkPlusVideoSourceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusVideoSourceFactory>::New(); 
   std::ostringstream supportedVideoSources; 
   videoSourceFactory->PrintAvailableVideoSources(supportedVideoSources, vtkIndent()); 
   LOG_INFO(supportedVideoSources.str());
-  
+
   return EXIT_SUCCESS; 
 }
