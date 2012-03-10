@@ -53,7 +53,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create None video source instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( videoSource != NULL )
   {
     LOG_ERROR("NULL video source expected!"); 
@@ -69,7 +68,6 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create None video source instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( videoSource != NULL )
   {
     LOG_ERROR("NULL video source expected!"); 
@@ -85,13 +83,14 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 
   }
-
   if ( dynamic_cast<vtkSavedDataVideoSource*>(videoSource) == NULL )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 
   }
-  
+  videoSource->Delete();
+  videoSource=NULL;
+
   LOG_INFO("Test finished successfully!"); 
   return EXIT_SUCCESS;
 } 

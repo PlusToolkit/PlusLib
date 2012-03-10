@@ -153,7 +153,7 @@ int main( int argc, char** argv )
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configRootElement );
 
-  vtkDataCollector* dataCollector = vtkDataCollector::New();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
   
   dataCollector->ReadConfiguration( configRootElement );
   
