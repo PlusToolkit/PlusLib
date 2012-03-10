@@ -159,6 +159,23 @@ int main(int argc, char **argv)
   spacingCalibAlgo->PrintSelf(spacingCalibAlgoStream, vtkIndent(0)); 
   LOG_DEBUG("SpacingCalibAlgo::PrintSelf: "<< spacingCalibAlgoStream.str()); 
   
+
+  //*********************************************************************
+  // Save results to file
+
+  const char calibResultSaveFilename[]="SpacingCalibrationResults.xml";
+  LOG_INFO("Save calibration results to XML file: "<<calibResultSaveFilename); 
+  std::ofstream outFile; 
+  outFile.open(calibResultSaveFilename);	
+  outFile << "<CalibrationResults>" << std::endl;
+  outFile << "  <SpacingCalibrationResult " << std::fixed << std::setprecision(8)
+    << "Spacing=\""<<spacing[0]<<" "<<spacing[1]<<"\" "
+    << "ErrorMean=\""<<errorMean<<"\" "
+    << "ErrorStdev=\""<<errorStdev<<"\" "
+    << " />" << std::endl;
+  outFile << "</CalibrationResults>" << std::endl;  
+  outFile.close(); 
+
   //*********************************************************************
   // Compare result to baseline
   
