@@ -43,7 +43,7 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
   //Read the configuration in each of the component of the algorithm
 	m_FidSegmentation.ReadConfiguration(rootConfigElement);
 	m_FidLineFinder.ReadConfiguration(rootConfigElement);
-  m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta());
+  m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinThetaRad(), m_FidLineFinder.GetMaxThetaRad());
 
   return PLUS_SUCCESS;
 }
@@ -213,7 +213,7 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 
 	for ( int l = 0; l < foundLines.size(); l++ )
 	{
-    double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetY()};
+    double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetY()};
     double directionVector[2] = { foundLines[l].GetDirectionVector()[0], foundLines[l].GetDirectionVector()[1]};
     if(directionVector[0] < 0)
     {

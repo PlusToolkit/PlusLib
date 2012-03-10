@@ -17,16 +17,15 @@ PatternRecognitionResult::PatternRecognitionResult()
 }
 
 //-----------------------------------------------------------------------------
-float Line::ComputeAngle(Line &line)
+float Line::ComputeAngleRad(Line &line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
-  float angle = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
-
-  return angle;
+  float angleRad = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
+  return angleRad;
 }
 
 
-float Line::ComputeAngle(Line &line1, Line &line2)
+float Line::ComputeAngleRad(Line &line1, Line &line2)
 {
   // a * b = |a| * |b| * cos(alpha)
   const float* a=line1.GetDirectionVector();
@@ -60,6 +59,12 @@ bool Dot::PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::ite
 {
 	/* Use > to get descending. */
 	return b1->GetX() > b2->GetX();
+}
+
+//-----------------------------------------------------------------------------
+float	Dot::GetDistanceFrom(Dot &d) 
+{ 
+  return sqrt((m_X-d.m_X)*(m_X-d.m_X)+(m_Y-d.m_Y)*(m_Y-d.m_Y)); 
 }
 
 //-----------------------------------------------------------------------------

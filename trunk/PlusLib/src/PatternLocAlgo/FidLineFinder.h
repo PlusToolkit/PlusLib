@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #ifndef _FIDUCIAL_LINE_FINDER_H
@@ -13,125 +13,124 @@
 #include "vtkXMLDataElement.h"
 
 /*!
-  \class FidLineFinder
-  \brief This class is used to find the n-points lines from a list of dots. The lines have fixed length and tolerance
-         and their direction vector restricted according to the configuration file. It first finds 2-points lines and 
-         then computes n-points lines from these 2-points lines.
-  \ingroup PlusLibPatternRecognition
+\class FidLineFinder
+\brief This class is used to find the n-points lines from a list of dots. The lines have fixed length and tolerance
+and their direction vector restricted according to the configuration file. It first finds 2-points lines and 
+then computes n-points lines from these 2-points lines.
+\ingroup PlusLibPatternRecognition
 */
 
 class FidLineFinder
 {
-	public:
-		FidLineFinder();
-		virtual ~FidLineFinder();
+public:
+  FidLineFinder();
+  virtual ~FidLineFinder();
 
-    /*! Compute parameters such as the minimum and the maximum angle allowed for one line in the case where the sgmentation 
-        parameters are to be computed. This allows a better precision and possibly an increase of computation speed. */
-		void ComputeParameters();
+  /*! Set the size of the frame as an array */
+  void SetFrameSize( int frameSize[2] );
 
-    /*! Clear the member attributes when not needed anymore */
-    void Clear();
+  /*! Set the values of the candidate fiducials */
+  void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
 
-    /*! Read the configuration file from a vtk XML data element */
-		PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
+  /*! Set the vector of dots that have been found by FidSegmentation */
+  void SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
 
-    /*! Set the size of the frame as an array */
-    void SetFrameSize( int frameSize[2] );
+  /*! Set the pattern structure vector, this defines the patterns that the algorthm finds */
+  void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
 
-    /*! Find the n-points lines from a list of 2-points lines */
-    void FindLinesNPoints();
+  /*! Read the configuration file from a vtk XML data element */
+  PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
-    /*! Find 2-points lines from a list of Dots */
-		void FindLines2Points();
+  /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
+  void FindLines();
 
-    /*! Compute the length of the segment between 2 dots */
-		float SegmentLength( Dot *dot1, Dot *dot2 );
+  /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
+  std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
 
-    /*! Compute the length of a line and sets it origin */
-		float LineLength( Line &line );
+  /*! Get the maximum angle allowed for a line, in radians */
+  double GetMaxThetaRad() { return m_MaxThetaRad; };
 
-    /*! Compute the shortest distance from a point: dot, to a line: line */
-    float ComputeDistancePointLine(Dot dot, Line line);
+  /*! Get the minimum angle allowed for a line, in radians */
+  double GetMinThetaRad() { return m_MinThetaRad; };
 
-    /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
-        the direction vector, the endpoint */
-		void ComputeLine( Line &line );
+  /*! Get the pattern structure vector, this defines the patterns that the algorthm finds */
+  std::vector<Pattern*> GetPatterns() { return m_Patterns; };
 
-    /*! Compute the angle between the lin formed by 2 dots and the x-axis */
-		float ComputeSlope( Dot *dot1, Dot *dot2 );
+  /*! Get the NWires vector, these NWires are extracted from the pattern vector */
+  std::vector<NWire> GetNWires();
 
-    /*! Return true if a line matches the requirements, false otherwise */
-		bool AcceptLine( Line &line );  
+  /*! Clear the member attributes when not needed anymore */
+  void Clear();
 
-    /*! Return true if an angle is in the allowed angle range, false otherwise */
-    bool AcceptAngle(float angle);
+protected:
+  /*! Compute parameters such as the minimum and the maximum angle allowed for one line in the case where the sgmentation 
+  parameters are to be computed. This allows a better precision and possibly an increase of computation speed. */
+  void ComputeParameters();
 
-    /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
-		void FindLines();
+  /*! Find the n-points lines from a list of 2-points lines */
+  void FindLinesNPoints();
 
-    //Accessors and mutators
-    /*! Get the maximum angle allowed for a line, in radiants */
-    double GetMaxTheta() { return m_MaxTheta; };
+  /*! Find 2-points lines from a list of Dots */
+  void FindLines2Points();
 
-    /*! Set the maximum angle allowed for a line, in radiants */
-    double GetMinTheta() { return m_MinTheta; };
+  /*! Compute the length of the segment between 2 dots */
+  float SegmentLength( Dot *dot1, Dot *dot2 );
 
-    /*! Set the values of the candidate fiducials */
-    void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
- 
-    /*! Get the pattern structure vector, this defines the patterns that the algorthm finds */
-    std::vector<Pattern*> GetPatterns() { return m_Patterns; };
+  /*! Compute the shortest distance from a point: dot, to a line: line */
+  float ComputeDistancePointLine(Dot dot, Line line);
 
-    /*! Set the pattern structure vector, this defines the patterns that the algorthm finds */
-    void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
-    
-    /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
-    std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
+  /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
+  the direction vector, the endpoint */
+  void ComputeLine( Line &line );
 
-    /*! Set the vector of dots that have been found by FidSegmentation */
-    void SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
+  /*! Compute the angle between thee lin formed by 2 dots and the x-axis, in radian */
+  static float ComputeAngleRad( Dot *dot1, Dot *dot2 );
 
-    /*! Get the NWires vector, these NWires are extracted from the pattern vector */
-    std::vector<NWire> GetNWires();
+  /*! Return true if a line matches the requirements, false otherwise */
+  bool AcceptLine( Line &line );  
 
-    /*! Get the maximum rotation vector, this maximum rotation represents the physical limitation of the probe, 
-        used for automatic parameters computation */
-    double * GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
+  /*! Return true if an angle is in the allowed angle range, false otherwise */
+  bool AcceptAngleRad(float angleRad);
 
-    /*! Get the image to phantom transform matrix */
-    double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
+  //Accessors and mutators
 
-    /*! Set the approximate spacing in Mm per pixel */
-    void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+  /*! Get the maximum rotation vector, this maximum rotation represents the physical limitation of the probe, 
+  used for automatic parameters computation */
+  double * GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
 
-    /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
-    void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
-    
-    /*! Set the minimum angle allowed for a line, in degrees */
-    void SetMinThetaDegrees(double value) { m_MinTheta = value; };
+  /*! Get the image to phantom transform matrix */
+  double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
-    /*! Set the maximum angle allowed for a line, in degrees */
-    void SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
+  /*! Set the approximate spacing in Mm per pixel */
+  void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
 
-  protected:
-		int					m_FrameSize[2];
-		double			m_ApproximateSpacingMmPerPixel;
-		double			m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
-		double			m_ImageToPhantomTransform[16];
+  /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
+  void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
 
-		// line length and line pair distance errors in percent - read from phantom definition
-		double 			m_MaxLinePairDistanceErrorPercent;
-		double 			m_CollinearPointsMaxDistanceFromLineMm; 
-		double 			m_MinTheta; 
-		double 			m_MaxTheta;
+  /*! Set the minimum angle allowed for a line, in degrees */
+  void SetMinThetaDeg(double value);
 
-		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+  /*! Set the maximum angle allowed for a line, in degrees */
+  void SetMaxThetaDeg(double value);
 
-		std::vector<Dot>	m_DotsVector;
-		std::vector<std::vector<Line> >	m_LinesVector;
-    
-    std::vector<Pattern*> m_Patterns;
+protected:
+  int					m_FrameSize[2];
+  double			m_ApproximateSpacingMmPerPixel;
+  double			m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
+  double			m_ImageToPhantomTransform[16];
+
+  // line length and line pair distance errors in percent - read from phantom definition
+  double 			m_MaxLinePairDistanceErrorPercent;
+  double 			m_CollinearPointsMaxDistanceFromLineMm; 
+  double 			m_MinThetaRad; 
+  double 			m_MaxThetaRad;
+
+  std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+
+  std::vector<Dot>	m_DotsVector;
+  std::vector<std::vector<Line> >	m_LinesVector;
+
+  std::vector<Pattern*> m_Patterns;
 };
 
 #endif // _FIDUCIAL_LINE_FINDER_H
