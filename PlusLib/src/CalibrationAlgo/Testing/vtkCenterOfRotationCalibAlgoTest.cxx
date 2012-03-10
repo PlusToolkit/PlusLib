@@ -29,10 +29,9 @@ int main(int argc, char **argv)
 {
   int numberOfFailures(0); 
 
-  bool printHelp(false);
-
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
+  bool printHelp(false);
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
   std::string inputSequenceMetafile(""); 
@@ -184,14 +183,29 @@ int main(int argc, char **argv)
   std::ostringstream centerOfRotationCalibAlgoStream; 
   centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 
   LOG_DEBUG("CenterOfRotationCalibAlgo::PrintSelf: "<< centerOfRotationCalibAlgoStream.str()); 
-  
+
+  //*********************************************************************
+  // Save results to file
+
+  const char calibResultSaveFilename[]="CenterOfRotationCalibrationResults.xml";
+  LOG_INFO("Save calibration results to XML file: "<<calibResultSaveFilename); 
+  std::ofstream outFile; 
+  outFile.open(calibResultSaveFilename);	
+  outFile << "<CalibrationResults>" << std::endl;
+  outFile << "  <CenterOfRotationCalibrationResult " << std::fixed << std::setprecision(8)
+    << "CenterOfRotationPx=\""<<centerOfRotationPx[0]<<" "<<centerOfRotationPx[1]<<"\" "
+    << "ErrorMean=\""<<errorMean<<"\" "
+    << "ErrorStdev=\""<<errorStdev<<"\" "
+    << " />" << std::endl;
+  outFile << "</CalibrationResults>" << std::endl;  
+  outFile.close(); 
+
   //*********************************************************************
   // Compare result to baseline
   
   LOG_INFO("Comparing result with baseline..."); 
 
-  vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
   vtkXMLDataElement* xmlCenterOfRotationCalibrationBaseline = NULL; 
   if ( xmlBaseline != NULL )
   {
