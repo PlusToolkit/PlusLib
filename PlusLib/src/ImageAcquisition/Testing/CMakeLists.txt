@@ -46,7 +46,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	 --rendering-off
      --sonix-ip=130.15.7.20
 	)
-	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
+	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
@@ -86,7 +86,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	# --lut-path=C:/luts
 	# --rendering-off
 	# )
-	# SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
+	# SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
