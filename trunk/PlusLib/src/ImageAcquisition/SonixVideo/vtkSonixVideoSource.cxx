@@ -133,6 +133,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
   this->CompressionStatus = 0; // no compression by default
   this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
   this->ImagingMode = BMode; //corresponds to BMode imaging  
+  this->RfAcquisitionMode=RF_ACQ_RF_ONLY; // get RF data only in RfMode 
 
   this->NumberOfOutputFrames = 1;
 
@@ -509,7 +510,40 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     {
       LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
     }
-  }  
+  }
+  const char* rfAcqMode = imageAcquisitionConfig->GetAttribute("RfAcquisitionMode"); 
+  if ( rfAcqMode != NULL) 
+  {
+    if (STRCASECMP(rfAcqMode, "BOnly")==0)
+    {
+      LOG_DEBUG("RF acquisition mode set: B only"); 
+      this->RfAcquisitionMode=RF_ACQ_B_ONLY; 
+    }
+    else if (STRCASECMP(rfAcqMode, "RfOnly")==0)
+    {
+      LOG_DEBUG("RF acquisition mode set: RF only"); 
+      this->RfAcquisitionMode=RF_ACQ_RF_ONLY; 
+    }
+    else if (STRCASECMP(rfAcqMode, "BAndRf")==0)
+    {
+      LOG_DEBUG("RF acquisition mode set: B and RF"); 
+      this->RfAcquisitionMode=RF_ACQ_B_AND_RF; 
+    }
+    else if (STRCASECMP(rfAcqMode, "ChRfOnly")==0)
+    {
+      LOG_DEBUG("RF acquisition mode set: ChRF only"); 
+      this->RfAcquisitionMode=RF_ACQ_CHRF_ONLY; 
+    }
+    else if (STRCASECMP(rfAcqMode, "BAndChRf")==0)
+    {
+      LOG_DEBUG("RF acquisition mode set: B and ChRF"); 
+      this->RfAcquisitionMode=RF_ACQ_B_AND_CHRF; 
+    }
+    else
+    {
+      LOG_ERROR("Unsupported RfAcquisitionMode requested: "<<rfAcqMode);
+    }
+  }
   const char* acquisitionDataType = imageAcquisitionConfig->GetAttribute("AcquisitionDataType"); 
   if ( acquisitionDataType != NULL) 
   {
@@ -889,22 +923,7 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameSize(int &aFrameWidth, int &aFr
 
   return PLUS_SUCCESS;
 }
-//----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
-{
-  if (!this->UlteriusConnected)
-  {
-    LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: not connected");
-    return PLUS_FAIL;
-  }
-  if ( !this->Ult.setParamValue("rf-rf decimation", decimation) )
-  {
-	 LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
-	 return PLUS_FAIL;
-  }
 
-  return PLUS_SUCCESS;
-}
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
 {
@@ -936,4 +955,38 @@ PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
   }
 
   return PLUS_SUCCESS;
+}
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetRfAcquisitionMode(RfAcquisitionModeType mode)
+{
+  return SetParamValue("rf-mode", mode, this->RfAcquisitionMode);
+}
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mode)
+{
+  int iMode = -1; 
+  PlusStatus status = GetParamValue("rf-mode", iMode, this->RfAcquisitionMode);
+  switch (iMode)
+  {
+  case 0:
+    mode = RF_ACQ_B_ONLY; 
+    break;
+  case 1:
+    mode = RF_ACQ_RF_ONLY; 
+    break;
+  case 2:
+    mode = RF_ACQ_B_AND_RF; 
+    break;
+  case 3:
+    mode = RF_ACQ_CHRF_ONLY; 
+    break;
+  case 4:
+    mode = RF_ACQ_B_AND_CHRF; 
+    break;
+  default: 
+    mode = RF_UNKNOWN; 
+    LOG_WARNING("Unknown RF acquisition mode type: " << iMode ); 
+  }
+
+  return status;
 }

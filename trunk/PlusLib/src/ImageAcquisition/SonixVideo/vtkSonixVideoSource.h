@@ -277,6 +277,25 @@ public:
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
 
+  /*!
+  \enum RfAcquisitionModeType
+  \brief Defines RF acquisition mode types (0=B only, 1=RF only, 2=B and RF, 3=ChRF, 4=B and ChRF)
+  */
+  enum RfAcquisitionModeType
+  {
+    RF_UNKNOWN = -1, 
+    RF_ACQ_B_ONLY = 0, 
+    RF_ACQ_RF_ONLY = 1, 
+    RF_ACQ_B_AND_RF = 2,
+    RF_ACQ_CHRF_ONLY = 3, 
+    RF_ACQ_B_AND_CHRF = 4 
+  }; 
+  /*! Set RF acquire mode */
+  PlusStatus SetRfAcquisitionMode(RfAcquisitionModeType mode);
+  /*! Get current RF acquire mode */
+  PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
+
+
 protected:
   /*! Constructor */
   vtkSonixVideoSource();
@@ -327,6 +346,7 @@ protected:
   int Timeout;
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
+  int RfAcquisitionMode;
 
   char *SonixIP;
 
