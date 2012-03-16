@@ -386,6 +386,26 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << GetLastUlteriusError() << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
       continue;
     }
+    if ( this->ImagingMode == RfMode )
+    {
+      if ( this->SetRfAcquisitionMode(this->RfAcquisitionMode) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Initialize: Cannot set RF acquisition mode");
+        continue; 
+      }  
+      RfAcquisitionModeType actualRfAcquisitionMode = RF_UNKNOWN; 
+      if (GetRfAcquisitionMode(actualRfAcquisitionMode)!=PLUS_SUCCESS)
+      { 
+        LOG_ERROR("Initialize: Cannot check actual RF acquisition mode");
+        continue; 
+      }  
+      if (this->RfAcquisitionMode != actualRfAcquisitionMode)
+      {
+        LOG_ERROR("Initialize: Requested RF acquisition mode could not be selected (requested: "<<this->RfAcquisitionMode<<", actual: "<<actualRfAcquisitionMode);
+        continue;
+      }
+    }
+
     switch (this->DataDescriptor.ss)
     {
     case 8:
@@ -974,13 +994,33 @@ PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetRfAcquisitionMode(RfAcquisitionModeType mode)
 {
-  return SetParamValue("rf-mode", mode, this->RfAcquisitionMode);
+  if (!this->UlteriusConnected)
+  {
+    // Connection has not been established yet. Parameter value will be set upon connection.
+    this->RfAcquisitionMode = mode; 
+    return PLUS_SUCCESS;
+  }
+  if (!this->Ult.setParamValue("rf-mode", mode))
+  {
+    LOG_ERROR("vtkSonixVideoSource::SetRfAcquisitionMode failed (paramId=rf-mode, paramValue="<<mode<<") "<<GetLastUlteriusError());
+    return PLUS_FAIL;
+  }
+  this->RfAcquisitionMode = mode; 
+  return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mode)
 {
-  int iMode = -1; 
-  PlusStatus status = GetParamValue("rf-mode", iMode, this->RfAcquisitionMode);
+  int iMode = this->RfAcquisitionMode; 
+  if (this->UlteriusConnected)
+  {
+    if (!this->Ult.getParamValue("rf-mode", iMode))
+    {
+      LOG_ERROR("vtkSonixVideoSource::GetRfAcquisitionMode failed. "<<GetLastUlteriusError());
+      return PLUS_FAIL;
+    }
+  }
+
   switch (iMode)
   {
   case 0:
@@ -1001,7 +1041,8 @@ PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mod
   default: 
     mode = RF_UNKNOWN; 
     LOG_WARNING("Unknown RF acquisition mode type: " << iMode ); 
+    return PLUS_FAIL; 
   }
 
-  return status;
+  return PLUS_SUCCESS;
 }

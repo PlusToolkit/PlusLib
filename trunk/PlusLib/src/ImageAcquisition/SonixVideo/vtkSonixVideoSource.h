@@ -346,7 +346,7 @@ protected:
   int Timeout;
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
-  int RfAcquisitionMode;
+  RfAcquisitionModeType RfAcquisitionMode;
 
   char *SonixIP;
 
