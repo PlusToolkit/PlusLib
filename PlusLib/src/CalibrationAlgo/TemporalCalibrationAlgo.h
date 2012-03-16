@@ -178,7 +178,7 @@ private:
   int FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp, int currLowerStraddleIndex);
   int FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);
   int FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);                       
-  void ComputeTrackerLagSec();
+  PlusStatus ComputeTrackerLagSec();
   PlusStatus NormalizeMetric(std::vector<double> &metric);
   PlusStatus ComputeVideoPositionMetric();
   PlusStatus ComputeTrackerPositionMetric();
@@ -187,7 +187,7 @@ private:
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
-  void ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table, double timeCorrection); 
+  PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table, double timeCorrection); 
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;

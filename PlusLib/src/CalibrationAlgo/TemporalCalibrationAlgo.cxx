@@ -27,6 +27,11 @@ static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line dete
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.8; // threshold (as the percentage of the peak intensity along a scanline) for COG
+static const double MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES = 0.1; // the maximum percentage of the invalid frames before warning message issued
+static const double MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES = 10; // the maximum number of consecutive invalid frames before warning message issued
+static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the detected line's slope's x-component is less than this (i.e. almost vertical), skip frame
+
+
 
 enum PEAK_POS_METRIC_TYPES
 {
@@ -79,7 +84,7 @@ PlusStatus TemporalCalibration::Update()
     return PLUS_FAIL;
   }
 
-  //  Make sure video frame list is not empty
+  //  Make sure tracker frame list is not empty
   if(m_TrackerFrames->GetNumberOfTrackedFrames() == 0)
   {
     LOG_ERROR("US tracker data contains no frames");
@@ -106,8 +111,22 @@ PlusStatus TemporalCalibration::Update()
       currentNumberOfConsecutiveInvalidVideoFrames = 0;
     }
   }
+  
+  double percentageOfInvalidVideoFrames  = totalNumberOfInvalidVideoFrames / static_cast<double>(totalNumberOfInvalidVideoFrames);
+  if(percentageOfInvalidVideoFrames < MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES * totalNumberOfInvalidVideoFrames)
+  {
 
-  // TODO: print a warning if totalNumberOfInvalidVideoFrames or currentNumberOfConsecutiveInvalidVideoFrames is too high
+    LOG_WARNING(percentageOfInvalidVideoFrames << "% of the video frames were invalid. This warning " <<
+      "gets issued whenever more than " << MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES << "% of the video frames are invalid because the " <<
+      "accuracy of the computed time offset may be marginalised");
+  }
+
+  if(greatestNumberOfConsecutiveInvalidVideoFrames  > MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES)
+  {
+    LOG_WARNING("There were " << greatestNumberOfConsecutiveInvalidVideoFrames  << " invalid video frames in a row. This warning " <<
+      "gets issued whenever there are more than " << MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES << " invalid frames in a row because the " <<
+      "accuracy of the computed time offset may be marginalised");
+  }
 
   if(m_SamplingResolutionSec < MINIMUM_SAMPLING_RESOLUTION_SEC)
   {
@@ -116,13 +135,15 @@ PlusStatus TemporalCalibration::Update()
     return PLUS_FAIL;
   }
 
-  ComputeTrackerLagSec();
+  if(ComputeTrackerLagSec() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  
 
   m_NeverUpdated = false;
 
   return PLUS_SUCCESS;
-  /* TODO: Maybe output an warning message. */
-  
   
 }
 
@@ -167,10 +188,11 @@ PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 {
   if(m_NeverUpdated)
   {
-    LOG_ERROR("You must call the Update() to compute the tracker lag.");
+    LOG_ERROR("You must first call the \"Update()\" to compute the tracker lag.");
     return PLUS_FAIL;
   }
-  lag=m_TrackerLagSec;
+
+  lag = m_TrackerLagSec;
   return PLUS_SUCCESS;
 }
 
@@ -214,19 +236,18 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 {
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   PlusTransformName transformName;
+  
   if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
     return PLUS_FAIL;
   }
 
-   //  Find the mean tracker position
-
-  itk::Point<double, 3> meanTrackerPosition;
+  //  Find the mean tracker position
+  itk::Point<double, 3> trackerPositionSum;
   std::vector<itk::Point<double, 3>> trackerPositions;
-
   int numberOfValidFrames = 0;
-  for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+  for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
@@ -239,28 +260,35 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
       continue;
     }  
   
+    //  Store current tracker position 
     itk::Point<double, 3> currTrackerPosition;
     currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
     currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
     currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
     trackerPositions.push_back(currTrackerPosition);
 
-    meanTrackerPosition[0] = meanTrackerPosition[0] + probeToReferenceTransform->GetElement(0, 3);
-    meanTrackerPosition[1] = meanTrackerPosition[1] + probeToReferenceTransform->GetElement(1, 3);
-    meanTrackerPosition[2] = meanTrackerPosition[2] + probeToReferenceTransform->GetElement(2, 3);
+    // Add current tracker position to the running total
+    trackerPositionSum[0] = trackerPositionSum[0] + probeToReferenceTransform->GetElement(0, 3);
+    trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
+    trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
     ++numberOfValidFrames;
   }
 
-  itk::Point<double,3> principalAxis;
-  ComputePrincipalAxis(trackerPositions, principalAxis, numberOfValidFrames);
+  // Calculate the principal axis of motion (using PCA)
+  itk::Point<double,3> principalAxisOfMotion;
+  ComputePrincipalAxis(trackerPositions, principalAxisOfMotion, numberOfValidFrames);
 
-  meanTrackerPosition[0] = ( meanTrackerPosition[0] / static_cast<double>(numberOfValidFrames) );
-  meanTrackerPosition[1] = ( meanTrackerPosition[1] / static_cast<double>(numberOfValidFrames) );
-  meanTrackerPosition[2] = ( meanTrackerPosition[2] / static_cast<double>(numberOfValidFrames) );
+  // Compute the mean tracker poisition
+  itk::Point<double, 3> meanTrackerPosition;
+  meanTrackerPosition[0] = ( trackerPositionSum[0] / static_cast<double>(numberOfValidFrames) );
+  meanTrackerPosition[1] = ( trackerPositionSum[1] / static_cast<double>(numberOfValidFrames) );
+  meanTrackerPosition[2] = ( trackerPositionSum[2] / static_cast<double>(numberOfValidFrames) );
 
-  double meanTrackerPositionProjection = meanTrackerPosition[0] * principalAxis[0] 
-                                       + meanTrackerPosition[1] * principalAxis[1] 
-                                       + meanTrackerPosition[2] * principalAxis[2];
+  // Project the mean tracker position on the prinicipal axis of motion
+  double meanTrackerPositionProjection = meanTrackerPosition[0] * principalAxisOfMotion[0] 
+                                       + meanTrackerPosition[1] * principalAxisOfMotion[1] 
+                                       + meanTrackerPosition[2] * principalAxisOfMotion[2];
+
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
@@ -274,27 +302,33 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
       // There is no available transform for this frame; skip that frame
       continue;
     }  
-    //  Get the Euclidean probe-to-reference distance = (tx^2 + ty^2 + tz^2)^(1/2)   
-    // TODO: compute the distance from the mean position instead of the reference coordinate frame origin
-    double currTrackerPositionProjection = probeToReferenceTransform->GetElement(0, 3) * principalAxis[0]
-                                         + probeToReferenceTransform->GetElement(1, 3) * principalAxis[1]
-                                         + probeToReferenceTransform->GetElement(2, 3) * principalAxis[2];
 
+    // Project the current tracker position onto the principal axis of motion
+    double currTrackerPositionProjection = probeToReferenceTransform->GetElement(0, 3) * principalAxisOfMotion[0]
+                                         + probeToReferenceTransform->GetElement(1, 3) * principalAxisOfMotion[1]
+                                         + probeToReferenceTransform->GetElement(2, 3) * principalAxisOfMotion[2];
+
+    // Find the translation between the projection of the current tracker position and the projection of the 
+    // the mean tracker position
     double trackerTranslationDistance = currTrackerPositionProjection - meanTrackerPositionProjection;
 
+    //  Store this translation and corresponding timestamp
     m_TrackerPositionMetric.push_back(trackerTranslationDistance);
     m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
   }
 
-  NormalizeMetric(m_TrackerPositionMetric);
+  // Normalize the calculated translations
+  if(NormalizeMetric(m_TrackerPositionMetric) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
-
 }
 
 //-----------------------------------------------------------------------------
 void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
-                                               itk::Point<double,3> &principalAxis, int numValidFrames)
+                                               itk::Point<double,3> &principalAxisOfMotion, int numValidFrames)
 {
 
   // Set the X-values
@@ -307,8 +341,6 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
     dataset1Arr->InsertNextValue(trackerPositions[i].GetElement(0));
   }
   
-
- 
   // Set the Y-values
   const char m1Name[] = "M1";
   vtkSmartPointer<vtkDoubleArray> dataset2Arr = vtkSmartPointer<vtkDoubleArray>::New();
@@ -356,7 +388,7 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
 
   for(int i = 0; i < eigenvector->GetNumberOfComponents(); ++i)
   {
-    principalAxis[i] = eigenvector->GetComponent(0,i);
+    principalAxisOfMotion[i] = eigenvector->GetComponent(0,i);
   }
 }
 
@@ -502,7 +534,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
    {
      //TODO: drop the frame from the analysis
-     LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame.");
+     LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame" << frameNumber);
    }
 
    std::vector<double> planeParameters;
@@ -514,17 +546,18 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
      double x_0 = planeParameters.at(2);
      double y_0 = planeParameters.at(3);
      
-     if(r_x < 0.01)
+     if(r_x < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
      {
-         // Line is vertical, cannot compute metric
-         // TODO: Remove hardcoding of this number and deal with this issue.
-         continue;
+       // Line is close to vertical, skip frame because intersection of line with image's horizontal half point
+       // is unstable
+       continue;
      }
 
+     // Store the y-value of the line, when the line's x-value is half of the image's width
      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
      m_VideoPositionMetric.push_back( std::abs( planeParameters.at(3) + t * r_y ) );
 
-     //  Get timestamp for image frame
+     //  Store timestamp for image frame
      m_VideoTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
 
      if(m_SaveIntermediateImages == true)
@@ -625,8 +658,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         rgbImageWriter->Update();
      }// end writing color image
 
-
-   }
+   }// end if compute line parameters is succesful
 
   }// end frameNum loop
   
@@ -637,9 +669,11 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
    }
 
   //  Normalize the video metric
-  NormalizeMetric(m_VideoPositionMetric);
+  if(NormalizeMetric(m_VideoPositionMetric) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
-  
   return PLUS_SUCCESS;
 
 } //  End LineDetection
@@ -781,9 +815,9 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
 {
-  if (metric.size()==0)
+  if (metric.size() == 0)
   {
-    LOG_ERROR("NormalizeMetric failed, the metric vector is empty");
+    LOG_ERROR("\"NormalizeMetric()\" failed because the metric vector is empty");
     return PLUS_FAIL;
   }
 
@@ -836,8 +870,8 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
   }
 
   return PLUS_SUCCESS;
-}// End NormalizeMetric()
 
+}// End NormalizeMetric()
 
 //-----------------------------------------------------------------------------
 void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column)
@@ -1099,11 +1133,19 @@ double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(const std::vec
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::ComputeTrackerLagSec()
+PlusStatus TemporalCalibration::ComputeTrackerLagSec()
 {
-  // Calculate the (normalized) metrics for the video and tracker data streams
-  ComputeTrackerPositionMetric();
-  ComputeVideoPositionMetric();
+  // Calculate the (normalized) metric for the tracker data
+  if(ComputeTrackerPositionMetric() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  // Calculate the (normalized) metric for the video data
+  if(ComputeVideoPositionMetric() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
   
   // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
   ResamplePositionMetrics(); //TODO: if this fails then the app crashes
@@ -1128,6 +1170,8 @@ void TemporalCalibration::ComputeTrackerLagSec()
   m_TrackerLagSec = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
+
+  return PLUS_SUCCESS;
 
 }
 
@@ -1183,7 +1227,7 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 
 //-----------------------------------------------------------------------------
 
-void TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table,
+PlusStatus TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table,
                                                double timeCorrection)
 {
 
@@ -1203,6 +1247,7 @@ void TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vect
     table->SetValue(i, 1, y.at(i) );
   }
 
+  return PLUS_SUCCESS;
 }
 
 
