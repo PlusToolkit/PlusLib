@@ -22,11 +22,12 @@ See License.txt for details.
 int main(int argc, char **argv)
 {
   bool printHelp(false);
-  bool plotResults(false);
-  bool saveIntermediateImages(false);
+  bool plotResults(true);
+  bool saveIntermediateImages(true);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   std::string inputTrackerSequenceMetafile; // Raw-buffer tracker file
   std::string inputVideoSequenceMetafile; // Corresponding raw-buffer video file
+  std::string intermediateFileOutputDirectory; // Directory into which the intermediate files are written
   double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [s]
 
   vtksys::CommandLineArguments args;
@@ -39,7 +40,8 @@ int main(int argc, char **argv)
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
   args.AddArgument("--save-intermediate-images",vtksys::CommandLineArguments::NO_ARGUMENT, &saveIntermediateImages, "Save images of intermediate steps (scanlines used, and detected lines)");
-  
+  args.AddArgument("--intermediate-file-output-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
+
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -94,8 +96,9 @@ int main(int argc, char **argv)
   TemporalCalibration testTemporalCalibrationObject;
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames);
   testTemporalCalibrationObject.SetVideoFrames(videoFrames);
-  testTemporalCalibrationObject.setSamplingResolutionSec(0.001);
+  testTemporalCalibrationObject.SetSamplingResolutionSec(0.001);
   testTemporalCalibrationObject.SetSaveIntermediateImagesToOn(saveIntermediateImages);
+  testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
 
   //  Calculate the time-offset
   if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
@@ -113,12 +116,21 @@ int main(int argc, char **argv)
 
   LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
+  std::ostrstream trackerLagOutputFilename;
+  trackerLagOutputFilename << intermediateFileOutputDirectory << "\\TrackerLag.txt" << std::ends;
+  ofstream myfile;
+  myfile.open (trackerLagOutputFilename.str());
+  myfile << trackerLagSec;
+  myfile.close();
+
   if (plotResults)
   {
 
     /* Plot the temporally uncalibrated tracker and video streams */
-    vtkSmartPointer<vtkTable> videoPositionMetric = testTemporalCalibrationObject.GetVideoPositionSignal();
-    vtkSmartPointer<vtkTable> trackerPositionMetric = testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal();
+    vtkSmartPointer<vtkTable> videoPositionMetric;
+    testTemporalCalibrationObject.GetVideoPositionSignal(videoPositionMetric);
+    vtkSmartPointer<vtkTable> trackerPositionMetric;
+    testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal(trackerPositionMetric);
 
     // Set up the view
     vtkSmartPointer<vtkContextView> uncalibratedView = vtkSmartPointer<vtkContextView>::New();
@@ -153,10 +165,10 @@ int main(int argc, char **argv)
 
     // Start interactor
     uncalibratedView->GetInteractor()->Initialize();
-    uncalibratedView->GetInteractor()->Start();
 
-    /* Plot the temporally calibrated tracker and video streams */
-    vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric = testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal();
+    /* Get the temporally calibrated tracker data*/
+    vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric;
+    testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
 
     // Set up the view
     vtkSmartPointer<vtkContextView> calibratedView = vtkSmartPointer<vtkContextView>::New();
@@ -196,3 +208,4 @@ int main(int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
+

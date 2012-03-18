@@ -69,14 +69,12 @@
 class TemporalCalibration
 {
 
-
-
 public:
 
   TemporalCalibration();
 
   /*! Sets sampling resolution [s]. Default is 0.001 seconds. */  
-  void setSamplingResolutionSec(double samplingResolutionSec); 
+  void SetSamplingResolutionSec(double samplingResolutionSec); 
 
   /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames  */  
   void SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames);
@@ -92,6 +90,8 @@ public:
 
   void SetSaveIntermediateImagesToOn(bool saveIntermediateImages);
 
+  void SetIntermediateFilesOutputDirectory(std::string &outputDirectory);
+
   /*! Compute the tracker lag */  
   PlusStatus Update(); 
 
@@ -103,9 +103,9 @@ public:
   */  
   PlusStatus GetTrackerLagSec(double &lag);
 
-  vtkSmartPointer<vtkTable> GetVideoPositionSignal();
-  vtkSmartPointer<vtkTable> GetUncalibratedTrackerPositionSignal();
-  vtkSmartPointer<vtkTable> GetCalibratedTrackerPositionSignal();
+  PlusStatus GetVideoPositionSignal(vtkSmartPointer<vtkTable> &VideoPositionSignal);
+  PlusStatus GetUncalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &unCalibratedTrackerPostionSignal);
+  PlusStatus GetCalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &calibratedTrackerPostionSignal);
 
 
 private:
@@ -117,8 +117,11 @@ private:
 
   /*! Has the user ever succsfully called Update() */
   bool m_NeverUpdated;
+
+  /*!Directory where the intermediate files are written to!*/
+  std::string m_IntermediateFilesOutputDirectory;
   
-  /*! Resolution used for re-sampling [s] TODO: Add comment about upsampling */
+  /*! Resolution used for re-sampling [s]*/
   double m_SamplingResolutionSec;
   vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
   vtkSmartPointer<vtkTrackedFrameList> m_VideoFrames; 
@@ -192,7 +195,6 @@ private:
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
   vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
-  void NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column);
 
   void ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
                                                itk::Point<double,3> &principalAxis,  int numValidFrames);
