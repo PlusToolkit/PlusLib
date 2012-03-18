@@ -29,6 +29,9 @@
 #include <vtkMatrix4x4.h>
 #include <vtksys/CommandLineArguments.hxx>
 #include "vtkPCAStatistics.h"
+#include <vtkWindowToImageFilter.h>
+#include <vtkRenderer.h> 
+#include <vtkPNGWriter.h>
 
 #include <itkHoughTransform2DLinesImageFilter.h>
 #include <itkImageFileWriter.h>

@@ -22,7 +22,7 @@ See License.txt for details.
 int main(int argc, char **argv)
 {
   bool printHelp(false);
-  bool plotResults(true);
+  bool plotResults(false);
   bool saveIntermediateImages(true);
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   std::string inputTrackerSequenceMetafile; // Raw-buffer tracker file
@@ -162,7 +162,27 @@ int main(int argc, char **argv)
     uncalibratedTrackerMetricLine->SetWidth(1.0);
     uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
     uncalibratedChart->SetShowLegend(true);
+//-----------------------------------------------------
 
+  //vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  //renderWindow->AddRenderer(uncalibratedView->GetRenderer());
+  //renderWindow->OffScreenRenderingOn(); 
+
+  //// Screenshot  
+  //vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  //windowToImageFilter->SetInput(renderWindow);
+  //windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+  //windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+  //windowToImageFilter->Update();
+ 
+  //vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+  //std::ostrstream beforeTemporalCalibrationPlotFilename;
+  //beforeTemporalCalibrationPlotFilename << intermediateFileOutputDirectory << "\\ModulusOfTranslation.png" << std::ends;
+  //writer->SetFileName(beforeTemporalCalibrationPlotFilename.str());
+  //writer->SetInput(windowToImageFilter->GetOutput());
+  //writer->Write();
+
+//-----------------------------------------------------
     // Start interactor
     uncalibratedView->GetInteractor()->Initialize();
 
