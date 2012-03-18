@@ -26,7 +26,7 @@ static const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.8; // threshold (as the percentage of the peak intensity along a scanline) for COG
+static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.5; // threshold (as the percentage of the peak intensity along a scanline) for COG
 static const double MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES = 0.1; // the maximum percentage of the invalid frames before warning message issued
 static const double MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES = 10; // the maximum number of consecutive invalid frames before warning message issued
 static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the detected line's slope's x-component is less than this (i.e. almost vertical), skip frame
@@ -60,7 +60,6 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
 }
 
 //-----------------------------------------------------------------------------
-// TODO: Finish error checking et cetera
 PlusStatus TemporalCalibration::Update()
 {
   // Check if video frames have been assigned
@@ -112,12 +111,12 @@ PlusStatus TemporalCalibration::Update()
     }
   }
   
-  double percentageOfInvalidVideoFrames  = totalNumberOfInvalidVideoFrames / static_cast<double>(totalNumberOfInvalidVideoFrames);
-  if(percentageOfInvalidVideoFrames < MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES * totalNumberOfInvalidVideoFrames)
+  double percentageOfInvalidVideoFrames  = totalNumberOfInvalidVideoFrames / static_cast<double>(m_VideoFrames->GetNumberOfTrackedFrames());
+  if(percentageOfInvalidVideoFrames > MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES)
   {
 
-    LOG_WARNING(percentageOfInvalidVideoFrames << "% of the video frames were invalid. This warning " <<
-      "gets issued whenever more than " << MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES << "% of the video frames are invalid because the " <<
+    LOG_WARNING(100*percentageOfInvalidVideoFrames << "% of the video frames were invalid. This warning " <<
+      "gets issued whenever more than " << 100*MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES << "% of the video frames are invalid because the " <<
       "accuracy of the computed time offset may be marginalised");
   }
 
@@ -166,7 +165,7 @@ void TemporalCalibration::SetVideoFrames(const vtkSmartPointer<vtkTrackedFrameLi
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::setSamplingResolutionSec(double samplingResolutionSec)
+void TemporalCalibration::SetSamplingResolutionSec(double samplingResolutionSec)
 {
   m_SamplingResolutionSec = samplingResolutionSec;
 }
@@ -184,6 +183,12 @@ void TemporalCalibration::SetMaximumVideoTrackerLagSec(double maxLagSec)
 }
 
 //-----------------------------------------------------------------------------
+void TemporalCalibration::SetIntermediateFilesOutputDirectory(std::string &outputDirectory)
+{
+ m_IntermediateFilesOutputDirectory = outputDirectory;
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 {
   if(m_NeverUpdated)
@@ -197,38 +202,65 @@ PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkTable> TemporalCalibration::GetVideoPositionSignal()
+PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkSmartPointer<vtkTable> &VideoPositionSignal)
 {
   ConstructTableSignal(m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric, m_VideoPositionSignal, 0); 
+
+  if(m_VideoPositionSignal->GetNumberOfColumns() != 2)
+  {
+    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
+               m_VideoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    return PLUS_FAIL;
+  }
 
   m_VideoPositionSignal->GetColumn(0)->SetName("Time [s]");
   m_VideoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
 
-  return m_VideoPositionSignal;
+  VideoPositionSignal = m_VideoPositionSignal;
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkTable> TemporalCalibration::GetUncalibratedTrackerPositionSignal()
+PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &uncalibratedTrackerPostionSignal)
 {
   ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_UncalibratedTrackerPositionSignal, 0); 
+
+  if(m_UncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  {
+    LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
+               m_UncalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    return PLUS_FAIL;
+  }
 
   m_UncalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
   m_UncalibratedTrackerPositionSignal->GetColumn(1)->SetName("Uncalibrated Tracker Position Metric");
 
-  return m_UncalibratedTrackerPositionSignal;
+  uncalibratedTrackerPostionSignal = m_UncalibratedTrackerPositionSignal;
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkTable> TemporalCalibration::GetCalibratedTrackerPositionSignal()
+PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &calibratedTrackerPostionSignal)
 {
 
   ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_CalibratedTrackerPositionSignal, 
-    m_TrackerLagSec); 
+                       m_TrackerLagSec); 
+
+  if(m_CalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  {
+    LOG_ERROR("Error in constructing the vtk tables that are to hold calibrated tracker signal. Table has " << 
+               m_CalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    return PLUS_FAIL;
+  }
 
   m_CalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
   m_CalibratedTrackerPositionSignal->GetColumn(1)->SetName("Calibrated Tracker Position Metric");
 
-  return m_CalibratedTrackerPositionSignal;
+  calibratedTrackerPostionSignal = m_CalibratedTrackerPositionSignal;
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -351,7 +383,6 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
     dataset2Arr->InsertNextValue(trackerPositions[i].GetElement(1));
   }
   
- 
   // Set the Z-values
   const char m2Name[] = "M2";
   vtkSmartPointer<vtkDoubleArray> dataset3Arr = vtkSmartPointer<vtkDoubleArray>::New();
@@ -382,7 +413,10 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
   pcaStatistics->SetDeriveOption(true);
   pcaStatistics->Update();
  
-  ///////// Eigenvectors ////////////
+  // Get the eigenvector corresponding to the largest eigenvalue (i.e. the principal axis). The
+  // eigenvectors are stored with the eigenvector corresponding to the largest eigenvalue stored
+  // first (i.e. in the "zero" position) and the eigenvector corresponding to the smallest eigenvalue
+  // stored last. 
   vtkSmartPointer<vtkDoubleArray> eigenvector = vtkSmartPointer<vtkDoubleArray>::New();
   pcaStatistics->GetEigenvector(0, eigenvector);
 
@@ -494,9 +528,8 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       int startOfMaxArea = -1;
       if(FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
       {
-      
         double currPeakPos_y = -1; 
-         switch (PEAK_POS_METRIC)
+        switch (PEAK_POS_METRIC)
         {
           case PEAK_POS_COG:
           {
@@ -524,13 +557,12 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         currPeakPos[0] = static_cast<double>(startPixel[0]);
         currPeakPos[1] = currPeakPos_y;
         intensityPeakPositions.push_back(currPeakPos);
-
         ++numOfValidScanlines;
-      }
+
+      } // end if() found intensity peak
 
     }// end currScanlineNum loop
    
-            
    if(numOfValidScanlines < MINIMUM_NUMBER_OF_VALID_SCANLINES)
    {
      //TODO: drop the frame from the analysis
@@ -564,7 +596,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
      {
         // Write image showing the scan lines to file
         std::ostrstream scanLineImageFilename;
-        scanLineImageFilename << "scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+        scanLineImageFilename << m_IntermediateFilesOutputDirectory << "\\scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
         PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
 
         // Test writing of colour image to file
@@ -648,7 +680,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         }
           
         std::ostrstream rgbImageFilename;
-        rgbImageFilename << "rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
+        rgbImageFilename << m_IntermediateFilesOutputDirectory << "\\rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
         typedef itk::ImageFileWriter<rgbImageType> rgbImageWriterType;
         rgbImageWriterType::Pointer rgbImageWriter = rgbImageWriterType::New();
@@ -659,7 +691,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
      }// end writing color image
 
    }// end if compute line parameters is succesful
-
+  
   }// end frameNum loop
   
    bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
@@ -687,7 +719,7 @@ PlusStatus TemporalCalibration::FindPeakStart(std::vector<int> &intensityProfile
   // Start of peak is defined as the location at which it reaches 50% of its maximum value.
   double startPeakValue = MaxFromLargestArea * 0.5;
 
-   int pixelIndex = startOfMaxArea;
+  int pixelIndex = startOfMaxArea;
 
   while( intensityProfile.at(pixelIndex) <= startPeakValue)
   {
@@ -713,6 +745,12 @@ PlusStatus TemporalCalibration::FindLargestPeak(std::vector<int> &intensityProfi
   bool underPeak = false;
   int currentStartOfMaxArea = 0;
   int currentStart = 0;
+
+  if(intensityProfile.size() == 0 )
+  {
+    LOG_ERROR("Intensity contains no elements");
+    return PLUS_FAIL;
+  }
 
   double intensityMax = intensityProfile.at(0);
   for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
@@ -779,6 +817,11 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
                                                        double &centerOfGravity)
 {
 
+  if(intensityProfile.size() == 0)
+  {
+    return PLUS_FAIL;
+  }
+
   double intensityMax = intensityProfile.at(0);
   for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
@@ -803,7 +846,6 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 
  if(pointsInPeak == 0)
  {
-   // no peak! TODO: Handle no-peak case
    return PLUS_FAIL;
  }
 
@@ -872,51 +914,6 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
   return PLUS_SUCCESS;
 
 }// End NormalizeMetric()
-
-//-----------------------------------------------------------------------------
-void TemporalCalibration::NormalizeTableColumn(vtkSmartPointer<vtkTable> table, int column)
-{
-  //  Get the mean of the Euclidean distances
-  double mu = 0;
-  for(int i = 0; i < table->GetNumberOfRows(); ++i)
-  {
-    mu += table->GetValue(i,column).ToDouble();
-  }
-
-  mu /= table->GetNumberOfRows();
-
-  //  Normalize each measurement, s, as s' = (s-mu)/sigma
-  for(int i = 0; i < table->GetNumberOfRows(); ++i)
-  {
-    table->SetValue(i,column, table->GetValue(i,column).ToDouble() - mu);
-  }
-
-  //  Get the maximum and minimum signal values
-  double maxVal = table->GetValue(0,column).ToDouble();
-  double minVal = table->GetValue(0,column).ToDouble();
-
-  for(int i = 1; i < table->GetNumberOfRows(); ++i)
-  {
-    if(table->GetValue(i,column) > maxVal)
-    {
-      maxVal = table->GetValue(i,column).ToDouble();
-    }
-    else if(table->GetValue(i,column) < minVal)
-    {
-       minVal = table->GetValue(i,column).ToDouble();
-    }
-  }
-
-  // normalize signal
-  double normFactor = std::abs(maxVal) + std::abs(minVal);
-
-  for(int i = 0; i < table->GetNumberOfRows(); ++i)
-  {
-    table->SetValue(i,column, table->GetValue(i,column).ToDouble() / normFactor);
-  }
-
-}// End NormalizeMetric()
-
 
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ResamplePositionMetrics()
@@ -1148,13 +1145,21 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
   }
   
   // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
-  ResamplePositionMetrics(); //TODO: if this fails then the app crashes
+  if(ResamplePositionMetrics() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
   //  Compute cross correlation
   LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics");
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   
   // Find the index offset corresponding to the maximum correlation sum
+  if(m_CorrValues.size() == 0)
+  {
+    LOG_ERROR("Cross-correlation result list empty");
+    return PLUS_FAIL;
+  }
   double maxCorrVal = m_CorrValues.at(0);
   int maxCorrIndex = 0;
   for(int i = 1; i < m_CorrValues.size(); ++i)
