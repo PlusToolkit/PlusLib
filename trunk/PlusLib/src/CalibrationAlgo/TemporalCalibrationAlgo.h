@@ -80,10 +80,10 @@ public:
   void SetSamplingResolutionSec(double samplingResolutionSec); 
 
   /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames  */  
-  void SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames);
+  void SetTrackerFrames(vtkTrackedFrameList* trackerFrames);
 
   /*! Sets the US video frames; frames are assumed to be the video frames */  
-  void SetVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> videoFrames);
+  void SetVideoFrames(vtkTrackedFrameList* videoFrames);
 
   /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */  
   void SetProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
@@ -106,9 +106,9 @@ public:
   */  
   PlusStatus GetTrackerLagSec(double &lag);
 
-  PlusStatus GetVideoPositionSignal(vtkSmartPointer<vtkTable> &VideoPositionSignal);
-  PlusStatus GetUncalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &unCalibratedTrackerPostionSignal);
-  PlusStatus GetCalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &calibratedTrackerPostionSignal);
+  PlusStatus GetVideoPositionSignal(vtkTable* videoPositionSignal);
+  PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedTrackerPositionSignal);
+  PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal);
 
 
 private:
@@ -155,10 +155,6 @@ private:
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
   double m_MaxTrackerLagSec; 
 
-  vtkSmartPointer<vtkTable> m_VideoPositionSignal;
-  vtkSmartPointer<vtkTable> m_UncalibratedTrackerPositionSignal;
-  vtkSmartPointer<vtkTable> m_CalibratedTrackerPositionSignal;
-
   std::string m_ProbeToReferenceTransformName;
 
 
@@ -193,7 +189,7 @@ private:
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
-  PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table, double timeCorrection); 
+  PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
