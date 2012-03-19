@@ -51,12 +51,7 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
   m_VideoTable = vtkSmartPointer<vtkTable>::New();
-  m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();
-
-  m_VideoPositionSignal = vtkSmartPointer<vtkTable>::New();
-  m_UncalibratedTrackerPositionSignal = vtkSmartPointer<vtkTable>::New();
-  m_CalibratedTrackerPositionSignal = vtkSmartPointer<vtkTable>::New();
-  
+  m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();   
 }
 
 //-----------------------------------------------------------------------------
@@ -153,13 +148,13 @@ void TemporalCalibration::SetSaveIntermediateImagesToOn(bool saveIntermediateIma
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::SetTrackerFrames(const vtkSmartPointer<vtkTrackedFrameList> trackerFrames)
+void TemporalCalibration::SetTrackerFrames(vtkTrackedFrameList* trackerFrames)
 {
   m_TrackerFrames = trackerFrames;
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::SetVideoFrames(const vtkSmartPointer<vtkTrackedFrameList> videoFrames)
+void TemporalCalibration::SetVideoFrames(vtkTrackedFrameList* videoFrames)
 {
     m_VideoFrames = videoFrames;
 }
@@ -202,63 +197,57 @@ PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkSmartPointer<vtkTable> &VideoPositionSignal)
+PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkTable* videoPositionSignal)
 {
-  ConstructTableSignal(m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric, m_VideoPositionSignal, 0); 
+  ConstructTableSignal(m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric, videoPositionSignal, 0); 
 
-  if(m_VideoPositionSignal->GetNumberOfColumns() != 2)
+  if(videoPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
-               m_VideoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+               videoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
 
-  m_VideoPositionSignal->GetColumn(0)->SetName("Time [s]");
-  m_VideoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
-
-  VideoPositionSignal = m_VideoPositionSignal;
+  videoPositionSignal->GetColumn(0)->SetName("Time [s]");
+  videoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &uncalibratedTrackerPostionSignal)
+PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable *uncalibratedTrackerPositionSignal)
 {
-  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_UncalibratedTrackerPositionSignal, 0); 
+  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, uncalibratedTrackerPositionSignal, 0); 
 
-  if(m_UncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  if(uncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
-               m_UncalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+               uncalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
 
-  m_UncalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
-  m_UncalibratedTrackerPositionSignal->GetColumn(1)->SetName("Uncalibrated Tracker Position Metric");
-
-  uncalibratedTrackerPostionSignal = m_UncalibratedTrackerPositionSignal;
+  uncalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
+  uncalibratedTrackerPositionSignal->GetColumn(1)->SetName("Uncalibrated Tracker Position Metric");
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkSmartPointer<vtkTable> &calibratedTrackerPostionSignal)
+PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal)
 {
 
-  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, m_CalibratedTrackerPositionSignal, 
+  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, calibratedTrackerPositionSignal, 
                        m_TrackerLagSec); 
 
-  if(m_CalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  if(calibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold calibrated tracker signal. Table has " << 
-               m_CalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+               calibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
 
-  m_CalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
-  m_CalibratedTrackerPositionSignal->GetColumn(1)->SetName("Calibrated Tracker Position Metric");
-
-  calibratedTrackerPostionSignal = m_CalibratedTrackerPositionSignal;
+  calibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
+  calibratedTrackerPositionSignal->GetColumn(1)->SetName("Calibrated Tracker Position Metric");
 
   return PLUS_SUCCESS;
 }
@@ -1232,7 +1221,7 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkSmartPointer<vtkTable> table,
+PlusStatus TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table,
                                                double timeCorrection)
 {
 
