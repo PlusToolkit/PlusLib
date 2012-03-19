@@ -50,12 +50,14 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
 
 VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 {
-	if (m_VolumeReconstructor != NULL) {
+	if (m_VolumeReconstructor != NULL)
+  {
 		m_VolumeReconstructor->Delete();
 		m_VolumeReconstructor = NULL;
 	}
 
-  if (m_ReconstructedVolume != NULL) {
+  if (m_ReconstructedVolume != NULL)
+  {
 		m_ReconstructedVolume->Delete();
 		m_ReconstructedVolume = NULL;
 	}
@@ -67,12 +69,10 @@ void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
 
-  /*
-  if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
-  {
-    m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
-  }
-  */
+  //if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
+  //{
+  //  m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+  //}
 
   // Try to load volume reconstruction configuration from the device set configuration
   if ( (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() != NULL)
@@ -85,10 +85,10 @@ void VolumeReconstructionToolbox::Initialize()
   if (m_State != ToolboxState_Done)
   {
     m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
-
-    // Check for new images
-    PopulateImageComboBox();
   }
+
+  // Check for new images
+  PopulateImageComboBox();
 
   // Set initialized if it was uninitialized
   if (m_State == ToolboxState_Uninitialized)
@@ -145,7 +145,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
     }
-    else if (ui.comboBox_InputImage->currentIndex() == -1)
+    else if ((ui.comboBox_InputImage->currentIndex() == -1) || (ui.comboBox_InputImage->count() == 0) || (ui.comboBox_InputImage->isEnabled() == false))
     {
 			ui.label_Instructions->setText(tr("Input image has to be selected"));
 			ui.pushButton_Reconstruct->setEnabled(false);
