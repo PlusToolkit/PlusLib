@@ -86,6 +86,11 @@ protected slots:
   void DoSpatialCalibration();
 
   /*!
+  * Acquire tracked frames for temporal calibration and calls the algorithm when done
+  */
+  void DoTemporalCalibration();
+
+  /*!
   * Slot handling open phantom registration button click
   */
   void OpenPhantomRegistration();
@@ -106,19 +111,14 @@ protected slots:
   void StartTemporal();
 
   /*!
-  * Slot handling cancel temporal calibration button click
-  */
-  void CancelTemporal();
-
-  /*!
   * Slot handling start spatial calibration button click
   */
   void StartSpatial();
 
   /*!
-  * Slot handling cancel spatial calibration button click
+  * Slot handling cancel calibration event (button click or explicit call)
   */
-  void CancelSpatial();
+  void CancelCalibration();
 
 protected:
   /*! Calibration algorithm */
@@ -157,8 +157,26 @@ protected:
   /*! Maximum time spent with processing (getting tracked frames, segmentation) per second (in milliseconds) */
   int m_MaxTimeSpentWithProcessingMs;
 
+  /*! Duration of the temporal calibration process in seconds */
+  int m_TemporalCalibrationDurationSec;
+
   /*! Time needed to process one frame in the latest recording round (in milliseconds) */
   int m_LastProcessingTimePerFrameMs;
+
+  /*! Time of starting temporal calibration */
+  double m_StartTimeSec;
+
+  /*! Saved tracker offset in case the temporal calibration is cancelled or unsuccessful */
+  double m_PreviousTrackerOffset;
+
+  /*! Saved video offset in case the temporal calibration is cancelled or unsuccessful */
+  double m_PreviousVideoOffset;
+
+  /*! Flag indicating if Spatial calibration is in progress */
+  bool m_SpatialCalibrationInProgress;
+
+  /*! Flag indicating if Temporal calibration is in progress */
+  bool m_TemporalCalibrationInProgress;
 
 protected:
   Ui::FreehandCalibrationToolbox ui;

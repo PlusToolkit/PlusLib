@@ -7,12 +7,16 @@ See License.txt for details.
 #include "FreehandCalibrationToolbox.h"
 
 #include "vtkProbeCalibrationAlgo.h"
+#include "TemporalCalibrationAlgo.h"
 #include "vtkDataCollectorHardwareDevice.h"
-#include "vtkPlusVideoSource.h" // Only for getting the local time offset in device mode
-#include "vtkVideoBuffer.h" // Only for getting the local time offset in device mode
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-#include "vtkTracker.h"
+
+#include "vtkPlusVideoSource.h" // Only for getting the local time offset in device mode
+#include "vtkVideoBuffer.h" // Only for getting the local time offset in device mode
+#include "vtkTracker.h" // Only for getting the local time offset in device mode
+#include "vtkTrackerTool.h" // Only for getting the local time offset in device mode
+#include "vtkTrackerBuffer.h" // Only for getting the local time offset in device mode
 
 #include "ConfigFileSaverDialog.h"
 #include "SegmentationParameterDialog.h"
@@ -40,7 +44,13 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   , m_NumberOfSegmentedValidationImages(0)
   , m_RecordingIntervalMs(200)
   , m_MaxTimeSpentWithProcessingMs(150)
+  , m_TemporalCalibrationDurationSec(10)
   , m_LastProcessingTimePerFrameMs(-1)
+  , m_StartTimeSec(0.0)
+  , m_PreviousTrackerOffset(-1.0)
+  , m_PreviousVideoOffset(-1.0)
+  , m_SpatialCalibrationInProgress(false)
+  , m_TemporalCalibrationInProgress(false)
 {
   ui.setupUi(this);
 
@@ -64,9 +74,9 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   connect( ui.pushButton_OpenSegmentationParameters, SIGNAL( clicked() ), this, SLOT( OpenSegmentationParameters() ) );
   connect( ui.pushButton_EditSegmentationParameters, SIGNAL( clicked() ), this, SLOT( EditSegmentationParameters() ) );
   connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporal() ) );
-  connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
+  connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
-  connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
+  connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -162,7 +172,7 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
+  vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal");
 
   if (fCalElement == NULL)
   {
@@ -170,17 +180,27 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL;     
   }
 
+  bool success = true;
+
   // Read number of needed images
   int numberOfCalibrationImagesToAcquire = 0; 
   if ( fCalElement->GetScalarAttribute("NumberOfCalibrationImagesToAcquire", numberOfCalibrationImagesToAcquire ) )
   {
     m_NumberOfCalibrationImagesToAcquire = numberOfCalibrationImagesToAcquire;
   }
+  else
+  {
+    LOG_WARNING("Unable to read NumberOfCalibrationImagesToAcquire attribute from fCal element of the device set configuration, default value '" << m_NumberOfCalibrationImagesToAcquire << "' will be used");
+  }
 
   int numberOfValidationImagesToAcquire = 0; 
   if ( fCalElement->GetScalarAttribute("NumberOfValidationImagesToAcquire", numberOfValidationImagesToAcquire ) )
   {
     m_NumberOfValidationImagesToAcquire = numberOfValidationImagesToAcquire;
+  }
+  else
+  {
+    LOG_WARNING("Unable to read NumberOfValidationImagesToAcquire attribute from fCal element of the device set configuration, default value '" << m_NumberOfValidationImagesToAcquire << "' will be used");
   }
 
   // Recording interval and processing time
@@ -189,17 +209,30 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   {
     m_RecordingIntervalMs = recordingIntervalMs;
   }
+  else
+  {
+    LOG_WARNING("Unable to read RecordingIntervalMs attribute from fCal element of the device set configuration, default value '" << m_RecordingIntervalMs << "' will be used");
+  }
 
   int maxTimeSpentWithProcessingMs = 0; 
   if ( fCalElement->GetScalarAttribute("MaxTimeSpentWithProcessingMs", maxTimeSpentWithProcessingMs ) )
   {
     m_MaxTimeSpentWithProcessingMs = maxTimeSpentWithProcessingMs;
   }
-
-  if (aConfig == NULL)
+  else
   {
-    LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
+    LOG_WARNING("Unable to read MaxTimeSpentWithProcessingMs attribute from fCal element of the device set configuration, default value '" << m_MaxTimeSpentWithProcessingMs << "' will be used");
+  }
+
+  // Duration of temporal calibration
+  int temporalCalibrationDurationSec = 0; 
+  if ( fCalElement->GetScalarAttribute("TemporalCalibrationDurationSec", temporalCalibrationDurationSec ) )
+  {
+    m_TemporalCalibrationDurationSec = temporalCalibrationDurationSec;
+  }
+  else
+  {
+    LOG_WARNING("Unable to read TemporalCalibrationDurationSec attribute from fCal element of the device set configuration, default value '" << m_TemporalCalibrationDurationSec << "' will be used");
   }
 
   return PLUS_SUCCESS;
@@ -232,26 +265,27 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
       if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
         && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
       {
-        videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
+        videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
       }
     }
   }
 
   if (m_State == ToolboxState_Uninitialized)
   {
-    ui.label_InstructionsTemporal->setText(tr(""));
-    ui.label_Results->setText(tr(""));
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
+    ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
-    ui.label_InstructionsSpatial->setText(tr(""));
+    ui.label_Results->setText(QString(""));
+
+    ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
-    ui.pushButton_EditSegmentationParameters->setEnabled(false);
-
+    ui.label_InstructionsTemporal->setText(QString(""));
     ui.pushButton_StartTemporal->setEnabled(false);
     ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -267,18 +301,21 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
-
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
-    ui.label_Results->setText(tr(""));
 
+    ui.label_Results->setText(QString(""));
+
+    ui.frame_SpatialCalibration->setEnabled(true);
+    ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_CancelSpatial->setEnabled(false);
     ui.pushButton_StartSpatial->setEnabled(isReadyToStartSpatialCalibration);
     ui.pushButton_StartSpatial->setFocus();
 
-    ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-    ui.pushButton_StartTemporal->setEnabled(false);
-    ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
+    ui.frame_TemporalCalibration->setEnabled(true);
+    ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 s\nMove probe to vertical position in the water tank so that the bottom is visible and press Start").arg(videoTimeOffset));
+    ui.pushButton_StartTemporal->setEnabled(true);
     ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -289,35 +326,73 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   {
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
-
-    ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
-    ui.frame_SpatialCalibration->setEnabled(true);
-    ui.pushButton_StartSpatial->setEnabled(false);
-
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
-    ui.label_Results->setText(tr(""));
+
+    ui.label_Results->setText(QString(""));
 
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
-    ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-    ui.pushButton_StartTemporal->setEnabled(false);
+    if (m_SpatialCalibrationInProgress)
+    {
+      ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible until the progress bar is filled.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
+      ui.frame_SpatialCalibration->setEnabled(true);
+      ui.pushButton_StartSpatial->setEnabled(false);
+      ui.pushButton_CancelSpatial->setEnabled(true);
+      ui.pushButton_CancelSpatial->setFocus();
+    }
+    else
+    {
+      ui.label_InstructionsSpatial->setText(QString(""));
+      ui.frame_SpatialCalibration->setEnabled(false);
+    }
+
+    if (m_TemporalCalibrationInProgress)
+    {
+      ui.label_InstructionsTemporal->setText(tr("Move probe up and down so that the tank bottom is visible with 2s period until the progress bar is filled").arg(videoTimeOffset));
+      ui.frame_TemporalCalibration->setEnabled(true);
+      ui.pushButton_StartTemporal->setEnabled(false);
+      ui.pushButton_CancelTemporal->setEnabled(true);
+      ui.pushButton_CancelTemporal->setFocus();
+    }
+    else
+    {
+      ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 s").arg(videoTimeOffset));
+      ui.frame_TemporalCalibration->setEnabled(false);
+    }
   }
   else if (m_State == ToolboxState_Done)
   {
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
+    ui.pushButton_EditSegmentationParameters->setEnabled(true);
 
-    ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
+    if (m_SpatialCalibrationInProgress)
+    {
+      ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
+      ui.label_Results->setText(m_Calibration->GetResultString().c_str());
+    }
+    else
+    {
+      ui.label_InstructionsSpatial->setText(QString(""));
+      ui.label_Results->setText(QString(""));
+    }
+    ui.frame_SpatialCalibration->setEnabled(true);
     ui.pushButton_StartSpatial->setEnabled(true);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
-    ui.pushButton_EditSegmentationParameters->setEnabled(true);
-    ui.label_Results->setText(m_Calibration->GetResultString().c_str());
-
-    ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
+    if (m_TemporalCalibrationInProgress)
+    {
+      ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(Video time offset: %1 s)").arg(videoTimeOffset));
+    }
+    else
+    {
+      ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 s").arg(videoTimeOffset));
+    }
+    ui.frame_TemporalCalibration->setEnabled(true);
     ui.pushButton_StartTemporal->setEnabled(true);
-    ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_ShowPlots->setEnabled(true);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -329,13 +404,14 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
 
-    ui.label_InstructionsSpatial->setText(tr(""));
+    ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
     ui.label_InstructionsTemporal->setText(tr("Error occured!"));
     ui.pushButton_StartTemporal->setEnabled(false);
-    ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -483,40 +559,148 @@ void FreehandCalibrationToolbox::StartTemporal()
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  // Set validation transform names for tracked frame list
+  std::string toolReferenceFrame;
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() == NULL)
+    || (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  {
+    LOG_ERROR("Failed to get tool reference frame name!");
+    return;
+  }
+  PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
+  m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
+
+  // Set the local timeoffset to 0 before synchronization
+  bool offsetsSuccessfullyRetrieved = false;
+  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+  {
+    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
+    if (dataCollectorHardwareDevice)
+    {
+      if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+        && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+      {
+        m_PreviousTrackerOffset = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
+        dataCollectorHardwareDevice->SetLocalTimeOffsetSec(0, 0); 
+        offsetsSuccessfullyRetrieved = true;
+      }
+    }
+  }
+  if (!offsetsSuccessfullyRetrieved)
+  {
+    LOG_ERROR("Tracker and video offset retrieval failed due to problems with data collector or the buffers!");
+    return;
+  }
+
+  m_CalibrationData->Clear();
+
+  m_LastRecordedFrameTimestamp = 0.0;
+
+  m_StartTimeSec = vtkAccurateTimer::GetSystemTime();
+  m_CancelRequest = false;
+
+  m_TemporalCalibrationInProgress = true;
   SetState(ToolboxState_InProgress);
 
-  ui.pushButton_CancelTemporal->setEnabled(true);
-  ui.pushButton_CancelTemporal->setFocus();
-
-  QApplication::processEvents();
-
-  // Do the calibration
-  //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-  m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
-
-  //this->ProgressPercent = 0;
-
-  m_ParentMainWindow->SetTabsEnabled(true);
-
-  SetState(ToolboxState_Idle);
+  // Start calibration and compute results on success
+  DoTemporalCalibration();
 }
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::CancelTemporal()
+void FreehandCalibrationToolbox::DoTemporalCalibration()
 {
-  LOG_INFO("Temporal calibration cancelled");
+  //LOG_TRACE("FreehandCalibrationToolbox::DoTemporalCalibration");
 
-  // Cancel synchronization (temporal calibration) in data collector
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-  if (dataCollectorHardwareDevice)
+  // Get current time
+  double currentTimeSec = vtkAccurateTimer::GetSystemTime();
+
+  if (currentTimeSec - m_StartTimeSec >= 10.0)
   {
-    dataCollectorHardwareDevice->CancelSyncRequestOn();
+    // Do the calibration
+    TemporalCalibration temporalCalibrationObject;
+    temporalCalibrationObject.SetTrackerFrames(m_CalibrationData);
+    temporalCalibrationObject.SetVideoFrames(m_CalibrationData);
+    temporalCalibrationObject.SetSamplingResolutionSec(0.001);
+    temporalCalibrationObject.SetSaveIntermediateImagesToOn(false);
+
+    //  Calculate the time-offset
+    if (temporalCalibrationObject.Update() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed!");
+      CancelCalibration();
+      return;
+    }
+
+    double trackerLagSec = 0;
+    if (temporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+      CancelCalibration();
+      return;
+    }
+
+    LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
+
+    // Set the result local timeoffset
+    bool offsetsSuccessfullySet = false;
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    {
+      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
+      if (dataCollectorHardwareDevice)
+      {
+        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        {
+          dataCollectorHardwareDevice->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
+          offsetsSuccessfullySet = true;
+        }
+      }
+    }
+    if (!offsetsSuccessfullySet)
+    {
+      LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
+      CancelCalibration();
+      return;
+    }
+
+    SetState(ToolboxState_Done);
+    m_TemporalCalibrationInProgress = false;
+
+    m_ParentMainWindow->SetTabsEnabled(true);
+
+    return;
   }
 
-  m_ParentMainWindow->SetTabsEnabled(true);
 
-  SetState(ToolboxState_Idle);
+  // Cancel if requested
+  if (m_CancelRequest)
+  {
+    LOG_INFO("Calibration process cancelled by the user");
+    CancelCalibration();
+    return;
+  }
+
+  int numberOfFramesBeforeRecording = m_CalibrationData->GetNumberOfTrackedFrames();
+
+  // Acquire tracked frames
+  if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_CalibrationData) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    CancelCalibration();
+    return; 
+  }
+
+  // Update progress
+  int progressPercent = (int)((currentTimeSec - m_StartTimeSec) / m_TemporalCalibrationDurationSec * 100.0);
+  m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+
+  LOG_DEBUG("Number of tracked frames in the calibration dataset: " << std::setw(3) << numberOfFramesBeforeRecording << " => " << m_CalibrationData->GetNumberOfTrackedFrames());
+
+  QTimer::singleShot(m_RecordingIntervalMs, this, SLOT(DoTemporalCalibration())); 
 }
 
 //-----------------------------------------------------------------------------
@@ -541,12 +725,6 @@ void FreehandCalibrationToolbox::StartSpatial()
   m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_ValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
 
-
-  SetState(ToolboxState_InProgress);
-
-  ui.pushButton_CancelSpatial->setEnabled(true);
-  ui.pushButton_CancelSpatial->setFocus();
-
   // Initialize algorithms and containers
   if ( (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     || (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) )
@@ -560,10 +738,12 @@ void FreehandCalibrationToolbox::StartSpatial()
 
   m_NumberOfSegmentedCalibrationImages = 0;
   m_NumberOfSegmentedValidationImages = 0;
-
   m_LastRecordedFrameTimestamp = 0.0;
 
   m_CancelRequest = false;
+
+  m_SpatialCalibrationInProgress = true;
+  SetState(ToolboxState_InProgress);
 
   // Start calibration and compute results on success
   DoSpatialCalibration();
@@ -587,18 +767,19 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
-      CancelSpatial();
+      CancelCalibration();
       return;
     }
 
     if (SetAndSaveResults() != PLUS_SUCCESS)
     {
       LOG_ERROR("Setting and saving results failed!");
-      CancelSpatial();
+      CancelCalibration();
       return;
     }
 
     SetState(ToolboxState_Done);
+    m_SpatialCalibrationInProgress = false;
 
     m_ParentMainWindow->SetTabsEnabled(true);
 
@@ -610,7 +791,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   if (m_CancelRequest)
   {
     LOG_INFO("Calibration process cancelled by the user");
-    CancelSpatial();
+    CancelCalibration();
     return;
   }
 
@@ -634,7 +815,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
-    CancelSpatial();
+    CancelCalibration();
     return; 
   }
 
@@ -643,7 +824,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to segment tracked frame list!"); 
-    CancelSpatial();
+    CancelCalibration();
     return; 
   }
 
@@ -740,11 +921,37 @@ PlusStatus FreehandCalibrationToolbox::SetAndSaveResults()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::CancelSpatial()
+void FreehandCalibrationToolbox::CancelCalibration()
 {
-  LOG_INFO("Spatial calibration cancelled");
+  LOG_INFO("Calibration cancelled");
 
   m_CancelRequest = true;
+
+  if (m_TemporalCalibrationInProgress)
+  {
+    // Reset the local timeoffset to the previous values
+    bool offsetsSuccessfullySet = false;
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    {
+      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
+      if (dataCollectorHardwareDevice)
+      {
+        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        {
+          dataCollectorHardwareDevice->SetLocalTimeOffsetSec(m_PreviousTrackerOffset, m_PreviousVideoOffset); 
+          offsetsSuccessfullySet = true;
+        }
+      }
+    }
+    if (!offsetsSuccessfullySet)
+    {
+      LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
+    }
+  }
+
+  m_SpatialCalibrationInProgress = false;
+  m_TemporalCalibrationInProgress = false;
 
   m_ParentMainWindow->SetTabsEnabled(true);
 

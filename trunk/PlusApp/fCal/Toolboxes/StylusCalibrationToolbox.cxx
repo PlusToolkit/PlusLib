@@ -137,6 +137,10 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     m_NumberOfPoints = numberOfStylusCalibrationPointsToAcquire;
     ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
   }
+  else
+  {
+    LOG_WARNING("Unable to read NumberOfStylusCalibrationPointsToAcquire attribute from fCal element of the device set configuration, default value '" << m_NumberOfPoints << "' will be used");
+  }
 
   return PLUS_SUCCESS;
 }

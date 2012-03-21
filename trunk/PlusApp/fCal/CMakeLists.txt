@@ -83,6 +83,7 @@ SET (fCal_LIBS
     vtkCommon 
     vtkRendering 
     vtkHybrid 
+    vtkCharts
     vtkCalibrationAlgo 
     vtkTracking 
     vtkDataCollection 
