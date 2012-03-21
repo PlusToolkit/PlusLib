@@ -1331,7 +1331,7 @@ PlusStatus vtkNDITracker::InternalInterpretCommand( char * messageText)
 //----------------------------------------------------------------------------
 PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
 {
-  // Read superclass configuration first
+  // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
   if ( config == NULL ) 
@@ -1403,6 +1403,37 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
       this->LoadVirtualSROM(portNumber, romFileName);
     }
   }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* config)
+{
+  // Read superclass configuration
+  Superclass::ReadConfiguration(config); 
+
+  if ( config == NULL ) 
+  {
+    LOG_WARNING("Unable to find NDITracker XML data element");
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
 
   return PLUS_SUCCESS;
 }

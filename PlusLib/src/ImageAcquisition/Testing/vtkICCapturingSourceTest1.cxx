@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
 	vtkICCapturingSource* frameGrabber = vtkICCapturingSource::New();
 
-	frameGrabber->SetLicenceKey(licenseKey.c_str()); 
+	frameGrabber->SetLicenseKey(licenseKey.c_str()); 
 	frameGrabber->SetDeviceName(deviceName.c_str()); 
 	frameGrabber->SetVideoNorm(videoNorm.c_str()); 
 	frameGrabber->SetVideoFormat(videoFormat.c_str()); 

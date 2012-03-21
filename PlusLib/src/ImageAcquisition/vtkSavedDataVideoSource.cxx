@@ -254,6 +254,7 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
+  // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
 	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
@@ -301,8 +302,41 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
   LOG_TRACE("vtkSavedDataVideoSource::WriteConfiguration"); 
+
+  // Write superclass configuration
   Superclass::WriteConfiguration(config); 
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
+
+  if (this->ReplayEnabled)
+  {
+    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "TRUE");
+  }
+  else
+  {
+    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "FALSE");
+  }
+
+  return PLUS_SUCCESS;
 }
 

@@ -44,12 +44,6 @@ public:
 	/*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
 	PlusStatus InternalUpdate();
 
-	/*! Read BrachyStepper configuration from xml data */
-	PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
-	
-  /*! Write BrachyStepper configuration to xml data */
-  PlusStatus WriteConfiguration( vtkXMLDataElement* config );
-
 	/*! Get number of device names */
 	vtkGetMacro(NumberOfSensors, int);
    

@@ -45,7 +45,7 @@ vtkICCapturingSource::vtkICCapturingSource()
 {
 	this->ICBufferSize = 50; 
 
-	this->LicenceKey = NULL; 
+	this->LicenseKey = NULL; 
 	this->DeviceName = NULL; 
 	this->VideoNorm = NULL; 
 	this->VideoFormat = NULL; 
@@ -190,9 +190,9 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
 //----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::InternalConnect()
 {
-	if( !DShowLib::InitLibrary( this->GetLicenceKey() ) )
+	if( !DShowLib::InitLibrary( this->GetLicenseKey() ) )
 	{
-		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() );
+		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenseKey() );
 		return PLUS_FAIL;
 	}
 
@@ -369,7 +369,7 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 	const char* licenseKey = imageAcquisitionConfig->GetAttribute("LicenseKey"); 
 	if ( licenseKey != NULL) 
 	{
-		this->SetLicenceKey(licenseKey); 
+		this->SetLicenseKey(licenseKey); 
 	}
 
 	int icBufferSize = 0; 
@@ -384,6 +384,35 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-  // TODO: implement this
-  return Superclass::WriteConfiguration(config); 
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  imageAcquisitionConfig->SetAttribute("DeviceName", this->DeviceName);
+  imageAcquisitionConfig->SetAttribute("VideoNorm", this->VideoNorm);
+  imageAcquisitionConfig->SetAttribute("VideoFormat", this->VideoFormat);
+  imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
+  imageAcquisitionConfig->SetAttribute("LicenseKey", this->LicenseKey);
+  imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
+
+  return PLUS_SUCCESS;
 }

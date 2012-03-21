@@ -611,15 +611,15 @@ void vtkTrackerBuffer::Clear()
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerBuffer::SetLocalTimeOffset(double offset)
+void vtkTrackerBuffer::SetLocalTimeOffsetSec(double offsetSec)
 {
-  this->TrackerBuffer->SetLocalTimeOffset(offset); 
+  this->TrackerBuffer->SetLocalTimeOffsetSec(offsetSec); 
 }
 
 //----------------------------------------------------------------------------
-double vtkTrackerBuffer::GetLocalTimeOffset()
+double vtkTrackerBuffer::GetLocalTimeOffsetSec()
 {
-  return this->TrackerBuffer->GetLocalTimeOffset(); 
+  return this->TrackerBuffer->GetLocalTimeOffsetSec(); 
 }
 
 //-----------------------------------------------------------------------------
