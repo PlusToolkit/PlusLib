@@ -150,10 +150,10 @@ public:
   /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 
 
-  /*! Set the local time offset (global = local + offset) */
-  virtual void SetLocalTimeOffset(double offset);
-  /*! Get the local time offset (global = local + offset) */
-  virtual double GetLocalTimeOffset();
+  /*! Set the local time offset in seconds (global = local + offset) */
+  virtual void SetLocalTimeOffsetSec(double offsetSec);
+  /*! Get the local time offset in seconds (global = local + offset) */
+  virtual double GetLocalTimeOffsetSec();
 
   /*! 
   Copy a specified transform to a tracker buffer. It is useful when tracking-only data is stored in a

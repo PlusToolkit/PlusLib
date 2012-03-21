@@ -49,12 +49,6 @@ public:
   */
   PlusStatus InternalUpdate();
 
-  /*! Read BrachyStepper configuration to xml data */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
-
-  /*! Write BrachyStepper configuration to xml data */
-  PlusStatus WriteConfiguration( vtkXMLDataElement* config );
-
   /*! Get number of sensors */
   vtkGetMacro(NumberOfSensors, int);
 

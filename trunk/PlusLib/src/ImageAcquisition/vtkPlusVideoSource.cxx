@@ -517,8 +517,8 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
     }
   }
 
-  this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() );
-  this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() );
+  this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
+  this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
 
   void* sourcePtr=this->CurrentVideoBufferItem->GetFrame().GetBufferPointer();
   int bytesToCopy=this->CurrentVideoBufferItem->GetFrame().GetFrameSizeInBytes();
@@ -566,7 +566,7 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 
   imageAcquisitionConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
 
-  imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffset", this->GetBuffer()->GetLocalTimeOffset() );
+  imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffsetSec", this->GetBuffer()->GetLocalTimeOffsetSec() );
 
   return PLUS_SUCCESS;
 }
@@ -621,11 +621,11 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_WARNING("Unable to find ImageAcquisition AveragedItemsForFiltering attribute in configuration file!");
   }
 
-  double localTimeOffset = 0;
-  if ( imageAcquisitionConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+  double localTimeOffsetSec = 0;
+  if ( imageAcquisitionConfig->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
-    LOG_INFO("Image acqusition local time offset: " << 1000*localTimeOffset << "ms" );
-    this->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
+    LOG_INFO("Image acqusition local time offset: " << 1000*localTimeOffsetSec << "ms" );
+    this->GetBuffer()->SetLocalTimeOffsetSec(localTimeOffsetSec);
   }
 
   const char* usImageOrientation = imageAcquisitionConfig->GetAttribute("UsImageOrientation");

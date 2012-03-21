@@ -21,7 +21,8 @@ class vtkGnuplotExecuter;
 
 /*!
   \class vtkDataCollectorSynchronizer 
-  \brief Determines the time lag difference between tracker and image source. 
+  \brief Determines the time lag difference between tracker and image source based on motion detection.
+  This method needs a stabilizer device that keeps the tools still between the moves (eg. a stepper).
   \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkDataCollectorSynchronizer : public vtkObject

@@ -61,10 +61,10 @@ public:
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Set the IC capturing device license key /sa LicenceKey */
-	vtkSetStringMacro(LicenceKey); 
-  /*! Get the IC capturing device license key /sa LicenceKey */
-	vtkGetStringMacro(LicenceKey); 
+  /*! Set the IC capturing device license key /sa LicenseKey */
+	vtkSetStringMacro(LicenseKey); 
+  /*! Get the IC capturing device license key /sa LicenseKey */
+	vtkGetStringMacro(LicenseKey); 
 
   /*! Set the IC capturing device name (e.g. "DFG/USB2-lt") */
 	vtkSetStringMacro(DeviceName); 
@@ -124,7 +124,7 @@ protected:
 	 the license key entered during the IC Imaging Control setup.
 	 Example: if( !DShowLib::InitLibrary( "XXXXXXX" ))
   */
-	char* LicenceKey; 
+	char* LicenseKey; 
 
   /*! Device name (e.g. DFG/USB2-lt) */
 	char* DeviceName;

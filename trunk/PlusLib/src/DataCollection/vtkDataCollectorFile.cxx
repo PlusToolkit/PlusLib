@@ -154,11 +154,11 @@ PlusStatus vtkDataCollectorFile::Synchronize( const char* bufferOutputFolder /*=
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorFile::SetLocalTimeOffset(double videoOffset, double trackerOffset)
+void vtkDataCollectorFile::SetLocalTimeOffsetSec(double videoOffsetSec, double trackerOffsetSec)
 {
-  LOG_TRACE("vtkDataCollectorFile::SetLocalTimeOffset");
+  LOG_TRACE("vtkDataCollectorFile::SetLocalTimeOffsetSec");
 
-  LOG_ERROR("Not implemented yet!");
+  LOG_ERROR("Not implemented");
 }
 
 //----------------------------------------------------------------------------

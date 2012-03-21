@@ -462,7 +462,7 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 
     config->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
 
-    config->SetDoubleAttribute("LocalTimeOffset", tool->GetBuffer()->GetLocalTimeOffset() ); 
+    config->SetDoubleAttribute("LocalTimeOffsetSec", tool->GetBuffer()->GetLocalTimeOffsetSec() ); 
   }
 
   return PLUS_SUCCESS; 
@@ -479,12 +479,12 @@ void vtkTracker::SetToolsBufferSize( int aBufferSize )
 }
 
 //-----------------------------------------------------------------------------
-void vtkTracker::SetToolsLocalTimeOffset( double aLocalTimeOffset )
+void vtkTracker::SetToolsLocalTimeOffsetSec( double aLocalTimeOffsetSec )
 {
-  LOG_INFO("Tools local time offset: " << 1000*aLocalTimeOffset << "ms" ); 
+  LOG_INFO("Tools local time offset: " << 1000*aLocalTimeOffsetSec << "ms" ); 
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->SetLocalTimeOffset(aLocalTimeOffset); 
+    it->second->GetBuffer()->SetLocalTimeOffsetSec(aLocalTimeOffsetSec); 
   }
 }
 
@@ -562,10 +562,10 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     LOG_WARNING("Unable to find Tracker AveragedItemsForFiltering attribute in configuration file!"); 
   }
 
-  double localTimeOffset = 0; 
-  if ( trackerConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+  double localTimeOffsetSec = 0; 
+  if ( trackerConfig->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
-    this->SetToolsLocalTimeOffset(localTimeOffset); 
+    this->SetToolsLocalTimeOffsetSec(localTimeOffsetSec); 
   }
   
   return PLUS_SUCCESS; 
@@ -903,7 +903,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
       continue; 
     }
 
-    const double frameTimestamp = bufferItem.GetFilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffset()); 
+    const double frameTimestamp = bufferItem.GetFilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec()); 
 
     // Add main tool timestamp
     std::ostringstream timestampFieldValue; 
@@ -912,7 +912,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
 
     // Add main tool unfiltered timestamp
     std::ostringstream unfilteredtimestampFieldValue; 
-    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffset()); 
+    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec()); 
     trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
 
     // Add main tool frameNumber

@@ -20,7 +20,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->NumberOfItems = 0;
 	this->WritePointer = 0;
 	this->CurrentTimeStamp = 0.0;
-	this->LocalTimeOffset = 0.0; 
+	this->LocalTimeOffsetSec = 0.0; 
 	this->LatestItemUid = 0; 
 
   this->FilterContainerIndexVector.set_size(0); 
@@ -67,7 +67,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkInd
 	os << indent << "BufferSize: " << this->GetBufferSize() << "\n";
 	os << indent << "NumberOfItems: " << this->NumberOfItems << "\n";
 	os << indent << "CurrentTimeStamp: " << this->CurrentTimeStamp << "\n";
-	os << indent << "Local time offset: " << this->LocalTimeOffset << "\n";
+	os << indent << "Local time offset: " << this->LocalTimeOffsetSec << "\n";
 	os << indent << "Latest Item Uid: " << this->LatestItemUid << "\n";
 
 }
@@ -315,7 +315,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(co
 		return status; 
 	}
 	
-	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffset); 
+	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec); 
 	
 	// Check the status again to make sure the writer didn't change it
 	return this->GetFrameStatus( uid );
@@ -341,7 +341,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetUnfilteredTimeStamp(
 		return status; 
 	}
 	
-	unfilteredTimestamp = this->BufferItemContainer[bufferIndex].GetUnfilteredTimestamp(this->LocalTimeOffset); 
+	unfilteredTimestamp = this->BufferItemContainer[bufferIndex].GetUnfilteredTimestamp(this->LocalTimeOffsetSec); 
 	
 	// Check the status again to make sure the writer didn't change it
 	return this->GetFrameStatus( uid );
@@ -478,7 +478,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 	this->WritePointer = buffer->WritePointer;
 	this->NumberOfItems = buffer->NumberOfItems;
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
-	this->LocalTimeOffset = buffer->LocalTimeOffset;
+	this->LocalTimeOffsetSec = buffer->LocalTimeOffsetSec;
 	this->LatestItemUid = buffer->LatestItemUid; 
   this->StartTime = buffer->StartTime; 
   this->AveragedItemsForFiltering = buffer->AveragedItemsForFiltering; 

@@ -156,7 +156,7 @@ public:
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available tools */
-  void SetToolsLocalTimeOffset( double aLocalTimeOffset ); 
+  void SetToolsLocalTimeOffsetSec( double aLocalTimeOffsetSec ); 
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);

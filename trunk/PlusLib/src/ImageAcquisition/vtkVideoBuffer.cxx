@@ -116,15 +116,15 @@ PlusStatus vtkVideoBuffer::AllocateMemoryForFrames()
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer::SetLocalTimeOffset(double offset)
+void vtkVideoBuffer::SetLocalTimeOffsetSec(double offsetSec)
 {
-  this->VideoBuffer->SetLocalTimeOffset(offset); 
+  this->VideoBuffer->SetLocalTimeOffsetSec(offsetSec); 
 }
 
 //----------------------------------------------------------------------------
-double vtkVideoBuffer::GetLocalTimeOffset()
+double vtkVideoBuffer::GetLocalTimeOffsetSec()
 {
-  return this->VideoBuffer->GetLocalTimeOffset(); 
+  return this->VideoBuffer->GetLocalTimeOffsetSec(); 
 }
 
 //----------------------------------------------------------------------------
@@ -678,13 +678,13 @@ PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char
     trackedFrame.SetImageData(videoItem.GetFrame());
 
     // Add filtered timestamp
-    double filteredTimestamp = videoItem.GetFilteredTimestamp( this->GetLocalTimeOffset() );
+    double filteredTimestamp = videoItem.GetFilteredTimestamp( this->GetLocalTimeOffsetSec() );
     std::ostringstream timestampFieldValue;
     timestampFieldValue << std::fixed << filteredTimestamp;
     trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str());
 
     // Add unfiltered timestamp
-    double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( this->GetLocalTimeOffset() );
+    double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( this->GetLocalTimeOffsetSec() );
     std::ostringstream unfilteredtimestampFieldValue;
     unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp;
     trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());

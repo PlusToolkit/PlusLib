@@ -282,12 +282,14 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
   LOG_TRACE("vtkSavedDataTracker::ReadConfiguration"); 
+
   if ( config == NULL ) 
   {
     LOG_ERROR("Unable to find SavedDataset XML data element");
     return PLUS_FAIL; 
   }
 
+  // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
   vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
@@ -342,6 +344,9 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
+
   vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
@@ -356,12 +361,21 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  trackerConfig->SetName("SavedDataset");  
-  trackerConfig->SetAttribute( "SequenceMetafile", this->GetSequenceMetafile() ); 
+  trackerConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
+
+  if (this->ReplayEnabled)
+  {
+    trackerConfig->SetAttribute("ReplayEnabled", "TRUE");
+  }
+  else
+  {
+    trackerConfig->SetAttribute("ReplayEnabled", "FALSE");
+  }
 
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 vtkTrackerBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp

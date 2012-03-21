@@ -386,12 +386,12 @@ PlusStatus vtkDataCollectorHardwareDevice::Synchronize( const char* bufferOutput
 
   //************************************************************************************
   // Save local time offsets before sync
-  const double prevVideoOffset = this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset(); 
-  const double prevTrackerOffset = firstActiveTool->GetBuffer()->GetLocalTimeOffset(); 
+  const double prevVideoOffset = this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
+  const double prevTrackerOffset = firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec(); 
 
   //************************************************************************************
   // Set the local timeoffset to 0 before synchronization 
-  this->SetLocalTimeOffset(0, 0); 
+  this->SetLocalTimeOffsetSec(0, 0); 
 
   //************************************************************************************
   // Set the length of the acquisition 
@@ -446,7 +446,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Synchronize( const char* bufferOutput
     if ( this->CancelSyncRequest ) 
     {
       // we should cancel the job...
-      this->SetLocalTimeOffset(prevVideoOffset, prevTrackerOffset); 
+      this->SetLocalTimeOffsetSec(prevVideoOffset, prevTrackerOffset); 
       return PLUS_FAIL; 
     }
 
@@ -525,7 +525,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Synchronize( const char* bufferOutput
   // Set the local time for buffers if the calibration was done
   if ( this->GetSynchronizer()->GetSynchronized() )
   {
-    this->SetLocalTimeOffset(this->GetSynchronizer()->GetVideoOffset(), this->GetSynchronizer()->GetTrackerOffset()); 
+    this->SetLocalTimeOffsetSec(this->GetSynchronizer()->GetVideoOffset(), this->GetSynchronizer()->GetTrackerOffset()); 
   }
 
   this->GetSynchronizer()->SetTrackerBuffer(NULL); 
@@ -552,13 +552,13 @@ PlusStatus vtkDataCollectorHardwareDevice::Synchronize( const char* bufferOutput
 
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorHardwareDevice::SetLocalTimeOffset(double videoOffset, double trackerOffset)
+void vtkDataCollectorHardwareDevice::SetLocalTimeOffsetSec(double videoOffsetSec, double trackerOffsetSec)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::SetLocalTimeOffset");
+  LOG_TRACE("vtkDataCollectorHardwareDevice::SetLocalTimeOffsetSec");
 
   if ( this->GetVideoSource() != NULL ) 
   {	
-    this->GetVideoSource()->GetBuffer()->SetLocalTimeOffset( videoOffset ); 
+    this->GetVideoSource()->GetBuffer()->SetLocalTimeOffsetSec( videoOffsetSec ); 
     this->GetVideoSource()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ); 
   }
 
@@ -566,7 +566,7 @@ void vtkDataCollectorHardwareDevice::SetLocalTimeOffset(double videoOffset, doub
   {
     for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
     {
-      it->second->GetBuffer()->SetLocalTimeOffset(trackerOffset); 
+      it->second->GetBuffer()->SetLocalTimeOffsetSec( trackerOffsetSec ); 
     }
     this->GetTracker()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ); 
   }
@@ -819,7 +819,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideo
   fieldMap=currentVideoBufferItem.GetCustomFrameFieldMap();
 
   // Copy frame timestamp 
-  aTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+  aTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec() ); 
   return PLUS_SUCCESS; 
 }
 
@@ -1256,7 +1256,7 @@ int vtkDataCollectorHardwareDevice::RequestData( vtkInformation* vtkNotUsed( req
 
   outData->DeepCopy(currentVideoBufferItem.GetFrame().GetVtkImage());
 
-  const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+  const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec() ); 
 
   if( this->GetTracker() != NULL && this->TrackingEnabled )
   {

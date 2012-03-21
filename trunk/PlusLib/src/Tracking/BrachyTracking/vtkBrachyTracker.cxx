@@ -478,9 +478,12 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
 {
   if ( rootConfigElement == NULL )
   {
-    LOG_ERROR("Config is invalid");
+    LOG_ERROR("Configuration is invalid");
     return PLUS_FAIL;
   }
+
+  // Write configuration 
+  Superclass::WriteConfiguration(rootConfigElement); 
 
   // Get data collection and then Tracker configuration element
   vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");

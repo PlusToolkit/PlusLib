@@ -134,9 +134,10 @@ public:
   virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
   virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
 
-  /*! Get/Set the local time offset (global = local + offset) */
-  virtual void SetLocalTimeOffset(double offset);
-  virtual double GetLocalTimeOffset();
+  /*! Set the local time offset in seconds (global = local + offset) */
+  virtual void SetLocalTimeOffsetSec(double offsetSec);
+  /*! Get the local time offset in seconds (global = local + offset) */
+  virtual double GetLocalTimeOffsetSec();
 
   /*! Get the number of items in the buffer */
   virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }

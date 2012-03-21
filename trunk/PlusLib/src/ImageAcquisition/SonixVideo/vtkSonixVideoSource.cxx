@@ -643,8 +643,92 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-  // TODO: implement this
-  return Superclass::WriteConfiguration(config); 
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  if (this->ImagingMode == BMode)
+  {
+    imageAcquisitionConfig->SetAttribute("ImagingMode", "BMode");
+  }
+  else if (this->ImagingMode == RfMode)
+  {
+    imageAcquisitionConfig->SetAttribute("ImagingMode", "RfMode");
+  }
+  else
+  {
+    LOG_ERROR("Saving of unsupported ImagingMode requested!");
+  }
+
+  if (this->RfAcquisitionMode == RF_ACQ_B_ONLY)
+  {
+    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BOnly");
+  }
+  else if (this->RfAcquisitionMode == RF_ACQ_RF_ONLY)
+  {
+    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "RfOnly");
+  }
+  else if (this->RfAcquisitionMode == RF_ACQ_B_AND_RF)
+  {
+    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BAndRf");
+  }
+  else if (this->RfAcquisitionMode == RF_ACQ_CHRF_ONLY)
+  {
+    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "ChRfOnly");
+  }
+  else if (this->RfAcquisitionMode == RF_ACQ_B_AND_CHRF)
+  {
+    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BAndChRf");
+  }
+  else
+  {
+    LOG_ERROR("Saving of unsupported RfAcquisitionMode requested!");
+  }
+
+  if (this->AcquisitionDataType == udtBPost)
+  {
+    imageAcquisitionConfig->SetAttribute("AcquisitionDataType", "BPost");
+  }
+  else if (this->AcquisitionDataType == udtRF)
+  {
+    imageAcquisitionConfig->SetAttribute("AcquisitionDataType", "RF");
+  }
+  else
+  {
+    LOG_ERROR("Saving of unsupported AcquisitionDataType requested!");
+  }
+
+  imageAcquisitionConfig->SetAttribute("IP", this->SonixIP);
+  imageAcquisitionConfig->SetIntAttribute("Depth", this->Depth);
+  imageAcquisitionConfig->SetIntAttribute("Sector", this->Sector);
+  imageAcquisitionConfig->SetIntAttribute("Gain", this->Gain);
+  imageAcquisitionConfig->SetIntAttribute("DynRange", this->DynRange);
+  imageAcquisitionConfig->SetIntAttribute("Zoom", this->Zoom);
+  imageAcquisitionConfig->SetIntAttribute("Frequency", this->Frequency);
+  imageAcquisitionConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
+  imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
+  imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

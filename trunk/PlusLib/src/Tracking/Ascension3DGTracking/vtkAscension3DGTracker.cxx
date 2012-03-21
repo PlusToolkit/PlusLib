@@ -337,52 +337,6 @@ PlusStatus vtkAscension3DGTracker::InitAscension3DGTracker()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::ReadConfiguration( vtkXMLDataElement* config )
-{
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
-
-  LOG_TRACE( "vtkAscension3DGTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find Ascension3DGTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::WriteConfiguration( vtkXMLDataElement* config )
-{
-  LOG_TRACE( "vtkAscension3DGTracker::WriteConfiguration" ); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Invalid write configuration pointer");
-    return PLUS_FAIL;
-  }
-
-  //config->SetName("Ascension3DGTracker");
-
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
-}
-
-//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
 {
   if( status != atc::BIRD_ERROR_SUCCESS )

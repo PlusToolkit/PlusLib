@@ -538,73 +538,73 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   int depth = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Depth", depth)) 
   {
-      this->Depth = depth; 
+    this->Depth = depth; 
   }
 
   int gain = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Gain", gain)) 
   {
-      this->Gain = gain; 
+    this->Gain = gain; 
   }
 
   int zoom = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Zoom", zoom)) 
   {
-      this->Zoom = zoom; 
+    this->Zoom = zoom; 
   }
 
   int frequency = -1; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Frequency", frequency)) 
   {
-      this->Frequency = frequency;
+    this->Frequency = frequency;
   }
 
   int timeout = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
   {
-      this->Timeout = timeout; 
+    this->Timeout = timeout; 
   }
   
   int framePerVolume = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
   {
-      this->FramePerVolume = framePerVolume;
+    this->FramePerVolume = framePerVolume;
   }  
 
   int stepPerFrame = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("StepPerFrame", stepPerFrame)) 
   {
-      this->StepPerFrame = stepPerFrame; 
+    this->StepPerFrame = stepPerFrame; 
   }  
 
   int usm = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("USM", usm)) 
   {
-      this->Usm = usm; 
+    this->Usm = usm; 
   }  
 
   int pci = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("PCI", pci)) 
   {
-      this->Pci = pci; 
+    this->Pci = pci; 
   }  
 
 	int highVoltage = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("HighVoltage", highVoltage)) 
   {
-      this->HighVoltage = highVoltage; 
+    this->HighVoltage = highVoltage; 
   } 
 
 	int channels = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Channels", channels)) 
   {
-      this->Channels = channels; 
+    this->Channels = channels; 
   } 
 
 	const char* portaLUTpath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
   if ( portaLUTpath != NULL) 
   {
-      this->SetPortaLUTPath(portaLUTpath); 
+    this->SetPortaLUTPath(portaLUTpath); 
   }
   else
   {
@@ -614,7 +614,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   const char* portaSettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
   if ( portaSettingPath != NULL) 
   {
-      this->SetPortaSettingPath(portaSettingPath); 
+    this->SetPortaSettingPath(portaSettingPath); 
   }
   else
   {
@@ -624,7 +624,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   const char* portaLicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
   if ( portaLicensePath != NULL) 
   {
-      this->SetPortaLicensePath(portaLicensePath); 
+    this->SetPortaLicensePath(portaLicensePath); 
   }
   else
   {
@@ -634,7 +634,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
   if ( portaFirmwarePath != NULL) 
   {
-      this->SetPortaFirmwarePath(portaFirmwarePath); 
+    this->SetPortaFirmwarePath(portaFirmwarePath); 
   }
   else
   {
@@ -648,8 +648,55 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-  // TODO: implement this
-    return Superclass::WriteConfiguration(config); 
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  if (this->ImagingMode == BMode)
+  {
+    imageAcquisitionConfig->SetAttribute("ImagingMode", "BMode");
+  }
+  else
+  {
+    LOG_ERROR("Saving of unsupported ImagingMode requested!");
+  }
+
+  imageAcquisitionConfig->SetIntAttribute("Depth", this->Depth);
+  imageAcquisitionConfig->SetIntAttribute("Gain", this->Gain);
+  imageAcquisitionConfig->SetIntAttribute("Zoom", this->Zoom);
+  imageAcquisitionConfig->SetIntAttribute("Frequency", this->Frequency);
+  imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
+  imageAcquisitionConfig->SetIntAttribute("FramePerVolume", this->FramePerVolume);
+  imageAcquisitionConfig->SetIntAttribute("StepPerFrame", this->StepPerFrame);
+  imageAcquisitionConfig->SetIntAttribute("USM", this->Usm);
+  imageAcquisitionConfig->SetIntAttribute("PCI", this->Pci);
+  imageAcquisitionConfig->SetIntAttribute("HighVoltage", this->HighVoltage);
+  imageAcquisitionConfig->SetIntAttribute("Channels", this->Channels);
+  imageAcquisitionConfig->SetAttribute("PortaLUTPath", this->PortaLUTPath);
+  imageAcquisitionConfig->SetAttribute("PortaSettingPath", this->PortaSettingPath);
+  imageAcquisitionConfig->SetAttribute("PortaLicensePath", this->PortaLicensePath);
+  imageAcquisitionConfig->SetAttribute("PortaFirmwarePath", this->PortaFirmwarePath);
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
