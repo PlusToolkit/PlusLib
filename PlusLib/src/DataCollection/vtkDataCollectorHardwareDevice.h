@@ -11,16 +11,8 @@
 
 class vtkImageData; 
 class vtkTracker;
-class vtkDataCollectorSynchronizer;
 class vtkPlusVideoSource;
 class PlusVideoFrame;
-
-/*! Synchronization types */
-enum SYNC_TYPE
-{
-  SYNC_NONE=0,
-  SYNC_CHANGE_DETECTION
-};
 
 /*!
   \class vtkDataCollectorHardwareDevice 
@@ -54,9 +46,6 @@ public:
 
   /*! Start data collection  */
   virtual PlusStatus Start(); 
-
-  /*! Synchronize the connected devices */
-  virtual PlusStatus Synchronize(const char* bufferOutputFolder = NULL, bool acquireDataOnly = false); 
 
   /*! Return the most recent synchronized timestamp in the buffers */
   virtual PlusStatus GetMostRecentTimestamp(double &ts); 
@@ -96,11 +85,6 @@ public:
   virtual PlusStatus GetFrameRate(double &aFrameRate);
 
 public:
-  /*! Set the synchronization type  */
-  void SetSyncType(SYNC_TYPE type) { SyncType = type; }
-  /*! Get the synchronization type  */
-  SYNC_TYPE GetSyncType() { return this->SyncType; }
-
   /*! Set video source of ultrasound */
   virtual void SetVideoSource(vtkPlusVideoSource* videoSource); 
   /*! Get video source of ultrasound */
@@ -108,11 +92,6 @@ public:
 
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]);
-
-  /*! Set synchronizer */
-  virtual void SetSynchronizer(vtkDataCollectorSynchronizer* synchronizer);
-  /*! Get synchronizer */
-  vtkGetObjectMacro(Synchronizer,vtkDataCollectorSynchronizer);
 
   /*! Set tracker  */
   virtual void SetTracker(vtkTracker* tracker); 
@@ -129,20 +108,10 @@ public:
   /*! Set the Video only flag */
   void SetVideoOnly(bool);
 
-  /*! Set the cancel sync request flag to cancel the active sync job  */
-  vtkSetMacro(CancelSyncRequest, bool); 
-  /*! Get the cancel sync request flag to cancel the active sync job  */
-  vtkGetMacro(CancelSyncRequest, bool); 
-  /*! Set the cancel sync request flag to cancel the active sync job  */
-  vtkBooleanMacro(CancelSyncRequest, bool); 
-
   /*! Set startup delay in sec to give some time to the buffers for proper initialization */
   vtkSetMacro(StartupDelaySec, double); 
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
-
-  /*! Callback function for progress bar refreshing */  
-  void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 
 protected:
 
@@ -161,9 +130,6 @@ protected:
   /*! Read tracker properties from xml file  */
   virtual PlusStatus ReadTrackerProperties(vtkXMLDataElement* aConfigurationData); 
 
-  /*! Read synchronization properties from xml file  */
-  virtual PlusStatus ReadSynchronizationProperties(vtkXMLDataElement* aConfigurationData); 
-
   /*!
     Compute loop times for saved datasets (time intersection of the two buffers)
     itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
@@ -175,19 +141,10 @@ protected:
   virtual ~vtkDataCollectorHardwareDevice();
 
 protected:
-  /*! Synchronizer used for temporal calibration */
-  vtkDataCollectorSynchronizer* Synchronizer; 
-
   /*! Ultrasound image data source */
   vtkPlusVideoSource*	          VideoSource; 
   /*! Tracking data source */
   vtkTracker*		              	Tracker; 
-
-  /*! Synchronization algorithm type */
-  SYNC_TYPE			                SyncType; 
-
-  /*! The user requested the canceling of a synchronization procedure */
-  bool                          CancelSyncRequest; 
 
 private:
   vtkDataCollectorHardwareDevice(const vtkDataCollectorHardwareDevice&);

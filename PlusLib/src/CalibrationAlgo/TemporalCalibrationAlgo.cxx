@@ -262,6 +262,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
   //  Find the mean tracker position
   itk::Point<double, 3> trackerPositionSum;
+  trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
   std::vector<itk::Point<double, 3>> trackerPositions;
   int numberOfValidFrames = 0;
   for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
@@ -356,7 +357,7 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
   {
     dataset1Arr->InsertNextValue(trackerPositions[i].GetElement(0));
   }
-  
+
   // Set the Y-values
   const char m1Name[] = "M1";
   vtkSmartPointer<vtkDoubleArray> dataset2Arr = vtkSmartPointer<vtkDoubleArray>::New();
@@ -366,7 +367,7 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
   {
     dataset2Arr->InsertNextValue(trackerPositions[i].GetElement(1));
   }
-  
+
   // Set the Z-values
   const char m2Name[] = "M2";
   vtkSmartPointer<vtkDoubleArray> dataset3Arr = vtkSmartPointer<vtkDoubleArray>::New();
@@ -376,12 +377,12 @@ void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>
   {
     dataset3Arr->InsertNextValue(trackerPositions[i].GetElement(2));
   }
- 
+
   vtkSmartPointer<vtkTable> datasetTable = vtkSmartPointer<vtkTable>::New();
   datasetTable->AddColumn(dataset1Arr);
   datasetTable->AddColumn(dataset2Arr);
   datasetTable->AddColumn(dataset3Arr);
- 
+
   vtkSmartPointer<vtkPCAStatistics> pcaStatistics = vtkSmartPointer<vtkPCAStatistics>::New();
 
 #if VTK_MAJOR_VERSION <= 5
