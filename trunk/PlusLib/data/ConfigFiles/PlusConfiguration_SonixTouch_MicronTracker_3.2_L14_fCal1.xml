@@ -6,7 +6,7 @@
       Description="MicronTracker" 
     />
 
-    <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
+    <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" >
       <Tool Name="Probe" PortName="probeMarker" />
       <Tool Name="Reference"  PortName="patientMarker" />
       <Tool Name="Stylus" PortName="stitchMarker" />
@@ -19,7 +19,7 @@
       UsImageOrientation="UF"
       FrameRate="30" 
       AveragedItemsForFiltering="20" 
-      LocalTimeOffset="-0.2976"
+      LocalTimeOffsetSec="-0.2976"
       IP="137.82.56.243" 
       ImagingMode="BMode"
       AcquisitionDataType="BPost" 

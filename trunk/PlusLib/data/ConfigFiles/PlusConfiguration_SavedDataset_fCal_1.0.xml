@@ -7,7 +7,7 @@
 It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
     />
 
-    <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
+    <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
       SequenceMetafile="fCal_Test_Calibration.mha"
       ReplayEnabled="TRUE"
     >
@@ -21,7 +21,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       FrameSize="820 616" 
       FrameRate="10" 
       AveragedItemsForFiltering="20" 
-      LocalTimeOffset="0.0" 
+      LocalTimeOffsetSec="0.0" 
       SequenceMetafile="fCal_Test_Calibration.mha"
       UsImageOrientation="MF"
       ReplayEnabled="TRUE"

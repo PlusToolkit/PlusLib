@@ -7,7 +7,7 @@
 The computer needs to be on the same local network as SonixRP and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
     />
 
-    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
+    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" />
       <Tool Name="Reference" PortName="1" />
       <Tool Name="Stylus" PortName="2" Model="Example" />
@@ -21,7 +21,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       UsImageOrientation="UF"
       FrameRate="30" 
       AveragedItemsForFiltering="20" 
-      LocalTimeOffset="-0.2126"
+      LocalTimeOffsetSec="-0.2126"
       ImagingMode="RfMode"
       AcquisitionDataType="RF"
       Depth="-1" 

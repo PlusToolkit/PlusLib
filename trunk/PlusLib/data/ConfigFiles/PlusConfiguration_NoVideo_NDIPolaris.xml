@@ -6,7 +6,7 @@
       Description="Configuration file for No video + NDI Polaris"
     />
 
-    <Tracker Type="PolarisTracker" SerialPort="5" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
+    <Tracker Type="PolarisTracker" SerialPort="5" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool Name="Reference" PortName="4" RomFile="d:\_download\rom\ta104.rom" />
     </Tracker>
 

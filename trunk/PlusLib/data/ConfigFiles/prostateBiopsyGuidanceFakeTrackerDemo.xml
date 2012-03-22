@@ -6,7 +6,7 @@
       Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
     />
 
-    <Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
+    <Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
       <Tool Name="Reference" PortName="0"></Tool> 
       <Tool Name="Stylus" PortName="1" ></Tool>
     </Tracker>
