@@ -229,9 +229,6 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
     return PLUS_SUCCESS;
   }
 
-  // It is necessary to create not one, but two windows in order to
-  // do frame grabbing under VFW.  Why do we need any?
-
   // get necessary process info
   HINSTANCE hinstance = GetModuleHandle(NULL);
 
@@ -432,15 +429,14 @@ PlusStatus vtkWin32VideoSource2::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-void vtkWin32VideoSource2::SetPreview(int p)
+void vtkWin32VideoSource2::SetPreview(int showPreview)
 {
-  if (this->Preview == p)
+  if (this->Preview == showPreview)
   {
     return;
   }
 
-  this->Preview = p;
-  this->Modified();
+  this->Preview = showPreview;
 
   if (GetConnected())
   {
@@ -449,7 +445,7 @@ void vtkWin32VideoSource2::SetPreview(int p)
       LOG_ERROR("Capture windows have not been intialized");
       return;
     }
-    if (p)
+    if (this->Preview)
     {
       ShowWindow(this->Internal->ParentWnd,SW_SHOWNORMAL);
     }
@@ -458,6 +454,7 @@ void vtkWin32VideoSource2::SetPreview(int p)
       ShowWindow(this->Internal->ParentWnd,SW_HIDE);
     }
   }
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -478,26 +475,21 @@ void vtkWin32VideoSource2::OnParentWndDestroy()
 }
 
 //----------------------------------------------------------------------------
-// copy the Device Independent Bitmap from the VFW framebuffer into the
-// vtkPlusVideoSource framebuffer (don't do the unpacking yet)
 PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 {
   int inputCompression = this->Internal->BitMapInfoPtr->bmiHeader.biCompression;
-
-  bool vFlip=false;
   switch (inputCompression)
   {  
+  // supported compression
   case VTK_BI_YUY2:
-    vFlip=true;
+
     break;
+  // not supported compression
   case VTK_BI_UYVY:
-    vFlip=true;
-    break;
   case BI_RGB:
-    vFlip=false;
-    break;
   default:
-    char fourcchex[16], fourcc[8];
+    char fourcchex[16]={0};
+    char fourcc[8]={0};
     sprintf(fourcchex,"0x%08x",inputCompression);
     for (int i = 0; i < 4; i++)
     {
@@ -512,8 +504,9 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
     return PLUS_FAIL;
   }
 
-  LPVIDEOHDR lpVHdr = static_cast<LPVIDEOHDR>(lpVideoHeader);
   LOG_TRACE("Grabbed");
+
+  LPVIDEOHDR lpVHdr = static_cast<LPVIDEOHDR>(lpVideoHeader);  
 
   // the VIDEOHDR has the following contents, for quick ref:
   //
@@ -526,50 +519,23 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   // dwReserved[4]          reserved for driver
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
-
-  this->FrameIndex++;
-  double indexTime = this->Buffer->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
-
+  
   unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetBufferPointer();
 
-  int inputBitsPerPixel=this->Internal->BitMapInfoPtr->bmiHeader.biBitCount;
-  int outputBitsPerPixel=8;
-  int outputRowAlignment=1;
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
-  int outBytesPerRow = outputFrameSize[0] * this->UncompressedVideoFrame.GetNumberOfBytesPerPixel();
-  outBytesPerRow += outBytesPerRow % outputRowAlignment;
-  int inBytesPerRow = this->Internal->BitMapInfoPtr->bmiHeader.biWidth * (inputBitsPerPixel/8);
-  outBytesPerRow += outBytesPerRow % 4;
-  int rows = outputFrameSize[1];
 
-  // uncompress or simply copy the DIB
-  switch (inputCompression)
+  // decode the grabbed image to the requested output image type
+  if (!YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr))
   {
-  case BI_RGB:
-    if (outBytesPerRow == inBytesPerRow)
-    {
-      memcpy(outputPixelsPtr,inputPixelsPtr,inBytesPerRow*rows);
-    }
-    else
-    {
-      while (--rows >= 0)
-      {
-        memcpy(outputPixelsPtr,inputPixelsPtr,outBytesPerRow);
-        outputPixelsPtr += outBytesPerRow;
-        inputPixelsPtr += inBytesPerRow;
-      }
-    }
-    break;
-  case VTK_BI_YUY2:
-    YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr);
-    break;
-  default:
-    LOG_ERROR("Unknown frame format");
+    LOG_ERROR("Error while decoding the grabbed image");
+    return PLUS_FAIL;
   }
   
+  this->FrameIndex++;
+  double indexTime = this->Buffer->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
   //PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetUsImageOrientation(), this->FrameIndex, indexTime, indexTime); 
-  PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetUsImageOrientation(), this->FrameIndex, indexTime, indexTime); 
+  PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetUsImageOrientation(), this->FrameIndex); 
 
   this->Modified();
   return status;
@@ -617,7 +583,8 @@ PlusStatus vtkWin32VideoSource2::InternalStopRecording()
 
 static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
 { 
-  /* // floating point 
+  /* 
+  // floating point math (simpler but slower)
   int Y = yuv[0] - 16;
   int U = yuv[1] - 128;
   int V = yuv[2] - 128;
@@ -627,7 +594,8 @@ static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
   int B = 1.164*Y           + 2.018*U + 0.5;
   */
 
-  // integer math
+  // integer math (faster but more complex to read)
+
   int Y = (yuv[0] - 16)*76284;
   int U = yuv[1] - 128;
   int V = yuv[2] - 128;
@@ -696,6 +664,12 @@ PlusStatus vtkWin32VideoSource2::VideoFormatDialog()
 //----------------------------------------------------------------------------
 PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 {
+  if (!GetConnected())
+  {
+    LOG_ERROR("vtkWin32VideoSource2::VideoSourceDialog failed, need to connect to the device first");
+    return PLUS_FAIL;
+  }
+
   //if (!this->Internal->CapDriverCaps.fHasDlgVideoSource)
   //  {
   //  LOG_ERROR("vtkWin32VideoSource2::VideoFormatDialog failed, the video device has no Source dialog.");

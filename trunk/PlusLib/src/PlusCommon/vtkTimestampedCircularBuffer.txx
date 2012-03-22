@@ -432,7 +432,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
 
 	for (;;)
 	{
-		if (hi-lo == 1)
+		if (hi-lo <= 1)
 		{
 			if (time - tlo > thi - time)
 			{
