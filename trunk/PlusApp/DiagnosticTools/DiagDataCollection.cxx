@@ -6,17 +6,19 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
+
 #include "vtkDataCollectorHardwareDevice.h"
-#include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
+#include "vtkTrackerBuffer.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
+
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusVideoSource.h"
 
 int main(int argc, char **argv)
 {

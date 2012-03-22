@@ -19,6 +19,7 @@ See License.txt for details.
 class vtkProbeCalibrationAlgo;
 class FidPatternRecognition;
 class vtkTrackedFrameList;
+class vtkTable;
 
 //-----------------------------------------------------------------------------
 
@@ -38,14 +39,10 @@ public:
   */
   FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
-  /*!
-  * Destructor
-  */
+  /*! Destructor */
   ~FreehandCalibrationToolbox();
 
-  /*!
-  * Initialize toolbox (load session data) - implementation of a pure virtual function
-  */
+  /*! Initialize toolbox (load session data) - implementation of a pure virtual function */
   void Initialize();
 
   /*!
@@ -54,14 +51,10 @@ public:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-  /*!
-  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-  */
+  /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   void RefreshContent();
 
-  /*!
-  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
-  */
+  /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();
 
 protected:
@@ -71,53 +64,38 @@ protected:
   */
   bool IsReadyToStartSpatialCalibration();
 
-  /*!
-  * Prepares and shows the last segmented points from the current acquisition
-  */
+  /*! Prepares and shows the last segmented points from the current acquisition */
   void DisplaySegmentedPoints();
 
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
 
 protected slots:
-  /*!
-  * Acquire tracked frames and segment them. Runs calibration if acquisition is ready
-  */
+  /*! Acquire tracked frames and segment them. Runs calibration if acquisition is ready */
   void DoSpatialCalibration();
 
-  /*!
-  * Acquire tracked frames for temporal calibration and calls the algorithm when done
-  */
+  /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
   void DoTemporalCalibration();
 
-  /*!
-  * Slot handling open phantom registration button click
-  */
+  /*! Slot handling open phantom registration button click */
   void OpenPhantomRegistration();
 
-  /*!
-  * Open XML file containing segmentation parameters and read the contents
-  */
+  /*! Open XML file containing segmentation parameters and read the contents */
   void OpenSegmentationParameters();
 
-  /*!
-  * Edit segmentation parameters
-  */
+  /*! Edit segmentation parameters */
   void EditSegmentationParameters();
 
-  /*!
-  * Slot handling start temporal calibration button click
-  */
+  /*! Show popup window with the plots in it when clicking on the Show Plots button */
+  void ShowPlots();
+
+  /*! Slot handling start temporal calibration button click */
   void StartTemporal();
 
-  /*!
-  * Slot handling start spatial calibration button click
-  */
+  /*! Slot handling start spatial calibration button click */
   void StartSpatial();
 
-  /*!
-  * Slot handling cancel calibration event (button click or explicit call)
-  */
+  /*! Slot handling cancel calibration event (button click or explicit call) */
   void CancelCalibration();
 
 protected:
@@ -177,6 +155,15 @@ protected:
 
   /*! Flag indicating if Temporal calibration is in progress */
   bool m_TemporalCalibrationInProgress;
+
+  /*! Metric table of video positions for temporal calibration */
+  vtkTable* m_VideoPositionMetric;
+
+  /*! Metric table of uncalibrated tracker positions for temporal calibration */
+  vtkTable* m_UncalibratedTrackerPositionMetric;
+
+  /*! Metric table of calibrated tracker positions for temporal calibration */
+  vtkTable* m_CalibratedTrackerPositionMetric;
 
 protected:
   Ui::FreehandCalibrationToolbox ui;
