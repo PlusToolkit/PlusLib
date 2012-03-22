@@ -803,7 +803,7 @@ PlusStatus vtkObjectVisualizer::StartDataCollection()
   this->TransformRepository->Clear();
 
   // Read configuration
-  if (this->DataCollector->ReadConfiguration(deviceSetConfig) != PLUS_SUCCESS)
+  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
