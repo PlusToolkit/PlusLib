@@ -13,7 +13,6 @@ vtkStylusCalibrationTest uses this configuration"
     </Tracker>
 
     <ImageAcquisition Type="None" />
-    <Synchronization Type="None" />
   </DataCollection>
 
 

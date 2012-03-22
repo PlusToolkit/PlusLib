@@ -27,20 +27,6 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       LicenseKey="ISB3200016679"
       ICBufferSize="50"
     />
-
-    <Synchronization Type="ChangeDetection" 
-      SynchronizationTimeLength="15" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
-
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
-
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="10.0" 
-      MaxFrameDifference="10.0" 
-    />
   </DataCollection>
 
 

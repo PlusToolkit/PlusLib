@@ -45,9 +45,6 @@ public:
   /*! Start data collection  */
   virtual PlusStatus Start() = 0;
 
-  /*! Synchronize the connected devices */
-  virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ) = 0;
-
   /*! Return the most recent synchronized timestamp in the buffers */
   virtual PlusStatus GetMostRecentTimestamp(double &ts) = 0;
 
@@ -104,10 +101,6 @@ public:
   /*! Get the Video only flag */
   vtkGetMacro(VideoEnabled,bool);
 
-  typedef void (*ProgressBarUpdatePtr)(int percent);
-  /*! Callback function for progress bar refreshing */  
-  virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) = 0;
-
 protected:
   /*! Set the Connected flag  */
   vtkSetMacro(Connected,bool);  
@@ -142,9 +135,6 @@ protected:
 
   /*! Collecting image data is enabled */
   bool                          VideoEnabled;
-
-  /*! Pointer to the progress bar update callback function */ 
-  ProgressBarUpdatePtr          ProgressBarUpdateCallbackFunction; 
 
 private:
   vtkDataCollector(const vtkDataCollector&);

@@ -30,20 +30,6 @@
       CompressionStatus="0" 
     />
 
-    <Synchronization Type="ChangeDetection" 
-      SynchronizationTimeLength="30" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
-
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
-
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="200.0" 
-      MaxFrameDifference="10.0" 
-    />
-
     <OpenIGTLink>
       <Transform Name="ProbeToReference" SendTo="localhost:18944" />
       <Image SendTo="localhost:18944" />

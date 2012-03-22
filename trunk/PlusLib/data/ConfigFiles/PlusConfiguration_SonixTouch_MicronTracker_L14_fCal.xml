@@ -9,7 +9,6 @@
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" BufferSize="500" FrameSize="820 616" UsImageOrientation="UF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffset="-0.2976" IP="130.15.7.20" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="-1" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" />
-    <Synchronization Type="ChangeDetection" SynchronizationTimeLength="30" MinNumOfSyncSteps="5" ThresholdMultiplier="5" NumberOfAveragedTransforms="20" MinTransformThreshold="2.0" MaxTransformDifference="2.0" NumberOfAveragedFrames="6" MinFrameThreshold="200.0" MaxFrameDifference="10.0" />
 
     <OpenIGTLink>
       <Transform Name="ProbeToReference" SendTo="localhost:18944" />

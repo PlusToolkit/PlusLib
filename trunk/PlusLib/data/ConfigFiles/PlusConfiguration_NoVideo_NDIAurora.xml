@@ -13,7 +13,6 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
 
     <ImageAcquisition Type="None" />
 
-    <Synchronization Type="None" />
   </DataCollection>
 
   <Rendering WorldCoordinateFrame="Tracker">

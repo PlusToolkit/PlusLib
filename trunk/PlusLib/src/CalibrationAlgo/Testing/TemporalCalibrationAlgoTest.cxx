@@ -19,32 +19,30 @@ See License.txt for details.
 
 #include "TemporalCalibrationAlgo.h"
 
+//----------------------------------------------------------------------------
 void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTable* trackerPositionMetric)
 {
   // Set up the view
-  vtkSmartPointer<vtkContextView> uncalibratedView = vtkSmartPointer<vtkContextView>::New();
-  uncalibratedView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-  vtkSmartPointer<vtkChartXY> uncalibratedChart =  vtkSmartPointer<vtkChartXY>::New();
-  uncalibratedView->GetScene()->AddItem(uncalibratedChart);
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+  vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
 
   // Add the two line plots    
-  vtkPlot *videoPositionMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
-
+  vtkPlot *videoPositionMetricLine = chart->AddPlot(vtkChart::LINE);
   videoPositionMetricLine->SetInput(videoPositionMetric, 0, 1);
-
   videoPositionMetricLine->SetColor(0,0,1);
   videoPositionMetricLine->SetWidth(1.0);
 
-  vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
-  uncalibratedTrackerMetricLine->SetInput(trackerPositionMetric, 0, 1);
-  uncalibratedTrackerMetricLine->SetColor(0,1,0);
-  uncalibratedTrackerMetricLine->SetWidth(1.0);
-  uncalibratedChart->SetShowLegend(true);
+  vtkPlot *trackerMetricLine = chart->AddPlot(vtkChart::LINE);
+  trackerMetricLine->SetInput(trackerPositionMetric, 0, 1);
+  trackerMetricLine->SetColor(0,1,0);
+  trackerMetricLine->SetWidth(1.0);
+  chart->SetShowLegend(true);
 
-  // Save plot to file
-
+  // Render plot and save it to file
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(uncalibratedView->GetRenderer());
+  renderWindow->AddRenderer(view->GetRenderer());
   renderWindow->SetSize(800,400);
   renderWindow->OffScreenRenderingOn(); 
 
@@ -58,6 +56,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   writer->Write();
 }
 
+//----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   bool printHelp(false);
@@ -180,4 +179,3 @@ int main(int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
-

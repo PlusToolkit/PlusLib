@@ -144,16 +144,6 @@ PlusStatus vtkDataCollectorFile::Stop()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::Synchronize( const char* bufferOutputFolder /*= NULL*/ , bool acquireDataOnly /*= false*/ )
-{
-  LOG_TRACE("vtkDataCollectorFile::Synchronize"); 
-
-  LOG_WARNING("Synchronization of simulated data collection is not possible!");
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
 void vtkDataCollectorFile::SetLocalTimeOffsetSec(double videoOffsetSec, double trackerOffsetSec)
 {
   LOG_TRACE("vtkDataCollectorFile::SetLocalTimeOffsetSec");
@@ -584,14 +574,6 @@ void vtkDataCollectorFile::SetVideoOnly(bool videoOnly)
   LOG_TRACE("vtkDataCollectorFile::SetVideoOnly");
 
   LOG_DEBUG("Video cannot be explicitly turned on or off in case of simulation mode!");
-}
-
-//------------------------------------------------------------------------------
-void vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb)
-{
-  LOG_TRACE("vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction");
-
-  LOG_DEBUG("There is no update callback function in simulation mode!");
 }
 
 //------------------------------------------------------------------------------

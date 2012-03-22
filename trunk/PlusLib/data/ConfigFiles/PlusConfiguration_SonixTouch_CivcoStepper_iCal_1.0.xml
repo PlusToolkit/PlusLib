@@ -30,20 +30,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       Timeout="-1" 
       CompressionStatus="0" 
     />
-
-    <Synchronization Type="ChangeDetection" 
-      SynchronizationTimeLength="15" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
-
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
-
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="10.0" 
-      MaxFrameDifference="10.0" 
-    />
   </DataCollection>
 
   

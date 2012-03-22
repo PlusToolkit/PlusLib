@@ -14,7 +14,6 @@ See License.txt for details.
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-#include "vtkDataCollectorSynchronizer.h"
 
 #include "vtkTrackerFactory.h"
 #include "vtkTracker.h"
@@ -42,7 +41,6 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkDataCollectorHardwareDevice, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkDataCollectorHardwareDevice);
 
-vtkCxxSetObjectMacro(vtkDataCollectorHardwareDevice, Synchronizer, vtkDataCollectorSynchronizer);
 vtkCxxSetObjectMacro(vtkDataCollectorHardwareDevice, Tracker, vtkTracker);
 vtkCxxSetObjectMacro(vtkDataCollectorHardwareDevice, VideoSource, vtkPlusVideoSource);
 
@@ -52,8 +50,6 @@ vtkDataCollectorHardwareDevice::vtkDataCollectorHardwareDevice()
 {	
   this->VideoSource = NULL;
   this->Tracker = NULL; 
-  this->Synchronizer = NULL; 
-  this->CancelSyncRequestOff(); 
 }
 
 //----------------------------------------------------------------------------
@@ -62,7 +58,6 @@ vtkDataCollectorHardwareDevice::~vtkDataCollectorHardwareDevice()
   this->Disconnect();
   this->SetTracker(NULL); 
   this->SetVideoSource(NULL);
-  this->SetSynchronizer(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -327,8 +322,8 @@ PlusStatus vtkDataCollectorHardwareDevice::Start()
     LOG_DEBUG("Start data collection in video only mode."); 
   }
 
-  LOG_DEBUG("vtkDataCollectorHardwareDevice::Start: wait " << std::fixed << this->GetStartupDelaySec() << " sec for buffer init..."); 
-  vtkAccurateTimer::Delay(this->GetStartupDelaySec()); 
+  LOG_DEBUG("vtkDataCollectorHardwareDevice::Start: wait " << std::fixed << this->StartupDelaySec << " sec for buffer init..."); 
+  vtkAccurateTimer::Delay(this->StartupDelaySec); 
 
   return PLUS_SUCCESS;
 }
@@ -349,207 +344,6 @@ PlusStatus vtkDataCollectorHardwareDevice::Stop()
 
   return PLUS_SUCCESS;
 }
-
-//----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::Synchronize( const char* bufferOutputFolder /*= NULL*/ , bool acquireDataOnly /*= false*/ )
-{
-  LOG_TRACE("vtkDataCollectorHardwareDevice::Synchronize"); 
-
-  if ( this->GetSynchronizer() == NULL )
-  {
-    LOG_WARNING("Unable to synchronize without a synchronizer! Please set synchronizer type in the configuration file!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->GetTracker() == NULL ) 
-  {	
-    LOG_ERROR("Unable to synchronize tracker - there is no tracker selected!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->GetVideoSource() == NULL ) 
-  {	
-    LOG_ERROR("Unable to synchronize video - there is no video source selected!"); 
-    return PLUS_FAIL; 
-  }
-
-  this->CancelSyncRequestOff(); 
-
-  if ( this->GetTracker()->GetToolIteratorBegin() == this->GetTracker()->GetToolIteratorEnd() )
-  {
-    LOG_ERROR("Failed to synchronize - there are no active tools!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get the first tool
-  vtkTrackerTool* firstActiveTool = this->GetTracker()->GetToolIteratorBegin()->second; 
-
-  //************************************************************************************
-  // Save local time offsets before sync
-  const double prevVideoOffset = this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
-  const double prevTrackerOffset = firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec(); 
-
-  //************************************************************************************
-  // Set the local timeoffset to 0 before synchronization 
-  this->SetLocalTimeOffsetSec(0, 0); 
-
-  //************************************************************************************
-  // Set the length of the acquisition 
-  const double syncTimeLength = this->GetSynchronizer()->GetSynchronizationTimeLength(); 
-
-  // Get the realtime tracking frequency
-  double trackerFrameRate = firstActiveTool->GetBuffer()->GetFrameRate(); 
-
-  // Get the realtime video frame rate
-  double videoFrameRate = this->GetVideoSource()->GetBuffer()->GetFrameRate(); 
-
-  const int trackerBufferSize = firstActiveTool->GetBuffer()->GetBufferSize(); 
-  const int videoBufferSize = this->GetVideoSource()->GetBuffer()->GetBufferSize(); 
-  int syncTrackerBufferSize = trackerFrameRate * syncTimeLength + 100; 
-  int syncVideoBufferSize = videoFrameRate * syncTimeLength + 100; 
-
-  //************************************************************************************
-  // Change buffer size to fit the whole acquisition 
-  if ( syncVideoBufferSize > videoBufferSize )
-  {
-    LOG_DEBUG("Change video buffer size to: " << syncVideoBufferSize); 
-    if ( this->GetVideoSource()->SetFrameBufferSize(syncVideoBufferSize) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("Failed to change video buffer size!"); 
-    }
-    this->GetVideoSource()->GetBuffer()->Clear(); 
-  }
-  else
-  {
-    this->GetVideoSource()->GetBuffer()->Clear(); 
-  }
-
-  if ( syncTrackerBufferSize > trackerBufferSize )
-  {
-    LOG_DEBUG("Change tracker buffer size to: " << syncTrackerBufferSize); 
-    for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
-    {
-      it->second->GetBuffer()->SetBufferSize(syncTrackerBufferSize); 
-      it->second->GetBuffer()->Clear(); 
-    }
-  }
-  else
-  {
-    this->GetTracker()->ClearAllBuffers();
-  }
-
-  //************************************************************************************
-  // Acquire data 
-  const double syncStartTime = vtkAccurateTimer::GetSystemTime(); 
-  while ( syncStartTime + syncTimeLength > vtkAccurateTimer::GetSystemTime() )
-  {
-    if ( this->CancelSyncRequest ) 
-    {
-      // we should cancel the job...
-      this->SetLocalTimeOffsetSec(prevVideoOffset, prevTrackerOffset); 
-      return PLUS_FAIL; 
-    }
-
-    const int percent = floor(100*(vtkAccurateTimer::GetSystemTime() - syncStartTime) / syncTimeLength); 
-
-    if ( this->ProgressBarUpdateCallbackFunction != NULL )
-    {
-      (*ProgressBarUpdateCallbackFunction)(percent); 
-    }
-
-    vtkAccurateTimer::Delay(0.1); 
-  }
-
-  if ( this->ProgressBarUpdateCallbackFunction != NULL )
-  {
-    (*ProgressBarUpdateCallbackFunction)(100); 
-  }
-
-  //************************************************************************************
-  // Copy buffers to local buffer
-  vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-  if ( this->VideoSource != NULL ) 
-  {
-    LOG_DEBUG("Copy video buffer ..."); 
-    videobuffer->DeepCopy(this->VideoSource->GetBuffer());
-  }
-
-  vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-  if ( this->Tracker != NULL )
-  {
-    LOG_DEBUG("Copy tracker ..."); 
-    tracker->DeepCopy(this->Tracker); 
-  }
-
-  if ( acquireDataOnly || vtkPlusLogger::Instance()->GetLogLevel() >=  vtkPlusLogger::LOG_LEVEL_DEBUG )
-  {
-    if ( bufferOutputFolder == NULL )
-    {
-      bufferOutputFolder = "./"; 
-    }
-
-    std::string strDateAndTime = vtkAccurateTimer::GetDateAndTimeString(); 
-    std::ostringstream trackerBufferFileName; 
-    trackerBufferFileName << strDateAndTime << "_DataCollectorSyncTrackerBuffer"; 
-    std::ostringstream videoBufferFileName; 
-    videoBufferFileName << strDateAndTime << "_DataCollectorSyncVideoBuffer"; 
-
-    LOG_INFO("Save temporal calibration buffers to file in " << bufferOutputFolder << ", tracker: " << trackerBufferFileName.str().c_str() << ", video: " << videoBufferFileName.str().c_str()); 
-
-    tracker->WriteToMetafile( bufferOutputFolder, trackerBufferFileName.str().c_str(), false );
-    videobuffer->WriteToMetafile( bufferOutputFolder, videoBufferFileName.str().c_str() , false ); 
-  }
-
-
-  //************************************************************************************
-  // Start synchronization 
-
-  vtkTrackerBuffer* trackerbuffer = firstActiveTool->GetBuffer(); 
-  LOG_DEBUG("Tracker buffer size: " << trackerbuffer->GetBufferSize()); 
-  LOG_DEBUG("Tracker buffer elements: " << trackerbuffer->GetNumberOfItems()); 
-  LOG_DEBUG("Video buffer size: " << videobuffer->GetBufferSize()); 
-  LOG_DEBUG("Video buffer elements: " << videobuffer->GetNumberOfItems()); 
-
-  if ( !acquireDataOnly )
-  {
-    this->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
-
-    this->GetSynchronizer()->SetTrackerBuffer(trackerbuffer); 
-    this->GetSynchronizer()->SetVideoBuffer(videobuffer); 
-    this->GetSynchronizer()->SetStartupDelaySec( this->GetStartupDelaySec() ); 
-
-    this->GetSynchronizer()->Synchronize(); 
-  }
-
-  //************************************************************************************
-  // Set the local time for buffers if the calibration was done
-  if ( this->GetSynchronizer()->GetSynchronized() )
-  {
-    this->SetLocalTimeOffsetSec(this->GetSynchronizer()->GetVideoOffset(), this->GetSynchronizer()->GetTrackerOffset()); 
-  }
-
-  this->GetSynchronizer()->SetTrackerBuffer(NULL); 
-  this->GetSynchronizer()->SetVideoBuffer(NULL); 
-
-  //************************************************************************************
-  // Change buffer size back to original 
-  LOG_DEBUG("Change video buffer size to: " << videoBufferSize); 
-  if ( this->GetVideoSource()->SetFrameBufferSize(videoBufferSize) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Failed to change video buffer size!"); 
-  }
-  this->GetVideoSource()->GetBuffer()->Clear(); 
-
-  LOG_DEBUG("Change tracker buffer size to: " << trackerBufferSize); 
-  for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
-  {
-    it->second->GetBuffer()->SetBufferSize(trackerBufferSize); 
-    it->second->GetBuffer()->Clear(); 
-  }
-
-  return PLUS_SUCCESS;
-}
-
 
 //----------------------------------------------------------------------------
 void vtkDataCollectorHardwareDevice::SetLocalTimeOffsetSec(double videoOffsetSec, double trackerOffsetSec)
@@ -1335,13 +1129,6 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadConfiguration(vtkXMLDataElement* 
     return PLUS_FAIL;
   }
 
-  // Read Synchronization
-  if (this->ReadSynchronizationProperties(aConfigurationData) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to read synchronization configuration!");
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -1423,53 +1210,6 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
   this->VideoEnabled = false; 
   return PLUS_SUCCESS;
 }
-
-//------------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::ReadSynchronizationProperties(vtkXMLDataElement* aConfigurationData)
-{
-  LOG_TRACE("vtkDataCollectorHardwareDevice::ReadSynchronizationProperties");
-
-  vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
-  if (synchronizationConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Synchronization element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  const char* type = synchronizationConfig->GetAttribute("Type"); 
-
-  if ( type == NULL ) 
-  {
-    LOG_WARNING("Unable to find synchronization type, set to default: None"); 
-    this->SetSyncType(SYNC_NONE); 
-    LOG_DEBUG("Sync type: None");
-    this->SetSynchronizer(NULL); 
-  }
-  //******************* Change Detection ***************************
-  else if ( STRCASECMP("ChangeDetection", type)==0) 
-  {
-    LOG_DEBUG("Sync type: Change Detection");
-    vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
-    this->SetSyncType(SYNC_CHANGE_DETECTION); 
-    this->SetSynchronizer(synchronizer); 
-    synchronizer->ReadConfiguration(aConfigurationData); 
-  }
-  else
-  {
-    this->SetSyncType(SYNC_NONE); 
-    LOG_DEBUG("Sync type: None");
-    this->SetSynchronizer(NULL);
-  }
-  return PLUS_SUCCESS;
-}
-
 
 //------------------------------------------------------------------------------
 void vtkDataCollectorHardwareDevice::SetTrackingOnly(bool trackingOnly)

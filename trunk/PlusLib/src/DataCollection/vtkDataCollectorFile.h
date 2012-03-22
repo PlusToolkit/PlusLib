@@ -78,9 +78,6 @@ public:
   virtual PlusStatus GetFrameRate(double &aFrameRate);
 
 public:
-  /*! Synchronize the connected devices */
-  virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 
-
   /*! Set the Tracking only flag */
   void SetTrackingOnly(bool);
 
@@ -89,9 +86,6 @@ public:
 
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]);
-
-  /*! Callback function for progress bar refreshing */  
-  virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb);
 
 protected:
   /*! Compute next timestamp from start time and elapsed time */

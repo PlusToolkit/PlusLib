@@ -27,20 +27,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       ReplayEnabled="TRUE"
     />
 
-    <Synchronization Type="ChangeDetection" 
-      SynchronizationTimeLength="30" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
-
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
-
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="200.0" 
-      MaxFrameDifference="10.0" 
-    />
-
     <OpenIGTLink>
       <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
       <Transform Name="StylusToReference" SendTo="127.0.0.1:1112" />

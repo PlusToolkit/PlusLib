@@ -30,8 +30,6 @@ vtkDataCollector* vtkDataCollector::New()
 //----------------------------------------------------------------------------
 vtkDataCollector::vtkDataCollector()
 {	
-  this->ProgressBarUpdateCallbackFunction = NULL; 
-
   this->StartupDelaySec = 0.0; 
 
   this->ConnectedOff(); 
@@ -104,11 +102,10 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
     return NULL;
   }
 
-  // If ImageAcquisition, Tracker and Synchronization elements are present then create vtkDataCollectorHardwareDevice
+  // If ImageAcquisition and Tracker elements are present then create vtkDataCollectorHardwareDevice
   vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
   vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  vtkXMLDataElement* synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
-  if (imageAcquisitionConfig && trackerConfig && synchronizationConfig)
+  if (imageAcquisitionConfig && trackerConfig)
   {
     // First try to create the object from the vtkObjectFactory
     vtkObject* dataCollector = vtkObjectFactory::CreateInstance("vtkDataCollectorHardwareDevice");
