@@ -18,10 +18,22 @@ class  vtkUsSimulatorAlgo : public vtkImageAlgorithm
   protected:
 	 virtual int FillInputPortInformation(int port, vtkInformation* info);
 	 virtual int FillOutputPortInformation(int port, vtkInformation* info);
-	  int m_Dummy ; 
+	 virtual int RequestData(vtkInformation *request,
+                          vtkInformationVector** inputVector,
+                          vtkInformationVector* outputVector);
+ 
+	 
+	 
+	 int m_Dummy ; 
 	 vtkUsSimulatorAlgo();
 	~vtkUsSimulatorAlgo(); 
-  
+
+ private:
+  double whiteImageOrigin[3]; 
+  double volumeSpacing[3]; 
+  double modelBounds[6];
+
+
 };
 
 #endif // __vtkUsSimulatorAlgo_h
