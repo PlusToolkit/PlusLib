@@ -34,6 +34,7 @@
 #include "vtkInteractorStyleTrackballCamera.h"
 
 #include <QTimer>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 
@@ -791,13 +792,18 @@ PlusStatus vtkObjectVisualizer::StartDataCollection()
 
   // Create the proper data collector variant
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  if (dataCollector.GetPointer()==NULL)
+  {
+    LOG_ERROR("Failed to create DataCollector");
+    return PLUS_FAIL;
+  }
   this->SetDataCollector(dataCollector);
 
   // Reset transform repository
   this->TransformRepository->Clear();
 
   // Read configuration
-  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  if (this->DataCollector->ReadConfiguration(deviceSetConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -817,14 +823,33 @@ PlusStatus vtkObjectVisualizer::StartDataCollection()
     LOG_ERROR("Unable to initialize DataCollector!"); 
     return PLUS_FAIL;
   }
-
+  
   // Fill up transform repository
   this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   TrackedFrame trackedFrame;
-  if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+
+  // Some video sources (such as the Video For Windows video source) require additional
+  // initialization time, with a chance to process background events. Therefore,
+  // wait and retry getting a trackedframe if it fails, for a few times.
+  const double MAX_STARTUP_DELAY_SEC=5.0;
+  const double RETRY_AFTER_SEC=0.5;
+  double waitedForSec=0;
+  PlusStatus trackedFrameRequestStatus=PLUS_FAIL;
+  while (waitedForSec<MAX_STARTUP_DELAY_SEC)
   {
-    LOG_ERROR("Unable to get tracked frame from data collector!");
+    if (this->DataCollector->GetTrackedFrame(&trackedFrame) == PLUS_SUCCESS)
+    {
+      trackedFrameRequestStatus=PLUS_SUCCESS;
+      break;
+    }
+    QApplication::processEvents();
+    vtkAccurateTimer::Delay(RETRY_AFTER_SEC);
+    waitedForSec+=RETRY_AFTER_SEC;
+  }
+  if (trackedFrameRequestStatus!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame from data collector");
     return PLUS_FAIL;
   }
 

@@ -193,7 +193,7 @@ PlusStatus ToolStateDisplayWidget::Update()
 
   std::vector<PlusTransformName>::iterator transformIt;
   std::vector<QTextEdit*>::iterator labelIt;
-  for (transformIt = transformNames.begin(), labelIt = m_ToolStateLabels.begin(); transformIt != transformNames.end(); ++transformIt, ++labelIt)
+  for (transformIt = transformNames.begin(), labelIt = m_ToolStateLabels.begin(); transformIt != transformNames.end() && labelIt != m_ToolStateLabels.end(); ++transformIt, ++labelIt)
   {
     QTextEdit* label = (*labelIt);
 
