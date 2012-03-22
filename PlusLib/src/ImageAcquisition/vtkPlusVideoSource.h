@@ -116,7 +116,7 @@ public:
   //virtual unsigned int GetNumberOfBitsPerPixel();
 
   /*! Set the requested frame rate. Actual frame rate may be different. (default 30 frames per second). */
-  virtual void SetFrameRate(float rate);
+  virtual PlusStatus SetFrameRate(float rate);
   /*! Get the requested frame rate. Actual frame rate may be different. */
   vtkGetMacro(FrameRate,float);
 
@@ -136,17 +136,6 @@ public:
   vtkSetMacro(NumberOfOutputFrames,int);
   /*! Get the number of frames to copy to the output on each execute. */
   vtkGetMacro(NumberOfOutputFrames,int);
-
-  /*!
-    Get the total number of acquired frames so far.
-    This value is incremented each time a frame is grabbed.
-  */
-  vtkGetMacro(FrameCount, int);
-  /*!
-    Set the total number of acquired frames so far.
-    Reset it to zero (or any other value) at any time.
-  */
-  vtkSetMacro(FrameCount, int);
 
   /*!
     Get the frame number (some devices has frame numbering, otherwise 
@@ -269,7 +258,6 @@ protected:
   int Recording;
   /*! Requested frame rate in FPS. Actual frame rate may be different. */
   float FrameRate;
-  int FrameCount;
   unsigned long FrameNumber; 
   double FrameTimeStamp;
 

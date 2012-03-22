@@ -120,8 +120,6 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 {
   this->SonixIP = 0;
 
-  this->FrameCount = 0;
-
   this->Frequency = -1; //in Mhz
   this->Depth = -1; //in mm
   this->Sector = -1; //in %

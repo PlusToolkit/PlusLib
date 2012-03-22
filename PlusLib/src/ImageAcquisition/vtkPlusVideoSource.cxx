@@ -51,10 +51,6 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
   this->FrameRate = 30;
 
-  this->FrameCount = 0;
-  this->FrameNumber = 0;
-
-  //this->StartTimeStamp = 0;
   this->FrameTimeStamp = 0;
 
   this->OutputNeedsInitialization = 1;
@@ -124,7 +120,6 @@ void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "SDK version: " << this->GetSdkVersion() << "\n";
   os << indent << "FrameRate: " << this->FrameRate << "\n";
-  os << indent << "FrameCount: " << this->FrameCount << "\n";
   os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");
   os << indent << "SpawnThreadForRecording: " << (this->SpawnThreadForRecording ? "Yes\n" : "No\n");
   os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
@@ -203,17 +198,18 @@ PlusCommon::ITKScalarPixelType vtkPlusVideoSource::GetPixelType()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVideoSource::SetFrameRate(float rate)
+PlusStatus vtkPlusVideoSource::SetFrameRate(float rate)
 {
   LOG_TRACE("vtkPlusVideoSource::SetFrameRate(" << rate << ")");
 
   if (this->FrameRate == rate)
   {
-    return;
+    return PLUS_SUCCESS;
   }
 
   this->FrameRate = rate;
   this->Modified();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -383,8 +379,6 @@ PlusStatus vtkPlusVideoSource::StartRecording()
     }
   }
  
-  this->FrameCount = 0;
-
   if (this->InternalStartRecording()!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot start recording, internal StartRecording failed");

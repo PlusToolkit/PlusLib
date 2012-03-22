@@ -13,59 +13,47 @@ Authors include: Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
 =========================================================================*/ 
 
-// .NAME vtkWin32VideoSource2 - Video-for-Windows video digitizer
-// .SECTION Description
-// vtkWin32VideoSource2 grabs frames or streaming video from a
-// Video for Windows compatible device on the Win32 platform.
-// vtkWin32VideoSource2 is an updated version of vtkWin32VideoSource and uses
-// vtkPlusVideoSource instead of vtkVideoSource
-// .SECTION Caveats
-// With some capture cards, if this class is leaked and ReleaseSystemResources 
-// is not called, you may have to reboot before you can capture again.
-// vtkPlusVideoSource used to keep a global list and delete the video sources
-// if your program leaked, due to exit crashes that was removed.
-//
-// .SECTION See Also
-// vtkPlusVideoSource vtkMILVideoSource2 vtkWin32VideoSource
-
 #ifndef __vtkWin32VideoSource2_h
 #define __vtkWin32VideoSource2_h
 
 #include "vtkPlusVideoSource.h"
+#include "PlusVideoFrame.h"
 
 class vtkWin32VideoSource2Internal;
 
 /*!
-  \class vtkSonixVideoSource 
-  \brief VTK interface for video input from Video for Windows
+  \class vtkWin32VideoSource2 
+  \brief Video-for-Windows video digitizer
+
+  vtkWin32VideoSource2 grabs frames or streaming video from a
+  Video for Windows compatible device on the Win32 platform.
+  vtkWin32VideoSource2 is an updated version of vtkWin32VideoSource and uses
+  vtkPlusVideoSource instead of vtkVideoSource.
+
+  Caveats:
+  With some capture cards, if this class is leaked and ReleaseSystemResources 
+  is not called, you may have to reboot before you can capture again.
+  vtkPlusVideoSource used to keep a global list and delete the video sources
+  if your program leaked, due to exit crashes that was removed.
+
+  \sa vtkPlusVideoSource vtkMILVideoSource2 vtkWin32VideoSource
   \ingroup PlusLibImageAcquisition
 */ 
-class VTK_HYBRID_EXPORT vtkWin32VideoSource2 : public vtkPlusVideoSource
+class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusVideoSource
 {
 public:
   static vtkWin32VideoSource2 *New();
   vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
-
-  /*! Standard VCR functionality: Record incoming video. */
-  void Record();
-
-  /*! Standard VCR functionality: Stop recording. */
-  void Stop();
-
-  /*! Grab a single video frame. */
-  void Grab();
  
-  /*! Request a particular frame size (set the third value to 1). */
-  void SetFrameSize(int x, int y, int z);
-  /*! Request a particular frame size (set the third value to 1). */
-  virtual void SetFrameSize(int dim[3]) { this->SetFrameSize(dim[0], dim[1], dim[2]); };
+  /*! Request a particular frame size */
+  virtual PlusStatus SetFrameSize(int x, int y);
   
   /*! Request a particular frame rate (default 30 frames per second). */
-  void SetFrameRate(float rate);
+  virtual PlusStatus SetFrameRate(float rate);
 
   /*! Request a particular output format (default: VTK_RGB). */
-  void SetOutputFormat(int format);
+  virtual PlusStatus SetOutputFormat(int format);
 
   /*! Turn on/off the preview (overlay) window. */
   void SetPreview(int p);
@@ -74,39 +62,63 @@ public:
   vtkGetMacro(Preview,int);
 
   /*! Bring up a modal dialog box for video format selection. */
-  void VideoFormatDialog();
+  PlusStatus VideoFormatDialog();
 
   /*! Bring up a modal dialog box for video input selection. */
-  void VideoSourceDialog();
+  PlusStatus VideoSourceDialog();
 
-  /*! Initialize the driver (this is called automatically when the first grab is done) */
-  void Initialize();
-
-  /*! Free the driver (this is called automatically inside the */
-  // destructor).
-  void ReleaseSystemResources();
-
-  /*! Grab - for internal use only */
-  void LocalInternalGrab(void*);
-
-  /*! Callback function called on parent window destroyed */
+  /*! Callback function called on parent window destroyed. Public to allow calling from static function. */
   void OnParentWndDestroy();
 
+  /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. Public to allow calling from static function. */
+	PlusStatus AddFrameToBuffer(void *lpVideoHeader);
+
 protected:
+
   /*! Constructor */
   vtkWin32VideoSource2();
   /*! Destructor */
   ~vtkWin32VideoSource2();
 
-  char WndClassName[16];
-  int BitMapSize;
+  /*! Device-specific connect */
+	virtual PlusStatus InternalConnect();
+
+  /*! Device-specific disconnect */
+	virtual PlusStatus InternalDisconnect();
+
+  /*! Device-specific recording start */
+	virtual PlusStatus InternalStartRecording();
+
+  /*! Device-specific recording stop */
+	virtual PlusStatus InternalStopRecording();
+
+  /*!
+    The internal function which actually grabs one frame.
+    It just requests a single frame from the hardware and the object
+    will be notified when it is ready.
+  */
+  virtual PlusStatus InternalGrab();
+
+
+  /*! Set the capture window class name */
+  vtkSetStringMacro(WndClassName);
+
+  char* WndClassName;
   int Preview;
+
+  int FrameIndex;
 
   vtkWin32VideoSource2Internal *Internal;
 
-  void CheckBuffer();
-  void DoVFWFormatSetup();
-  void DoVFWFormatCheck();
+  /*! Update the capture settings to match the buffer format */
+  PlusStatus SetCaptureSettings(int widh, int height);
+
+  /*! Update the buffer format to match the capture settings */
+  PlusStatus UpdateFrameBuffer();
+
+  void ReleaseSystemResources();
+
+  PlusVideoFrame UncompressedVideoFrame;
 
 private:
   vtkWin32VideoSource2(const vtkWin32VideoSource2&);  // Not implemented.
@@ -114,8 +126,3 @@ private:
 };
 
 #endif
-
-
-
-
-

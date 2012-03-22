@@ -199,6 +199,10 @@ IF (PLUS_USE_VFW_VIDEO)
   	${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows 	
   	CACHE INTERNAL "" FORCE
     )      
+  SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+	Vfw32.lib
+    )
+
 ENDIF (PLUS_USE_VFW_VIDEO)
 
 # --------------------------------------------------------------------------
