@@ -456,7 +456,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalStartRecording()
   if ( !this->Recording ) 
   {
     this->Recording = 1;
-    this->FrameCount = 0;
     this->Modified();
 
     if ( !this->Porta.isImaging() )

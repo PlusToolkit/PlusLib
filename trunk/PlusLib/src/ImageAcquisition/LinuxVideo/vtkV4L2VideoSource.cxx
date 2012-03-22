@@ -675,7 +675,7 @@ void vtkV4L2VideoSource::SetFrameSize(int x, int y, int z)
 }
 
 //----------------------------------------------------------------------------
-void vtkV4L2VideoSource::SetFrameRate(float rate)
+PlusStatus vtkV4L2VideoSource::SetFrameRate(float rate)
 {
   if (this->FrameRate == rate)
     {

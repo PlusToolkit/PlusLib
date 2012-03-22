@@ -143,7 +143,7 @@ public:
   vtkGetVector3Macro(FrameSize,int);
   
   /*! Request a particular frame rate (default 30 frames per second). */
-  void SetFrameRate(float rate);
+  virtual PlusStatus SetFrameRate(float rate);
   vtkGetMacro(FrameRate,float);
   
   /*!
