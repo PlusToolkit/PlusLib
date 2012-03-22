@@ -56,7 +56,7 @@ public:
   virtual PlusStatus SetOutputFormat(int format);
 
   /*! Turn on/off the preview (overlay) window. */
-  void SetPreview(int p);
+  void SetPreview(int showPreview);
   vtkBooleanMacro(Preview,int);
   /*! Get state of preview (overlay) window */
   vtkGetMacro(Preview,int);

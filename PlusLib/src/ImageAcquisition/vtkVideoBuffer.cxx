@@ -355,8 +355,7 @@ PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTA
   int frameSize[2]={0,0};
   frame->GetFrameSize(frameSize);    
 
-  // Images in the tracked frame list always stored in MF orientation 
-  return this->AddItem(pixelBufferPointer, US_IMG_ORIENT_MF, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
+  return this->AddItem(pixelBufferPointer, usImageOrientation, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
 }
 
 //----------------------------------------------------------------------------

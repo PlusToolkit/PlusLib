@@ -17,7 +17,7 @@ See License.txt for details.
 //#endif
 
 #ifdef WIN32
-#ifdef VTK_VFW_SUPPORTS_CAPTURE
+#ifdef PLUS_USE_VFW_VIDEO
 #include "vtkWin32VideoSource2.h"
 #endif
 //#else
@@ -54,7 +54,7 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 #ifdef PLUS_USE_MATROX_IMAGING
   VideoSourceTypes["MatroxImaging"]=(PointerToVideoSource)&vtkMILVideoSource2::New; 
 #endif 
-#ifdef VTK_VFW_SUPPORTS_CAPTURE
+#ifdef PLUS_USE_VFW_VIDEO
   VideoSourceTypes["VFWVideo"]=(PointerToVideoSource)&vtkWin32VideoSource2::New; 
 #endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO

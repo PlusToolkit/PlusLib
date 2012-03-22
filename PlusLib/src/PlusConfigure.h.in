@@ -58,7 +58,7 @@
 #cmakedefine PLUS_USE_Ascension3DGm
 
 #cmakedefine PLUS_USE_MATROX_IMAGING
-#cmakedefine VTK_VFW_SUPPORTS_CAPTURE
+#cmakedefine PLUS_USE_VFW_VIDEO
 #cmakedefine PLUS_USE_ULTRASONIX_VIDEO
 #cmakedefine PLUS_USE_VIDEO_LINUX
 #cmakedefine PLUS_USE_ICCAPTURING_VIDEO
