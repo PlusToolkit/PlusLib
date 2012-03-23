@@ -609,7 +609,7 @@ void FreehandCalibrationToolbox::StartTemporal()
       {
         m_PreviousTrackerOffset = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
         m_PreviousVideoOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
-        dataCollectorHardwareDevice->SetLocalTimeOffsetSec(0, 0); 
+        dataCollectorHardwareDevice->SetLocalTimeOffsetSec(0.0, 0.0); 
         offsetsSuccessfullyRetrieved = true;
       }
     }
@@ -643,7 +643,7 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
   // Get current time
   double currentTimeSec = vtkAccurateTimer::GetSystemTime();
 
-  if (currentTimeSec - m_StartTimeSec >= 10.0)
+  if (currentTimeSec - m_StartTimeSec >= m_TemporalCalibrationDurationSec)
   {
     // Do the calibration
     TemporalCalibration temporalCalibrationObject;
