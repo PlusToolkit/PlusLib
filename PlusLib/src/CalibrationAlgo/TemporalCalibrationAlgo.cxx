@@ -18,7 +18,7 @@ static const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker met
 static const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
 static const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
 static const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-static const double DEFAULT_MAX_TRACKER_LAG_SEC = 4;
+static const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 static const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 static const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 static const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
@@ -1138,8 +1138,8 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     return PLUS_FAIL;
   }
 
-  //  Compute cross correlation
-  LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics");
+  //  Compute cross correlation with sign convention #1 
+  LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics (sign convention #1)");
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   
   // Find the index offset corresponding to the maximum correlation sum
@@ -1160,8 +1160,52 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     }
   }
 
-  // Compute the time that the tracker data lags the video data using the maximum index
-  m_TrackerLagSec = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
+  // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #1)
+  double trackerLagSec1 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
+  LOG_DEBUG(trackerLagSec1);
+
+  //  Compute cross correlation with sign convention #2
+  LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics (sign convention #2)");
+
+  // Mirror tracker metric signal about x-axis 
+  for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+  {
+    m_ResampledTrackerPositionMetric.at(i) *= -1;
+  }
+
+  // clear the old correlation values
+  m_CorrValues.clear();
+
+  ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
+
+  maxCorrVal = m_CorrValues.at(0);
+  maxCorrIndex = 0;
+  for(int i = 1; i < m_CorrValues.size(); ++i)
+  {
+    if(m_CorrValues.at(i) > maxCorrVal)
+    {
+      maxCorrVal = m_CorrValues.at(i);
+      maxCorrIndex = i;
+    }
+  }
+
+  // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #2)
+  double trackerLagSec2 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
+  LOG_DEBUG(trackerLagSec2);
+  if(std::abs(trackerLagSec1) < std::abs(trackerLagSec2))
+  {
+    m_TrackerLagSec = trackerLagSec1;
+
+    // Flip tracker metric signal back
+    for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+    {
+      m_ResampledTrackerPositionMetric.at(i) *= -1;
+    }
+  }
+  else
+  {
+    m_TrackerLagSec = trackerLagSec2;
+  }
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
