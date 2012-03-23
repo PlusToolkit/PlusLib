@@ -71,6 +71,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="300" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+    <CalibrationData Type="CALIB_TEMPORAL" DurationSec="10" FrameTransformNameForValidation="ProbeToStepperHome" />
   </iCal>
 
 
