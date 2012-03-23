@@ -64,11 +64,17 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   m_PatternRecognition = new FidPatternRecognition();
 
   // Create tracked frame lists
-  m_CalibrationData = vtkTrackedFrameList::New();
-  m_CalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+  m_SpatialCalibrationData = vtkTrackedFrameList::New();
+  m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
-  m_ValidationData = vtkTrackedFrameList::New();
-  m_ValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+  m_SpatialValidationData = vtkTrackedFrameList::New();
+  m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+
+  m_TemporalCalibrationTrackingData = vtkTrackedFrameList::New();
+  m_TemporalCalibrationTrackingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+
+  m_TemporalCalibrationVideoData = vtkTrackedFrameList::New();
+  m_TemporalCalibrationVideoData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Create temporal calibration metric tables
   m_VideoPositionMetric = vtkTable::New();
@@ -103,14 +109,24 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
     m_PatternRecognition = NULL;
   } 
 
-  if (m_CalibrationData != NULL) {
-    m_CalibrationData->Delete();
-    m_CalibrationData = NULL;
+  if (m_SpatialCalibrationData != NULL) {
+    m_SpatialCalibrationData->Delete();
+    m_SpatialCalibrationData = NULL;
   } 
 
-  if (m_ValidationData != NULL) {
-    m_ValidationData->Delete();
-    m_ValidationData = NULL;
+  if (m_SpatialValidationData != NULL) {
+    m_SpatialValidationData->Delete();
+    m_SpatialValidationData = NULL;
+  } 
+
+  if (m_TemporalCalibrationTrackingData != NULL) {
+    m_TemporalCalibrationTrackingData->Delete();
+    m_TemporalCalibrationTrackingData = NULL;
+  } 
+
+  if (m_TemporalCalibrationVideoData != NULL) {
+    m_TemporalCalibrationVideoData->Delete();
+    m_TemporalCalibrationVideoData = NULL;
   } 
 
   if (m_VideoPositionMetric != NULL) {
@@ -595,7 +611,8 @@ void FreehandCalibrationToolbox::StartTemporal()
     return;
   }
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
-  m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
+  m_TemporalCalibrationTrackingData->SetFrameTransformNameForValidation(transformNameForValidation);
+  m_TemporalCalibrationVideoData->SetFrameTransformNameForValidation(transformNameForValidation);
 
   // Set the local timeoffset to 0 before synchronization
   bool offsetsSuccessfullyRetrieved = false;
@@ -620,7 +637,8 @@ void FreehandCalibrationToolbox::StartTemporal()
     return;
   }
 
-  m_CalibrationData->Clear();
+  m_TemporalCalibrationTrackingData->Clear();
+  m_TemporalCalibrationVideoData->Clear();
 
   m_LastRecordedFrameTimestamp = 0.0;
 
@@ -647,8 +665,8 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
   {
     // Do the calibration
     TemporalCalibration temporalCalibrationObject;
-    temporalCalibrationObject.SetTrackerFrames(m_CalibrationData);
-    temporalCalibrationObject.SetVideoFrames(m_CalibrationData);
+    temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData);
+    temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
     temporalCalibrationObject.SetSamplingResolutionSec(0.001);
     temporalCalibrationObject.SetSaveIntermediateImagesToOn(false);
 
@@ -697,13 +715,16 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
       CancelCalibration();
       return;
     }
-
     // Save metric tables
     temporalCalibrationObject.GetVideoPositionSignal(m_VideoPositionMetric);
     temporalCalibrationObject.GetUncalibratedTrackerPositionSignal(m_UncalibratedTrackerPositionMetric);
     temporalCalibrationObject.GetCalibratedTrackerPositionSignal(m_CalibratedTrackerPositionMetric);
 
+    m_TemporalCalibrationTrackingData->Clear();
+    m_TemporalCalibrationVideoData->Clear();
+
     SetState(ToolboxState_Done);
+
     m_TemporalCalibrationInProgress = false;
 
     m_ParentMainWindow->SetTabsEnabled(true);
@@ -720,21 +741,34 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     return;
   }
 
-  int numberOfFramesBeforeRecording = m_CalibrationData->GetNumberOfTrackedFrames();
+  int numberOfTrackingFramesBeforeRecording = m_TemporalCalibrationTrackingData->GetNumberOfTrackedFrames();
+  int numberOfVideoFramesBeforeRecording = m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames();
 
-  // Acquire tracked frames
-  if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_CalibrationData) != PLUS_SUCCESS )
+  // Acquire tracking frames
+  double lastRecordedTrackingFrameTimestamp = m_LastRecordedFrameTimestamp;
+  if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(lastRecordedTrackingFrameTimestamp, m_TemporalCalibrationTrackingData, -1, false, true) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelCalibration();
     return; 
   }
 
+  // Acquire video frames
+  double lastRecordedVideoFrameTimestamp = m_LastRecordedFrameTimestamp;
+  if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(lastRecordedVideoFrameTimestamp, m_TemporalCalibrationVideoData, -1, true, false) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    CancelCalibration();
+    return; 
+  }
+
+  m_LastRecordedFrameTimestamp = std::min( lastRecordedTrackingFrameTimestamp, lastRecordedVideoFrameTimestamp );
+
   // Update progress
   int progressPercent = (int)((currentTimeSec - m_StartTimeSec) / m_TemporalCalibrationDurationSec * 100.0);
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 
-  LOG_DEBUG("Number of tracked frames in the calibration dataset: " << std::setw(3) << numberOfFramesBeforeRecording << " => " << m_CalibrationData->GetNumberOfTrackedFrames());
+  LOG_DEBUG("Number of tracked frames in the calibration dataset: Tracking: " << std::setw(3) << numberOfTrackingFramesBeforeRecording << " => " << m_TemporalCalibrationTrackingData->GetNumberOfTrackedFrames() << "; Video: " << numberOfVideoFramesBeforeRecording << " => " << m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames());
 
   QTimer::singleShot(m_RecordingIntervalMs, this, SLOT(DoTemporalCalibration())); 
 }
@@ -758,8 +792,8 @@ void FreehandCalibrationToolbox::StartSpatial()
     return;
   }
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
-  m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
-  m_ValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
+  m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
+  m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
 
   // Initialize algorithms and containers
   if ( (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -769,8 +803,8 @@ void FreehandCalibrationToolbox::StartSpatial()
     return;
   }
 
-  m_CalibrationData->Clear();
-  m_ValidationData->Clear();
+  m_SpatialCalibrationData->Clear();
+  m_SpatialValidationData->Clear();
 
   m_NumberOfSegmentedCalibrationImages = 0;
   m_NumberOfSegmentedValidationImages = 0;
@@ -798,9 +832,9 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
     && m_NumberOfSegmentedValidationImages >= m_NumberOfValidationImagesToAcquire)
   {
-    LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
+    LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_SpatialCalibrationData->GetNumberOfTrackedFrames() + m_SpatialValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_SpatialCalibrationData->GetNumberOfTrackedFrames() + m_SpatialValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
 
-    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+    if (m_Calibration->Calibrate( m_SpatialValidationData, m_SpatialCalibrationData, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
       CancelCalibration();
@@ -813,6 +847,9 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
       CancelCalibration();
       return;
     }
+
+    m_SpatialCalibrationData->Clear();
+    m_SpatialValidationData->Clear();
 
     SetState(ToolboxState_Done);
     m_SpatialCalibrationInProgress = false;
@@ -835,11 +872,11 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   vtkTrackedFrameList* trackedFrameListToUse = NULL;
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
-    trackedFrameListToUse = m_ValidationData;
+    trackedFrameListToUse = m_SpatialValidationData;
   }
   else
   {
-    trackedFrameListToUse = m_CalibrationData;
+    trackedFrameListToUse = m_SpatialCalibrationData;
   }
 
   int numberOfFramesBeforeRecording = trackedFrameListToUse->GetNumberOfTrackedFrames();
@@ -1032,11 +1069,11 @@ void FreehandCalibrationToolbox::DisplaySegmentedPoints()
   vtkTrackedFrameList* trackedFrameListToUse = NULL;
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
-    trackedFrameListToUse = m_ValidationData;
+    trackedFrameListToUse = m_SpatialValidationData;
   }
   else
   {
-    trackedFrameListToUse = m_CalibrationData;
+    trackedFrameListToUse = m_SpatialCalibrationData;
   }
 
   // Look for last segmented image and display the points
@@ -1058,7 +1095,7 @@ void FreehandCalibrationToolbox::ShowPlots()
 {
 	// Create window and layout
 	QWidget* plotWindow = new QWidget(this, Qt::Tool);
-	plotWindow->setMinimumSize(QSize(800, 800));
+	plotWindow->setMinimumSize(QSize(800, 600));
 	plotWindow->setCaption(tr("Temporal calibration report"));
 	plotWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
 
@@ -1088,7 +1125,7 @@ void FreehandCalibrationToolbox::ShowPlots()
   uncalibratedView->GetScene()->AddItem(uncalibratedChart);
 
   uncalibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(uncalibratedView->GetRenderer());
-  uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,800);
+  uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
 
   gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
 
@@ -1116,12 +1153,12 @@ void FreehandCalibrationToolbox::ShowPlots()
   calibratedView->GetScene()->AddItem(calibratedChart);
 
   calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(calibratedView->GetRenderer());
-  calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,800);
+  calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
 
   gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
 
   // Position and show window
-	plotWindow->setLayout(gridPlotWindow);
+  plotWindow->setLayout(gridPlotWindow);
   plotWindow->move( mapToGlobal( QPoint( ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20 ) ) );
-	plotWindow->show();
+  plotWindow->show();
 }

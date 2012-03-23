@@ -105,11 +105,17 @@ protected:
   /*! Pattern recognition algorithm */
   FidPatternRecognition* m_PatternRecognition;
 
-  /*! Tracked frame data for calibration */
-  vtkTrackedFrameList* m_CalibrationData;
+  /*! Tracked frame data for spatial calibration */
+  vtkTrackedFrameList* m_SpatialCalibrationData;
 
-  /*! Tracked frame data for validation */
-  vtkTrackedFrameList* m_ValidationData;
+  /*! Tracked frame data for validation of spatial calibration */
+  vtkTrackedFrameList* m_SpatialValidationData;
+
+  /*! Tracked frame for tracking data for temporal calibration */
+  vtkTrackedFrameList* m_TemporalCalibrationTrackingData;
+
+  /*! Tracked frame for video data for temporal calibration */
+  vtkTrackedFrameList* m_TemporalCalibrationVideoData;
 
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;
