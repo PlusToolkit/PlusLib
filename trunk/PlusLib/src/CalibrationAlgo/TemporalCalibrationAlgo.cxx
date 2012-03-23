@@ -18,7 +18,7 @@ static const double MINIMUM_SIGNAL_PEAK_TO_PEAK = 0.01; // If either tracker met
 static const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
 static const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
 static const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-static const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
+static const double DEFAULT_MAX_TRACKER_LAG_SEC = 4;
 static const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 static const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 static const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
@@ -429,26 +429,29 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     // Get curent image
     charImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<charPixelType>();
 
-    // Create an image duplicator to copy the original image
-    typedef itk::ImageDuplicator<charImageType> DuplicatorType;
-    DuplicatorType::Pointer duplicator = DuplicatorType::New();
-    if(m_SaveIntermediateImages == true)
-    {
-      duplicator->SetInputImage(localImage);
-      duplicator->Update();
-    }
-
-    // Create an image copy to draw the scanlines on
-    charImageType::Pointer scanlineImage = duplicator->GetOutput();
-
-    // Create an image copy to draw the detected intensity peaks and Ransac line
-    charImageType::Pointer IntensityPeakAndRansacLineImage = duplicator->GetOutput();
-
     if(localImage.IsNull())
     {
       // Dropped frame
       continue;
     }
+
+    // Create an image duplicator to copy the original image
+    typedef itk::ImageDuplicator<charImageType> DuplicatorType;
+    DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    charImageType::Pointer scanlineImage;
+      charImageType::Pointer IntensityPeakAndRansacLineImage;
+    if(m_SaveIntermediateImages == true)
+    {
+      duplicator->SetInputImage(localImage);
+      duplicator->Update();
+
+      // Create an image copy to draw the scanlines on
+      scanlineImage = duplicator->GetOutput();
+
+      // Create an image copy to draw the detected intensity peaks and Ransac line
+      IntensityPeakAndRansacLineImage = duplicator->GetOutput();
+    }
+
 
     std::vector<itk::Point<double,2>> intensityPeakPositions;
     charImageType::RegionType region = localImage->GetLargestPossibleRegion();
