@@ -1265,6 +1265,12 @@ void TemporalCalibration::plotIntArray(std::vector<int> intensityValues)
 PlusStatus TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table,
                                                double timeCorrection)
 {
+  // Clear table
+  while (table->GetNumberOfColumns() > 0)
+  {
+    table->RemoveColumn(0);
+  }
+
   //  Create array correpsonding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrX = vtkSmartPointer<vtkDoubleArray>::New();
   table->AddColumn(arrX);

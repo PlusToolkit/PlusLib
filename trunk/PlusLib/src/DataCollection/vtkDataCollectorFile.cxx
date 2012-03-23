@@ -188,9 +188,9 @@ PlusStatus vtkDataCollectorFile::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
+PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/, bool aVideoEnabled/*=true*/, bool aTrackingEnabled/*=true*/)
 {
-  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ")"); 
+  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ", " << (aVideoEnabled?"true":"false") << ", " << (aTrackingEnabled?"true":"false") << ")");
 
   if ( aTrackedFrameList == NULL )
   {
