@@ -45,6 +45,18 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkThreadedImageAlgorithm.h"
 
 /*!
+  /struct vtkFillHolesInVolumeKernel
+  /brief Holds information about a user-specified kernel
+
+  Holds information about a user-specified kernel
+*/
+struct vtkFillHolesInVolumeKernel {
+  int size[3];
+  float stdev[3];
+  float minRatio;
+};
+
+/*!
   \class vtkFillHolesInVolume
   \brief Fill holes in a volume reconstructed from slices.
 
@@ -80,6 +92,34 @@ public:
   */
   vtkSetMacro(Compounding,int);
 
+  /*!
+    Get the index'th kernel that is to be tried, index ranging from 0 (first kernel)
+	up to NumKernels-1 (last kernel).
+  */
+  //vtkFillHolesInVolumeKernel GetKernel(int index);
+
+  /*!
+    Set the index'th kernel that is to be tried, index ranging from 0 (first kernel)
+	up to NumKernels-1 (last kernel).
+  */
+  void SetKernel(int index, vtkFillHolesInVolumeKernel& kernel);
+
+  /*!
+    Allocate memory for all of the kernels that are to be tried. NumKernels must be 
+	set first (see SetNumKernels)
+  */
+  void AllocateKernels();
+
+  /*!
+    Get the number of kernels that are to be tried on the data.
+  */
+  //int GetNumKernels();
+
+  /*!
+    Get the number of kernels that are to be tried on the data.
+  */
+  void SetNumKernels(int n);
+
   /*! Set the input volume (reconstructed volume, with holes) */
   void SetReconstructedVolume(vtkImageData *reconstructedVolume);
 
@@ -89,14 +129,14 @@ public:
   */
   void SetAccumulationBuffer(vtkImageData *accumulationBuffer);
 
-  static void calculateGaussianMatrix(const int& size, unsigned int* matrix);
+  unsigned int* calculateGaussianMatrix(const int& kernelIndex);
 
   /*!
 	Perform Interpolation between the nearest NxNxN voxels, and store at 
 	the address provided in returnVal. Returns 1 on success and 0 on failure.
   */
-  template <class T>
-  static int weightedAverageOverNeighborhood( T* inputData,             // contains the dataset being interpolated between
+  /*template <class T>
+  int weightedAverageOverNeighborhood( T* inputData,             // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
 											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
 											  int* accOffsets,
@@ -104,10 +144,10 @@ public:
 											  int* bounds,             // the boundaries of the volume, outputExtent
 											  const int& neighborSize, // The size of the neighborhood, odd positive integer
 											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal);           // The value of the pixel being calculated (unknown)
+											  T& returnVal);           // The value of the pixel being calculated (unknown)*/
 
   template <class T>
-  static int weightedAverageOverNeighborhoodWithGaussian(T* inputData, // contains the dataset being interpolated between
+  double weightedAverageOverNeighborhoodWithGaussian(T* inputData, // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
 											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
 											  int* accOffsets,
@@ -137,6 +177,16 @@ protected:
                                   vtkInformationVector**,
                                   vtkInformationVector*);
 
+  template <class T>
+  void vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
+								   T *inVolPtr,
+								   vtkImageData *accData,
+								   unsigned short *accPtr, 
+								   vtkImageData *outData, 
+								   T *outPtr,
+								   int outExt[6],
+								   int id);
+
   /*!
     This method contains a switch statement that calls the correct
     templated function for the input data type.  The output data
@@ -152,6 +202,8 @@ protected:
   static VTK_THREAD_RETURN_TYPE FillHoleThreadFunction( void *arg );
 
   int Compounding;
+  int NumKernels;
+  vtkFillHolesInVolumeKernel* Kernels;
 
 private:
   vtkFillHolesInVolume(const vtkFillHolesInVolume&);  // Not implemented.

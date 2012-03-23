@@ -185,6 +185,88 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
+  // Find and read kernels. First for loop counts the number of kernels to allocate, second for loop stores them
+  if (this->FillHoles) 
+  {
+    // load input for kernel size, stdev, etc...
+    vtkXMLDataElement* holeFilling = reconConfig->FindNestedElementWithName("HoleFilling");
+    if ( this->FillHoles == 1 && holeFilling == NULL )
+    {
+      LOG_ERROR("Couldn't locate kernel parameters for hole filling!");
+      return PLUS_FAIL;
+    }
+    // find the number of kernels
+	int numKernels(0);
+    for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
+    {
+      vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
+      if ( STRCASECMP(nestedElement->GetName(), "Kernel" ) != 0 )
+      {
+        // Not a kernel element, skip it
+        continue; 
+      }
+	  numKernels++;
+	}
+	// read each kernel into memory
+	HoleFiller->SetNumKernels(numKernels);
+	HoleFiller->AllocateKernels();
+    int numberOfErrors(0);
+	int currentKernelIndex(0);
+    for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
+	{
+      vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
+      if ( STRCASECMP(nestedElement->GetName(), "Kernel" ) != 0 )
+      {
+        // Not a kernel element, skip it
+        continue; 
+      }
+      vtkFillHolesInVolumeKernel tempKernel;
+	  // read size
+      int size[3]={0}; 
+      if ( nestedElement->GetVectorAttribute("Size", 3, size) )
+      {
+        tempKernel.size[0] = size[0];
+        tempKernel.size[1] = size[1];
+        tempKernel.size[2] = size[2];
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+	  // read stdev
+      float stdev[3]={0}; 
+      if ( nestedElement->GetVectorAttribute("Stdev", 3, stdev) )
+      {
+        tempKernel.stdev[0] = stdev[0]; 
+        tempKernel.stdev[1] = stdev[1]; 
+        tempKernel.stdev[2] = stdev[2]; 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      // read minRatio
+      float minRatio = 0.; 
+      if ( nestedElement->GetScalarAttribute("MinimumKnownVoxelsRatio", minRatio) )
+      {
+        tempKernel.minRatio = minRatio; 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"MinimumKnownVoxelsRatio\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+	  HoleFiller->SetKernel(currentKernelIndex,tempKernel);
+	  currentKernelIndex++;
+    }
+    if (numberOfErrors != 0) return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
