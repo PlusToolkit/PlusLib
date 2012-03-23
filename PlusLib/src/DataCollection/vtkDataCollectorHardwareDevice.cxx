@@ -676,9 +676,9 @@ int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double aT
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/, bool aVideoEnabled/*=true*/, bool aTrackingEnabled/*=true*/)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ")"); 
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ", " << (aVideoEnabled?"true":"false") << ", " << (aTrackingEnabled?"true":"false") << ")"); 
 
   if ( aTrackedFrameList == NULL )
   {
@@ -704,7 +704,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
 
   if ( aMaxNumberOfFramesToAdd > 0 ) 
   {
-    if ( this->VideoEnabled )
+    if ( this->VideoEnabled && aVideoEnabled )
     {
       BufferItemUidType mostRecentVideoUid; 
       if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
@@ -728,7 +728,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
         return PLUS_FAIL; 
       }
     }
-    else if ( this->GetTrackingEnabled() )
+    else if ( this->TrackingEnabled && aTrackingEnabled )
     {
       // Get the first tool
       vtkTrackerTool* firstActiveTool = NULL; 
