@@ -64,6 +64,7 @@ public:
       if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
         && status == FIELD_OK )
       {
+        trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
         ss	<< std::fixed 
           << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
           << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
@@ -189,7 +190,11 @@ int main(int argc, char **argv)
     tracker->SetReplayEnabled(inputReplay); 
   }
 
-  dataCollectorHardwareDevice->Connect(); 
+  if ( dataCollectorHardwareDevice->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to connect to devices!" ); 
+    exit( EXIT_FAILURE );
+  }
 
   vtkSmartPointer<vtkOpenIGTLinkBroadcaster> broadcaster;
   if ( inputEnableBroadcasting && InitBroadcaster(broadcaster, dataCollector) != PLUS_SUCCESS )
@@ -202,7 +207,11 @@ int main(int argc, char **argv)
     }
   }
 
-  dataCollectorHardwareDevice->Start();
+  if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to start data collection!" ); 
+    exit( EXIT_FAILURE );
+  }
 
   if (renderingOff)
   {
@@ -215,6 +224,7 @@ int main(int argc, char **argv)
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
     viewer->SetZSlice(0);
+    viewer->SetSize(800,600); 
 
     // Create a text actor for tracking information
     vtkSmartPointer<vtkTextActor> stepperTextActor = vtkSmartPointer<vtkTextActor>::New(); 

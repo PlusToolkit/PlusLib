@@ -16,5 +16,5 @@ See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for mo
 \defgroup PlusLibCalibrationAlgorithm CalibrationAlgorithm
 \defgroup PlusLibPatternRecognition PatternRecognition
 \defgroup PlusLibVolumeReconstruction VolumeReconstruction 
-
+\defgroup PlusLibOpenIGTLink PlusOpenIGTLink 
 */

@@ -21,7 +21,7 @@ namespace igtl
 /*! 
   \class StringMessage1 
   \brief This class enables string messages in programs that still use OpenIGTLink protocol 1. 
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibOpenIGTLink
 */
 class IGTLCommon_EXPORT StringMessage1: public MessageBase
 {

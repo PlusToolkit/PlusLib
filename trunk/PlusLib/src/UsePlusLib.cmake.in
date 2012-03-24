@@ -138,6 +138,10 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       IF (@PLUS_USE_MICRONTRACKER@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_MicronTrackerInterface@)
       ENDIF()
+	  # if PLUS_USE_OpenIGTLink
+	  IF (@PLUS_USE_OpenIGTLink@)
+		INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusOpenIGTLink@)
+	  ENDIF()
     ENDIF ()
   endmacro()
 

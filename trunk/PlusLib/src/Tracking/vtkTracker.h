@@ -223,6 +223,14 @@ protected:
   */
   PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
+  /*! 
+  This function is called by InternalUpdate() so that the subclasses
+  can communicate information back to the vtkTracker base class, which
+  will in turn relay the information to the appropriate vtkTrackerTool.
+  This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
+  */
+  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp);
+
  /*! InternalStartTracking() initialize the tracking device, this methods should be overridden in derived classes */
   virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
 

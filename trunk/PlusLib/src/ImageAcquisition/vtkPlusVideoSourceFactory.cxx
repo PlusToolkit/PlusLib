@@ -35,6 +35,9 @@ See License.txt for details.
 #include "vtkICCapturingSource.h"
 #endif
 
+#ifdef PLUS_USE_OpenIGTLink
+#include "vtkOpenIGTLinkVideoSource.h"
+#endif
 
 //----------------------------------------------------------------------------
 
@@ -47,6 +50,9 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
   VideoSourceTypes["None"]=NULL; 
   VideoSourceTypes["SavedDataset"]=(PointerToVideoSource)&vtkSavedDataVideoSource::New; 
   VideoSourceTypes["NoiseVideo"]=(PointerToVideoSource)&vtkPlusVideoSource::New; 
+#ifdef PLUS_USE_OpenIGTLink
+  VideoSourceTypes["OpenIGTLinkVideo"]=(PointerToVideoSource)&vtkOpenIGTLinkVideoSource::New; 
+#endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   VideoSourceTypes["SonixVideo"]=(PointerToVideoSource)&vtkSonixVideoSource::New; 
   VideoSourceTypes["SonixPortaVideo"]=(PointerToVideoSource)&vtkSonixPortaVideoSource::New; 

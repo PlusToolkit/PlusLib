@@ -247,6 +247,16 @@ public:
   /*! Convert between ITK and VTK scalar pixel types */  
   static PlusCommon::VTKScalarPixelType GetVTKScalarPixelType(PlusCommon::ITKScalarPixelType pixelType);
 
+#ifdef PLUS_USE_OpenIGTLink
+  /*! Convert between ITK and IGTL scalar pixel types */
+  static PlusCommon::IGTLScalarPixelType GetIGTLScalarPixelType(PlusCommon::ITKScalarPixelType pixelType); 
+#endif
+
+#ifdef PLUS_USE_OpenIGTLink
+  /*! Convert between IGTL and ITK scalar pixel types */
+  static PlusCommon::ITKScalarPixelType GetITKScalarPixelTypeFromIGTL(PlusCommon::IGTLScalarPixelType igtlPixelType);
+#endif
+
   /*! Get the size of a scalar pixel in bytes */
   static int GetNumberOfBytesPerPixel(PlusCommon::ITKScalarPixelType pixelType);
 

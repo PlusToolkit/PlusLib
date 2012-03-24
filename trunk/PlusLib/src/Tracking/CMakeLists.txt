@@ -265,6 +265,8 @@ IF( PLUS_USE_OpenIGTLink )
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking
     CACHE INTERNAL "" FORCE
     )
+	
+  SET (Tracking_LIBS ${Tracking_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
 ENDIF( PLUS_USE_OpenIGTLink )
 

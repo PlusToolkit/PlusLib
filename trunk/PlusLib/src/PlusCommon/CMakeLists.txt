@@ -48,6 +48,10 @@ if (WIN32)
   SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
 endif (WIN32)
 
+IF (PLUS_USE_OpenIGTLink)
+	 SET (PlusCommon_LIBS ${PlusCommon_LIBS} OpenIGTLink )
+ENDIF(PLUS_USE_OpenIGTLink)	 
+
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
 TARGET_LINK_LIBRARIES(	vtkPlusCommon ${PlusCommon_LIBS} )

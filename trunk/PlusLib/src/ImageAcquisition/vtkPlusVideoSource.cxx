@@ -53,6 +53,8 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
   this->FrameTimeStamp = 0;
 
+  this->FrameNumber = 0; 
+
   this->OutputNeedsInitialization = 1;
 
   this->NumberOfOutputFrames = 1;

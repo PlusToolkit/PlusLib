@@ -108,8 +108,17 @@ int main(int argc, char **argv)
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
   }
 
-  dataCollectorHardwareDevice->Connect(); 
-  dataCollectorHardwareDevice->Start();
+  if ( dataCollectorHardwareDevice->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to connect to data collector!"); 
+    exit( EXIT_FAILURE );
+  }
+
+  if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to start data collection"); 
+    exit( EXIT_FAILURE );
+  }
 
   const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 

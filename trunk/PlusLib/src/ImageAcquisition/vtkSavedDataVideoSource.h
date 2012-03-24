@@ -91,9 +91,6 @@ protected:
   /*! The internal function which actually does the grab.  */
 	PlusStatus InternalGrab();
 
-  /*! For internal use only */
-	PlusStatus AddFrameToBuffer(unsigned char * data, int type, int sz, bool cine, int frmnum);
-
 protected:
 	/*! Byte alignment of each row in the framebuffer */
 	int FrameBufferRowAlignment;
