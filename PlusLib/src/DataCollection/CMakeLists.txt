@@ -1,43 +1,52 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
-	igtlStringMessage1.cxx
-	vtkDataCollector.cxx 
-	vtkDataCollectorSynchronizer.cxx 
-  vtkOpenIGTLinkBroadcaster.cxx
-	vtkPlusOpenIGTLinkServer.cxx
-  vtkPlusOpenIGTLinkClient.cxx
-  vtkPlusCommand.cxx
-  vtkPlusStartDataCollectionCommand.cxx
-  vtkPlusStopDataCollectionCommand.cxx
-  vtkPlusCommandCollection.cxx
-  vtkPlusCommandFactory.cxx
-  vtkIGTLMessageQueue.cxx
+  vtkDataCollector.cxx 
+  vtkDataCollectorSynchronizer.cxx 
   vtkDataCollectorHardwareDevice.cxx
   vtkDataCollectorFile.cxx
+  
 	)
 
 SET (DataCollection_HDRS)
 if (WIN32)	
 	SET (DataCollection_HDRS
-		igtlStringMessage1.h
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
-    vtkOpenIGTLinkBroadcaster.h
-		vtkPlusOpenIGTLinkServer.h
-    vtkPlusOpenIGTLinkClient.h
-    vtkPlusCommand.h
-    vtkPlusStartDataCollectionCommand.h
-    vtkPlusStopDataCollectionCommand.h
-    vtkPlusCommandCollection.h
-    vtkPlusCommandFactory.h
-    vtkIGTLMessageQueue.h
-    vtkDataCollectorHardwareDevice.h
-    vtkDataCollectorFile.h
+		vtkDataCollectorHardwareDevice.h
+		vtkDataCollectorFile.h
 		)
 endif (WIN32)	
 
-SET (DataCollection_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+IF (PLUS_USE_OpenIGTLink)
+	SET (DataCollection_SRCS ${DataCollection_SRCS}
+		vtkOpenIGTLinkBroadcaster.cxx
+	    vtkPlusOpenIGTLinkServer.cxx
+	    vtkPlusOpenIGTLinkClient.cxx
+		OpenIGTLinkCommands/vtkPlusCommand.cxx
+		OpenIGTLinkCommands/vtkPlusCommandCollection.cxx
+		OpenIGTLinkCommands/vtkPlusCommandFactory.cxx
+		OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.cxx
+		OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.cxx
+		)
+		
+	IF (WIN32)	
+		SET (DataCollection_HDRS ${DataCollection_HDRS}
+			vtkOpenIGTLinkBroadcaster.h
+			vtkPlusOpenIGTLinkServer.h
+			vtkPlusOpenIGTLinkClient.h
+			OpenIGTLinkCommands/vtkPlusCommand.h
+			OpenIGTLinkCommands/vtkPlusCommandCollection.h
+			OpenIGTLinkCommands/vtkPlusCommandFactory.h			
+			OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.h
+			OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.h
+			)
+	ENDIF (WIN32)
+	SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkCommands CACHE INTERNAL "" FORCE)	
+ENDIF(PLUS_USE_OpenIGTLink)
+
+
+SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -54,7 +63,7 @@ SET (DataCollection_LIBS
     
 IF (PLUS_USE_OpenIGTLink)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    OpenIGTLink
+    OpenIGTLink vtkPlusOpenIGTLink
     )
 ENDIF(PLUS_USE_OpenIGTLink)        
 

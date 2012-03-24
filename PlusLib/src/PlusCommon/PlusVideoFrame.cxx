@@ -23,6 +23,9 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 
+#ifdef PLUS_USE_OpenIGTLink
+#include "igtlImageMessage.h"
+#endif 
 
 /*! 
   \class PipelineCreator
@@ -1155,7 +1158,7 @@ int PlusVideoFrame::GetVTKScalarPixelType(PlusCommon::ITKScalarPixelType pixelTy
 
 
 //----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType(int vtkScalarPixelType)
+PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType)
 {
   switch (vtkScalarPixelType)
   {
@@ -1174,3 +1177,46 @@ PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType(int vtkScal
   }
 }
 
+#ifdef PLUS_USE_OpenIGTLink
+//----------------------------------------------------------------------------
+// static 
+PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(PlusCommon::IGTLScalarPixelType igtlPixelType)
+{
+  switch (igtlPixelType)
+  {
+  case igtl::ImageMessage::TYPE_INT8: return itk::ImageIOBase::CHAR;
+  case igtl::ImageMessage::TYPE_UINT8: return itk::ImageIOBase::UCHAR;
+  case igtl::ImageMessage::TYPE_INT16: return itk::ImageIOBase::SHORT;
+  case igtl::ImageMessage::TYPE_UINT16: return itk::ImageIOBase::USHORT;
+  case igtl::ImageMessage::TYPE_INT32: return itk::ImageIOBase::INT;
+  case igtl::ImageMessage::TYPE_UINT32: return itk::ImageIOBase::UINT;
+  case igtl::ImageMessage::TYPE_FLOAT32: return itk::ImageIOBase::FLOAT;
+  case igtl::ImageMessage::TYPE_FLOAT64: return itk::ImageIOBase::DOUBLE;
+  default:
+    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;      
+  }
+}
+#endif
+
+#ifdef PLUS_USE_OpenIGTLink
+//----------------------------------------------------------------------------
+// static 
+PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelType(PlusCommon::ITKScalarPixelType pixelType)
+{
+  switch (pixelType)
+  {
+  case itk::ImageIOBase::CHAR: return igtl::ImageMessage::TYPE_INT8;
+  case itk::ImageIOBase::UCHAR: return igtl::ImageMessage::TYPE_UINT8;
+  case itk::ImageIOBase::SHORT: return igtl::ImageMessage::TYPE_INT16;
+  case itk::ImageIOBase::USHORT: return igtl::ImageMessage::TYPE_UINT16;
+  case itk::ImageIOBase::INT: return igtl::ImageMessage::TYPE_INT32;
+  case itk::ImageIOBase::UINT: return igtl::ImageMessage::TYPE_UINT32;
+  case itk::ImageIOBase::FLOAT: return igtl::ImageMessage::TYPE_FLOAT32;
+  case itk::ImageIOBase::DOUBLE: return igtl::ImageMessage::TYPE_FLOAT64;
+  default:
+    // There is no unkown IGT scalar pixel type, so display an error message 
+    LOG_ERROR("Unknown conversion between ITK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!"); 
+    return igtl::ImageMessage::TYPE_INT8;      
+  }
+}
+#endif

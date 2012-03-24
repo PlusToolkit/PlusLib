@@ -127,6 +127,7 @@ namespace PlusCommon
 {
   typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
   typedef int VTKScalarPixelType;
+  typedef int IGTLScalarPixelType; 
 
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */

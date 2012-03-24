@@ -7,20 +7,13 @@
 #ifndef __vtkOpenIGTLinkTracker_h
 #define __vtkOpenIGTLinkTracker_h
 
+#include "PlusConfigure.h"
 #include "vtkTracker.h"
-
-class vtkTrackerBuffer; 
+#include "igtlClientSocket.h"
 
 /*!
 \class vtkOpenIGTLinkTracker 
-\brief OpenIGTLink client  
-
-On connect, it sends the PlusServer a StartTracking plus command.
-After that, PlusServer sends tracking data to this client as long as the connection is alive.
-On "start tracking" this client starts buffering the incoming transforms.
-On "stop tracking" it stops buffering.
-On disconnect, it releases socket connection to server.
-When PlusServer detects this, stops the tracking hardware.
+\brief OpenIGTLink tracker client  
 
 \ingroup PlusLibTracking
 */
@@ -32,30 +25,40 @@ public:
 	vtkTypeMacro( vtkOpenIGTLinkTracker,vtkTracker );
 	void PrintSelf( ostream& os, vtkIndent indent );
 
+  /*! OpenIGTLink version. */
+  virtual std::string GetSdkVersion();
+
 	/*! Connect to device */
 	PlusStatus Connect();
 
 	/*! Disconnect from device */
 	virtual PlusStatus Disconnect();
 
-	/*! Probe to see if the tracking system is present on the specified serial port. */
+	/*! Probe to see if the tracking system is present on the specified address. */
 	PlusStatus Probe();
 
 	/*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
 	PlusStatus InternalUpdate();
 
-	/*! Get number of device names */
-	vtkGetMacro(NumberOfSensors, int);
+  /*! Read configuration from xml data */
+	PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+	
+  /*! Set OpenIGTLink server address */ 
+  vtkSetStringMacro(ServerAddress); 
+  /*! Get OpenIGTLink server address */ 
+  vtkGetStringMacro(ServerAddress); 
+
+  /*! Set OpenIGTLink server port */ 
+  vtkSetMacro(ServerPort, int); 
+  /*! Get OpenIGTLink server port */ 
+  vtkGetMacro(ServerPort, int); 
    
 protected:
   
 	vtkOpenIGTLinkTracker();
 	~vtkOpenIGTLinkTracker();
 
-	/*! Initialize the tracking device */
-	PlusStatus InitOpenIGTLinkTracker();
-
-	/*! 
+  /*! 
     Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
     The device will only be reset if communication cannot be established without a reset.
   */
@@ -63,20 +66,20 @@ protected:
 
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
 	PlusStatus InternalStopTracking();
-  
- 
-private:  // Definitions.
-	
-private:  // Functions.
+
+  /*! OpenIGTLink server address */ 
+  char* ServerAddress; 
+
+  /*! OpenIGTLink server port */ 
+  int ServerPort; 
+
+  /*! OpenIGTLink client socket */ 
+  igtl::ClientSocket::Pointer ClientSocket;
+
+private:  
   
   vtkOpenIGTLinkTracker( const vtkOpenIGTLinkTracker& );
-	void operator=( const vtkOpenIGTLinkTracker& );  
-  
-private:  // Variables.
-	
-	unsigned int FrameNumber;
-	int NumberOfSensors; 
-  
+	void operator=( const vtkOpenIGTLinkTracker& );    
 };
 
 #endif

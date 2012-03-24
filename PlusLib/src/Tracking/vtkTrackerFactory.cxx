@@ -12,6 +12,9 @@ See License.txt for details.
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
+#ifdef PLUS_USE_OpenIGTLink
+#include "vtkOpenIGTLinkTracker.h" 
+#endif
 #ifdef PLUS_USE_POLARIS
 #include "vtkNDITracker.h"
 #endif
@@ -42,6 +45,9 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["None"]=NULL; 
   TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
   TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
+#ifdef PLUS_USE_OpenIGTLink
+  TrackerTypes["OpenIGTLinkTracker"]=(PointerToTracker)&vtkOpenIGTLinkTracker::New; 
+#endif
 #ifdef PLUS_USE_BRACHY_TRACKER
   TrackerTypes["BrachyTracker"]=(PointerToTracker)&vtkBrachyTracker::New; 
 #endif 

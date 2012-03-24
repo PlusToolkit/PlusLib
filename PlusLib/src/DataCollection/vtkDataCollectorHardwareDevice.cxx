@@ -96,7 +96,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Connect()
   {
     this->GetVideoSource()->Connect();
 
-    if (!this->GetVideoSource()->GetConnected())
+    if (this->GetVideoSource()->GetConnected() != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to connect to video source!"); 
       status = PLUS_FAIL;
@@ -110,7 +110,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Connect()
   // Tracker can be null if the TRACKER_TYPE == TRACKER_NONE 
   if ( this->GetTracker() != NULL ) 
   {
-    if ( !this->GetTracker()->Connect() )
+    if ( this->GetTracker()->Connect() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to initialize tracker!"); 
       status = PLUS_FAIL;
@@ -513,7 +513,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
 
     vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
-    if ( uid - 1 > 0 )
+    if ( uid > 1 )
     {
       // Always use the latestItemUid - 1 to be able to interpolate transforms
       uid = uid - 1; 
@@ -550,7 +550,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    if ( videoUid - 1 > 0 ) 
+    if ( videoUid > 1 ) 
     {
       // Always use the preceding video UID to have time for transform interpolation 
       videoUid = videoUid - 1; 

@@ -34,6 +34,29 @@ SET (External_Libraries_Install "")
 SET (External_Libraries_Debug "")
 
 # --------------------------------------------------------------------------
+# OpenIGTLink support
+
+IF (PLUS_USE_OpenIGTLink)
+
+	SET (ImageAcquisition_SRCS
+        ${ImageAcquisition_SRCS}
+		OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.cxx
+		)
+	IF (WIN32)	
+        SET (ImageAcquisition_HDRS
+            ${ImageAcquisition_HDRS}
+			OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
+			)
+	ENDIF (WIN32)
+	
+	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
+		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo )
+	
+	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
+	
+ENDIF(PLUS_USE_OpenIGTLink)
+
+# --------------------------------------------------------------------------
 # Ultrasonix support
 
 IF (PLUS_USE_ULTRASONIX_VIDEO)

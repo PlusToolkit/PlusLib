@@ -7,51 +7,59 @@
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkDataCollector.h"
+#include "vtkTransformRepository.h" 
+#include "TrackedFrame.h"
+#include "vtkObjectFactory.h"
+#include "vtkTrackedFrameList.h"
 
-#include "vtkMultiThreader.h"
-#include "vtkSmartPointer.h"
+#include "vtkMutexLock.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
-#include "igtlOSUtil.h"
-#include "igtlServerSocket.h"
+#include "igtlPlusClientInfoMessage.h"
 
-#include "igtlStringMessage1.h"
-
-#include "vtkPlusCommand.h"
-#include "vtkPlusCommandFactory.h"
+#include "vtkPlusIgtlMessageFactory.h" 
 
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
+
+vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
+vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
+
+//----------------------------------------------------------------------------
+vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
+{
+  this->NetworkPort = -1;
+  this->RequestedBroadcastingFrameRate = 10.0; // fps 
+  this->LastSentTrackedFrameTimestamp = 0; 
+
+  this->ConnectionReceiverThreadId = -1;
+  this->DataSenderThreadId = -1; 
+  this->DataReceiverThreadId = -1; 
+
+  this->ConnectionActive = std::make_pair(false,false); 
+  this->DataSenderActive = std::make_pair(false,false);
+  this->DataReceiverActive = std::make_pair(false,false);
+  
+  this->DataCollector = NULL;
+  this->TransformRepository = NULL; 
+  
+  this->Threader = vtkSmartPointer<vtkMultiThreader>::New();
+  this->Mutex = vtkSmartPointer<vtkMutexLock>::New();
+  
+  this->ServerSocket = igtl::ServerSocket::New();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
+{
+  this->Stop();
+}
 
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkServer::PrintSelf( ostream& os, vtkIndent indent )
 {
 	this->Superclass::PrintSelf( os, indent );
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::SetDataCollector( vtkDataCollector* dataCollector )
-{
-  this->DataCollector = dataCollector;
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkServer::GetBufferedMessageCount()
-{
-  return this->MessageQueue->GetSize();
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkServer::Initialize( std::string &strError )
-{
-  if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
-  {
-    LOG_ERROR( "Tried to initialize vtkPlusOpenIGTLinkServer without proper DataCollector." );
-    return 1;
-  }
-
-  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -63,37 +71,73 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     return PLUS_FAIL;
   }
   
-  if ( this->ThreadId >= 0 )
+  if ( this->ConnectionReceiverThreadId < 0 )
   {
-    LOG_DEBUG( "Tried to start OpenIGTLink server, but it was already running." );
-    return PLUS_SUCCESS;
+    this->ConnectionActive.first = true;
+    this->ConnectionReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&ConnectionReceiverThread, this );
+    LOG_INFO( "Plus OpenIGTLink server started on port: " << this->NetworkPort ); 
   }
-  
-  this->Active = true;
-  this->ThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&vtkCommunicationThread, this );
-  
+
+  if ( this->DataSenderThreadId < 0 )
+  {
+    this->DataSenderActive.first = true;
+    this->DataSenderThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&DataSenderThread, this );
+  }
+
+  if ( this->DataReceiverThreadId < 0 )
+  {
+    this->DataReceiverActive.first = true; 
+    this->DataReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&DataReceiverThread, this );
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 {
-  if ( this->ThreadId < 0 )
+  // Stop data receiver thread 
+  if ( this->DataReceiverThreadId >=0 )
   {
-    return PLUS_SUCCESS;
+    this->DataReceiverActive.first = false; 
+    while ( this->DataReceiverActive.second )
+    {
+      // Wait until the thread stops 
+      vtkAccurateTimer::Delay( 0.2 ); 
+    }
+    this->DataReceiverThreadId = -1; 
+  }
+
+  // Stop data sender thread 
+  if ( this->DataSenderThreadId >= 0 )
+  {
+    this->DataSenderActive.first = false; 
+    while ( this->DataSenderActive.second )
+    {
+      // Wait until the thread stops 
+      vtkAccurateTimer::Delay( 0.2 ); 
+    } 
+    this->DataSenderThreadId = -1;
   }
   
-  this->Active = false;
-  LOG_TRACE( "Server::Active set to false." );
-  vtkAccurateTimer::Delay( 1.0 );  // TODO: Use waitable object to wait for thread to stop.
-  this->ThreadId = -1;
-  LOG_TRACE( "Server::Stop() returning." );
+  // Stop connection receiver thread
+  if ( this->ConnectionReceiverThreadId >= 0 )
+  {
+    this->ConnectionActive.first = false;
+    while ( this->ConnectionActive.second )
+    {
+      // Wait until the thread stops 
+      vtkAccurateTimer::Delay( 0.2 ); 
+    }
+    this->ConnectionReceiverThreadId = -1;
+    LOG_INFO( "Plus OpenIGTLink server stopped."); 
+  }
   
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void* vtkPlusOpenIGTLinkServer::vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
+void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::ThreadInfo* data )
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
   
@@ -104,181 +148,376 @@ void* vtkPlusOpenIGTLinkServer::vtkCommunicationThread( vtkMultiThreader::Thread
     LOG_ERROR( "Cannot create a server socket." );
     return NULL;
   }
-  
-  
-  while ( self->GetActive() )
+  else
   {
-    self->Mutex->Lock();
-    self->WaitForConnection();
-    self->Mutex->Unlock();
-    
-    if ( self->ClientSocket.IsNotNull() ) // If client connected.
+    self->ConnectionActive.second = true; 
+  }
+  
+  // Wait for connections until we want to stop the thread
+  while ( self->ConnectionActive.first )
+  {
+    igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection( 500 );
+    if (newClientSocket.IsNotNull())
     {
-      LOG_INFO( "Server received client connection." );
-      self->ReceiveController();
+      // Lock before we change the clients list 
+      PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+
+      newClientSocket->SetTimeout( 500 ); // Needs OpenIGTLink revision 7701 (trunk) or later.
+
+      PlusIgtlClientInfo client; 
+      client.ClientSocket = newClientSocket;
+
+      self->IgtlClients.push_back(client); 
+      LOG_INFO( "Server received new client connection." );
     }
   }
-  
-  if ( self->ClientSocket.IsNotNull() )
+
+  // Close client sockets 
+  std::list<PlusIgtlClientInfo>::iterator clientIterator; 
+  for ( clientIterator = self->IgtlClients.begin(); clientIterator != self->IgtlClients.end(); ++clientIterator)
   {
-    self->ClientSocket->CloseSocket();
+    if ( (*clientIterator).ClientSocket.IsNotNull() )
+    {
+      (*clientIterator).ClientSocket->CloseSocket(); 
+    }
   }
-  
+  self->IgtlClients.clear(); 
+
+  // Close server socket 
   if ( self->ServerSocket.IsNotNull() )
   {
     self->ServerSocket->CloseSocket();
   }
-  
-  self->ThreadId = -1;
+  // Close thread
+  self->ConnectionReceiverThreadId = -1;
+  self->ConnectionActive.second = false; 
   return NULL;
 }
 
 //----------------------------------------------------------------------------
-/*!
-  Execute the next command in the command buffer, which is filled by the 
-  communication thread.
-*/
-void vtkPlusOpenIGTLinkServer ::ExecuteNextCommand()
+void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* data )
 {
-  igtl::MessageBase* nextMessage = this->MessageQueue->PullMessage();
-  if ( nextMessage == NULL ) return;
+  vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
+  self->DataSenderActive.second = true; 
   
-  igtl::StringMessage1* nextStringMessage = (igtl::StringMessage1*)nextMessage;
-  
-  this->React( nextStringMessage->GetString() );
-}
+  self->DataCollector->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
-//----------------------------------------------------------------------------
-/*! Protected constructor. */
-vtkPlusOpenIGTLinkServer ::vtkPlusOpenIGTLinkServer()
-{
-  this->NetworkPort = -1;
-  this->ThreadId = -1;
-  
-  this->DataCollector = NULL;
-  this->Threader = vtkMultiThreader::New();
-  this->MessageQueue = vtkIGTLMessageQueue::New();
-
-  this->Mutex = vtkMutexLock::New();
-  
-  this->ServerSocket = igtl::ServerSocket::New();
-  this->ClientSocket = NULL;
-}
-
-//----------------------------------------------------------------------------
-vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
-{
-  this->Stop();
-  
-  DELETE_IF_NOT_NULL( this->Threader )
-  DELETE_IF_NOT_NULL( this->MessageQueue )
-  DELETE_IF_NOT_NULL( this->Mutex )
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::WaitForConnection()
-{
-  while ( this->GetActive() )
+  std::list<std::string>::iterator messageTypeIterator; 
+  while ( self->ConnectionActive.first && self->DataSenderActive.first )
   {
-    igtl::ClientSocket::Pointer newClientSocket = this->ServerSocket->WaitForConnection( 500 );
-    if (newClientSocket.IsNotNull())
+    vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+    double startTimeSec = vtkAccurateTimer::GetSystemTime();
+    
+    if ( self->DataCollector->GetTrackedFrameListSampled(self->LastSentTrackedFrameTimestamp, trackedFrameList, 1.0 / self->RequestedBroadcastingFrameRate) != PLUS_SUCCESS )
     {
-      if ( this->ClientSocket.IsNotNull() )  // a new client tries to connect
+      LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
+      vtkAccurateTimer::Delay(0.2); 
+      continue; 
+    }
+   
+    for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+    {
+      // Send tracked frame
+      self->SendTrackedFrame( *trackedFrameList->GetTrackedFrame(i) ); 
+    }
+
+    // Check whether the sending needed more time than the sampling interval
+    double sendingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
+    if (sendingTimeMs > 1000.0 / self->RequestedBroadcastingFrameRate)
+    {
+      LOG_WARNING("Recording cannot keep up with aquisition!");
+    }
+
+  }
+  // Close thread
+  self->DataSenderThreadId = -1;
+  self->DataSenderActive.second = false; 
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
+void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo* data )
+{
+  vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
+  self->DataReceiverActive.second = true; 
+
+  std::list<PlusIgtlClientInfo>::iterator clientIterator; 
+  std::list<PlusIgtlClientInfo> igtlClients; 
+  while ( self->ConnectionActive.first && self->DataReceiverActive.first )
+  {
+    // make a copy of client infos to avoid lock 
+    {
+      PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+      igtlClients = self->IgtlClients; 
+    }
+
+    if ( igtlClients.empty() )
+    {
+      // No client connected, wait for a while 
+      vtkAccurateTimer::Delay(0.2);
+      continue; 
+    }
+
+    for ( clientIterator = igtlClients.begin(); clientIterator != igtlClients.end(); ++clientIterator)
+    {
+      PlusIgtlClientInfo client = (*clientIterator); 
+      igtl::MessageHeader::Pointer headerMsg;
+      headerMsg = igtl::MessageHeader::New();
+      headerMsg->InitPack();
+
+      // Receive generic header from the socket
+      int retValue = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+      if ( retValue == 0  // No message received
+        || retValue != headerMsg->GetPackSize() // Received data is not as we expected
+        )
       {
-        LOG_DEBUG( "Server busy with previous client, closing previous connection." );
-        this->ClientSocket->CloseSocket();
-      }    
-      
-      this->ClientSocket = newClientSocket;  // new connection is accepted
-      this->ClientSocket->SetTimeout( 300 ); // Needs OpenIGTLink revision 7701 (trunk) or later.
-      LOG_DEBUG( "Server received new client connection." );
-      return;
-    }  
-  }
+        continue; 
+      }
+
+      headerMsg->Unpack();
+      if (strcmp(headerMsg->GetDeviceType(), "CLIENTINFO") == 0)
+      {
+        igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
+        clientInfoMsg->SetMessageHeader(headerMsg); 
+        clientInfoMsg->AllocatePack(); 
+
+        client.ClientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() ); 
+        //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
+        int c = clientInfoMsg->Unpack(1);
+        if (c & igtl::MessageHeader::UNPACK_BODY) 
+        {
+          // Message received from client, need to lock to modify client info
+          PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+          std::list<PlusIgtlClientInfo>::iterator it = std::find(self->IgtlClients.begin(), self->IgtlClients.end(), client ); 
+          if ( it != self->IgtlClients.end() )
+          {
+            // Copy client info
+            (*it).ShallowCopy(clientInfoMsg->GetClientInfo()); 
+            LOG_INFO("Message received from client"); 
+          }
+        }
+      }
+      else
+      {
+        // if the device type is unknown, skip reading. 
+        client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+        continue; 
+      }
+
+    } // clientIterator
+  
+  } // ConnectionActive
+
+  // Close thread
+  self->DataReceiverThreadId = -1;
+  self->DataReceiverActive.second = false; 
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::ReceiveController()
+PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFrame )
 {
-  igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
-  
-  if ( this->ClientSocket.IsNull() )
+  int numberOfErrors = 0; 
+
+  // Update transform repository with the tracked frame 
+  if ( this->TransformRepository != NULL )
   {
-    return;
+    if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set current transforms to transform repository!"); 
+      numberOfErrors++;
+    }
   }
-  
-  
-  while ( this->GetActive() )
+
+  // Lock before we send message to the clients 
+  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  bool clientDisconnected = false; 
+
+  std::list<PlusIgtlClientInfo>::iterator clientIterator = this->IgtlClients.begin();
+  while ( clientIterator != this->IgtlClients.end() )
   {
-    if ( ! this->ClientSocket->GetConnected() )
+    PlusIgtlClientInfo client = (*clientIterator); 
+
+    // Create igt messages
+    std::vector<igtl::MessageBase::Pointer> igtlMessages; 
+    std::vector<igtl::MessageBase::Pointer>::iterator igtlMessageIterator; 
+
+    // Set message types 
+    std::vector<std::string> messageTypes = this->DefaultIgtlMessageTypes; 
+    if ( !client.IgtlMessageTypes.empty() )
     {
-      break;
+      messageTypes = client.IgtlMessageTypes; 
     }
-    
-    header->InitPack();
-    
-    int rs = this->ClientSocket->Receive( header->GetPackPointer(), header->GetPackSize() );
-    
-    if ( rs == 0 )
+
+    // Set transform names 
+    std::vector<PlusTransformName> transformNames = this->DefaultTransformNames; 
+    if ( !client.TransformNames.empty() )
     {
-      LOG_TRACE( "Server could not receive package before timeout." );
-      this->ClientSocket->CloseSocket();
-      break;
+      transformNames = client.TransformNames; 
     }
-    else if ( rs != header->GetPackSize() )
+
+    // Set image transform name
+    PlusTransformName imageTransformName = this->DefaultImageTransformName; 
+    if ( client.ImageTransformName.IsValid() )
     {
-      LOG_WARNING( "Irregluar size " << rs << " expecting " << header->GetPackSize() );
-      break;
+      imageTransformName = client.ImageTransformName; 
     }
-    
-    header->Unpack();  // Deserialize the header
-    
-    
-      // Check data type and receive data body
-    
-    if ( strcmp( header->GetDeviceType(), "STRING1" ) != 0 )
+
+    vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
+    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageTransformName, this->TransformRepository ) != PLUS_SUCCESS )
     {
-      LOG_WARNING( "Unexpected message type received: " << header->GetDeviceType() );
-      this->ClientSocket->Skip( header->GetBodySizeToRead() );
+      LOG_WARNING("Failed to pack all IGT messages!"); 
     }
-      
-    igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
-    strMessage->SetMessageHeader( header );
-    strMessage->AllocatePack();
-    
-    this->ClientSocket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
-    
-    int c = strMessage->Unpack( 1 );
-    if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+
+    // Send all messages to a client 
+    for (  igtlMessageIterator = igtlMessages.begin(); igtlMessageIterator != igtlMessages.end(); ++igtlMessageIterator )
     {
-      LOG_WARNING( "Lost OpenIGTLink package detected!" );
-      continue;
+      igtl::MessageBase::Pointer igtlMessage = (*igtlMessageIterator); 
+      if ( igtlMessage.IsNull() )
+      {
+        continue; 
+      }
+
+      int retValue = 0, numOfTries = 0; 
+      while ( retValue == 0 && numOfTries < 3 )
+      {
+        retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize() ); 
+        numOfTries++; 
+      }
+
+      if ( retValue == 0 )
+      {
+        clientDisconnected = true; 
+        igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New(); 
+        igtlMessage->GetTimeStamp(ts); 
+
+        LOG_DEBUG( "Client disconnected - could not send " << igtlMessage->GetDeviceType() << " message to client (device name: " << igtlMessage->GetDeviceName()
+          << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
+        break; 
+      }
+
+    } // igtlMessageIterator
+
+    if ( clientDisconnected )
+    {
+      LOG_INFO( "Client disconnected."); 
+      clientIterator = this->IgtlClients.erase(clientIterator); 
+      continue; 
     }
-    
-    LOG_INFO( "Server received string: " << strMessage->GetString() );
-    
-    this->MessageQueue->PushMessage( strMessage );  // Messages can be executed later from the queue.
-  }
+
+    // Send messages to the next client 
+    ++clientIterator; 
+
+  } // clientIterator
+
+  return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::React( std::string input )
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfigurationData)
 {
-  vtkSmartPointer< vtkPlusCommandFactory > commandFactory =
-      vtkSmartPointer< vtkPlusCommandFactory >::New();
-  
-  vtkPlusCommand* command = commandFactory->CreatePlusCommand( input );
-  
-  if ( command != NULL )
+  LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");
+
+  if ( aConfigurationData == NULL )
   {
-    command->SetDataCollector( this->DataCollector );
-    LOG_INFO( "Executing: " << command->GetStringRepresentation() );
-    command->Execute();
+    LOG_ERROR("Unable to configure Plus server! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* plusOpenIGTLinkServerConfig = aConfigurationData->FindNestedElementWithName("PlusOpenIGTLinkServer");
+  if (plusOpenIGTLinkServerConfig == NULL)
+  {
+    LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  int networkPort = -1; 
+  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("NetworkPort", networkPort) ) 
+  {
+    this->SetNetworkPort(networkPort); 
   }
   else
   {
-    LOG_ERROR( "Command could not be created from message: " << input );
+    LOG_ERROR("Unable to find network port for PlusOpenIGTLinkServer"); 
+    return PLUS_FAIL; 
   }
-    
-  command->Delete();
+
+  double requestedBroadcastingFrameRate = -1; 
+  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("RequestedBroadcastingFrameRate", requestedBroadcastingFrameRate) ) 
+  {
+    this->SetRequestedBroadcastingFrameRate(requestedBroadcastingFrameRate); 
+  }
+
+  vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
+
+  if ( defaultClientInfo != NULL )
+  {
+
+    // Get message types
+    vtkXMLDataElement* messageTypes = defaultClientInfo->FindNestedElementWithName("MessageTypes"); 
+    if ( messageTypes != NULL )
+    {
+      for ( int i = 0; i < messageTypes->GetNumberOfNestedElements(); ++i )
+      {
+        const char* name = messageTypes->GetNestedElement(i)->GetName(); 
+        if ( name == NULL || STRCASECMP( name, "Message") != 0 )
+        {
+          continue; 
+        }
+        const char* type = messageTypes->GetNestedElement(i)->GetAttribute("Type"); 
+        if ( type != NULL )
+        {
+          this->DefaultIgtlMessageTypes.push_back(type); 
+        }
+      } 
+    }
+
+    // Get transform names
+    vtkXMLDataElement* transformNames = defaultClientInfo->FindNestedElementWithName("TransformNames"); 
+    if ( transformNames != NULL )
+    {
+      for ( int i = 0; i < transformNames->GetNumberOfNestedElements(); ++i )
+      {
+        const char* transform = transformNames->GetNestedElement(i)->GetName(); 
+        if ( transform == NULL || STRCASECMP( transform, "Transform") != 0 )
+        {
+          continue; 
+        }
+        const char* name = transformNames->GetNestedElement(i)->GetAttribute("Name"); 
+        if ( name != NULL )
+        {
+          PlusTransformName tName; 
+          if ( tName.SetTransformName(name) != PLUS_SUCCESS )
+          {
+            LOG_WARNING( "Invalid transform name: " << name ); 
+            continue; 
+          }
+          this->DefaultTransformNames.push_back(tName); 
+        }
+      } // transformNames
+    }
+
+    // Get image transform name
+    vtkXMLDataElement* imageTransform = defaultClientInfo->FindNestedElementWithName("ImageTransform"); 
+    if ( imageTransform != NULL )
+    {
+      const char* name = imageTransform->GetAttribute("Name"); 
+      if ( name != NULL )
+      {
+        PlusTransformName tName; 
+        if ( tName.SetTransformName(name) != PLUS_SUCCESS )
+        {
+          LOG_WARNING( "Invalid transform name: " << name ); 
+        }
+        else
+        {
+          this->DefaultImageTransformName = tName; 
+        }
+      }
+    }
+
+  }
+
+  return PLUS_SUCCESS;
 }
+

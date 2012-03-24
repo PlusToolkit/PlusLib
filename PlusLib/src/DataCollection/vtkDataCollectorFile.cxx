@@ -280,6 +280,12 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameListSampled(double& aTimestamp, 
     return PLUS_FAIL;
   }
 
+  if (aTimestamp < this->FirstTimestamp)
+  {
+    // start from the first timestamp
+    aTimestamp = this->FirstTimestamp; 
+  }
+
   if (aTimestamp > currentFrameTimestamp)
   {
     double loopTime = this->LastTimestamp - this->FirstTimestamp;
@@ -396,7 +402,15 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, Tracke
     return PLUS_FAIL;
   }
 
-  (*aTrackedFrame) = (*this->TrackedFrameBuffer->GetTrackedFrame(index));
+  TrackedFrame *frame = this->TrackedFrameBuffer->GetTrackedFrame(index); 
+  if ( frame == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame - invalid index: " << index);
+    return PLUS_FAIL;
+  }
+
+  // Copy tracked frame 
+  (*aTrackedFrame) = (*frame);
 
   this->LastAccessedFrameIndex = index;
 

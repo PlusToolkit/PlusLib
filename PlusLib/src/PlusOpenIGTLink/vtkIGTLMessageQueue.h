@@ -20,7 +20,7 @@ class vtkMutexLock;
 /*!
   \class vtkIGTLMessageQueue 
   \brief Message queue to store OpenIGTLink messages.
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibOpenIGTLink
 */
 class
 VTK_EXPORT 
