@@ -97,14 +97,14 @@ int main( int argc, char** argv )
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
   server->SetDataCollector( dataCollector );
   server->SetTransformRepository( transformRepository ); 
-  server->SetNetworkPort( port );
+  server->SetListeningPort( port );
   server->Start();
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
 
   while ( vtkAccurateTimer::GetSystemTime() < startTime + runTime )
   {
-    vtkAccurateTimer::Delay( 0.1 );
+    vtkAccurateTimer::Delay( 0.2 );
   }
 
   server->Stop(); 

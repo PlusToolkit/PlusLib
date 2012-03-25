@@ -256,13 +256,10 @@ char *vtkNDITracker::Command(const char *command)
 
   if (this->Device)
   {
-    this->RequestUpdateMutex->Lock();
-    this->UpdateMutex->Lock();
-    this->RequestUpdateMutex->Unlock();
+    PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     strncpy(this->CommandReply, ndiCommand(this->Device, command), 
       VTK_NDI_REPLY_LEN-1);
     this->CommandReply[VTK_NDI_REPLY_LEN-1] = '\0';
-    this->UpdateMutex->Unlock();
   }
   else
   {
@@ -675,10 +672,7 @@ PlusStatus vtkNDITracker::LoadVirtualSROM(int tool, const char *filename)
   {
     if (this->Tracking)
     {
-
-      this->RequestUpdateMutex->Lock();
-      this->UpdateMutex->Lock();
-      this->RequestUpdateMutex->Unlock();
+      PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
       if (this->IsDeviceTracking)
       {
         ndiCommand(this->Device,"TSTOP:");
@@ -690,7 +684,6 @@ PlusStatus vtkNDITracker::LoadVirtualSROM(int tool, const char *filename)
       {
         ndiCommand(this->Device,"TSTART:");
       }
-      this->UpdateMutex->Unlock();
     }
   }
   return PLUS_SUCCESS;
@@ -708,9 +701,7 @@ void vtkNDITracker::ClearVirtualSROM(int tool)
 
   if (this->Tracking)
   {
-    this->RequestUpdateMutex->Lock();
-    this->UpdateMutex->Lock();
-    this->RequestUpdateMutex->Unlock();
+    PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     if (this->IsDeviceTracking)
     {
       ndiCommand(this->Device,"TSTOP:");
@@ -720,7 +711,6 @@ void vtkNDITracker::ClearVirtualSROM(int tool)
     {
       ndiCommand(this->Device,"TSTART:");
     }
-    this->UpdateMutex->Unlock();
   }
 }  
 

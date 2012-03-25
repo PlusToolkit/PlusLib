@@ -39,7 +39,10 @@ void PlusClientInfoMessage::SetClientInfo( const PlusIgtlClientInfo& clientInfo 
 PlusIgtlClientInfo PlusClientInfoMessage::GetClientInfo()
 {
   PlusIgtlClientInfo clientInfo;   
-  clientInfo.SetClientInfoFromXmlData(this->GetString()); 
+  if ( clientInfo.SetClientInfoFromXmlData(this->GetString()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set Plus client info from received message!"); 
+  }
   this->m_ClientInfo.ShallowCopy(clientInfo); 
   return this->m_ClientInfo;
 }

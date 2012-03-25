@@ -102,7 +102,7 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string> igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
     std::vector<PlusTransformName>& transformNames, PlusTransformName& imageTransformName, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
@@ -171,7 +171,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     }
     else
     {
-      LOG_WARNING("This message type (" << messageType << ") is not yet implemented!" ); 
+      LOG_WARNING("This message type (" << messageType << ") is not supported!" ); 
     }
   }
 

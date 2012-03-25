@@ -77,7 +77,7 @@ protected:
 
 protected:
   /*! Internal frame number cunting */
-  int Frame;
+  unsigned long Frame;
 
   /*! Internal transform used for simulating tool movements */
   vtkTransform *InternalTransform;

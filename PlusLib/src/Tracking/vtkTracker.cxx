@@ -35,16 +35,15 @@ vtkStandardNewMacro(vtkTracker);
 vtkTracker::vtkTracker()
 {
   this->Tracking = 0;
-  this->LastUpdateTime = 0;
   this->InternalUpdateRate = 0;
   this->Frequency = 50; 
   this->ToolReferenceFrameName = NULL; 
+  this->TrackingThreadAlive = false; 
 
   // for threaded capture of transformations
   this->Threader = vtkMultiThreader::New();
   this->ThreadId = -1;
   this->UpdateMutex = vtkCriticalSection::New();
-  this->RequestUpdateMutex = vtkCriticalSection::New();
 
   this->SetToolReferenceFrameName("Tracker"); 
 }
@@ -61,9 +60,8 @@ vtkTracker::~vtkTracker()
     it->second->Delete(); 
   }
 
-  this->Threader->Delete();
-  this->UpdateMutex->Delete();
-  this->RequestUpdateMutex->Delete();
+  DELETE_IF_NOT_NULL(this->Threader); 
+  DELETE_IF_NOT_NULL(this->UpdateMutex); 
 }
 
 //----------------------------------------------------------------------------
@@ -184,58 +182,31 @@ PlusStatus vtkTracker::GetTool(const char* aToolName, vtkTrackerTool* &aTool)
 
 //----------------------------------------------------------------------------
 // this thread is run whenever the tracker is tracking
-static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
+void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkTracker *self = (vtkTracker *)(data->UserData);
 
-  double currtime[10];
+  self->TrackingThreadAlive = true; 
 
+  double currtime[10]={0};
+  unsigned long updatecount = 0; 
   // loop until cancelled
-  for (int i = 0;; i++)
+  while ( self->Tracking )
   {
-    if (!self->IsTracking())
-    {
-      LOG_DEBUG("Stopped tracking");
-      return NULL;
-    }
-
     double newtime = vtkAccurateTimer::GetSystemTime(); 
 
     // get current tracking rate over last 10 updates
-    double difftime = newtime - currtime[i%10];
-    currtime[i%10] = newtime;
-    if (i > 10 && difftime != 0)
+    double difftime = newtime - currtime[updatecount%10];
+    currtime[updatecount%10] = newtime;
+    if (updatecount > 10 && difftime != 0)
     {
       self->InternalUpdateRate = (10.0/difftime);
     }    
 
-    self->UpdateMutex->Lock();
-    if (self->IsTracking())
-    {
+    { // Lock before update 
+      PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
       self->InternalUpdate();
       self->UpdateTime.Modified();
-    }
-    self->UpdateMutex->Unlock();
-
-    if (!self->IsTracking())
-    {
-      LOG_DEBUG("Stopped tracking");
-      return NULL;
-    }
-
-    // check to see if main thread wants to lock the UpdateMutex
-    self->RequestUpdateMutex->Lock();
-    self->RequestUpdateMutex->Unlock();
-
-    // check to see if we are being told to quit 
-    data->ActiveFlagLock->Lock();
-    int activeFlag = *(data->ActiveFlag);
-    data->ActiveFlagLock->Unlock();
-
-    if (!activeFlag)
-    {
-      LOG_DEBUG("Stopped tracking");
-      return NULL;
     }
 
     double delay = ( newtime + 1.0 / self->GetFrequency() - vtkAccurateTimer::GetSystemTime() );
@@ -243,7 +214,14 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     {
       vtkAccurateTimer::Delay(delay); 
     }
+
+    updatecount++;
   }
+
+  LOG_DEBUG("Stopped tracking");
+  self->TrackingThreadAlive = false; 
+  return NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -282,32 +260,11 @@ PlusStatus vtkTracker::StartTracking()
     return PLUS_FAIL; 
   } 
 
-  // this will block the tracking thread until we're ready
-  this->UpdateMutex->Lock();
-
   this->Tracking = 1;
 
   // start the tracking thread
   this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
     &vtkTrackerThread,this);
-  this->LastUpdateTime = this->UpdateTime.GetMTime();
-
-  // allow the tracking thread to proceed
-  this->UpdateMutex->Unlock();
-
-  // wait until the first update has occurred before returning
-  int timechanged = 0;
-
-  while (!timechanged)
-  {
-    this->RequestUpdateMutex->Lock();
-    this->UpdateMutex->Lock();
-    this->RequestUpdateMutex->Unlock();
-    timechanged = (this->LastUpdateTime != this->UpdateTime.GetMTime());
-    this->UpdateMutex->Unlock();
-    vtkAccurateTimer::Delay(0.1); 
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -321,15 +278,14 @@ PlusStatus vtkTracker::StopTracking()
     return PLUS_SUCCESS;
   }
 
-  this->UpdateMutex->Lock();
-  // after lock we can be sure that InternalUpdate is not running, so we can safely stop the thread
   this->ThreadId = -1;
   this->Tracking = 0;
-  this->UpdateMutex->Unlock();
 
   // Let's give a chance to the thread to stop before we kill the tracker connection
-  // TODO: we should wait until the thread is actually stopped, not by a fixed amount
-  vtkAccurateTimer::Delay(0.5);
+  while ( this->TrackingThreadAlive )
+  {
+    vtkAccurateTimer::Delay(0.1);
+  }
 
   if ( this->InternalStopTracking() != PLUS_SUCCESS )
   {
@@ -356,9 +312,35 @@ PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4
     return PLUS_FAIL; 
   }
   
+  // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
   vtkTrackerBuffer *buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
+  tool->SetFrameNumber(frameNumber); 
+
+  return bufferStatus; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
+{
+  if ( aToolName == NULL )
+  {
+    LOG_ERROR("Failed to update tool - tool name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerTool* tool = NULL; 
+  if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
+    return PLUS_FAIL; 
+  }
+  
+  // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
+  unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
+  vtkTrackerBuffer *buffer = tool->GetBuffer();
+  PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
@@ -391,25 +373,16 @@ PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4
 //----------------------------------------------------------------------------
 void vtkTracker::Beep(int n)
 {
-  this->RequestUpdateMutex->Lock();
-  this->UpdateMutex->Lock();
-  this->RequestUpdateMutex->Unlock();
 
+  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   this->InternalBeep(n);
-
-  this->UpdateMutex->Unlock();
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::SetToolLED(const char* portName, int led, int state)
 {
-  this->RequestUpdateMutex->Lock();
-  this->UpdateMutex->Lock();
-  this->RequestUpdateMutex->Unlock();
-
+  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   this->InternalSetToolLED(portName, led, state);
-
-  this->UpdateMutex->Unlock();
 }
 
 //-----------------------------------------------------------------------------

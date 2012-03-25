@@ -20,7 +20,7 @@ See License.txt for details.
 #include <string>
 
 vtkCxxRevisionMacro(vtkOpenIGTLinkVideoSource, "$Revision: 1.0$");
-//vtkStandardNewMacro(vtkWin32VideoSource);
+
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
 vtkInstantiatorNewMacro(vtkOpenIGTLinkVideoSource);
@@ -48,6 +48,7 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->ServerPort = -1; 
   this->ClientSocket = igtl::ClientSocket::New(); 
   this->SpawnThreadForRecording=true;
+  this->NumberOfRetryAttempts = 3; 
 }
 
 //----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ vtkOpenIGTLinkVideoSource* vtkOpenIGTLinkVideoSource::GetInstance()
     }
     if(!vtkOpenIGTLinkVideoSource::Instance)
     {
-      int error = 0;
+      LOG_ERROR("Failed to create vtkOpenIGTLinkVideoSource instance!"); 
     }
   }
   // return the instance
@@ -136,7 +137,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
 
   if ( this->ServerAddress == NULL )
   {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server address is NULL" ); 
+    LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
     return PLUS_FAIL; 
   }
 
@@ -155,14 +156,11 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
   }
   else
   {
-    LOG_TRACE( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
+    LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
   // Clear buffer on connect 
   this->GetBuffer()->Clear(); 
-
-  // Wait before we send thre clinet info request 
-  vtkAccurateTimer::Delay(1.0); 
 
   // Send clinet info request to the server
   PlusIgtlClientInfo clientInfo; 
@@ -176,7 +174,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
 
   // Send message to server 
   int retValue = 0, numOfTries = 0; 
-  while ( retValue == 0 && numOfTries < 3 )
+  while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
   {
     retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
     numOfTries++; 
@@ -223,19 +221,20 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
-  int retValue = 0, numOfTries = 0; 
-  while ( retValue == 0 && numOfTries < 3 )
+  int numOfBytesReceived = 0, numOfTries = 0; 
+  while ( numOfBytesReceived == 0 && numOfTries < this->NumberOfRetryAttempts )
   {
-    retValue = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+    numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
     numOfTries++; 
   }
 
   // No message received - server disconnected 
-  if ( retValue == 0 ) 
+  if ( numOfBytesReceived == 0 ) 
   {
-    LOG_ERROR("OpenIGTLink video source connection lost with server - image acquisition stopped!");
-    this->Disconnect(); 
-    return PLUS_FAIL; 
+    LOG_ERROR("OpenIGTLink video source connection lost with server - try to reconnect!");
+    this->Connected = 0; 
+    this->ClientSocket->CloseSocket(); 
+    return this->Connect();
   }
 
   igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
@@ -255,42 +254,40 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
 
     //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
     int c = imgMsg->Unpack(1);
-    if (c & igtl::MessageHeader::UNPACK_BODY) 
-    {
-      // if CRC check is OK. Read image data.
-      imgMsg->GetTimeStamp(igtlTimestamp); 
-      
-      // Set scalar pixel type
-      PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
-
-      int imgSize[3]={0}; // image dimension
-      imgMsg->GetDimensions(imgSize);
-
-      // Set unfiltered and filtered timestamp
-      double unfilteredTimestamp = igtlTimestamp->GetTimeStamp();  
-      double filteredTimestamp = igtlTimestamp->GetTimeStamp();  
-
-      // The timestamps are already defined, so we don't need to filter them, 
-      // for simplicity, we increase frame number always by 1.
-      this->FrameNumber++;
-
-      // If the buffer is empty, set the pixel type and frame size to the first received properties 
-      if ( this->GetBuffer()->GetNumberOfItems() == 0 )
-      {
-        this->GetBuffer()->SetPixelType(pixelType);  
-        this->GetBuffer()->SetFrameSize( imgSize[0], imgSize[1] );
-      }
-
-      PlusStatus status = this->Buffer->AddItem( imgMsg->GetScalarPointer() , this->GetUsImageOrientation(), imgSize, pixelType, 0, this->FrameNumber, unfilteredTimestamp, filteredTimestamp); 
-      this->Modified();
-      return status;
-
-    }
-    else
+    if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
     {
       LOG_ERROR("Couldn't receive image message from server!"); 
       return PLUS_FAIL; 
     }
+
+    // if CRC check is OK. Read image data.
+    imgMsg->GetTimeStamp(igtlTimestamp); 
+
+    // Set scalar pixel type
+    PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
+
+    int imgSize[3]={0}; // image dimension
+    imgMsg->GetDimensions(imgSize);
+
+    // Set unfiltered and filtered timestamp
+    double unfilteredTimestamp = igtlTimestamp->GetTimeStamp();  
+    double filteredTimestamp = igtlTimestamp->GetTimeStamp();  
+
+    // The timestamps are already defined, so we don't need to filter them, 
+    // for simplicity, we increase frame number always by 1.
+    this->FrameNumber++;
+
+    // If the buffer is empty, set the pixel type and frame size to the first received properties 
+    if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+    {
+      this->GetBuffer()->SetPixelType(pixelType);  
+      this->GetBuffer()->SetFrameSize( imgSize[0], imgSize[1] );
+    }
+
+    PlusStatus status = this->Buffer->AddItem( imgMsg->GetScalarPointer() , this->GetUsImageOrientation(), imgSize, pixelType, 0, this->FrameNumber, unfilteredTimestamp, filteredTimestamp); 
+    this->Modified();
+    return status;
+
   }
  
   // if the data type is unknown, skip reading. 

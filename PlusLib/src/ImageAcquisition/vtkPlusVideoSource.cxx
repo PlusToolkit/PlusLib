@@ -59,6 +59,8 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
   this->NumberOfOutputFrames = 1;
 
+  this->RecordingThreadAlive = false; 
+
   this->RecordThreader = vtkMultiThreader::New();
   this->RecordThreadId = -1;
 
@@ -342,6 +344,7 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
   double startTime = vtkAccurateTimer::GetSystemTime();
   double rate = self->GetFrameRate();
   unsigned long frame = 0;
+  self->RecordingThreadAlive = true; 
 
   do
   {
@@ -349,6 +352,7 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
     {
       // recording stopped
       LOG_DEBUG("Recording stopped");
+      self->RecordingThreadAlive = false; 
       return NULL;
     }
     self->InternalGrab();
@@ -356,6 +360,7 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
   }
   while (vtkThreadSleep(data, startTime + frame/rate));
 
+  self->RecordingThreadAlive = false; 
   return NULL;
 }
 
@@ -415,7 +420,13 @@ PlusStatus vtkPlusVideoSource::StopRecording()
   }
 
   this->Recording = 0;
-  this->RecordThreadId = -1; // it might be useful to actually wait for the thread completion
+  this->RecordThreadId = -1; 
+
+  // Let's give a chance to the thread to stop before we kill the connection
+  while ( this->RecordingThreadAlive )
+  {
+    vtkAccurateTimer::Delay(0.1);
+  }
 
   InternalStopRecording();
  

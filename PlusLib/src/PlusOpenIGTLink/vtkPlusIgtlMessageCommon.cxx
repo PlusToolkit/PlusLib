@@ -181,35 +181,34 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = transMsg->Unpack(1);
-  if (c & igtl::MessageHeader::UNPACK_BODY) 
+  if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
-    // if CRC check is OK. Read transform data.
-    igtl::Matrix4x4 igtlMatrix;
-    igtl::IdentityMatrix(igtlMatrix);
-    transMsg->GetMatrix(igtlMatrix);
+    LOG_ERROR("Couldn't receive transform message from server!"); 
+    return PLUS_FAIL; 
+  }
+  // if CRC check is OK. Read transform data.
+  igtl::Matrix4x4 igtlMatrix;
+  igtl::IdentityMatrix(igtlMatrix);
+  transMsg->GetMatrix(igtlMatrix);
 
-    // convert igtl matrix to vtk matrix 
-    for ( int r = 0; r < 4; r++ )
+  // convert igtl matrix to vtk matrix 
+  for ( int r = 0; r < 4; r++ )
+  {
+    for ( int c = 0; c < 4; c++ )
     {
-      for ( int c = 0; c < 4; c++ )
-      {
-        transformMatrix->SetElement(r,c, igtlMatrix[r][c]); 
-      }
+      transformMatrix->SetElement(r,c, igtlMatrix[r][c]); 
     }
-
-    // Get timestamp 
-    igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
-    transMsg->GetTimeStamp(igtlTimestamp); 
-    timestamp = igtlTimestamp->GetTimeStamp();  
-
-    // Get transform name 
-    transformName = transMsg->GetDeviceName(); 
-
-    return PLUS_SUCCESS; 
   }
 
-  LOG_ERROR("Couldn't receive transform message from server!"); 
-  return PLUS_FAIL; 
+  // Get timestamp 
+  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
+  transMsg->GetTimeStamp(igtlTimestamp); 
+  timestamp = igtlTimestamp->GetTimeStamp();  
+
+  // Get transform name 
+  transformName = transMsg->GetDeviceName(); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -268,23 +267,23 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = posMsg->Unpack(1);
-  if (c & igtl::MessageHeader::UNPACK_BODY) 
+  if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
-    // if CRC check is OK. Read position data.
-    posMsg->GetPosition(position);
-
-    // Get timestamp 
-    igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
-    posMsg->GetTimeStamp(igtlTimestamp); 
-    timestamp = igtlTimestamp->GetTimeStamp();  
-
-    // Get transform name 
-    positionName = posMsg->GetDeviceName(); 
-
-    return PLUS_SUCCESS; 
+    LOG_ERROR("Couldn't receive position message from server!"); 
+    return PLUS_FAIL; 
   }
 
-  LOG_ERROR("Couldn't receive position message from server!"); 
-  return PLUS_FAIL; 
+  // if CRC check is OK. Read position data.
+  posMsg->GetPosition(position);
+
+  // Get timestamp 
+  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
+  posMsg->GetTimeStamp(igtlTimestamp); 
+  timestamp = igtlTimestamp->GetTimeStamp();  
+
+  // Get transform name 
+  positionName = posMsg->GetDeviceName(); 
+
+  return PLUS_SUCCESS; 
 }
 
