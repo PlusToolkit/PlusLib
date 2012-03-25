@@ -460,7 +460,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
     else
     {
       // send the matrix and status to the tool's vtkTrackerBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, status, uFrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, status, (unsigned long)uFrameNumber, unfilteredTimestamp);
     }
   }
 

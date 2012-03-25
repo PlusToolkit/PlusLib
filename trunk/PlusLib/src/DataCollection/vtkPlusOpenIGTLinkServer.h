@@ -38,10 +38,10 @@ public:
   /*! Read the configuration file in XML format and set up the devices */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
-  /*! Set network port */ 
-  vtkSetMacro( NetworkPort, int );
-  /*! Get network port */ 
-  vtkGetMacro( NetworkPort, int );
+  /*! Set server listening port */ 
+  vtkSetMacro( ListeningPort, int );
+  /*! Get server listening port */ 
+  vtkGetMacro( ListeningPort, int );
 
   /*! Set requested frame rate to broadcast data to clients */ 
   vtkSetMacro( RequestedBroadcastingFrameRate, double );
@@ -97,8 +97,11 @@ private:
   /*! Mutex instance for safe data access */ 
   vtkSmartPointer<vtkMutexLock> Mutex;
   
-  /*! Server network port */ 
-  int  NetworkPort;
+  /*! Server listening port */ 
+  int  ListeningPort;
+
+  /*! Number of retry attempts for message sending to clients */ 
+  int NumberOfRetryAttempts; 
 
   // Active flag for threads (first: request, second: respond )
   std::pair<bool,bool> ConnectionActive;
@@ -115,6 +118,12 @@ private:
   
   /*! Last sent tracked frame timestamp */ 
   double LastSentTrackedFrameTimestamp; 
+
+  /*! Maximum time spent with processing (getting tracked frames, sending messages) per second (in milliseconds) */
+  int MaxTimeSpentWithProcessingMs; 
+
+  /*! Time needed to process one frame in the latest recording round (in milliseconds) */
+  int LastProcessingTimePerFrameMs; 
 
   /*! Requested frame rate to broadcast data to clients */ 
   double RequestedBroadcastingFrameRate; 

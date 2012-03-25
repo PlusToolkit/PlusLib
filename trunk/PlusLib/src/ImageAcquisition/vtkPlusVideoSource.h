@@ -250,6 +250,9 @@ protected:
   */
   int SpawnThreadForRecording;
 
+  /*! Flag to strore recording thread state */
+  bool RecordingThreadAlive; 
+
   /*! if we want to update according to the frame closest to the timestamp specifified by desiredTimestamp */
   double DesiredTimestamp;
   int UpdateWithDesiredTimestamp;

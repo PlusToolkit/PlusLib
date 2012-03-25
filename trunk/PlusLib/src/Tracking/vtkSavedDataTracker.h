@@ -99,9 +99,6 @@ protected:
   /*! Flag used for storing initialization state */
 	bool Initialized;
 
-  /*! Frame number counter */
-  long FrameNumber; 
-
   /*! Initila loop start timestamp */
   double LoopStartTime; 
 

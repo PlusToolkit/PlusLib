@@ -53,16 +53,22 @@ void PlusIgtlClientInfo::ShallowCopy(const PlusIgtlClientInfo& clientInfo)
 }
 
 //----------------------------------------------------------------------------
-void PlusIgtlClientInfo::SetClientInfoFromXmlData( std::string strXmlData )
+PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData )
 {
+  if ( strXmlData == NULL )
+  {
+    LOG_ERROR("Failed to set ClientInfo - input xml data string is NULL!" ); 
+    return PLUS_FAIL; 
+  }
+
   PlusIgtlClientInfo clientInfo; 
 
-  vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(strXmlData.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(strXmlData) );
 
   if ( xmldata == NULL )
   {
     LOG_ERROR("Failed to set ClientInfo - invalid xml data string!"); 
-    return; 
+    return PLUS_FAIL; 
   }
 
   // Get message types
@@ -130,6 +136,8 @@ void PlusIgtlClientInfo::SetClientInfoFromXmlData( std::string strXmlData )
 
   // Copy over the new client info 
   (*this) = clientInfo; 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -153,15 +161,19 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   transformNames->SetName("TransformNames"); 
   for ( int i = 0; i < TransformNames.size(); ++i )
   {
-    if ( TransformNames[i].IsValid() )
+    if ( ! TransformNames[i].IsValid() )
     {
-      vtkSmartPointer<vtkXMLDataElement> transform = vtkSmartPointer<vtkXMLDataElement>::New(); 
-      transform->SetName("Transform"); 
-      std::string tname; 
-      TransformNames[i].GetTransformName(tname); 
-      transform->SetAttribute("Name", tname.c_str() ); 
-      transformNames->AddNestedElement(transform);
+      std::string transformName; 
+      TransformNames[i].GetTransformName(transformName); 
+      LOG_ERROR("Failed to add transform name to client info - transform name is invalid (" << transformName << ")." ); 
+      continue; 
     }
+    vtkSmartPointer<vtkXMLDataElement> transform = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    transform->SetName("Transform"); 
+    std::string tname; 
+    TransformNames[i].GetTransformName(tname); 
+    transform->SetAttribute("Name", tname.c_str() ); 
+    transformNames->AddNestedElement(transform);
   }
   xmldata->AddNestedElement( transformNames ); 
 
@@ -172,6 +184,13 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
     std::string tname; 
     ImageTransformName.GetTransformName(tname); 
     imageTransformName->SetAttribute("Name", tname.c_str() ); 
+  }
+  // Report error if the transform name is not empty (empty image transform name means no image transform needed)
+  else if ( !ImageTransformName.From().empty() && !ImageTransformName.To().empty() )
+  {
+    std::string transformName; 
+    ImageTransformName.GetTransformName(transformName); 
+    LOG_ERROR("Failed to add image transform name to client info - transform name is invalid (" << transformName << ")." ); 
   }
   xmldata->AddNestedElement( imageTransformName ); 
 

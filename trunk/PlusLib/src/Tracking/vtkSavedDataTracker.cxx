@@ -28,8 +28,6 @@ vtkSavedDataTracker::vtkSavedDataTracker()
   this->ReplayEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
-  this->FrameNumber = 0; 
-  
 }
 
 //----------------------------------------------------------------------------
@@ -226,10 +224,6 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     }
   }
 
-  // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
-  // For simplicity, we increase it always by 1.
-  this->FrameNumber++;
-
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   int numOfErrors=0;
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
@@ -269,7 +263,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     ToolStatus toolStatus = bufferItem.GetStatus(); 
 
     // send the transformation matrix and flags to the tool
-    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, this->FrameNumber, unfilteredTimestamp)!=PLUS_SUCCESS)
+    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, unfilteredTimestamp)!=PLUS_SUCCESS)
     {
       numOfErrors++;
     }

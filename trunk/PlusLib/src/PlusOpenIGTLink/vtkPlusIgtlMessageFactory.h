@@ -48,7 +48,7 @@ public:
   \param imageTransformName Image transform name used in the IGTL image message 
   \param transformRepository Transform repository used for computing the selected transforms 
   */ 
-  PlusStatus PackMessages(const std::vector<std::string> igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
+  PlusStatus PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
     std::vector<PlusTransformName>& transformNames, PlusTransformName& imageTransformName, vtkTransformRepository* transformRepository=NULL); 
 
 protected:

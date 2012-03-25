@@ -43,7 +43,6 @@ vtkAscension3DGTracker::vtkAscension3DGTracker()
   this->LocalTrackerBuffer = NULL;
 
   this->TransmitterAttached = false;
-  this->FrameNumber = 0;
   this->NumberOfSensors = 0; 
 }
 
@@ -239,9 +238,6 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // TODO: Frame number is fake here!
-  ++ this->FrameNumber;
-
   atc::SYSTEM_CONFIGURATION sysConfig;
   if (this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &sysConfig ) )
     != PLUS_SUCCESS)
@@ -323,7 +319,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
       continue; 
     }
           
-    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, this->FrameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, unfilteredTimestamp);
   }
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);

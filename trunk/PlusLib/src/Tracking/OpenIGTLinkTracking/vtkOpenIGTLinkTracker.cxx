@@ -34,6 +34,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 {
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
+  this->NumberOfRetryAttempts = 3; 
   this->ClientSocket = igtl::ClientSocket::New(); 
 }
 
@@ -72,7 +73,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
 
   if ( this->ServerAddress == NULL )
   {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server address is NULL" ); 
+    LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
     return PLUS_FAIL; 
   }
 
@@ -91,14 +92,11 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
   }
   else
   {
-    LOG_TRACE( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
+    LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
   // Clear buffers on connect
   this->ClearAllBuffers(); 
-
-  // Wait before we send thre clinet info request 
-  vtkAccurateTimer::Delay(1.0); 
 
   // Send clinet info request to the server
   PlusIgtlClientInfo clientInfo; 
@@ -119,7 +117,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
 
   // Send message to server 
   int retValue = 0, numOfTries = 0; 
-  while ( retValue == 0 && numOfTries < 3 )
+  while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
   {
     retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
     numOfTries++; 
@@ -147,12 +145,14 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Probe" ); 
 
-  if ( this->ClientSocket->GetConnected() )
+  PlusStatus trackerStatus = PLUS_FAIL; 
+  if ( this->Connect() == PLUS_SUCCESS )
   {
-    return PLUS_SUCCESS; 
+    trackerStatus = PLUS_SUCCESS; 
+    this->Disconnect(); 
   }
   
-  return PLUS_FAIL; 
+  return trackerStatus; 
 } 
 
 //----------------------------------------------------------------------------
@@ -190,23 +190,23 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
-  int retValue = 0, numOfTries = 0; 
-  while ( retValue == 0 && numOfTries < 3 )
+  int numOfBytesReceived = 0, numOfTries = 0; 
+  while ( numOfBytesReceived == 0 && numOfTries < this->NumberOfRetryAttempts )
   {
-    retValue = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+    numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
     numOfTries++; 
   }
 
   // No message received - server disconnected 
-  if ( retValue == 0 ) 
+  if ( numOfBytesReceived == 0 ) 
   {
-    LOG_ERROR("OpenIGTLink tracker connection lost with server - tracking stopped!");
-    this->Disconnect(); 
-    return PLUS_FAIL; 
+    LOG_ERROR("OpenIGTLink tracker connection lost with server - try to reconnect!");
+    this->ClientSocket->CloseSocket(); 
+    return this->Connect(); 
   }
 
   // Received data is not as we expected
-  if ( retValue != headerMsg->GetPackSize() )
+  if ( numOfBytesReceived != headerMsg->GetPackSize() )
   {
     LOG_ERROR("Couldn't receive data from OpenIGTLink tracker"); 
     return PLUS_FAIL; 
@@ -257,8 +257,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     LOG_ERROR("Failed to update tracker tool - unrecognized transform name: " << igtlTransformName ); 
     return PLUS_FAIL; 
   }
-
-  if ( this->ToolTimeStampedUpdate(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp) != PLUS_SUCCESS )
+  
+  double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
+  if ( this->ToolTimeStampedUpdate(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
   {
     LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.From() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
     return PLUS_FAIL;

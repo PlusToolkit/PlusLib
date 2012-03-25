@@ -26,7 +26,7 @@ class VTK_EXPORT PlusIgtlClientInfo
 public:
 
   /*! Deserialize client info data from string xml data */ 
-  void SetClientInfoFromXmlData( std::string strXmlData ); 
+  PlusStatus SetClientInfoFromXmlData( const char* strXmlData ); 
   
   /*! Serialize client info data to xml data and return in string */ 
   void GetClientInfoInXmlData( std::string& strXmlData ); 

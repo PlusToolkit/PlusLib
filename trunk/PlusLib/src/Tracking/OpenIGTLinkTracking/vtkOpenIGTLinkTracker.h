@@ -73,6 +73,9 @@ protected:
   /*! OpenIGTLink server port */ 
   int ServerPort; 
 
+  /*! Number of retry attempts for message sending to and receiving from the server */ 
+  int NumberOfRetryAttempts; 
+
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
 

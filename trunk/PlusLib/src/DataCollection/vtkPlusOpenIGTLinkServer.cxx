@@ -20,6 +20,9 @@
 
 #include "vtkPlusIgtlMessageFactory.h" 
 
+#define DELAY_ON_SENDING_ERROR_SEC 0.02 
+#define DELAY_ON_NO_NEW_FRAMES_SEC 0.02 
+
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
@@ -29,9 +32,13 @@ vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 {
-  this->NetworkPort = -1;
+  this->ListeningPort = -1;
   this->RequestedBroadcastingFrameRate = 10.0; // fps 
   this->LastSentTrackedFrameTimestamp = 0; 
+  this->NumberOfRetryAttempts = 3; 
+
+  this->MaxTimeSpentWithProcessingMs = 100; 
+  this->LastProcessingTimePerFrameMs = -1;
 
   this->ConnectionReceiverThreadId = -1;
   this->DataSenderThreadId = -1; 
@@ -75,7 +82,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
   {
     this->ConnectionActive.first = true;
     this->ConnectionReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&ConnectionReceiverThread, this );
-    LOG_INFO( "Plus OpenIGTLink server started on port: " << this->NetworkPort ); 
+    LOG_INFO( "Plus OpenIGTLink server started on port: " << this->ListeningPort ); 
   }
 
   if ( this->DataSenderThreadId < 0 )
@@ -141,7 +148,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
   
-  int r = self->ServerSocket->CreateServer( self->NetworkPort );
+  int r = self->ServerSocket->CreateServer( self->ListeningPort );
   
   if ( r < 0 )
   {
@@ -205,14 +212,31 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
   std::list<std::string>::iterator messageTypeIterator; 
   while ( self->ConnectionActive.first && self->DataSenderActive.first )
   {
+    if ( self->IgtlClients.empty() )
+    {
+      // No client connected, wait for a while 
+      vtkAccurateTimer::Delay(0.2);
+      continue; 
+    }
+
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
+
+    // Acquire tracked frames since last acquisition (minimum 1 frame)
+    int numberOfFramesToGet = std::max(self->MaxTimeSpentWithProcessingMs / self->LastProcessingTimePerFrameMs, 1); 
     
-    if ( self->DataCollector->GetTrackedFrameListSampled(self->LastSentTrackedFrameTimestamp, trackedFrameList, 1.0 / self->RequestedBroadcastingFrameRate) != PLUS_SUCCESS )
+    if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
-      vtkAccurateTimer::Delay(0.2); 
+      vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
       continue; 
+    }
+
+    // There is no new frame in the buffer
+    if ( trackedFrameList->GetNumberOfTrackedFrames() == 0 )
+    {
+      vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC); 
+      continue;
     }
    
     for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
@@ -221,13 +245,14 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       self->SendTrackedFrame( *trackedFrameList->GetTrackedFrame(i) ); 
     }
 
-    // Check whether the sending needed more time than the sampling interval
-    double sendingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
-    if (sendingTimeMs > 1000.0 / self->RequestedBroadcastingFrameRate)
-    {
-      LOG_WARNING("Recording cannot keep up with aquisition!");
-    }
+    // Compute time spent with processing one frame in this round
+    double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
 
+    // Update last processing time if new tracked frames have been aquired
+    if (trackedFrameList->GetNumberOfTrackedFrames() > 0 )
+    {
+      self->LastProcessingTimePerFrameMs = computationTimeMs / trackedFrameList->GetNumberOfTrackedFrames();
+    } 
   }
   // Close thread
   self->DataSenderThreadId = -1;
@@ -266,9 +291,9 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
       headerMsg->InitPack();
 
       // Receive generic header from the socket
-      int retValue = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-      if ( retValue == 0  // No message received
-        || retValue != headerMsg->GetPackSize() // Received data is not as we expected
+      int numOfBytesReceived = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+      if ( numOfBytesReceived == 0  // No message received
+        || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
         )
       {
         continue; 
@@ -379,7 +404,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       }
 
       int retValue = 0, numOfTries = 0; 
-      while ( retValue == 0 && numOfTries < 3 )
+      while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
       {
         retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize() ); 
         numOfTries++; 
@@ -431,14 +456,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL;
   }
 
-  int networkPort = -1; 
-  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("NetworkPort", networkPort) ) 
+  int listeningPort = -1; 
+  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("ListeningPort", listeningPort) ) 
   {
-    this->SetNetworkPort(networkPort); 
+    this->SetListeningPort(listeningPort); 
   }
   else
   {
-    LOG_ERROR("Unable to find network port for PlusOpenIGTLinkServer"); 
+    LOG_ERROR("Unable to find listening port for PlusOpenIGTLinkServer"); 
     return PLUS_FAIL; 
   }
 
