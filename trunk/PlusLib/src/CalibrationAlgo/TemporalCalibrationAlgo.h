@@ -109,6 +109,7 @@ public:
   PlusStatus GetVideoPositionSignal(vtkTable* videoPositionSignal);
   PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedTrackerPositionSignal);
   PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal);
+  PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
 
 
 private:
@@ -135,8 +136,11 @@ private:
   std::vector<double> m_TrackerPositionMetric; 
   std::vector<double> m_TrackerTimestamps; 
   
+  /*! The time-offsets used to compute the correlations */
+  std::vector<double> m_CorrIndices;
+
   /*! Resampled tracker metric used for correlation */
-  std::vector<double> m_ResampledTrackerPositionMetric; // 
+  std::vector<double> m_ResampledTrackerPositionMetric;
  
   /*! Resampled tracker time stamps used for correlation */
   std::vector<double> m_ResampledTrackerTimestamps; 
