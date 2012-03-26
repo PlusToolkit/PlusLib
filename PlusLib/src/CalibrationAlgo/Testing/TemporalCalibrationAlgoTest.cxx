@@ -175,6 +175,12 @@ int main(int argc, char **argv)
     testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
     filename=intermediateFileOutputDirectory + "\\MetricPlotCalibrated.png";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric);
+    
+    // Correlation Signal
+    vtkSmartPointer<vtkTable> correlationSignal = vtkSmartPointer<vtkTable>::New();
+    testTemporalCalibrationObject.GetCorrelationSignal(correlationSignal);
+    filename = intermediateFileOutputDirectory + "\\CorrelationSignal.png";
+    SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal);
   }
 
   return EXIT_SUCCESS;

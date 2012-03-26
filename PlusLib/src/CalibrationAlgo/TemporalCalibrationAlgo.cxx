@@ -249,6 +249,24 @@ PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* cal
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::GetCorrelationSignal(vtkTable* correlationSignal)
+{
+  ConstructTableSignal(m_CorrIndices, m_CorrValues, correlationSignal, 0); 
+
+  if(correlationSignal->GetNumberOfColumns() != 2)
+  {
+    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
+               correlationSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    return PLUS_FAIL;
+  }
+
+  correlationSignal->GetColumn(0)->SetName("Time Offset [s]");
+  correlationSignal->GetColumn(1)->SetName("Computed Correlation");
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 {
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
@@ -1102,6 +1120,7 @@ void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
   while(trackerLagIndex + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
   {
     m_CorrValues.push_back(ComputeCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
+    m_CorrIndices.push_back(m_MaxTrackerLagSec - trackerLagIndex * m_SamplingResolutionSec);
     ++trackerLagIndex;
   }
 }
@@ -1142,7 +1161,22 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
   LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics (sign convention #1)");
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   
-  // Find the index offset corresponding to the maximum correlation sum
+  //  Make a copy of the correlation values for sign convention #1
+  std::vector<double> corrValsCopy;
+  for(long int i = 0; i < m_CorrValues.size(); ++i)
+  {
+    corrValsCopy.push_back(m_CorrValues.at(i));
+  }
+
+  //  Make a copy of the correlation offsets for sign convention #1
+  std::vector<double> corrIndicesCopy;
+  for(long int i = 0; i < m_CorrIndices.size(); ++i)
+  {
+    corrIndicesCopy.push_back(m_CorrIndices.at(i));
+  }
+
+  
+  // Find the index offset corresponding to the maximum correlation sum for sign convention #1
   if(m_CorrValues.size() == 0)
   {
     LOG_ERROR("Cross-correlation result list empty");
@@ -1162,7 +1196,7 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #1)
   double trackerLagSec1 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
-  LOG_DEBUG(trackerLagSec1);
+  LOG_DEBUG("Time offset with sign convention #1: " << trackerLagSec1);
 
   //  Compute cross correlation with sign convention #2
   LOG_DEBUG("ComputeCrossCorrelationBetweenVideoAndTrackerMetrics (sign convention #2)");
@@ -1173,8 +1207,9 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     m_ResampledTrackerPositionMetric.at(i) *= -1;
   }
 
-  // clear the old correlation values
+  // clear the old correlation values and indices
   m_CorrValues.clear();
+  m_CorrIndices.clear();
 
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
 
@@ -1191,16 +1226,32 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #2)
   double trackerLagSec2 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
-  LOG_DEBUG(trackerLagSec2);
+  LOG_DEBUG("Time offset with sign convention #2: " << trackerLagSec2);
+
   if(std::abs(trackerLagSec1) < std::abs(trackerLagSec2))
   {
     m_TrackerLagSec = trackerLagSec1;
 
-    // Flip tracker metric signal back
+    // Flip tracker metric signal back to correspond to sign convention #1 
     for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
     {
       m_ResampledTrackerPositionMetric.at(i) *= -1;
     }
+
+    // Switch to correlation values back to correspond to sign convention #1 
+    m_CorrValues.clear();
+    for(long int i = 0; i < corrValsCopy.size(); ++i)
+    {
+      m_CorrValues.push_back(corrValsCopy.at(i));
+    }
+
+    // Switch to correlation indices back to correspond to sign convention #1 
+    m_CorrIndices.clear();
+    for(long int i = 0; i < corrIndicesCopy.size(); ++i)
+    {
+      m_CorrIndices.push_back(corrIndicesCopy.at(i));
+    }
+
   }
   else
   {
