@@ -6,6 +6,7 @@
 #include "vtkTransform.h"
 #include "vtkPoints.h"
 #include "vtksys/RegularExpression.hxx"
+#include "vtkXMLUtilities.h"
 
 #include "itkCastImageFilter.h"
 #include "itkImageFileWriter.h"
@@ -55,6 +56,19 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
   this->SetFiducialPointsCoordinatePx(trackedFrame.FiducialPointsCoordinatePx);
 
   return *this;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::GetTrackedFrameInXmlData( std::string& strXmlData )
+{
+  vtkSmartPointer<vtkXMLDataElement> xmlData = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  PlusStatus status = this->PrintToXML(xmlData); 
+
+  std::ostringstream os; 
+  xmlData->PrintXML( os, vtkIndent(0) ); 
+  strXmlData = os.str(); 
+
+  return status; 
 }
 
 //----------------------------------------------------------------------------
@@ -118,6 +132,78 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     segmentation->AddNestedElement(segmentedPoints); 
     trackedFrame->AddNestedElement(segmentation); 
   }
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::SetTrackedFrameFromXmlData( const char* strXmlData )
+{
+  if ( strXmlData == NULL )
+  {
+    LOG_ERROR("Failed to set TrackedFrame from xml data - input xml data string is NULL!" ); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> trackedFrame = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(strXmlData) );
+
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Failed to set TrackedFrame from xml data - invalid xml data string!"); 
+    return PLUS_FAIL; 
+  }
+  
+  // Add custom fields to tracked frame
+  for ( int i = 0; i < trackedFrame->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* nestedElement = trackedFrame->GetNestedElement(i); 
+    if ( STRCASECMP(nestedElement->GetName(), "CustomFrameField") != 0 )
+    {
+      continue; 
+    }
+
+    const char* fieldName = nestedElement->GetAttribute("Name"); 
+    if ( fieldName == NULL )
+    {
+      LOG_WARNING("Unable to find CustomFrameField Name attribute"); 
+      continue; 
+    }
+
+    const char* fieldValue = nestedElement->GetAttribute("Value"); 
+    if ( fieldValue == NULL )
+    {
+      LOG_WARNING("Unable to find CustomFrameField Value attribute"); 
+      continue; 
+    }
+  
+    this->SetCustomFrameField(fieldName, fieldValue); 
+  }
+
+  vtkXMLDataElement* segmentation = trackedFrame->FindNestedElementWithName("Segmentation"); 
+  
+  if ( segmentation != NULL )
+  {
+    this->FiducialPointsCoordinatePx = vtkSmartPointer<vtkPoints>::New(); 
+
+    vtkXMLDataElement* segmentedPoints = segmentation->FindNestedElementWithName("SegmentedPoints"); 
+    if ( segmentedPoints != NULL ) // Segmentation was successful 
+    {
+      for ( int i = 0; i < segmentedPoints->GetNumberOfNestedElements(); ++i )
+      {
+        vtkXMLDataElement* pointElement = segmentedPoints->GetNestedElement(i); 
+        if ( STRCASECMP(pointElement->GetName(), "Point") != 0 )
+        {
+          continue; 
+        }
+
+        double pos[3]={0}; 
+        if ( pointElement->GetVectorAttribute("Position", 3, pos) )
+        {
+          this->FiducialPointsCoordinatePx->InsertNextPoint(pos); 
+        }
+      }
+    }
+  }
+
   return PLUS_SUCCESS; 
 }
 

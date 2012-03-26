@@ -58,30 +58,24 @@ public:
 
     std::ostringstream ss;
     ss.precision( 2 ); 
-    if ( this->DataCollector->GetTracker()->IsTracking())
+    TrackedFrameFieldStatus status; 
+    if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
+      && status == FIELD_OK )
     {
-      TrackedFrameFieldStatus status; 
-      if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
-        && status == FIELD_OK )
-      {
-        trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
-        ss	<< std::fixed 
-          << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
-          << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
-          << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
-          << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
-      }
-      else
-      {
-        std::string strTransformName; 
-        TransformName.GetTransformName(strTransformName); 
-        ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
-      }
+      trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
+      ss	<< std::fixed 
+        << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
+        << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
+        << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
+        << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
     }
     else
     {
-      ss << "No tracker connected...";		
+      std::string strTransformName; 
+      TransformName.GetTransformName(strTransformName); 
+      ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
     }
+
 
     this->StepperTextActor->SetInput(ss.str().c_str());
     this->StepperTextActor->Modified(); 

@@ -126,11 +126,20 @@ public:
   /*! Print tracked frame human readable serialization data to XML data */ 
   PlusStatus PrintToXML(vtkXMLDataElement* xmlData); 
 
+  /*! Serialize Tracked frame human readable data to xml data and return in string */ 
+  PlusStatus GetTrackedFrameInXmlData( std::string& strXmlData ); 
+
+  /*! Deserialize TrackedFrame human readable data from xml data string */
+  PlusStatus SetTrackedFrameFromXmlData( const char* strXmlData ); 
+
   /*! Convert from field status string to field status enum */
   static TrackedFrameFieldStatus ConvertFieldStatusFromString(const char* statusStr);
 
   /*! Convert from field status enum to field status string */
   static std::string ConvertFieldStatusToString(TrackedFrameFieldStatus status);
+
+  /*! Return all custom fields in a map */ 
+  FieldMapType GetCustomFields() { return this->CustomFrameFields; }
 
 public:
   bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
