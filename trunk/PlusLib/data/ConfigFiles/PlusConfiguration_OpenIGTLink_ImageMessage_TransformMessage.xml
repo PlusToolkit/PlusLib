@@ -2,45 +2,19 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="OpenIGTLink"
-      Description="OpenIGTLink test configuration" 
+      Name="OpenIGTLink TRANSFORM and IMAGE message connection"
+      Description="OpenIGTLink configuration file for TRANSFORM and IMAGE messages + fCal 1.2" 
     />
-
-    <Tracker Type="OpenIGTLinkTracker" BufferSize="500" Frequency="30" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" ServerAddress="127.0.0.1" ServerPort="3000" >
+	
+    <Tracker Type="OpenIGTLinkTracker"  MessageType="TRANSFORM" ServerAddress="127.0.0.1" ServerPort="18944"
+	  BufferSize="500" Frequency="30" LocalTimeOffset="0.0" AveragedItemsForFiltering="20"  >
       <Tool Name="Probe" PortName="0" />
       <Tool Name="Reference" PortName="1" />
     </Tracker>
 
-    <ImageAcquisition
-      Type="OpenIGTLinkVideo" 
-	  ServerAddress="127.0.0.1" 
-	  ServerPort="3000"
-      BufferSize="500" 
-      UsImageOrientation="MF"
-      FrameRate="30" 
-      AveragedItemsForFiltering="20" 
-      LocalTimeOffset="-0.2976"
+    <ImageAcquisition Type="OpenIGTLinkVideo" MessageType="IMAGE" ServerAddress="127.0.0.1" ServerPort="18944"
+      BufferSize="500" UsImageOrientation="MF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0"
     />
-
-    <Synchronization
-      Type="ChangeDetection" 
-      SynchronizationTimeLength="30" 
-      MinNumOfSyncSteps="5" 
-      ThresholdMultiplier="5"
-
-      NumberOfAveragedTransforms="20" 
-      MinTransformThreshold="2.0" 
-      MaxTransformDifference="2.0" 
-
-      NumberOfAveragedFrames="6" 
-      MinFrameThreshold="200.0" 
-      MaxFrameDifference="10.0" 
-    />
-
-    <OpenIGTLink>
-      <Transform Name="ProbeToReference" SendTo="localhost:18944" />
-      <Image SendTo="localhost:18944" />
-    </OpenIGTLink>
   </DataCollection>
 
 

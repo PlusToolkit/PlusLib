@@ -21,6 +21,7 @@ See License.txt for details.
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
 #include "igtlPlusClientInfoMessage.h"
+#include "igtlPlusTrackedFrameMessage.h"
 
 
 //----------------------------------------------------------------------------
@@ -36,6 +37,7 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   IgtlMessageTypes["TRANSFORM"]=(PointerToMessageBase)&igtl::TransformMessage::New; 
   IgtlMessageTypes["POSITION"]=(PointerToMessageBase)&igtl::PositionMessage::New; 
   IgtlMessageTypes["CLIENTINFO"]=(PointerToMessageBase)&igtl::PlusClientInfoMessage::New; 
+  IgtlMessageTypes["TRACKEDFRAME"]=(PointerToMessageBase)&igtl::PlusTrackedFrameMessage::New; 
 }
 
 //----------------------------------------------------------------------------
@@ -168,6 +170,18 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
         vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(positionMessage.GetPointer()) ); 
       }
+    }
+    // TRACKEDFRAME message
+    else if ( dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()) != NULL )
+    {
+      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()); 
+      if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message"); 
+        numberOfErrors++; 
+        continue;
+      }
+      igtlMessages.push_back(igtlMessage); 
     }
     else
     {

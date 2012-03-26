@@ -27,6 +27,7 @@ Authors include: Siddharth Vikal (Queen's University),
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
 #include "vtkMultiThreader.h"
+#include "TrackedFrame.h" 
 
 #include <ctype.h>
 
@@ -298,7 +299,10 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 	std::ostringstream motorAngle;
 	motorAngle << currentMotorAngle;
 
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, "MotorAngle", motorAngle.str().c_str()); 
+  TrackedFrame::FieldMapType customFields; 
+  customFields["MotorAngle"] = motorAngle.str(); 
+
+  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
   return status;
   // this->FrameBufferMutex->Unlock();

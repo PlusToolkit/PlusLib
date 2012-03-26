@@ -43,6 +43,11 @@ public:
   /*! Read configuration from xml data */
 	PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
 	
+  /*! Set OpenIGTLink message type */ 
+  vtkSetStringMacro(MessageType); 
+  /*! Get OpenIGTLink message type */ 
+  vtkGetStringMacro(MessageType); 
+
   /*! Set OpenIGTLink server address */ 
   vtkSetStringMacro(ServerAddress); 
   /*! Get OpenIGTLink server address */ 
@@ -66,6 +71,9 @@ protected:
 
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
 	PlusStatus InternalStopTracking();
+
+  /*! OpenIGTLink message type */
+  char* MessageType; 
 
   /*! OpenIGTLink server address */ 
   char* ServerAddress; 

@@ -17,6 +17,7 @@ See License.txt for details.
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
+#include "igtlPlusTrackedFrameMessage.h"
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
@@ -38,6 +39,12 @@ public:
   vtkTypeRevisionMacro(vtkPlusIgtlMessageCommon,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
+  /*! Pack tracked frame message from tracked frame */ 
+  static PlusStatus PackTrackedFrameMessage( igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, TrackedFrame& trackedFrame); 
+
+  /*! Unpack tracked frame message to tracked frame */ 
+  static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame); 
+
   /*! Pack image message from tracked frame */ 
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix ); 
 
@@ -45,7 +52,7 @@ public:
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
     igtl::Matrix4x4& igtlMatrix, double timestamp ); 
 
-  /*! Unpack transform message to tracked frame */ 
+  /*! Unpack transform message */ 
   static PlusStatus UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, 
     vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp ); 
 
@@ -53,7 +60,7 @@ public:
   static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName, 
     igtl::Matrix4x4& igtlMatrix, double timestamp ); 
 
-  /*! Unpack position message to tracked frame */ 
+  /*! Unpack position message */ 
   static PlusStatus UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
     float position[3], std::string& positionName, double& timestamp );
 

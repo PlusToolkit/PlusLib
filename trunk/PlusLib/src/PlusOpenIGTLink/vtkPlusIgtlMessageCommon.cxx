@@ -74,6 +74,58 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, 
 
 //----------------------------------------------------------------------------
 // static 
+PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, TrackedFrame& trackedFrame )
+{
+  if ( trackedFrameMessage.IsNull() )
+  {
+    LOG_ERROR("Failed to pack tracked frame message - input tracked frame message is NULL"); ;
+    return PLUS_FAIL; 
+  }
+
+  trackedFrameMessage->SetTrackedFrame(trackedFrame); 
+  trackedFrameMessage->Pack(); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+// static 
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+{
+  if ( headerMsg.IsNull() )
+  {
+    LOG_ERROR("Unable to unpack tracked frame message - header message is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( socket == NULL ) 
+  {
+    LOG_ERROR("Unable to unpack tracked frame message - socket is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  igtl::PlusTrackedFrameMessage::Pointer trackedFrameMsg = igtl::PlusTrackedFrameMessage::New();
+  trackedFrameMsg->SetMessageHeader(headerMsg);
+  trackedFrameMsg->AllocatePack();
+
+  socket->Receive(trackedFrameMsg->GetPackBodyPointer(), trackedFrameMsg->GetPackBodySize());
+
+  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
+  int c = trackedFrameMsg->Unpack(0);
+  if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
+  {
+    LOG_ERROR("Couldn't receive tracked frame message from server!"); 
+    return PLUS_FAIL; 
+  }
+
+  // if CRC check is OK. get tracked frame data.
+  trackedFrame = trackedFrameMsg->GetTrackedFrame(); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+// static 
 PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix )
 {
   if ( imageMessage.IsNull() )

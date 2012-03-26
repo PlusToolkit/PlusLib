@@ -185,7 +185,7 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::I
 PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
   const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long frameNumber,  
   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-  const char* customFrameFieldName/*=NULL*/, const char* customFrameFieldValue/*=NULL*/)
+  TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
@@ -263,25 +263,21 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
   
-  // Add a custom field
-  if (customFrameFieldName!=NULL && customFrameFieldValue!=NULL)
+  // Add custom fields
+  if ( customFields != NULL )
   {
-		newObjectInBuffer->SetCustomFrameField(customFrameFieldName, customFrameFieldValue);
-  }
-  else if (customFrameFieldName!=NULL && customFrameFieldValue==NULL)
-  {
-    LOG_WARNING("Custom field is not added to frame: customFrameFieldName is "<<customFrameFieldName<<", but customFrameFieldValue is undefined");
-  }
-  else if (customFrameFieldName==NULL && customFrameFieldValue!=NULL)
-  {
-    LOG_WARNING("Custom field is not added to frame: customFrameFieldValue is "<<customFrameFieldValue<<", but customFrameFieldName is undefined");
+    for ( TrackedFrame::FieldMapType::iterator it = customFields->begin(); it != customFields->end(); ++it )
+    {
+      newObjectInBuffer->SetCustomFrameField( it->first, it->second ); 
+    }
   }
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -319,11 +315,12 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
   PlusCommon::ITKScalarPixelType pixelType=PlusVideoFrame::GetITKScalarPixelType(frame->GetScalarType());
-  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, pixelType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp); 
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, pixelType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -355,7 +352,7 @@ PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTA
   int frameSize[2]={0,0};
   frame->GetFrameSize(frameSize);    
 
-  return this->AddItem(pixelBufferPointer, usImageOrientation, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
+  return this->AddItem(pixelBufferPointer, usImageOrientation, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
 }
 
 //----------------------------------------------------------------------------

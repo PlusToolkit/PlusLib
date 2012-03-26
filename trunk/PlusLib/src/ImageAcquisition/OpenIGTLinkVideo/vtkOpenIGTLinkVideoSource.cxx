@@ -15,6 +15,7 @@ See License.txt for details.
 #include "igtlMessageHeader.h"
 #include "igtlImageMessage.h"
 #include "igtlPlusClientInfoMessage.h"
+#include "vtkPlusIgtlMessageCommon.h"
 
 #include <vector>
 #include <string>
@@ -44,6 +45,7 @@ vtkOpenIGTLinkVideoSourceCleanup::~vtkOpenIGTLinkVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
 {
+  this->MessageType = NULL; 
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
   this->ClientSocket = igtl::ClientSocket::New(); 
@@ -135,6 +137,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     return PLUS_SUCCESS; 
   }
 
+  if ( this->MessageType == NULL )
+  {
+    LOG_ERROR("Unable to connect OpenIGTLink server - message type is undefined" ); 
+    return PLUS_FAIL; 
+  }
+
   if ( this->ServerAddress == NULL )
   {
     LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
@@ -164,8 +172,8 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
 
   // Send clinet info request to the server
   PlusIgtlClientInfo clientInfo; 
-  // We need IMAGE message type
-  clientInfo.IgtlMessageTypes.push_back("IMAGE"); 
+  // Set message type
+  clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
   
   // Pack client info message 
   igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
@@ -289,10 +297,42 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     return status;
 
   }
- 
-  // if the data type is unknown, skip reading. 
-  this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
-  return PLUS_SUCCESS;  
+  else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
+  {
+    TrackedFrame trackedFrame; 
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
+      return PLUS_FAIL; 
+    }
+
+    // Set unfiltered and filtered timestamp
+    double unfilteredTimestamp = trackedFrame.GetTimestamp();  
+    double filteredTimestamp = trackedFrame.GetTimestamp();  
+
+    // The timestamps are already defined, so we don't need to filter them, 
+    // for simplicity, we increase frame number always by 1.
+    this->FrameNumber++;
+   
+    // If the buffer is empty, set the pixel type and frame size to the first received properties 
+    if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+    {
+      this->GetBuffer()->SetPixelType(trackedFrame.GetImageData()->GetITKScalarPixelType() );  
+      this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
+    }
+
+    PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->GetUsImageOrientation(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &trackedFrame.GetCustomFields()); 
+    this->Modified();
+    return status;
+  }
+  else
+  {
+    // if the data type is unknown, skip reading. 
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
+  }
+
+  return PLUS_SUCCESS; 
 }
 
 
@@ -320,6 +360,17 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
+  }
+
+  const char* messageType = imageAcquisitionConfig->GetAttribute("MessageType"); 
+  if ( messageType != NULL )
+  {
+    this->SetMessageType(messageType); 
+  }
+  else
+  {
+    LOG_ERROR("Unable to find MessageType attribute!"); 
+    return PLUS_FAIL; 
   }
 
   const char* serverAddress = imageAcquisitionConfig->GetAttribute("ServerAddress"); 

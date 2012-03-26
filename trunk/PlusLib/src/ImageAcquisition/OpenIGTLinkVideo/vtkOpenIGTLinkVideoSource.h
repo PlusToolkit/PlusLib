@@ -72,6 +72,11 @@ public:
   /*! Read/write main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
+  /*! Set OpenIGTLink message type */ 
+  vtkSetStringMacro(MessageType); 
+  /*! Get OpenIGTLink message type */ 
+  vtkGetStringMacro(MessageType); 
+
  /*! Set OpenIGTLink server address */ 
   vtkSetStringMacro(ServerAddress); 
   /*! Get OpenIGTLink server address */ 
@@ -102,6 +107,9 @@ protected:
 
   /*! The internal function which actually does the grab.  */
 	PlusStatus InternalGrab();
+
+  /*! OpenIGTLink message type */
+  char* MessageType; 
 
   /*! OpenIGTLink server address */ 
   char* ServerAddress; 

@@ -32,6 +32,7 @@ vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 {
+  this->MessageType = NULL; 
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
   this->NumberOfRetryAttempts = 3; 
@@ -71,6 +72,12 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     return PLUS_SUCCESS; 
   }
 
+  if ( this->MessageType == NULL )
+  {
+    LOG_ERROR("Unable to connect OpenIGTLink server - message type is undefined" ); 
+    return PLUS_FAIL; 
+  }
+
   if ( this->ServerAddress == NULL )
   {
     LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
@@ -100,8 +107,8 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
 
   // Send clinet info request to the server
   PlusIgtlClientInfo clientInfo; 
-  // We need TRANSFORM message type
-  clientInfo.IgtlMessageTypes.push_back("TRANSFORM"); 
+  // Set message type
+  clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
 
   // We need the following tool names from the server 
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
@@ -293,6 +300,17 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
 		return PLUS_FAIL;
+  }
+
+  const char* messageType = trackerConfig->GetAttribute("MessageType"); 
+  if ( messageType != NULL )
+  {
+    this->SetMessageType(messageType); 
+  }
+  else
+  {
+    LOG_ERROR("Unable to find MessageType attribute!"); 
+    return PLUS_FAIL; 
   }
 
   const char* serverAddress = trackerConfig->GetAttribute("ServerAddress"); 

@@ -25,11 +25,11 @@ class IGTLCommon_EXPORT PlusClientInfoMessage: public StringMessage
 {
 public:
   typedef PlusClientInfoMessage                 Self;
-  typedef MessageBase                    Superclass;
+  typedef StringMessage                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro( igtl::PlusClientInfoMessage, igtl::MessageBase );
+  igtlTypeMacro( igtl::PlusClientInfoMessage, igtl::StringMessage );
   igtlNewMacro( igtl::PlusClientInfoMessage );
 
 public:
