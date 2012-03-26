@@ -32,6 +32,7 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkRenderer.h> 
 #include <vtkPNGWriter.h>
+#include <vtkAxis.h>
 
 #include <itkHoughTransform2DLinesImageFilter.h>
 #include <itkImageFileWriter.h>

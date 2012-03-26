@@ -20,7 +20,8 @@ See License.txt for details.
 #include "TemporalCalibrationAlgo.h"
 
 //----------------------------------------------------------------------------
-void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTable* trackerPositionMetric)
+void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTable* trackerPositionMetric, std::string &xAxisLabel,
+                    std::string &yAxisLabel)
 {
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
@@ -39,7 +40,9 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   trackerMetricLine->SetColor(0,1,0);
   trackerMetricLine->SetWidth(1.0);
   chart->SetShowLegend(true);
-
+  chart->GetAxis(vtkAxis::LEFT)->SetTitle(yAxisLabel.c_str());
+  chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(xAxisLabel.c_str());
+  
   // Render plot and save it to file
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(view->GetRenderer());
@@ -168,19 +171,24 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkTable> uncalibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal(uncalibratedTrackerPositionMetric);
     std::string filename=intermediateFileOutputDirectory + "\\MetricPlotUncalibrated.png";
-    SaveMetricPlot(filename.c_str(), videoPositionMetric, uncalibratedTrackerPositionMetric);
+
+    std::string xLabel = "Time [s]";
+    std::string yLabel = "Position Metric";
+    SaveMetricPlot(filename.c_str(), videoPositionMetric, uncalibratedTrackerPositionMetric, xLabel, yLabel);
   
     // Calibrated
     vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
     filename=intermediateFileOutputDirectory + "\\MetricPlotCalibrated.png";
-    SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric);
+    SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric,  xLabel, yLabel);
     
     // Correlation Signal
     vtkSmartPointer<vtkTable> correlationSignal = vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCorrelationSignal(correlationSignal);
     filename = intermediateFileOutputDirectory + "\\CorrelationSignal.png";
-    SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal);
+    xLabel = "Tracker Offset [s]"; 
+    yLabel = "Correlation Value";
+    SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);  
   }
 
   return EXIT_SUCCESS;
