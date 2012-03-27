@@ -105,7 +105,7 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
   // If ImageAcquisition and Tracker elements are present then create vtkDataCollectorHardwareDevice
   vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
   vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if (imageAcquisitionConfig && trackerConfig)
+  if (imageAcquisitionConfig || trackerConfig)
   {
     // First try to create the object from the vtkObjectFactory
     vtkObject* dataCollector = vtkObjectFactory::CreateInstance("vtkDataCollectorHardwareDevice");

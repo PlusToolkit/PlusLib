@@ -137,12 +137,6 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     return PLUS_SUCCESS; 
   }
 
-  if ( this->MessageType == NULL )
-  {
-    LOG_ERROR("Unable to connect OpenIGTLink server - message type is undefined" ); 
-    return PLUS_FAIL; 
-  }
-
   if ( this->ServerAddress == NULL )
   {
     LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
@@ -170,30 +164,33 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
   // Clear buffer on connect 
   this->GetBuffer()->Clear(); 
 
-  // Send clinet info request to the server
-  PlusIgtlClientInfo clientInfo; 
-  // Set message type
-  clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
-  
-  // Pack client info message 
-  igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
-  clientInfoMsg->SetClientInfo(clientInfo); 
-  clientInfoMsg->Pack(); 
-
-  // Send message to server 
-  int retValue = 0, numOfTries = 0; 
-  while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
+  // If we specified message type, try to send it to the server
+  if ( this->MessageType )
   {
-    retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
-    numOfTries++; 
-  }
+    // Send clinet info request to the server
+    PlusIgtlClientInfo clientInfo; 
+    // Set message type
+    clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
 
-  if ( retValue == 0 )
-  {
-    LOG_ERROR("Failed to send PlusClientInfo message to server!"); 
-    return PLUS_FAIL; 
-  }
+    // Pack client info message 
+    igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
+    clientInfoMsg->SetClientInfo(clientInfo); 
+    clientInfoMsg->Pack(); 
 
+    // Send message to server 
+    int retValue = 0, numOfTries = 0; 
+    while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
+    {
+      retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
+      numOfTries++; 
+    }
+
+    if ( retValue == 0 )
+    {
+      LOG_ERROR("Failed to send PlusClientInfo message to server!"); 
+      return PLUS_FAIL; 
+    }
+  }
   return PLUS_SUCCESS; 
 }
 
@@ -366,11 +363,6 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   if ( messageType != NULL )
   {
     this->SetMessageType(messageType); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find MessageType attribute!"); 
-    return PLUS_FAIL; 
   }
 
   const char* serverAddress = imageAcquisitionConfig->GetAttribute("ServerAddress"); 

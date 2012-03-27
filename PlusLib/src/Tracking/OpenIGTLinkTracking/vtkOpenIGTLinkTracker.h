@@ -69,7 +69,7 @@ protected:
   */
 	PlusStatus InternalStartTracking();
 
-	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
+	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
 	PlusStatus InternalStopTracking();
 
   /*! OpenIGTLink message type */
