@@ -116,8 +116,7 @@ IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkPlusOpenIGTLinkServerTest
     ${EXECUTABLE_OUTPUT_PATH}/vtkPlusOpenIGTLinkServerTest
     --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
-    --port=18944
-	--run-time=5
+	--running-time=5
     )
   SET_TESTS_PROPERTIES( vtkPlusOpenIGTLinkServerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
