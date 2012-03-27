@@ -44,7 +44,6 @@ int main( int argc, char** argv )
   std::string  inputConfigFileName;
   std::string  inputVideoBufferMetafile;
   std::string  inputTrackerBufferMetafile;
-  int          port = 0;
   int          verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   double       runTime = 60; 
 
@@ -52,8 +51,7 @@ int main( int argc, char** argv )
   args.Initialize( argc, argv );
 
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&port, "Port number for OpenIGTLink communication." );
-  args.AddArgument( "--run-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server run time period in seconds (Default 60sec)" );
+  args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds (Default 60sec)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
 
   if ( ! args.Parse() )
@@ -73,31 +71,51 @@ int main( int argc, char** argv )
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    return 1;
+    exit(EXIT_FAILURE);
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
-  dataCollector->ReadConfiguration( configRootElement );
+  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to read configuration!"); 
+    exit(EXIT_FAILURE);
+  }
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  transformRepository->ReadConfiguration( configRootElement ); 
-  
-  
+  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform repository failed to read configuration!"); 
+    exit(EXIT_FAILURE);
+  }
+    
   LOG_DEBUG( "Initializing data collector... " );
-  dataCollector->Connect();
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to connect to devices!"); 
+    exit(EXIT_FAILURE);
+  }
 
-  dataCollector->Start(); 
+  if ( dataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to start!"); 
+    exit(EXIT_FAILURE);
+  }
 
   // Create a server.
 
   LOG_DEBUG( "Initializing server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
   server->SetDataCollector( dataCollector );
+  if ( server->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration!"); 
+    exit(EXIT_FAILURE);
+  }
+
   server->SetTransformRepository( transformRepository ); 
-  server->SetListeningPort( port );
   server->Start();
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 

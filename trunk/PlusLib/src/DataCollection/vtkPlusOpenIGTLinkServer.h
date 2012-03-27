@@ -42,11 +42,6 @@ public:
   vtkSetMacro( ListeningPort, int );
   /*! Get server listening port */ 
   vtkGetMacro( ListeningPort, int );
-
-  /*! Set requested frame rate to broadcast data to clients */ 
-  vtkSetMacro( RequestedBroadcastingFrameRate, double );
-  /*! Get requested frame rate to broadcast data to clients */ 
-  vtkGetMacro( RequestedBroadcastingFrameRate, double );
   
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
@@ -124,9 +119,6 @@ private:
 
   /*! Time needed to process one frame in the latest recording round (in milliseconds) */
   int LastProcessingTimePerFrameMs; 
-
-  /*! Requested frame rate to broadcast data to clients */ 
-  double RequestedBroadcastingFrameRate; 
 
   /*! 
   Default IGT message types used for sending data to clients. 

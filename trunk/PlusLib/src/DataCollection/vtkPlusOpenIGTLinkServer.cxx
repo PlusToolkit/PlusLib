@@ -33,7 +33,6 @@ vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 {
   this->ListeningPort = -1;
-  this->RequestedBroadcastingFrameRate = 10.0; // fps 
   this->LastSentTrackedFrameTimestamp = 0; 
   this->NumberOfRetryAttempts = 3; 
 
@@ -95,6 +94,35 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
   {
     this->DataReceiverActive.first = true; 
     this->DataReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&DataReceiverThread, this );
+  }
+
+  if ( !this->DefaultIgtlMessageTypes.empty() )
+  {
+    std::ostringstream messageTypes;
+    for ( int i = 0; i < this->DefaultIgtlMessageTypes.size(); ++i )
+    {
+      messageTypes << this->DefaultIgtlMessageTypes[i] << " "; 
+    }
+    LOG_INFO("Server default message types to send: " << messageTypes.str() ); 
+  }
+
+  if ( !this->DefaultTransformNames.empty() )
+  {
+    std::ostringstream transformNames;
+    for ( int i = 0; i < this->DefaultTransformNames.size(); ++i )
+    {
+      std::string tn; 
+      this->DefaultTransformNames[i].GetTransformName(tn); 
+      transformNames << tn << " "; 
+    }
+    LOG_INFO("Server default transform names to send: " << transformNames.str() ); 
+  }
+
+  if ( this->DefaultImageTransformName.IsValid() )
+  {
+    std::string tn; 
+    this->DefaultImageTransformName.GetTransformName(tn);
+    LOG_INFO("Server default image transform name to send: " << tn ); 
   }
 
   return PLUS_SUCCESS;
@@ -465,12 +493,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     LOG_ERROR("Unable to find listening port for PlusOpenIGTLinkServer"); 
     return PLUS_FAIL; 
-  }
-
-  double requestedBroadcastingFrameRate = -1; 
-  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("RequestedBroadcastingFrameRate", requestedBroadcastingFrameRate) ) 
-  {
-    this->SetRequestedBroadcastingFrameRate(requestedBroadcastingFrameRate); 
   }
 
   vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
