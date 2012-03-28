@@ -192,6 +192,8 @@ private:
   void ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
   double ComputeCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
+  double ComputeSsdForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, 
+                                    int indexOffset);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
