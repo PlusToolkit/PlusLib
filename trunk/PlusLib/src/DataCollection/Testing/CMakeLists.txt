@@ -102,7 +102,7 @@ TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommo
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
+    --input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkBroadcasterTest.xml
     )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
