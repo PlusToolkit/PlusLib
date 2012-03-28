@@ -22,7 +22,6 @@ static const double DEFAULT_MAX_TRACKER_LAG_SEC = 2;
 static const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME = "ProbeToReference";
 static const double IMAGE_DOWSAMPLING_FACTOR_X = 4; // new resolution_x = old resolution_x/ IMAGE_DOWSAMPLING_FACTOR_X
 static const double IMAGE_DOWSAMPLING_FACTOR_Y = 4; // new resolution_y = old resolution_y/ IMAGE_DOWSAMPLING_FACTOR_Y
-static const bool USE_COG_AS_PEAK_METRIC = true; // use the COG as peak-position metric (rather than peak-start)
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
@@ -38,8 +37,14 @@ enum PEAK_POS_METRIC_TYPES
   PEAK_POS_COG,
   PEAK_POS_START
 };
-
 const bool PEAK_POS_METRIC = PEAK_POS_COG;
+
+enum SIGNAL_ALIGNMENT_METRIC_TYPES
+{
+  SSD,
+  CORRELATION
+};
+const bool SIGNAL_ALIGNMENT_METRIC = SSD;
 
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
@@ -1119,7 +1124,22 @@ void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
   int trackerLagIndex = 0;
   while(trackerLagIndex + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
   {
-    m_CorrValues.push_back(ComputeCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
+    switch (SIGNAL_ALIGNMENT_METRIC)
+    {
+    case SSD:
+      {
+        // Use sum of squared differences as signal alignment metric
+        m_CorrValues.push_back(ComputeSsdForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
+        break;
+      }
+    case CORRELATION:
+      {
+        // Use correlation as signal alignment metric
+        m_CorrValues.push_back(ComputeCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, m_ResampledVideoPositionMetric, trackerLagIndex));
+        break;
+      }
+    }
+
     m_CorrIndices.push_back(m_MaxTrackerLagSec - trackerLagIndex * m_SamplingResolutionSec);
     ++trackerLagIndex;
   }
@@ -1132,6 +1152,18 @@ double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(const std::vec
   for(long int i = 0; i < metricA.size(); ++i)
   {
     multipliedSignalSum += metricA.at(i) * metricB.at(i + indexOffset);
+  }
+  return multipliedSignalSum;
+}
+
+//-----------------------------------------------------------------------------
+double TemporalCalibration::ComputeSsdForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
+{
+  double multipliedSignalSum = 0;
+  for(long int i = 0; i < metricA.size(); ++i)
+  {
+    double diff = metricA.at(i) - metricB.at(i + indexOffset); //SSD
+    multipliedSignalSum -= diff*diff;
   }
   return multipliedSignalSum;
 }
