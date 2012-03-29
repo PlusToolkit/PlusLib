@@ -6,12 +6,15 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 #include "vtkSonixVolumeReader.h"
 #include "vtkImageDifference.h"
 #include "vtkSmartPointer.h"
 #include "vtkImageExtractComponents.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
+#include "vtkTrackedFrameList.h" 
+#include "TrackedFrame.h" 
 #include <stdlib.h>
 #include <iostream>
 
@@ -21,6 +24,7 @@ int main (int argc, char* argv[])
 	std::string inputFileName;
 	std::string inputBaselineName;
 	int inputFrameNumber(-1); 
+  std::string outputFileName; 
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -29,6 +33,7 @@ int main (int argc, char* argv[])
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--input-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
+  args.AddArgument("--output-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Sequence meta file name to save (save only if defined)" );
 	args.AddArgument("--input-frame-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFrameNumber, "The frame number to compare with baseline." );
 	args.AddArgument("--input-baseline-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineName, "The file name of the baseline image." );
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
@@ -49,32 +54,52 @@ int main (int argc, char* argv[])
 
 	}
 
-	if ( inputFileName.empty() || inputBaselineName.empty() ||  inputFrameNumber < 0 )
+	if ( inputFileName.empty() )
 	{
-		LOG_ERROR("The input-file-name, the input-frame-number and the input-baseline-name parameters are required!");
+		LOG_ERROR("The input-file-name  parameter is required!");
 		exit(EXIT_FAILURE); 
 	}
 
 
-	vtkSonixVolumeReader * sonixVolumeReader = vtkSonixVolumeReader::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+
+  if ( vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(inputFileName.c_str(), sonixVolumeData ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to generate tracked frame from sonix volume: " << inputFileName ); 
+    exit(EXIT_FAILURE); 
+  }
+
+  if ( !outputFileName.empty() )
+  {
+	  std::string path = vtksys::SystemTools::GetFilenamePath(outputFileName);
+    if ( path.empty() )
+    {
+      path = vtkPlusConfig::GetInstance()->GetOutputDirectory(); 
+    }
+	  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(outputFileName); 
+	  std::string extension = vtksys::SystemTools::GetFilenameExtension(outputFileName); 
+
+	  vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
+	  if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
+	  {
+		  ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
+	  }
+
+    LOG_INFO("Save tracked frames to " << path << filename << extension ); 
+    if ( sonixVolumeData->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false /*no compression*/) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save sonix volume to " << path << filename << extension ); 
+    }
+  }
 	
-	if ( sonixVolumeReader->ReadVolume(inputFileName.c_str() ) < 0 ) 
-	{
-		LOG_ERROR("Unable to read volume"); 
-		return EXIT_FAILURE; 
-	}
-
-	vtkstd::vector<vtkImageData*>* imageDataVector = sonixVolumeReader->GetAllFrames(); 
-
 	vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New(); 
 	
   PlusVideoFrame baselineVideoFrame; 
   if ( PlusVideoFrame::ReadImageFromFile(baselineVideoFrame, inputBaselineName.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read baseline image from file: " << inputBaselineName ); 
-    return EXIT_FAILURE; 
+    exit(EXIT_FAILURE); 
   }
-
 
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorBase =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
   imageExtractorBase->SetInput(baselineVideoFrame.GetVtkImage()); 
@@ -85,8 +110,24 @@ int main (int argc, char* argv[])
   baselineRGB->DeepCopy(imageExtractorBase->GetOutput()); 
   baselineRGB->Update();
 
+  if ( sonixVolumeData->GetNumberOfTrackedFrames() < inputFrameNumber )
+  {
+    LOG_ERROR("Unable to get tracked frame from list, frame number (" << inputFrameNumber 
+      << ") is larger than tracked frame list size (" << sonixVolumeData->GetNumberOfTrackedFrames() << ")!"); 
+    exit(EXIT_FAILURE); 
+  }
+
+  PlusVideoFrame* videoFrame = sonixVolumeData->GetTrackedFrame(inputFrameNumber)->GetImageData(); 
+
+  if ( !videoFrame->IsImageValid() )
+  {
+    LOG_ERROR("Video frame is not valid!"); 
+    exit(EXIT_FAILURE); 
+  }
+
+
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorInput =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-  imageExtractorInput->SetInput(imageDataVector->at(inputFrameNumber)); 
+  imageExtractorInput->SetInput(videoFrame->GetVtkImage() ); 
   imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorInput->Update(); 
 	vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
@@ -102,11 +143,8 @@ int main (int argc, char* argv[])
 	if ( error > 0 )
 	{
 		std::cout << "Error = " << error << std::endl; 
-		sonixVolumeReader->Delete(); 
 		return EXIT_FAILURE; 
 	}
-
-	sonixVolumeReader->Delete(); 
 
 	return EXIT_SUCCESS; 
 }
