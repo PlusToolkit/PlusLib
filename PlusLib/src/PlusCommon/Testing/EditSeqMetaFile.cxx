@@ -74,6 +74,7 @@ int main(int argc, char **argv)
   std::string strOperation; 
   OperationType operation; 
   bool useCompression = false; 
+  bool incrementTimestamps = false; 
 
   int firstFrameIndex = -1; // First frame index used for trimming the sequence metafile.
   int lastFrameIndex = -1; // Last frame index used for trimming the sequence metafile.
@@ -123,6 +124,7 @@ int main(int argc, char **argv)
   args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");	
  
   args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");	
+  args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");	
 
   if ( !args.Parse() )
   {
@@ -232,6 +234,7 @@ int main(int argc, char **argv)
     inputFileNames.insert(inputFileNames.begin(), inputFileName); 
   }
 
+  double lastTimestamp = 0; 
   for ( int i = 0; i < inputFileNames.size(); i++ )
   {
     vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
@@ -244,6 +247,18 @@ int main(int argc, char **argv)
       LOG_ERROR("Couldn't read sequence metafile: " <<  inputFileName ); 
       return EXIT_FAILURE;
     }	
+
+    if ( incrementTimestamps )
+    {
+      vtkTrackedFrameList * tfList = reader->GetTrackedFrameList(); 
+      for ( int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f )
+      {
+        TrackedFrame * tf = tfList->GetTrackedFrame(f); 
+        tf->SetTimestamp( lastTimestamp + tf->GetTimestamp() ); 
+      }
+
+      lastTimestamp = tfList->GetTrackedFrame(tfList->GetNumberOfTrackedFrames() - 1 )->GetTimestamp();
+    }
 
     if ( trackedFrameList->AddTrackedFrameList(reader->GetTrackedFrameList()) != PLUS_SUCCESS )
     {
