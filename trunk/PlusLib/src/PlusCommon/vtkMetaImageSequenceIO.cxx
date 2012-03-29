@@ -88,18 +88,6 @@ PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const c
     return PLUS_FAIL;
   }
   trackedFrame->SetCustomFrameField( fieldName, fieldValue );     
- 
-  if ( STRCASECMP(fieldName, "Timestamp") == 0 )
-  {
-    double timestamp(0); 
-    if ( PlusCommon::StringToDouble(fieldValue, timestamp) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to convert Timestamp '"<< fieldValue << "' to double"); 
-      return PLUS_FAIL;
-    }
-    trackedFrame->SetTimestamp(timestamp);
-  }
-
   return PLUS_SUCCESS; 
 }
 

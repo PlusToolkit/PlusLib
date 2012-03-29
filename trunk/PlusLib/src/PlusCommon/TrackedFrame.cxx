@@ -232,6 +232,15 @@ void TrackedFrame::SetImageData(const PlusVideoFrame &value)
 }
 
 //----------------------------------------------------------------------------
+void TrackedFrame::SetTimestamp(double value) 
+{ 
+  this->Timestamp = value; 
+  std::ostringstream strTimestamp; 
+  strTimestamp << this->Timestamp; 
+  this->CustomFrameFields["Timestamp"]=strTimestamp.str();
+}
+
+//----------------------------------------------------------------------------
 int TrackedFrame::GetNumberOfBitsPerPixel()
 {
   int numberOfBitsPerPixel(0); 
@@ -262,6 +271,19 @@ void TrackedFrame::SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints)
 //----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameField( std::string name, std::string value )
 {
+  if ( STRCASECMP(name.c_str(), "Timestamp") == 0 )
+  {
+    double timestamp(0); 
+    if ( PlusCommon::StringToDouble(value.c_str(), timestamp) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to convert Timestamp '"<< value << "' to double"); 
+    }
+    else
+    {
+      this->Timestamp = timestamp; 
+    }
+  }
+
   this->CustomFrameFields[name]=value;
 }
 
