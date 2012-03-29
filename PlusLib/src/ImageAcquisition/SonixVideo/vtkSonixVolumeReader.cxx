@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "vtkSonixVolumeReader.h"
@@ -9,7 +9,8 @@
 #include "vtkSmartPointer.h"
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
-
+#include "vtkTrackedFrameList.h" 
+#include "TrackedFrame.h" 
 
 #include <iostream>
 #include <sstream>
@@ -21,234 +22,130 @@ vtkStandardNewMacro(vtkSonixVolumeReader);
 //----------------------------------------------------------------------------
 vtkSonixVolumeReader::vtkSonixVolumeReader()
 {
-
 }
 
 
 //----------------------------------------------------------------------------
 vtkSonixVolumeReader::~vtkSonixVolumeReader()
 {
-	if (!this->ImageDataVector.empty())
-	{
-		while (!this->ImageDataVector.empty())
-		{
-			this->ImageDataVector.back()->UnRegister(NULL); 
-			this->ImageDataVector.pop_back();
-		}
-	}
-
 }
-
 
 //----------------------------------------------------------------------------
 void vtkSonixVolumeReader::PrintSelf(ostream& os, vtkIndent indent)
 {
-	//this->Superclass::PrintSelf(os,indent);
-
-	os << indent << "\nVolume specific parameters:\n"; 
-	os << indent << "===========================\n"; 
-	
-	os << indent << "FileName: " << this->FileName << "\n";
-
-	switch(this->DataType)
-	{
-	case udtBPre:   
-		os << indent << "DataType: udtBPre - pre-scan data\n"; break;
-	case udtBPost:  
-		os << indent << "DataType: udtBPost - post-scan data (8-bit)\n"; break;
-	case udtBPost32:
-		os << indent << "DataType: udtBPost32 - post-scan data (32-bit)\n"; break;
-	default:        
-		os << indent << "DataType: unhandled\n"; break;
-	}
-
-	os << indent << "NumberOfFrames: " << this->NumberOfFrames << "\n";
-	os << indent << "FrameWidth: " << this->FrameWidth << "\n";
-	os << indent << "FrameHeight: " << this->FrameHeight << "\n";
-	os << indent << "DataSampleSize: " << this->DataSampleSize << "\n";
-}
-
-
-//----------------------------------------------------------------------------
-int vtkSonixVolumeReader::ReadVolume(const char* filename)
-{
-	this->FileName = filename; 
-
-	return this->ReadVolume(); 
+  this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-int vtkSonixVolumeReader::ReadVolume()
+// static
+PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkTrackedFrameList* trackedFrameList, double acquisitionFrameRate/* = 10*/)
 {
-	if (this->FileName.empty())
-	{
-		LOG_ERROR("Error: cannot open volume file: " << this->FileName.c_str()); 
-		return -1; 
-	}
-
-	// read data file
-	FILE * fp; 
-	errno_t err = fopen_s (&fp,this->FileName.c_str(), "rb");
-	
-	if(err != 0)
-	{
-		LOG_ERROR("Error opening volume file: " << this->FileName.c_str() << " Error No.: " << err); 
-		return -1;
-	}
-
-	uFileHeader hdr;
-	
-	// read header
-	fread(&hdr, sizeof(hdr), 1, fp);    
-
-	this->DataType = hdr.type; 
-	this->DataSampleSize = hdr.ss; 
-	this->NumberOfFrames = hdr.frames; 
-
-	if (this->DataType == udtBPost || this->DataType == udtBPost32)
-	{
-		this->FrameWidth = hdr.w; 
-		this->FrameHeight = hdr.h; 
-	}
-	else if (this->DataType == udtBPre)
-	{
-		// if pre-scan data, then switch width and height, because the image
-		// is not rasterized like a bitmap, but written rayline by rayline
-		this->FrameWidth = hdr.h; 
-		this->FrameHeight = hdr.w; 
-	}
-	else
-	{
-		LOG_ERROR("Unsupported data type: " << this->DataType); 
-		return -1;
-
-	}
-
-	this->ImageDataVector.reserve(this->NumberOfFrames); 
-
-	int frameSize = this->FrameWidth * this->FrameHeight * (this->DataSampleSize / 8);
-	
-	int nComponents = this->DataSampleSize/8; 
-
-	// Pointer to data from file 
-	unsigned char *dataFromFile;
-	// Pointer to dataFromFile for seeking
-	unsigned char *movingPointer; 
-
-	dataFromFile = new unsigned char[frameSize];
-
-	for (int i = 0; i < this->NumberOfFrames; i++)
-	{
-		vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New(); 
-		imageData->SetNumberOfScalarComponents(1); 
-		imageData->SetDimensions(this->FrameWidth, this->FrameHeight, 1 ); 
-		imageData->SetScalarTypeToUnsignedChar(); 
-		imageData->Update(); 
-
-		// pre-scan data has a 4 byte frame tag
-		if(this->DataType == udtBPre)
-		{
-			int frhdr; 
-			fread(&frhdr, 4, 1, fp);
-		}
-
-		unsigned char *imageDataPtr = static_cast<unsigned char*>(imageData->GetScalarPointer());
-		
-		// Read data from file 
-		fread(dataFromFile, frameSize, 1, fp);
-		
-		//Copy data to vtkImageData 
-		if (this->DataType == udtBPost32)
-		{
-			// Convert RGBA to 8bit Greyscale image
-			movingPointer = dataFromFile; 
-			for (int i = 0 ; i < frameSize; i += nComponents) 
-			{
-				// Get just the R channel from RGBA 
-				*imageDataPtr++ = *movingPointer;
-				movingPointer += nComponents; 
-			}
-		}
-		else
-		{
-			// Copy the frame data form file to vtkImageDataSet
-			memcpy(imageDataPtr,dataFromFile,frameSize);
-		}
-
-		imageData->UpdateData(); 
-    imageData->Register(NULL); 
-		this->ImageDataVector.push_back(imageData); 
-	}
-
-	fclose(fp);
-	delete [] dataFromFile;
-
-	return 1;
-}
-
-
-//----------------------------------------------------------------------------
-vtkImageData *vtkSonixVolumeReader::GetFrame(int imageNumber/*=0*/)
-{
-	return this->ImageDataVector[imageNumber]; 
-}
-
-
-//----------------------------------------------------------------------------
-vtkstd::vector<vtkImageData *>* vtkSonixVolumeReader::GetAllFrames()
-{
-	return &this->ImageDataVector; 
-}
-
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSonixVolumeReader::WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory /* = "./" */)
-{
-  vtkstd::ostringstream os ; 
-  os << directory <<filePrefix; 
-
-  if (imageNumber < 10 ) 
+  if (volumeFileName == NULL)
   {
-    os << "000" << imageNumber; 
-  }
-  else if (imageNumber < 100 ) 
-  {
-    os << "00" << imageNumber; 
-  }
-  else if (imageNumber < 1000 ) 
-  {
-    os << "0" << imageNumber; 
-  }
-  else 
-  {
-    os << imageNumber; 
+    LOG_ERROR("Failed to generate tracked frame from sonix volume - input file name is NULL!"); 
+    return PLUS_FAIL; 
   }
 
-  os << ".tiff"; 
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Failed to generate tracked frame from sonix volume - output tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-  return PlusVideoFrame::SaveImageToFile(this->ImageDataVector[imageNumber], os.str().c_str()); 
-}
+  // read data file
+  FILE * fp; 
+  errno_t err = fopen_s (&fp,volumeFileName, "rb");
 
-//----------------------------------------------------------------------------
-PlusStatus vtkSonixVolumeReader::WriteAllFramesAsTIFF(const char* filePrefix, const char* directory /* = "./" */)
-{
-	if (this->ImageDataVector.empty())
-	{
-		LOG_DEBUG("Warning: There are no images to save as TIFF"); 
-		return PLUS_SUCCESS; 
-	}
+  if(err != 0)
+  {
+    LOG_ERROR("Error opening volume file: " << volumeFileName << " Error No.: " << err); 
+    return PLUS_FAIL;
+  }
 
-	const int vectorSize = this->ImageDataVector.size(); 
+  // Determine file size
+  fseek (fp , 0 , SEEK_END);
+  long fileSizeInBytes = ftell (fp);
+  rewind (fp);
 
-  PlusStatus status = PLUS_SUCCESS; 
-	for (int imgnum = 0 ; imgnum < vectorSize; imgnum++) 
-	{
-		if ( WriteFrameAsTIFF( imgnum, filePrefix, directory) != PLUS_SUCCESS )
+  // Ultrasonix header 
+  uFileHeader hdr;
+
+  // read header
+  fread(&hdr, sizeof(hdr), 1, fp);   
+
+  int dataType = hdr.type; 
+  int sampleSizeInBytes = hdr.ss/8; 
+  int numberOfFrames = hdr.frames; 
+  int frameSizeInBytes = hdr.w * hdr.h * sampleSizeInBytes;
+  int frameSize[2]={hdr.w, hdr.h}; 
+
+  int numberOfBytesToSkip = 0; 
+  if ( (fileSizeInBytes - sizeof(hdr)) > frameSizeInBytes * numberOfFrames )
+  {
+    numberOfBytesToSkip = (fileSizeInBytes - sizeof(hdr)) / numberOfFrames  - frameSizeInBytes; 
+    LOG_DEBUG("Each frame has " << numberOfBytesToSkip << " bytes header before the actual data"); 
+  }
+  else if ( (fileSizeInBytes - sizeof(hdr)) < frameSizeInBytes * numberOfFrames )
+  {
+    LOG_ERROR("Expected data size for reading (" << frameSizeInBytes * numberOfFrames 
+      << " bytes) is larger than actual data size (" << fileSizeInBytes - sizeof(hdr) << " bytes)." );
+    return PLUS_FAIL; 
+  }
+  
+  // if vector data switch width and height, because the image
+  // is not rasterized like a bitmap, but written rayline by rayline
+  if( (dataType == udtBPre) || (dataType == udtRF) || (dataType == udtMPre) || (dataType == udtPWRF) ||  (dataType == udtColorRF) )
+  {
+    frameSize[0]=hdr.h; 
+    frameSize[1]=hdr.w; 
+  }
+
+  // Pointer to data from file 
+  unsigned char* dataFromFile = new unsigned char[frameSizeInBytes];
+
+  for (int i = 0; i < numberOfFrames; i++)
+  {
+    // Skip header data 
+    fread(dataFromFile, numberOfBytesToSkip, 1, fp);
+
+    // Read data from file 
+    fread(dataFromFile, frameSizeInBytes, 1, fp);
+
+    PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+    switch (dataType)
     {
-      LOG_ERROR("Failed to write frame #" << imgnum << " to tiff!"); 
-      status = PLUS_FAIL; 
+    case udtBPost:
+      pixelType=itk::ImageIOBase::UCHAR;
+      break;
+    case udtRF:
+      pixelType=itk::ImageIOBase::SHORT;
+      break;
+    default:
+      LOG_ERROR("Uknown pixel type for data type: " << dataType);
+      continue; 
     }
-	}
 
-  return status; 
-}	
+    PlusVideoFrame videoFrame; 
+    if ( videoFrame.AllocateFrame(frameSize, pixelType) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to allocate image data for frame #" << i); 
+      continue; 
+    }
+
+    // Copy the frame data form file to vtkImageDataSet
+    memcpy(videoFrame.GetBufferPointer(),dataFromFile,frameSizeInBytes);
+
+    TrackedFrame trackedFrame; 
+    trackedFrame.SetImageData(videoFrame); 
+    trackedFrame.SetTimestamp( (1.0* i) / acquisitionFrameRate );  // Generate timestamp 
+
+    trackedFrameList->AddTrackedFrame(&trackedFrame); 
+  }
+
+  fclose(fp);
+  delete [] dataFromFile;
+
+  return PLUS_SUCCESS;
+}
+
+
