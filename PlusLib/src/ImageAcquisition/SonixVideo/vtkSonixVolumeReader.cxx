@@ -96,8 +96,8 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
   // is not rasterized like a bitmap, but written rayline by rayline
   if( (dataType == udtBPre) || (dataType == udtRF) || (dataType == udtMPre) || (dataType == udtPWRF) ||  (dataType == udtColorRF) )
   {
-    frameSize[0]=hdr.h; 
-    frameSize[1]=hdr.w; 
+    frameSize[0]=hdr.h; // number of data points recorded for one crystal (vectors)
+    frameSize[1]=hdr.w; // number of transducer crystals (samples)
   }
 
   // Pointer to data from file 
@@ -137,7 +137,7 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
 
     TrackedFrame trackedFrame; 
     trackedFrame.SetImageData(videoFrame); 
-    trackedFrame.SetTimestamp( (1.0* i) / acquisitionFrameRate );  // Generate timestamp 
+    trackedFrame.SetTimestamp( (1.0* (i + 1) ) / acquisitionFrameRate );  // Generate timestamp, but don't start from 0
 
     trackedFrameList->AddTrackedFrame(&trackedFrame); 
   }

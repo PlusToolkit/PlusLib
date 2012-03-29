@@ -57,7 +57,7 @@ public:
   PlusVideoFrame* GetImageData() { return &(this->ImageData); };
 
   /*! Set timestamp */
-  void SetTimestamp(double value) { this->Timestamp = value; }; 
+  void SetTimestamp(double value); 
 
   /*! Get timestamp */
   double GetTimestamp() { return this->Timestamp; }; 
