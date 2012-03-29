@@ -7,13 +7,16 @@
 #ifndef __vtkUsSimulatorAlgo_h
 #define __vtkUsSimulatorAlgo_h
 #include "vtkImageAlgorithm.h"
+#include "vtkSmartPointer.h"
 
-class  vtkUsSimulatorAlgo : public vtkImageAlgorithm
+class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 {
 
   public:
-     void PrintSelf(ostream& os, vtkIndent indent);
-	
+    void PrintSelf(ostream& os, vtkIndent indent);
+    
+    vtkTypeRevisionMacro(vtkUsSimulatorAlgo,vtkImageAlgorithm);	
+	  static vtkUsSimulatorAlgo *New();
   
   protected:
 	 virtual int FillInputPortInformation(int port, vtkInformation* info);

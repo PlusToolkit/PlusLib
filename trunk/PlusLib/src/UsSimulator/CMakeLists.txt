@@ -19,7 +19,17 @@ SET (UsSimulator_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORC
 SET (UsSimulator_LIBS
     
     winmm
-	vtkPlusCommon # An example of a pre-built library
+    vtkPlusCommon # An example of a pre-built library
+	vtkCommon 
+	vtkInfovis 
+	itkvnl 
+	itkvnl_algo 
+	PatternLocAlgo 
+	vtkTracking
+	vtkFiltering
+	vtkImageAcquisition
+	vtkSignaling
+	vtkHybrid 
 
   )     
 
@@ -36,6 +46,11 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_UsSimulator UsSimulator ${PlusLib_BINARY_DIR}/src/UsSimulator/UsSimulator.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
+IF (BUILD_TESTING)
+	ADD_SUBDIRECTORY (Testing)
+ENDIF (BUILD_TESTING)
+# --------------------------------------------------------------------------
+
 # Install
 #
 
