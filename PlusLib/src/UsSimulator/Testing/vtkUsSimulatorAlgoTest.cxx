@@ -161,6 +161,27 @@ std::string outputUsImageFileName;
   usSimulator->SetInput(1,model); 
   usSimulator->SetOutput(usImage); 
   usSimulator->Update(); 
+
+  newer version :
+  vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New(); ( maybe not pointer, just image data)
+  whiteImage->SetSpacing(volumeSpacing); 
+  whiteImage->SetOrigin(modelToImageTransform->GetPosition()); 
+  
+  whiteImage->SetDimensions(100,100,1); // make more robust, get rid of magic numbers. (base off of bounds) 
+
+  whiteImage->SetScalarTypeToUnsignedChar();
+  whiteImage->AllocateScalars();
+
+    unsigned char inval = 255;
+  unsigned char outval = 0;
+  vtkIdType count = whiteImage->GetNumberOfPoints();
+  for (vtkIdType i = 0; i < count; ++i)
+  {
+   whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+  }
+  
+
+
 */ 
 
 
