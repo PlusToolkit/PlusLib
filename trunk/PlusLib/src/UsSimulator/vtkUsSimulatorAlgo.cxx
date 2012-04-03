@@ -21,39 +21,38 @@
 #include "vtkMultiThreader.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkTransformPolyDataFilter.h"
 
 
 //-----------------------------------------------------------------------------
+
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
 
 vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 {
-  this->SetNumberOfInputPorts(2); 
+  this->SetNumberOfInputPorts(1); 
   this->SetNumberOfOutputPorts(1); 
-  for ( int i=0; i<3; i++)
-  {
-    this->volumeSpacing[i] = 0.5; 
-    this->modelBounds[i] = 0; 
-    this->whiteImageOrigin[i] = 0; 
-  }
+
+  this->StencilBackgroundImage = NULL; 
+  this->ModelToImageTransform = NULL; 
+
+  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
+  this->SetModelToImageTransform(modelToImageTransform); 
+
+  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+  this->StencilBackgroundImage = stencilBackgroundImage; 
+ 
 
 }
 
-int vtkUsSimulatorAlgo::FillInputPortInformation(int portNum, vtkInformation * info)
+int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
 {
- if(portNum==0)
- {
-  info->Set(vtkImageAlgorithm:: INPUT_REQUIRED_DATA_TYPE(), "vtkSmartPointer<vtkTransform>");
-  return 1;
- }
- else if(portNum==1) 
- {
+
   info->Set(vtkImageAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkSmartPointer<vtkPolyData>"); 
   return 1; 
- }
- return 0; 
+ 
  
 }
 
@@ -63,85 +62,77 @@ int vtkUsSimulatorAlgo::FillOutputPortInformation(int portNum, vtkInformation * 
 	return 1; 
 }
 
-
+/*
+void vtkUsSimulatorAlgo::SetStencilBackgroundImage (vtkImageData* stencilBackgroundImage)
+{
+  this->StencilBackgroundImage = stencilBackgroundImage; 
+  
+}*/ 
 int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector** inputVector,vtkInformationVector* outputVector)
 {
-  // Try catch blocks? Remember to add some sort of error checking... what if input/output vector is empty
-
-  vtkInformation* inInfoPort0 = inputVector[0]->GetInformationObject(0);
-  vtkInformation* inInfoPort1 = inputVector[1]->GetInformationObject(0);
+  //Get input
+  vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
-  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkTransform::SafeDownCast(inInfoPort0->Get(vtkDataObject::DATA_OBJECT()));
-  vtkSmartPointer<vtkPolyData> model = vtkPolyData::SafeDownCast(inInfoPort1->Get(vtkDataObject::DATA_OBJECT()));
+  
+  vtkSmartPointer<vtkPolyData> model = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
   vtkSmartPointer<vtkImageData> simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
 
-  // create white image
-
-  vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New(); 
+  // align model with US image
   
-  //TODO: Get and Set functions for image origin, bounds, and spacin g
-  //TODO: report error if such values are empty, also report error if transform and model are empty 
-
   
-  whiteImage->SetSpacing(volumeSpacing); 
-  
- /* if( modelToImageTransform->GetPosition()== NULL)
+ if( ModelToImageTransform== NULL)
   {
-    LOG_ERROR(" Origin not specified" ); 
+    LOG_ERROR(" No Model to US image transform specified " ); 
     return 1; 
   }
-  */ 
-  whiteImage->SetOrigin(modelToImageTransform->GetPosition()); 
   
- //TODO: Set bounds from stl model ( ask )
+  
+  vtkSmartPointer<vtkPolyData> alignedModel = vtkSmartPointer<vtkPolyData>::New(); 
 
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformModelFilter->SetInput(model);
+  transformModelFilter->SetTransform(ModelToImageTransform);
+  transformModelFilter->Update();
 
-  whiteImage->SetDimensions(100,100,1); // make more robust, get rid of magic numbers. (base off of bounds) 
+  alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(1)); 
+  // 
 
-  whiteImage->SetScalarTypeToUnsignedChar();
-  whiteImage->AllocateScalars();
-
-  unsigned char inval = 255;
-  unsigned char outval = 0;
-  vtkIdType count = whiteImage->GetNumberOfPoints();
-  for (vtkIdType i = 0; i < count; ++i)
-  {
-   whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-  }
-
-  vtkSmartPointer<vtkPolyDataToImageStencil> modelCutout = 
-  vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-
-  modelCutout->SetInput(model); 
-  modelCutout->SetOutputSpacing(volumeSpacing); 
-  modelCutout->SetOutputOrigin(whiteImageOrigin); //think about this later
-  modelCutout->SetOutputWholeExtent(whiteImage->GetExtent()); 
-  modelCutout->Update(); 
-
-  vtkSmartPointer<vtkImageStencil> stencilCombineCutoutandWhiteImage = 
-  vtkSmartPointer<vtkImageStencil>::New();
-
-  stencilCombineCutoutandWhiteImage->SetInput(whiteImage);
-  stencilCombineCutoutandWhiteImage->SetStencil(modelCutout->GetOutput());
-
-  stencilCombineCutoutandWhiteImage->ReverseStencilOff();
-  stencilCombineCutoutandWhiteImage->SetBackgroundValue(outval);
-  stencilCombineCutoutandWhiteImage->Update();
-
-  simulatedUsImage = stencilCombineCutoutandWhiteImage->GetOutput(); 
-   
 
  
+  
+  
+  if( StencilBackgroundImage== NULL)
+  {
+    LOG_ERROR(" background image necessary for stencil creation not specified " ); 
+    return 1; 
+  } 
 
-  /*
-  vtkPolydataToImageStencil stencilCreator; 
-  stencilCreator SetInput(model); 
-  // other parameters to be set, such as spacing, origin extent. 
-  stencilCreator->Update(); 
+  //Create PolyData to Image stencil
+  
+  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = 
+  vtkSmartPointer<vtkPolyDataToImageStencil>::New();
 
-  simulatedUsImage
-  */  
+  modelStencil->SetInput(model); 
+  modelStencil->SetOutputSpacing(StencilBackgroundImage->GetSpacing()); 
+  modelStencil->SetOutputOrigin(StencilBackgroundImage->GetOrigin()); //think about this later
+  modelStencil->SetOutputWholeExtent(StencilBackgroundImage->GetExtent()); 
+  modelStencil->Update(); 
+
+  // Create Image stencil
+
+  vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = 
+  vtkSmartPointer<vtkImageStencil>::New();
+
+  combineModelwithBackgroundStencil->SetInput(StencilBackgroundImage);
+  combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
+
+  combineModelwithBackgroundStencil->ReverseStencilOff();
+  combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
+  combineModelwithBackgroundStencil->Update();
+
+  simulatedUsImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
+   
 
   return 1; 
 }
@@ -158,5 +149,6 @@ void vtkUsSimulatorAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
 {
-	m_Dummy = 0; 
+  this->SetModelToImageTransform(NULL); 
+  this->SetStencilBackgroundImage(NULL);
 }

@@ -8,6 +8,8 @@
 #define __vtkUsSimulatorAlgo_h
 #include "vtkImageAlgorithm.h"
 #include "vtkSmartPointer.h"
+#include "vtkTransform.h"
+#include "vtkImageData.h"
 
 class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 {
@@ -17,25 +19,33 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
     
     vtkTypeRevisionMacro(vtkUsSimulatorAlgo,vtkImageAlgorithm);	
 	  static vtkUsSimulatorAlgo *New();
+    
+    //void SetStencilBackgroundImage (vtkImageData* stencilBackgroundImage); 
+
+    vtkSetObjectMacro( ModelToImageTransform, vtkTransform); 
+    vtkGetObjectMacro( ModelToImageTransform, vtkTransform); 
+
+    vtkSetObjectMacro( StencilBackgroundImage, vtkImageData); 
+    
   
   protected:
-	 virtual int FillInputPortInformation(int port, vtkInformation* info);
-	 virtual int FillOutputPortInformation(int port, vtkInformation* info);
-	 virtual int RequestData(vtkInformation *request,
+	  virtual int FillInputPortInformation(int port, vtkInformation* info);
+	  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+	  virtual int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
                           vtkInformationVector* outputVector);
  
 	 
 	 
-	 int m_Dummy ; 
-	 vtkUsSimulatorAlgo();
-	~vtkUsSimulatorAlgo(); 
+	  int m_Dummy ; 
+	  vtkUsSimulatorAlgo();
+	  ~vtkUsSimulatorAlgo(); 
 
  private:
-  double whiteImageOrigin[3]; 
-  double volumeSpacing[3]; 
-  double modelBounds[6];
-
+   vtkImageData* StencilBackgroundImage; 
+   vtkTransform* ModelToImageTransform;  
+   static const unsigned char OUTVALSTENCILFOREGROUND = 0;
+  
 
 };
 
