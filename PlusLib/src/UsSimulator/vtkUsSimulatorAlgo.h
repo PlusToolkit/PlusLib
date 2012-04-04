@@ -8,8 +8,8 @@
 #define __vtkUsSimulatorAlgo_h
 #include "vtkImageAlgorithm.h"
 #include "vtkSmartPointer.h"
-#include "vtkTransform.h"
 #include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 
 class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 {
@@ -22,8 +22,8 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
     
     //void SetStencilBackgroundImage (vtkImageData* stencilBackgroundImage); 
 
-    vtkSetObjectMacro( ModelToImageTransform, vtkTransform); 
-    vtkGetObjectMacro( ModelToImageTransform, vtkTransform); 
+    vtkSetObjectMacro( ModelToImageMatrix, vtkMatrix4x4); 
+    vtkGetObjectMacro( ModelToImageMatrix, vtkMatrix4x4); 
 
     vtkSetObjectMacro( StencilBackgroundImage, vtkImageData); 
     
@@ -43,7 +43,7 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 
  private:
    vtkImageData* StencilBackgroundImage; 
-   vtkTransform* ModelToImageTransform;  
+   vtkMatrix4x4* ModelToImageMatrix;  
    static const unsigned char OUTVALSTENCILFOREGROUND = 0;
   
 

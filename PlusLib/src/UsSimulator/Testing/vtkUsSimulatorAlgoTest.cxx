@@ -151,8 +151,7 @@ std::string outputUsImageFileName;
       //continue; 
     }
 
-    vtkSmartPointer< vtkTransform > modelToImageTransform = vtkSmartPointer< vtkTransform >::New();
-   modelToImageTransform->SetMatrix( modelToImageMatrix );   
+   
 
    vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
    stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
@@ -178,7 +177,7 @@ std::string outputUsImageFileName;
   usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
 
   usSimulator->SetInput(model); 
-  usSimulator->SetModelToImageTransform(modelToImageTransform); 
+  usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
   usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
   usSimulator->SetOutput(usImage); 
   usSimulator->Update();
