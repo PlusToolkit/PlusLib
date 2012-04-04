@@ -15,6 +15,7 @@ See License.txt for details.
 #include <QWidget>
 
 class vtkPivotCalibrationAlgo;
+class vtkMatrix4x4;
 
 //-----------------------------------------------------------------------------
 
@@ -100,6 +101,9 @@ protected:
 
   /*! Stylus or stylus tip position (depending on the state) as string */
   std::string							  m_StylusPositionString;
+
+  /*! Previous stylus to reference transform matrix to determine the difference at each point acquisition */
+  vtkMatrix4x4*             m_PreviousStylusToReferenceTransformMatrix;
 
 protected:
   Ui::StylusCalibrationToolbox ui;

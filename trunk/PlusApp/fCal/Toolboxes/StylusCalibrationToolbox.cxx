@@ -8,6 +8,7 @@ See License.txt for details.
 
 #include "fCalMainWindow.h"
 #include "vtkObjectVisualizer.h"
+#include "PlusMath.h"
 
 #include "vtkPivotCalibrationAlgo.h"
 #include "ConfigFileSaverDialog.h"
@@ -15,7 +16,7 @@ See License.txt for details.
 #include <QFileDialog>
 #include <QTimer>
 
-#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
 
 //-----------------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   , m_NumberOfPoints(200)
   , m_CurrentPointNumber(0)
   , m_StylusPositionString("")
+  , m_PreviousStylusToReferenceTransformMatrix(NULL)
 {
   ui.setupUi(this);
 
@@ -35,6 +37,8 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
     LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
     return;
   }
+
+  m_PreviousStylusToReferenceTransformMatrix = vtkMatrix4x4::New();
 
   // Feed number of points from controller
   ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
@@ -52,6 +56,11 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
   if (m_PivotCalibration != NULL) {
     m_PivotCalibration->Delete();
     m_PivotCalibration = NULL;
+  } 
+
+  if (m_PreviousStylusToReferenceTransformMatrix != NULL) {
+    m_PreviousStylusToReferenceTransformMatrix->Delete();
+    m_PreviousStylusToReferenceTransformMatrix = NULL;
   } 
 }
 
@@ -393,40 +402,40 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
 
   if (valid)
   {
-    double stylusPosition[4] = {stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3), 1.0 };
-
     // Assemble position string for toolbox
     char stylusPositionChars[32];
 
-    sprintf_s(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusPosition[0], stylusPosition[1], stylusPosition[2]);
+    sprintf_s(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
     m_StylusPositionString = std::string(stylusPositionChars);
 
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints();
 
-    double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds
-    double distance_highThreshold_mm = 1000.0;
-    double distance = -1.0;
+    double positionDifferenceLowThresholdMm = 2.0;
+    double positionDifferenceHighThresholdMm = 500.0;
+    double positionDifferenceMm = -1.0;
+    double orientationDifferenceLowThresholdDegrees = 2.0;
+    double orientationDifferenceHighThresholdDegrees = 90.0;
+    double orientationDifferenceDegrees = -1.0;
     if (m_CurrentPointNumber < 1)
     {
       // Always allow
-      distance = (distance_lowThreshold_mm + distance_highThreshold_mm) / 2.0;
+      positionDifferenceMm = (positionDifferenceLowThresholdMm + positionDifferenceHighThresholdMm) / 2.0;
+      orientationDifferenceDegrees = (orientationDifferenceLowThresholdDegrees + orientationDifferenceHighThresholdDegrees) / 2.0;
     }
     else
     {
-      double previousPosition[4];
-      points->GetPoint(m_CurrentPointNumber-1, previousPosition);
-      previousPosition[3] = 1.0;
-      // Square distance
-      distance = vtkMath::Distance2BetweenPoints(stylusPosition, previousPosition);
+      // Compute position and orientation difference of current and previous positions
+      positionDifferenceMm = PlusMath::GetPositionDifference(stylusToReferenceTransformMatrix, m_PreviousStylusToReferenceTransformMatrix);
+      orientationDifferenceDegrees = PlusMath::GetOrientationDifference(stylusToReferenceTransformMatrix, m_PreviousStylusToReferenceTransformMatrix);
     }
 
     // If current point is close to the previous one, or too far (outlier), we do not insert it
-    if (distance < distance_lowThreshold_mm * distance_lowThreshold_mm)
+    if (positionDifferenceMm < orientationDifferenceLowThresholdDegrees && orientationDifferenceDegrees < orientationDifferenceLowThresholdDegrees)
     {
       LOG_DEBUG("Acquired position is too close to the previous - it is skipped");
     }
-    else if (distance > distance_highThreshold_mm * distance_highThreshold_mm)
+    else if (positionDifferenceMm > positionDifferenceHighThresholdMm || orientationDifferenceDegrees > orientationDifferenceHighThresholdDegrees)
     {
       LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
     }
@@ -436,7 +445,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       m_PivotCalibration->InsertNextCalibrationPoint(stylusToReferenceTransformMatrix);
 
       // Add to polydata for rendering
-      points->InsertPoint(m_CurrentPointNumber, stylusPosition[0], stylusPosition[1], stylusPosition[2]);
+      points->InsertPoint(m_CurrentPointNumber, stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
       points->Modified();
 
       // Set new current point number
@@ -452,6 +461,10 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       if (m_CurrentPointNumber >= m_NumberOfPoints)
       {
         Stop();
+      }
+      else
+      {
+        m_PreviousStylusToReferenceTransformMatrix->DeepCopy(stylusToReferenceTransformMatrix);
       }
     }
   }
