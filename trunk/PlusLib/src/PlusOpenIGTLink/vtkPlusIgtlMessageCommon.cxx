@@ -82,10 +82,10 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFr
     return PLUS_FAIL; 
   }
 
-  trackedFrameMessage->SetTrackedFrame(trackedFrame); 
+  PlusStatus status = trackedFrameMessage->SetTrackedFrame(trackedFrame); 
   trackedFrameMessage->Pack(); 
 
-  return PLUS_SUCCESS; 
+  return status; 
 }
 
 //----------------------------------------------------------------------------
@@ -120,6 +120,58 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
 
   // if CRC check is OK. get tracked frame data.
   trackedFrame = trackedFrameMsg->GetTrackedFrame(); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+// static 
+PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, TrackedFrame& trackedFrame )
+{
+  if ( usMessage.IsNull() )
+  {
+    LOG_ERROR("Failed to pack US message - input US message is NULL"); ;
+    return PLUS_FAIL; 
+  }
+
+  PlusStatus status = usMessage->SetTrackedFrame(trackedFrame); 
+  usMessage->Pack(); 
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+// static 
+PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+{
+  if ( headerMsg.IsNull() )
+  {
+    LOG_ERROR("Unable to unpack US message - header message is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( socket == NULL ) 
+  {
+    LOG_ERROR("Unable to unpack US message - socket is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  igtl::PlusUsMessage::Pointer usMsg = igtl::PlusUsMessage::New();
+  usMsg->SetMessageHeader(headerMsg);
+  usMsg->AllocatePack();
+
+  socket->Receive(usMsg->GetPackBodyPointer(), usMsg->GetPackBodySize());
+
+  // If 1 is specified it performs CRC check and unpack the data only if CRC passes
+  int c = usMsg->Unpack(0);
+  if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
+  {
+    LOG_ERROR("Couldn't receive US message from server!"); 
+    return PLUS_FAIL; 
+  }
+
+  // if CRC check is OK. get tracked frame data.
+  trackedFrame = usMsg->GetTrackedFrame(); 
 
   return PLUS_SUCCESS; 
 }
@@ -175,6 +227,62 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   return PLUS_SUCCESS; 
 
+}
+
+//----------------------------------------------------------------------------
+// static 
+PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+{
+  if ( headerMsg.IsNull() )
+  {
+    LOG_ERROR("Unable to unpack image message - header message is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( socket == NULL ) 
+  {
+    LOG_ERROR("Unable to unpack image message - socket is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Message body handler for IMAGE
+  igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
+  imgMsg->SetMessageHeader(headerMsg);
+  imgMsg->AllocatePack();
+
+  socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+
+  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
+  int c = imgMsg->Unpack(1);
+  if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
+  {
+    LOG_ERROR("Couldn't receive image message from server!"); 
+    return PLUS_FAIL; 
+  }
+
+  // if CRC check is OK. Read data.
+  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
+  imgMsg->GetTimeStamp(igtlTimestamp); 
+
+  int imgSize[3]={0}; // image dimension
+  imgMsg->GetDimensions(imgSize);
+
+  // Set scalar pixel type
+  PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
+  PlusVideoFrame frame; 
+  if ( frame.AllocateFrame(imgSize, pixelType) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to allocate image data for tracked frame!"); 
+    return PLUS_FAIL;
+  }
+
+  // Copy image to buffer 
+  memcpy(frame.GetBufferPointer(), imgMsg->GetScalarPointer(), frame.GetFrameSizeInBytes() ); 
+
+  trackedFrame.SetImageData(frame); 
+  trackedFrame.SetTimestamp(igtlTimestamp->GetTimeStamp());
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

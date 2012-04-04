@@ -77,7 +77,26 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
   int sampleSizeInBytes = hdr.ss/8; 
   int numberOfFrames = hdr.frames; 
   int frameSizeInBytes = hdr.w * hdr.h * sampleSizeInBytes;
-  int frameSize[2]={hdr.w, hdr.h}; 
+  int frameSize[2]={hdr.w, hdr.h};
+
+  // Custom frame fields
+  std::ostringstream strDataType; 
+  strDataType << hdr.type; 
+
+  std::ostringstream strTransmitFrequency; 
+  strTransmitFrequency << hdr.txf; 
+
+  std::ostringstream strSamplingFrequency; 
+  strSamplingFrequency << hdr.sf; 
+
+  std::ostringstream strProbeID; 
+  strProbeID << hdr.probe; 
+
+  std::ostringstream strDataRate; 
+  strDataRate << hdr.dr; 
+
+  std::ostringstream strLineDensity; 
+  strLineDensity << hdr.ld; 
 
   int numberOfBytesToSkip = 0; 
   if ( (fileSizeInBytes - sizeof(hdr)) > frameSizeInBytes * numberOfFrames )
@@ -138,6 +157,14 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
     TrackedFrame trackedFrame; 
     trackedFrame.SetImageData(videoFrame); 
     trackedFrame.SetTimestamp( (1.0* (i + 1) ) / acquisitionFrameRate );  // Generate timestamp, but don't start from 0
+
+    trackedFrame.SetCustomFrameField("SonixDataType", strDataType.str()); 
+    trackedFrame.SetCustomFrameField("SonixTransmitFrequency", strTransmitFrequency.str()); 
+    trackedFrame.SetCustomFrameField("SonixSamplingFrequency", strSamplingFrequency.str()); 
+    trackedFrame.SetCustomFrameField("SonixDataRate", strDataRate.str()); 
+    trackedFrame.SetCustomFrameField("SonixLineDensity", strLineDensity.str()); 
+    trackedFrame.SetCustomFrameField("SonixProbeID", strProbeID.str()); 
+
 
     trackedFrameList->AddTrackedFrame(&trackedFrame); 
   }

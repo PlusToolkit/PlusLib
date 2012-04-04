@@ -20,9 +20,10 @@ See License.txt for details.
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
+#include "igtlStatusMessage.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlPlusTrackedFrameMessage.h"
-
+#include "igtlPlusUsMessage.h"
 
 //----------------------------------------------------------------------------
 
@@ -32,12 +33,14 @@ vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 {	
-  IgtlMessageTypes["NONE"]=NULL; 
-  IgtlMessageTypes["IMAGE"]=(PointerToMessageBase)&igtl::ImageMessage::New; 
-  IgtlMessageTypes["TRANSFORM"]=(PointerToMessageBase)&igtl::TransformMessage::New; 
-  IgtlMessageTypes["POSITION"]=(PointerToMessageBase)&igtl::PositionMessage::New; 
-  IgtlMessageTypes["CLIENTINFO"]=(PointerToMessageBase)&igtl::PlusClientInfoMessage::New; 
-  IgtlMessageTypes["TRACKEDFRAME"]=(PointerToMessageBase)&igtl::PlusTrackedFrameMessage::New; 
+  this->AddMessageType("NONE", NULL); 
+  this->AddMessageType("IMAGE", (PointerToMessageBaseNew)&igtl::ImageMessage::New); 
+  this->AddMessageType("TRANSFORM", (PointerToMessageBaseNew)&igtl::TransformMessage::New); 
+  this->AddMessageType("POSITION", (PointerToMessageBaseNew)&igtl::PositionMessage::New); 
+  this->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New); 
+  this->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New); 
+  this->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New); 
+  this->AddMessageType("STATUS", (PointerToMessageBaseNew)&igtl::StatusMessage::New); 
 }
 
 //----------------------------------------------------------------------------
@@ -53,10 +56,28 @@ void vtkPlusIgtlMessageFactory::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkPlusIgtlMessageFactory::AddMessageType(std::string messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer )
+{
+  this->IgtlMessageTypes[messageTypeName]=messageTypeNewPointer; 
+}
+
+//----------------------------------------------------------------------------
+vtkPlusIgtlMessageFactory::PointerToMessageBaseNew vtkPlusIgtlMessageFactory::GetMessageTypeNewPointer(std::string messageTypeName)
+{
+  if ( this->IgtlMessageTypes.find(messageTypeName) != this->IgtlMessageTypes.end() )
+  {
+    return IgtlMessageTypes[messageTypeName];
+  }
+
+  LOG_ERROR(messageTypeName << " message type is not registered to factory!"); 
+  return NULL; 
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusIgtlMessageFactory::PrintAvailableMessageTypes(ostream& os, vtkIndent indent)
 {
   os << indent << "Supported OpenIGTLink message types: " << std::endl; 
-  std::map<std::string,PointerToMessageBase>::iterator it; 
+  std::map<std::string,PointerToMessageBaseNew>::iterator it; 
   for ( it = IgtlMessageTypes.begin(); it != IgtlMessageTypes.end(); ++it)
   {
     if ( it->second != NULL )
@@ -127,7 +148,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     }
 
     // Image message 
-    if ( dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()) != NULL )
+    if ( STRCASECMP(messageType.c_str(), "IMAGE") == 0 )
     {
       igtl::Matrix4x4 igtlMatrix; 
       vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName); 
@@ -142,7 +163,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
       igtlMessages.push_back(igtlMessage); 
     }
     // Transform message 
-    else if ( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) != NULL )
+    else if (STRCASECMP(messageType.c_str(), "TRANSFORM") == 0 )
     {
       for ( std::vector<PlusTransformName>::iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
       {
@@ -157,7 +178,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
       }
     }
     // Position message 
-    else if ( dynamic_cast<igtl::PositionMessage*>(igtlMessage.GetPointer()) != NULL )
+    else if ( STRCASECMP(messageType.c_str(), "POSITION") == 0 )
     {
       for ( std::vector<PlusTransformName>::iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
       {
@@ -172,12 +193,24 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
       }
     }
     // TRACKEDFRAME message
-    else if ( dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()) != NULL )
+    else if ( STRCASECMP(messageType.c_str(), "TRACKEDFRAME") == 0 )
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message"); 
+        numberOfErrors++; 
+        continue;
+      }
+      igtlMessages.push_back(igtlMessage); 
+    }
+    // USMESSAGE message
+    else if ( STRCASECMP(messageType.c_str(), "USMESSAGE") == 0 )
+    {
+      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer()); 
+      if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to pack IGT messages - unable to pack US message"); 
         numberOfErrors++; 
         continue;
       }

@@ -3,6 +3,7 @@
 SET (PlusOpenIGTLink_SRCS 
 	igtlStringMessage1.cxx
 	igtlPlusClientInfoMessage.cxx
+	igtlPlusUsMessage.cxx 
 	igtlPlusTrackedFrameMessage.cxx 
 	PlusIgtlClientInfo.cxx 
 	vtkPlusIgtlMessageFactory.cxx 
@@ -14,6 +15,7 @@ IF (WIN32)
 	SET (PlusOpenIGTLink_HDRS 
 		igtlStringMessage1.h
 		igtlPlusClientInfoMessage.h
+		igtlPlusUsMessage.h
 		igtlPlusTrackedFrameMessage.h
 		PlusIgtlClientInfo.h 
 		vtkPlusIgtlMessageFactory.h
