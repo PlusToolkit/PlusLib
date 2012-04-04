@@ -13,7 +13,6 @@ See License.txt for details.
 #include "vtkTracker.h"
 #include "vtkTimestampedCircularBuffer.h"
 
-class vtkTransform;
 class TrackedFrame; 
 
 /*!

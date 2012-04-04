@@ -110,10 +110,10 @@ public:
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrame);
 	
-	/*! Get/set the iCAL calibration result transformation between the image and probe home position */
-	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
-  /*! Get/set the iCAL calibration result transformation between the image and probe home position */
-	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
+	/*! Get/set the calibration result transformation matrix */
+	vtkGetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
+  /*! Get/set the calibration result transformation matrix */
+	vtkSetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
 
 public:
   /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
@@ -185,7 +185,7 @@ protected:
   char* ReferenceCoordinateFrame;
 
   /*! The result of the calibration */
-	vtkTransform* TransformImageToProbe;
+	vtkMatrix4x4* ImageToProbeTransformMatrix;
 
 
   /*! List of NWires used for calibration and error computation */

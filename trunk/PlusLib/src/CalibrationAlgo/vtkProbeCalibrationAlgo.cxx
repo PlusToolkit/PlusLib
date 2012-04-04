@@ -44,9 +44,9 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->PhantomCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
 
-	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformImageToProbe = NULL;
-	this->SetTransformImageToProbe(transformImageToProbe); 
+	vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+	this->ImageToProbeTransformMatrix = NULL;
+	this->SetImageToProbeTransformMatrix(imageToProbeTransformMatrix); 
 
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
@@ -81,7 +81,7 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 //----------------------------------------------------------------------------
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
-	this->SetTransformImageToProbe(NULL);
+	this->SetImageToProbeTransformMatrix(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
 	// Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
-  PlusMath::LogVtkMatrix(this->TransformImageToProbe->GetMatrix(), 6);
+  PlusMath::LogVtkMatrix(this->ImageToProbeTransformMatrix, 6);
 
   // Compute 3D reprojection errors
   if ( ComputeReprojectionErrors3D(validationTrackedFrameList, validationStartFrame, validationEndFrame, transformRepository, true) != PLUS_SUCCESS )
@@ -487,16 +487,13 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
 	imageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
   // Set result matrix
-  this->TransformImageToProbe->SetMatrix( imageToProbeMatrix );
+  this->ImageToProbeTransformMatrix->DeepCopy( imageToProbeMatrix );
 
   // Save results into transform repository
   PlusTransformName imageToProbeTransformName(this->ImageCoordinateFrame, this->ProbeCoordinateFrame);
-  transformRepository->SetTransform(imageToProbeTransformName, this->TransformImageToProbe->GetMatrix());
+  transformRepository->SetTransform(imageToProbeTransformName, this->ImageToProbeTransformMatrix);
   transformRepository->SetTransformPersistent(imageToProbeTransformName, true);
   transformRepository->SetTransformDate(imageToProbeTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
-
-  // Set result matrix
-  this->TransformImageToProbe->SetMatrix( imageToProbeMatrix );
 
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
@@ -873,7 +870,7 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
   {
 		for (int j = 0; j < 4; j++)
     {
-			matrixStringStream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << this->GetTransformImageToProbe()->GetMatrix()->GetElement(i,j) << " ";
+			matrixStringStream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << this->ImageToProbeTransformMatrix->GetElement(i,j) << " ";
 		}
 
 		matrixStringStream << std::endl;
@@ -908,12 +905,10 @@ bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal()
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
 
-  vtkMatrix4x4* imageToProbeMatrix = this->TransformImageToProbe->GetMatrix(); 
-
   // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-  double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
-  double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
-  double zVector[3] = {imageToProbeMatrix->GetElement(0,2),imageToProbeMatrix->GetElement(1,2),imageToProbeMatrix->GetElement(2,2)};  
+  double xVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,0), this->ImageToProbeTransformMatrix->GetElement(1,0), this->ImageToProbeTransformMatrix->GetElement(2,0) }; 
+  double yVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,1), this->ImageToProbeTransformMatrix->GetElement(1,1), this->ImageToProbeTransformMatrix->GetElement(2,1) };  
+  double zVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,2), this->ImageToProbeTransformMatrix->GetElement(1,2), this->ImageToProbeTransformMatrix->GetElement(2,2) };  
 
   double dotProductXY = vtkMath::Dot(xVector, yVector);
   double dotProductXZ = vtkMath::Dot(xVector, zVector);
@@ -1006,7 +1001,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 
   // Image to Probe transform
   double imageToProbeTransformVector[16]={0}; 
-  vtkMatrix4x4::DeepCopy(imageToProbeTransformVector, this->TransformImageToProbe->GetMatrix()); 
+  vtkMatrix4x4::DeepCopy(imageToProbeTransformVector, this->ImageToProbeTransformMatrix); 
 
   vtkSmartPointer<vtkXMLDataElement> imageToProbeTransformElement = vtkSmartPointer<vtkXMLDataElement>::New();
   imageToProbeTransformElement->SetName("Transform"); 
