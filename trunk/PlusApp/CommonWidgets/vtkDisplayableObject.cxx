@@ -473,9 +473,9 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
     this->SetActor(actor);
     this->SetOpacity( this->LastOpacity );
 
-    if (objectName.find("Stylus") != std::string::npos) // Stylus is always black
+    if (objectName.find("Stylus") != std::string::npos) // Stylus is always black (dark gray so that it can be seen in front of the image)
     {
-      this->SetColor(0.0, 0.0, 0.0);
+      this->SetColor(0.2, 0.2, 0.2);
     }
 
     this->Displayable = true;
@@ -531,7 +531,7 @@ PlusStatus vtkDisplayableModel::SetDefaultStylusModel()
 
   stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
   actor->SetMapper(stylusMapper);
-  actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+  actor->GetProperty()->SetColor(0.2, 0.2, 0.2);
   actor->SetVisibility(false);
 
   return PLUS_SUCCESS;
