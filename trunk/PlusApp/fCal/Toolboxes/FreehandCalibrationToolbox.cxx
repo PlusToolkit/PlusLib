@@ -959,7 +959,9 @@ PlusStatus FreehandCalibrationToolbox::SetAndSaveResults()
   LOG_TRACE("FreehandCalibrationToolbox::SetAndSaveResults");
 
   // Set transducer origin related transforms
-  double* imageToProbeScale = m_Calibration->GetTransformImageToProbe()->GetScale();
+  vtkSmartPointer<vtkTransform> imageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
+  imageToProbeTransform->SetMatrix(m_Calibration->GetImageToProbeTransformMatrix());
+  double* imageToProbeScale = imageToProbeTransform->GetScale();
   vtkSmartPointer<vtkTransform> transducerOriginPixelToTransducerOriginTransform = vtkSmartPointer<vtkTransform>::New();
   transducerOriginPixelToTransducerOriginTransform->Identity();
   transducerOriginPixelToTransducerOriginTransform->Scale(imageToProbeScale);
