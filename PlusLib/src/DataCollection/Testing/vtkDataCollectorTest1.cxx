@@ -28,7 +28,8 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
 #include "vtkTrackerTool.h"
-#include "TrackedFrame.h" 
+#include "TrackedFrame.h"
+#include "vtkMatrix4x4.h"
 
 PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector); 
 PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster); 

@@ -7,12 +7,9 @@
 #ifndef __TRACKEDFRAME_H
 #define __TRACKEDFRAME_H
 
-#include "vtkObject.h"
-#include <deque>
 #include "PlusVideoFrame.h" 
 
 class vtkMatrix4x4; 
-class vtkTransform; 
 class vtkPoints; 
 
 /*!

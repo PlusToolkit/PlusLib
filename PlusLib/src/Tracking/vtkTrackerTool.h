@@ -16,12 +16,7 @@
 
 #include "vtkObject.h"
 #include "vtkTracker.h"
-#include "vtkTransform.h"
 
-class vtkMatrix4x4;
-class vtkTransform;
-class vtkDoubleArray;
-class vtkAmoebaMinimizer;
 class vtkTrackerBuffer;
 
 /*!
