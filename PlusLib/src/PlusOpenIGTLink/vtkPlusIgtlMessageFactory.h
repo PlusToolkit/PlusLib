@@ -28,10 +28,26 @@ class vtkTransformRepository;
 class VTK_EXPORT vtkPlusIgtlMessageFactory: public vtkObject
 {
 public:
-  
   static vtkPlusIgtlMessageFactory *New();
   vtkTypeRevisionMacro(vtkPlusIgtlMessageFactory,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+  /*! Function pointer for storing New() static methods of igtl::MessageBase classes */ 
+  typedef igtl::MessageBase::Pointer (*PointerToMessageBaseNew)(); 
+
+  /*! 
+  Add message type name and pointer to IGTL message new function 
+  Usage: AddMessageType( "IMAGE", (PointerToMessageBaseNew)&igtl::ImageMessage::New );  
+  \param messageTypeName The name of the message type
+  \param messageTypeNewPointer Function pointer to the message type new function (e.g. (PointerToMessageBaseNew)&igtl::ImageMessage::New )
+  */ 
+  virtual void AddMessageType(std::string messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer); 
+
+  /*! 
+  Get pointer to message type new function, or NULL if the message type not registered 
+  Usage: igtl::MessageBase::Pointer message = GetMessageTypeNewPointer("IMAGE")(); 
+  */ 
+  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(std::string messageTypeName); 
 
   /*! Print all supported OpenIGTLink message types */
   virtual void PrintAvailableMessageTypes(ostream& os, vtkIndent indent);
@@ -55,10 +71,9 @@ protected:
   vtkPlusIgtlMessageFactory();
   virtual ~vtkPlusIgtlMessageFactory();
 
-  /*! Function pointer for storing New() static methods of igtl::MessageBase classes */ 
-  typedef igtl::MessageBase::Pointer (*PointerToMessageBase)(); 
+  
   /*! Map igt message types and the New() static methods of igtl::MessageBase classes */ 
-  std::map<std::string,PointerToMessageBase> IgtlMessageTypes; 
+  std::map<std::string,PointerToMessageBaseNew> IgtlMessageTypes; 
 
 private:
   vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);

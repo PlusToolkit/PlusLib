@@ -22,7 +22,7 @@ namespace igtl
 
 /*! 
   \class PlusTrackedFrameMessage 
-  \brief IGTL message helper class for PlusServer ClientInfo class
+  \brief IGTL message helper class for tracked frame messages
   \ingroup PlusLibOpenIGTLink
 */
 class IGTLCommon_EXPORT PlusTrackedFrameMessage: public MessageBase

@@ -18,6 +18,7 @@ See License.txt for details.
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
 #include "igtlPlusTrackedFrameMessage.h"
+#include "igtlPlusUsMessage.h"
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
@@ -45,8 +46,17 @@ public:
   /*! Unpack tracked frame message to tracked frame */ 
   static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame); 
 
+  /*! Pack US message from tracked frame */ 
+  static PlusStatus PackUsMessage( igtl::PlusUsMessage::Pointer usMessage, TrackedFrame& trackedFrame); 
+
+  /*! Unpack US message to tracked frame */ 
+  static PlusStatus UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame); 
+
   /*! Pack image message from tracked frame */ 
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix ); 
+
+  /*! Unpack image message to tracked frame */ 
+  static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame); 
 
   /*! Pack transform message from tracked frame */ 
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
