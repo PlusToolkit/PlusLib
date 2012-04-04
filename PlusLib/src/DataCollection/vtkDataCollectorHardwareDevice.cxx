@@ -988,7 +988,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
     //Add all custom fields to the tracked frame
     VideoBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
-	{
+    {
       trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
   }
@@ -1000,7 +1000,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
       synchronizedTime = time;  
     }
 
-    if ( this->GetTracker()->GetAllTransforms(synchronizedTime, trackedFrame ) != PLUS_SUCCESS )
+    if ( this->GetTracker()->GetAllTransforms(synchronizedTime, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get all transforms from tracker at: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
