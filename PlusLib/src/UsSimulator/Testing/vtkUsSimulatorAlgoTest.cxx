@@ -22,6 +22,8 @@
 #include "vtkTransform.h"
 #include "vtkUsSimulatorAlgo.h"
 #include "vtkImageData.h" 
+#include "vtkMetaImageWriter.h"
+#include "vtkPointData.h"
 
 #
 int main(int argc, char **argv)
@@ -115,7 +117,11 @@ std::string outputUsImageFileName;
 
  
  // Acquire data in appropriate containers to prepare for filter
- vtkSmartPointer<vtkPolyData> model = modelReader->GetOutput(); 
+ //vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
+ vtkPolyData *model = vtkPolyData::New(); 
+ 
+ model->DeepCopy(modelReader->GetOutput()); 
+   //= modelReader->GetOutput(); 
 
 
  TrackedFrame* frame = trackedFrameList->GetTrackedFrame(0); // 0 for test TODO: repeate for all frames. 
@@ -128,9 +134,9 @@ std::string outputUsImageFileName;
 
   
    PlusTransformName transformName; 
-  if ( transformName.SetTransformName("ModelToPhantom")!= PLUS_SUCCESS )
+  if ( transformName.SetTransformName("PhantomToImage")!= PLUS_SUCCESS )
   {
-    LOG_ERROR("Invalid transform name: " << "ModeltoPhantom" ); 
+    LOG_ERROR("Invalid transform name: " << "PhantomToImage" ); 
     return EXIT_FAILURE; 
   }
   
@@ -146,22 +152,44 @@ std::string outputUsImageFileName;
     }
 
     vtkSmartPointer< vtkTransform > modelToImageTransform = vtkSmartPointer< vtkTransform >::New();
-   modelToImageTransform->SetMatrix( modelToImageMatrix );    
+   modelToImageTransform->SetMatrix( modelToImageMatrix );   
+
+   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+   stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
+   stencilBackgroundImage->SetOrigin(0,0,0); 
+   stencilBackgroundImage->SetExtent(0,639,0,479,0,1); 
+   stencilBackgroundImage->SetScalarTypeToUnsignedShort();
+   stencilBackgroundImage->SetNumberOfScalarComponents(1);
+
+   stencilBackgroundImage->AllocateScalars(); 
+
+ 
+  
+   
 
   //prepare output of filter. 
 
    vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
    
+
+
    
   vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
   usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
 
-/* 
-  usSimulator->SetInput(0,*modelToImageTransform); 
-  usSimulator->SetInput(1,model); 
+  usSimulator->SetInput(model); 
+  usSimulator->SetModelToImageTransform(modelToImageTransform); 
+  usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
   usSimulator->SetOutput(usImage); 
-  usSimulator->Update(); 
+  usSimulator->Update();
 
+  vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
+  usImageWriter->SetFileName(outputUsImageFileName.c_str());
+  usImageWriter->SetInputConnection(usSimulator->GetOutputPort());
+  usImageWriter->Write();
+
+
+/*
   newer version :
   vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New(); ( maybe not pointer, just image data)
   whiteImage->SetSpacing(volumeSpacing); 

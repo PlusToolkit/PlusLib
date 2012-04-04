@@ -42,7 +42,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->SetModelToImageTransform(modelToImageTransform); 
 
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-  this->StencilBackgroundImage = stencilBackgroundImage; 
+  this->SetStencilBackgroundImage(stencilBackgroundImage); 
  
 
 }
@@ -50,7 +50,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
 {
 
-  info->Set(vtkImageAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkSmartPointer<vtkPolyData>"); 
+  info->Set(vtkImageAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData"); 
   return 1; 
  
  
@@ -86,7 +86,13 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     LOG_ERROR(" No Model to US image transform specified " ); 
     return 1; 
   }
-  
+ if(model == NULL)
+ {
+   LOG_ERROR("Model specified is empty");
+   return 1; 
+ }
+
+
   
   vtkSmartPointer<vtkPolyData> alignedModel = vtkSmartPointer<vtkPolyData>::New(); 
 
@@ -95,7 +101,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   transformModelFilter->SetTransform(ModelToImageTransform);
   transformModelFilter->Update();
 
-  alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(1)); 
+  alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(0)); 
   // 
 
 
