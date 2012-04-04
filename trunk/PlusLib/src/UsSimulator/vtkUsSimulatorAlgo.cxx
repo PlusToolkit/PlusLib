@@ -36,10 +36,10 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->SetNumberOfOutputPorts(1); 
 
   this->StencilBackgroundImage = NULL; 
-  this->ModelToImageTransform = NULL; 
+  this->ModelToImageMatrix= NULL; 
 
-  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
-  this->SetModelToImageTransform(modelToImageTransform); 
+  vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  this->SetModelToImageMatrix(modelToImageMatrix); 
 
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   this->SetStencilBackgroundImage(stencilBackgroundImage); 
@@ -81,7 +81,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   // align model with US image
   
   
- if( ModelToImageTransform== NULL)
+ if( ModelToImageMatrix== NULL)
   {
     LOG_ERROR(" No Model to US image transform specified " ); 
     return 1; 
@@ -92,13 +92,14 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
    return 1; 
  }
 
-
+ vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
+ modelToImageTransform->SetMatrix(ModelToImageMatrix); 
   
   vtkSmartPointer<vtkPolyData> alignedModel = vtkSmartPointer<vtkPolyData>::New(); 
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformModelFilter->SetInput(model);
-  transformModelFilter->SetTransform(ModelToImageTransform);
+  transformModelFilter->SetTransform(modelToImageTransform);
   transformModelFilter->Update();
 
   alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(0)); 
@@ -155,6 +156,6 @@ void vtkUsSimulatorAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
 {
-  this->SetModelToImageTransform(NULL); 
+  this->SetModelToImageMatrix(NULL); 
   this->SetStencilBackgroundImage(NULL);
 }
