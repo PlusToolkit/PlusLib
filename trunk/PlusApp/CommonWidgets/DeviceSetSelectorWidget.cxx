@@ -79,8 +79,9 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
     // Save the selected directory to config object
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toAscii().data());
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-
-  } else {
+  }
+  else
+  {
     LOG_ERROR("Unable to open selected directory!");
   }
 }
@@ -295,8 +296,17 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 			QString name(elem.attribute("Name"));
 			if (name.isEmpty())
       {
+        LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toAscii().data() << "', it is not added to the list");
 				continue;
 			}
+
+      // Check if the same name already exists
+      int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
+      if (foundIndex > -1)
+      {
+        LOG_WARNING("Device set with name '" << name.toAscii().data() << "' already found, configuration file '" << fileName.toAscii().data() << "' is not added to the list");
+				continue;
+      }
 
 			ui.comboBox_DeviceSet->addItem(name, userData);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
