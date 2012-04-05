@@ -44,7 +44,7 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
  private:
    vtkImageData* StencilBackgroundImage; 
    vtkMatrix4x4* ModelToImageMatrix;  
-   static const unsigned char OUTVALSTENCILFOREGROUND = 0;
+   static const unsigned char OUTVALSTENCILFOREGROUND;
   
 
 };
