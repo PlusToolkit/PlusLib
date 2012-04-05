@@ -22,10 +22,15 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkTransformPolyDataFilter.h"
+#include "vtkImageActor.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
 
-
+#include "vtkInteractorStyleImage.h"
 //-----------------------------------------------------------------------------
 
+const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 0;
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
@@ -38,11 +43,11 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->StencilBackgroundImage = NULL; 
   this->ModelToImageMatrix= NULL; 
 
-  vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->SetModelToImageMatrix(modelToImageMatrix); 
+  //vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  //this->SetModelToImageMatrix(modelToImageMatrix); 
 
-  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-  this->SetStencilBackgroundImage(stencilBackgroundImage); 
+  //vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+  //this->SetStencilBackgroundImage(stencilBackgroundImage); 
  
 
 }
@@ -56,7 +61,7 @@ int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
  
 }
 
-int vtkUsSimulatorAlgo::FillOutputPortInformation(int portNum, vtkInformation * info)
+int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
 {
 	info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData"); 
 	return 1; 
@@ -134,11 +139,48 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   combineModelwithBackgroundStencil->SetInput(StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
 
-  combineModelwithBackgroundStencil->ReverseStencilOff();
+  combineModelwithBackgroundStencil->ReverseStencilOn();
   combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
   combineModelwithBackgroundStencil->Update();
 
   simulatedUsImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
+ 
+
+
+  //display
+   vtkSmartPointer<vtkImageActor> redImageActor =
+    vtkSmartPointer<vtkImageActor>::New();
+
+  redImageActor->SetInput(simulatedUsImage);
+
+ 
+  // Visualize
+  vtkSmartPointer<vtkRenderer> renderer =
+    vtkSmartPointer<vtkRenderer>::New();
+ 
+  // Red image is displayed
+  renderer->AddActor(redImageActor);
+  
+ 
+  // White image is displayed
+  //renderer->AddActor(redImageActor);
+  //renderer->AddActor(whiteImageActor);
+  renderer->ResetCamera();
+ 
+  vtkSmartPointer<vtkRenderWindow> renderWindow =
+    vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(renderer);
+ 
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+    vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  vtkSmartPointer<vtkInteractorStyleImage> style =
+    vtkSmartPointer<vtkInteractorStyleImage>::New();
+ 
+  renderWindowInteractor->SetInteractorStyle(style);
+ 
+  renderWindowInteractor->SetRenderWindow(renderWindow);
+  renderWindowInteractor->Initialize();
+  renderWindowInteractor->Start();
    
 
   return 1; 

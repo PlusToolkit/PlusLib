@@ -24,8 +24,13 @@
 #include "vtkImageData.h" 
 #include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
+//display
+#include "vtkImageActor.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
 
-#
+#include "vtkInteractorStyleImage.h"
 int main(int argc, char **argv)
 {
 std::string inputModelFileName;
@@ -151,42 +156,85 @@ std::string outputUsImageFileName;
       //continue; 
     }
 
-   
+  // Create test transform
+  //vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  //transform->Translate(-370,-120,100);
+  //modelToImageMatrix->DeepCopy( transform->GetMatrix() );
 
-   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-   stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
-   stencilBackgroundImage->SetOrigin(0,0,0); 
-   stencilBackgroundImage->SetExtent(0,639,0,479,0,1); 
-   stencilBackgroundImage->SetScalarTypeToUnsignedShort();
-   stencilBackgroundImage->SetNumberOfScalarComponents(1);
+  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+  stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
+  stencilBackgroundImage->SetOrigin(0,0,0); 
+  stencilBackgroundImage->SetExtent(0,639,0,479,0,0);
+  stencilBackgroundImage->SetScalarTypeToUnsignedChar();
+  stencilBackgroundImage->SetNumberOfScalarComponents(1);
+  stencilBackgroundImage->AllocateScalars(); 
 
-   stencilBackgroundImage->AllocateScalars(); 
-
- 
-  
-   
+  int* extent = stencilBackgroundImage->GetExtent();
+  memset(stencilBackgroundImage->GetScalarPointer(), 0,
+    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
   //prepare output of filter. 
-
-   vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-   
-
-
-   
   vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
   usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
 
   usSimulator->SetInput(model); 
   usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
   usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
-  usSimulator->SetOutput(usImage); 
   usSimulator->Update();
+
+  vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
+  usImage->SetSpacing(0.18,0.18,1.0);
+  usImage->SetOrigin(0,0,0); 
+  usImage->SetExtent(0,639,0,479,0,0);
+  usImage->SetScalarTypeToUnsignedChar();
+  usImage->SetNumberOfScalarComponents(1);
+  usImage->AllocateScalars(); 
+  usImage->DeepCopy(usSimulator->GetOutput());
+
+
+
+
+
+  //display
+   vtkSmartPointer<vtkImageActor> redImageActor =
+    vtkSmartPointer<vtkImageActor>::New();
+
+  redImageActor->SetInput(usImage);
+
+ 
+  // Visualize
+  vtkSmartPointer<vtkRenderer> renderer =
+    vtkSmartPointer<vtkRenderer>::New();
+ 
+  // Red image is displayed
+  renderer->AddActor(redImageActor);
+  
+ 
+  // White image is displayed
+  //renderer->AddActor(redImageActor);
+  //renderer->AddActor(whiteImageActor);
+  renderer->ResetCamera();
+ 
+  vtkSmartPointer<vtkRenderWindow> renderWindow =
+    vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(renderer);
+ 
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+    vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  vtkSmartPointer<vtkInteractorStyleImage> style =
+    vtkSmartPointer<vtkInteractorStyleImage>::New();
+ 
+  renderWindowInteractor->SetInteractorStyle(style);
+ 
+  renderWindowInteractor->SetRenderWindow(renderWindow);
+  renderWindowInteractor->Initialize();
+  renderWindowInteractor->Start();
 
   vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
   usImageWriter->SetFileName(outputUsImageFileName.c_str());
-  usImageWriter->SetInputConnection(usSimulator->GetOutputPort());
+  //usImageWriter->SetInputConnection(usSimulator->GetOutputPort()); 
+  usImageWriter->SetInput(usImage); 
   usImageWriter->Write();
-
 
 /*
   newer version :

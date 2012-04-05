@@ -379,8 +379,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       _fseeki64(stream, offset, SEEK_SET);
       if (fread(&(pixelBuffer[0]), 1, frameSizeInBytes, stream)!=frameSizeInBytes)
       {
-        LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
-        numberOfErrors++;
+        //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
+        //numberOfErrors++;
       }
       if ( PlusVideoFrame::GetMFOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
