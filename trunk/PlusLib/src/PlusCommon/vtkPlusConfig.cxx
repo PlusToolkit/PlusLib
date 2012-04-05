@@ -836,12 +836,31 @@ void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
 
 //-----------------------------------------------------------------------------
 
-std::string vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath)
+PlusStatus vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath, std::string &aFoundAbsolutePath)
 {
 	LOG_TRACE("vtkPlusConfig::GetAbsoluteImagePath(" << aImagePath << ")");
 
-  // Make sure the imag epath is absolute
+  // Make sure the image path is absolute
   std::string absoluteImageDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetImageDirectory());
 
-  return vtksys::SystemTools::CollapseFullPath(aImagePath, absoluteImageDirectoryPath.c_str());
+  // Check file relative to the image directory
+  aFoundAbsolutePath = vtksys::SystemTools::CollapseFullPath(aImagePath, absoluteImageDirectoryPath.c_str());
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {
+    return PLUS_SUCCESS;
+  }
+
+  // Make sure the device set configuration path is absolute
+  std::string absoluteDeviceSetConfigurationDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+
+  // Check file relative to the device set configuration directory
+  aFoundAbsolutePath = vtksys::SystemTools::CollapseFullPath(aImagePath, absoluteDeviceSetConfigurationDirectoryPath.c_str());
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {
+    return PLUS_SUCCESS;
+  }
+
+  aFoundAbsolutePath = "";
+  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory nor to device set configuration directory!");
+  return PLUS_FAIL;
 }

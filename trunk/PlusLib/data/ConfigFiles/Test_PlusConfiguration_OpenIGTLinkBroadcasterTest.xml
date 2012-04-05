@@ -2,13 +2,13 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Data collection uses sequence metafile in file mode 3 NWires + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
+      Name="TEST Data collection in file mode 3 NWires + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
     />
 
     <File SequenceMetafile="fCal_Test_Calibration_3NWires.mha" ReplayEnabled="TRUE" />
 	
-	<OpenIGTLink>
+    <OpenIGTLink>
       <Transform SendTo="localhost:18944" Name="StylusTipToReference"/>
       <Transform SendTo="localhost:18944" Name="ProbeToReference"/>
       <Image     SendTo="localhost:18944" />

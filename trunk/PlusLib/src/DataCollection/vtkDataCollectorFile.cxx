@@ -549,7 +549,16 @@ PlusStatus vtkDataCollectorFile::ReadConfiguration(vtkXMLDataElement* aConfigura
   const char* sequenceMetafileName = fileConfig->GetAttribute("SequenceMetafile"); 
   if ( sequenceMetafileName != NULL ) 
   {
-    this->SetSequenceMetafileName(vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafileName).c_str());
+    std::string foundAbsoluteImagePath;
+    if (vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    {
+      this->SetSequenceMetafileName(foundAbsoluteImagePath.c_str());
+    }
+    else
+    {
+      LOG_ERROR("Cannot find input sequence metafile!");
+      return PLUS_FAIL;
+    }
   }
 
   // Read replay enabled flag
