@@ -303,7 +303,16 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
   const char* sequenceMetafile = trackerConfig->GetAttribute("SequenceMetafile"); 
   if ( sequenceMetafile != NULL ) 
   {
-    this->SetSequenceMetafile(vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile).c_str());
+    std::string foundAbsoluteImagePath;
+    if (vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    {
+      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+    }
+    else
+    {
+      LOG_ERROR("Cannot find input sequence metafile!");
+      return PLUS_FAIL;
+    }
   }
 
   const char* replayEnabled = trackerConfig->GetAttribute("ReplayEnabled"); 

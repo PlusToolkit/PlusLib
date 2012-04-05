@@ -134,9 +134,9 @@ public:
 	/*!
 	  Get absolute image path from input image path
 	  \param aImagePath Image path read from configuration file
-	  \return Absolute image path
+	  \param aOutputAbsolutePath Absolute image path if found (output parameter)
 	*/
-  static std::string GetAbsoluteImagePath(const char* aImagePath);
+  static PlusStatus GetAbsoluteImagePath(const char* aImagePath, std::string &aFoundAbsolutePath);
 
 public:
 	/*! Get device set configuration directory path */
