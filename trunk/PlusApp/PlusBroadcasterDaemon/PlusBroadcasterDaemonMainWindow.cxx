@@ -47,7 +47,6 @@ PlusBroadcasterDaemonMainWindow::PlusBroadcasterDaemonMainWindow(QWidget *parent
 
   // Setup device set selector widget
   this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
   this->m_DeviceSetSelectorWidget->resize(this->width(), this->height());
 
   // Re-parse the directory to properly select the previously selected device set (it is called in its constructor but there are no connects set up yet)

@@ -8,7 +8,11 @@
     <file>Resources/icon_Record.png</file>
     <file>Resources/icon_Stop.png</file>
     <file>Resources/icon_ShowDevices.png</file>
+    <file>Resources/icon_DownArrow.png</file>
     <file>../CommonWidgets/Resources/icon_OpenFile.png</file>
     <file>../CommonWidgets/Resources/icon_Edit.png</file>
+  </qresource>
+  <qresource prefix="styles">
+    <file>Resources/style_DeviceSetComboBox.qss</file>
   </qresource>
 </RCC>

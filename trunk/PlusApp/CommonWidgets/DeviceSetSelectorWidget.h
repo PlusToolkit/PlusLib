@@ -57,11 +57,6 @@ public:
 	bool GetConnectionSuccessful();
 
   /*!
-	* Set device set combo box minimum width 
-	*/
-  void SetComboBoxMinWidth(int minWidth);
-
-  /*!
 	* Return currently selected device set description 
 	*/
   std::string GetSelectedDeviceSetDescription();

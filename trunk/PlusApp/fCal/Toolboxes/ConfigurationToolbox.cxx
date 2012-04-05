@@ -16,6 +16,7 @@
 
 #include <QDialog>
 #include <QFileDialog>
+#include <QFile>
 
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
@@ -34,8 +35,14 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-  m_DeviceSetSelectorWidget->SetComboBoxMinWidth(400); 
 
+  QFile styleSheetFile(":/styles/Resources/style_DeviceSetComboBox.qss");
+  styleSheetFile.open(QIODevice::ReadOnly);
+  QByteArray styleByteArray = styleSheetFile.readAll();
+  QString styleSheet(styleByteArray.data());
+  m_DeviceSetSelectorWidget->setStyleSheet(styleSheet);
+
+  // Create tool box state widget
 	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
 	m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 

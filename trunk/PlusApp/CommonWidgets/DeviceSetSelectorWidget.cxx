@@ -26,8 +26,6 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
-  ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-
   SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 }
 
@@ -330,16 +328,6 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex); 
 
 	return PLUS_SUCCESS;
-}
-
-
-//-----------------------------------------------------------------------------
-
-void DeviceSetSelectorWidget::SetComboBoxMinWidth(int minWidth)
-{
-	LOG_TRACE("DeviceSetSelectorWidget::SetComboBoxMinWidth(" << minWidth << ")"); 
-
-  ui.comboBox_DeviceSet->setMinimumWidth(minWidth);
 }
 
 //-----------------------------------------------------------------------------
