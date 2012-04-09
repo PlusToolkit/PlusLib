@@ -652,6 +652,7 @@ void FreehandCalibrationToolbox::StartTemporal()
   if (!offsetsSuccessfullyRetrieved)
   {
     LOG_ERROR("Tracker and video offset retrieval failed due to problems with data collector or the buffers!");
+    CancelCalibration();
     return;
   }
 
