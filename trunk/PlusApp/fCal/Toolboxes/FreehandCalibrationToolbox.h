@@ -20,6 +20,7 @@ class vtkProbeCalibrationAlgo;
 class FidPatternRecognition;
 class vtkTrackedFrameList;
 class vtkTable;
+class vtkContextView;
 
 //-----------------------------------------------------------------------------
 
@@ -70,6 +71,14 @@ protected:
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
 
+  /*!
+	* \brief Filters events if this object has been installed as an event filter for the watched object
+	* \param obj object
+	* \param ev event
+	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+	*/
+	bool eventFilter(QObject *obj, QEvent *ev);
+
 protected slots:
   /*! Acquire tracked frames and segment them. Runs calibration if acquisition is ready */
   void DoSpatialCalibration();
@@ -86,8 +95,8 @@ protected slots:
   /*! Edit segmentation parameters */
   void EditSegmentationParameters();
 
-  /*! Show popup window with the plots in it when clicking on the Show Plots button */
-  void ShowPlots();
+  /*! Show/hide popup window with the plots in it when toggling the Show Plots button */
+  void ShowPlotsToggled(bool aOn);
 
   /*! Slot handling start temporal calibration button click */
   void StartTemporal();
@@ -170,6 +179,15 @@ protected:
 
   /*! Metric table of calibrated tracker positions for temporal calibration */
   vtkTable* m_CalibratedTrackerPositionMetric;
+
+	/*! Window that is created/deleted when Show Plots button is toggled */
+	QWidget* m_TemporalCalibrationPlotsWindow;
+
+  /*! Chart view for the uncalibrated plot */
+  vtkContextView* m_UncalibratedPlotContextView;
+
+  /*! Chart view for the calibrated plot */
+  vtkContextView* m_CalibratedPlotContextView;
 
 protected:
   Ui::FreehandCalibrationToolbox ui;

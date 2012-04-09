@@ -55,6 +55,9 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   , m_PreviousVideoOffset(-1.0)
   , m_SpatialCalibrationInProgress(false)
   , m_TemporalCalibrationInProgress(false)
+  , m_TemporalCalibrationPlotsWindow(NULL)
+  , m_UncalibratedPlotContextView(NULL)
+  , m_CalibratedPlotContextView(NULL)
 {
   ui.setupUi(this);
 
@@ -92,7 +95,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
   connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
-  connect( ui.pushButton_ShowPlots, SIGNAL( clicked() ), this, SLOT( ShowPlots() ) );
+  connect( ui.pushButton_ShowPlots, SIGNAL( toggled(bool) ), this, SLOT( ShowPlotsToggled(bool) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -142,6 +145,21 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
   if (m_CalibratedTrackerPositionMetric != NULL) {
     m_CalibratedTrackerPositionMetric->Delete();
     m_CalibratedTrackerPositionMetric = NULL;
+  } 
+
+  if (m_TemporalCalibrationPlotsWindow != NULL) {
+    delete m_TemporalCalibrationPlotsWindow;
+    m_TemporalCalibrationPlotsWindow = NULL;
+  } 
+
+  if (m_UncalibratedPlotContextView != NULL) {
+    m_UncalibratedPlotContextView->Delete();
+    m_UncalibratedPlotContextView = NULL;
+  } 
+
+  if (m_CalibratedPlotContextView != NULL) {
+    m_CalibratedPlotContextView->Delete();
+    m_CalibratedPlotContextView = NULL;
   } 
 }
 
@@ -1093,74 +1111,117 @@ void FreehandCalibrationToolbox::DisplaySegmentedPoints()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::ShowPlots()
+void FreehandCalibrationToolbox::ShowPlotsToggled(bool aOn)
 {
-	// Create window and layout
-	QWidget* plotWindow = new QWidget(this, Qt::Tool);
-	plotWindow->setMinimumSize(QSize(800, 600));
-	plotWindow->setCaption(tr("Temporal calibration report"));
-	plotWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
+  // Delete objects if toggled off, make sure they are deleted when toggled on
+  if (m_TemporalCalibrationPlotsWindow != NULL)
+  {
+    delete m_TemporalCalibrationPlotsWindow;
+    m_TemporalCalibrationPlotsWindow = NULL;
+  } 
 
-	QGridLayout* gridPlotWindow = new QGridLayout(plotWindow, 2, 1, 0, 4, "");
+  if (m_UncalibratedPlotContextView != NULL)
+  {
+    m_UncalibratedPlotContextView->Delete();
+    m_UncalibratedPlotContextView = NULL;
+  } 
 
-  // Uncalibrted chart view
-  QVTKWidget* uncalibratedPlotVtkWidget = new QVTKWidget(plotWindow);
+  if (m_CalibratedPlotContextView != NULL)
+  {
+    m_CalibratedPlotContextView->Delete();
+    m_CalibratedPlotContextView = NULL;
+  } 
 
-  vtkSmartPointer<vtkContextView> uncalibratedView = vtkSmartPointer<vtkContextView>::New();
-  uncalibratedView->Register(m_VideoPositionMetric);
-  uncalibratedView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+  if (aOn)
+  {
+	  // Create window and layout
+	  m_TemporalCalibrationPlotsWindow = new QWidget(this, Qt::Tool);
+	  m_TemporalCalibrationPlotsWindow->setMinimumSize(QSize(800, 600));
+	  m_TemporalCalibrationPlotsWindow->setCaption(tr("Temporal calibration report"));
+	  m_TemporalCalibrationPlotsWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
 
-  vtkSmartPointer<vtkChartXY> uncalibratedChart = vtkSmartPointer<vtkChartXY>::New();
-  uncalibratedChart->Register(m_VideoPositionMetric);
+		// Install event filter that is called on closing the window
+		m_TemporalCalibrationPlotsWindow->installEventFilter(this);
 
-  vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
-  uncalibratedTrackerMetricLine->SetInput(m_UncalibratedTrackerPositionMetric, 0, 1);
-  uncalibratedTrackerMetricLine->SetColor(1,0,0);
-  uncalibratedTrackerMetricLine->SetWidth(1.0);
+	  QGridLayout* gridPlotWindow = new QGridLayout(m_TemporalCalibrationPlotsWindow, 2, 1, 0, 4, "");
 
-  vtkPlot *videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
-  videoPositionMetricLineU->SetInput(m_VideoPositionMetric, 0, 1);
-  videoPositionMetricLineU->SetColor(0,0,1);
-  videoPositionMetricLineU->SetWidth(1.0);
+    // Uncalibrted chart view
+    QVTKWidget* uncalibratedPlotVtkWidget = new QVTKWidget(m_TemporalCalibrationPlotsWindow);
 
-  uncalibratedChart->SetShowLegend(true);
-  uncalibratedView->GetScene()->AddItem(uncalibratedChart);
+    m_UncalibratedPlotContextView = vtkContextView::New();
+    m_UncalibratedPlotContextView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
 
-  uncalibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(uncalibratedView->GetRenderer());
-  uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
+    vtkSmartPointer<vtkChartXY> uncalibratedChart = vtkSmartPointer<vtkChartXY>::New();
+    uncalibratedChart->Register(m_UncalibratedPlotContextView);
 
-  gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
+    vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
+    uncalibratedTrackerMetricLine->SetInput(m_UncalibratedTrackerPositionMetric, 0, 1);
+    uncalibratedTrackerMetricLine->SetColor(1,0,0);
+    uncalibratedTrackerMetricLine->SetWidth(1.0);
 
-  // Calibrted chart view
-  QVTKWidget* calibratedPlotVtkWidget = new QVTKWidget(plotWindow);
+    vtkPlot *videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
+    videoPositionMetricLineU->SetInput(m_VideoPositionMetric, 0, 1);
+    videoPositionMetricLineU->SetColor(0,0,1);
+    videoPositionMetricLineU->SetWidth(1.0);
 
-  vtkSmartPointer<vtkContextView> calibratedView = vtkSmartPointer<vtkContextView>::New();
-  calibratedView->Register(m_VideoPositionMetric);
-  calibratedView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+    uncalibratedChart->SetShowLegend(true);
+    m_UncalibratedPlotContextView->GetScene()->AddItem(uncalibratedChart);
 
-  vtkSmartPointer<vtkChartXY> calibratedChart = vtkSmartPointer<vtkChartXY>::New();
-  calibratedChart->Register(m_VideoPositionMetric);
+    uncalibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(m_UncalibratedPlotContextView->GetRenderer());
+    uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
 
-  vtkPlot *calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
-  calibratedTrackerMetricLine->SetInput(m_CalibratedTrackerPositionMetric, 0, 1);
-  calibratedTrackerMetricLine->SetColor(0,1,0);
-  calibratedTrackerMetricLine->SetWidth(1.0);
+    gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
 
-  vtkPlot *videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
-  videoPositionMetricLineC->SetInput(m_VideoPositionMetric, 0, 1);
-  videoPositionMetricLineC->SetColor(0,0,1);
-  videoPositionMetricLineC->SetWidth(1.0);
+    // Calibrted chart view
+    QVTKWidget* calibratedPlotVtkWidget = new QVTKWidget(m_TemporalCalibrationPlotsWindow);
 
-  calibratedChart->SetShowLegend(true);
-  calibratedView->GetScene()->AddItem(calibratedChart);
+    m_CalibratedPlotContextView = vtkContextView::New();
+    m_CalibratedPlotContextView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
 
-  calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(calibratedView->GetRenderer());
-  calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
+    vtkSmartPointer<vtkChartXY> calibratedChart = vtkSmartPointer<vtkChartXY>::New();
+    calibratedChart->Register(m_CalibratedPlotContextView);
 
-  gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
+    vtkPlot *calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
+    calibratedTrackerMetricLine->SetInput(m_CalibratedTrackerPositionMetric, 0, 1);
+    calibratedTrackerMetricLine->SetColor(0,1,0);
+    calibratedTrackerMetricLine->SetWidth(1.0);
 
-  // Position and show window
-  plotWindow->setLayout(gridPlotWindow);
-  plotWindow->move( mapToGlobal( QPoint( ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20 ) ) );
-  plotWindow->show();
+    vtkPlot *videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
+    videoPositionMetricLineC->SetInput(m_VideoPositionMetric, 0, 1);
+    videoPositionMetricLineC->SetColor(0,0,1);
+    videoPositionMetricLineC->SetWidth(1.0);
+
+    calibratedChart->SetShowLegend(true);
+    m_CalibratedPlotContextView->GetScene()->AddItem(calibratedChart);
+
+    calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(m_CalibratedPlotContextView->GetRenderer());
+    calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
+
+    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
+
+    // Position and show window
+    m_TemporalCalibrationPlotsWindow->setLayout(gridPlotWindow);
+    m_TemporalCalibrationPlotsWindow->move( mapToGlobal( QPoint( ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20 ) ) );
+    m_TemporalCalibrationPlotsWindow->show();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+bool FreehandCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
+{
+	if ( obj == m_TemporalCalibrationPlotsWindow )
+  {
+		if ( ev->type() == QEvent::Close )
+    {
+			ui.pushButton_ShowPlots->setChecked(false);
+		}
+    else
+    {
+			// Pass the event on to the parent class
+			return QWidget::eventFilter( obj, ev );
+		}
+	}
+
+	return true;
 }

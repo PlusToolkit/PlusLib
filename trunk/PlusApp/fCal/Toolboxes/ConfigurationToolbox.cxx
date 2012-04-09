@@ -242,7 +242,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 {
 	LOG_TRACE("ConfigurationToolbox::PopOutToggled");
 
-	if (aOn) {
+	if (aOn)
+  {
 		// Create pop out window
 		m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
 		m_ToolStatePopOutWindow->setMinimumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
@@ -265,8 +266,9 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		// Reduce size of empty space in toolbox
 		ui.toolStateDisplayWidget->setMinimumHeight(0);
 		ui.toolStateDisplayWidget->setMaximumHeight(0);
-
-	} else {
+	}
+  else
+  {
 		// Insert tool state display back in toolbox
 		ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 		ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -275,7 +277,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
 
 		// Delete pop out window
-		if (m_ToolStatePopOutWindow) {
+		if (m_ToolStatePopOutWindow)
+    {
 			delete m_ToolStatePopOutWindow;
 		}
 		m_ToolStatePopOutWindow = NULL;
@@ -283,6 +286,26 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 
 	// Set detached flag
 	m_IsToolDisplayDetached = aOn;
+}
+
+//-----------------------------------------------------------------------------
+
+bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
+{
+	if ( obj == m_ToolStatePopOutWindow )
+  {
+		if ( ev->type() == QEvent::Close )
+    {
+			ui.pushButton_PopOut->setChecked(false);
+		}
+    else
+    {
+			// Pass the event on to the parent class
+			return QWidget::eventFilter( obj, ev );
+		}
+	}
+
+	return true;
 }
 
 //-----------------------------------------------------------------------------

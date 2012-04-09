@@ -25,40 +25,40 @@ class ToolStateDisplayWidget;
  */
 class ConfigurationToolbox : public QWidget, public AbstractToolbox
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	/*!
-	* Constructor
+  /*!
+  * Constructor
   * \param aParentWindow Parent main window
-	* \param aFlags widget flag
-	*/
-	ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
+  * \param aFlags widget flag
+  */
+  ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
-	/*!
-	* Destructor
-	*/
-	~ConfigurationToolbox();
+  /*!
+  * Destructor
+  */
+  ~ConfigurationToolbox();
 
-	/*!
-	* Initialize toolbox
-	*/
-	void Initialize();
+  /*!
+  * Initialize toolbox
+  */
+  void Initialize();
 
-	/*!
-	* Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshContent();
+  /*!
+  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
+  */
+  void RefreshContent();
 
-	/*!
-	* Refresh contents if tool display is detached
-	*/
+  /*!
+  * Refresh contents if tool display is detached
+  */
   void RefreshToolDisplayIfDetached();
 
-	/*!
-	* Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
-	*/
-	void SetDisplayAccordingToState();
+  /*!
+  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+  */
+  void SetDisplayAccordingToState();
 
 protected:
   /*!
@@ -70,57 +70,65 @@ protected:
   /*! Read wire pattern and add it to visualization */
   PlusStatus ReadAndAddPhantomWiresToVisualization();
 
-signals:
-	/*!
-	* Executes operations needed after stopping the process
-	* \param Enable/disable flag
+  /*!
+	* \brief Filters events if this object has been installed as an event filter for the watched object
+	* \param obj object
+	* \param ev event
+	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
 	*/
-	void SetTabsEnabled(bool);
+	bool eventFilter(QObject *obj, QEvent *ev);
+
+signals:
+  /*!
+  * Executes operations needed after stopping the process
+  * \param Enable/disable flag
+  */
+  void SetTabsEnabled(bool);
 
 protected slots:
-	/*!
-	* Connect to devices described in the argument configuration file in response by clicking on the Connect button
-	* \param aConfigFile DeviceSet configuration file path and name
-	*/
-	void ConnectToDevicesByConfigFile(std::string aConfigFile);
+  /*!
+  * Connect to devices described in the argument configuration file in response by clicking on the Connect button
+  * \param aConfigFile DeviceSet configuration file path and name
+  */
+  void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
-	/*!
-	* Slot handling pop out toggle button state change
-	* \param aOn True if toggled, false otherwise
-	*/
-	void PopOutToggled(bool aOn);
+  /*!
+  * Slot handling pop out toggle button state change
+  * \param aOn True if toggled, false otherwise
+  */
+  void PopOutToggled(bool aOn);
 
-	/*!
-	* Slot handling log level combobox item change
-	* \param aLevel New log level
-	*/
-	void LogLevelChanged(int aLevel);
+  /*!
+  * Slot handling log level combobox item change
+  * \param aLevel New log level
+  */
+  void LogLevelChanged(int aLevel);
 
-	/*!
-	* Slot handling select editor application executable button click
-	*/
+  /*!
+  * Slot handling select editor application executable button click
+  */
   void SelectEditorApplicationExecutable();
 
-	/*!
-	* Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
-	*/
-	void SelectImageDirectory();
+  /*!
+  * Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
+  */
+  void SelectImageDirectory();
 
 protected:
-	/*! Device set selector widget */
-	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+  /*! Device set selector widget */
+  DeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
 
-	/*! Tool state display widget */
-	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
+  /*! Tool state display widget */
+  ToolStateDisplayWidget*    m_ToolStateDisplayWidget;
 
-	/*! Window that is created when tool state display widget is popped out */
-	QWidget*					        m_ToolStatePopOutWindow;
+  /*! Window that is created when tool state display widget is popped out */
+  QWidget*                  m_ToolStatePopOutWindow;
 
-	/*! Flag indicating if tool state display widget is detached */
-	bool                      m_IsToolDisplayDetached;
+  /*! Flag indicating if tool state display widget is detached */
+  bool                      m_IsToolDisplayDetached;
 
 protected:
-	Ui::ConfigurationToolbox	ui;
+  Ui::ConfigurationToolbox  ui;
 };
 
 #endif
