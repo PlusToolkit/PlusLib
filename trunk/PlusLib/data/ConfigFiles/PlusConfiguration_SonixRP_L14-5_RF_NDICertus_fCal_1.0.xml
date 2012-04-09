@@ -154,6 +154,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
   />
 
 

@@ -137,6 +137,7 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
   />
 
 

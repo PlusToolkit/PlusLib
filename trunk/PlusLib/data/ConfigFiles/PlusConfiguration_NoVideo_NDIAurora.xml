@@ -69,6 +69,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
   />
 
 </PlusConfiguration>

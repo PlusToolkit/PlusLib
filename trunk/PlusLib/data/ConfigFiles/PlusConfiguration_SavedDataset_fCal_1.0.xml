@@ -160,6 +160,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
   />
 
 

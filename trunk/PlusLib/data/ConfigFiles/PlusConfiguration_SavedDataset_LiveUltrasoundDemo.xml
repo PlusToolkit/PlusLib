@@ -159,6 +159,7 @@ The desired file name with path needs to be added to this XML file as values Seq
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
   />
 
 
