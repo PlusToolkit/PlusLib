@@ -682,6 +682,27 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
 
   if (currentTimeSec - m_StartTimeSec >= m_TemporalCalibrationDurationSec)
   {
+	  // Create dialog
+	  QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
+	  temporalCalibrationDialog->setMinimumSize(QSize(360,80));
+	  temporalCalibrationDialog->setCaption(tr("fCal"));
+	  temporalCalibrationDialog->setBackgroundColor(QColor(224, 224, 224));
+
+	  QLabel* temporalCalibrationLabel = new QLabel(QString("Computing temporal calibration, please wait..."), temporalCalibrationDialog);
+	  temporalCalibrationLabel->setFont(QFont("SansSerif", 16));
+
+	  QHBoxLayout* layout = new QHBoxLayout();
+	  layout->addWidget(temporalCalibrationLabel);
+
+	  temporalCalibrationDialog->setLayout(layout);
+	  temporalCalibrationDialog->show();
+
+    ui.frame_TemporalCalibration->setEnabled(false);
+    ui.label_InstructionsTemporal->setText(tr("Please wait until computing temporal calibration is finished"));
+    m_ParentMainWindow->SetStatusBarText(QString(" Computing temporal calibration"));
+
+	  QApplication::processEvents();
+
     // Do the calibration
     TemporalCalibration temporalCalibrationObject;
     temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData);
@@ -699,6 +720,11 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     {
       LOG_ERROR("Cannot determine tracker lag, temporal calibration failed!");
       CancelCalibration();
+
+		  temporalCalibrationDialog->done(0);
+      temporalCalibrationDialog->hide();
+      delete temporalCalibrationDialog;
+
       return;
     }
 
@@ -708,6 +734,11 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     {
       LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
       CancelCalibration();
+
+		  temporalCalibrationDialog->done(0);
+      temporalCalibrationDialog->hide();
+      delete temporalCalibrationDialog;
+
       return;
     }
 
@@ -732,6 +763,11 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     {
       LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
       CancelCalibration();
+
+      temporalCalibrationDialog->done(0);
+      temporalCalibrationDialog->hide();
+      delete temporalCalibrationDialog;
+
       return;
     }
     // Save metric tables
@@ -747,6 +783,11 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     m_TemporalCalibrationInProgress = false;
 
     m_ParentMainWindow->SetTabsEnabled(true);
+
+	  // Close dialog
+	  temporalCalibrationDialog->done(0);
+    temporalCalibrationDialog->hide();
+    delete temporalCalibrationDialog;
 
     return;
   }
