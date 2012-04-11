@@ -12,6 +12,7 @@
 
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
+#include "PlusRevision.h"
 
 //-----------------------------------------------------------------------------
 
@@ -74,14 +75,14 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
   LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
 
   // Find Device set element
-	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
-	if (usDataCollection == NULL)
+	vtkXMLDataElement* dataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
+	if (dataCollection == NULL)
   {
-		LOG_ERROR("No USDataCollection element is found in the XML tree!");
+		LOG_ERROR("No DataCollection element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+	vtkXMLDataElement* deviceSet = dataCollection->FindNestedElementWithName("DeviceSet");
 	if (deviceSet == NULL)
   {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
@@ -116,15 +117,28 @@ void ConfigFileSaverDialog::SaveClicked()
 {
   LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
 
-  // Find Device set element
-	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
-	if (usDataCollection == NULL)
+  // Get root element
+  vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
+	if (configRootElement == NULL)
   {
-		LOG_ERROR("No USDataCollection element is found in the XML tree!");
+		LOG_ERROR("No configuration XML found!");
 		return;
 	}
 
-	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+  // Save plus version
+  std::string plusVersionString(PLUSLIB_VERSION);
+  plusVersionString = plusVersionString + "." + PLUSLIB_REVISION;
+  configRootElement->SetAttribute("PlusRevision", plusVersionString.c_str());
+
+  // Find Device set element
+	vtkXMLDataElement* dataCollection = configRootElement->FindNestedElementWithName("DataCollection");
+	if (dataCollection == NULL)
+  {
+		LOG_ERROR("No DataCollection element is found in the XML tree!");
+		return;
+	}
+
+	vtkXMLDataElement* deviceSet = dataCollection->FindNestedElementWithName("DeviceSet");
 	if (deviceSet == NULL)
   {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");

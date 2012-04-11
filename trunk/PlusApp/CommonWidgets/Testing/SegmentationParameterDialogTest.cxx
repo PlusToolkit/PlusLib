@@ -235,13 +235,13 @@ PlusStatus SegmentationParameterDialogTest::VerifySavedConfigurationFile()
 	}
 
   // Find Device set element
-	vtkXMLDataElement* usDataCollection = resultRootElement->FindNestedElementWithName("DataCollection");
-	if (usDataCollection == NULL) {
-		LOG_ERROR("No USDataCollection element is found in the XML tree!");
+	vtkXMLDataElement* dataCollection = resultRootElement->FindNestedElementWithName("DataCollection");
+	if (dataCollection == NULL) {
+		LOG_ERROR("No DataCollection element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+	vtkXMLDataElement* deviceSet = dataCollection->FindNestedElementWithName("DeviceSet");
 	if (deviceSet == NULL) {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return PLUS_FAIL;
