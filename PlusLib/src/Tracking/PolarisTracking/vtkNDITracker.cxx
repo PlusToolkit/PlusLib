@@ -305,9 +305,9 @@ PlusStatus vtkNDITracker::InternalStartTracking()
   case 38400: baud = NDI_38400; break; 
   case 57600: baud = NDI_57600; break; 
   case 115200: baud = NDI_115200; break;
-  // Elvis
+#ifdef NDI_921600
   case 921600: baud = NDI_921600; break;
-  // end Elvis
+#endif
   default:
     LOG_ERROR("Illegal baud rate");
     return PLUS_FAIL;
