@@ -335,6 +335,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
+    ui.label_Warning->setVisible(false);
     ui.label_Results->setText(QString(""));
 
     ui.label_InstructionsSpatial->setText(QString(""));
@@ -362,6 +363,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenSegmentationParameters->setEnabled(true);
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
 
+    ui.label_Warning->setVisible(false);
     ui.label_Results->setText(QString(""));
 
     ui.frame_SpatialCalibration->setEnabled(true);
@@ -387,6 +389,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
+    ui.label_Warning->setVisible(false);
     ui.label_Results->setText(QString(""));
 
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
@@ -429,11 +432,33 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     if (m_SpatialCalibrationInProgress)
     {
       ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
+
+      if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 2.0)
+      {
+        QPalette palette;
+        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(223, 0, 0)));
+        ui.label_Warning->setPalette(palette);
+        ui.label_Warning->setVisible(true);
+        ui.label_Warning->setText(tr("Calibration error is too high!\n  Please re-calibrate"));
+      }
+      else if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 1.0)
+      {
+        QPalette palette;
+        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+        ui.label_Warning->setPalette(palette);
+        ui.label_Warning->setVisible(true);
+        ui.label_Warning->setText(tr("Calibration error is relatively high!\n  Consider re-calibrating"));
+      }
+      else
+      {
+        ui.label_Warning->setVisible(false);
+      }
       ui.label_Results->setText(m_Calibration->GetResultString().c_str());
     }
     else
     {
       ui.label_InstructionsSpatial->setText(QString(""));
+      ui.label_Warning->setVisible(false);
       ui.label_Results->setText(QString(""));
     }
     ui.frame_SpatialCalibration->setEnabled(true);
@@ -462,6 +487,9 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   {
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
     ui.pushButton_OpenSegmentationParameters->setEnabled(false);
+
+    ui.label_Warning->setVisible(false);
+    ui.label_Results->setText(QString(""));
 
     ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_StartSpatial->setEnabled(false);
