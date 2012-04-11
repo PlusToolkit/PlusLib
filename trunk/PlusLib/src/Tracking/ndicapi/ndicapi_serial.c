@@ -82,6 +82,18 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "ndicapi_serial.h"
 
+
+
+/* USB versions of NDI tracking can communicate at baud rate 921600 but is not defined in WinBase.h */
+#if defined(WIN32) || defined(_WIN32)
+  #ifndef  CBR_921600
+    #define  CBR_921600 921600
+  #endif
+#endif
+
+/* TODO: add similar fixes to the higher baud rate for Linux, Apple, etc. */
+
+
 /* time out period in milliseconds */
 #define TIMEOUT_PERIOD 5000
 
@@ -511,6 +523,7 @@ int ndiSerialComm(HANDLE serial_port, int baud, const char *mode,
     case 38400:  newbaud = CBR_38400;  break;
     case 57600:  newbaud = CBR_57600;  break;
     case 115200: newbaud = CBR_115200; break;
+    case 921600: newbaud = CBR_921600; break;
     default:     return -1;
     }
 

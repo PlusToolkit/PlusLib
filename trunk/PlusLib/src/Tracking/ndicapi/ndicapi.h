@@ -1635,6 +1635,7 @@ void *ndiHexDecode(void *data, const char *cp, int n);
 #define  NDI_38400    3
 #define  NDI_57600    4
 #define  NDI_115200   5
+#define  NDI_921600   6
 /*\}*/
 
 /* ndiCOMM() data bits, parity and stop bits */
