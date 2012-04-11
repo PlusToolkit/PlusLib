@@ -709,7 +709,8 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     double fanAngles[2],
                                     double fanOrigin[2],
                                     double fanDepth,
-                                    vtkPasteSliceIntoVolume::InterpolationType interpolationMode)
+                                    vtkPasteSliceIntoVolume::InterpolationType interpolationMode,
+                                    vtkPasteSliceIntoVolume::ResultType resultMode)
 {
   LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
     <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
@@ -923,7 +924,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
           outPoint[1] = outPoint1[1] + idX*xAxis[1];
           outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc); // hit is either 1 or 0
+          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, resultMode, outExt, outInc); // hit is either 1 or 0
 
           inPtr += numscalars; // go to the next x pixel
         }

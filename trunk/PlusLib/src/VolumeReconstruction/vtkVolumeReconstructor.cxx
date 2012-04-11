@@ -137,6 +137,23 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       LOG_ERROR("Unknown interpolation option: "<<reconConfig->GetAttribute("Interpolation")<<". Valid options: LINEAR, NEAREST_NEIGHBOR.");
     }
   }
+  if (reconConfig->GetAttribute("Calculation"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("Calculation"),
+      this->Reconstructor->GetResultModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)) == 0)
+    {
+      this->Reconstructor->SetResultMode(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Calculation"), 
+      this->Reconstructor->GetResultModeAsString(vtkPasteSliceIntoVolume::MAXIMUM)) == 0)
+    {
+      this->Reconstructor->SetResultMode(vtkPasteSliceIntoVolume::MAXIMUM);
+    }
+    else
+    {
+      LOG_ERROR("Unknown calculation option: "<<reconConfig->GetAttribute("Calculation")<<". Valid options: WEIGHTED_AVERAGE, MAXIMUM.");
+    }
+  }
   if (reconConfig->GetAttribute("Optimization"))
   {
     if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 

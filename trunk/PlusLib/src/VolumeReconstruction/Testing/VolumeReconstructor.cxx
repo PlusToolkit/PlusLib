@@ -113,7 +113,7 @@ int main (int argc, char* argv[])
   LOG_INFO("Reconstruct volume...");
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   int numberOfFramesAddedToVolume=0; 
-  for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
+  for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex+=1 )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
