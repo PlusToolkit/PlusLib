@@ -81,6 +81,7 @@ static const unsigned char OPAQUE_ALPHA=255;
 template <class F, class T>
 static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
+                                     vtkPasteSliceIntoVolume::ResultType resultMode,
                                      int outExt[6], int outInc[3])
 {
   F fx, fy, fz;
@@ -175,7 +176,16 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         do
         {
           i--;
-          PlusMath::Round((f*(*inPtrTmp++) + r*(*outPtrTmp))/a, *outPtrTmp);
+          if (resultMode == vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)
+          {
+            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
+          }
+          else if (resultMode == vtkPasteSliceIntoVolume::MAXIMUM)
+          {
+            if (*inPtrTmp > *outPtrTmp)
+              *outPtrTmp = *inPtrTmp;
+          }
+          inPtrTmp++;
           outPtrTmp++;
         }
         while (i);

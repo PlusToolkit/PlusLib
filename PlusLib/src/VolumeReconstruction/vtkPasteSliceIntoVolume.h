@@ -83,6 +83,12 @@ public:
     FULL_OPTIMIZATION
   };
 
+  enum ResultType
+  {
+    WEIGHTED_AVERAGE,
+    MAXIMUM
+  };
+
   static vtkPasteSliceIntoVolume *New();
   vtkTypeRevisionMacro(vtkPasteSliceIntoVolume, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -212,6 +218,17 @@ public:
   char *GetInterpolationModeAsString(InterpolationType interpEnum);
 
   /*!
+    Set the result mode
+    WEIGHTED_AVERAGE: Used on single sweeps when slices are not expected to intersect
+    MAXIMUM: used when multiple slices are expected to intersect
+  */
+  vtkSetMacro(ResultMode,ResultType);
+  /*! Get the result mode */
+  vtkGetMacro(ResultMode,ResultType);
+  /*! Get the name of a result mode from a type id */
+  char *GetResultModeAsString(ResultType resultEnum);
+
+  /*!
     Turn on or off the compounding (default on, which means
     that scans will be averaged where they overlap instead of just considering
     the last acquired slice).
@@ -264,6 +281,7 @@ protected:
   // Reconstruction options
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
+  ResultType ResultMode;
   int Compounding;
 
   // Multithreading
