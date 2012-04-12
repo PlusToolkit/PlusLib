@@ -39,14 +39,14 @@ int main( int argc, char** argv )
   std::string inputMetaFilename;
   std::string inputConfigFileName; 
   std::string outputModelFilename; 
-  std::string inputTransformName; 
+  std::string imageToReferenceTransformName;  // image to reference
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for creating slice models");
+  args.AddArgument("--image-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformName, "Transform name used for creating slice models");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
   args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
@@ -119,9 +119,9 @@ int main( int argc, char** argv )
   appender->SetInput( outputPolyData );
 
   PlusTransformName transformName; 
-  if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
+  if ( transformName.SetTransformName(imageToReferenceTransformName.c_str())!= PLUS_SUCCESS )
   {
-    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+    LOG_ERROR("Invalid transform name: " << imageToReferenceTransformName ); 
     return EXIT_FAILURE; 
   }
 

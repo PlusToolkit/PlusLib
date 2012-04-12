@@ -24,13 +24,79 @@
 #include "vtkImageData.h" 
 #include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
+#include "vtkAppendPolyData.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkCubeSource.h"
+#include "vtkJPEGWriter.h"
+#include "vtkMetaImageWriter.h"
 //display
 #include "vtkImageActor.h"
+#include "vtkActor.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
-
+#include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
 #include "vtkInteractorStyleImage.h"
+
+void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformRepository *transformRepository, PlusTransformName &imageToReferenceTransformName, vtkPolyData *outputPolyData)
+{
+  // Prepare the output polydata.
+  
+  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
+
+  // Loop over each tracked image slice.
+  for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
+  {
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+
+    // Update transform repository 
+    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
+      continue; 
+    }
+
+    vtkSmartPointer<vtkMatrix4x4> tUserDefinedMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( transformRepository->GetTransform(imageToReferenceTransformName, tUserDefinedMatrix) != PLUS_SUCCESS )
+    {
+      std::string strTransformName; 
+      imageToReferenceTransformName.GetTransformName(strTransformName); 
+      LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
+      continue; 
+    }
+
+    vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
+    tUserDefinedTransform->SetMatrix( tUserDefinedMatrix );    
+
+    int* frameSize = frame->GetFrameSize();
+
+    vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
+    tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
+    tCubeToImage->Translate( 0.5, 0.5, 0.5 );  // Moving the corner to the origin.
+
+    vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
+    tCubeToTracker->Identity();
+    tCubeToTracker->Concatenate( tUserDefinedTransform );
+    tCubeToTracker->Concatenate( tCubeToImage );
+
+    vtkSmartPointer< vtkTransformPolyDataFilter > CubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    CubeToTracker->SetTransform( tCubeToTracker );
+    vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
+    CubeToTracker->SetInput( source->GetOutput() );
+    CubeToTracker->Update();
+
+    appender->AddInputConnection( CubeToTracker->GetOutputPort() );
+
+  }  
+
+  appender->Update();
+  outputPolyData->DeepCopy(appender->GetOutput());
+
+}
+
+
+
 int main(int argc, char **argv)
 {
 std::string inputModelFileName;
@@ -102,7 +168,6 @@ std::string outputUsImageFileName;
 
  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str())); 
  
-
  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
@@ -110,6 +175,14 @@ std::string outputUsImageFileName;
     return EXIT_FAILURE; 
   }
  LOG_DEBUG("Reading config file finished.");
+
+ PlusTransformName imageToReferenceTransformName; 
+ const char transformNameString[]="ImageToPhantom";
+ if ( imageToReferenceTransformName.SetTransformName(transformNameString)!= PLUS_SUCCESS )
+ {
+   LOG_ERROR("Invalid transform name: " << transformNameString ); 
+   return EXIT_FAILURE; 
+ }
 
 
  //Read model
@@ -120,38 +193,96 @@ std::string outputUsImageFileName;
  modelReader->Update();
  LOG_DEBUG("Finished reading model stl file."); 
 
- 
+
+
+
+
  // Acquire data in appropriate containers to prepare for filter
  //vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
- vtkPolyData *model = vtkPolyData::New(); 
+ vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
  
  model->DeepCopy(modelReader->GetOutput()); 
    //= modelReader->GetOutput(); 
+ 
+ /*
+   //display
+   vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
+
+   redImageActor->SetInput(combineModelwithBackgroundStencil->GetOutput());
+
+ 
+  // Visualize
+  
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New(); 
+  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(renderer); 
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New(); 
+  renderWindowInteractor->SetInteractorStyle(style); 
+  renderWindowInteractor->SetRenderWindow(renderWindow);
+  renderWindowInteractor->Initialize();
+  renderWindowInteractor->Start();
+*/
+
+  // Red image is displayed
+/*  renderer->AddActor(redImageActor);
+  renderer->SetBackground(0, 72, 0);*/
+  
+ 
+  // White image is displayed
+  //renderer->AddActor(redImageActor);
+  //renderer->AddActor(whiteImageActor);
+  //renderer->ResetCamera();
 
 
- TrackedFrame* frame = trackedFrameList->GetTrackedFrame(0); // 0 for test TODO: repeate for all frames. 
+  vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
+  vtkSmartPointer<vtkRenderWindow> renderWindowPoly = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindowPoly->AddRenderer(rendererPoly);
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractorPoly = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  renderWindowInteractorPoly->SetRenderWindow(renderWindowPoly);
+
+  // Visualization of the surface model
+  {
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInput(model);  
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    //actor->GetProperty()->SetPointSize(5);
+    rendererPoly->AddActor(actor);
+  }
+
+  // Visualization of the image planes
+  {
+    vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
+    CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInput(slicesPolyData);  
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    rendererPoly->AddActor(actor);
+  }
+
+  renderWindowPoly->Render();
+  renderWindowInteractorPoly->Start();
+
+ //check polydata
+
+
+ TrackedFrame* frame = trackedFrameList->GetTrackedFrame(5); // 0 for test TODO: repeate for all frames. 
    // Update transform repository 
   if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
     //continue;
-  }
-
+  }   
   
-   PlusTransformName transformName; 
-  if ( transformName.SetTransformName("PhantomToImage")!= PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << "PhantomToImage" ); 
-    return EXIT_FAILURE; 
-  }
-  
-  
-  vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();  
  
-  if ( transformRepository->GetTransform(transformName, modelToImageMatrix) != PLUS_SUCCESS )
+  // We use the model coordinate system as reference coordinate system
+  vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
+  if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS )
     {
       std::string strTransformName; 
-      transformName.GetTransformName(strTransformName); 
+      imageToReferenceTransformName.GetTransformName(strTransformName); 
       LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
       //continue; 
     }
@@ -159,7 +290,7 @@ std::string outputUsImageFileName;
   // Create test transform
   //vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   //transform->Translate(-370,-120,100);
-  //modelToImageMatrix->DeepCopy( transform->GetMatrix() );
+  //imageToReferenceMatrix->DeepCopy( transform->GetMatrix() );
 
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
@@ -168,6 +299,20 @@ std::string outputUsImageFileName;
   stencilBackgroundImage->SetScalarTypeToUnsignedChar();
   stencilBackgroundImage->SetNumberOfScalarComponents(1);
   stencilBackgroundImage->AllocateScalars(); 
+
+
+  //int* dims = stencilBackgroundImage->GetDimensions();
+ 
+  //for (int y = 0; y < dims[1]; y++)
+  //  {
+  //  for (int x = 0; x < dims[0]; x++)
+  //    {
+  //    unsigned char* pixel = static_cast<unsigned char*>(stencilBackgroundImage->GetScalarPointer(x,y,0));
+  //    pixel[0] = 255;
+  //    pixel[1] = 255;
+  //    pixel[2] = 255;
+  //    }
+  //  }
 
   int* extent = stencilBackgroundImage->GetExtent();
   memset(stencilBackgroundImage->GetScalarPointer(), 0,
@@ -178,33 +323,56 @@ std::string outputUsImageFileName;
   usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
 
   usSimulator->SetInput(model); 
+  vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  modelToImageMatrix->DeepCopy(imageToReferenceMatrix);
+  modelToImageMatrix->Invert();
   usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
   usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
   usSimulator->Update();
 
+  vtkImageData* simOutput=usSimulator->GetOutput();
+
+/*
+  vtkSmartPointer<vtkJPEGWriter> writer=vtkSmartPointer<vtkJPEGWriter>::New();
+  writer->SetInput(simOutput);
+  writer->SetFileName("c:\\Users\\bartha\\devel\\PlusExperimental-bin\\bin\\Debug\\simoutput.jpg");
+  //writer->Update();
+  writer->Write();
+*/
+
+  vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
+  writer->SetInput(simOutput);
+  writer->SetFileName("c:\\Users\\bartha\\devel\\PlusExperimental-bin\\bin\\Debug\\simoutput.mha");
+  writer->Write();
+  
+
   vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-  usImage->SetSpacing(0.18,0.18,1.0);
+  double spacing[3]={1,1,1};
+  spacing[0]=sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
+    imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
+    imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]);
+  spacing[1]=sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
+    imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
+    imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]);
+  usImage->SetSpacing(spacing);
   usImage->SetOrigin(0,0,0); 
-  usImage->SetExtent(0,639,0,479,0,0);
+  int* frameSize = frame->GetFrameSize();
+  usImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
   usImage->SetScalarTypeToUnsignedChar();
   usImage->SetNumberOfScalarComponents(1);
   usImage->AllocateScalars(); 
   usImage->DeepCopy(usSimulator->GetOutput());
 
-
-
-
+  
 
   //display
-   vtkSmartPointer<vtkImageActor> redImageActor =
-    vtkSmartPointer<vtkImageActor>::New();
+   vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
 
-  redImageActor->SetInput(usImage);
+   redImageActor->SetInput(usSimulator->GetOutput());
 
  
   // Visualize
-  vtkSmartPointer<vtkRenderer> renderer =
-    vtkSmartPointer<vtkRenderer>::New();
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
  
   // Red image is displayed
   renderer->AddActor(redImageActor);
@@ -215,14 +383,12 @@ std::string outputUsImageFileName;
   //renderer->AddActor(whiteImageActor);
   renderer->ResetCamera();
  
-  vtkSmartPointer<vtkRenderWindow> renderWindow =
-    vtkSmartPointer<vtkRenderWindow>::New();
+  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(renderer);
- 
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  vtkSmartPointer<vtkInteractorStyleImage> style =
-    vtkSmartPointer<vtkInteractorStyleImage>::New();
+  renderer->SetBackground(0, 72, 0);
+
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
  
   renderWindowInteractor->SetInteractorStyle(style);
  
@@ -230,10 +396,16 @@ std::string outputUsImageFileName;
   renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();
 
+
+
+
+
+
+
   vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
   usImageWriter->SetFileName(outputUsImageFileName.c_str());
-  //usImageWriter->SetInputConnection(usSimulator->GetOutputPort()); 
-  usImageWriter->SetInput(usImage); 
+ // usImageWriter->SetInputConnection(usSimulator->GetOutputPort()); 
+  usImageWriter->SetInput(usSimulator->GetOutput()); 
   usImageWriter->Write();
 
 /*
