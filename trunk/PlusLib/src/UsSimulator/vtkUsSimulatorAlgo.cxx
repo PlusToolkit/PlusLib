@@ -22,15 +22,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkTransformPolyDataFilter.h"
-#include "vtkImageActor.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindowInteractor.h"
-
-#include "vtkInteractorStyleImage.h"
 //-----------------------------------------------------------------------------
 
-const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 0;
+const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 255;
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
@@ -73,6 +67,8 @@ void vtkUsSimulatorAlgo::SetStencilBackgroundImage (vtkImageData* stencilBackgro
   this->StencilBackgroundImage = stencilBackgroundImage; 
   
 }*/ 
+
+
 int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector** inputVector,vtkInformationVector* outputVector)
 {
   //Get input
@@ -85,7 +81,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   // align model with US image
   
-  
+   
  if( ModelToImageMatrix== NULL)
   {
     LOG_ERROR(" No Model to US image transform specified " ); 
@@ -125,7 +121,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = 
   vtkSmartPointer<vtkPolyDataToImageStencil>::New();
 
-  modelStencil->SetInput(model); 
+  modelStencil->SetInput(alignedModel); 
   modelStencil->SetOutputSpacing(StencilBackgroundImage->GetSpacing()); 
   modelStencil->SetOutputOrigin(StencilBackgroundImage->GetOrigin()); //think about this later
   modelStencil->SetOutputWholeExtent(StencilBackgroundImage->GetExtent()); 
@@ -139,49 +135,15 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   combineModelwithBackgroundStencil->SetInput(StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
 
-  combineModelwithBackgroundStencil->ReverseStencilOn();
+  combineModelwithBackgroundStencil->ReverseStencilOff();
   combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
   combineModelwithBackgroundStencil->Update();
 
   simulatedUsImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
- 
 
-
-  //display
-   vtkSmartPointer<vtkImageActor> redImageActor =
-    vtkSmartPointer<vtkImageActor>::New();
-
-  redImageActor->SetInput(simulatedUsImage);
-
- 
-  // Visualize
-  vtkSmartPointer<vtkRenderer> renderer =
-    vtkSmartPointer<vtkRenderer>::New();
- 
-  // Red image is displayed
-  renderer->AddActor(redImageActor);
   
- 
-  // White image is displayed
-  //renderer->AddActor(redImageActor);
-  //renderer->AddActor(whiteImageActor);
-  renderer->ResetCamera();
- 
-  vtkSmartPointer<vtkRenderWindow> renderWindow =
-    vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(renderer);
- 
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  vtkSmartPointer<vtkInteractorStyleImage> style =
-    vtkSmartPointer<vtkInteractorStyleImage>::New();
- 
-  renderWindowInteractor->SetInteractorStyle(style);
- 
-  renderWindowInteractor->SetRenderWindow(renderWindow);
-  renderWindowInteractor->Initialize();
-  renderWindowInteractor->Start();
-   
+
+//end checkpolydata
 
   return 1; 
 }

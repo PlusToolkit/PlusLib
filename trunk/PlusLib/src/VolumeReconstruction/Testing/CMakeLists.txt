@@ -61,7 +61,7 @@ ADD_TEST(CreateSliceModelsTest
   --input-metafile=${TestDataDir}/NwirePhantomFreehand.mha
   --output-modelfile=GeneratedSliceModels.vtk  
   --input-configfile=${TestDataDir}/NwirePhantomFreehand.xml 
-  --input-transform-name=ProbeToReference
+  --image-to-reference-transform-name=ProbeToReference
   )
 SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
