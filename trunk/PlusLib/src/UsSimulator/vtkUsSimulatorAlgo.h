@@ -27,6 +27,8 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 
     vtkSetObjectMacro( StencilBackgroundImage, vtkImageData); 
     
+    vtkGetMacro( OutputImage, vtkImageData*); 
+    
   
   protected:
 	  virtual int FillInputPortInformation(int port, vtkInformation* info);
@@ -45,6 +47,7 @@ class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
    vtkImageData* StencilBackgroundImage; 
    vtkMatrix4x4* ModelToImageMatrix;  
    static const unsigned char OUTVALSTENCILFOREGROUND;
+   vtkImageData* OutputImage; 
   
 
 };
