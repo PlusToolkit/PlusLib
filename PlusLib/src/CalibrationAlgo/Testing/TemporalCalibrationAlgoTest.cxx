@@ -152,14 +152,21 @@ int main(int argc, char **argv)
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     exit(EXIT_FAILURE);
   }
-
   LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
+  double calibrationError=0;
+  if (testTemporalCalibrationObject.GetCalibrationError(calibrationError)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine calibration error, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
+  LOG_INFO("Calibration error: " << calibrationError);
+
   std::ostrstream trackerLagOutputFilename;
-  trackerLagOutputFilename << intermediateFileOutputDirectory << "\\TrackerLag.txt" << std::ends;
+  trackerLagOutputFilename << intermediateFileOutputDirectory << "\\TemporalCalibrationResults.xml" << std::ends;
   ofstream myfile;
   myfile.open (trackerLagOutputFilename.str());
-  myfile << trackerLagSec;
+  myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << trackerLagSec << "\" CalibrationError=\"" << calibrationError << "\" />";
   myfile.close();
 
   if (plotResults)
@@ -188,7 +195,7 @@ int main(int argc, char **argv)
     filename = intermediateFileOutputDirectory + "\\CorrelationSignal.png";
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
-    SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);  
+    SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);
   }
 
   return EXIT_SUCCESS;

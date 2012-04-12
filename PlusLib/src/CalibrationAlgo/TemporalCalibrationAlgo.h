@@ -106,6 +106,12 @@ public:
     metric that is computed from the tracker and the video: min( sum(|VideoPositionMetric(t)-TrackerPositionMetric(t+lag)|) )
   */  
   PlusStatus GetTrackerLagSec(double &lag);
+  
+  /*!
+    Returns the calibration error. If the error is large then the computed tracker lag is not reliable.
+    TODO: determine typical acceptable ranges
+  */
+  PlusStatus GetCalibrationError(double &error);
 
   PlusStatus GetVideoPositionSignal(vtkTable* videoPositionSignal);
   PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedTrackerPositionSignal);
@@ -156,7 +162,10 @@ private:
   
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
   double m_TrackerLagSec;
-  
+
+  /*! The residual error after temporal calibration of the video and tracker signals */
+  double m_CalibrationError;
+
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
   double m_MaxTrackerLagSec; 
 
@@ -186,7 +195,7 @@ private:
   int FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);
   int FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);                       
   PlusStatus ComputeTrackerLagSec();
-  PlusStatus NormalizeMetric(std::vector<double> &metric);
+  PlusStatus NormalizeMetric(std::vector<double> &metric, double &normalizationFactor);
   PlusStatus ComputeVideoPositionMetric();
   PlusStatus ComputeTrackerPositionMetric();
   void ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
@@ -201,6 +210,11 @@ private:
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
   vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
+
+  /*! Normalization factor used for the tracker metric. Used for computing calibration error. */
+  double m_TrackerPositionMetricNormalizationFactor;
+  /*! Normalization factor used for the video metric. Used for computing calibration error. */
+  double m_VideoPositionMetricNormalizationFactor;
 
   void ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
                                                itk::Point<double,3> &principalAxis,  int numValidFrames);
