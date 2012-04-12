@@ -368,7 +368,7 @@ std::string outputUsImageFileName;
   //display
    vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
 
-   redImageActor->SetInput(usSimulator->GetOutput());
+   redImageActor->SetInput(simOutput);
 
  
   // Visualize

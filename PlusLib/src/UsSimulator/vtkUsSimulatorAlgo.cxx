@@ -77,7 +77,10 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   
   vtkSmartPointer<vtkPolyData> model = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
-  vtkSmartPointer<vtkImageData> simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+  vtkSmartPointer<vtkImageData> simulatedUsImage = vtkSmartPointer<vtkImageData>::New(); 
+    simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+
+
 
   // align model with US image
   
@@ -103,7 +106,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   transformModelFilter->SetTransform(modelToImageTransform);
   transformModelFilter->Update();
 
-  alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(0)); 
+  //alignedModel->DeepCopy(transformModelFilter->GetOutputDataObject(0)); 
   // 
 
 
@@ -118,32 +121,35 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   //Create PolyData to Image stencil
   
-  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = 
-  vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
 
-  modelStencil->SetInput(alignedModel); 
+  modelStencil->SetInput(transformModelFilter->GetOutput()); 
   modelStencil->SetOutputSpacing(StencilBackgroundImage->GetSpacing()); 
-  modelStencil->SetOutputOrigin(StencilBackgroundImage->GetOrigin()); //think about this later
+  modelStencil->SetOutputOrigin(StencilBackgroundImage->GetOrigin());
   modelStencil->SetOutputWholeExtent(StencilBackgroundImage->GetExtent()); 
   modelStencil->Update(); 
 
   // Create Image stencil
 
-  vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = 
-  vtkSmartPointer<vtkImageStencil>::New();
+  vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
 
   combineModelwithBackgroundStencil->SetInput(StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
-
   combineModelwithBackgroundStencil->ReverseStencilOff();
   combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
   combineModelwithBackgroundStencil->Update();
-
-  simulatedUsImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
-
   
 
-//end checkpolydata
+  simulatedUsImage->ShallowCopy(combineModelwithBackgroundStencil->GetOutput()); 
+  simulatedUsImage->SetSpacing(0.18,0.18,1.0);
+  simulatedUsImage->SetOrigin(0,0,0); 
+  simulatedUsImage->SetExtent(0,639,0,479,0,0);
+  simulatedUsImage->SetScalarTypeToUnsignedChar();
+  simulatedUsImage->SetNumberOfScalarComponents(1);
+  simulatedUsImage->AllocateScalars();
+  
+
+
 
   return 1; 
 }
