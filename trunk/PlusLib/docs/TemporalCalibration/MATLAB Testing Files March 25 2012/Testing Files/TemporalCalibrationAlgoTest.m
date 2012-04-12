@@ -1,20 +1,29 @@
-function TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec, testDirectories,intermediateFileOutputRootDirectory)
+function TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec, testDirectories,intermediateFileOutputRootDirectory, videoBufferFilename, trackerBufferFilename)
 
-sz = size(testDirectories{1});
+if nargin < 7 
+	videoBufferFilename='RawVideoBuffer.mha';
+end
+if nargin < 8
+	trackerBufferFilename='RawTrackerBuffer.mha';
+end
+
+sz = size(testDirectories,2);
 for i = 1 : sz(1)
-    currTestLocalDirectory = char(testDirectories{1}(i));
-    disp(strcat('Running temporal calibration test on: ', currTestLocalDirectory));
+    currTestLocalDirectory = char(testDirectories(i));
+    disp('-----------------------------------');
+    disp(['Running temporal calibration test on: ', currTestLocalDirectory]);
     currTestDirectory = horzcat(rootDirectory, '\', currTestLocalDirectory);
     currFileOutputRootDirectory = horzcat(intermediateFileOutputRootDirectory, '\', currTestLocalDirectory);
-    mkdir(currFileOutputRootDirectory)
+    mkdir(currFileOutputRootDirectory);
     dosTestCommand = horzcat(testExecutableFullpathName, ' '); 
-    dosTestCommand = horzcat(dosTestCommand, '--input-video-sequence-metafile=', currTestDirectory, '\RawVideoBuffer.mha ');
-    dosTestCommand = horzcat(dosTestCommand, '--input-tracker-sequence-metafile=', currTestDirectory, '\RawTrackerBuffer.mha ');
+    dosTestCommand = horzcat(dosTestCommand, '--input-video-sequence-metafile=', currTestDirectory, '\',videoBufferFilename,' ');
+    dosTestCommand = horzcat(dosTestCommand, '--input-tracker-sequence-metafile=', currTestDirectory, '\',trackerBufferFilename,' ');
     dosTestCommand = horzcat(dosTestCommand, '--verbose=', num2str(verboseLevel));
     dosTestCommand = horzcat(dosTestCommand, '--sampling-resolution-sec=', num2str(samplingResolutionSec), ' ');
     dosTestCommand = horzcat(dosTestCommand, '--intermediate-file-output-directory=','"', currFileOutputRootDirectory, '" ');
     dosTestCommand = horzcat(dosTestCommand, '--save-intermediate-images ');
     dosTestCommand = horzcat(dosTestCommand, '--plot-results');
+    dosTestCommand
     dos(dosTestCommand);
 end
 

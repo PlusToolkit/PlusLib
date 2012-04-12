@@ -1,13 +1,153 @@
-rootDirectory = 'S:\data\TemporalTrackedUSCalibration\CARS_DATA';
+% Eric:
 testExecutableFullpathName = 'C:\devel\PlusExperimental-bin\bin\Release\TemporalCalibrationAlgoTest.exe';
-verboseLevel = 3;
-samplingResolutionSec = 0.001;
-intermediateFileOutputRootDirectory = 'C:\Documents and Settings\moult\My Documents\CalibrationResults_March_23_2012';
 
-%testFolders = dlmread('C:\Documents and Settings\moult\My Documents\TemporalCalibrationTestNames.txt');
-fid = fopen('C:\Documents and Settings\moult\My Documents\TemporalCalibrationTestNames.txt');
-testDirectories = textscan(fid, '%q');
-fclose(fid);
+% Andras:
+testExecutableFullpathName = 'C:\Users\lasso\devel\PlusExperimental-bin\bin\Release\TemporalCalibrationAlgoTest.exe';
+intermediateFileOutputRootDirectory = 'c:\Users\lasso\Documents\Projects\TemporalCalibration\tests\2012-03-28-1-SSD-unfiltered-timestamp'
 
+rootDirectory = 'S:\data\TemporalTrackedUSCalibration\CARS_DATA'
+verboseLevel = 3
+samplingResolutionSec = 0.001
 
-TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectories,intermediateFileOutputRootDirectory);
+testDirectoriesBaseline={
+'BaselineStudy\Trial_08',
+'BaselineStudy\Trial_10',
+'BaselineStudy\Trial_18',
+'BaselineStudy\Trial_05',
+'BaselineStudy\Trial_09',
+'BaselineStudy\Trial_20',
+'BaselineStudy\Trial_16',
+'BaselineStudy\Trial_02',
+'BaselineStudy\Trial_11',
+'BaselineStudy\Trial_17',
+'BaselineStudy\Trial_04',
+'BaselineStudy\Trial_06',
+'BaselineStudy\Trial_03',
+'BaselineStudy\Trial_12',
+'BaselineStudy\Trial_19',
+'BaselineStudy\Trial_15',
+'BaselineStudy\Trial_07',
+'BaselineStudy\Trial_13',
+'BaselineStudy\Trial_01',
+'BaselineStudy\Trial_14',
+'SensitivityStudyDay2\BaselineStudy\Trial02',
+'SensitivityStudyDay2\BaselineStudy\Trial08',
+'SensitivityStudyDay2\BaselineStudy\Trial09',
+'SensitivityStudyDay2\BaselineStudy\Trial03',
+'SensitivityStudyDay2\BaselineStudy\Trial05',
+'SensitivityStudyDay2\BaselineStudy\Trial04',
+'SensitivityStudyDay2\BaselineStudy\Trial06',
+'SensitivityStudyDay2\BaselineStudy\Trial01',
+'SensitivityStudyDay2\BaselineStudy\Trial07',
+'SensitivityStudyDay2\BaselineStudy\Trial10'}';
+
+testDirectoriesSensitivity={
+'SensitivityStudyDay1\DynamicRange\DynamicRange=50dB\Trial02',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=50dB\Trial03',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=50dB\Trial05',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=50dB\Trial04',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=50dB\Trial01',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=30dB\Trial02',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=30dB\Trial03',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=30dB\Trial05',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=30dB\Trial04',
+'SensitivityStudyDay1\DynamicRange\DynamicRange=30dB\Trial01',
+'SensitivityStudyDay1\Gain\Gain=35\Trial02',
+'SensitivityStudyDay1\Gain\Gain=35\Trial03',
+'SensitivityStudyDay1\Gain\Gain=35\Trial05',
+'SensitivityStudyDay1\Gain\Gain=35\Trial04',
+'SensitivityStudyDay1\Gain\Gain=35\Trial01',
+'SensitivityStudyDay1\Gain\Gain=40\Trial02',
+'SensitivityStudyDay1\Gain\Gain=40\Trial03',
+'SensitivityStudyDay1\Gain\Gain=40\Trial05',
+'SensitivityStudyDay1\Gain\Gain=40\Trial04',
+'SensitivityStudyDay1\Gain\Gain=40\Trial01',
+'SensitivityStudyDay1\Gain\Gain=25\Trial02',
+'SensitivityStudyDay1\Gain\Gain=25\Trial03',
+'SensitivityStudyDay1\Gain\Gain=25\Trial05',
+'SensitivityStudyDay1\Gain\Gain=25\Trial04',
+'SensitivityStudyDay1\Gain\Gain=25\Trial01',
+'SensitivityStudyDay1\Depth\Depth=9cm\Trial02',
+'SensitivityStudyDay1\Depth\Depth=9cm\Trial03',
+'SensitivityStudyDay1\Depth\Depth=9cm\Trial05',
+'SensitivityStudyDay1\Depth\Depth=9cm\Trial04',
+'SensitivityStudyDay1\Depth\Depth=9cm\Trial01',
+'SensitivityStudyDay1\Depth\Depth=3cm\Trial02',
+'SensitivityStudyDay1\Depth\Depth=3cm\Trial03',
+'SensitivityStudyDay1\Depth\Depth=3cm\Trial05',
+'SensitivityStudyDay1\Depth\Depth=3cm\Trial04',
+'SensitivityStudyDay1\Depth\Depth=3cm\Trial01',
+'SensitivityStudyDay1\NewMaterial\Trial02',
+'SensitivityStudyDay1\NewMaterial\Trial03',
+'SensitivityStudyDay1\NewMaterial\Trial05',
+'SensitivityStudyDay1\NewMaterial\Trial04',
+'SensitivityStudyDay1\NewMaterial\Trial01',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=1\Trial02',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=1\Trial03',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=1\Trial05',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=1\Trial04',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=1\Trial01',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=3\Trial02',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=3\Trial03',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=3\Trial05',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=3\Trial04',
+'SensitivityStudyDay1\NumberOfFocalPoints\NumberOfFocalPoints=3\Trial01',
+'SensitivityStudyDay2\DynamicRange\Trial02',
+'SensitivityStudyDay2\DynamicRange\Trial03',
+'SensitivityStudyDay2\DynamicRange\Trial05',
+'SensitivityStudyDay2\DynamicRange\Trial04',
+'SensitivityStudyDay2\DynamicRange\Trial01',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=145dB\Trial02',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=145dB\Trial03',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=145dB\Trial05',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=145dB\Trial04',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=145dB\Trial01',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=100dB\Trial02',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=100dB\Trial03',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=100dB\Trial05',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=100dB\Trial04',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=100dB\Trial01',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=80dB\Trial02',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=80dB\Trial03',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=80dB\Trial05',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=80dB\Trial04',
+'SensitivityStudyDay2\DynamicRange\Gain=50ANDDyn=80dB\Trial01'}';
+
+testDirectoriesFreehand={
+'Freehand\BadFreehand\Trial02',
+'Freehand\BadFreehand\Trial08',
+'Freehand\BadFreehand\Trial09',
+'Freehand\BadFreehand\Trial03',
+'Freehand\BadFreehand\Trial05',
+'Freehand\BadFreehand\Trial04',
+'Freehand\BadFreehand\Trial06',
+'Freehand\BadFreehand\Trial01',
+'Freehand\BadFreehand\Trial07',
+'Freehand\BadFreehand\Trial10',
+'Freehand\MediumFreehand\Trial02',
+'Freehand\MediumFreehand\Trial08',
+'Freehand\MediumFreehand\Trial09',
+'Freehand\MediumFreehand\Trial03',
+'Freehand\MediumFreehand\Trial05',
+'Freehand\MediumFreehand\Trial04',
+'Freehand\MediumFreehand\Trial06',
+'Freehand\MediumFreehand\Trial01',
+'Freehand\MediumFreehand\Trial07',
+'Freehand\MediumFreehand\Trial10',
+'Freehand\GoodFreehand\trial02',
+'Freehand\GoodFreehand\trial10',
+'Freehand\GoodFreehand\trial06',
+'Freehand\GoodFreehand\trial01',
+'Freehand\GoodFreehand\trial07',
+'Freehand\GoodFreehand\trial04',
+'Freehand\GoodFreehand\trial08',
+'Freehand\GoodFreehand\trial09',
+'Freehand\GoodFreehand\trial05',
+'Freehand\GoodFreehand\trial03',
+}';
+
+TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesBaseline,intermediateFileOutputRootDirectory);
+
+TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesSensitivity,intermediateFileOutputRootDirectory);
+
+TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesFreehand,intermediateFileOutputRootDirectory,'TrackedFrames.mha','TrackedFrames.mha');

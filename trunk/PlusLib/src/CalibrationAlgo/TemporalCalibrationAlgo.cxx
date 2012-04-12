@@ -51,12 +51,16 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
                                              m_MaxTrackerLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
                                              m_ProbeToReferenceTransformName(DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME),
                                              m_NeverUpdated(true),
-                                             m_SaveIntermediateImages(false)
+                                             m_SaveIntermediateImages(false),
+                                             m_TrackerLagSec(0.0),
+                                             m_CalibrationError(0.0),
+                                             m_TrackerPositionMetricNormalizationFactor(0.0),
+                                             m_VideoPositionMetricNormalizationFactor(0.0)
 {
   /* TODO: Switching to VTK table data structure */
   m_TrackerTable = vtkSmartPointer<vtkTable>::New();
   m_VideoTable = vtkSmartPointer<vtkTable>::New();
-  m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();   
+  m_TrackerTimestampedMetric = vtkSmartPointer<vtkTable>::New();     
 }
 
 //-----------------------------------------------------------------------------
@@ -195,6 +199,19 @@ PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
   }
 
   lag = m_TrackerLagSec;
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::GetCalibrationError(double &error)
+{
+  if(m_NeverUpdated)
+  {
+    LOG_ERROR("You must first call the \"Update()\" to compute the calibration error.");
+    return PLUS_FAIL;
+  }
+
+  error = m_CalibrationError;
   return PLUS_SUCCESS;
 }
 
@@ -359,11 +376,18 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
   }
 
   // Normalize the calculated translations
-  if(NormalizeMetric(m_TrackerPositionMetric) != PLUS_SUCCESS)
+  if(NormalizeMetric(m_TrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-
+/*
+  const double positionOffset=0.0;
+  LOG_INFO("Position offset="<<positionOffset);
+  for (int i=0; i<m_TrackerPositionMetric.size(); i++)
+  {
+    m_TrackerPositionMetric[i]+=positionOffset;
+  }
+*/
   return PLUS_SUCCESS;
 }
 
@@ -711,7 +735,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
   }
 
   //  Normalize the video metric
-  if(NormalizeMetric(m_VideoPositionMetric) != PLUS_SUCCESS)
+  if(NormalizeMetric(m_VideoPositionMetric, m_VideoPositionMetricNormalizationFactor) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -864,7 +888,7 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
+PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, double &normalizationFactor)
 {
   if (metric.size() == 0)
   {
@@ -915,9 +939,11 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric)
     return PLUS_FAIL;
   }
 
+  normalizationFactor=1.0/maxPeakToPeak;
+
   for(int i = 0; i < metric.size(); ++i)
   {
-    metric.at(i) /= maxPeakToPeak; 
+    metric.at(i) *= normalizationFactor; 
   }
 
   return PLUS_SUCCESS;
@@ -1148,12 +1174,20 @@ void TemporalCalibration::ComputeCrossCorrelationBetweenVideoAndTrackerMetrics()
 //-----------------------------------------------------------------------------
 double TemporalCalibration::ComputeCorrelationSumForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
 {
+  if (metricA.size()==0)
+  {
+    LOG_ERROR("ComputeCorrelationSumForGivenLagIndex failed, the metric vector is empty");
+    return 0;
+  }
   double multipliedSignalSum = 0;
   for(long int i = 0; i < metricA.size(); ++i)
   {
-    multipliedSignalSum += metricA.at(i) * metricB.at(i + indexOffset);
+    //multipliedSignalSum += metricA.at(i) * metricB.at(i + indexOffset); // XCORR
+    //multipliedSignalSum += -fabs(metricA.at(i) - metricB.at(i + indexOffset)); //SAD
+    double diff=metricA.at(i) - metricB.at(i + indexOffset); //SSD
+    multipliedSignalSum -= diff*diff;
   }
-  return multipliedSignalSum;
+  return multipliedSignalSum/metricA.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -1183,6 +1217,30 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     return PLUS_FAIL;
   }
   
+  /*
+  std::cout << "TrackerPositionMetric=[";
+  for (int i=0; i<m_TrackerPositionMetric.size(); i++)
+  {
+    std::cout << m_TrackerTimestamps[i] << "," << m_TrackerPositionMetric[i];
+    if (i+1<m_TrackerPositionMetric.size())
+    {
+      std::cout <<";"<<std::endl;
+    }
+  }
+  std::cout << "];"<<std::endl;
+
+  std::cout << "VideoPositionMetric=[";
+  for (int i=0; i<m_VideoPositionMetric.size(); i++)
+  {
+    std::cout << m_VideoTimestamps[i] << "," << m_VideoPositionMetric[i];
+    if (i+1<m_VideoPositionMetric.size())
+    {
+      std::cout <<";"<<std::endl;
+    }
+  }
+  std::cout << "];"<<std::endl;
+  */
+
   // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
   if(ResamplePositionMetrics() != PLUS_SUCCESS)
   {
@@ -1215,19 +1273,19 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     return PLUS_FAIL;
   }
 
-  double maxCorrVal = m_CorrValues.at(0);
-  int maxCorrIndex = 0;
+  double maxCorrVal1 = m_CorrValues.at(0);
+  int maxCorrIndex1 = 0;
   for(int i = 1; i < m_CorrValues.size(); ++i)
   {
-    if(m_CorrValues.at(i) > maxCorrVal)
+    if(m_CorrValues.at(i) > maxCorrVal1)
     {
-      maxCorrVal = m_CorrValues.at(i);
-      maxCorrIndex = i;
+      maxCorrVal1 = m_CorrValues.at(i);
+      maxCorrIndex1 = i;
     }
   }
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #1)
-  double trackerLagSec1 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
+  double trackerLagSec1 = m_MaxTrackerLagSec - (maxCorrIndex1)*m_SamplingResolutionSec;
   LOG_DEBUG("Time offset with sign convention #1: " << trackerLagSec1);
 
   //  Compute cross correlation with sign convention #2
@@ -1245,19 +1303,19 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
 
   ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
 
-  maxCorrVal = m_CorrValues.at(0);
-  maxCorrIndex = 0;
+  double maxCorrVal2 = m_CorrValues.at(0);
+  double maxCorrIndex2 = 0;
   for(int i = 1; i < m_CorrValues.size(); ++i)
   {
-    if(m_CorrValues.at(i) > maxCorrVal)
+    if(m_CorrValues.at(i) > maxCorrVal2)
     {
-      maxCorrVal = m_CorrValues.at(i);
-      maxCorrIndex = i;
+      maxCorrVal2 = m_CorrValues.at(i);
+      maxCorrIndex2 = i;
     }
   }
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #2)
-  double trackerLagSec2 = m_MaxTrackerLagSec - (maxCorrIndex)*m_SamplingResolutionSec;
+  double trackerLagSec2 = m_MaxTrackerLagSec - (maxCorrIndex2)*m_SamplingResolutionSec;
   LOG_DEBUG("Time offset with sign convention #2: " << trackerLagSec2);
 
   if(std::abs(trackerLagSec1) < std::abs(trackerLagSec2))
@@ -1283,11 +1341,12 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
     {
       m_CorrIndices.push_back(corrIndicesCopy.at(i));
     }
-
+    m_CalibrationError=sqrt(-maxCorrVal1)/m_TrackerPositionMetricNormalizationFactor; // RMSE in mm
   }
   else
   {
     m_TrackerLagSec = trackerLagSec2;
+    m_CalibrationError=sqrt(-maxCorrVal2)/m_TrackerPositionMetricNormalizationFactor; // RMSE in mm
   }
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
