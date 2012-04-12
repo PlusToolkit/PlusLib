@@ -29,6 +29,7 @@
 #include "vtkCubeSource.h"
 #include "vtkJPEGWriter.h"
 #include "vtkMetaImageWriter.h"
+#include "vtkXMLImageDataWriter.h"
 //display
 #include "vtkImageActor.h"
 #include "vtkActor.h"
@@ -263,7 +264,7 @@ std::string outputUsImageFileName;
   }
 
   renderWindowPoly->Render();
-  renderWindowInteractorPoly->Start();
+  //renderWindowInteractorPoly->Start();
 
  //check polydata
 
@@ -295,7 +296,7 @@ std::string outputUsImageFileName;
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
   stencilBackgroundImage->SetOrigin(0,0,0); 
-  stencilBackgroundImage->SetExtent(0,639,0,479,0,0);
+  stencilBackgroundImage->SetExtent(0,639,0,479,0,1);
   stencilBackgroundImage->SetScalarTypeToUnsignedChar();
   stencilBackgroundImage->SetNumberOfScalarComponents(1);
   stencilBackgroundImage->AllocateScalars(); 
@@ -318,6 +319,13 @@ std::string outputUsImageFileName;
   memset(stencilBackgroundImage->GetScalarPointer(), 0,
     ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
+  {
+    vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
+    writer->SetInput(stencilBackgroundImage);
+    writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\stencilBackgroundImage.mha ");
+    writer->Write();
+  }
+
   //prepare output of filter. 
   vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
   usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
@@ -330,7 +338,7 @@ std::string outputUsImageFileName;
   usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
   usSimulator->Update();
 
-  vtkImageData* simOutput=usSimulator->GetOutput();
+  vtkImageData* simOutput=usSimulator->GetOutputImage();
 
 /*
   vtkSmartPointer<vtkJPEGWriter> writer=vtkSmartPointer<vtkJPEGWriter>::New();
@@ -340,11 +348,30 @@ std::string outputUsImageFileName;
   writer->Write();
 */
 
-  vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
-  writer->SetInput(simOutput);
-  writer->SetFileName("c:\\Users\\bartha\\devel\\PlusExperimental-bin\\bin\\Debug\\simoutput.mha");
-  writer->Write();
-  
+  /*
+  {    
+    vtkSmartPointer<vtkXMLImageDataWriter> writer=vtkSmartPointer<vtkXMLImageDataWriter>::New();
+    writer->SetInput(simOutput);
+    writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\simoutput.vtk");
+    //writer->Update();
+    writer->Write();
+  }
+  */
+
+  {
+    vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
+    writer->SetInput(usSimulator->GetOutputImage());
+    writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\simoutput1.mha");
+    writer->Write();
+  }
+/*
+  {
+    vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
+    writer->SetInput(simOutput);
+    writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\simoutput2.mha");
+    writer->Write();
+  }
+  */
 
   vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
   double spacing[3]={1,1,1};
@@ -361,7 +388,7 @@ std::string outputUsImageFileName;
   usImage->SetScalarTypeToUnsignedChar();
   usImage->SetNumberOfScalarComponents(1);
   usImage->AllocateScalars(); 
-  usImage->DeepCopy(usSimulator->GetOutput());
+  usImage->DeepCopy(usSimulator->GetOutputImage());
 
   
 
@@ -405,7 +432,7 @@ std::string outputUsImageFileName;
   vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
   usImageWriter->SetFileName(outputUsImageFileName.c_str());
  // usImageWriter->SetInputConnection(usSimulator->GetOutputPort()); 
-  usImageWriter->SetInput(usSimulator->GetOutput()); 
+  usImageWriter->SetInput(usSimulator->GetOutputImage()); 
   usImageWriter->Write();
 
 /*
