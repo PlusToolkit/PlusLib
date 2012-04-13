@@ -302,22 +302,8 @@ std::string outputUsImageFileName;
   //imageToReferenceMatrix->DeepCopy( transform->GetMatrix() );
 
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-
-  double spacing[3]={
-    50*sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
-      imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
-      imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
-    50*sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
-      imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
-      imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
-    1.0};
-  stencilBackgroundImage->SetSpacing(spacing);
-
-  double origin[3]={
-    imageToReferenceMatrix->Element[0][3],
-    imageToReferenceMatrix->Element[1][3],
-    imageToReferenceMatrix->Element[2][3]};
-  stencilBackgroundImage->SetOrigin(origin);
+  stencilBackgroundImage->SetSpacing(1,1,1);
+  stencilBackgroundImage->SetOrigin(0,0,0);
   
   int* frameSize = frame->GetFrameSize();
   stencilBackgroundImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
@@ -364,6 +350,21 @@ std::string outputUsImageFileName;
 
   vtkImageData* simOutput=usSimulator->GetOutputImage();
 
+  double origin[3]={
+    imageToReferenceMatrix->Element[0][3],
+    imageToReferenceMatrix->Element[1][3],
+    imageToReferenceMatrix->Element[2][3]};
+  simOutput->SetOrigin(origin);
+  double spacing[3]={
+    sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
+      imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
+      imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
+    sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
+      imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
+      imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
+    1.0};
+  simOutput->SetSpacing(spacing);
+
 /*
   vtkSmartPointer<vtkJPEGWriter> writer=vtkSmartPointer<vtkJPEGWriter>::New();
   writer->SetInput(simOutput);
@@ -384,7 +385,7 @@ std::string outputUsImageFileName;
 
   {
     vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
-    writer->SetInput(usSimulator->GetOutputImage());
+    writer->SetInput(simOutput);
     writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\simoutput1.mha");
     writer->Write();
   }
@@ -398,7 +399,7 @@ std::string outputUsImageFileName;
   */
 
       vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-  usImage->DeepCopy(usSimulator->GetOutputImage());
+  usImage->DeepCopy(simOutput);
 
   
 
@@ -442,7 +443,7 @@ std::string outputUsImageFileName;
   vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
   usImageWriter->SetFileName(outputUsImageFileName.c_str());
  // usImageWriter->SetInputConnection(usSimulator->GetOutputPort()); 
-  usImageWriter->SetInput(usSimulator->GetOutputImage()); 
+  usImageWriter->SetInput(simOutput); 
   usImageWriter->Write();
 
 /*
