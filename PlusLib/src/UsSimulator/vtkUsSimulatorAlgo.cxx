@@ -13,6 +13,9 @@ See License.txt for details.
 #include "vtkPolyDataToImageStencil.h"
 #include <vtkSmartPointer.h>
 #include <vtkImageStencil.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkTriangleFilter.h>
+#include <vtkStripper.h>
 
 #include "vtkInformationVector.h"
 #include "vtkCellData.h"
@@ -25,7 +28,7 @@ See License.txt for details.
 #include "vtkImageStencilData.h"
 //-----------------------------------------------------------------------------
 
-const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 255;
+const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 155;
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
@@ -94,15 +97,27 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
     return 1; 
   }
-
-
-  // Transform model points from the MODEL coordinate system to image coordinate system
+  
+  // Get the model points in the image coordinate system
   vtkSmartPointer<vtkPolyData> model_IMAGE;
   {
+    vtkSmartPointer<vtkPolyDataNormals> normalFilter=vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalFilter->SetInput(model_MODEL);
+    normalFilter->ConsistencyOn();
+
+    // Make sure that we have a clean triangle polydata
+    vtkSmartPointer<vtkTriangleFilter> triangle=vtkSmartPointer<vtkTriangleFilter>::New();
+    triangle->SetInputConnection(normalFilter->GetOutputPort());
+
+    // Convert to triangle strip
+    vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
+    stripper->SetInputConnection(triangle->GetOutputPort());
+
+    // Transform model points from the MODEL coordinate system to image coordinate system
     vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
     modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
     vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-    transformModelFilter->SetInput(model_MODEL);
+    transformModelFilter->SetInputConnection(stripper->GetOutputPort());
     transformModelFilter->SetTransform(modelToImageTransform);
     transformModelFilter->Update();
     model_IMAGE = transformModelFilter->GetOutput();
@@ -121,13 +136,13 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
   combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencilOutput);
-  combineModelwithBackgroundStencil->ReverseStencilOn();
+  combineModelwithBackgroundStencil->ReverseStencilOff();
   combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
   combineModelwithBackgroundStencil->Update();
   vtkImageData *combinedStencilOutput=combineModelwithBackgroundStencil->GetOutput();
 
-  simulatedUsImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
-  this->OutputImage->DeepCopy(combineModelwithBackgroundStencil->GetOutput()); 
+  simulatedUsImage->DeepCopy(combinedStencilOutput); 
+  this->OutputImage->DeepCopy(combinedStencilOutput); 
 
   return 1; 
 }

@@ -162,6 +162,10 @@ std::string outputUsImageFileName;
  trackedFrameList->ReadFromSequenceMetafile( inputMetaFileName.c_str() );
  LOG_DEBUG("Reading input meta file completed"); 
 
+ int testFrameIndex=30;
+ trackedFrameList->RemoveTrackedFrameRange(0,testFrameIndex-1);
+ trackedFrameList->RemoveTrackedFrameRange(1,trackedFrameList->GetNumberOfTrackedFrames()-1);
+
  // Need to log total frame number ?
 
 // read config file
@@ -241,6 +245,10 @@ std::string outputUsImageFileName;
   renderWindowPoly->AddRenderer(rendererPoly);
   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractorPoly = vtkSmartPointer<vtkRenderWindowInteractor>::New();
   renderWindowInteractorPoly->SetRenderWindow(renderWindowPoly);
+  {
+    vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New(); 
+    renderWindowInteractorPoly->SetInteractorStyle(style);
+  }
 
   // Visualization of the surface model
   {
@@ -269,7 +277,7 @@ std::string outputUsImageFileName;
  //check polydata
 
 
- TrackedFrame* frame = trackedFrameList->GetTrackedFrame(5); // 0 for test TODO: repeate for all frames. 
+ TrackedFrame* frame = trackedFrameList->GetTrackedFrame(0);
    // Update transform repository 
   if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
   {
@@ -294,13 +302,29 @@ std::string outputUsImageFileName;
   //imageToReferenceMatrix->DeepCopy( transform->GetMatrix() );
 
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-  stencilBackgroundImage->SetSpacing(0.18,0.18,1.0);
-  stencilBackgroundImage->SetOrigin(0,0,0); 
-  stencilBackgroundImage->SetExtent(0,639,0,479,0,1);
+
+  double spacing[3]={
+    50*sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
+      imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
+      imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
+    50*sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
+      imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
+      imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
+    1.0};
+  stencilBackgroundImage->SetSpacing(spacing);
+
+  double origin[3]={
+    imageToReferenceMatrix->Element[0][3],
+    imageToReferenceMatrix->Element[1][3],
+    imageToReferenceMatrix->Element[2][3]};
+  stencilBackgroundImage->SetOrigin(origin);
+  
+  int* frameSize = frame->GetFrameSize();
+  stencilBackgroundImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+
   stencilBackgroundImage->SetScalarTypeToUnsignedChar();
   stencilBackgroundImage->SetNumberOfScalarComponents(1);
   stencilBackgroundImage->AllocateScalars(); 
-
 
   //int* dims = stencilBackgroundImage->GetDimensions();
  
@@ -373,21 +397,7 @@ std::string outputUsImageFileName;
   }
   */
 
-  vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-  double spacing[3]={1,1,1};
-  spacing[0]=sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
-    imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
-    imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]);
-  spacing[1]=sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
-    imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
-    imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]);
-  usImage->SetSpacing(spacing);
-  usImage->SetOrigin(0,0,0); 
-  int* frameSize = frame->GetFrameSize();
-  usImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
-  usImage->SetScalarTypeToUnsignedChar();
-  usImage->SetNumberOfScalarComponents(1);
-  usImage->AllocateScalars(); 
+      vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
   usImage->DeepCopy(usSimulator->GetOutputImage());
 
   
