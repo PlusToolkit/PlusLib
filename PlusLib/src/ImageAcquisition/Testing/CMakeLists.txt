@@ -8,7 +8,7 @@ ADD_TEST(vtkMetaImageSequenceIOTest
   --input-img-seq-file-name=${TestDataDir}/MetaImageSequenceIOTest1.mhd
   --output-img-seq-file-name=_MetaImageSequenceIOTest1.mha
   )
-SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "WARNING" )
+SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
 #***************************  MetaImageSequenceViewer  ***************************
 ADD_EXECUTABLE(MetaImageSequenceViewer MetaImageSequenceViewer.cxx )
