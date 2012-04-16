@@ -6,12 +6,35 @@
 
 #include "PlusConfigure.h"
 
+#include "vtkMetaImageSequenceIO.h"
+
 #include <iomanip>
 #include <iostream>
-//#include <errno.h>
 
-#include "vtkMetaImageSequenceIO.h"
-#include "itkMetaImageIO.h" // needed only temporarily, until becoming completely indpependent from metaimageio
+#include "itk_zlib.h"
+
+// Size of MetaIO fields, in bytes (adopted from metaTypes.h)
+enum
+{
+  MET_NONE, MET_ASCII_CHAR, MET_CHAR, MET_UCHAR, MET_SHORT,
+  MET_USHORT, MET_INT, MET_UINT, MET_LONG, MET_ULONG,
+  MET_LONG_LONG, MET_ULONG_LONG, MET_FLOAT, MET_DOUBLE, MET_STRING, 
+  MET_CHAR_ARRAY, MET_UCHAR_ARRAY, MET_SHORT_ARRAY, MET_USHORT_ARRAY, MET_INT_ARRAY, 
+  MET_UINT_ARRAY, MET_LONG_ARRAY, MET_ULONG_ARRAY, MET_LONG_LONG_ARRAY, MET_ULONG_LONG_ARRAY,
+  MET_FLOAT_ARRAY, MET_DOUBLE_ARRAY, MET_FLOAT_MATRIX, MET_OTHER,
+  // insert values before this line
+  MET_NUM_VALUE_TYPES
+};
+static const unsigned char MET_ValueTypeSize[MET_NUM_VALUE_TYPES] = 
+{
+   0, 1, 1, 1, 2,
+   2, 4, 4, 4, 4,
+   8, 8, 4, 8, 1,
+   1, 1, 2, 2, 4,
+   4, 4, 4, 8, 8,
+   4, 8, 4, 0 
+};
+
 
 #include "vtksys/SystemTools.hxx"  
 #include "vtkObjectFactory.h"
@@ -703,8 +726,13 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
 
   FILE *stream=NULL;
   
-  // Append image data
-  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), "ab+" ) != 0 )
+  std::string fileOpenMode="wb"; // w (write, existing file is destroyed), b (binary)
+  if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName)==0)
+  {
+    // Pixel data is stored locally in the header file (MHA file), so we append the image data to an existing file
+    fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
+  }
+  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), fileOpenMode.c_str() ) != 0 )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
     return PLUS_FAIL;

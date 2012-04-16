@@ -240,11 +240,16 @@ int main(int argc, char **argv)
 	writerDiffSize->SetTrackedFrameList(dummyTrackedFrame); 
 	writerDiffSize->UseCompressionOff();
 
+  // We should get an error when trying to write a sequence with different frame sizes into file
+  int oldVerboseLevel=vtkPlusLogger::Instance()->GetLogLevel();
+  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR-1); // temporarily disable error logging (as we are expecting an error)
   if (writerDiffSize->Write()==PLUS_SUCCESS)
   {		
-    LOG_ERROR("Metafile writting with different sized frames not yet implemented, expected failed return status!" ); 
+    vtkPlusLogger::Instance()->SetLogLevel(oldVerboseLevel);
+    LOG_ERROR("Expect a 'Frame size mismatch' error in vtkMetaImageSequenceIO but the operation has been reported to be successful." ); 
     return EXIT_FAILURE;
   }
+  vtkPlusLogger::Instance()->SetLogLevel(oldVerboseLevel);  
 
 	if ( numberOfFailures > 0 )
 	{
