@@ -246,8 +246,7 @@ int main(int argc, char **argv)
   renderWindowPoly->Render();
   //renderWindowInteractorPoly->Start();
 
- 
-
+ int x = trackedFrameList->GetNumberOfTrackedFrames();
 
   for(int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
@@ -310,12 +309,7 @@ int main(int argc, char **argv)
 
     vtkImageData* simOutput=usSimulator->GetOutputImage();
 
-    TrackedFrame * simulatorOutputFrame = new TrackedFrame(); 
-    PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
-    simulatorOutputPlusVideoFrame->DeepCopyFrom(usSimulator->GetOutput()); 
-    
-    simulatorOutputFrame->SetImageData(*simulatorOutputPlusVideoFrame); 
-    simulatedUltrasoundFrameList->AddTrackedFrame(simulatorOutputFrame); 
+  
 
     double origin[3]={
       imageToReferenceMatrix->Element[0][3],
@@ -331,7 +325,12 @@ int main(int argc, char **argv)
         imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
         1.0};
         simOutput->SetSpacing(spacing);
-
+   
+   
+    PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
+    simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
+    
+    frame->SetImageData(*simulatorOutputPlusVideoFrame); 
 
   /*      {
           vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
@@ -385,7 +384,7 @@ int main(int argc, char **argv)
  
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
-  simulatedUsSequenceFileWriter->SetTrackedFrameList(simulatedUltrasoundFrameList); 
+  simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
   // final output writer 
   //vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
