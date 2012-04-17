@@ -30,6 +30,7 @@ See License.txt for details.
 #include "vtkJPEGWriter.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkXMLImageDataWriter.h"
+#include <vtkSTLWriter.h>
 //display
 #include "vtkImageActor.h"
 #include "vtkActor.h"
@@ -104,7 +105,8 @@ int main(int argc, char **argv)
   std::string inputTransformsFile;
   std::string inputConfigFile;
   std::string outputUsImageFile;
-
+  std::string intersectionFile;
+  std::string inputTransformName; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -118,7 +120,8 @@ int main(int argc, char **argv)
   args.AddArgument("--input-transforms-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "File containing coordinate frames and the associated model to image transformations"); 
   args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-
+  args.AddArgument("--output-model-frame-intersection-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of stl file containing the visualization of the intersection between the model and the frames");
+  args.AddArgument("--input-transform-name",vtksys::CommandLineArguments::EQUAL_ARGUMENT,&inputTransformName,"Desired transform");
   ///////////////////////////////////////
 
   // Input arguments error checking
@@ -190,10 +193,10 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading config file finished.");
 
   PlusTransformName imageToReferenceTransformName; 
-  const char transformNameString[]="ImageToPhantom";
-  if ( imageToReferenceTransformName.SetTransformName(transformNameString)!= PLUS_SUCCESS )
+ 
+  if ( imageToReferenceTransformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
   {
-    LOG_ERROR("Invalid transform name: " << transformNameString ); 
+    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
     return EXIT_FAILURE; 
   }
 
@@ -236,6 +239,17 @@ int main(int argc, char **argv)
   {
     vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
+
+
+    if(!intersectionFile.empty()) 
+    {
+      vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
+      surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
+      surfaceModelWriter->SetInput(slicesPolyData);
+      surfaceModelWriter->Write(); 
+    }
+
+
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInput(slicesPolyData);  
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
@@ -245,8 +259,6 @@ int main(int argc, char **argv)
 
   renderWindowPoly->Render();
   //renderWindowInteractorPoly->Start();
-
- int x = trackedFrameList->GetNumberOfTrackedFrames();
 
   for(int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
