@@ -134,7 +134,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
   combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencilOutput);
-  combineModelwithBackgroundStencil->ReverseStencilOff();
+  combineModelwithBackgroundStencil->ReverseStencilOn();
   combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
   combineModelwithBackgroundStencil->Update();
   vtkImageData *combinedStencilOutput=combineModelwithBackgroundStencil->GetOutput();
