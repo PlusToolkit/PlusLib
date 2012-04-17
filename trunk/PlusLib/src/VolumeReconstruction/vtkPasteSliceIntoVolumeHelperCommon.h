@@ -81,7 +81,7 @@ static const unsigned char OPAQUE_ALPHA=255;
 template <class F, class T>
 static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
-                                     vtkPasteSliceIntoVolume::ResultType resultMode,
+                                     vtkPasteSliceIntoVolume::CalculationType calculationMode,
                                      int outExt[6], int outInc[3])
 {
   F fx, fy, fz;
@@ -168,22 +168,25 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         inPtrTmp = inPtr;
         outPtrTmp = outPtr+idx[j];
         accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
-        f = fdx[j];
-        r = F((*accPtrTmp)/255.);	// added division by float or double, since this always returned 0 otherwise
-        a = f + r;
 
         int i = numscalars;
         do
         {
           i--;
-          if (resultMode == vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)
+          switch (calculationMode)
           {
-            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
-          }
-          else if (resultMode == vtkPasteSliceIntoVolume::MAXIMUM)
-          {
-            if (*inPtrTmp > *outPtrTmp)
-              *outPtrTmp = *inPtrTmp;
+            case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
+              f = fdx[j];
+              r = F((*accPtrTmp)/255.);	// added division by float or double, since this always returned 0 otherwise
+              a = f + r;
+              PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
+              break;
+            case vtkPasteSliceIntoVolume::MAXIMUM:
+              if (*inPtrTmp > *outPtrTmp) {
+                *outPtrTmp = *inPtrTmp;
+                a = F((*accPtrTmp)/255.);
+              }
+              break;
           }
           inPtrTmp++;
           outPtrTmp++;
@@ -203,7 +206,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
     }
 
     // no compounding
-    else 
+    else
     {
       // loop over the eight voxels
       int j = 8;
@@ -216,20 +219,36 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         }
         inPtrTmp = inPtr;
         outPtrTmp = outPtr+idx[j];
-        // if alpha is nonzero then the pixel was hit before, so
-        //  average with previous value
         if (outPtrTmp[numscalars])
         {
-          f = fdx[j];
-          F r = 1 - f;
           int i = numscalars;
-          do
-          {
-            i--;
-            PlusMath::Round(f*(*inPtrTmp++) + r*(*outPtrTmp), *outPtrTmp);
-            outPtrTmp++;
+          switch (calculationMode) {
+            case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
+              // if alpha is nonzero then the pixel was hit before, so
+              //  average with previous value
+              f = fdx[j];
+              r = 1 - f; // removed redeclaration of r, since already declared as type <F>
+              do
+              {
+                i--;
+                PlusMath::Round(f*(*inPtrTmp) + r*(*outPtrTmp), *outPtrTmp);
+                inPtrTmp++;
+                outPtrTmp++;
+              }
+              while (i);
+              break;
+            case vtkPasteSliceIntoVolume::MAXIMUM:
+              do
+              {
+                i--;
+                if (*inPtrTmp > *outPtrTmp)
+                  *outPtrTmp = *inPtrTmp;
+                inPtrTmp++;
+                outPtrTmp++;
+              }
+              while (i);
+              break;
           }
-          while (i);
         }
         // alpha is zero, so just insert the new value
         else

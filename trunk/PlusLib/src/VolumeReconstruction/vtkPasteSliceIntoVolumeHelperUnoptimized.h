@@ -83,7 +83,7 @@ POSSIBILITY OF SUCH DAMAGES.
 template <class F, class T>
 static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
                                            unsigned short *accPtr, 
-                                           int numscalars, vtkPasteSliceIntoVolume::ResultType resultMode,
+                                           int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
                                            int outExt[6], int outInc[3])
 {
   int i;
@@ -101,15 +101,17 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
   {
     int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
     outPtr += inc;
-    if (resultMode == vtkPasteSliceIntoVolume::MAXIMUM)
+    if (calculationMode == vtkPasteSliceIntoVolume::MAXIMUM)
     {
       if (accPtr)
-      { // TODO update for maximum distribution
+      {
         accPtr += inc/outInc[0];
         int newa = *accPtr + 255;
         for (i = 0; i < numscalars; i++)
         {
-          *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
+          if (*inPtr > *outPtr)
+            *outPtr = *inPtr;
+          inPtr++;
           outPtr++;
         }
         *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
@@ -121,10 +123,14 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       }
       else
       {
-        if (*inPtr > *outPtr)
-          *outPtr = *inPtr;
-        outPtr++;
-        inPtr++;
+        for (i = 0; i < numscalars; i++)
+        {
+          if (*inPtr > *outPtr)
+            *outPtr = *inPtr;
+          outPtr++;
+          inPtr++;
+        }
+        *outPtr = (T)OPAQUE_ALPHA;
       }
     }
     else {
@@ -168,7 +174,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
 */
 template <class T>
 static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
-  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::ResultType resultMode)
+  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::CalculationType calculationMode)
 {
 
   LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
@@ -228,7 +234,7 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
   int numscalars = inData->GetNumberOfScalarComponents();
 
   // Set interpolation method - nearest neighbor or trilinear  
-  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::ResultType, int a[6], int b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
+  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], int b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   switch (interpolationMode)
   {
   case vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
@@ -280,7 +286,7 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
             outPoint[3] = 1;
 
             // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, resultMode, outExt, outInc);
+            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc);
           }
         }
 

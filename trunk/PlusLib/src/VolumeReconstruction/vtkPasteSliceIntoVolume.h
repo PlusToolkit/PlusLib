@@ -83,7 +83,7 @@ public:
     FULL_OPTIMIZATION
   };
 
-  enum ResultType
+  enum CalculationType
   {
     WEIGHTED_AVERAGE,
     MAXIMUM
@@ -222,11 +222,11 @@ public:
     WEIGHTED_AVERAGE: Used on single sweeps when slices are not expected to intersect
     MAXIMUM: used when multiple slices are expected to intersect
   */
-  vtkSetMacro(ResultMode,ResultType);
+  vtkSetMacro(CalculationMode,CalculationType);
   /*! Get the result mode */
-  vtkGetMacro(ResultMode,ResultType);
+  vtkGetMacro(CalculationMode,CalculationType);
   /*! Get the name of a result mode from a type id */
-  char *GetResultModeAsString(ResultType resultEnum);
+  char *GetCalculationModeAsString(CalculationType calculationEnum);
 
   /*!
     Turn on or off the compounding (default on, which means
@@ -281,7 +281,7 @@ protected:
   // Reconstruction options
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
-  ResultType ResultMode;
+  CalculationType CalculationMode;
   int Compounding;
 
   // Multithreading
