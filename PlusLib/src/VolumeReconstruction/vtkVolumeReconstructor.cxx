@@ -140,14 +140,14 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   if (reconConfig->GetAttribute("Calculation"))
   {
     if (STRCASECMP(reconConfig->GetAttribute("Calculation"),
-      this->Reconstructor->GetResultModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)) == 0)
+      this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)) == 0)
     {
-      this->Reconstructor->SetResultMode(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE);
+      this->Reconstructor->SetCalculationMode(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE);
     }
     else if (STRCASECMP(reconConfig->GetAttribute("Calculation"), 
-      this->Reconstructor->GetResultModeAsString(vtkPasteSliceIntoVolume::MAXIMUM)) == 0)
+      this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::MAXIMUM)) == 0)
     {
-      this->Reconstructor->SetResultMode(vtkPasteSliceIntoVolume::MAXIMUM);
+      this->Reconstructor->SetCalculationMode(vtkPasteSliceIntoVolume::MAXIMUM);
     }
     else
     {

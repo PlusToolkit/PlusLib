@@ -69,7 +69,7 @@ struct InsertSliceThreadFunctionInfoStruct
   vtkPasteSliceIntoVolume::OptimizationType Optimization;
   int Compounding;
   vtkPasteSliceIntoVolume::InterpolationType InterpolationMode;
-  vtkPasteSliceIntoVolume::ResultType ResultMode;
+  vtkPasteSliceIntoVolume::CalculationType CalculationMode;
 
   double ClipRectangleOrigin[2];
   double ClipRectangleSize[2];
@@ -116,7 +116,7 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   // reconstruction options
   this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
   this->Optimization = FULL_OPTIMIZATION;
-  this->ResultMode = WEIGHTED_AVERAGE;
+  this->CalculationMode = WEIGHTED_AVERAGE;
   this->Compounding = 0;
 
   this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
@@ -174,7 +174,7 @@ void vtkPasteSliceIntoVolume::PrintSelf(ostream& os, vtkIndent indent)
     this->FanOrigin[1] << "\n";
   os << indent << "FanDepth: " << this->FanDepth << "\n";
   os << indent << "InterpolationMode: " << this->GetInterpolationModeAsString(this->InterpolationMode) << "\n";
-  os << indent << "ResultMode: " << this->GetResultModeAsString(this->ResultMode) << "\n";
+  os << indent << "CalculationMode: " << this->GetCalculationModeAsString(this->CalculationMode) << "\n";
   os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
   os << indent << "Compounding: " << (this->Compounding ? "On\n":"Off\n");
   os << indent << "NumberOfThreads: ";
@@ -315,7 +315,7 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
   str.Accumulator = this->AccumulationBuffer;
   str.Compounding = this->Compounding;
   str.InterpolationMode = this->InterpolationMode;
-  str.ResultMode = this->ResultMode;
+  str.CalculationMode = this->CalculationMode;
   str.Optimization = this->Optimization;
   str.ClipRectangleOrigin[0]=this->ClipRectangleOrigin[0];
   str.ClipRectangleOrigin[1]=this->ClipRectangleOrigin[1];
@@ -429,7 +429,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         str->InputFrameImage, (short *)(inPtr), 
         inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
       break;
     case VTK_UNSIGNED_SHORT:
       vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
@@ -437,7 +437,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         str->InputFrameImage, (unsigned short *)(inPtr), 
         inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
       break;
     case VTK_UNSIGNED_CHAR:
       vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
@@ -445,8 +445,16 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         str->InputFrameImage, (unsigned char *)(inPtr), 
         inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
       break;
+    /*case VTK_DOUBLE:
+      vtkOptimizedInsertSlice(outData,(double *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (double *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;*/
     default:
       LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
       return VTK_THREAD_RETURN_VALUE;
@@ -472,7 +480,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
 
     if (str->Optimization==PARTIAL_OPTIMIZATION)
     {
-      switch (inData->GetScalarType()) // TODO: Float support
+      switch (inData->GetScalarType())
       {
       case VTK_SHORT:
         vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
@@ -480,7 +488,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (short *)(inPtr), 
           inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
       case VTK_UNSIGNED_SHORT:
         vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
@@ -488,7 +496,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (unsigned short *)(inPtr), 
           inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
       case VTK_UNSIGNED_CHAR:
         vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
@@ -496,8 +504,16 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (unsigned char *)(inPtr), 
           inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
+      /*case VTK_DOUBLE:
+        vtkOptimizedInsertSlice(outData,(double *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (double *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;*/
       default:
         LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
       }
@@ -513,7 +529,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (short *)(inPtr), 
           inputFrameExtentForCurrentThread, mImagePixToVolumePix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
       case VTK_UNSIGNED_SHORT:
         vtkUnoptimizedInsertSlice(outData,(unsigned short *)(outPtr),
@@ -521,7 +537,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (unsigned short *)(inPtr), 
           inputFrameExtentForCurrentThread, mImagePixToVolumePix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
       case VTK_UNSIGNED_CHAR:
         vtkUnoptimizedInsertSlice(outData,(unsigned char *)(outPtr),
@@ -529,8 +545,16 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           inData, (unsigned char *)(inPtr), 
           inputFrameExtentForCurrentThread, mImagePixToVolumePix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->ResultMode);
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
+      /*case VTK_DOUBLE:
+        vtkUnoptimizedInsertSlice(outData, (double *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (double *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;*/
       default:
         LOG_ERROR("UnoptimizedInsertSlice: Unknown input ScalarType");
       }
@@ -615,14 +639,14 @@ char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType ty
   }
 }
 
-char* vtkPasteSliceIntoVolume::GetResultModeAsString(ResultType type)
+char* vtkPasteSliceIntoVolume::GetCalculationModeAsString(CalculationType type)
 {
   switch (type)
   {
   case WEIGHTED_AVERAGE: return "WEIGHTED_AVERAGE";
   case MAXIMUM: return "MAXIMUM";
   default:
-    LOG_ERROR("Unknown result option: "<<type);
+    LOG_ERROR("Unknown calculation option: "<<type);
     return "unknown";
   }
 }
