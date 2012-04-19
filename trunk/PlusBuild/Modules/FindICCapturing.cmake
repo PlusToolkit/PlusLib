@@ -10,11 +10,11 @@
 #
 
 SET( ICCAPTURING_PATH_HINTS 
-    ../ImagingControl-3.2
-    ../PLTools/ImagingControl/ImagingControl-3.2
-    ../../PLTools/ImagingControl/ImagingControl-3.2
-    ../trunk/PLTools/ImagingControl/ImagingControl-3.2
-    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/ImagingControl/ImagingControl-3.2
+    "../ImagingControl-3.2"
+    "../PLTools/ImagingControl/ImagingControl-3.2"
+    "../../PLTools/ImagingControl/ImagingControl-3.2"
+    "../trunk/PLTools/ImagingControl/ImagingControl-3.2"
+    "${CMAKE_CURRENT_BINARY_DIR}/PLTools/ImagingControl/ImagingControl-3.2"
     )
 
   SET( COMPILER_SUFFIX "_vc9")
