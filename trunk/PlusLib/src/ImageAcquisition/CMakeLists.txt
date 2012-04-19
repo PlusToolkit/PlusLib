@@ -32,6 +32,7 @@ endif (WIN32)
 SET (ImageAcquisition_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 SET (External_Libraries_Install "")
 SET (External_Libraries_Debug "")
+SET (ImageAcquisition_LIBS "") 
 
 # --------------------------------------------------------------------------
 # OpenIGTLink support
@@ -156,49 +157,25 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 			ICCapturing/ICCapturingListener.h 
 			)
 	endif (WIN32)	
-	# Look for ICCapturing libraries
-
-  SET(ICCAPTURING_BASE_DIR ${PLUSLIB_TOOLS_DIR}/ImagingControl/ImagingControl-3.1)
-
-  SET(ICCAPTURING_INCLUDE_DIR ${ICCAPTURING_BASE_DIR}/include CACHE PATH "Path to the ImagingControl frame grabber include directory." FORCE)
-  IF ( WIN32 )
-    SET(ICCAPTURING_BIN_DIR ${ICCAPTURING_BASE_DIR}/win32 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
-  ENDIF ( WIN32 )
-  IF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
-    SET(ICCAPTURING_BIN_DIR ${ICCAPTURING_BASE_DIR}/x64 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
-  ENDIF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
-    
+	# Look for ICCapturing libraries   
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
     ${ICCAPTURING_INCLUDE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ICCapturing
     CACHE INTERNAL "" FORCE
     )
-
-	SET( SUFFIX_TIS_UDSHL08 "_vc9")
-	IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 7" )
-		SET( SUFFIX_TIS_UDSHL08 "_vc71")
-	ENDIF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 7" )
-	
-	IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 8" )
-		SET( SUFFIX_TIS_UDSHL08 "_vc8")
-	ENDIF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 8" )
-	
-	IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
-		SET( SUFFIX_TIS_UDSHL08 "_vc9")
-	ENDIF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
 	
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-		optimized ${ICCAPTURING_BIN_DIR}/release/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}${CMAKE_STATIC_LIBRARY_SUFFIX}
-		debug ${ICCAPTURING_BIN_DIR}/debug/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}d${CMAKE_STATIC_LIBRARY_SUFFIX}
+		optimized ${ICCAPTURING_TIS_UDSHL09_STATIC_LIB}
+		debug ${ICCAPTURING_TIS_UDSHL09D_STATIC_LIB}
 		)
 
 	SET ( External_Libraries_Install ${External_Libraries_Install}
-		${ICCAPTURING_BIN_DIR}/release/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ICCAPTURING_BIN_DIR}/release/TIS_DShowLib08${CMAKE_SHARED_LIBRARY_SUFFIX}
+		${ICCAPTURING_TIS_UDSHL09_SHARED_LIB}
+		${ICCAPTURING_TIS_DSHOWLIB09_SHARED_LIB}
 		)
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${ICCAPTURING_BIN_DIR}/debug/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}d${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ICCAPTURING_BIN_DIR}/debug/TIS_DShowLib08d${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${ICCAPTURING_TIS_UDSHL09D_SHARED_LIB}
+		${ICCAPTURING_TIS_DSHOWLIB09D_SHARED_LIB}
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 

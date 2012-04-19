@@ -34,7 +34,7 @@ void ICCapturingListener::overlayCallback( Grabber& caller, smart_ptr<OverlayBit
   char szText[25];
   if( pBitmap->getEnable() == true ) // Draw only, if the overlay bitmap is enabled.
   {
-    sprintf( szText,"%04d ", MediaSampleDesc.FrameNumber);
+    sprintf_s( szText, sizeof(DWORD), "%04d ", MediaSampleDesc.FrameNumber);
     pBitmap->drawText( RGB(255,0,0), 0, 0, szText );
   }
 }
@@ -72,7 +72,7 @@ void ICCapturingListener::saveImage( smart_ptr<MemBuffer> pBuffer, DWORD currFra
   char filename[MAX_PATH];
   if( currFrame < m_BufferWritten.size() )
   {
-    sprintf( filename, "image%02i.bmp", currFrame );
+    sprintf_s( filename, MAX_PATH - 1 , "image%02i.bmp", currFrame );
 
     saveToFileBMP( *pBuffer, filename );
 
