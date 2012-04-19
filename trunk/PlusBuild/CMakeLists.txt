@@ -263,6 +263,12 @@ IF ( PLUS_USE_MICRONTRACKER )
     ENDIF()
 ENDIF() 
 
+IF ( PLUS_USE_ICCAPTURING_VIDEO )
+   FIND_PACKAGE (ICCAPTURING)
+    IF ( NOT ICCAPTURING_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
+    ENDIF()
+ENDIF()
 
 INCLUDE(External_PlusLib.cmake)
 
