@@ -61,11 +61,6 @@ public:
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Set the IC capturing device license key /sa LicenseKey */
-	vtkSetStringMacro(LicenseKey); 
-  /*! Get the IC capturing device license key /sa LicenseKey */
-	vtkGetStringMacro(LicenseKey); 
-
   /*! Set the IC capturing device name (e.g. "DFG/USB2-lt") */
 	vtkSetStringMacro(DeviceName); 
   /*! Get the IC capturing device name (e.g. "DFG/USB2-lt") */
@@ -115,16 +110,6 @@ protected:
   /*! Frame grabber device - DShowLib::Grabber type */
 	void* FrameGrabber;
 	ICCapturingListener* FrameGrabberListener; 
-
-  /*! /brief License key
-	 If you have a trial version, the license key is 0 without quotation marks
-	 Example: if(!DShowLib::InitLibrary( 0 ))
-	 If you have a licensed version (standard or professional), the license
-	 key is a string in quotation marks. The license key has to be identical to 
-	 the license key entered during the IC Imaging Control setup.
-	 Example: if( !DShowLib::InitLibrary( "XXXXXXX" ))
-  */
-	char* LicenseKey; 
 
   /*! Device name (e.g. DFG/USB2-lt) */
 	char* DeviceName;

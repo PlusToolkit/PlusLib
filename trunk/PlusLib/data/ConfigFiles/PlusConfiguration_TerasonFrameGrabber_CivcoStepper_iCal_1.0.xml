@@ -24,7 +24,6 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
       VideoNorm="NTSC_M"
       VideoFormat="Y800 (640x480)"
       InputChannel="01 Video: SVideo"
-      LicenseKey="ISB3200016679"
       ICBufferSize="50"
     />
   </DataCollection>
