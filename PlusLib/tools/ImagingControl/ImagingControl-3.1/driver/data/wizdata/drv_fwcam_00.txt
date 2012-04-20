@@ -1,4 +1,0 @@
-# This contains the definitions of the hardware ids of the fwcam1394 devices
-1394 Camera ( Color )=IIDC 1394 camera ( color )
-1394 Camera ( Mono )=IIDC 1394 camera ( color )
-1394 Camera ( Bayer )=IIDC 1394 camera ( color )
