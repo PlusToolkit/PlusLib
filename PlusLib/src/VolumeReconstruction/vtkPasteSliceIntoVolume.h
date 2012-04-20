@@ -190,6 +190,23 @@ public:
   */
   bool FanClippingApplied();
 
+  /*! The output scalar type can be of any supported VTK_[TYPE]. These are:
+    VTK_CHAR
+    VTK_UNSIGNED_CHAR
+    VTK_SHORT
+    VTK_UNSIGNED_SHORT
+    VTK_INT
+    VTK_UNSIGNED_INT
+    VTK_LONG
+    VTK_UNSIGNED_LONG
+    VTK_FLOAT
+    VTK_DOUBLE*/
+  vtkSetMacro(OutputScalarMode,int);
+  /*! Get the output data type */
+  vtkGetMacro(OutputScalarMode,int);
+  /*! Get the output data type from an id */
+  char *GetOutputScalarModeAsString(int type);
+
   /*!
     Set optimization method (turn off optimization only if it is not stable
     on your architecture).
@@ -282,6 +299,7 @@ protected:
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
   CalculationType CalculationMode;
+  int OutputScalarMode;
   int Compounding;
 
   // Multithreading
