@@ -84,7 +84,7 @@ template <class F, class T>
 static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
                                            unsigned short *accPtr, 
                                            int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                           int outExt[6], int outInc[3])
+                                           int outExt[6], vtkIdType outInc[3])
 {
   int i;
   // The nearest neighbor interpolation occurs here
@@ -227,14 +227,14 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
 
   // Get increments to march through data - ex move from the end of one x scanline of data to the
   // start of the next line
-  int outInc[3];
+  vtkIdType outInc[3] ={0};
   outData->GetIncrements(outInc);
-  int inIncX, inIncY, inIncZ;
+  vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
 
   // Set interpolation method - nearest neighbor or trilinear  
-  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], int b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
+  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], vtkIdType b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   switch (interpolationMode)
   {
   case vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
