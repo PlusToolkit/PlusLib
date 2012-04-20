@@ -416,7 +416,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     VTK_DOUBLE_MAX, VTK_DOUBLE_MIN
   };
 
-  const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
@@ -456,6 +456,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   outputExtent[ 3 ] = int( ( extent_Ref[3] - extent_Ref[2] ) / outputSpacing[ 1 ] );
   outputExtent[ 5 ] = int( ( extent_Ref[5] - extent_Ref[4] ) / outputSpacing[ 2 ] );
 
+  this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVtkImage()->GetScalarType());
   this->Reconstructor->SetOutputExtent( outputExtent );
   this->Reconstructor->SetOutputOrigin( extent_Ref[0], extent_Ref[2], extent_Ref[4] ); 
   try

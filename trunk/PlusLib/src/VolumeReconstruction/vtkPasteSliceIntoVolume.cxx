@@ -113,6 +113,9 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   this->FanOrigin[1] = 0.0;
   this->FanDepth = 1.0;
 
+  // scalar type for input and output
+  this->OutputScalarMode = VTK_UNSIGNED_CHAR;
+
   // reconstruction options
   this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
   this->Optimization = FULL_OPTIMIZATION;
@@ -261,7 +264,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   outData->SetExtent(outExtent);
   outData->SetOrigin(this->OutputOrigin);
   outData->SetSpacing(this->OutputSpacing);
-  outData->SetScalarType(VTK_UNSIGNED_CHAR);
+  outData->SetScalarType(this->OutputScalarMode);
   outData->SetNumberOfScalarComponents(2); // first component: image intensity; second component: if the pixel was set (0 = not set (hole), 1 = set)
   outData->AllocateScalars();
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
@@ -439,6 +442,14 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
       break;
+    case VTK_CHAR:
+      vtkOptimizedInsertSlice(outData,(char *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (char *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
     case VTK_UNSIGNED_CHAR:
       vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
         (unsigned short *)(accPtr), 
@@ -447,14 +458,54 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
       break;
-    /*case VTK_DOUBLE:
+    case VTK_FLOAT:
+      vtkOptimizedInsertSlice(outData,(float *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (float *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
+    case VTK_DOUBLE:
       vtkOptimizedInsertSlice(outData,(double *)(outPtr),
         (unsigned short *)(accPtr), 
         str->InputFrameImage, (double *)(inPtr), 
         inputFrameExtentForCurrentThread, newmatrix,
         str->ClipRectangleOrigin,str->ClipRectangleSize,
         str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
-      break;*/
+      break;
+    case VTK_INT:
+      vtkOptimizedInsertSlice(outData,(int *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (int *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
+    case VTK_UNSIGNED_INT:
+      vtkOptimizedInsertSlice(outData,(unsigned int *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (unsigned int *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
+    case VTK_LONG:
+      vtkOptimizedInsertSlice(outData,(long *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (long *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
+    case VTK_UNSIGNED_LONG:
+      vtkOptimizedInsertSlice(outData,(unsigned long *)(outPtr),
+        (unsigned short *)(accPtr), 
+        str->InputFrameImage, (unsigned long *)(inPtr), 
+        inputFrameExtentForCurrentThread, newmatrix,
+        str->ClipRectangleOrigin,str->ClipRectangleSize,
+        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+      break;
     default:
       LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
       return VTK_THREAD_RETURN_VALUE;
@@ -506,14 +557,62 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
-      /*case VTK_DOUBLE:
+      case VTK_CHAR:
+        vtkOptimizedInsertSlice(outData,(char *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (char *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_FLOAT:
+        vtkOptimizedInsertSlice(outData,(float *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (float *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_DOUBLE:
         vtkOptimizedInsertSlice(outData,(double *)(outPtr),
           (unsigned short *)(accPtr), 
           inData, (double *)(inPtr), 
           inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
-        break;*/
+        break;
+      case VTK_INT:
+        vtkOptimizedInsertSlice(outData,(int *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (int *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_UNSIGNED_INT:
+        vtkOptimizedInsertSlice(outData,(unsigned int *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned int *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_LONG:
+        vtkOptimizedInsertSlice(outData,(long *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (long *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_UNSIGNED_LONG:
+        vtkOptimizedInsertSlice(outData,(unsigned long *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned long *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
       default:
         LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
       }
@@ -547,14 +646,62 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
         break;
-      /*case VTK_DOUBLE:
+      case VTK_CHAR:
+        vtkUnoptimizedInsertSlice(outData,(char *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (char *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_FLOAT:
+        vtkUnoptimizedInsertSlice(outData, (float *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (float *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_DOUBLE:
         vtkUnoptimizedInsertSlice(outData, (double *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (double *)(inPtr), 
           inputFrameExtentForCurrentThread, mImagePixToVolumePix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
-        break;*/
+        break;
+      case VTK_INT:
+        vtkUnoptimizedInsertSlice(outData, (int *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (int *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_UNSIGNED_INT:
+        vtkUnoptimizedInsertSlice(outData, (unsigned int *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (unsigned int *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_LONG:
+        vtkUnoptimizedInsertSlice(outData, (long *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (long *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
+      case VTK_UNSIGNED_LONG:
+        vtkUnoptimizedInsertSlice(outData, (unsigned long *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (unsigned long *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode);
+        break;
       default:
         LOG_ERROR("UnoptimizedInsertSlice: Unknown input ScalarType");
       }
@@ -635,6 +782,31 @@ char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType ty
   case LINEAR_INTERPOLATION: return "LINEAR";
   default:
     LOG_ERROR("Unknown interpolation option: "<<type);
+    return "unknown";
+  }
+}
+
+char* vtkPasteSliceIntoVolume::GetOutputScalarModeAsString(int type)
+{
+  switch (type)
+  {
+  // list obtained from: http://www.vtk.org/doc/nightly/html/vtkType_8h_source.html
+  //case VTK_VOID:              return "VTK_VOID";
+  //case VTK_BIT:               return "VTK_BIT";
+  case VTK_CHAR:              return "VTK_CHAR";
+  case VTK_UNSIGNED_CHAR:     return "VTK_UNSIGNED_CHAR";
+  case VTK_SHORT:             return "VTK_SHORT";
+  case VTK_UNSIGNED_SHORT:    return "VTK_UNSIGNED_SHORT";
+  case VTK_INT:               return "VTK_INT";
+  case VTK_UNSIGNED_INT:      return "VTK_UNSIGNED_INT";
+  case VTK_LONG:              return "VTK_LONG";
+  case VTK_UNSIGNED_LONG:     return "VTK_UNSIGNED_LONG";
+  case VTK_FLOAT:             return "VTK_FLOAT";
+  case VTK_DOUBLE:            return "VTK_DOUBLE";
+  //case VTK_SIGNED_CHAR:       return "VTK_SIGNED_CHAR";
+  //case VTK_ID_TYPE:           return "VTK_ID_TYPE";
+  default:
+    LOG_ERROR("Unknown output scalar mode option: "<<type);
     return "unknown";
   }
 }
