@@ -689,6 +689,7 @@ EXCLUDE                = "@PlusLib_SOURCE_DIR@/data" \
                          "@PlusLib_SOURCE_DIR@/src/Tracking/ndicapi" \
                          "@PlusLib_SOURCE_DIR@/src/Tracking/FlockTracking/Utils" \ 
                          "@PlusLib_SOURCE_DIR@/src/Tracking/MicronTracking/Utils" \ 
+                         "@PlusLib_SOURCE_DIR@/src/CalibrationAlgo/Ransac" \ 
                          "@PlusLib_SOURCE_DIR@/src/scripts" 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
