@@ -149,8 +149,8 @@ public:
   template <class T>
   double weightedAverageOverNeighborhoodWithGaussian(T* inputData, // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
-											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
-											  int* accOffsets,
+											  vtkIdType* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* accOffsets,
 											  const int& inputComp,	   // the component index of interest
 											  int* bounds,             // the boundaries of the volume, outputExtent
 											  const int& neighborSize, // The size of the neighborhood, odd positive integer

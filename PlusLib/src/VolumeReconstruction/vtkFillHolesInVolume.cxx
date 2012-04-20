@@ -204,8 +204,8 @@ template <class T>
 double vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
 											  T* inputData,            // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
-											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
-											  int* accOffsets,
+											  vtkIdType* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* accOffsets,
 											  const int& inputComp,	   // the component index of interest
 											  int* bounds,             // the boundaries of the volume, outputExtent
 											  const int& kernelIndex, // The size of the neighborhood, odd positive integer
@@ -350,9 +350,9 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
 	}
 
 	// get increments for volume and for accumulation buffer
-	int byteIncVol[3]; //x,y,z
+  vtkIdType byteIncVol[3]={0}; //x,y,z
 	outData->GetIncrements(byteIncVol[0],byteIncVol[1],byteIncVol[2]);
-	int byteIncAcc[3]; //x,y,z
+  vtkIdType byteIncAcc[3]={0}; //x,y,z
 	accData->GetIncrements(byteIncAcc[0],byteIncAcc[1],byteIncAcc[2]);
 
 	// this will store the position of the pixel being looked at currently

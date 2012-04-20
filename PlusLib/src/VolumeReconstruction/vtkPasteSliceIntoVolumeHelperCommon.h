@@ -82,7 +82,7 @@ template <class F, class T>
 static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
                                      vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                     int outExt[6], int outInc[3])
+                                     int outExt[6], vtkIdType  outInc[3])
 {
   F fx, fy, fz;
 

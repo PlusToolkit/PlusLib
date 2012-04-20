@@ -500,7 +500,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
                                                  double *outPoint1,
                                                  double *xAxis,
                                                  T *&inPtr, T *outPtr,
-                                                 int *outExt, int *outInc,
+                                                 int *outExt, vtkIdType *outInc,
                                                  int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode, 
                                                  unsigned short *accPtr)
 {
@@ -691,7 +691,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
                                                  fixed *outPoint,
                                                  fixed *outPoint1, fixed *xAxis,
                                                  T *&inPtr, T *outPtr,
-                                                 int *outExt, int *outInc,
+                                                 int *outExt, vtkIdType *outInc,
                                                  int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
                                                  unsigned short *accPtr)
 {
@@ -944,9 +944,9 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
 
   // Get increments to march through data - ex move from the end of one x scanline of data to the
   // start of the next line
-  int outInc[3];
+  vtkIdType outInc[3]={0};
   outData->GetIncrements(outInc);
-  int inIncX, inIncY, inIncZ;
+  vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
 
