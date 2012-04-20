@@ -45,7 +45,6 @@ vtkICCapturingSource::vtkICCapturingSource()
 {
 	this->ICBufferSize = 50; 
 
-	this->LicenseKey = NULL; 
 	this->DeviceName = NULL; 
 	this->VideoNorm = NULL; 
 	this->VideoFormat = NULL; 
@@ -190,9 +189,9 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
 //----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::InternalConnect()
 {
-	if( !DShowLib::InitLibrary( this->GetLicenseKey() ) )
+  if( !DShowLib::InitLibrary() )
 	{
-		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenseKey() );
+		LOG_ERROR("The IC capturing library could not be initialized");
 		return PLUS_FAIL;
 	}
 
@@ -366,12 +365,6 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetInputChannel(inputChannel); 
 	}
 
-	const char* licenseKey = imageAcquisitionConfig->GetAttribute("LicenseKey"); 
-	if ( licenseKey != NULL) 
-	{
-		this->SetLicenseKey(licenseKey); 
-	}
-
 	int icBufferSize = 0; 
 	if ( imageAcquisitionConfig->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
 	{
@@ -411,7 +404,6 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
   imageAcquisitionConfig->SetAttribute("VideoNorm", this->VideoNorm);
   imageAcquisitionConfig->SetAttribute("VideoFormat", this->VideoFormat);
   imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
-  imageAcquisitionConfig->SetAttribute("LicenseKey", this->LicenseKey);
   imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
 
   return PLUS_SUCCESS;
