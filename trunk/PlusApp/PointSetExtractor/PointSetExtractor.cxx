@@ -137,9 +137,9 @@ int main(int argc, char **argv)
 
   // Create a polydata, with a vertex at each point
 	vtkSmartPointer<vtkCellArray> polyDataCells = vtkSmartPointer<vtkCellArray>::New();	
-	for (int ptIndex=0; ptIndex<numberOfPoints; ptIndex++)
+	for (vtkIdType ptIndex=0; ptIndex<numberOfPoints; ptIndex++)
   {
-    polyDataCells->InsertNextCell(1,&ptIndex);
+    polyDataCells->InsertNextCell(vtkIdType(1),&ptIndex);
   }
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(surfacePoints);
