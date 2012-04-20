@@ -1,9 +1,9 @@
 
-SET(ITK_GIT_TAG "v3.16.0" )
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 10" )
-	SET(ITK_GIT_TAG "v3.20.1" )
-ENDIF() 
-      
+
+
+
+
+
 # --------------------------------------------------------------------------
 # ITK 
 SET (PLUS_ITK_DIR ${CMAKE_BINARY_DIR}/itk CACHE INTERNAL "Path to store itk sources.")
@@ -12,7 +12,7 @@ ExternalProject_Add( itk
             BINARY_DIR "itk-bin"
             #--Download step--------------
             GIT_REPOSITORY "${GIT_PROTOCOL}://itk.org/ITK.git"
-            GIT_TAG ${ITK_GIT_TAG}
+            GIT_TAG "v3.20.1"
             #SVN_REPOSITORY http://svn.github.com/Kitware/ITK.git/
             #--Configure step-------------
             CMAKE_ARGS 
