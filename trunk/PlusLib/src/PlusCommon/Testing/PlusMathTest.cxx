@@ -379,8 +379,7 @@ template<class floatType> int TestFloor(const char* floatName)
 
   LOG_INFO("Time required for "<<numberOfOperations*repeatOperations<<" floor operations on type "<<floatName<<": "
     <<"using PlusMath::Floor: "<<timestampDiffPlusFloor<<"sec, "
-    <<"using vtkMath::Floor: "<<timestampDiffVtkFloor<<"sec, "
-    
+    <<"using vtkMath::Floor: "<<timestampDiffVtkFloor<<"sec, "    
     <<"using floor:"<<timestampDiffFloor<<"sec");
 
   if (timestampDiffPlusFloor>timestampDiffFloor)
@@ -390,13 +389,39 @@ template<class floatType> int TestFloor(const char* floatName)
   }
 
   // Testing a special value, see http://web.archiveorange.com/archive/v/aysypwArfEx6YnyPN3OM
-  floatType specialValue=0.99989;
-  int shouldBeZero=PlusMath::Floor(specialValue);
-  if (shouldBeZero!=0)
+  floatType specialValueKnownBad=16.999993; // known bad
+  int plusMathFloored=PlusMath::Floor(specialValueKnownBad);
+  int vtkMathFloored=vtkMath::Floor(specialValueKnownBad);
+  int floored=floor(specialValueKnownBad);
+  if (plusMathFloored!=floored)
   {
-    LOG_ERROR("The "<<specialValue<<" value was incorrectly floored to "<<shouldBeZero);
+    LOG_INFO(std::fixed<<"The "<<specialValueKnownBad<<" value was incorrectly floored by PlusMath::Floor to "<<plusMathFloored<<" (instead of "<<floored<<"). This is a known limitation of the fast floor implementation.");
+  }
+  if (vtkMathFloored!=floored)
+  {
+    LOG_ERROR(std::fixed<<"The "<<specialValueKnownBad<<" value was incorrectly floored by vtkMath::Floor to "<<plusMathFloored<<" (instead of "<<floored<<")");
     numberOfErrors++;
   }
+
+  floatType specialValueGood=16.999991; // good
+  plusMathFloored=PlusMath::Floor(specialValueGood);
+  vtkMathFloored=vtkMath::Floor(specialValueGood);
+  floored=floor(specialValueGood);
+  if (plusMathFloored!=floored)
+  {
+    LOG_ERROR(std::fixed<<"The "<<specialValueGood<<" value was incorrectly floored by PlusMath::Floor to "<<plusMathFloored<<" (instead of "<<floored<<"). This is a known limitation of the fast floor implementation.");
+	numberOfErrors++;
+  }
+  else
+  {
+    LOG_INFO(std::fixed<<"The "<<specialValueGood<<" value was correctly floored by vtkMath::Floor to "<<plusMathFloored);
+  }
+  if (vtkMathFloored!=floored)
+  {
+    LOG_ERROR(std::fixed<<"The "<<specialValueGood<<" value was incorrectly floored by vtkMath::Floor to "<<plusMathFloored<<" (instead of "<<floored<<")");
+    numberOfErrors++;
+  }
+  
 
   return numberOfErrors;
 }
