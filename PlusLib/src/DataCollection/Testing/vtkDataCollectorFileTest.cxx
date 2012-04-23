@@ -124,7 +124,7 @@ int main( int argc, char** argv )
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
 
   // Frame 0001
-  dataCollector->GetTrackedFrameByTime(218.8, &trackedFrame);
+  dataCollector->GetTrackedFrameByTime(218.792613, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
   
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
@@ -157,12 +157,12 @@ int main( int argc, char** argv )
   dataCollector->GetTrackedFrameByTime(222.3, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.055, 60.647, -1762.63)!=PLUS_SUCCESS)
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
     compareStatus=PLUS_FAIL;
   }
-  if (CompareTransform(probeToTrackerTransformName, transformRepository, -276.036, 82.8124, -1707.32)!=PLUS_SUCCESS)
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, -276.011, 82.2448, -1708.45)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
     compareStatus=PLUS_FAIL;

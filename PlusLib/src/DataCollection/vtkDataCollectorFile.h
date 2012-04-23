@@ -89,6 +89,11 @@ public:
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]);
 
+  /*! Set sequence metafile name */
+	vtkSetStringMacro(SequenceMetafileName);
+  /*! Get sequence metafile name */
+	vtkGetStringMacro(SequenceMetafileName);
+
 protected:
   /*! Compute next timestamp from start time and elapsed time */
   PlusStatus GetCurrentFrameTimestamp(double &aTimestamp);
@@ -107,11 +112,6 @@ protected:
   virtual void SetTrackedFrameBuffer(vtkTrackedFrameList* trackedFrameBuffer); 
   /*! Get tracked frame list */
   vtkGetObjectMacro(TrackedFrameBuffer, vtkTrackedFrameList);
-
-  /*! Set sequence metafile name */
-	vtkSetStringMacro(SequenceMetafileName);
-  /*! Get sequence metafile name */
-	vtkGetStringMacro(SequenceMetafileName);
 
   /*! Set replay enabled flag */
 	vtkSetMacro(ReplayEnabled, bool);

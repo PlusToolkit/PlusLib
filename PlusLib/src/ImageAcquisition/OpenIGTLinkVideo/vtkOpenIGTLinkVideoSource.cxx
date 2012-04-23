@@ -161,6 +161,8 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
+  this->ClientSocket->SetTimeout(500); 
+
   // Clear buffer on connect 
   this->GetBuffer()->Clear(); 
 

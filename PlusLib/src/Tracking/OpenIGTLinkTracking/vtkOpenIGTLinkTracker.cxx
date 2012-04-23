@@ -96,6 +96,8 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
+  this->ClientSocket->SetTimeout(500); 
+
   // Clear buffers on connect
   this->ClearAllBuffers(); 
 
