@@ -17,6 +17,7 @@
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
+#include "igtlStatusMessage.h"
 
 #include "vtkPlusIgtlMessageFactory.h" 
 
@@ -203,7 +204,13 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
       client.ClientSocket = newClientSocket;
 
       self->IgtlClients.push_back(client); 
-      LOG_INFO( "Server received new client connection." );
+
+      int port = -1; 
+      std::string address; 
+#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+      client.ClientSocket->GetSocketAddress(address, port);
+#endif
+      LOG_INFO( "Server received new client connection (" << address << ":" << port << ")." );
     }
   }
 
@@ -249,7 +256,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
-
+ 
     // Acquire tracked frames since last acquisition (minimum 1 frame)
     int numberOfFramesToGet = std::max(self->MaxTimeSpentWithProcessingMs / self->LastProcessingTimePerFrameMs, 1); 
     
@@ -339,6 +346,11 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         int c = clientInfoMsg->Unpack(1);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {
+          int port = -1; 
+          std::string clientAddress; 
+#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+          client.ClientSocket->GetSocketAddress(clientAddress, port);
+#endif
           // Message received from client, need to lock to modify client info
           PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
           std::list<PlusIgtlClientInfo>::iterator it = std::find(self->IgtlClients.begin(), self->IgtlClients.end(), client ); 
@@ -346,9 +358,19 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           {
             // Copy client info
             (*it).ShallowCopy(clientInfoMsg->GetClientInfo()); 
-            LOG_INFO("Message received from client"); 
+            LOG_INFO("Message received from client (" << clientAddress << ":" << port << ")."); 
           }
         }
+      }
+      else if (strcmp(headerMsg->GetDeviceType(), "GET_STATUS") == 0)
+      {
+        // Just ping server, we can skip message and respond
+        client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+
+        igtl::StatusMessage::Pointer statusMsg = igtl::StatusMessage::New(); 
+        statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+        statusMsg->Pack(); 
+        client.ClientSocket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackBodySize()); 
       }
       else
       {
@@ -384,12 +406,12 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
   // Lock before we send message to the clients 
   PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
-  bool clientDisconnected = false; 
+  bool clientDisconnected = false;
 
   std::list<PlusIgtlClientInfo>::iterator clientIterator = this->IgtlClients.begin();
   while ( clientIterator != this->IgtlClients.end() )
   {
-    PlusIgtlClientInfo client = (*clientIterator); 
+    PlusIgtlClientInfo client = (*clientIterator);
 
     // Create igt messages
     std::vector<igtl::MessageBase::Pointer> igtlMessages; 
@@ -453,8 +475,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
     if ( clientDisconnected )
     {
-      LOG_INFO( "Client disconnected."); 
-      clientIterator = this->IgtlClients.erase(clientIterator); 
+      int port = -1; 
+      std::string address; 
+#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+      client.ClientSocket->GetSocketAddress(address, port); 
+#endif
+      LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
+      clientIterator = this->IgtlClients.erase(clientIterator);
+      clientDisconnected = false; 
       continue; 
     }
 

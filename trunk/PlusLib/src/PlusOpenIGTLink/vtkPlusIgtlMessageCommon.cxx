@@ -111,7 +111,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
   socket->Receive(trackedFrameMsg->GetPackBodyPointer(), trackedFrameMsg->GetPackBodySize());
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = trackedFrameMsg->Unpack(0);
+  int c = trackedFrameMsg->Unpack(1);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
     LOG_ERROR("Couldn't receive tracked frame message from server!"); 

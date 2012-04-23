@@ -153,7 +153,7 @@ ADD_TEST(PlusVersion
 # Install
 #
 
-INSTALL(TARGETS PlusVersion
+INSTALL(TARGETS PlusVersion vtkPlusOpenIGTLinkServerTest
   DESTINATION bin
   COMPONENT RuntimeLibraries
   )

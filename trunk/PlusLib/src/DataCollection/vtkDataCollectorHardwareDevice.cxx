@@ -1137,6 +1137,8 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
 {
   LOG_TRACE("vtkDataCollectorHardwareDevice::ReadTrackerProperties");
 
+  this->TrackingEnabled = false; 
+
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
@@ -1147,8 +1149,8 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
   vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
+    LOG_DEBUG("Cannot find Tracker element in XML tree!");
+    return PLUS_SUCCESS;
   }
 
   LOG_TRACE("vtkDataCollectorHardwareDevice::ReadTrackerProperties");
@@ -1167,8 +1169,6 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
     return this->Tracker->ReadConfiguration(aConfigurationData); 
   }
   
-  // No tracking
-  this->TrackingEnabled = false; 
   return PLUS_SUCCESS;
 }
 
@@ -1176,6 +1176,8 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
 PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXMLDataElement* aConfigurationData)
 {
   LOG_TRACE("vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties");
+
+  this->VideoEnabled = false; 
 
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
@@ -1187,8 +1189,8 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
   vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
   if (imageAcquisitionConfig == NULL) 
   {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_SUCCESS;
   }
 
   const char* type = imageAcquisitionConfig->GetAttribute("Type"); 
@@ -1205,9 +1207,7 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
     this->VideoEnabled = true; 
     return this->VideoSource->ReadConfiguration(aConfigurationData); 
   }
-  
-  // No video source 
-  this->VideoEnabled = false; 
+ 
   return PLUS_SUCCESS;
 }
 

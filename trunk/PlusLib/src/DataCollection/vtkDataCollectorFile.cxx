@@ -33,7 +33,7 @@ vtkDataCollectorFile::vtkDataCollectorFile()
   this->ReplayEnabled = false; 
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
-  this->LastAccessedFrameIndex = -1;
+  this->LastAccessedFrameIndex = 0;
 
   this->SetNumberOfInputPorts(0);
 }
@@ -138,7 +138,7 @@ PlusStatus vtkDataCollectorFile::Stop()
   LOG_TRACE("vtkDataCollectorFile::Stop"); 
 
   this->StartTime = 0.0;
-  this->LastAccessedFrameIndex = -1;
+  this->LastAccessedFrameIndex = 0;
 
   return PLUS_SUCCESS;
 }
@@ -373,10 +373,10 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
   // If requested timestamp is before the timestamp of the last accessed tracked frame then start from the beginning
   if (aIndex >= 0 && aTimestamp < this->TrackedFrameBuffer->GetTrackedFrame(aIndex)->GetTimestamp())
   {
-    aIndex = -1;
+    aIndex = 0;
   }
 
-  while (aTimestamp >= this->TrackedFrameBuffer->GetTrackedFrame(aIndex + 1)->GetTimestamp())
+  while (aTimestamp > this->TrackedFrameBuffer->GetTrackedFrame(aIndex)->GetTimestamp())
   {
     aIndex++;
 
