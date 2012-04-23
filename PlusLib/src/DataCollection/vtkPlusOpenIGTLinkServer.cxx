@@ -208,7 +208,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
       int port = -1; 
       std::string address; 
 #if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
-      client.ClientSocket->GetSocketAddress(address, port);
+      client.ClientSocket->GetSocketAddressAndPort(address, port);
 #endif
       LOG_INFO( "Server received new client connection (" << address << ":" << port << ")." );
     }
@@ -349,7 +349,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           int port = -1; 
           std::string clientAddress; 
 #if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
-          client.ClientSocket->GetSocketAddress(clientAddress, port);
+          client.ClientSocket->GetSocketAddressAndPort(clientAddress, port);
 #endif
           // Message received from client, need to lock to modify client info
           PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
@@ -478,7 +478,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       int port = -1; 
       std::string address; 
 #if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
-      client.ClientSocket->GetSocketAddress(address, port); 
+      client.ClientSocket->GetSocketAddressAndPort(address, port); 
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
       clientIterator = this->IgtlClients.erase(clientIterator);
