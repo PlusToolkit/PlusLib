@@ -155,5 +155,5 @@ ADD_TEST(PlusVersion
 
 INSTALL(TARGETS PlusVersion vtkPlusOpenIGTLinkServerTest
   DESTINATION bin
-  COMPONENT RuntimeLibraries
+  COMPONENT RuntimeExecutables
   )

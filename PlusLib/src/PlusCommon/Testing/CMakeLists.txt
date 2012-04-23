@@ -70,5 +70,5 @@ TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
 
 INSTALL(TARGETS EditSeqMetaFile
   DESTINATION bin
-  COMPONENT RuntimeLibraries
+  COMPONENT RuntimeExecutables
   )

@@ -27,4 +27,4 @@ INSTALL(TARGETS UsSimulatorAlgoTest
     RUNTIME
     DESTINATION bin
     CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+    COMPONENT RuntimeExecutables)

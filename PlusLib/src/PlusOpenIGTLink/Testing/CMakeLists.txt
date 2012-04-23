@@ -12,5 +12,5 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 INSTALL(TARGETS 
   DESTINATION bin
-  COMPONENT RuntimeLibraries
+  COMPONENT RuntimeExecutables
   )
