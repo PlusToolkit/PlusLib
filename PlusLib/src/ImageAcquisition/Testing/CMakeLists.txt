@@ -15,8 +15,9 @@ ADD_EXECUTABLE(MetaImageSequenceViewer MetaImageSequenceViewer.cxx )
 TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkImageAcquisition )
 ADD_TEST(MetaImageSequenceViewerTest
   ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
-  --input-img-seq-file-name=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
-  --input-transform-name=TemplateToStepperHomeTransform
+  --input-metafile=${TestDataDir}/SpinePhantomFreehand.mha
+  --input-configfile=${TestDataDir}/SpinePhantomFreehandReconstructionOnly.xml
+  --image-to-reference-transform-name=ImageToTracker
   --rendering-off
   )
 SET_TESTS_PROPERTIES( MetaImageSequenceViewerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

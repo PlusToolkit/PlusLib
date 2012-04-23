@@ -34,24 +34,23 @@
 
 int main( int argc, char** argv )
 {
-
   bool printHelp(false);
   std::string inputMetaFilename;
   std::string inputConfigFileName; 
   std::string outputModelFilename; 
-  std::string imageToReferenceTransformName;  // image to reference
+  std::string imageToReferenceTransformNameStr;
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--image-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformName, "Transform name used for creating slice models");
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--image-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Transform name used for creating slice models");  
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
   args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
   args.AddArgument("--output-modelfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputModelFilename, "A 3D model file that contains rectangles corresponding to each US image slice (.vtk)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 
   if ( !args.Parse() )
   {
@@ -64,7 +63,6 @@ int main( int argc, char** argv )
   {
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
-
   }
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
@@ -72,13 +70,6 @@ int main( int argc, char** argv )
   if ( inputMetaFilename.empty() )
   {
     std::cerr << "--input-metafile argument required!" << std::endl; 
-    std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit(EXIT_FAILURE); 
-  }
-  if ( inputConfigFileName.empty() )
-  {
-    std::cerr << "--input-configfile argument required!" << std::endl; 
-    std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }
   if ( outputModelFilename.empty() )
@@ -89,28 +80,30 @@ int main( int argc, char** argv )
   }
 
   // Read input tracked ultrasound data.
-
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
   trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
   LOG_DEBUG("Reading input done.");
-
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
-  // Read volume reconstruction config file.
-
-  LOG_DEBUG("Reading config file...");
-  vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New();   
-  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  reconstructor->ReadConfiguration(configRead);
-  LOG_DEBUG("Reading config file done.");
-
+  // Read calibration matrices from the config file
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  if ( !inputConfigFileName.empty() )
   {
-    LOG_ERROR("Failed to read transforms for transform repository!"); 
-    return EXIT_FAILURE; 
+    LOG_DEBUG("Reading config file...");
+    vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New();   
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+    reconstructor->ReadConfiguration(configRead);
+    LOG_DEBUG("Reading config file done.");
+    if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read transforms for transform repository!"); 
+      return EXIT_FAILURE; 
+    }
+  }
+  else
+  {
+    LOG_INFO("Configuration file is not specified. Only those transforms are available that are defined in the sequence metafile");    
   }
 
   // Prepare the output polydata.
@@ -118,10 +111,10 @@ int main( int argc, char** argv )
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
   appender->SetInput( outputPolyData );
 
-  PlusTransformName transformName; 
-  if ( transformName.SetTransformName(imageToReferenceTransformName.c_str())!= PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << imageToReferenceTransformName ); 
+  PlusTransformName imageToReferenceTransformName; 
+  if ( imageToReferenceTransformName.SetTransformName(imageToReferenceTransformNameStr.c_str())!= PLUS_SUCCESS )
+  {    
+    LOG_ERROR("Invalid image to reference transform name: " << imageToReferenceTransformNameStr ); 
     return EXIT_FAILURE; 
   }
 
@@ -137,17 +130,17 @@ int main( int argc, char** argv )
       continue; 
     }
 
-    vtkSmartPointer<vtkMatrix4x4> tUserDefinedMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( transformRepository->GetTransform(transformName, tUserDefinedMatrix) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS )
     {
       std::string strTransformName; 
-      transformName.GetTransformName(strTransformName); 
+      imageToReferenceTransformName.GetTransformName(strTransformName); 
       LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
       continue; 
     }
 
-    vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
-    tUserDefinedTransform->SetMatrix( tUserDefinedMatrix );    
+    vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
+    imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );    
 
     int* frameSize = frame->GetFrameSize();
 
@@ -157,7 +150,7 @@ int main( int argc, char** argv )
 
     vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
     tCubeToTracker->Identity();
-    tCubeToTracker->Concatenate( tUserDefinedTransform );
+    tCubeToTracker->Concatenate( imageToReferenceTransform );
     tCubeToTracker->Concatenate( tCubeToImage );
 
     vtkSmartPointer< vtkTransformPolyDataFilter > CubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
