@@ -14,6 +14,14 @@ int main(int argc, char **argv)
 
   LOG_INFO("Plus SVN revision: " << PLUSLIB_REVISION); 
 
+#if defined _WIN64
+  LOG_INFO("Build mode: Win64");
+#elif defined _WIN32
+  LOG_INFO("Build mode: Win32");
+#else
+  LOG_INFO("Build mode: other");
+#endif
+
   vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New(); 
   std::ostringstream supportedTrackers; 
   trackerFactory->PrintAvailableTrackers(supportedTrackers, vtkIndent()); 

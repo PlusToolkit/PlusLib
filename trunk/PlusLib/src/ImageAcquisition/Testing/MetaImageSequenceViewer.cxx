@@ -9,6 +9,7 @@
 #include <iomanip>
 
 #include "vtkSmartPointer.h"
+#include "vtkXMLUtilities.h"
 #include "vtkMatrix4x4.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"
@@ -31,6 +32,7 @@
 
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
 
 ///////////////////////////////////////////////////////////////////
@@ -135,26 +137,24 @@ protected:
 
 int main(int argc, char **argv)
 {
-
-	std::string inputImageSequenceFileName;
-  std::string inputTransformName; 
+  bool printHelp(false);
+  std::string inputMetaFilename;
+  std::string inputConfigFileName; 
+  std::string outputModelFilename; 
+  std::string imageToReferenceTransformNameStr;
 	bool renderingOff(false);
-	int inputOriginX(0); 
-	int inputOriginY(0); 
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
-	args.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence.");
-	args.AddArgument("--input-origin-x", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputOriginX, "Image X origin in px (Default: 0)");
-	args.AddArgument("--input-origin-y", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputOriginY, "Image Y origin in px (Default: 0)");
-	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--image-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Transform name used for displaying the slices");  
+  args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
+  args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run in test mode, without rendering.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 
 	if ( !args.Parse() )
 	{
@@ -163,9 +163,17 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (inputImageSequenceFileName.empty())
+  if ( printHelp ) 
+  {
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
+  }
+
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+
+	if (inputMetaFilename.empty())
 	{
-		std::cerr << "input-img-seq-file-name is required" << std::endl;
+		std::cerr << "--input-metafile is required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -183,56 +191,75 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New(); 
 	iren->SetRenderWindow(renWin);
 
-	LOG_INFO("Reading image sequence...");
-  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-	reader->SetFileName(inputImageSequenceFileName.c_str());
+  // Read input tracked ultrasound data.
+  LOG_DEBUG("Reading input... ");
+  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
+  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
+  LOG_DEBUG("Reading input done.");
+  LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
-	if (reader->Read()!=PLUS_SUCCESS)
-  {		
-    LOG_ERROR("Couldn't read sequence metafile: " <<  reader->GetFileName() ); 
-  	return EXIT_FAILURE;
-	}	
-
-  vtkTrackedFrameList* trackedFrameList=reader->GetTrackedFrameList();
-  if (trackedFrameList==NULL)
-	{
-		LOG_ERROR("Unable to get trackedFrameList!"); 
-		return EXIT_FAILURE;
-	}
-
-  unsigned long numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+  // Read calibration matrices from the config file
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( !inputConfigFileName.empty() )
+  {
+    LOG_DEBUG("Reading config file...");
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+    LOG_DEBUG("Reading config file done.");
+    if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read transforms for transform repository!"); 
+      return EXIT_FAILURE; 
+    }
+  }
+  else
+  {
+    LOG_INFO("Configuration file is not specified. Only those transforms are available that are defined in the sequence metafile");    
+  }
 
   LOG_INFO("Adding frames to actors...");
 
   std::vector<vtkTransform*> imageTransforms; 
-  PlusTransformName transformName; 
-  if ( transformName.SetTransformName(inputTransformName.c_str()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
+
+  PlusTransformName imageToReferenceTransformName; 
+  if ( imageToReferenceTransformName.SetTransformName(imageToReferenceTransformNameStr.c_str())!= PLUS_SUCCESS )
+  {    
+    LOG_ERROR("Invalid image to reference transform name: " << imageToReferenceTransformNameStr ); 
     return EXIT_FAILURE; 
   }
 
-  for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
+  int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+  for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++ )
 	{
-		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
-    TrackedFrame* trackedFrame=trackedFrameList->GetTrackedFrame(imgNumber);
+		vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
+    // Update transform repository 
+    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
+      continue; 
+    }
 
-		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(transformName, imageTransMatrix);
-		vtkSmartPointer<vtkTransform> imageTransform = vtkSmartPointer<vtkTransform>::New(); 
-		imageTransform->SetMatrix(imageTransMatrix); 
-		imageTransform->Update(); 
+    vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS )
+    {
+      std::string strTransformName; 
+      imageToReferenceTransformName.GetTransformName(strTransformName); 
+      LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
+      continue; 
+    }
+		
+		vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
+    imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );
 
-		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-    frame->DeepCopy(trackedFrame->GetImageData()->GetVtkImage()); 
-
-		frame->SetOrigin(-inputOriginX, -inputOriginY, 0); 
+		vtkSmartPointer<vtkImageData> frameImageData = vtkSmartPointer<vtkImageData>::New(); 
+    frameImageData->DeepCopy(frame->GetImageData()->GetVtkImage()); 
+		
     vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
-		imageActor->SetInput(frame); 
-		imageActor->SetUserTransform(imageTransform); 
+		imageActor->SetInput(frameImageData); 
+		imageActor->SetUserTransform(imageToReferenceTransform); 
 		imageActor->VisibilityOff(); 
-		imageTransforms.push_back(imageTransform); 
+		imageTransforms.push_back(imageToReferenceTransform); 
 		imageActors->AddItem(imageActor); 
 	}
 
