@@ -71,5 +71,5 @@ SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 
 INSTALL(TARGETS VolumeReconstructor CreateSliceModels
   DESTINATION bin
-  COMPONENT RuntimeLibraries
+  COMPONENT RuntimeExecutables
   )

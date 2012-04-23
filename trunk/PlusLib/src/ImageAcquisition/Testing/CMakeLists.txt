@@ -117,5 +117,5 @@ SET_TESTS_PROPERTIES( vtkPlusVideoSourceFactoryTest PROPERTIES FAIL_REGULAR_EXPR
 
 INSTALL(TARGETS MetaImageSequenceViewer
   DESTINATION bin
-  COMPONENT RuntimeLibraries
+  COMPONENT RuntimeExecutables
   )
