@@ -19,6 +19,43 @@ See License.txt for details.
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
 
+static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
+
+PlusStatus CompareTransform(PlusTransformName &transformName, vtkTransformRepository* transformRepository, double xExpected, double yExpected, double zExpected)
+{
+  vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  bool valid=false;
+  if ( (transformRepository->GetTransform(transformName, transformMatrix , &valid) != PLUS_SUCCESS) || (!valid) )
+  {
+    std::string transformNameStr;
+    transformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Unable to get transform " << transformNameStr);
+    return PLUS_FAIL;
+  }
+  PlusStatus status=PLUS_SUCCESS;
+  std::string transformNameStr;
+  transformName.GetTransformName(transformNameStr);
+  double actualValue=transformMatrix ->GetElement(0,3);
+  if ( fabs(actualValue - xExpected) > COMPARE_TRANSFORM_TOLERANCE )
+  {    
+    LOG_ERROR("Transform " << transformNameStr << " x translation does not match (actual="<<actualValue<<", expected="<<xExpected<<")");
+    status=PLUS_FAIL;
+  }
+  actualValue=transformMatrix ->GetElement(1,3);
+  if ( fabs(actualValue - yExpected) > COMPARE_TRANSFORM_TOLERANCE )
+  {    
+    LOG_ERROR("Transform " << transformNameStr << " y translation does not match (actual="<<actualValue<<", expected="<<yExpected<<")");
+    status=PLUS_FAIL;
+  }
+  actualValue=transformMatrix ->GetElement(2,3);
+  if ( fabs(actualValue - zExpected) > COMPARE_TRANSFORM_TOLERANCE )
+  {    
+    LOG_ERROR("Transform " << transformNameStr << " z translation does not match (actual="<<actualValue<<", expected="<<zExpected<<")");
+    status=PLUS_FAIL;
+  }
+  return status;
+}
+
 int main( int argc, char** argv )
 {
 
@@ -76,17 +113,12 @@ int main( int argc, char** argv )
   TrackedFrame trackedFrame;
 
   PlusTransformName referenceToTrackerTransformName("Reference", "Tracker");
-  vtkSmartPointer<vtkMatrix4x4> referenceToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-
   PlusTransformName probeToTrackerTransformName("Probe", "Tracker");
-  vtkSmartPointer<vtkMatrix4x4> probeToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-
   PlusTransformName stylusToTrackerTransformName("Stylus", "Tracker");
-  vtkSmartPointer<vtkMatrix4x4> stylusToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
 
-  bool valid(false);
+  PlusStatus compareStatus=PLUS_SUCCESS;
 
   // Check some transforms to ensure that the correct data is returned by the data collector
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
@@ -94,83 +126,59 @@ int main( int argc, char** argv )
   // Frame 0001
   dataCollector->GetTrackedFrameByTime(218.8, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
+  
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Test failed on frame 1");
+    compareStatus=PLUS_FAIL;
+  }
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, -275.514, 82.2319, -1701.99)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Test failed on frame 1");
+    compareStatus=PLUS_FAIL;
+  }  
 
-  if ( (transformRepository->GetTransform(referenceToTrackerTransformName, referenceToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-  {
-    std::string transformNameStr;
-    referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
-  }
-  if ( fabs(referenceToTrackerTransformMatrix->GetElement(0,3) - (-292.088)) > 0.001
-    || fabs(referenceToTrackerTransformMatrix->GetElement(1,3) - (60.4261)) > 0.001
-    || fabs(referenceToTrackerTransformMatrix->GetElement(2,3) - (-1762.41)) > 0.001 )
-  {
-    std::string transformNameStr;
-    referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Transform " << transformNameStr << " does not match!");
-  }
-
-  if ( (transformRepository->GetTransform(probeToTrackerTransformName, probeToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-  {
-    std::string transformNameStr;
-    probeToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
-  }
-  if ( fabs(probeToTrackerTransformMatrix->GetElement(0,3) - (-275.514)) > 0.001
-    || fabs(probeToTrackerTransformMatrix->GetElement(1,3) - (82.2319)) > 0.001
-    || fabs(probeToTrackerTransformMatrix->GetElement(2,3) - (-1701.99)) > 0.001 )
-  {
-    std::string transformNameStr;
-    probeToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Transform " << transformNameStr << " does not match!");
-  }
-
-  if ( (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
+  vtkSmartPointer<vtkMatrix4x4> stylusToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  bool valid=false;
+  if ( transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS )
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    LOG_ERROR("Test failed on frame 1: unable to get transform " << transformNameStr);
+  }
+  if ( valid )
+  {
+    std::string transformNameStr;
+    stylusToTrackerTransformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Test failed on frame 1: Valid transform received, while non-valid transform was expected for " << transformNameStr);
   }
 
   // Frame 0013
   dataCollector->GetTrackedFrameByTime(222.3, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if ( (transformRepository->GetTransform(referenceToTrackerTransformName, referenceToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.055, 60.647, -1762.63)!=PLUS_SUCCESS)
   {
-    std::string transformNameStr;
-    referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    LOG_ERROR("Test failed on frame 13");
+    compareStatus=PLUS_FAIL;
   }
-  if ( fabs(referenceToTrackerTransformMatrix->GetElement(0,3) - (-292.055)) > 0.001
-    || fabs(referenceToTrackerTransformMatrix->GetElement(1,3) - (60.647)) > 0.001
-    || fabs(referenceToTrackerTransformMatrix->GetElement(2,3) - (-1762.63)) > 0.001 )
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, -276.036, 82.8124, -1707.32)!=PLUS_SUCCESS)
   {
-    std::string transformNameStr;
-    referenceToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Transform " << transformNameStr << " does not match!");
+    LOG_ERROR("Test failed on frame 13");
+    compareStatus=PLUS_FAIL;
   }
-
-  if ( (transformRepository->GetTransform(probeToTrackerTransformName, probeToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-  {
-    std::string transformNameStr;
-    probeToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
-  }
-  if ( fabs(probeToTrackerTransformMatrix->GetElement(0,3) - (-276.036)) > 0.001
-    || fabs(probeToTrackerTransformMatrix->GetElement(1,3) - (82.8124)) > 0.001
-    || fabs(probeToTrackerTransformMatrix->GetElement(2,3) - (-1707.32)) > 0.001 )
-  {
-    std::string transformNameStr;
-    probeToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Transform " << transformNameStr << " does not match!");
-  }
-
-  if ( (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS) || (valid) )
+  valid=false;
+  if ( transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS )
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Unable to get transform " << transformNameStr);
+    LOG_ERROR("Test failed on frame 13: unable to get transform " << transformNameStr);
+  }
+  if ( valid )
+  {
+    std::string transformNameStr;
+    stylusToTrackerTransformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Test failed on frame 13: Valid transform received, while non-valid transform was expected for " << transformNameStr);
   }
 
   dataCollector->Stop();
