@@ -24,7 +24,7 @@ See License.txt for details.
 
 static const int MAX_FIDUCIAL_COUNT = 50; 
 
-static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
+static const double FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 // Acceptance criteria for fiducial candidate (if the distance from the
 // real fiducial position is less than segParams.then the fiducial is considered to be
 // found).

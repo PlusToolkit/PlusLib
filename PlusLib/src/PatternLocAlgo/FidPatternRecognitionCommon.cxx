@@ -17,20 +17,20 @@ PatternRecognitionResult::PatternRecognitionResult()
 }
 
 //-----------------------------------------------------------------------------
-float Line::ComputeAngleRad(Line &line)
+double Line::ComputeAngleRad(Line &line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
-  float angleRad = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
+  double angleRad = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
   return angleRad;
 }
 
 
-float Line::ComputeAngleRad(Line &line1, Line &line2)
+double Line::ComputeAngleRad(Line &line1, Line &line2)
 {
   // a * b = |a| * |b| * cos(alpha)
-  const float* a=line1.GetDirectionVector();
-  const float* b=line2.GetDirectionVector();
-  float angleBetweenLines=acos(a[0]*b[0]+a[1]*b[1]/sqrt(a[0]*a[0]+a[1]*a[1])/sqrt(b[0]*b[0]+b[1]*b[1]));
+  const double* a=line1.GetDirectionVector();
+  const double* b=line2.GetDirectionVector();
+  double angleBetweenLines=acos(a[0]*b[0]+a[1]*b[1]/sqrt(a[0]*a[0]+a[1]*a[1])/sqrt(b[0]*b[0]+b[1]*b[1]));
   // Normalize between -pi/2 .. +pi/2
   if (angleBetweenLines>vtkMath::Pi()/2)
   {
@@ -62,7 +62,7 @@ bool Dot::PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::ite
 }
 
 //-----------------------------------------------------------------------------
-float	Dot::GetDistanceFrom(Dot &d) 
+double	Dot::GetDistanceFrom(Dot &d) 
 { 
   return sqrt((m_X-d.m_X)*(m_X-d.m_X)+(m_Y-d.m_Y)*(m_Y-d.m_Y)); 
 }

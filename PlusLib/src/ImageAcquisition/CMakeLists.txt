@@ -30,9 +30,9 @@ if (WIN32)
 endif (WIN32)	
 
 SET (ImageAcquisition_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
-SET (External_Libraries_Install "")
-SET (External_Libraries_Debug "")
-SET (ImageAcquisition_LIBS "") 
+SET (External_Libraries_Install)
+SET (External_Libraries_Debug)
+SET (ImageAcquisition_LIBS) 
 
 # --------------------------------------------------------------------------
 # OpenIGTLink support

@@ -22,7 +22,7 @@ class LabelingResults
 public:
   int patternId;//Id of the pattern
   int wireId;//Id of the wire in the pattern
-  float x,y;//coordinate in the image plane
+  double x,y;//coordinate in the image plane
 };
 
 //-----------------------------------------------------------------------------
@@ -52,13 +52,13 @@ public:
   void SetFrameSize(int frameSize[2]);
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  float ComputeDistancePointLine(Dot dot, Line line);
+  double ComputeDistancePointLine(Dot dot, Line line);
 
   /*! Compute the shift between the middle of line1 and line2 */
-  float ComputeShift(Line line1, Line line2);
+  double ComputeShift(Line line1, Line line2);
 
   /*! Compute the slope of the line relative to the x-axis */
-  float ComputeSlope( Line &line );
+  double ComputeSlope( Line &line );
 
   /*! Find the patterns defined by the configuration file */
   void FindPattern();
@@ -101,7 +101,7 @@ public:
   void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
 
   /*! Get the intensity of a pair of lines */
-  float GetPatternIntensity() { return m_PatternIntensity; };
+  double GetPatternIntensity() { return m_PatternIntensity; };
 
   /*! Set to true if the algorithm is successful and the correct dots are found, false otherwise */
   void SetDotsFound(bool value) { m_DotsFound = value; };
@@ -149,9 +149,9 @@ protected:
 
   bool		m_DotsFound;
 
-  float   m_AngleToleranceRad;
-  float   m_InclinedLineAngleRad;
-  float		m_PatternIntensity;
+  double   m_AngleToleranceRad;
+  double   m_InclinedLineAngleRad;
+  double		m_PatternIntensity;
 
   std::vector<Dot>		  m_DotsVector;
   std::vector<Line>     m_FoundLines;

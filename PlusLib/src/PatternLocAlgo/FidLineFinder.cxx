@@ -8,7 +8,6 @@ See License.txt for details.
 #include "vtkMath.h"
 
 #include <algorithm>
-#include <float.h>
 
 #include "PlusMath.h"
 
@@ -18,8 +17,8 @@ See License.txt for details.
 #include "vnl/algo/vnl_qr.h"
 #include "vnl/algo/vnl_svd.h"
 
-static const float DOT_STEPS  = 4.0;
-static const float DOT_RADIUS = 6.0;
+static const double DOT_STEPS  = 4.0;
+static const double DOT_RADIUS = 6.0;
 
 //-----------------------------------------------------------------------------
 
@@ -345,20 +344,20 @@ void FidLineFinder::SetFrameSize(int frameSize[2])
 
 //-----------------------------------------------------------------------------
 
-float FidLineFinder::ComputeAngleRad( Dot *dot1, Dot *dot2 )
+double FidLineFinder::ComputeAngleRad( Dot *dot1, Dot *dot2 )
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
 
-  float x1 = dot1->GetX();
-  float y1 = dot1->GetY();
+  double x1 = dot1->GetX();
+  double y1 = dot1->GetY();
 
-  float x2 = dot2->GetX();
-  float y2 = dot2->GetY();
+  double x2 = dot2->GetX();
+  double y2 = dot2->GetY();
 
-  float y = (y2 - y1);
-  float x = (x2 - x1);
+  double y = (y2 - y1);
+  double x = (x2 - x1);
 
-  float angleRad = atan2(y,x);
+  double angleRad = atan2(y,x);
 
   return angleRad;
 }
@@ -375,7 +374,7 @@ void FidLineFinder::ComputeLine( Line &line )
 
   // Compute line intensity
   std::vector<int> pointNum;
-  float lineIntensity = 0;
+  double lineIntensity = 0;
   for (int i=0; i<line.GetPoints()->size(); i++)
   {
     pointNum.push_back(line.GetPoint(i));
@@ -397,7 +396,7 @@ void FidLineFinder::ComputeLine( Line &line )
     int largestXposition = m_DotsVector[line.GetPoint(0)].GetX();
     for(int i=0; i<line.GetPoints()->size(); i++)
     {
-      float currentXposition=m_DotsVector[line.GetPoint(i)].GetX();
+      double currentXposition=m_DotsVector[line.GetPoint(i)].GetX();
       if (currentXposition>largestXposition)
       {                    
         largestXposition = currentXposition;
@@ -408,7 +407,7 @@ void FidLineFinder::ComputeLine( Line &line )
     int maxDistance = 0;
     for(int i=0; i<line.GetPoints()->size(); i++)
     {
-      float currentDistance = m_DotsVector[line.GetStartPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
+      double currentDistance = m_DotsVector[line.GetStartPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
       if(currentDistance > maxDistance)
       {
         maxDistance = currentDistance;
@@ -419,7 +418,7 @@ void FidLineFinder::ComputeLine( Line &line )
     maxDistance = 0;    
     for(int i=0; i<line.GetPoints()->size(); i++)
     {
-      float currentDistance = m_DotsVector[line.GetEndPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
+      double currentDistance = m_DotsVector[line.GetEndPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
       if(currentDistance > maxDistance)
       {
         maxDistance = currentDistance;
@@ -433,10 +432,10 @@ void FidLineFinder::ComputeLine( Line &line )
   if(line.GetPoints()->size() > 2)//separating cases: 2-points lines and n-points lines, way simpler for 2-points lines
   {
     //computing the line equation c + n1*x + n2*y = 0
-    std::vector<float> x;
-    std::vector<float> y;
+    std::vector<double> x;
+    std::vector<double> y;
 
-    float n1, n2, c;
+    double n1, n2, c;
 
     vnl_matrix<double> A(line.GetPoints()->size(),3,1);
 
@@ -481,8 +480,8 @@ void FidLineFinder::ComputeLine( Line &line )
   }
   else//for 2-points lines, way simpler and faster
   {
-    float xdif = m_DotsVector[line.GetEndPointIndex()].GetX()-m_DotsVector[line.GetStartPointIndex()].GetX();
-    float ydif = m_DotsVector[line.GetEndPointIndex()].GetY()-m_DotsVector[line.GetStartPointIndex()].GetY();
+    double xdif = m_DotsVector[line.GetEndPointIndex()].GetX()-m_DotsVector[line.GetStartPointIndex()].GetX();
+    double ydif = m_DotsVector[line.GetEndPointIndex()].GetY()-m_DotsVector[line.GetStartPointIndex()].GetY();
 
     line.SetDirectionVector(0, xdif);
     line.SetDirectionVector(1, ydif);
@@ -491,18 +490,18 @@ void FidLineFinder::ComputeLine( Line &line )
 
 //-----------------------------------------------------------------------------
 
-float FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
+double FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
 {
   //LOG_TRACE("FidLineFinder::SegmentLength");
 
-  float xd = d2->GetX() - d1->GetX();
-  float yd = d2->GetY() - d1->GetY();
+  double xd = d2->GetX() - d1->GetX();
+  double yd = d2->GetY() - d1->GetY();
   return sqrtf( xd*xd + yd*yd );
 }
 
 //-----------------------------------------------------------------------------
 
-float FidLineFinder::ComputeDistancePointLine(Dot dot, Line line)
+double FidLineFinder::ComputeDistancePointLine(Dot dot, Line line)
 {     
   double x[3], y[3], z[3];
 
@@ -543,12 +542,12 @@ void FidLineFinder::FindLines2Points()
     {
       for ( int dot2Index = dot1Index+1; dot2Index < m_DotsVector.size(); dot2Index++ ) 
       {
-        float length = SegmentLength(&m_DotsVector[dot1Index],&m_DotsVector[dot2Index]);
+        double length = SegmentLength(&m_DotsVector[dot1Index],&m_DotsVector[dot2Index]);
         bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
         if(acceptLength)//to only add valid two point lines
         {
-          float angleRad = ComputeAngleRad(&m_DotsVector[dot1Index], &m_DotsVector[dot2Index]);
+          double angleRad = ComputeAngleRad(&m_DotsVector[dot1Index], &m_DotsVector[dot2Index]);
           bool acceptAngle = AcceptAngleRad(angleRad);
 
           if(acceptAngle)
@@ -589,7 +588,7 @@ void FidLineFinder::FindLinesNPoints()
 
   LOG_TRACE("FidLineFinder::FindLines3Points");
 
-  float dist = m_CollinearPointsMaxDistanceFromLineMm / m_ApproximateSpacingMmPerPixel;
+  double dist = m_CollinearPointsMaxDistanceFromLineMm / m_ApproximateSpacingMmPerPixel;
   int maxNumberOfPointsPerLine = -1;
 
   for( int i=0 ; i<m_Patterns.size() ; i++ )
@@ -634,7 +633,7 @@ void FidLineFinder::FindLinesNPoints()
           }
 
           candidatesIndex.push_back(b3);                 
-          float pointToLineDistance = ComputeDistancePointLine(m_DotsVector[b3], currentShorterPointsLine);
+          double pointToLineDistance = ComputeDistancePointLine(m_DotsVector[b3], currentShorterPointsLine);
 
           if ( pointToLineDistance <= dist ) 
           {
@@ -650,7 +649,7 @@ void FidLineFinder::FindLinesNPoints()
             line.SetStartPointIndex(currentShorterPointsLine.GetStartPointIndex());
 
 
-            float length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetStartPointIndex()],&m_DotsVector[b3]); //distance between the origin and the point we try to add
+            double length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetStartPointIndex()],&m_DotsVector[b3]); //distance between the origin and the point we try to add
 
             int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
             bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
@@ -721,7 +720,7 @@ void FidLineFinder::Clear()
 
 //-----------------------------------------------------------------------------
 
-bool FidLineFinder::AcceptAngleRad( float angleRad )
+bool FidLineFinder::AcceptAngleRad( double angleRad )
 {
   //then angle must be in a certain range that is given in half space (in config file) so it needs to check the whole space (if 20 is accepted, so should -160 as it is the same orientation)
 
@@ -757,7 +756,7 @@ bool FidLineFinder::AcceptAngleRad( float angleRad )
 
 bool FidLineFinder::AcceptLine( Line &line )
 {
-  float angleRad = Line::ComputeAngleRad(line);
+  double angleRad = Line::ComputeAngleRad(line);
   bool acceptAngle = AcceptAngleRad(angleRad);
   return acceptAngle;
 }

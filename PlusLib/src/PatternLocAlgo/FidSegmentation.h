@@ -106,7 +106,7 @@ class FidSegmentation
 		void MorphologicalOperations();	
 
     /*! Suppress unwanted parts of the image */
-		void Suppress( PixelType *image, float percent_thresh ); 
+		void Suppress( PixelType *image, double percent_thresh ); 
 
     /*! Accept a dot as a possible fiducial */
 		inline bool AcceptDot( Dot &dot );

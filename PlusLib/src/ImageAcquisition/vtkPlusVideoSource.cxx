@@ -293,49 +293,6 @@ PlusStatus vtkPlusVideoSource::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-// Sleep until the specified absolute time has arrived.
-// You must pass a handle to the current thread. 
-// If '0' is returned, then the thread was aborted before or during the wait.
-static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
-{
-  // loop either until the time has arrived or until the thread is ended
-  for (int i = 0;; i++)
-  {
-    double remaining = time - vtkAccurateTimer::GetSystemTime();
-
-    // check to see if we have reached the specified time
-    if (remaining <= 0)
-    {
-      if (i == 0)
-      {
-        //vtkGenericWarningMacro("Dropped a video frame.");
-        //std::cout << "dropped a video frame" << std::endl; // TODO put back
-      }
-      return 1;
-    }
-    // check the ActiveFlag at least every 0.1 seconds
-    if (remaining > 0.1)
-    {
-      remaining = 0.1;
-    }
-
-    // check to see if we are being told to quit
-    data->ActiveFlagLock->Lock();
-    int activeFlag = *(data->ActiveFlag);
-    data->ActiveFlagLock->Unlock();
-
-    if (activeFlag == 0)
-    {
-      break;
-    }
-
-    vtkAccurateTimer::Delay(remaining);
-  }
-
-  return 0;
-}
-
-//----------------------------------------------------------------------------
 // this function runs in an alternate thread to asyncronously grab frames
 void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 {
@@ -346,19 +303,17 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
   unsigned long frame = 0;
   self->RecordingThreadAlive = true; 
 
-  do
+  while ( self->GetRecording() )
   {
-    if (!self->GetRecording())
-    {
-      // recording stopped
-      LOG_DEBUG("Recording stopped");
-      self->RecordingThreadAlive = false; 
-      return NULL;
-    }
+    double newtime = vtkAccurateTimer::GetSystemTime(); 
     self->InternalGrab();
-    frame++;
+    
+    double delay = ( newtime + 1.0 / rate - vtkAccurateTimer::GetSystemTime() );
+    if ( delay > 0 )
+    {
+      vtkAccurateTimer::Delay(delay); 
+    }
   }
-  while (vtkThreadSleep(data, startTime + frame/rate));
 
   self->RecordingThreadAlive = false; 
   return NULL;
@@ -420,13 +375,13 @@ PlusStatus vtkPlusVideoSource::StopRecording()
   }
 
   this->Recording = 0;
-  this->RecordThreadId = -1; 
-
+ 
   // Let's give a chance to the thread to stop before we kill the connection
   while ( this->RecordingThreadAlive )
   {
     vtkAccurateTimer::Delay(0.1);
   }
+  this->RecordThreadId = -1; 
 
   InternalStopRecording();
  
