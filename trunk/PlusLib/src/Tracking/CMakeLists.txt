@@ -31,7 +31,7 @@ if (WIN32)
     )
 endif (WIN32)	
 
-SET (External_Libraries_Install "")
+SET (External_Libraries_Install)
 SET (Tracking_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------

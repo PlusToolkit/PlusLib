@@ -7,7 +7,6 @@ See License.txt for details.
 #include "FidLabeling.h"
 
 #include <algorithm>
-#include <float.h>
 
 #include "PlusMath.h"
 
@@ -291,29 +290,29 @@ Line FidLabeling::SortPointsByDistanceFromStartPoint(Line fiducials)
 
 //-----------------------------------------------------------------------------
 
-float FidLabeling::ComputeSlope( Line &line )
+double FidLabeling::ComputeSlope( Line &line )
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
   Dot dot1 = m_DotsVector[line.GetStartPointIndex()];
   Dot dot2 = m_DotsVector[line.GetEndPointIndex()];
 
-  float x1 = dot1.GetX();
-  float y1 = dot1.GetY();
+  double x1 = dot1.GetX();
+  double y1 = dot1.GetY();
 
-  float x2 = dot2.GetX();
-  float y2 = dot2.GetY();
+  double x2 = dot2.GetX();
+  double y2 = dot2.GetY();
 
-  float y = (y2 - y1);
-  float x = (x2 - x1);
+  double y = (y2 - y1);
+  double x = (x2 - x1);
 
-  float t;
+  double t;
   if ( fabsf(x) > fabsf(y) )
   {
     t = vtkMath::Pi()/2 + atan( y / x );
   }
   else 
   {
-    float tanTheta = x / y;
+    double tanTheta = x / y;
     if ( tanTheta > 0 )
     {
       t = vtkMath::Pi() - atan( tanTheta );
@@ -330,7 +329,7 @@ float FidLabeling::ComputeSlope( Line &line )
 
 //-----------------------------------------------------------------------------
 
-float FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
+double FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
 {     
   double x[3], y[3], z[3];
 
@@ -351,7 +350,7 @@ float FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
 
 //-----------------------------------------------------------------------------
 
-float FidLabeling::ComputeShift(Line line1, Line line2)
+double FidLabeling::ComputeShift(Line line1, Line line2)
 {
   //middle of the line 1
   double midLine1[2]=
@@ -391,7 +390,7 @@ float FidLabeling::ComputeShift(Line line1, Line line2)
 void FidLabeling::UpdateNWiresResults(std::vector<Line*> resultLines)
 {
   int numberOfLines = m_Patterns.size(); //the number of lines in the pattern
-  float intensity = 0;
+  double intensity = 0;
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
@@ -431,7 +430,7 @@ void FidLabeling::UpdateNWiresResults(std::vector<Line*> resultLines)
 void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3)
 {
   //resultLine1 is the left line, resultLine2 is the diagonal, resultLine3 is the right line
-  float intensity = 0;
+  double intensity = 0;
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
@@ -560,13 +559,13 @@ void FidLabeling::FindPattern()
       {
         Line currentLine2 = maxPointsLines[lineIndices[j]];
 
-        float angleBetweenLinesRad = Line::ComputeAngleRad(currentLine1, currentLine2);
+        double angleBetweenLinesRad = Line::ComputeAngleRad(currentLine1, currentLine2);
         if (angleBetweenLinesRad<m_AngleToleranceRad) //The angle between 2 lines is close to 0
         {
           // Parallel lines
 
           // Check the distance between the lines
-          float distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetStartPointIndex()], currentLine2);
+          double distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetStartPointIndex()], currentLine2);
           int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
           int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );        
           if((distance > maxLinePairDistPx) || (distance < minLinePairDistPx))
@@ -577,7 +576,7 @@ void FidLabeling::FindPattern()
           }
 
           // Check the shift (along the direction of the lines)
-          float shift = ComputeShift(currentLine1,currentLine2);
+          double shift = ComputeShift(currentLine1,currentLine2);
           int maxLineShiftDistPx = floor(m_MaxLineShiftMm / m_ApproximateSpacingMmPerPixel + 0.5 );
           //maxLineShiftDistPx = 35;
           if(fabs(shift) > maxLineShiftDistPx)

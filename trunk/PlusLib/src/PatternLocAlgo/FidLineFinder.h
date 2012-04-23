@@ -86,23 +86,23 @@ protected:
   void FindLines2Points();
 
   /*! Compute the length of the segment between 2 dots */
-  float SegmentLength( Dot *dot1, Dot *dot2 );
+  double SegmentLength( Dot *dot1, Dot *dot2 );
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  float ComputeDistancePointLine(Dot dot, Line line);
+  double ComputeDistancePointLine(Dot dot, Line line);
 
   /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
   the direction vector, the endpoint */
   void ComputeLine( Line &line );
 
   /*! Compute the angle between thee lin formed by 2 dots and the x-axis, in radian */
-  static float ComputeAngleRad( Dot *dot1, Dot *dot2 );
+  static double ComputeAngleRad( Dot *dot1, Dot *dot2 );
 
   /*! Return true if a line matches the requirements, false otherwise */
   bool AcceptLine( Line &line );  
 
   /*! Return true if an angle is in the allowed angle range, false otherwise */
-  bool AcceptAngleRad(float angleRad);
+  bool AcceptAngleRad(double angleRad);
 
   //Accessors and mutators
 

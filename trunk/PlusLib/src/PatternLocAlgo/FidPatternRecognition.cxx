@@ -12,8 +12,8 @@
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 
-static const float DOT_STEPS  = 4.0;
-static const float DOT_RADIUS = 6.0;
+static const double DOT_STEPS  = 4.0;
+static const double DOT_RADIUS = 6.0;
 
 //-----------------------------------------------------------------------------
 
@@ -185,10 +185,10 @@ void FidPatternRecognition::DrawDots( PixelType *image)
 	LOG_TRACE("FidPatternRecognition::DrawDots"); 
 
   for ( int d = 0; d < m_FidLabeling.GetFoundDotsCoordinateValue().size(); d++ ) {
-    float row = m_FidLabeling.GetFoundDotsCoordinateValue()[d][1];
-		float col = m_FidLabeling.GetFoundDotsCoordinateValue()[d][0];
+    double row = m_FidLabeling.GetFoundDotsCoordinateValue()[d][1];
+		double col = m_FidLabeling.GetFoundDotsCoordinateValue()[d][0];
 
-		for ( float t = 0; t < 2*vtkMath::Pi(); t += vtkMath::Pi()/DOT_STEPS ) {
+		for ( double t = 0; t < 2*vtkMath::Pi(); t += vtkMath::Pi()/DOT_STEPS ) {
 			int r = (int)floor( row + cos(t) * DOT_RADIUS );
 			int c = (int)floor( col + sin(t)* DOT_RADIUS );
 

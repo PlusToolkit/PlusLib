@@ -1298,7 +1298,7 @@ void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
  *  1. Track the frame-to-frame data?
  *  2. Lines should be roughly of the same length? */
 
-void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
+void FidSegmentation::Suppress( PixelType *image, double percent_thresh )
 {
 	LOG_TRACE("FidSegmentation::Suppress");
 
@@ -1321,7 +1321,7 @@ void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
 
 	//We use floor to calculate the round value here.
 	
-	PixelType thresh = min+(PixelType)floor( (float)(max-min) * percent_thresh + 0.5 );
+	PixelType thresh = min+(PixelType)floor( (double)(max-min) * percent_thresh + 0.5 );
 
 	//thresholding 
   int pixelCount=m_FrameSize[0]*m_FrameSize[1];
@@ -1428,10 +1428,10 @@ void FidSegmentation::Cluster()
 					ClusteringAddNeighbors( m_Working, dot.GetY()+1, dot.GetX()+1, testPosition, setPosition, valuesOfPosition );
 				}
 
-				float dest_r = 0, dest_c = 0, total = 0;
+				double dest_r = 0, dest_c = 0, total = 0;
         for ( int p = 0; p < setPosition.size(); p++ ) 
         {
-					float amount = (float)valuesOfPosition[p] / (float)UCHAR_MAX;
+					double amount = (double)valuesOfPosition[p] / (double)UCHAR_MAX;
 					dest_r += setPosition[p].GetY() * amount;
 					dest_c += setPosition[p].GetX() * amount;
 					total += amount;
@@ -1447,13 +1447,13 @@ void FidSegmentation::Cluster()
 					{
 						// Take into account intensities that are close to the dot center
 						const double dotRadius2=3.0*3.0;
-						float dest_r = 0, dest_c = 0, total = 0;
+						double dest_r = 0, dest_c = 0, total = 0;
 						for ( int p = 0; p < setPosition.size(); p++ ) 
             {
 							if ( (setPosition[p].GetY()-dot.GetY())*(setPosition[p].GetY()-dot.GetY())+(setPosition[p].GetX()-dot.GetX())*(setPosition[p].GetX()-dot.GetX())<=dotRadius2)
 							{
-								//float amount = (float)vals[p] / (float)UCHAR_MAX;
-								float amount = (float)m_UnalteredImage[int(setPosition[p].GetY()*m_FrameSize[0]+setPosition[p].GetX())] / (float)UCHAR_MAX;
+								//double amount = (double)vals[p] / (double)UCHAR_MAX;
+								double amount = (double)m_UnalteredImage[int(setPosition[p].GetY()*m_FrameSize[0]+setPosition[p].GetX())] / (double)UCHAR_MAX;
 								dest_r += setPosition[p].GetY() * amount;
 								dest_c += setPosition[p].GetX() * amount;
 								total += amount;
