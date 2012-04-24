@@ -107,6 +107,7 @@ int main(int argc, char **argv)
   std::string outputUsImageFile;
   std::string intersectionFile;
   std::string inputTransformName; 
+  std::string showModel; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -122,6 +123,7 @@ int main(int argc, char **argv)
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--output-model-frame-intersection-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of stl file containing the visualization of the intersection between the model and the frames");
   args.AddArgument("--input-transform-name",vtksys::CommandLineArguments::EQUAL_ARGUMENT,&inputTransformName,"Desired transform");
+  args.AddArgument("--show-model-frames-intersection-display",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &showModel,"If empty, does not display a visualization of the model and the frame"); 
   ///////////////////////////////////////
 
   // Input arguments error checking
@@ -170,7 +172,7 @@ int main(int argc, char **argv)
 
   // create repository for ultrasound images correlated to the iput tracked frames
   vtkSmartPointer<vtkTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  
+
 
 
   ///// Take out when implementing read all frames !!! 
@@ -182,22 +184,22 @@ int main(int argc, char **argv)
   // Read config file
   LOG_DEBUG("Reading config file...")
 
-  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read transforms for transform repository!"); 
-    return EXIT_FAILURE; 
+    exit(EXIT_FAILURE); 
   }
   LOG_DEBUG("Reading config file finished.");
 
   PlusTransformName imageToReferenceTransformName; 
- 
+
   if ( imageToReferenceTransformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
   {
     LOG_ERROR("Invalid transform name: " << inputTransformName ); 
-    return EXIT_FAILURE; 
+    exit(EXIT_FAILURE); 
   }
 
 
@@ -257,8 +259,11 @@ int main(int argc, char **argv)
     rendererPoly->AddActor(actor);
   }
 
-  renderWindowPoly->Render();
-  //renderWindowInteractorPoly->Start();
+  if(!showModel.empty()) 
+  { 
+    renderWindowPoly->Render();
+    renderWindowInteractorPoly->Start();
+  }
 
   for(int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
@@ -268,12 +273,12 @@ int main(int argc, char **argv)
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
-      //continue;
+      return EXIT_FAILURE;
     }   
 
-       // We use the model coordinate system as reference coordinate system
+    // We use the model coordinate system as reference coordinate system
     /*
-      Alter to get new position? Or does it do it automatically ?
+    Alter to get new position? Or does it do it automatically ?
     */
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
     if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS )
@@ -281,9 +286,9 @@ int main(int argc, char **argv)
       std::string strTransformName; 
       imageToReferenceTransformName.GetTransformName(strTransformName); 
       LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
-      //continue; 
+      return EXIT_FAILURE;
     }
-   
+
 
     vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
     stencilBackgroundImage->SetSpacing(1,1,1);
@@ -300,12 +305,6 @@ int main(int argc, char **argv)
     memset(stencilBackgroundImage->GetScalarPointer(), 0,
       ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
-    //{
-    //  vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
-    //  writer->SetInput(stencilBackgroundImage);
-    //  writer->SetFileName("c:\\Users\\lasso\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\stencilBackgroundImage.mha ");
-    //  writer->Write();
-    //}
 
     //prepare  filter and filter input 
     vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
@@ -321,7 +320,7 @@ int main(int argc, char **argv)
 
     vtkImageData* simOutput=usSimulator->GetOutputImage();
 
-  
+
 
     double origin[3]={
       imageToReferenceMatrix->Element[0][3],
@@ -337,19 +336,12 @@ int main(int argc, char **argv)
         imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
         1.0};
         simOutput->SetSpacing(spacing);
-   
-   
-    PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
-    simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
-    
-    frame->SetImageData(*simulatorOutputPlusVideoFrame); 
 
-  /*      {
-          vtkSmartPointer<vtkMetaImageWriter> writer=vtkSmartPointer<vtkMetaImageWriter>::New();
-          writer->SetInput(simOutput);
-          writer->SetFileName("c:\\Users\\bartha\\devel\\PlusExperimental-bin\\PlusLib\\data\\TestImages\\simoutput1.mha");
-          writer->Write();
-        }*/
+
+        PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
+        simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
+
+        frame->SetImageData(*simulatorOutputPlusVideoFrame); 
 
         vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
         usImage->DeepCopy(simOutput);
@@ -381,29 +373,17 @@ int main(int argc, char **argv)
         renderWindowInteractor->SetInteractorStyle(style);
 
         renderWindowInteractor->SetRenderWindow(renderWindow);
-        //renderWindowInteractor->Initialize();
-        //renderWindowInteractor->Start();
 
-        ////cleanup
-        //simulatorOutputFrame->Delete(); 
-        //simulatorOutputFrame = NULL; 
-        //simulatorOutputPlusVideoFrame->Delete(); 
-        //simulatorOutputPlusVideoFrame = NULL; 
 
   }
 
 
- 
+
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
-  // final output writer 
-  //vtkSmartPointer<vtkMetaImageWriter> usImageWriter=vtkSmartPointer<vtkMetaImageWriter>::New();
-  //usImageWriter->SetFileName(outputUsImageFile.c_str());
-  //
-  //usImageWriter->SetInput(simOutput); 
-  //usImageWriter->Write();
+
 
 
 
