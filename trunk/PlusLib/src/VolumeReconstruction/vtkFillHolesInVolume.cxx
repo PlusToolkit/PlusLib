@@ -140,77 +140,17 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 }
 
 //----------------------------------------------------------------------------
-/*template <class T>
-int vtkFillHolesInVolume::weightedAverageOverNeighborhood(T* inputData,// contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  int* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
-											  int* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the volume, outputExtent
-											  const int& neighborSize, // The size of the neighborhood, odd positive integer
-											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)           // The value of the pixel being calculated (unknown)
-{
-
-	if (neighborSize%2 != 1 || neighborSize <= 1)
-	{
-		LOG_ERROR("vtkFillHolesInVolume::weightedAverageOverNeighborhood: 'neighborSize' must be a positive odd integer greater or equal to 3");
-		return 0;
-	}
-
-	// set the x, y, and z range
-	int range = (neighborSize-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
-	int minX = thisPixel[0] - range;
-	int minY = thisPixel[1] - range;
-	int minZ = thisPixel[2] - range;
-	int maxX = thisPixel[0] + range;
-	int maxY = thisPixel[1] + range;
-	int maxZ = thisPixel[2] + range;
-
-	unsigned long int sumIntensities(0); // unsigned long because these rise in value quickly
-	unsigned long int sumAccumulator(0);
-
-	for (int x = minX; x <= maxX; x++)
-	{
-		for (int y = minY; y <= maxY; y++)
-		{
-			for (int z = minZ; z <= maxZ; z++)
-			{
-				if (x <= bounds[1] && x >= bounds[0] &&
-					y <= bounds[3] && y >= bounds[2] &&
-					z <= bounds[5] && z >= bounds[4] ) // check bounds
-				{
-					int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
-					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					sumIntensities += inputData[volIndex] * accData[accIndex];
-					sumAccumulator +=   accData[accIndex];
-				} // end boundary check
-			} // end z loop
-		} // end y loop
-	} // end x loop
-
-	if (sumAccumulator == 0) // no voxels set in the area
-		return 0;
-
-	// TODO: Overflow protection
-	returnVal = (T)(sumIntensities/sumAccumulator);
-
-	return 1;
-
-}*/
-
-//----------------------------------------------------------------------------
 template <class T>
 double vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
 											  T* inputData,            // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
 											  vtkIdType* accOffsets,
 											  const int& inputComp,	   // the component index of interest
 											  int* bounds,             // the boundaries of the volume, outputExtent
-											  const int& kernelIndex, // The size of the neighborhood, odd positive integer
-											  unsigned int* kernel,    // the gaussian kernel matrix
-											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
+											  const int& kernelIndex,  // The index of the kernel being tried
+											  unsigned int* kernel,    // a pointer to the gaussian kernel matrix
+											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
 											  T& returnVal)            // The value of the pixel being calculated (unknown)
 {
 
@@ -242,7 +182,7 @@ double vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
 				{
 					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
 					currentAccumulation = (unsigned long long)accData[accIndex];
-					if (currentAccumulation) {
+					if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
 						int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
 						int kerIndex = Kernels[kernelIndex].size[1]*Kernels[kernelIndex].size[0]*(z-minZ)+Kernels[kernelIndex].size[0]*(y-minY)+(x-minX);
 						unsigned long long weight = currentAccumulation * (unsigned long long)kernel[kerIndex];
@@ -258,7 +198,7 @@ double vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
 	if (sumAccumulator == 0) // no voxels set in the area
 		return 0;
 
-	// TODO: Overflow protection
+	// TODO: Overflow protection?
 	returnVal = (T)(sumIntensities/sumAccumulator);
 
 	return ((double)numKnownVoxels)/(Kernels[kernelIndex].size[0]*Kernels[kernelIndex].size[1]*Kernels[kernelIndex].size[2]);
