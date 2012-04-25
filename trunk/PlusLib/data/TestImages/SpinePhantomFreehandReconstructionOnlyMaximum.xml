@@ -16,7 +16,7 @@
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" 
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
     Interpolation="LINEAR" Optimization="FULL" Calculation="MAXIMUM"
-    Compounding="On" FillHoles="On" NumberOfThreads="1">
+    Compounding="On" FillHoles="Off" NumberOfThreads="1">
     <HoleFilling>
       <Kernel 
 		Size="3 3 3" 
