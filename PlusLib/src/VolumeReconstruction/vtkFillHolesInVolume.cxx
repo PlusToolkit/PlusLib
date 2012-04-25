@@ -156,7 +156,7 @@ const int sticksList[39] = {1,0,0,
                            1,-1,1,
                            -1,-1,1};
 const int numSticks = 13;
-const int searchLimit = 3;
+const int stickLengthLimit = 9;
 
 template <class T>
 bool vtkFillHolesInVolume::applySticksAlgorithm(
@@ -187,20 +187,20 @@ bool vtkFillHolesInVolume::applySticksAlgorithm(
     // evaluate forward direction to nearest filled voxel
     xtemp = x; ytemp = y; ztemp = z;
     valid = false;
-    for (int j = 1; j <= searchLimit; j++) {
+    for (int j = 1; j + 1 <= stickLengthLimit; j++) {
       // traverse in forward direction
       xtemp = xtemp + sticksList[baseStickIndex  ];
       ytemp = ytemp + sticksList[baseStickIndex+1];
       ztemp = ztemp + sticksList[baseStickIndex+2];
       // check boundaries
-			if (xtemp <= bounds[1] && xtemp >= bounds[0] &&
-				ytemp <= bounds[3] && ytemp >= bounds[2] &&
-				ztemp <= bounds[5] && ztemp >= bounds[4] ) // check bounds
+			if (xtemp > bounds[1] || xtemp < bounds[0] ||
+				ytemp > bounds[3] || ytemp < bounds[2] ||
+				ztemp > bounds[5] || ztemp < bounds[4] ) // check bounds
         break;
-      int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+      int accIndex =   accOffsets[0]*xtemp+  accOffsets[1]*ytemp+  accOffsets[2]*ztemp;
       if (accData[accIndex] != 0) { // this is a filled voxel
         fwdTrav = j;
-        int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+        int volIndex = inputOffsets[0]*xtemp+inputOffsets[1]*ytemp+inputOffsets[2]*ztemp+inputComp;
         fwdVal = inputData[volIndex];
         valid = true;
         break;
@@ -216,20 +216,20 @@ bool vtkFillHolesInVolume::applySticksAlgorithm(
     // evaluate reverse direction to nearest filled voxel
     xtemp = x; ytemp = y; ztemp = z;
     valid = false;
-    for (int j = 1; j <= searchLimit; j++) {
+    for (int j = 1; j + fwdTrav + 1 <= stickLengthLimit; j++) {
       // traverse in reverse direction
       xtemp = xtemp - sticksList[baseStickIndex  ];
       ytemp = ytemp - sticksList[baseStickIndex+1];
       ztemp = ztemp - sticksList[baseStickIndex+2];
       // check boundaries
-			if (xtemp <= bounds[1] && xtemp >= bounds[0] &&
-				ytemp <= bounds[3] && ytemp >= bounds[2] &&
-				ztemp <= bounds[5] && ztemp >= bounds[4] ) // check bounds
+			if (xtemp > bounds[1] || xtemp < bounds[0] ||
+				ytemp > bounds[3] || ytemp < bounds[2] ||
+				ztemp > bounds[5] || ztemp < bounds[4] ) // check bounds
         break;
-      int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+      int accIndex =   accOffsets[0]*xtemp+  accOffsets[1]*ytemp+  accOffsets[2]*ztemp;
       if (accData[accIndex] != 0) { // this is a filled voxel
         rvsTrav = j;
-        int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+        int volIndex = inputOffsets[0]*xtemp+inputOffsets[1]*ytemp+inputOffsets[2]*ztemp+inputComp;
         rvsVal = inputData[volIndex];
         valid = true;
         break;
@@ -244,8 +244,8 @@ bool vtkFillHolesInVolume::applySticksAlgorithm(
 
     // evaluate score and direction
     int totalDistance = fwdTrav + rvsTrav + 1;
-    double weightRvs = (rvsTrav+1)/(double)totalDistance;
-    double weightFwd = 1.0 - weightRvs;
+    double weightFwd = (rvsTrav+1)/(double)totalDistance;
+    double weightRvs = 1.0 - weightFwd;
     scores[i] = 1.0/totalDistance;
     values[i] = weightRvs*rvsVal + weightFwd*fwdVal;
   }
@@ -259,8 +259,10 @@ bool vtkFillHolesInVolume::applySticksAlgorithm(
     }
   }
 
-	if (maxScore == 0) // indicates all sticks were bad
+  if (maxScore == 0) { // indicates all sticks were bad
+    returnVal = (T)0;
   	return false; // failure
+  }
 
   return true; // else at least one stick was good, = success
 
@@ -442,12 +444,12 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
 					bool alphaSet = false; // set true once alpha has been evaluated (only donce once)
 					for (int c = 0; c < numVolumeComponents; c++)
 					{
-						/*int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
+						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
             bool result =	applySticksAlgorithm(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,currentPos,outPtr[volCompIndex]);
             if (result)
               outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
-            */
 
+            /*
 						// volume index for this component
 						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
 						double result(0);
@@ -478,6 +480,7 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
 								outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
 							} // end checking interpolation success
 						}
+            */
 
 					} // end component loop
 				}
