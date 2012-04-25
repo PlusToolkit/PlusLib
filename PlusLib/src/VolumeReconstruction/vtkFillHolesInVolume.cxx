@@ -140,6 +140,132 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 }
 
 //----------------------------------------------------------------------------
+
+const int sticksList[39] = {1,0,0,
+                           0,1,0,
+                           0,0,1,
+                           1,1,0,
+                           1,0,1,
+                           0,1,1,
+                           1,-1,0,
+                           1,0,-1,
+                           0,1,-1,
+                           1,1,1,
+                           -1,1,1,
+                           1,-1,1,
+                           -1,-1,1};
+const int numSticks = 13;
+const int searchLimit = 3;
+
+template <class T>
+bool vtkFillHolesInVolume::applySticksAlgorithm(
+											  T* inputData,            // contains the dataset being interpolated between
+											  unsigned short* accData, // contains the weights of each voxel
+											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* accOffsets,
+											  const int& inputComp,	   // the component index of interest
+											  int* bounds,             // the boundaries of the volume, outputExtent
+											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
+											  T& returnVal)            // The value of the pixel being calculated (unknown)
+{
+  // extract coordinates
+  int x(thisPixel[0]),y(thisPixel[1]),z(thisPixel[2]); // coordinates of the hole voxel
+  int xtemp, ytemp, ztemp; // store the voxel along the current stick
+  bool valid; // set to true when we've hit a filled voxel
+  int fwdTrav, rvsTrav; // store the number of voxels that have been searched
+  T fwdVal, rvsVal; // store the values at each end of the stick
+
+  T values[13]; // TODO: change 13 to numSticks
+  double scores[13]
+
+  // try each stick direction
+  for (int i = 0; i < numSticks; i++) {
+
+    int baseStickIndex = i * 3; // 3 coordinates per stick, one for each dimension
+
+    // evaluate forward direction to nearest filled voxel
+    xtemp = x; ytemp = y; ztemp = z;
+    valid = false;
+    for (int j = 1; j <= searchLimit; j++) {
+      // traverse in forward direction
+      xtemp = xtemp + sticksList[baseStickIndex  ];
+      ytemp = ytemp + sticksList[baseStickIndex+1];
+      ztemp = ztemp + sticksList[baseStickIndex+2];
+      // check boundaries
+			if (xtemp <= bounds[1] && xtemp >= bounds[0] &&
+				ytemp <= bounds[3] && ytemp >= bounds[2] &&
+				ztemp <= bounds[5] && ztemp >= bounds[4] ) // check bounds
+        break;
+      int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+      if (accData[accIndex] != 0) { // this is a filled voxel
+        fwdTrav = j;
+        int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+        fwdVal = inputData[volIndex];
+        valid = true;
+        break;
+      }
+    } // end searching fwd direction
+
+    // only do reverse direction if we found something forward
+    if (!valid) {
+      scores[i] = 0.0; // do this to say that this is a bad stick
+      continue; // try next stick
+    }
+
+    // evaluate reverse direction to nearest filled voxel
+    xtemp = x; ytemp = y; ztemp = z;
+    valid = false;
+    for (int j = 1; j <= searchLimit; j++) {
+      // traverse in reverse direction
+      xtemp = xtemp - sticksList[baseStickIndex  ];
+      ytemp = ytemp - sticksList[baseStickIndex+1];
+      ztemp = ztemp - sticksList[baseStickIndex+2];
+      // check boundaries
+			if (xtemp <= bounds[1] && xtemp >= bounds[0] &&
+				ytemp <= bounds[3] && ytemp >= bounds[2] &&
+				ztemp <= bounds[5] && ztemp >= bounds[4] ) // check bounds
+        break;
+      int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+      if (accData[accIndex] != 0) { // this is a filled voxel
+        rvsTrav = j;
+        int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+        rvsVal = inputData[volIndex];
+        valid = true;
+        break;
+      }
+    } // end searching rvs direction
+
+    // only calculate a score and a value if we found something in both directions
+    if (!valid) {
+      scores[i] = 0.0; // do this to say that this is a bad stick
+      continue; // try next stick
+    }
+
+    // evaluate score and direction
+    int totalDistance = fwdTrav + rvsTrav + 1;
+    double weightRvs = (rvsTrav+1)/(double)totalDistance;
+    double weightFwd = 1.0 - weightRvs;
+    scores[i] = 1.0/totalDistance;
+    values[i] = weightRvs*rvsVal + weightFwd*fwdVal;
+  }
+
+  // determine the highest score, and assign the corresponding value to the pixel
+  double maxScore(0);
+  for (int i = 0; i < numSticks; i++) {
+    if (scores[i] > maxScore) {
+      maxScore = scores[i];
+      returnVal = values[i];
+    }
+  }
+
+	if (maxScore == 0) // indicates all sticks were bad
+  	return false; // failure
+
+  return true; // else at least one stick was good, = success
+
+}
+
+//----------------------------------------------------------------------------
 template <class T>
 double vtkFillHolesInVolume::weightedAverageOverNeighborhoodWithGaussian(
 											  T* inputData,            // contains the dataset being interpolated between

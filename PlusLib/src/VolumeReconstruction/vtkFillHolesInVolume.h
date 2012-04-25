@@ -132,19 +132,34 @@ public:
   unsigned int* calculateGaussianMatrix(const int& kernelIndex);
 
   /*!
-	Perform Interpolation between the nearest NxNxN voxels, and store at 
-	the address provided in returnVal. Returns 1 on success and 0 on failure.
+  Apply the sticks hole filling algorithm on the voxel at "this pixel" and store the result in returnVal algorithm.
+  Return true on successfully finding a suitable value, and false otherwise.
   */
   template <class T>
-  double weightedAverageOverNeighborhoodWithGaussian(T* inputData, // contains the dataset being interpolated between
+  bool applySticksAlgorithm( T* inputData,         // contains the dataset being interpolated between
+											    unsigned short* accData, // contains the weights of each voxel
+											    vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+											    vtkIdType* accOffsets,
+											    const int& inputComp,	   // the component index of interest
+											    int* bounds,             // the boundaries of the volume, outputExtent
+											    int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
+											    T& returnVal);           // The value of the pixel being calculated (unknown)
+
+  /*!
+	Perform Interpolation between the nearest NxMxP voxels (defined by the kernel parameters), and store the result 
+	in returnVal. Returns the ratio of known voxels in the kernel region.
+  */
+  template <class T>
+  double weightedAverageOverNeighborhoodWithGaussian(
+                        T* inputData, // contains the dataset being interpolated between
 											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets,       // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
 											  vtkIdType* accOffsets,
 											  const int& inputComp,	   // the component index of interest
 											  int* bounds,             // the boundaries of the volume, outputExtent
-											  const int& neighborSize, // The size of the neighborhood, odd positive integer
+											  const int& k,            // The index of the kernel being tried
 											  unsigned int* kernel,    // the gaussian kernel matrix
-											  int* thisPixel,		   // The x,y,z coordinates of the voxel being calculated
+											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
 											  T& returnVal);           // The value of the pixel being calculated (unknown)
 
 
