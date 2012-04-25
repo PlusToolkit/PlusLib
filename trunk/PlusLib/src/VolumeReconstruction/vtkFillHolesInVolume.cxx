@@ -141,6 +141,7 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 
 //----------------------------------------------------------------------------
 
+// TODO: all of these below should become function parameters
 const int sticksList[39] = {1,0,0,
                            0,1,0,
                            0,0,1,
@@ -176,7 +177,7 @@ bool vtkFillHolesInVolume::applySticksAlgorithm(
   T fwdVal, rvsVal; // store the values at each end of the stick
 
   T values[13]; // TODO: change 13 to numSticks
-  double scores[13]
+  double scores[13];
 
   // try each stick direction
   for (int i = 0; i < numSticks; i++) {
@@ -441,6 +442,12 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
 					bool alphaSet = false; // set true once alpha has been evaluated (only donce once)
 					for (int c = 0; c < numVolumeComponents; c++)
 					{
+						/*int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
+            bool result =	applySticksAlgorithm(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,currentPos,outPtr[volCompIndex]);
+            if (result)
+              outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
+            */
+
 						// volume index for this component
 						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
 						double result(0);
