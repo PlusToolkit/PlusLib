@@ -70,45 +70,12 @@ ADD_EXECUTABLE( OpenIGTLinkBroadcaster
   )
 TARGET_LINK_LIBRARIES( OpenIGTLinkBroadcaster ${OIGTL_LIBS} )
 
-  
-
-ADD_EXECUTABLE( SendCommands
-  SendCommands.cxx
-  )
-TARGET_LINK_LIBRARIES( SendCommands
-  OpenIGTLink
-  vtkDataCollection
-  )
-
-  
-ADD_EXECUTABLE( PlusServer
-  PlusServer.cxx
-  )
-TARGET_LINK_LIBRARIES( PlusServer
-  OpenIGTLink
-  vtkCommon
-  vtkFiltering
-  vtkPlusCommon
-  vtkDataCollection
-  vtkImageAcquisition 
-  vtkTracking
-  )
 
 # --------------------------------------------------------------------------
 # Install
 #
 
 INSTALL(TARGETS OpenIGTLinkBroadcaster
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-
-INSTALL(TARGETS PlusServer
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-
-INSTALL(TARGETS SendCommands
   DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
   COMPONENT RuntimeLibraries
   )
