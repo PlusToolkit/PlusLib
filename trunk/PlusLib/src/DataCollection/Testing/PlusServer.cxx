@@ -123,15 +123,7 @@ int main( int argc, char** argv )
     if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to connect clients to PlusServer!"); 
-      server->Stop(); 
-      exit(EXIT_FAILURE);
-    }
-
-    // make sure all the clients are still connected 
-    if ( server->GetNumberOfConnectedClients() != numOfTestClientsToConnect )
-    {
-      LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements (" 
-        << server->GetNumberOfConnectedClients() << " out of " << numOfTestClientsToConnect << ")."); 
+      DisconnectClients( testClientList );
       server->Stop(); 
       exit(EXIT_FAILURE);
     }
@@ -154,6 +146,7 @@ int main( int argc, char** argv )
     {
       LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements (" 
         << server->GetNumberOfConnectedClients() << " out of " << numOfTestClientsToConnect << ")."); 
+      DisconnectClients( testClientList );
       server->Stop(); 
       exit(EXIT_FAILURE);
     }
