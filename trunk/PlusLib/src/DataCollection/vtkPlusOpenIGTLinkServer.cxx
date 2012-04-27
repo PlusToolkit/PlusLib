@@ -495,6 +495,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 }
 
 //------------------------------------------------------------------------------
+int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
+{
+  // Lock before we send message to the clients 
+  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  return this->IgtlClients.size(); 
+}
+
+//------------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfigurationData)
 {
   LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");

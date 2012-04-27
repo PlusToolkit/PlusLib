@@ -14,18 +14,6 @@
 class VTK_EXPORT vtkOpenIGTLinkVideoSource;
 
 /*!
-\class vtkOpenIGTLinkVideoSourceCleanup 
-\brief Class that cleans up (deletes singleton instance of) vtkOpenIGTLinkVideoSource when destroyed
-\ingroup PlusLibImageAcquisition
-*/
-class VTK_EXPORT vtkOpenIGTLinkVideoSourceCleanup
-{
-public:
-  vtkOpenIGTLinkVideoSourceCleanup();
-  ~vtkOpenIGTLinkVideoSourceCleanup();
-};
-
-/*!
   \class vtkOpenIGTLinkVideoSource 
   \brief VTK interface for video input from OpenIGTLink image message
 
@@ -36,38 +24,12 @@ public:
 class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusVideoSource
 {
 public:
+  static vtkOpenIGTLinkVideoSource *New();
   vtkTypeRevisionMacro(vtkOpenIGTLinkVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
-
-  /*!
-    This is a singleton pattern New.  There will only be ONE
-    reference to a vtkOutputWindow object per process.  Clients that
-    call this must call Delete on the object so that the reference
-    counting will work.   The single instance will be unreferenced when
-    the program exits.
-  */
-  static vtkOpenIGTLinkVideoSource* New();
-  
-  /*! Return the singleton instance with no reference counting. */
-  static vtkOpenIGTLinkVideoSource* GetInstance();
-
-  /*!
-    Supply a user defined output window. Call ->Delete() on the supplied
-    instance after setting it.
-  */
-  static void SetInstance(vtkOpenIGTLinkVideoSource *instance);
-
-  //BTX
-  /*!
-    Use this as a way of memory management when the
-    program exits the SmartPointer will be deleted which
-    will delete the Instance singleton
-  */
-  static vtkOpenIGTLinkVideoSourceCleanup Cleanup;
-  //ETX
 
   /*! Read/write main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -124,8 +86,6 @@ protected:
   igtl::ClientSocket::Pointer ClientSocket;
     
 private:
- 
-  static vtkOpenIGTLinkVideoSource* Instance;
   vtkOpenIGTLinkVideoSource(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
   void operator=(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
 };
