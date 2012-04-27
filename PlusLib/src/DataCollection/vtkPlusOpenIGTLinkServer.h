@@ -49,6 +49,9 @@ public:
   /*! Set transform repository instance */
   virtual void SetTransformRepository(vtkTransformRepository* transformRepository); 
 
+  /*! Get number of connected clients */ 
+  virtual int GetNumberOfConnectedClients(); 
+
   /*! Start server */ 
   PlusStatus Start();
   

@@ -107,18 +107,18 @@ IF (PLUS_USE_OpenIGTLink )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
 
-#***************************  vtkPlusOpenIGTLinkServerTest ***************************
-ADD_EXECUTABLE( vtkPlusOpenIGTLinkServerTest
-  vtkPlusOpenIGTLinkServerTest.cxx
-  )
-TARGET_LINK_LIBRARIES( vtkPlusOpenIGTLinkServerTest vtkDataCollection vtkCommon )
+#***************************  PlusServer ***************************
 IF (PLUS_USE_OpenIGTLink )
-  ADD_TEST( vtkPlusOpenIGTLinkServerTest
-    ${EXECUTABLE_OUTPUT_PATH}/vtkPlusOpenIGTLinkServerTest
+  ADD_EXECUTABLE( PlusServer PlusServer.cxx )
+  TARGET_LINK_LIBRARIES( PlusServer vtkDataCollection vtkCommon )
+
+  ADD_TEST( PlusServer
+    ${EXECUTABLE_OUTPUT_PATH}/PlusServer
     --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
-	--running-time=5
+    --running-time=5
+    --testing
     )
-  SET_TESTS_PROPERTIES( vtkPlusOpenIGTLinkServerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+  SET_TESTS_PROPERTIES( PlusServer PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_OpenIGTLink )
 
 
@@ -153,7 +153,14 @@ ADD_TEST(PlusVersion
 # Install
 #
 
-INSTALL(TARGETS PlusVersion vtkPlusOpenIGTLinkServerTest
+IF (PLUS_USE_OpenIGTLink )
+  INSTALL(TARGETS PlusServer
+  DESTINATION bin
+  COMPONENT RuntimeExecutables
+  )
+ENDIF()
+
+INSTALL(TARGETS PlusVersion
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )

@@ -21,27 +21,8 @@ See License.txt for details.
 #include <string>
 
 vtkCxxRevisionMacro(vtkOpenIGTLinkVideoSource, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkOpenIGTLinkVideoSource);
 
-//----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkOpenIGTLinkVideoSource);
-
-//----------------------------------------------------------------------------
-
-vtkOpenIGTLinkVideoSource* vtkOpenIGTLinkVideoSource::Instance = 0;
-vtkOpenIGTLinkVideoSourceCleanup vtkOpenIGTLinkVideoSource::Cleanup;
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkVideoSourceCleanup::vtkOpenIGTLinkVideoSourceCleanup()
-{
-}
-
-//----------------------------------------------------------------------------
-vtkOpenIGTLinkVideoSourceCleanup::~vtkOpenIGTLinkVideoSourceCleanup()
-{
-  // Destroy any remaining output window.
-  vtkOpenIGTLinkVideoSource::SetInstance(NULL);
-}
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
 {
@@ -63,68 +44,26 @@ vtkOpenIGTLinkVideoSource::~vtkOpenIGTLinkVideoSource()
 }
 
 //----------------------------------------------------------------------------
-// Up the reference count so it behaves like New
-vtkOpenIGTLinkVideoSource* vtkOpenIGTLinkVideoSource::New()
+void vtkOpenIGTLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkOpenIGTLinkVideoSource* ret = vtkOpenIGTLinkVideoSource::GetInstance();
-  ret->Register(NULL);
-  return ret;
-}
+  this->Superclass::PrintSelf(os,indent);
+  if ( this->ServerAddress )
+  {
+    os << indent << "Server address: " << this->ServerAddress << "\n";
+  }
+  os << indent << "Server port: " << this->ServerPort << "\n";
+  if ( this->MessageType )
+  {
+    os << indent << "Message type: " << this->ServerAddress << "\n";
+  }
 
-//----------------------------------------------------------------------------
-// Return the single instance of the vtkOutputWindow
-vtkOpenIGTLinkVideoSource* vtkOpenIGTLinkVideoSource::GetInstance()
-{
-  if(!vtkOpenIGTLinkVideoSource::Instance)
-  {
-    // Try the factory first
-    vtkOpenIGTLinkVideoSource::Instance = (vtkOpenIGTLinkVideoSource*)vtkObjectFactory::CreateInstance("vtkOpenIGTLinkVideoSource");    
-    if(!vtkOpenIGTLinkVideoSource::Instance)
-    {
-      vtkOpenIGTLinkVideoSource::Instance = new vtkOpenIGTLinkVideoSource();     
-    }
-    if(!vtkOpenIGTLinkVideoSource::Instance)
-    {
-      LOG_ERROR("Failed to create vtkOpenIGTLinkVideoSource instance!"); 
-    }
-  }
-  // return the instance
-  return vtkOpenIGTLinkVideoSource::Instance;
 }
-
-//----------------------------------------------------------------------------
-void vtkOpenIGTLinkVideoSource::SetInstance(vtkOpenIGTLinkVideoSource* instance)
-{
-  if (vtkOpenIGTLinkVideoSource::Instance==instance)
-  {
-    return;
-  }
-  // preferably this will be NULL
-  if (vtkOpenIGTLinkVideoSource::Instance)
-  {
-    vtkOpenIGTLinkVideoSource::Instance->Delete();;
-  }
-  vtkOpenIGTLinkVideoSource::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
-  // user will call ->Delete() after setting instance
-  instance->Register(NULL);
-}
-
 //----------------------------------------------------------------------------
 std::string vtkOpenIGTLinkVideoSource::GetSdkVersion()
 {
   std::ostringstream version; 
   version << "OpenIGTLink v" << PLUS_OPENIGTLINK_VERSION; 
   return version.str(); 
-}
-
-//----------------------------------------------------------------------------
-void vtkOpenIGTLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
