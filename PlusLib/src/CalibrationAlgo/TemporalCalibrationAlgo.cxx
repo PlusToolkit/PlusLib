@@ -1454,7 +1454,7 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec()
   else
   {
     // Normalize the video metric based on the best index offset (only considering the overlap "window")
-    std::vector<double> normalizedVideoPositionMetric;
+    std::vector<double> normalizedVideoPositionMetric = m_ResampledVideoPositionMetric;
     NormalizeMetricWindow(m_ResampledVideoPositionMetric,maxCorrIndex2, m_ResampledTrackerPositionMetric.size(),
                           normalizedVideoPositionMetric);
     m_ResampledVideoPositionMetric = normalizedVideoPositionMetric;
