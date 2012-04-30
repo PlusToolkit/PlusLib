@@ -51,9 +51,9 @@ IF (PLUS_USE_OpenIGTLink)
 	ENDIF (WIN32)
 	
 	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
-		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo )
+		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo CACHE INTERNAL "" FORCE )
 	
-	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
+	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} OpenIGTLink vtkPlusOpenIGTLink CACHE INTERNAL "" FORCE)
 	
 ENDIF(PLUS_USE_OpenIGTLink)
 
@@ -140,6 +140,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
         ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
         CACHE INTERNAL "" FORCE
         )
+    SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} CACHE INTERNAL "" FORCE)
+	
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
@@ -200,7 +202,7 @@ IF (PLUS_USE_VFW_VIDEO)
   	CACHE INTERNAL "" FORCE
     )      
   SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-	Vfw32.lib
+	Vfw32.lib CACHE INTERNAL "" FORCE
     )
 
 ENDIF (PLUS_USE_VFW_VIDEO)
