@@ -196,16 +196,21 @@ private:
   int FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);                       
   PlusStatus ComputeTrackerLagSec();
   PlusStatus NormalizeMetric(std::vector<double> &metric, double &normalizationFactor);
+  PlusStatus NormalizeMetricWindow(const std::vector<double> &slidingMetric, int indexOffset,
+                                   int stationaryMetricSize, std::vector<double> &normalizedSlidingMetric);
   PlusStatus ComputeVideoPositionMetric();
   PlusStatus ComputeTrackerPositionMetric();
-  void ComputeCrossCorrelationBetweenVideoAndTrackerMetrics();
-  double ComputeCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
+  void ComputeCorrelationBetweenVideoAndTrackerMetrics();
+  double ComputeCrossCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
   double ComputeSsdForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, 
+                                    int indexOffset);
+  double ComputeSadForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB,
                                     int indexOffset);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
+  
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
