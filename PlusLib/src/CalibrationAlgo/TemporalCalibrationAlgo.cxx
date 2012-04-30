@@ -46,7 +46,7 @@ enum SIGNAL_ALIGNMENT_METRIC_TYPES
   SAD
 };
 
-const int SIGNAL_ALIGNMENT_METRIC = SAD;
+const int SIGNAL_ALIGNMENT_METRIC = SSD;
 
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
