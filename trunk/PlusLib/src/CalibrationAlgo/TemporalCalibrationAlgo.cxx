@@ -349,6 +349,10 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
                                        + meanTrackerPosition[1] * principalAxisOfMotion[1] 
                                        + meanTrackerPosition[2] * principalAxisOfMotion[2];
 
+  //// Bug fixing
+  //double maxTranslationDistance = 0;
+  //double maxTranslationDistanceIndex = -1;
+
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
@@ -377,11 +381,41 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
   }
 
+  //// Bug fixing
+  //LOG_INFO("Mean translational distance: " << meanTrackerPositionProjection);
+  //LOG_INFO("Max translational distance from mean: " << maxTranslationDistance);
+  //LOG_INFO("Corresponding index: " << maxTranslationDistanceIndex);
+
+  //std::ostrstream rawTrackerOutputFilename;
+  //rawTrackerOutputFilename << "C:\\Documents and Settings\\moult\\My Documents\\testErrors" << "\\rawTrackerOutput.txt" << std::ends;
+  //ofstream myfile;
+  //myfile.open (rawTrackerOutputFilename.str());
+  //for(int i = 0; i < m_TrackerPositionMetric.size(); ++i)
+  //{
+  //  myfile << m_TrackerPositionMetric.at(i) << std::endl;
+  //}
+  //
+  //myfile.close();
+
+
   // Normalize the calculated translations
-  if(NormalizeMetric(m_TrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
+  //if(NormalizeMetric(m_TrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
+  //{
+  //  return PLUS_FAIL;
+  //}
+
+  //// Bug fixing
+  //std::ostrstream normalizedTrackerOutputFilename;
+  //normalizedTrackerOutputFilename << "C:\\Documents and Settings\\moult\\My Documents\\testErrors" << "\\normalizedTrackerOutput.txt" << std::ends;
+  //ofstream myfile2;
+  //myfile.open (normalizedTrackerOutputFilename.str());
+  //for(int i = 0; i < m_TrackerPositionMetric.size(); ++i)
+  //{
+  //  myfile << m_TrackerPositionMetric.at(i)<< ", " << m_TrackerTimestamps.at(i) << std::endl;
+  //}
+  //
+  //myfile.close();
+
 /*
   const double positionOffset=0.0;
   LOG_INFO("Position offset="<<positionOffset);
@@ -1059,7 +1093,26 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics()
   InterpolatePositionMetric(m_VideoTimestamps, m_ResampledVideoTimestamps, m_VideoPositionMetric, m_ResampledVideoPositionMetric);
   LOG_DEBUG("InterpolatePositionMetric for tracker data");
   InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
-            
+  
+  //// Bug fixing
+  //std::ostrstream resampledTrackerOutputFilename;
+  //resampledTrackerOutputFilename << "C:\\Documents and Settings\\moult\\My Documents\\testErrors" << "\\resampledTrackerOutput.txt" << std::ends;
+  //ofstream myfile;
+  //myfile.open (resampledTrackerOutputFilename.str());
+  //for(int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+  //{
+  //   myfile << m_ResampledTrackerPositionMetric.at(i) << ", " << m_ResampledTrackerTimestamps.at(i) << std::endl;
+  //}
+  //
+  //myfile.close();
+  
+  // Normalize the calculated translations
+  if(NormalizeMetric(m_ResampledTrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+
   return PLUS_SUCCESS;
 }
 
