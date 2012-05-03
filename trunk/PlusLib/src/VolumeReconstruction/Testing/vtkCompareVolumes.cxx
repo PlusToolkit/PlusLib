@@ -12,56 +12,260 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkSimpleImageFilterExample.h"
+
+#include "vtkCompareVolumes.h"
+
+#include "PlusMath.h"
 
 #include "vtkImageData.h"
+#include "vtkImageProgressIterator.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
 #include "vtkObjectFactory.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
+#include <vector>
+#include <list>
 
-vtkStandardNewMacro(vtkSimpleImageFilterExample);
 
-// The switch statement in Execute will call this method with
-// the appropriate input type (IT). Note that this example assumes
-// that the output data type is the same as the input data type.
-// This is not always the case.
-template <class IT>
-void vtkSimpleImageFilterExampleExecute(vtkImageData* input,
-                                        vtkImageData* output,
-                                        IT* inPtr, IT* outPtr)
+vtkStandardNewMacro(vtkCompareVolumes);
+
+
+vtkCompareVolumes::vtkCompareVolumes()
 {
-  int dims[3];
-  input->GetDimensions(dims);
-  if (input->GetScalarType() != output->GetScalarType())
-    {
-    vtkGenericWarningMacro(<< "Execute: input ScalarType, " << input->GetScalarType()
-    << ", must match out ScalarType " << output->GetScalarType());
-    return;
-    }
+  this->SetNumberOfInputPorts(4);
+  this->SetNumberOfOutputPorts(2);
+  this->SetNumberOfThreads(1); // TODO: Remove when testing is done
+}
+
+
+int vtkCompareVolumes::RequestInformation (
+  vtkInformation       * vtkNotUsed( request ),
+  vtkInformationVector** vtkNotUsed( inputVector ),
+  vtkInformationVector * outputVector)
+{
+  // get the info objects
+  vtkInformation* outInfo = outputVector->GetInformationObject(0); // true difference image
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_DOUBLE, 1); // this has been set to 1 output scalar, type VTK_DOUBLE
+  vtkInformation* outInfo2 = outputVector->GetInformationObject(1); // absolute difference image
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo2, VTK_DOUBLE, 1); // this has been set to 1 output scalar, type VTK_DOUBLE
+  return 1;
+}
+
+
+template <class T>
+void vtkCompareVolumesExecute(vtkCompareVolumes *self,
+                              vtkImageData* inData,
+                              vtkImageData* outData,
+                              T* gtPtr,
+                              T* gtAlphaPtr,
+                              T* testPtr,
+                              T* slicesAlphaPtr,
+                              double* outPtrTru,
+                              double* outPtrAbs,
+                              int outExt[6],
+                              int id)
+{
+
+  vtkIdType inOffsets[3]={0}; //x,y,z
+	inData->GetIncrements(inOffsets[0],inOffsets[1],inOffsets[2]);
   
-  int size = dims[0]*dims[1]*dims[2];
+  vtkIdType outOffsets[3]={0}; //x,y,z
+	outData->GetIncrements(outOffsets[0],outOffsets[1],outOffsets[2]);
 
-  for(int i=0; i<size; i++)
-    {
-    outPtr[i] = inPtr[i];
-    }
+  int xtemp(0),ytemp(0),ztemp(0); // indices for each of the axes
+  self->resetTrueHistogram(); // count inside the class variables
+  self->resetAbsoluteHistogram();
+  std::vector<double> trueDifferences; // store all differences here
+  std::vector<double> absoluteDifferences;
+
+
+	for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
+	{
+		for (ytemp = 0; ytemp <= outExt[3] - outExt[2]; ytemp++)
+		{
+			for (xtemp = 0; xtemp <= outExt[1] - outExt[0]; xtemp++)
+			{
+        int inIndex =  inOffsets[0] *xtemp+inOffsets[1] *ytemp+inOffsets[2] *ztemp;
+        int outIndex = outOffsets[0]*xtemp+outOffsets[1]*ytemp+outOffsets[2]*ztemp;
+        if (gtAlphaPtr[inIndex] != 0) 
+        {
+          if (slicesAlphaPtr[inIndex] == 0) 
+          {
+            double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
+            trueDifferences.push_back(difference);
+            self->incTrueHistogramAtIndex(PlusMath::Round(difference));
+            outPtrTru[outIndex] = difference; // cast to double to minimize precision loss
+            absoluteDifferences.push_back(abs(difference));
+            self->incAbsoluteHistogramAtIndex(PlusMath::Round(abs(difference)));
+            outPtrAbs[outIndex] = abs(difference);
+          }
+          else // not a hole, but these may still be different
+          {
+            double difference = (double)gtPtr[inIndex] - testPtr[inIndex]; // cast to double to minimize precision loss
+            outPtrTru[outIndex] = difference;
+            outPtrAbs[outIndex] = abs(difference);
+          } // end slicesAlphaPtr check
+        } 
+        else 
+        {
+          outPtrTru[outIndex] = 0.0;
+          outPtrAbs[outIndex] = 0.0;
+        } // end gtAlphaPtr check
+      } // end x loop
+    } // end y loop
+  } // end z loop
+
+  int numberOfHoles = trueDifferences.size(); // will be the same as AbsoluteDifferences.size();
+
+  double trueMean =0.0; double absoluteMean = 0.0;
+  for (int i = 0; i < numberOfHoles; i++) {
+    trueMean += trueDifferences[i];
+    absoluteMean += absoluteDifferences[i];
+  }
+  trueMean /= numberOfHoles;
+  absoluteMean /= numberOfHoles;
+
+  double trueStdev = 0.0; double absoluteStdev = 0.0;
+  for (int i = 0; i < numberOfHoles; i++) {
+    trueStdev += pow((trueDifferences[i]-trueMean),2);
+    absoluteStdev += pow((absoluteDifferences[i]-absoluteMean),2);
+  }
+  trueStdev = sqrt(trueStdev/numberOfHoles);
+  absoluteStdev = sqrt(absoluteStdev/numberOfHoles);
+
+  // need to sort, temporarily store in a list, sort, then assign back to vector <== THIS IS SLOW SLOW SLOW, as in about half a minute for this alone, so TODO: Make this faster
+  std::list<double> trueDifferencesList;
+  std::list<double> absoluteDifferencesList;
+  for (int i = 0; i < numberOfHoles; i++) {
+    trueDifferencesList.push_front(trueDifferences.back());
+    trueDifferences.pop_back();
+    absoluteDifferencesList.push_front(absoluteDifferences.back());
+    absoluteDifferences.pop_back();
+  }
+  trueDifferencesList.sort();
+  absoluteDifferencesList.sort();
+  for (int i = 0; i < numberOfHoles; i++) {
+    trueDifferences.push_back(trueDifferencesList.front());
+    trueDifferencesList.pop_front();
+    absoluteDifferences.push_back(absoluteDifferencesList.front());
+    absoluteDifferencesList.pop_front();
+  }
+
+  double trueMinimum = trueDifferences[0];
+  double trueMaximum = trueDifferences[numberOfHoles-1];
+  double absoluteMinimum = absoluteDifferences[0];
+  double absoluteMaximum = absoluteDifferences[numberOfHoles-1];
+
+  // old median calculation
+  //double trueMedian = (numberOfHoles%2==0)?(trueDifferences[numberOfHoles/2]+trueDifferences[(numberOfHoles/2)-1])/2.0:trueDifferences[(numberOfHoles-1)/2];
+  //double absoluteMedian = (numberOfHoles%2==0)?(absoluteDifferences[numberOfHoles/2]+absoluteDifferences[(numberOfHoles/2)-1])/2.0:absoluteDifferences[(numberOfHoles-1)/2];
+
+  double medianRank = (numberOfHoles-1)*0.5;
+  double medianFraction = fmod(medianRank,1.0);
+  int medianFloor = (int)floor(medianRank); if (medianFloor < 0) medianFloor = 0;
+  int medianCeil = (int)ceil(medianRank); if (medianCeil > (numberOfHoles-1)) medianCeil = (numberOfHoles-1);
+  double trueMedian = trueDifferences[medianFloor]*(1-medianFraction) + trueDifferences[medianCeil]*medianFraction;
+  double absoluteMedian = absoluteDifferences[medianFloor]*(1-medianFraction) + absoluteDifferences[medianCeil]*medianFraction;
+
+  double percentile5rank = (numberOfHoles-1)*0.05;
+  double percentile5fraction = fmod(percentile5rank,1.0);
+  int percentile5floor = (int)floor(percentile5rank); if (percentile5floor < 0) percentile5floor = 0;
+  int percentile5ceil = (int)ceil(percentile5rank); if (percentile5ceil > (numberOfHoles-1)) percentile5ceil = (numberOfHoles-1);
+  double true5thPercentile = trueDifferences[percentile5floor]*(1-percentile5fraction) + trueDifferences[percentile5ceil]*percentile5fraction;
+  double absolute5thPercentile = absoluteDifferences[percentile5floor]*(1-percentile5fraction) + absoluteDifferences[percentile5ceil]*percentile5fraction;
+
+  double percentile95rank = (numberOfHoles-1)*0.95;
+  double percentile95fraction = fmod(percentile95rank,1.0);
+  int percentile95floor = (int)floor(percentile95rank); if (percentile95floor < 0) percentile95floor = 0;
+  int percentile95ceil = (int)ceil(percentile95rank); if (percentile95ceil > (numberOfHoles-1)) percentile95ceil = (numberOfHoles-1);
+  double true95thPercentile = trueDifferences[percentile95floor]*(1-percentile95fraction) + trueDifferences[percentile95ceil]*percentile95fraction;
+  double absolute95thPercentile = absoluteDifferences[percentile95floor]*(1-percentile95fraction) + absoluteDifferences[percentile95ceil]*percentile95fraction;
+
+  self->SetNumberOfHoles(numberOfHoles);
+
+  self->SetTrue95thPercentile(true95thPercentile);
+  self->SetTrue5thPercentile(true5thPercentile);
+  self->SetTrueMaximum(trueMaximum);
+  self->SetTrueMinimum(trueMinimum);
+  self->SetTrueMedian(trueMedian);
+  self->SetTrueStdev(trueStdev);
+  self->SetTrueMean(trueMean);
+
+  self->SetAbsolute95thPercentile(absolute95thPercentile);
+  self->SetAbsolute5thPercentile(absolute5thPercentile);
+  self->SetAbsoluteMaximum(absoluteMaximum);
+  self->SetAbsoluteMinimum(absoluteMinimum);
+  self->SetAbsoluteMedian(absoluteMedian);
+  self->SetAbsoluteStdev(absoluteStdev);
+  self->SetAbsoluteMean(absoluteMean);
+
+  int dummy = 0;
 }
 
-void vtkSimpleImageFilterExample::SimpleExecute(vtkImageData* input,
-                                                vtkImageData* output)
+void vtkCompareVolumes::ThreadedRequestData (
+  vtkInformation * vtkNotUsed( request ),
+  vtkInformationVector** vtkNotUsed( inputVector ),
+  vtkInformationVector * vtkNotUsed( outputVector ),
+  vtkImageData ***inData,
+  vtkImageData **outData,
+  int outExt[6], int threadId)
 {
+  if (inData[0][0] == NULL || inData[1][0] == NULL || inData[2][0] == NULL || inData[3][0] == NULL)
+  {
+    vtkErrorMacro(<< "Input must be specified.");
+    return;
+  }
 
-  void* inPtr = input->GetScalarPointer();
-  void* outPtr = output->GetScalarPointer();
-
-  switch(output->GetScalarType())
-    {
-    // This is simply a #define for a big case list. It handles all
-    // data types VTK supports.
+  // this filter expects that all inputs are the same type as output.
+  if (inData[1][0]->GetScalarType() != inData[0][0]->GetScalarType() ||
+      inData[2][0]->GetScalarType() != inData[0][0]->GetScalarType() ||
+      inData[3][0]->GetScalarType() != inData[0][0]->GetScalarType() )
+  {
+    vtkErrorMacro(<< "Execute: input ScalarTypes must match ScalarType " 
+                  << inData[0][0]->GetScalarType());
+    return;
+  }
+  
+  vtkImageData* inVolData0 = inData[0][0];
+  void* gtPtr = inVolData0->GetScalarPointer();
+  
+  vtkImageData* inVolData1 = inData[1][0];
+  void* gtAlphaPtr = inVolData1->GetScalarPointer();
+  
+  vtkImageData* inVolData2 = inData[2][0];
+  void* testPtr = inVolData2->GetScalarPointer();
+  
+  vtkImageData* inVolData3 = inData[3][0];
+  void* slicesAlphaPtr = inVolData3->GetScalarPointer();
+  
+  vtkImageData* outVolData0 = outData[0];
+  double* outPtrTru = static_cast<double *>(outVolData0->GetScalarPointer());
+  
+  vtkImageData* outVolData1 = outData[1];
+  double* outPtrAbs = static_cast<double *>(outVolData1->GetScalarPointer());
+  
+  switch (inVolData0->GetScalarType())
+  {
     vtkTemplateMacro(
-      vtkSimpleImageFilterExampleExecute(input, output,
-                                         static_cast<VTK_TT *>(inPtr), 
-                                         static_cast<VTK_TT *>(outPtr)));
+      vtkCompareVolumesExecute(this, inVolData0, outVolData0,
+                               static_cast<VTK_TT *>(gtPtr), static_cast<VTK_TT *>(gtAlphaPtr), 
+                               static_cast<VTK_TT *>(testPtr), static_cast<VTK_TT *>(slicesAlphaPtr), 
+                               outPtrTru, outPtrAbs, outExt, threadId)
+                    );
     default:
-      vtkGenericWarningMacro("Execute: Unknown input ScalarType");
+      vtkErrorMacro(<< "Execute: Unknown ScalarType");
       return;
-    }
+  }
 }
+
+int vtkCompareVolumes::FillInputPortInformation(int port, vtkInformation* info)
+{
+  /*if (port == 1)
+  {
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+  }*/
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
+  return 1;
+}
+
+

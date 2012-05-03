@@ -100,6 +100,11 @@ ADD_TEST(CreateSliceModelsTest
   )
 SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+#***************************  CompareVolumes  ***************************
+# This program compares two volumes and outputs difference statistics
+ADD_EXECUTABLE( CompareVolumes CompareVolumes.cxx vtkCompareVolumes.cxx )
+TARGET_LINK_LIBRARIES( CompareVolumes vtkPlusCommon )
+
 # --------------------------------------------------------------------------
 # Install
 #
