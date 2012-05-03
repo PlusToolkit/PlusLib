@@ -11,6 +11,7 @@
 #include "vtkImageData.h"
 #include "vtkXMLUtilities.h"
 #include "vtkDataSetWriter.h"
+//#include "vtkMetaImageWriter.h"
 
 #include "vtkVolumeReconstructor.h"
 #include "vtkTrackedFrameList.h"
@@ -181,6 +182,7 @@ int main (int argc, char* argv[])
   reconstructor->GetReconstructedVolume(reconstructedVolume);
 
   vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();
+  //vtkSmartPointer<vtkMetaImageWriter> writer3D = vtkSmartPointer<vtkMetaImageWriter>::New();
   writer3D->SetFileTypeToBinary();
   writer3D->SetInput(reconstructedVolume);
   writer3D->SetFileName(outputVolumeFileName.c_str());
