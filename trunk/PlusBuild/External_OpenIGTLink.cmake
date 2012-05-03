@@ -1,4 +1,3 @@
-
 # --------------------------------------------------------------------------
 # OpenIGTLink 
 SET (PLUS_OPENIGTLINK_DIR ${CMAKE_BINARY_DIR}/OpenIGTLink CACHE INTERNAL "Path to store OpenIGTLink sources.")
@@ -6,7 +5,7 @@ ExternalProject_Add( OpenIGTLink
             SOURCE_DIR "${PLUS_OPENIGTLINK_DIR}" 
             BINARY_DIR "OpenIGTLink-bin"
             #--Download step--------------
-            SVN_REPOSITORY http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink/
+            GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
             #--Configure step-------------
             CMAKE_ARGS 
                 -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
