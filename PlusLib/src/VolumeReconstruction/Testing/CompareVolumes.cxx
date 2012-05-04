@@ -254,6 +254,7 @@ int main( int argc, char** argv )
   }
 
   // calculate the histogram for the difference image
+  LOG_INFO("Calculating difference images and statistics...");
   vtkSmartPointer<vtkCompareVolumes> histogramGenerator = vtkSmartPointer<vtkCompareVolumes>::New();
   histogramGenerator->SetInputGT(groundTruthCropped);
   histogramGenerator->SetInputGTAlpha(groundTruthAlphaCropped);

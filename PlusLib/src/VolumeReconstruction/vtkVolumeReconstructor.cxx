@@ -37,6 +37,7 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->HoleFiller = vtkFillHolesInVolume::New();  
   this->FillHoles=0;
+  this->SkipInterval=1;
 }
 
 //----------------------------------------------------------------------------
@@ -117,6 +118,14 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   if (reconConfig->GetScalarAttribute("FanDepth", fanDepth))
   {
     this->Reconstructor->SetFanDepth(fanDepth);
+  }
+
+  if (reconConfig->GetScalarAttribute("SkipInterval",SkipInterval))
+  {
+    if (SkipInterval < 1) {
+      LOG_WARNING("SkipInterval in the config file must be greater or equal to 1. Resetting to 1");
+      SkipInterval = 1;
+    }
   }
 
   // reconstruction options
