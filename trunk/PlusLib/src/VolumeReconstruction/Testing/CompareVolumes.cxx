@@ -38,6 +38,8 @@ int main( int argc, char** argv )
   std::string inputTestingFileName;
   std::string inputSliceAlphaFileName;
   std::string outputStatsFileName;
+  std::string outputTrueDiffFileName;
+  std::string outputAbsoluteDiffFileName;
   std::vector<int> centerV;
   std::vector<int> sizeV;
   int center[3];
@@ -53,6 +55,8 @@ int main( int argc, char** argv )
   args.AddArgument("--input-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
   args.AddArgument("--input-slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");
+  args.AddArgument("--output-diff-volume-true", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrueDiffFileName, "Save the true difference volume to this file");
+  args.AddArgument("--output-diff-volume-absolute", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputAbsoluteDiffFileName, "Save the absolute difference volume to this file");
   args.AddArgument("--roi-center", vtksys::CommandLineArguments::MULTI_ARGUMENT, &centerV, "The point at the center of the region of interest");
   args.AddArgument("--roi-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &sizeV, "The size around the center point to consider");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
@@ -259,6 +263,7 @@ int main( int argc, char** argv )
 
   // write data to a CSV
   if (!outputStatsFileName.empty()) {
+    LOG_INFO("Writing output statistics: " << outputStatsFileName);
     int* AbsHistogram = histogramGenerator->GetAbsoluteHistogramPtr();
     int* TruHistogram = histogramGenerator->GetTrueHistogramPtr();
     std::ifstream testingFile(outputStatsFileName.c_str());
@@ -325,6 +330,24 @@ int main( int argc, char** argv )
         outputStatsFile << "," << AbsHistogram[i];
       outputStatsFile << std::endl;
     }
+  }
+
+  if (!outputAbsoluteDiffFileName.empty()) {
+    LOG_INFO("Writing absolute difference image: " << outputAbsoluteDiffFileName);
+    vtkSmartPointer<vtkDataSetWriter> writerAbs = vtkSmartPointer<vtkDataSetWriter>::New();
+    writerAbs->SetFileTypeToBinary();
+    writerAbs->SetInput(histogramGenerator->GetOutputAbsoluteDifferenceImage());
+    writerAbs->SetFileName(outputAbsoluteDiffFileName.c_str());
+    writerAbs->Update();
+  }
+
+  if (!outputTrueDiffFileName.empty()) {
+    LOG_INFO("Writing true difference image: " << outputTrueDiffFileName);
+    vtkSmartPointer<vtkDataSetWriter> writerTru = vtkSmartPointer<vtkDataSetWriter>::New();
+    writerTru->SetFileTypeToBinary();
+    writerTru->SetInput(histogramGenerator->GetOutputTrueDifferenceImage());
+    writerTru->SetFileName(outputTrueDiffFileName.c_str());
+    writerTru->Update();
   }
 
   return EXIT_SUCCESS;
