@@ -1,0 +1,54 @@
+QComboBox {
+  border: 1px solid gray;
+  border-radius: 3px;
+  padding: 1px 3px 1px 3px;
+  min-width: 3em;
+  width: 186px;
+
+  border-right-width: 294px;
+  border-right-color: #808080;
+  border-right-style: solid;
+  border-top-right-radius: 294px;
+  border-bottom-right-radius: 294px;
+  }
+
+QComboBox:editable {
+  background: white;
+}
+
+QComboBox:!editable, QComboBox::drop-down:editable {
+  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                              stop: 0 #F2F2F2, stop: 0.4 #EBEBEB,
+                              stop: 0.5 #DDDDDD, stop: 1.0 #CFCFCF);
+ }
+
+/* QComboBox gets the "on" state when the popup is open */
+QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                              stop: 0 #E5F4FC, stop: 0.4 #C4E5F6,
+                              stop: 0.5 #98D1EF, stop: 1.0 #68B3DB);
+}
+
+QComboBox:on { /* shift the text when the popup opens */
+  padding-top: 3px;
+  padding-left: 4px;
+}
+
+QComboBox::drop-down {
+  subcontrol-origin: padding;
+  subcontrol-position: top left;
+  width: 15px;
+
+  border-right-width: 1px;
+  border-right-color: darkgray;
+  border-right-style: solid; /* just a single line */
+}
+
+QComboBox::down-arrow {
+  image: url(:/icons/Resources/icon_DownArrow.png);
+}
+
+QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+  top: 1px;
+  left: 1px;
+}
