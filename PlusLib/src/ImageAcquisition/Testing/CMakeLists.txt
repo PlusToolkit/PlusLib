@@ -75,7 +75,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
-IF (PLUS_USE_ULTRASONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_USE_ULTRASONIX_PORTA)
 	ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
 	TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkImageAcquisition vtkCharts)
 	# ADD_TEST(vtkSonixPortaVideoSourceTest 
@@ -88,7 +88,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	# --rendering-off
 	# )
 	# SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_USE_ULTRASONIX_PORTA)
 
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)

@@ -28,7 +28,9 @@ See License.txt for details.
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
 #include "vtkSonixVideoSource.h"
-#include "vtkSonixPortaVideoSource.h"
+  #ifdef PLUS_USE_ULTRASONIX_PORTA
+  #include "vtkSonixPortaVideoSource.h"
+  #endif
 #endif
 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
@@ -55,7 +57,9 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   VideoSourceTypes["SonixVideo"]=(PointerToVideoSource)&vtkSonixVideoSource::New; 
+  #ifdef PLUS_USE_ULTRASONIX_PORTA
   VideoSourceTypes["SonixPortaVideo"]=(PointerToVideoSource)&vtkSonixPortaVideoSource::New; 
+  #endif
 #endif 
 #ifdef PLUS_USE_MATROX_IMAGING
   VideoSourceTypes["MatroxImaging"]=(PointerToVideoSource)&vtkMILVideoSource2::New; 
