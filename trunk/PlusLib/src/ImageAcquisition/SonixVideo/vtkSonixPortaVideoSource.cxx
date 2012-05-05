@@ -238,7 +238,7 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
   //  SDK version < 5.7.x 
   bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id )
-#elseif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
+#elif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
   //  5.7.x <= SDK version < 6.x
   bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
 #else
