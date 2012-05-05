@@ -62,24 +62,14 @@ ENDIF(PLUS_USE_OpenIGTLink)
 
 IF (PLUS_USE_ULTRASONIX_VIDEO)
 
-	# Porta is temporarily disabled for Ultrasonix SDK 6.x, see https://www.assembla.com/spaces/plus/tickets/491
-	IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
-		SET(PLUS_USE_ULTRASONIX_PORTA 0 CACHE INTERNAL "" FORCE)
-	ELSE()
-		SET(PLUS_USE_ULTRASONIX_PORTA 1 CACHE INTERNAL "" FORCE)
-	ENDIF()
-
 	SET (ImageAcquisition_SRCS
         ${ImageAcquisition_SRCS}
         SonixVideo/vtkSonixVideoSource.cxx
         SonixVideo/vtkSonixVolumeReader.cxx
         SonixVideo/itkUlteriusImageIO.cxx
         SonixVideo/itkUlteriusImageIOFactory.cxx   
+		SonixVideo/vtkSonixPortaVideoSource.cxx
         )
-
-	IF (PLUS_USE_ULTRASONIX_PORTA)
-		SET (ImageAcquisition_SRCS ${ImageAcquisition_SRCS} SonixVideo/vtkSonixPortaVideoSource.cxx)
-	ENDIF(PLUS_USE_ULTRASONIX_PORTA)
 		
 	IF (WIN32)	
         SET (ImageAcquisition_HDRS
@@ -87,11 +77,9 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
             SonixVideo/vtkSonixVideoSource.h
             SonixVideo/vtkSonixVolumeReader.h
             SonixVideo/itkUlteriusImageIO.h
-            SonixVideo/itkUlteriusImageIOFactory.h       
+            SonixVideo/itkUlteriusImageIOFactory.h
+			SonixVideo/vtkSonixPortaVideoSource.h
             )
-		IF (PLUS_USE_ULTRASONIX_PORTA)
-			SET (ImageAcquisition_HDRS ${ImageAcquisition_HDRS} SonixVideo/vtkSonixPortaVideoSource.h )
-		ENDIF(PLUS_USE_ULTRASONIX_PORTA)
 	ENDIF (WIN32)	
 
     MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
@@ -138,11 +126,9 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
         SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)			      			
         
         SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-            ${ULTERIUS_LIB_DIR}/ulterius.lib            
+            ${ULTERIUS_LIB_DIR}/ulterius.lib
+			${PORTA_LIB_DIR}/porta.lib
             )
-		IF (PLUS_USE_ULTRASONIX_PORTA)
-			SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} ${PORTA_LIB_DIR}/porta.lib )
-		ENDIF(PLUS_USE_ULTRASONIX_PORTA)        
 		
 		IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
 			# All DLLs except ITK, VTK, and QT libraries
@@ -222,12 +208,10 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     
     SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
         ${ULTERIUS_INCLUDE_DIR}        
+		${PORTA_INCLUDE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
         CACHE INTERNAL "" FORCE
         )
-	IF (PLUS_USE_ULTRASONIX_PORTA)
-		SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} ${PORTA_INCLUDE_DIR} )
-	ENDIF(PLUS_USE_ULTRASONIX_PORTA)
     
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} CACHE INTERNAL "" FORCE)
 	
