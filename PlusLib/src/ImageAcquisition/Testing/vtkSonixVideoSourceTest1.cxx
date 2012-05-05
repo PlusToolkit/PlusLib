@@ -294,9 +294,13 @@ int main(int argc, char* argv[])
   else if (STRCASECMP(acqMode.c_str(), "RF")==0)
   {
     LOG_DEBUG("Acquisition mode: RF");
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
     sonixGrabber->SetImagingMode(RfMode);
     sonixGrabber->SetAcquisitionDataType(udtRF);
     displayMode=SHOW_PLOT;
+#else
+    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above"); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
+#endif
   }
   else
   {
