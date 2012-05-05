@@ -384,6 +384,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << GetLastUlteriusError() << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
       continue;
     }
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
     if ( this->ImagingMode == RfMode )
     {
       if ( this->SetRfAcquisitionMode(this->RfAcquisitionMode) != PLUS_SUCCESS )
@@ -403,6 +404,10 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
         continue;
       }
     }
+#else
+    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above"); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
+    continue;
+#endif
 
     switch (this->DataDescriptor.ss)
     {
@@ -521,8 +526,13 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
     else if (STRCASECMP(imagingMode, "RfMode")==0)
     {
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
       LOG_DEBUG("Imaging mode set: RfMode"); 
       this->ImagingMode=RfMode; 
+#else
+      LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
+      this->ImagingMode=BMode; 
+#endif      
     }
     else
     {
@@ -668,10 +678,12 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
   {
     imageAcquisitionConfig->SetAttribute("ImagingMode", "BMode");
   }
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) // RF acquisition mode is not supported on Ultrasonix SDK 6.x and above - see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
   else if (this->ImagingMode == RfMode)
   {
     imageAcquisitionConfig->SetAttribute("ImagingMode", "RfMode");
   }
+#endif
   else
   {
     LOG_ERROR("Saving of unsupported ImagingMode requested!");

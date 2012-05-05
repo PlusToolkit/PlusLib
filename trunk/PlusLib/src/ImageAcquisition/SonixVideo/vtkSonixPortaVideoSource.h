@@ -19,10 +19,15 @@ Authors include: Elvis Chen (Queen's University)
 #include "vtkPlusVideoSource.h"
 
 // porta includes
-#include <porta_std_includes.h>
+#include <porta_def.h>
 #include <porta_params_def.h>
 #include <ImagingModes.h>
 #include <porta.h>
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+  #include <porta_std_includes.h>
+#else
+  #include <porta_wrapper.h>
+#endif
 
 class VTK_EXPORT vtkSonixPortaVideoSource;
 
@@ -206,9 +211,8 @@ protected:
 
   /*! Get the last error string returned by Porta */
   std::string GetLastPortaError();
-
-
-  /*! pointer to the hardware */
+  
+  /*! Pointer to the hardware. Only required for SDK versions prior to 6.0 */  
   porta Porta;
 
   /*! Imaging parameters */
@@ -240,13 +244,17 @@ private:
   // data members
   static vtkSonixPortaVideoSource *Instance;
   
-  /*! call back whenever a new frame is available */
+  /*! call back whenever a new frame is available */ 
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
+  //  SDK version < 5.7.x 
   static bool vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id );
-#else // SDK version 5.7.x or newer
+#elseif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
+  //  5.7.x <= SDK version < 6.x
   static bool vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header );
+#else
+  static int vtkSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header);
 #endif
-  
+
   // vtkSonixPortaVideoSource(const vtkSonixPortaVideoSource&);  // Not implemented.
   // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.							
   

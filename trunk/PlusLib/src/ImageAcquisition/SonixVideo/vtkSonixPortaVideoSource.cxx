@@ -90,8 +90,10 @@ vtkSonixPortaVideoSourceCleanup vtkSonixPortaVideoSource::Cleanup;
 #  define vtkGWL_USERDATA GWL_USERDATA
 #endif //
 
-static const int CONNECT_RETRY=5;
-static const int CONNECT_RETRY_DELAY_SEC=1.0;
+// The porta wrapper implementation does not have the proper #includes, so we have to include the file here
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6) 
+  #include "porta_wrapper.cpp"
+#endif
 
 //----------------------------------------------------------------------------
 vtkSonixPortaVideoSourceCleanup::vtkSonixPortaVideoSourceCleanup()
@@ -234,9 +236,13 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
+  //  SDK version < 5.7.x 
   bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id )
-#else // SDK version 5.7.x or newer
+#elseif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
+  //  5.7.x <= SDK version < 6.x
   bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
+#else
+  int vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
 #endif
 {
 
@@ -318,12 +324,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     LOG_ERROR("One of the Porta paths has not been set" );
     return PLUS_FAIL;
   }
-
-  int code;
-  int size = 256;
-  char err[ 256 ];
-
-
+  
 	LOG_TRACE("Some info on the initializaton" << this->Usm << " " << this->Pci );
   if ( !this->Porta.init( this->PortaCineSize,
     this->PortaFirmwarePath,
@@ -336,7 +337,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 		0, 
 		this->Channels) )
   {
-//    this->Porta.getLastError( err, size );
     LOG_ERROR("Initialize: Porta could not be initialized: (" << this->GetLastPortaError() << ")" );
     return PLUS_FAIL;
   }
@@ -344,6 +344,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 	this->Connected = true;
 
 	// select the probe
+  int code=0;
   if ( this->Porta.isConnected() ) 
   {
     code = (char)this->Porta.getProbeID( 0 );
@@ -389,9 +390,8 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // this is from propello
   if( !this->Porta.initImagingMode( BMode ) ) 
-  {
-	this->Porta.getLastError( err, size );
-    LOG_ERROR("Initialize: cannot initialize imagingMode (" << err << ")" );
+  {	  
+    LOG_ERROR("Initialize: cannot initialize imagingMode (" << this->GetLastPortaError() << ")" );
     return PLUS_FAIL;
   }
   else
@@ -428,8 +428,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // set up the callback function which is invocked upon arrival
   // of a new frame
-  this->Porta.setDisplayCallback( 0, vtkSonixPortaVideoSourceNewFrameCallback,
-    (void*)this );
+  this->Porta.setDisplayCallback( 0, vtkSonixPortaVideoSourceNewFrameCallback,(void*)this ); 
 
 //  this->Porta.setMotorActive(true);
 
@@ -705,11 +704,15 @@ PlusStatus vtkSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* confi
 //----------------------------------------------------------------------------
 std::string vtkSonixPortaVideoSource::GetLastPortaError()
 {
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
   const unsigned int MAX_PORTA_ERROR_MSG_LENGTH=256;
   char err[MAX_PORTA_ERROR_MSG_LENGTH+1];
   err[MAX_PORTA_ERROR_MSG_LENGTH]=0; // make sure the string is null-terminated
   this->Porta.getLastError(err,MAX_PORTA_ERROR_MSG_LENGTH);
   return err; 
+#else
+  return "unknown";
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1118,8 +1121,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     this->PortaSettingPath,
     this->PortaLUTPath ) ) 
   {
-    this->PtrPorta.getLastError( err, size );
-    LOG_ERROR("Initialize: Porta could not be initialized: (" << err << ")" );
+    LOG_ERROR("Initialize: Porta could not be initialized: (" << this->GetLastPortaError() << ")" );
     return PLUS_FAIL;
   }
 
