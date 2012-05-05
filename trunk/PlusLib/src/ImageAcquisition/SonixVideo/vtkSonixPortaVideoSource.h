@@ -19,16 +19,13 @@ Authors include: Elvis Chen (Queen's University)
 #include "vtkPlusVideoSource.h"
 
 // porta includes
+#include <porta_params_def.h>
+#include <ImagingModes.h>
+#include <porta.h>
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
   #include <porta_std_includes.h>
 #else
   #include <porta_def.h>
-#endif
-#include <porta_params_def.h>
-#include <ImagingModes.h>
-#include <porta.h>
-
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6)
   #include <porta_wrapper.h>
 #endif
 
