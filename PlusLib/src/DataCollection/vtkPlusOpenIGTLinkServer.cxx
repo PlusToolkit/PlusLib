@@ -256,8 +256,13 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
- 
+    
     // Acquire tracked frames since last acquisition (minimum 1 frame)
+    if (self->LastProcessingTimePerFrameMs<1)
+    {
+      // if processing was less than 1ms/frame then assume it was 1ms (1000FPS processing speed) to avoid division by zero
+      self->LastProcessingTimePerFrameMs=1;
+    }
     int numberOfFramesToGet = std::max(self->MaxTimeSpentWithProcessingMs / self->LastProcessingTimePerFrameMs, 1); 
     
     if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
