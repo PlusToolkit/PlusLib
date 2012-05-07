@@ -657,14 +657,16 @@ int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double aT
       return 0; 
     }
 
+    // vtkTrackerBuffer::INTERPOLATED will give the closest item UID  
     TrackerBufferItem tFromItem; 
-    if (trackerBuffer->GetTrackerBufferItem(aTimestampFrom, &tFromItem) != ITEM_OK )
+    if (trackerBuffer->GetTrackerBufferItemFromTime(aTimestampFrom, &tFromItem, vtkTrackerBuffer::INTERPOLATED) != ITEM_OK )
     {
       return 0;
     } 
 
+    // vtkTrackerBuffer::INTERPOLATED will give the closest item UID 
     TrackerBufferItem tToItem; 
-    if (trackerBuffer->GetTrackerBufferItem(aTimestampTo, &tToItem) != ITEM_OK )
+    if (trackerBuffer->GetTrackerBufferItemFromTime(aTimestampTo, &tToItem, vtkTrackerBuffer::INTERPOLATED) != ITEM_OK )
     {
       return 0;
     }
@@ -793,6 +795,13 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
   }
 
   LOG_DEBUG("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
+
+  // If we couldn't find any frames (or one of the items were invalid) 
+  // set the timestamp to the most recent one
+  if ( numberOfFramesToAdd == 0 )
+  {
+    aTimestamp = mostRecentTimestamp; 
+  }
 
   for (int i=0; i<numberOfFramesToAdd; ++i)
   {
