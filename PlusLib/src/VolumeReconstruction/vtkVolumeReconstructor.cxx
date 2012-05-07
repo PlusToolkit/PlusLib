@@ -195,7 +195,7 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   if (reconConfig->GetScalarAttribute("NumberOfThreads", numberOfThreads))
   {
     this->Reconstructor->SetNumberOfThreads(numberOfThreads);
-	this->HoleFiller->SetNumberOfThreads(numberOfThreads);
+    this->HoleFiller->SetNumberOfThreads(numberOfThreads);
   }
 
   int fillHoles=0;
@@ -218,77 +218,109 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
     vtkXMLDataElement* holeFilling = reconConfig->FindNestedElementWithName("HoleFilling");
     if ( this->FillHoles == 1 && holeFilling == NULL )
     {
-      LOG_ERROR("Couldn't locate kernel parameters for hole filling!");
+      LOG_ERROR("Couldn't locate hole filling parameters for hole filling!");
       return PLUS_FAIL;
     }
     // find the number of kernels
-	int numKernels(0);
+    int numHFElements(0);
     for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
     {
       vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
-      if ( STRCASECMP(nestedElement->GetName(), "Kernel" ) != 0 )
+      if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
       {
         // Not a kernel element, skip it
         continue; 
       }
-	  numKernels++;
-	}
-	// read each kernel into memory
-	HoleFiller->SetNumKernels(numKernels);
-	HoleFiller->AllocateKernels();
+      numHFElements++;
+    } 
+    // read each kernel into memory
+    HoleFiller->SetNumHFElements(numHFElements);
+    HoleFiller->AllocateHFElements();
     int numberOfErrors(0);
-	int currentKernelIndex(0);
+    int currentElementIndex(0);
     for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
-	{
+    {
       vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
-      if ( STRCASECMP(nestedElement->GetName(), "Kernel" ) != 0 )
+      if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
       {
-        // Not a kernel element, skip it
+        // Not a hole filling element, skip it
         continue; 
       }
-      vtkFillHolesInVolumeKernel tempKernel;
-	  // read size
-      int size[3]={0}; 
-      if ( nestedElement->GetVectorAttribute("Size", 3, size) )
+      FillHolesInVolumeElement tempElement;
+      if (nestedElement->GetAttribute("Type"))
       {
-        tempKernel.size[0] = size[0];
-        tempKernel.size[1] = size[1];
-        tempKernel.size[2] = size[2];
+        if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN") == 0)
+        {
+          tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN;
+        }
+        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "STICK") == 0)
+        {
+          tempElement.type = FillHolesInVolumeElement::HFTYPE_STICK;
+        }
+        else
+        {
+          LOG_ERROR("Unknown hole filling element option: "<<nestedElement->GetAttribute("Type")<<". Valid options: GAUSSIAN, STICK.");
+        }
+      } else {
+        LOG_ERROR("Couldn't identify the hole filling element \"Type\"! Valid options: GAUSSIAN, STICK.");
+        return PLUS_FAIL;
       }
-      else
-      {
-        LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
-        numberOfErrors++; 
-        continue; 
-      }
-	  // read stdev
-      float stdev[3]={0}; 
-      if ( nestedElement->GetVectorAttribute("Stdev", 3, stdev) )
-      {
-        tempKernel.stdev[0] = stdev[0]; 
-        tempKernel.stdev[1] = stdev[1]; 
-        tempKernel.stdev[2] = stdev[2]; 
-      }
-      else
-      {
-        LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
-        numberOfErrors++; 
-        continue; 
-      }
-      // read minRatio
+      int size=0; 
+      float stdev=0; 
       float minRatio = 0.; 
-      if ( nestedElement->GetScalarAttribute("MinimumKnownVoxelsRatio", minRatio) )
-      {
-        tempKernel.minRatio = minRatio; 
+      int stickLengthLimit = 0;
+      switch (tempElement.type) {
+      case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
+        // read size
+        if ( nestedElement->GetScalarAttribute("Size", size) )
+        {
+          tempElement.size = size;
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+        // read stdev
+        if ( nestedElement->GetScalarAttribute("Stdev", stdev) )
+        {
+          tempElement.stdev = stdev;
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+        // read minRatio
+        if ( nestedElement->GetScalarAttribute("MinimumKnownVoxelsRatio", minRatio) )
+        {
+          tempElement.minRatio = minRatio; 
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"MinimumKnownVoxelsRatio\" attribute of kernel[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+        break;
+      case FillHolesInVolumeElement::HFTYPE_STICK:
+        // read stick
+        if ( nestedElement->GetScalarAttribute("StickLengthLimit", stickLengthLimit) )
+        {
+          tempElement.stickLengthLimit = stickLengthLimit; 
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"StickLengthLimit\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+        break;
       }
-      else
-      {
-        LOG_ERROR("Unable to find \"MinimumKnownVoxelsRatio\" attribute of kernel[" << nestedElementIndex <<"]"); 
-        numberOfErrors++; 
-        continue; 
-      }
-	  HoleFiller->SetKernel(currentKernelIndex,tempKernel);
-	  currentKernelIndex++;
+      HoleFiller->SetHFElement(currentElementIndex,tempElement);
+      currentElementIndex++;
     }
     if (numberOfErrors != 0) return PLUS_FAIL;
   }
@@ -301,13 +333,13 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 {
   if ( config == NULL )
-	{
-		LOG_ERROR("Unable to write configuration from volume reconstructor! (XML data element is NULL)"); 
-		return PLUS_FAIL; 
-	}
+  {
+    LOG_ERROR("Unable to write configuration from volume reconstructor! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
 
-	vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
-	if (reconConfig == NULL)
+  vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+  if (reconConfig == NULL)
   {
     vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkSmartPointer<vtkXMLDataElement>::New();
     newReconConfig->SetName("VolumeReconstruction");
@@ -316,25 +348,25 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     if (reconConfig == NULL)
     {
       LOG_ERROR("Failed to add VolumeReconstruction element");
-		  return PLUS_FAIL;
+      return PLUS_FAIL;
     }
-	}
+  }
 
-	// output parameters
+  // output parameters
   reconConfig->SetVectorAttribute("OutputSpacing", 3, this->Reconstructor->GetOutputSpacing());
-	reconConfig->SetVectorAttribute("OutputOrigin", 3, this->Reconstructor->GetOutputOrigin());
-	reconConfig->SetVectorAttribute("OutputExtent", 6, this->Reconstructor->GetOutputExtent());
+  reconConfig->SetVectorAttribute("OutputOrigin", 3, this->Reconstructor->GetOutputOrigin());
+  reconConfig->SetVectorAttribute("OutputExtent", 6, this->Reconstructor->GetOutputExtent());
 
-	// clipping parameters
-	reconConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->Reconstructor->GetClipRectangleOrigin());
-	reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->Reconstructor->GetClipRectangleSize());
+  // clipping parameters
+  reconConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->Reconstructor->GetClipRectangleOrigin());
+  reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->Reconstructor->GetClipRectangleSize());
 
-	// fan parameters
+  // fan parameters
   if (this->Reconstructor->FanClippingApplied())
   {
-	  reconConfig->SetVectorAttribute("FanAngles", 2, this->Reconstructor->GetFanAngles());
-	  reconConfig->SetVectorAttribute("FanOrigin", 2, this->Reconstructor->GetFanOrigin());
-	  reconConfig->SetDoubleAttribute("FanDepth", this->Reconstructor->GetFanDepth());
+    reconConfig->SetVectorAttribute("FanAngles", 2, this->Reconstructor->GetFanAngles());
+    reconConfig->SetVectorAttribute("FanOrigin", 2, this->Reconstructor->GetFanOrigin());
+    reconConfig->SetDoubleAttribute("FanDepth", this->Reconstructor->GetFanDepth());
   }
   else
   {
@@ -343,7 +375,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     reconConfig->RemoveAttribute("FanDepth");
   }
 
-	// reconstruction options
+  // reconstruction options
   reconConfig->SetAttribute("Interpolation", this->Reconstructor->GetInterpolationModeAsString(this->Reconstructor->GetInterpolationMode()));
   reconConfig->SetAttribute("Optimization", this->Reconstructor->GetOptimizationModeAsString(this->Reconstructor->GetOptimization()));
   reconConfig->SetAttribute("Compounding", this->Reconstructor->GetCompounding()?"On":"Off");

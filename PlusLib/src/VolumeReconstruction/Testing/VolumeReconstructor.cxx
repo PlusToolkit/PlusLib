@@ -177,10 +177,11 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
 
-  LOG_INFO("Saving volume to file...");
+  LOG_INFO("Filling holes...");
   vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
   reconstructor->GetReconstructedVolume(reconstructedVolume);
 
+  LOG_INFO("Saving volume to file...");
   vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();
   //vtkSmartPointer<vtkMetaImageWriter> writer3D = vtkSmartPointer<vtkMetaImageWriter>::New();
   writer3D->SetFileTypeToBinary();
