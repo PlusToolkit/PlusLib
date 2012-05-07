@@ -36,11 +36,13 @@ namespace atc
 #include "vtkTrackerBuffer.h"
 
 vtkStandardNewMacro(vtkAscension3DGTracker);
+typedef atc::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
 
 //-------------------------------------------------------------------------
 vtkAscension3DGTracker::vtkAscension3DGTracker()
 {
   this->LocalTrackerBuffer = NULL;
+  this->AscensionRecordBuffer = NULL; 
 
   this->TransmitterAttached = false;
   this->NumberOfSensors = 0; 
@@ -52,6 +54,12 @@ vtkAscension3DGTracker::~vtkAscension3DGTracker()
   if ( this->Tracking )
   {
     this->StopTracking();
+  }
+
+  if ( this->AscensionRecordBuffer != NULL )
+  {
+    delete this->AscensionRecordBuffer; 
+    this->AscensionRecordBuffer = NULL; 
   }
 
   if ( this->LocalTrackerBuffer != NULL )
@@ -116,6 +124,11 @@ PlusStatus vtkAscension3DGTracker::Connect()
 
 
   this->NumberOfSensors = systemConfig.numberSensors; 
+
+  if ( this->AscensionRecordBuffer == NULL )
+  {
+    this->AscensionRecordBuffer = new AscensionRecordType[this->NumberOfSensors ];
+  }
 
   // Enable tools
   for ( int i = 0; i < this->GetNumberOfSensors(); i++ )
@@ -246,20 +259,25 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  typedef atc::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD RecordType;
-  RecordType *record = new RecordType[ sysConfig.numberSensors ];
-  if (this->CheckReturnStatus( atc::GetSynchronousRecord( ALL_SENSORS,
-    record, sysConfig.numberSensors * sizeof( RecordType ) ) ) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Cannot get synchronous record");
-    return PLUS_FAIL;
-  }
-
   if ( this->GetNumberOfSensors() != sysConfig.numberSensors )
   {
     LOG_ERROR( "Changing sensors while tracking is not supported. Reconnect necessary." );
     this->StopTracking();
     this->Disconnect();
+    return PLUS_FAIL;
+  }
+
+  AscensionRecordType* record = static_cast<AscensionRecordType*>(this->AscensionRecordBuffer); 
+  if ( record == NULL )
+  {
+    LOG_ERROR( "Ascension record buffer is invalid, reconnect necessary." );
+    return PLUS_FAIL; 
+  }
+
+  if (this->CheckReturnStatus( atc::GetAsynchronousRecord( ALL_SENSORS,
+    record, sysConfig.numberSensors * sizeof( AscensionRecordType ) ) ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get synchronous record");
     return PLUS_FAIL;
   }
 
@@ -299,6 +317,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
         mToolToTracker->SetElement( row, col, record[ sensorIndex ].s[ row ][ col ] );
       }
     }
+    
     mToolToTracker->Invert();
 
     mToolToTracker->SetElement( 0, 3, record[ sensorIndex ].x );

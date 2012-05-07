@@ -11,7 +11,6 @@ See License.txt for details.
 
 class vtkTrackerBuffer; 
 
-
 /*!
 \class vtkAscension3DGTracker 
 \brief Interface for the Ascension 3DG magnetic tracker 
@@ -91,6 +90,8 @@ private:  // Variables.
   std::vector< bool > SensorSaturated;
   std::vector< bool > SensorAttached;
   std::vector< bool > SensorInMotion;
+
+  void* AscensionRecordBuffer; 
 
   bool TransmitterAttached;
 
