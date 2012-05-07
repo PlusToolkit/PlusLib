@@ -970,6 +970,11 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   int numberOfFramesBeforeRecording = trackedFrameListToUse->GetNumberOfTrackedFrames();
 
   // Acquire tracked frames since last acquisition (minimum 1 frame)
+  if (m_LastProcessingTimePerFrameMs<1)
+  {
+    // if processing was less than 1ms/frame then assume it was 1ms (1000FPS processing speed) to avoid division by zero
+    m_LastProcessingTimePerFrameMs=1;
+  }
   int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
 
   if ( m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrameList(
