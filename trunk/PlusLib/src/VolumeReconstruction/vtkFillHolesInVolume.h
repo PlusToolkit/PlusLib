@@ -54,6 +54,72 @@ struct vtkFillHolesInVolumeKernel {
   int size[3];
   float stdev[3];
   float minRatio;
+
+};
+
+// TODO: This needs massive optimization
+class FillHolesInVolumeElement 
+{
+public:
+
+  enum HFElementTypeIdentifier 
+  {
+    HFTYPE_GAUSSIAN,
+    HFTYPE_STICK
+  };
+
+  FillHolesInVolumeElement() 
+  {
+    type = HFTYPE_GAUSSIAN;
+    size = 0;
+    stdev = 0;
+    minRatio = 0.0f;
+    stickLengthLimit = 0;
+    numSticks = 0;
+    kernel = NULL;
+    sticksList = NULL;
+  }
+  ~FillHolesInVolumeElement() {switch(type) {case HFTYPE_GAUSSIAN: delete[] kernel; break;
+                                             case HFTYPE_STICK: delete[] sticksList; break;}}
+
+  HFElementTypeIdentifier type;
+
+  // GAUSSIAN ONLY
+  void setupAsGaussian(int size, float stdev, float minRatio);
+  template <class T>
+  bool applyGaussian(T* inputData,            // contains the dataset being interpolated between
+										 unsigned short* accData, // contains the weights of each voxel
+										 vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+										 vtkIdType* accOffsets,
+										 const int& inputComp,	  // the component index of interest
+										 int* bounds,             // the boundaries of the thread
+                     int* wholeExtent,        // the boundaries of the volume, outputExtent
+										 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
+										 T& returnVal);           // The value of the pixel being calculated (unknown);
+  void allocateGaussianMatrix();
+  int size;
+  float stdev;
+  float minRatio;
+  unsigned int* kernel; // stores the gaussian weights for this kernel
+
+  // STICKS ONLY
+  void setupAsStick(int stickLengthLimit);
+  template <class T>
+  bool applySticks(T* inputData,            // contains the dataset being interpolated between
+                   unsigned short* accData, // contains the weights of each voxel
+					 		     vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+					 		     vtkIdType* accOffsets,
+					 		     const int& inputComp,	  // the component index of interest
+							     int* bounds,             // the boundaries of the thread
+                   int* wholeExtent,        // the boundaries of the volume, outputExtent
+									 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
+								   T& returnVal);           // The value of the pixel being calculated (unknown);
+  void allocateSticks();
+  //void doNothing() {} // TODO: Remove
+  int stickLengthLimit;
+  int numSticks;
+  int* sticksList; // triples each corresponding to a stick orientation
+
 };
 
 /*!
@@ -102,13 +168,13 @@ public:
     Set the index'th kernel that is to be tried, index ranging from 0 (first kernel)
 	up to NumKernels-1 (last kernel).
   */
-  void SetKernel(int index, vtkFillHolesInVolumeKernel& kernel);
+  void SetHFElement(int index, FillHolesInVolumeElement& element);
 
   /*!
     Allocate memory for all of the kernels that are to be tried. NumKernels must be 
 	set first (see SetNumKernels)
   */
-  void AllocateKernels();
+  void AllocateHFElements();
 
   /*!
     Get the number of kernels that are to be tried on the data.
@@ -118,7 +184,7 @@ public:
   /*!
     Get the number of kernels that are to be tried on the data.
   */
-  void SetNumKernels(int n);
+  void SetNumHFElements(int n);
 
   /*! Set the input volume (reconstructed volume, with holes) */
   void SetReconstructedVolume(vtkImageData *reconstructedVolume);
@@ -206,8 +272,8 @@ protected:
   static VTK_THREAD_RETURN_TYPE FillHoleThreadFunction( void *arg );
 
   int Compounding;
-  int NumKernels;
-  vtkFillHolesInVolumeKernel* Kernels;
+  int NumHFElements;
+  FillHolesInVolumeElement* HFElements;
 
 private:
   vtkFillHolesInVolume(const vtkFillHolesInVolume&);  // Not implemented.

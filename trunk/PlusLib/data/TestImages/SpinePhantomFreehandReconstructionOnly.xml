@@ -18,10 +18,9 @@
     Interpolation="LINEAR" Optimization="FULL"
     Compounding="On" FillHoles="On" NumberOfThreads="1">
     <HoleFilling>
-      <Kernel 
-		Size="3 3 3" 
-		Stdev="0.33333 0.33333 0.33333"
-		MinimumKnownVoxelsRatio="0.0001" />
+      <HoleFillingElement
+        Type="STICK" 	  
+		StickLengthLimit="9" />
     </HoleFilling>
   </VolumeReconstruction>
 </PlusConfiguration>
