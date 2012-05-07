@@ -21,8 +21,8 @@
 
 #include "vtkPlusIgtlMessageFactory.h" 
 
-#define DELAY_ON_SENDING_ERROR_SEC 0.02 
-#define DELAY_ON_NO_NEW_FRAMES_SEC 0.02 
+static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
+static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 

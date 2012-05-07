@@ -278,11 +278,11 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
   {
     if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
     {
-      LOG_WARNING("Failed to get tracker buffer item: tracker item not available anymore"); 
+      LOG_WARNING("Failed to get tracker buffer item: tracker item not available anymore (requested UID: " << uid << " oldest available UID: " << this->GetOldestItemUidInBuffer() << "  latest available UID: " << this->GetLatestItemUidInBuffer() << ")"); 
     }
     else if (  status == ITEM_NOT_AVAILABLE_YET )
     {
-      LOG_WARNING("Failed to get tracker buffer item: tracker item not available yet"); 
+      LOG_WARNING("Failed to get tracker buffer item: tracker item not available yet (requested UID: " << uid << " oldest available UID: " << this->GetOldestItemUidInBuffer() << "  latest available UID: " << this->GetLatestItemUidInBuffer() << ")"); 
     }
     else
     {
