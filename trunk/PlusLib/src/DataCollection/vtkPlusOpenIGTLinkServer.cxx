@@ -23,6 +23,7 @@
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
+static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
@@ -192,13 +193,13 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
   // Wait for connections until we want to stop the thread
   while ( self->ConnectionActive.first )
   {
-    igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection( 500 );
+    igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection( CLIENT_SOCKET_TIMEOUT_MSEC );
     if (newClientSocket.IsNotNull())
     {
       // Lock before we change the clients list 
       PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
 
-      newClientSocket->SetTimeout( 500 ); // Needs OpenIGTLink revision 7701 (trunk) or later.
+      newClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC ); 
 
       PlusIgtlClientInfo client; 
       client.ClientSocket = newClientSocket;
@@ -211,6 +212,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
       client.ClientSocket->GetSocketAddressAndPort(address, port);
 #endif
       LOG_INFO( "Server received new client connection (" << address << ":" << port << ")." );
+      LOG_INFO( "Number of connected clients: " << self->GetNumberOfConnectedClients() ); 
     }
   }
 
@@ -245,6 +247,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
   self->DataCollector->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
   std::list<std::string>::iterator messageTypeIterator; 
+  double elapsedTimeSinceLastPacketSentSec = 0; 
   while ( self->ConnectionActive.first && self->DataSenderActive.first )
   {
     if ( self->IgtlClients.empty() )
@@ -268,6 +271,8 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
+      self->KeepAlive(); 
+      elapsedTimeSinceLastPacketSentSec = 0; 
       vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
       continue; 
     }
@@ -276,6 +281,15 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     if ( trackedFrameList->GetNumberOfTrackedFrames() == 0 )
     {
       vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC); 
+      elapsedTimeSinceLastPacketSentSec += vtkAccurateTimer::GetSystemTime() - startTimeSec; 
+      
+      // Send keep alive packet to clients 
+      if ( 1000* elapsedTimeSinceLastPacketSentSec > ( CLIENT_SOCKET_TIMEOUT_MSEC / 2.0 ) )
+      {
+        self->KeepAlive(); 
+        elapsedTimeSinceLastPacketSentSec = 0; 
+      }
+      
       continue;
     }
    
@@ -283,6 +297,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     {
       // Send tracked frame
       self->SendTrackedFrame( *trackedFrameList->GetTrackedFrame(i) ); 
+      elapsedTimeSinceLastPacketSentSec = 0; 
     }
 
     // Compute time spent with processing one frame in this round
@@ -496,6 +511,63 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
   } // clientIterator
 
+  return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
+{
+  int numberOfErrors = 0; 
+
+  // Lock before we send message to the clients 
+  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  bool clientDisconnected = false;
+
+  std::list<PlusIgtlClientInfo>::iterator clientIterator = this->IgtlClients.begin();
+  while ( clientIterator != this->IgtlClients.end() )
+  {
+    PlusIgtlClientInfo client = (*clientIterator);
+
+    igtl::StatusMessage::Pointer statusMsg = igtl::StatusMessage::New(); 
+    statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+    statusMsg->Pack(); 
+
+    int retValue = 0, numOfTries = 0; 
+    while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
+    {
+      retValue = client.ClientSocket->Send( statusMsg->GetPackPointer(), statusMsg->GetPackSize() ); 
+      numOfTries++; 
+    }
+    bool clientDisconnected = false; 
+    if ( retValue == 0 )
+    {
+      clientDisconnected = true; 
+      igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New(); 
+      statusMsg->GetTimeStamp(ts); 
+
+      LOG_DEBUG( "Client disconnected - could not send " << statusMsg->GetDeviceType() << " message to client (device name: " << statusMsg->GetDeviceName()
+        << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
+    }
+
+    if ( clientDisconnected )
+    {
+      int port = -1; 
+      std::string address; 
+#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+      client.ClientSocket->GetSocketAddressAndPort(address, port); 
+#endif
+      LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
+      clientIterator = this->IgtlClients.erase(clientIterator);
+      clientDisconnected = false; 
+      continue; 
+    }
+
+    // Send messages to the next client 
+    ++clientIterator; 
+
+  } // clientIterator
+
+  LOG_DEBUG("Keep alive packet sent to clients..."); 
   return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 
