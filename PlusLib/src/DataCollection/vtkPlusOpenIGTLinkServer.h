@@ -104,6 +104,9 @@ private:
   /*! Number of retry attempts for message sending to clients */ 
   int NumberOfRetryAttempts; 
 
+  /*! Maximum number of IGTL messages to send in one period */ 
+  int MaxNumberOfIgtlMessagesToSend; 
+
   // Active flag for threads (first: request, second: respond )
   std::pair<bool,bool> ConnectionActive;
   std::pair<bool,bool> DataSenderActive;

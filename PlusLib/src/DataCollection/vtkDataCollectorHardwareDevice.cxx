@@ -714,7 +714,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
         LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      if ( mostRecentVideoUid - aMaxNumberOfFramesToAdd > this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() )
+      if ( mostRecentVideoUid - this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd )
       {
         // Most recent is needed too
         mostRecentVideoUid = mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; 
@@ -753,7 +753,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
         LOG_ERROR("Failed to get tracked buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      if ( mostRecentTrackerUid - aMaxNumberOfFramesToAdd > trackerBuffer->GetOldestItemUidInBuffer() )
+      if ( mostRecentTrackerUid - trackerBuffer->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd  )
       {
         // Most recent is needed too
         mostRecentTrackerUid = mostRecentTrackerUid - aMaxNumberOfFramesToAdd + 1; 
