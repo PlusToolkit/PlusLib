@@ -75,6 +75,9 @@ protected:
   /*! Tracked frame interface, sends the selected message type and data to all clients */ 
   virtual PlusStatus SendTrackedFrame( TrackedFrame& trackedFrame ); 
   
+  /*! Send status message to clients to keep alive the connection */ 
+  virtual PlusStatus KeepAlive(); 
+
 private:
 	
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
