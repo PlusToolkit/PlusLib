@@ -140,7 +140,7 @@ PlusStatus vtkAscension3DGTracker::Connect()
       vtkTrackerTool * tool = NULL; 
       if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Undefined connected tool found in the on port '" << portName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         this->SensorAttached[ i ] = false; 
       }
     }
