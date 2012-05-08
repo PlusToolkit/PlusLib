@@ -37,8 +37,9 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   this->ListeningPort = -1;
   this->LastSentTrackedFrameTimestamp = 0; 
   this->NumberOfRetryAttempts = 3; 
+  this->MaxNumberOfIgtlMessagesToSend = 100; 
 
-  this->MaxTimeSpentWithProcessingMs = 100; 
+  this->MaxTimeSpentWithProcessingMs = 50; 
   this->LastProcessingTimePerFrameMs = -1;
 
   this->ConnectionReceiverThreadId = -1;
@@ -261,12 +262,14 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
     
     // Acquire tracked frames since last acquisition (minimum 1 frame)
-    if (self->LastProcessingTimePerFrameMs<1)
+    if (self->LastProcessingTimePerFrameMs < 1)
     {
       // if processing was less than 1ms/frame then assume it was 1ms (1000FPS processing speed) to avoid division by zero
       self->LastProcessingTimePerFrameMs=1;
     }
     int numberOfFramesToGet = std::max(self->MaxTimeSpentWithProcessingMs / self->LastProcessingTimePerFrameMs, 1); 
+    // Maximize the number of frames to send
+    numberOfFramesToGet = std::min(numberOfFramesToGet, self->MaxNumberOfIgtlMessagesToSend); 
     
     if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
     {
@@ -595,6 +598,18 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree!");
     return PLUS_FAIL;
+  }
+
+  int maxTimeSpentWithProcessingMs = 0;
+  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("MaxTimeSpentWithProcessingMs", maxTimeSpentWithProcessingMs) ) 
+  {
+    this->MaxTimeSpentWithProcessingMs = maxTimeSpentWithProcessingMs; 
+  }
+
+  int maxNumberOfIgtlMessagesToSend = 0; 
+  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("MaxNumberOfIgtlMessagesToSend", maxNumberOfIgtlMessagesToSend) ) 
+  {
+    this->MaxNumberOfIgtlMessagesToSend = maxNumberOfIgtlMessagesToSend; 
   }
 
   int listeningPort = -1; 

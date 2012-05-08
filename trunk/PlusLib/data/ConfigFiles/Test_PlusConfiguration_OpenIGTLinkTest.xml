@@ -9,7 +9,7 @@
     <File SequenceMetafile="fCal_Test_Calibration_3NWires.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
-  <PlusOpenIGTLinkServer ListeningPort="18944" > 
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 
     <DefaultClientInfo> 
 	  <MessageTypes> 
 	    <Message Type="IMAGE" />
