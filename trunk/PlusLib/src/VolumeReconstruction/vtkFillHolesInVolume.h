@@ -65,6 +65,7 @@ public:
   enum HFElementTypeIdentifier 
   {
     HFTYPE_GAUSSIAN,
+    HFTYPE_GAUSSIAN_ACCUMULATION,
     HFTYPE_STICK
   };
 
@@ -75,19 +76,32 @@ public:
     stdev = 0;
     minRatio = 0.0f;
     stickLengthLimit = 0;
-    numSticks = 0;
+    numSticksInList = 0;
+    numSticksToUse = 1;
     kernel = NULL;
     sticksList = NULL;
   }
   ~FillHolesInVolumeElement() {switch(type) {case HFTYPE_GAUSSIAN: delete[] kernel; break;
+                                             case HFTYPE_GAUSSIAN_ACCUMULATION: delete[] kernel; break;
                                              case HFTYPE_STICK: delete[] sticksList; break;}}
 
   HFElementTypeIdentifier type;
 
-  // GAUSSIAN ONLY
+  // GAUSSIAN AND GAUSSIAN_ACCUMULATION ONLY
   void setupAsGaussian(int size, float stdev, float minRatio);
+  void setupAsGaussianAccumulation(int size, float stdev, float minRatio);
   template <class T>
   bool applyGaussian(T* inputData,            // contains the dataset being interpolated between
+										 unsigned short* accData, // contains the weights of each voxel
+										 vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+										 vtkIdType* accOffsets,
+										 const int& inputComp,	  // the component index of interest
+										 int* bounds,             // the boundaries of the thread
+                     int* wholeExtent,        // the boundaries of the volume, outputExtent
+										 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
+										 T& returnVal);           // The value of the pixel being calculated (unknown);
+  template <class T>
+  bool applyGaussianAccumulation(T* inputData,            // contains the dataset being interpolated between
 										 unsigned short* accData, // contains the weights of each voxel
 										 vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
 										 vtkIdType* accOffsets,
@@ -103,7 +117,7 @@ public:
   unsigned int* kernel; // stores the gaussian weights for this kernel
 
   // STICKS ONLY
-  void setupAsStick(int stickLengthLimit);
+  void setupAsStick(int stickLengthLimit, int numberOfSticksToUse);
   template <class T>
   bool applySticks(T* inputData,            // contains the dataset being interpolated between
                    unsigned short* accData, // contains the weights of each voxel
@@ -115,10 +129,13 @@ public:
 									 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
 								   T& returnVal);           // The value of the pixel being calculated (unknown);
   void allocateSticks();
-  //void doNothing() {} // TODO: Remove
   int stickLengthLimit;
-  int numSticks;
+  int numSticksToUse;    // the number of sticks to use in averaging the final voxel value
+  int numSticksInList;         // the number of sticks in sticksList
   int* sticksList; // triples each corresponding to a stick orientation
+
+//private: 
+  //double computeAngle(int* v1, int* v2);
 
 };
 
@@ -196,37 +213,6 @@ public:
   void SetAccumulationBuffer(vtkImageData *accumulationBuffer);
 
   unsigned int* calculateGaussianMatrix(const int& kernelIndex);
-
-  /*!
-  Apply the sticks hole filling algorithm on the voxel at "this pixel" and store the result in returnVal algorithm.
-  Return true on successfully finding a suitable value, and false otherwise.
-  */
-  template <class T>
-  bool applySticksAlgorithm( T* inputData,         // contains the dataset being interpolated between
-											    unsigned short* accData, // contains the weights of each voxel
-											    vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											    vtkIdType* accOffsets,
-											    const int& inputComp,	   // the component index of interest
-											    int* bounds,             // the boundaries of the volume, outputExtent
-											    int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											    T& returnVal);           // The value of the pixel being calculated (unknown)
-
-  /*!
-	Perform Interpolation between the nearest NxMxP voxels (defined by the kernel parameters), and store the result 
-	in returnVal. Returns the ratio of known voxels in the kernel region.
-  */
-  template <class T>
-  double weightedAverageOverNeighborhoodWithGaussian(
-                        T* inputData, // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the volume, outputExtent
-											  const int& k,            // The index of the kernel being tried
-											  unsigned int* kernel,    // the gaussian kernel matrix
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal);           // The value of the pixel being calculated (unknown)
 
 
 protected:

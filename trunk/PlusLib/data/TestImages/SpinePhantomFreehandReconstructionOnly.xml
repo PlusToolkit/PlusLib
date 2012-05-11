@@ -20,7 +20,8 @@
     <HoleFilling>
       <HoleFillingElement
         Type="STICK" 	  
-		StickLengthLimit="9" />
+		StickLengthLimit="9"
+        NumberOfSticksToUse="1" />
     </HoleFilling>
   </VolumeReconstruction>
 </PlusConfiguration>

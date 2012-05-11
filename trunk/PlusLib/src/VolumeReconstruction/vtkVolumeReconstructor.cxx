@@ -253,6 +253,10 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         {
           tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN;
         }
+        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN_ACCUMULATION") == 0)
+        {
+          tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION;
+        }
         else if (STRCASECMP(nestedElement->GetAttribute("Type"), "STICK") == 0)
         {
           tempElement.type = FillHolesInVolumeElement::HFTYPE_STICK;
@@ -269,8 +273,10 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       float stdev=0; 
       float minRatio = 0.; 
       int stickLengthLimit = 0;
+      int numberOfSticksToUse = 1;
       switch (tempElement.type) {
       case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
+      case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
         // read size
         if ( nestedElement->GetScalarAttribute("Size", size) )
         {
@@ -314,6 +320,16 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         else
         {
           LOG_ERROR("Unable to find \"StickLengthLimit\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+        if ( nestedElement->GetScalarAttribute("NumberOfSticksToUse", numberOfSticksToUse) )
+        {
+          tempElement.numSticksToUse = numberOfSticksToUse; 
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"NumberOfSticksToUse\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
           numberOfErrors++; 
           continue; 
         }
