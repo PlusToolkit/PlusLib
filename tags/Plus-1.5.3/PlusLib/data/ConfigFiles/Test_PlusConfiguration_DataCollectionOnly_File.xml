@@ -1,0 +1,12 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST Data collection uses sequence metafile in file mode." 
+      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
+    />
+
+    <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
+  </DataCollection>
+
+</PlusConfiguration>
