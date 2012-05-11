@@ -156,6 +156,8 @@ int main( int argc, char** argv )
       LOG_ERROR("Size must consist of positive integers");
       exit(EXIT_FAILURE);
     }
+  } else {
+    size[0] = size[1] = size[2] = center[0] = center[1] = center[2] = -1;
   }
 
   // read inputs
@@ -313,8 +315,14 @@ int main( int argc, char** argv )
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str(),std::ios::out | std::ios::app);
       outputStatsFile << timeAndDate << ","
+                   << inputGTFileName << ","
+                   << inputGTAlphaFileName << ","
+                   << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
+                   << center[0] << "_" << center[1] << "_" << center[2] << ","
+                   << size[0] << "_" << size[1] << "_" << size[2] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
+                   << histogramGenerator->GetNumberVoxelsVisible() << ","
                    << histogramGenerator->GetTrueMaximum() << ","
                    << histogramGenerator->GetTrueMinimum() << ","
                    << histogramGenerator->GetTrueMedian() << ","
@@ -339,7 +347,7 @@ int main( int argc, char** argv )
     { // need to create the file and write to it. First give it a header row.
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str());
-      outputStatsFile << "Time,Dataset,Number of Holes,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile";
+      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
       }
@@ -348,8 +356,14 @@ int main( int argc, char** argv )
       }
       outputStatsFile << std::endl;
       outputStatsFile << timeAndDate << ","
+                   << inputGTFileName << ","
+                   << inputGTAlphaFileName << ","
+                   << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
+                   << center[0] << "_" << center[1] << "_" << center[2] << ","
+                   << size[0] << "_" << size[1] << "_" << size[2] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
+                   << histogramGenerator->GetNumberVoxelsVisible() << ","
                    << histogramGenerator->GetTrueMaximum() << ","
                    << histogramGenerator->GetTrueMinimum() << ","
                    << histogramGenerator->GetTrueMedian() << ","

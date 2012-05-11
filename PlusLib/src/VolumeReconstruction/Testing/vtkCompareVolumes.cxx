@@ -78,6 +78,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   std::vector<double> trueDifferences; // store all differences here
   std::vector<double> absoluteDifferences;
 
+  int countVisibleVoxels(0);
 
 	for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
 	{
@@ -89,6 +90,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
         int outIndex = outOffsets[0]*xtemp+outOffsets[1]*ytemp+outOffsets[2]*ztemp;
         if (gtAlphaPtr[inIndex] != 0) 
         {
+          countVisibleVoxels++;
           if (slicesAlphaPtr[inIndex] == 0) 
           {
             double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
@@ -101,9 +103,9 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
           }
           else // not a hole, but these may still be different
           {
-            double difference = (double)gtPtr[inIndex] - testPtr[inIndex]; // cast to double to minimize precision loss
-            outPtrTru[outIndex] = difference;
-            outPtrAbs[outIndex] = abs(difference);
+            //double difference = (double)gtPtr[inIndex] - testPtr[inIndex]; // cast to double to minimize precision loss
+            outPtrTru[outIndex] = 0.0; //difference;
+            outPtrAbs[outIndex] = 0.0; //abs(difference);
           } // end slicesAlphaPtr check
         } 
         else 
@@ -182,6 +184,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   double absolute95thPercentile = absoluteDifferences[percentile95floor]*(1-percentile95fraction) + absoluteDifferences[percentile95ceil]*percentile95fraction;
 
   self->SetNumberOfHoles(numberOfHoles);
+  self->SetNumberVoxelsVisible(countVisibleVoxels);
 
   self->SetTrue95thPercentile(true95thPercentile);
   self->SetTrue5thPercentile(true5thPercentile);
