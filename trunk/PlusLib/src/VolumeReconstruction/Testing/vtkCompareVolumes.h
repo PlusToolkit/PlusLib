@@ -84,6 +84,8 @@ public:
   vtkSetMacro(Absolute95thPercentile,double);
   vtkGetMacro(NumberOfHoles,int);
   vtkSetMacro(NumberOfHoles,int);
+  vtkGetMacro(NumberVoxelsVisible,int);
+  vtkSetMacro(NumberVoxelsVisible,int);
 
   int* GetTrueHistogramPtr() {return TrueHistogram;}
   int* GetAbsoluteHistogramPtr() {return AbsoluteHistogram;}
@@ -101,6 +103,7 @@ protected:
   int TrueHistogram[511];
   int AbsoluteHistogram[256];
   int NumberOfHoles;
+  int NumberVoxelsVisible;
 
   virtual int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *);
 
