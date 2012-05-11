@@ -89,6 +89,18 @@ void FillHolesInVolumeElement::setupAsGaussian(int size, float stdev, float minR
 
 //----------------------------------------------------------------------------
 
+void FillHolesInVolumeElement::setupAsGaussianAccumulation(int size, float stdev, float minRatio)
+{
+  this->type = FillHolesInVolumeElement ::HFTYPE_GAUSSIAN_ACCUMULATION;
+  this->size = size;
+  this->stdev = stdev;
+  this->minRatio = minRatio; 
+  kernel = NULL; 
+  allocateGaussianMatrix();
+}
+
+//----------------------------------------------------------------------------
+
 void FillHolesInVolumeElement::allocateGaussianMatrix()
 {
 
@@ -179,25 +191,100 @@ bool FillHolesInVolumeElement::applyGaussian(
 		} // end y loop
 	} // end x loop
 
-	if (sumAccumulator == 0) // no voxels set in the area
-		return 0;
+  if (sumAccumulator == 0) { // no voxels set in the area
+    returnVal = (T)0;
+    return false;
+  }
 
-  if ((double)numKnownVoxels/(size*size*size) >= minRatio)
+  if ((double)numKnownVoxels/(size*size*size) > minRatio)
   {
     returnVal = (T)(sumIntensities/sumAccumulator); // set it if and only if the min ratio is met
     return true;
   }
 
   // else failure
+  returnVal = (T)0;
   return false;
 
 }
 
 //----------------------------------------------------------------------------
 
-void FillHolesInVolumeElement::setupAsStick(int stickLengthLimit) {
+template <class T>
+bool FillHolesInVolumeElement::applyGaussianAccumulation(
+											  T* inputData,            // contains the dataset being interpolated between
+											  unsigned short* accData, // contains the weights of each voxel
+											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+											  vtkIdType* accOffsets,
+											  const int& inputComp,	   // the component index of interest
+											  int* bounds,             // the boundaries of the thread
+                        int* wholeExtent,        // the boundaries of the volume, outputExtent
+											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
+											  T& returnVal)            // The value of the pixel being calculated (unknown)
+{
+
+	// set the x, y, and z range
+	int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+	int minX = thisPixel[0] - range;
+	int minY = thisPixel[1] - range;
+	int minZ = thisPixel[2] - range;
+	int maxX = thisPixel[0] + range;
+	int maxY = thisPixel[1] + range;
+	int maxZ = thisPixel[2] + range;
+
+	unsigned long long sumIntensities(0); // unsigned long because these rise in value quickly
+	unsigned long long sumAccumulator(0);
+	unsigned long long currentAccumulation(0);
+	int numKnownVoxels(0);
+
+	for (int x = minX; x <= maxX; x++)
+	{
+		for (int y = minY; y <= maxY; y++)
+		{
+			for (int z = minZ; z <= maxZ; z++)
+			{
+				if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
+					y <= wholeExtent[3] && y >= wholeExtent[2] &&
+					z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
+				{
+					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+					currentAccumulation = (unsigned long long)accData[accIndex];
+					if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
+						int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+						int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
+						unsigned long long weight = (unsigned long long)kernel[kerIndex];
+						sumIntensities += (unsigned long long)inputData[volIndex] * weight;
+						sumAccumulator += weight;
+						numKnownVoxels++;
+					}
+				} // end boundary check
+			} // end z loop
+		} // end y loop
+	} // end x loop
+
+  if (sumAccumulator == 0) { // no voxels set in the area
+    returnVal = (T)0;
+    return false;
+  }
+
+  if ((double)numKnownVoxels/(size*size*size) > minRatio)
+  {
+    returnVal = (T)(sumIntensities/sumAccumulator); // set it if and only if the min ratio is met
+    return true;
+  }
+
+  // else failure
+  returnVal = (T)0;
+  return false;
+
+}
+
+//----------------------------------------------------------------------------
+
+void FillHolesInVolumeElement::setupAsStick(int stickLengthLimit, int numberOfSticksToUse) {
   this->type = FillHolesInVolumeElement::HFTYPE_STICK;
   this->stickLengthLimit = stickLengthLimit;
+  this->numSticksToUse = numberOfSticksToUse;
   sticksList = NULL;
   allocateSticks();
 }
@@ -205,21 +292,30 @@ void FillHolesInVolumeElement::setupAsStick(int stickLengthLimit) {
 //----------------------------------------------------------------------------
 
 void FillHolesInVolumeElement::allocateSticks() {
-  numSticks = 13;
+  numSticksInList = 13;
   sticksList = new int[39];
-  sticksList[ 0] = 1; sticksList[ 1] = 0; sticksList[ 2] = 0;
+
+  // 1x1, 2x0
+  sticksList[ 0] = 1; sticksList[ 1] = 0; sticksList[ 2] = 0; // x, y, z
   sticksList[ 3] = 0; sticksList[ 4] = 1; sticksList[ 5] = 0;
   sticksList[ 6] = 0; sticksList[ 7] = 0; sticksList[ 8] = 1;
+
+  // 2x1, 1x0
   sticksList[ 9] = 1; sticksList[10] = 1; sticksList[11] = 0;
   sticksList[12] = 1; sticksList[13] = 0; sticksList[14] = 1;
   sticksList[15] = 0; sticksList[16] = 1; sticksList[17] = 1;
+  // 1x1, 1x-1, 1x0
   sticksList[18] = 1; sticksList[19] =-1; sticksList[20] = 0;
   sticksList[21] = 1; sticksList[22] = 0; sticksList[23] =-1;
   sticksList[24] = 0; sticksList[25] = 1; sticksList[26] =-1;
+
+  // 3x1
   sticksList[27] = 1; sticksList[28] = 1; sticksList[29] = 1;
+  // 2x1, 1x-1
   sticksList[30] =-1; sticksList[31] = 1; sticksList[32] = 1;
   sticksList[33] = 1; sticksList[34] =-1; sticksList[35] = 1;
   sticksList[36] =-1; sticksList[37] =-1; sticksList[38] = 1;
+
 }
 
 //----------------------------------------------------------------------------
@@ -243,11 +339,11 @@ bool FillHolesInVolumeElement::applySticks(
   int fwdTrav, rvsTrav; // store the number of voxels that have been searched
   T fwdVal, rvsVal; // store the values at each end of the stick
 
-  T values[13]; // TODO: change 13 to numSticks
-  double scores[13];
+  T* values = new T[numSticksInList];
+  double* weights = new double[numSticksInList];
 
   // try each stick direction
-  for (int i = 0; i < numSticks; i++) {
+  for (int i = 0; i < numSticksInList; i++) {
 
     int baseStickIndex = i * 3; // 3 coordinates per stick, one for each dimension
 
@@ -276,7 +372,7 @@ bool FillHolesInVolumeElement::applySticks(
 
     // only do reverse direction if we found something forward
     if (!valid) {
-      scores[i] = 0.0; // do this to say that this is a bad stick
+      weights[i] = 0.0; // do this to say that this is a bad stick
       continue; // try next stick
     }
 
@@ -305,35 +401,99 @@ bool FillHolesInVolumeElement::applySticks(
 
     // only calculate a score and a value if we found something in both directions
     if (!valid) {
-      scores[i] = 0.0; // do this to say that this is a bad stick
+      weights[i] = 0.0; // do this to say that this is a bad stick
       continue; // try next stick
     }
 
     // evaluate score and direction
-    int totalDistance = fwdTrav + rvsTrav + 1;
-    double weightFwd = (rvsTrav+1)/(double)totalDistance;
+    double totalDistance = (fwdTrav + rvsTrav + 1);
+    double weightFwd = (rvsTrav+1)/totalDistance;
     double weightRvs = 1.0 - weightFwd;
-    scores[i] = 1.0/totalDistance;
+    double realDistance = totalDistance * sqrt((double)(sticksList[baseStickIndex  ]*sticksList[baseStickIndex  ]+
+                                                        sticksList[baseStickIndex+1]*sticksList[baseStickIndex+1]+
+                                                        sticksList[baseStickIndex+2]*sticksList[baseStickIndex+2]));
+    weights[i] = 1.0/realDistance;
     values[i] = weightRvs*rvsVal + weightFwd*fwdVal;
   }
 
   // determine the highest score, and assign the corresponding value to the pixel
-  double maxScore(0);
-  for (int i = 0; i < numSticks; i++) {
-    if (scores[i] > maxScore) {
-      maxScore = scores[i];
-      returnVal = values[i];
+  int numSticksUsed(0);
+  double sumWeightedValues(0.0);
+  double sumWeights(0.0);
+
+  // iterate through sticks to find the maximum score, use that stick in the calculation, then set the score for it to 0, and repeat
+  while (numSticksUsed < numSticksToUse) {
+
+    // determine highest score among remaining sticks
+    double maxWeight(0.0);
+    for (int i = 0; i < numSticksInList; i++) {
+      if (weights[i] > maxWeight) {
+        maxWeight = weights[i];
+      }
     }
+
+    if (maxWeight == 0) { // indicates all sticks were bad
+      break;
+    }
+
+    // for all sticks with this weight, use them in the result
+    for (int i = 0; i < numSticksInList; i++) {
+      if (weights[i] == maxWeight) {
+        sumWeightedValues += (values[i] * weights[i]);
+        sumWeights += weights[i];
+        numSticksUsed++;
+        weights[i] = 0.0;
+      }
+    }
+
   }
 
-  if (maxScore == 0) { // indicates all sticks were bad
-    returnVal = (T)0;
-  	return false; // failure
+  delete[] weights;
+  delete[] values;
+
+  if (sumWeights != 0) {
+    returnVal = (T)(sumWeightedValues/sumWeights);
+    return true; // at least one stick was good, = success
   }
 
-  return true; // else at least one stick was good, = success
+  // else sumWeights = 0 means all sticks were bad
+  returnVal = (T)0;
+  return false;
 
 }
+
+//----------------------------------------------------------------------------
+
+/*double FillHolesInVolumeElement::computeAngle(int* vec1, int* vec2) {
+
+  int v1[3];
+  int v2[3];
+  double v1_len(0);
+  double v2_len(0);
+  for (int i = 0; i < 3; i++) {
+    v1[i] = vec1[i];
+    v2[i] = vec2[i];
+    v1_len += v1[i];
+    v2_len += v2[i];
+  }
+  v1_len = sqrt(v1_len);
+  v2_len = sqrt(v2_len);
+  for (int i = 0; i < 3; i++) {
+    v1[i] /= v1_len;
+    v2[i] /= v2_len;
+  }
+
+  // v1 and v2 are now unit vectors
+  double dotproduct;
+  for (int i = 0; i < 3; i++)
+    dotproduct += (v1[i] * v2[i]);
+  
+  double angleRadians = acos(dotproduct);
+  double angleDegrees = angleRadians*180/3.141593;
+
+  return angleDegrees;
+
+}*/
 
 //----------------------------------------------------------------------------
 vtkFillHolesInVolume::vtkFillHolesInVolume()
@@ -462,6 +622,9 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
               case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
                 result = HFElements[k].applyGaussian(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
 							  break;
+              case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
+                result = HFElements[k].applyGaussianAccumulation(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
+							  break;
               case FillHolesInVolumeElement::HFTYPE_STICK:
                 result = HFElements[k].applySticks(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
 							  break;
@@ -540,12 +703,16 @@ void vtkFillHolesInVolume::SetHFElement(int index, FillHolesInVolumeElement& ele
   HFElements[index].minRatio = element.minRatio;
   // sticks
   HFElements[index].stickLengthLimit = element.stickLengthLimit;
+  HFElements[index].numSticksToUse = element.numSticksToUse;
   switch (element.type) {
     case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
       HFElements[index].setupAsGaussian(element.size,element.stdev,element.minRatio);
       break;
+    case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
+      HFElements[index].setupAsGaussianAccumulation(element.size,element.stdev,element.minRatio);
+      break;
     case FillHolesInVolumeElement::HFTYPE_STICK:
-      HFElements[index].setupAsStick(element.stickLengthLimit);
+      HFElements[index].setupAsStick(element.stickLengthLimit,element.numSticksToUse);
       break;
   }
 }
