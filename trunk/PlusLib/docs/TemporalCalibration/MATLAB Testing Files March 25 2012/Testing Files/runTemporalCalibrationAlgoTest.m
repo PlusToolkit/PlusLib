@@ -1,9 +1,12 @@
 % Eric:
 testExecutableFullpathName = 'C:\devel\PlusExperimental-bin\bin\Release\TemporalCalibrationAlgoTest.exe';
 
+formatSpec = '%03.0f';
+for i = 0: 1 : 19
+intermediateFileOutputRootDirectory = horzcat('C:\Documents and Settings\moult\My Documents\TemporalCalibrationTests\May_4_2012_testNumber_', num2str(i, formatSpec));
 % Andras:
-testExecutableFullpathName = 'C:\Users\lasso\devel\PlusExperimental-bin\bin\Release\TemporalCalibrationAlgoTest.exe';
-intermediateFileOutputRootDirectory = 'c:\Users\lasso\Documents\Projects\TemporalCalibration\tests\2012-03-28-1-SSD-unfiltered-timestamp'
+% testExecutableFullpathName = 'C:\Users\lasso\devel\PlusExperimental-bin\bin\Release\TemporalCalibrationAlgoTest.exe';
+% intermediateFileOutputRootDirectory = 'c:\Users\lasso\Documents\Projects\TemporalCalibration\tests\2012-03-28-1-SSD-unfiltered-timestamp'
 
 rootDirectory = 'S:\data\TemporalTrackedUSCalibration\CARS_DATA'
 verboseLevel = 3
@@ -148,6 +151,7 @@ testDirectoriesFreehand={
 
 TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesBaseline,intermediateFileOutputRootDirectory);
 
-TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesSensitivity,intermediateFileOutputRootDirectory);
+end
+%TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesSensitivity,intermediateFileOutputRootDirectory);
 
-TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesFreehand,intermediateFileOutputRootDirectory,'TrackedFrames.mha','TrackedFrames.mha');
+%TemporalCalibrationAlgoTest(rootDirectory, testExecutableFullpathName, verboseLevel, samplingResolutionSec,testDirectoriesFreehand,intermediateFileOutputRootDirectory,'TrackedFrames.mha','TrackedFrames.mha');

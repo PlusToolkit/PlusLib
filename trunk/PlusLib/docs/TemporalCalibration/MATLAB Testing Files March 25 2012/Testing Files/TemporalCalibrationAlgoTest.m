@@ -18,10 +18,10 @@ for i = 1 : sz(1)
     dosTestCommand = horzcat(testExecutableFullpathName, ' '); 
     dosTestCommand = horzcat(dosTestCommand, '--input-video-sequence-metafile=', currTestDirectory, '\',videoBufferFilename,' ');
     dosTestCommand = horzcat(dosTestCommand, '--input-tracker-sequence-metafile=', currTestDirectory, '\',trackerBufferFilename,' ');
-    dosTestCommand = horzcat(dosTestCommand, '--verbose=', num2str(verboseLevel));
+    dosTestCommand = horzcat(dosTestCommand, '--verbose=', num2str(verboseLevel),' ');
     dosTestCommand = horzcat(dosTestCommand, '--sampling-resolution-sec=', num2str(samplingResolutionSec), ' ');
     dosTestCommand = horzcat(dosTestCommand, '--intermediate-file-output-directory=','"', currFileOutputRootDirectory, '" ');
-    dosTestCommand = horzcat(dosTestCommand, '--save-intermediate-images ');
+%     dosTestCommand = horzcat(dosTestCommand, '--save-intermediate-images ');
     dosTestCommand = horzcat(dosTestCommand, '--plot-results');
     dosTestCommand
     dos(dosTestCommand);
