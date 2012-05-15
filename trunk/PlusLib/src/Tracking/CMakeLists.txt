@@ -6,6 +6,7 @@ OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OF
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" ON)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
+OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 
 # --------------------------------------------------------------------------
 # Sources
@@ -246,6 +247,44 @@ IF( PLUS_USE_Ascension3DGm )
     )
         
 ENDIF( PLUS_USE_Ascension3DGm )
+
+#--------------------------------------------------------------------------
+# Ascension 3DGm support (medSAFE)
+IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
+  
+  SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)
+  
+  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+  	SET(PHIDGET_SPATIAL_BIN_SUBDIR x64)
+  ELSE()
+    SET(PHIDGET_SPATIAL_BIN_SUBDIR x86)
+  ENDIF()
+
+
+  SET( PHIDGET_SPATIAL_INCLUDE_DIR ${PHIDGET_SPATIAL_BASE_DIR} CACHE PATH "Path to the Phidget Spatial include folder" FORCE )
+  SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial library folder" FORCE )
+  SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial dll folder" FORCE ) 
+      
+  SET (Tracking_SRCS ${Tracking_SRCS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx )
+  if (WIN32)	
+    SET (Tracking_HDRS ${Tracking_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
+  endif (WIN32)
+	
+  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
+    ${PHIDGET_SPATIAL_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
+    CACHE INTERNAL "" FORCE
+    )
+
+  SET (Tracking_LIBS ${Tracking_LIBS}
+    ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    )
+          
+ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 
 #--------------------------------------------------------------------------
 # OpenIGTLink tracker

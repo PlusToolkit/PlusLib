@@ -1,0 +1,32 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="No video + Phidget Spatial" 
+      Description="Configuration file for No video + Phidget Spatial accelerometer" 
+    />
+
+    <Tracker Type="PhidgetSpatial" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+      <Tool Name="Accelerometer" PortName="Accelerometer" />
+      <Tool Name="Gyroscope" PortName="Gyroscope" />
+      <Tool Name="Magnetometer" PortName="Magnetometer" />
+    </Tracker>
+
+    <ImageAcquisition Type="None" />
+
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="AccelerometerToTracker" /> 
+        <Transform Name="GyroscopeToTracker" /> 
+        <Transform Name="MagnetometerToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>
