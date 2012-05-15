@@ -169,13 +169,12 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       if (data[i]->magneticField[0]>1e100)
       {
         // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        tracker->ToolTimeStampedUpdate( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+        tracker->ToolTimeStampedUpdate( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
       }
       else
       {
         // magnetometer data is valid
-        ConvertVectorToTransformationMatrix(data[i]->magneticField, tracker->LastMagnetometerToTrackerTransform);
-        LOG_INFO(data[i]->magneticField[0] << "    " << data[i]->magneticField[1] << "    " <<data[i]->magneticField[2]);
+        ConvertVectorToTransformationMatrix(data[i]->magneticField, tracker->LastMagnetometerToTrackerTransform);        
         tracker->ToolTimeStampedUpdate( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
       }
     }     
