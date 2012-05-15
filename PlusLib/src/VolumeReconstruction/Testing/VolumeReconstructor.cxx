@@ -177,22 +177,29 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
 
+
+
   LOG_INFO("Filling holes...");
   vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
-  reconstructor->GetReconstructedVolume(reconstructedVolume);
+  reconstructor->LoadReconstructedVolume();
+
+
 
   LOG_INFO("Saving volume to file...");
   vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();
-  //vtkSmartPointer<vtkMetaImageWriter> writer3D = vtkSmartPointer<vtkMetaImageWriter>::New();
   writer3D->SetFileTypeToBinary();
-  writer3D->SetInput(reconstructedVolume);
+
+  vtkSmartPointer<vtkImageData> gray=vtkSmartPointer<vtkImageData>::New();
+  reconstructor->ExtractGrayLevels(gray);
+  writer3D->SetInput(gray);
   writer3D->SetFileName(outputVolumeFileName.c_str());
   writer3D->Update();
 
   if (!outputVolumeAlphaFileName.empty())
   {
-    reconstructor->GetReconstructedVolumeAlpha(reconstructedVolume);
-    writer3D->SetInput(reconstructedVolume);
+    vtkSmartPointer<vtkImageData> alpha=vtkSmartPointer<vtkImageData>::New();
+    reconstructor->ExtractAlpha(alpha);
+    writer3D->SetInput(alpha);
     writer3D->SetFileName(outputVolumeAlphaFileName.c_str());
     writer3D->Update();
   }

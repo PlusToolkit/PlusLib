@@ -73,15 +73,24 @@ public:
   */
   virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume=NULL);
 
-  /*! Returns the reconstructed volume */
-  virtual PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume);
+  /*! Load the reconstructed volume from the pasteSlicesIntoVolume object and applies hole filling if enabled */
+  virtual PlusStatus LoadReconstructedVolume();
+
+  /*! Load the reconstructed volume into the volume pointer */
+  virtual PlusStatus GetReconstructedVolume(vtkImageData* volume);
+
+  /*! Apply hole filling to the reconstructed image, is called by LoadReconstructedVolume so an explicit call is not needed */
+  virtual PlusStatus GenerateHoleFilledVolume();
+
+  /*! Returns the reconstructed volume gray levels from the provided volume */
+  virtual PlusStatus ExtractGrayLevels(vtkImageData* volume);
 
   /*!
-    Returns the accumulation buffer (alpha channel) of the reconstructed volume.
+    Returns the accumulation buffer (alpha channel) of the provided volume.
     If a voxel is filled in the reconstructed volume, then the corresponding voxel 
     in the alpha channel is non-zero.
   */
-  virtual PlusStatus GetReconstructedVolumeAlpha(vtkImageData* reconstructedVolume);
+  virtual PlusStatus ExtractAlpha(vtkImageData* volume);
 
 protected: 
   vtkVolumeReconstructor();
@@ -92,7 +101,9 @@ protected:
 
   vtkPasteSliceIntoVolume* Reconstructor; 
   vtkFillHolesInVolume* HoleFiller; 
-  
+ 
+  vtkSmartPointer<vtkImageData> reconstructedVolume;
+
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   int FillHoles;
 
