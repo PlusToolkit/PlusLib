@@ -76,6 +76,7 @@ OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
+OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
