@@ -34,6 +34,7 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
+  reconstructedVolume = vtkSmartPointer<vtkImageData>::New();
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->HoleFiller = vtkFillHolesInVolume::New();  
   this->FillHoles=0;
@@ -576,33 +577,53 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume)
+
+PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume() {
+  if (this->FillHoles)
+    this->GenerateHoleFilledVolume();
+  else
+    this->reconstructedVolume->DeepCopy(this->Reconstructor->GetReconstructedVolume());
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* volume)
+{
+  volume->DeepCopy(this->reconstructedVolume);
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume() {
+  //vtkSmartPointer<vtkImageData> holeFilled = vtkSmartPonter<vtkImageData>::New();
+  HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
+  HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
+  HoleFiller->Update();
+  this->reconstructedVolume->DeepCopy(HoleFiller->GetOutput());
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructedVolume)
 {  
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
   // keep only first component (the other component is the alpha channel)
   extract->SetComponents(0);
-  if (this->FillHoles)
-  {
-    HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
-    HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
-    HoleFiller->Update();
-    extract->SetInput(HoleFiller->GetOutput());
-  }
-  else
-  {
-    extract->SetInput(this->Reconstructor->GetReconstructedVolume());
-  }
+  extract->SetInput(this->reconstructedVolume);
   extract->Update();
-  reconstructedVolume->ShallowCopy(extract->GetOutput());
+  reconstructedVolume->DeepCopy(extract->GetOutput());
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkVolumeReconstructor::GetReconstructedVolumeAlpha(vtkImageData* reconstructedVolume)
+PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolume)
 {
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
   // extract the second component (the alpha channel)
   extract->SetComponents(1);
-  extract->SetInput(this->Reconstructor->GetReconstructedVolume());
+  extract->SetInput(this->reconstructedVolume);
   extract->Update();
   reconstructedVolume->DeepCopy(extract->GetOutput());
   return PLUS_SUCCESS;
