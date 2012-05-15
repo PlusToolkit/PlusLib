@@ -118,8 +118,14 @@ public:
   PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
 
+  PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
 private:
+
+  double m_MaxCalibrationError;
+
+  std::vector<double> m_CalibrationErrorVector;
+
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
   bool m_TrackerLagUpToDate; 
  
