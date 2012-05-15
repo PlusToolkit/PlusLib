@@ -154,7 +154,7 @@ int main(int argc, char **argv)
   }
   LOG_INFO("Tracker lag: " << trackerLagSec << " sec (>0 if the tracker data lags)");
 
-  double calibrationError=0;
+  double calibrationError = 0;
   if (testTemporalCalibrationObject.GetCalibrationError(calibrationError)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine calibration error, temporal calibration failed");
@@ -162,11 +162,18 @@ int main(int argc, char **argv)
   }
   LOG_INFO("Calibration error: " << calibrationError);
 
+  double maxCalibrationError = 0;
+  if (testTemporalCalibrationObject.GetMaxCalibrationError(maxCalibrationError)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine max calibration error, temporal calibration failed");
+    exit(EXIT_FAILURE);
+  }
+  LOG_INFO("Max calibration error: " << maxCalibrationError);
   std::ostrstream trackerLagOutputFilename;
   trackerLagOutputFilename << intermediateFileOutputDirectory << "\\TemporalCalibrationResults.xml" << std::ends;
   ofstream myfile;
   myfile.open (trackerLagOutputFilename.str());
-  myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << trackerLagSec << "\" CalibrationError=\"" << calibrationError << "\" />";
+  myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << trackerLagSec << "\" CalibrationError=\"" << calibrationError << "\" MaxCalibrationError=\"" << maxCalibrationError<< "\" />";
   myfile.close();
 
   if (plotResults)
