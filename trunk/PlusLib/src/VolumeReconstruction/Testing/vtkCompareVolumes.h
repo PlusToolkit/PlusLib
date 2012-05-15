@@ -46,12 +46,19 @@ public:
   
   // Description:
   // Set the Input4 of this filter.
-  virtual void SetInputSliceAlpha(vtkDataObject *input) { this->SetInput(3,input);};
+  virtual void SetInputTestAlpha(vtkDataObject *input) { this->SetInput(3,input);};
+  
+  // Description:
+  // Set the Input5 of this filter.
+  virtual void SetInputSliceAlpha(vtkDataObject *input) { this->SetInput(4,input);};
 
   // Description:
   // Output the images resulting from this filter
   vtkImageData* GetOutputTrueDifferenceImage() {return this->GetOutput(0);}
   vtkImageData* GetOutputAbsoluteDifferenceImage() {return this->GetOutput(1);}
+
+  vtkGetMacro(RMS,double);
+  vtkSetMacro(RMS,double);
 
   vtkGetMacro(TrueMean,double);
   vtkSetMacro(TrueMean,double);
@@ -84,6 +91,8 @@ public:
   vtkSetMacro(Absolute95thPercentile,double);
   vtkGetMacro(NumberOfHoles,int);
   vtkSetMacro(NumberOfHoles,int);
+  vtkGetMacro(NumberOfFilledHoles,int);
+  vtkSetMacro(NumberOfFilledHoles,int);
   vtkGetMacro(NumberVoxelsVisible,int);
   vtkSetMacro(NumberVoxelsVisible,int);
 
@@ -98,11 +107,13 @@ protected:
   vtkCompareVolumes();
   ~vtkCompareVolumes() {};
 
+  double RMS;
   double TrueMean,     TrueStdev,     TrueMedian,     TrueMinimum,     TrueMaximum,     True95thPercentile,     True5thPercentile;
   double AbsoluteMean, AbsoluteStdev, AbsoluteMedian, AbsoluteMinimum, AbsoluteMaximum, Absolute95thPercentile, Absolute5thPercentile;
   int TrueHistogram[511];
   int AbsoluteHistogram[256];
   int NumberOfHoles;
+  int NumberOfFilledHoles;
   int NumberVoxelsVisible;
 
   virtual int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *);

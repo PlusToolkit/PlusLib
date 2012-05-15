@@ -40,6 +40,7 @@ int main( int argc, char** argv )
   std::string inputGTFileName;
   std::string inputGTAlphaFileName;
   std::string inputTestingFileName;
+  std::string inputTestingAlphaFileName;
   std::string inputSliceAlphaFileName;
   std::string outputStatsFileName;
   std::string outputTrueDiffFileName;
@@ -61,6 +62,7 @@ int main( int argc, char** argv )
   args.AddArgument("--input-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTFileName, "The ground truth volume being compared against");
   args.AddArgument("--input-ground-truth-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTAlphaFileName, "The ground truth volume's alpha component");
   args.AddArgument("--input-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
+  args.AddArgument("--input-testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
   args.AddArgument("--input-slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
   args.AddArgument("--output-cropped-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedGTFileName, "The cropped ground truth volume");
   args.AddArgument("--output-cropped-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedTestFileName, "The cropped testing volume");
@@ -104,9 +106,9 @@ int main( int argc, char** argv )
   strftime(timeAndDate,60,"%Y %m %d %H:%M",timeInfo);
 
   // Check file names
-  if ( inputGTFileName.empty() || inputGTAlphaFileName.empty() || inputTestingFileName.empty() || inputSliceAlphaFileName.empty() || outputCroppedTestFileName.empty() || outputCroppedGTFileName.empty() )
+  if ( inputGTFileName.empty() || inputGTAlphaFileName.empty() || inputTestingFileName.empty() || inputTestingAlphaFileName.empty() || inputSliceAlphaFileName.empty() || outputCroppedTestFileName.empty() || outputCroppedGTFileName.empty() )
   {
-    LOG_ERROR("input-ground-truth-image, input-ground-truth-alpha, input-testing-image, input-slices-alpha, output-cropped-ground-truth-image, output-cropped-testing-image, and output-stats-file are required arguments!");
+    LOG_ERROR("input-ground-truth-image, input-ground-truth-alpha, input-testing-image, input-testing-alpha, input-slices-alpha, output-cropped-ground-truth-image, output-cropped-testing-image, and output-stats-file are required arguments!");
     LOG_ERROR("Help: " << args.GetHelp());
     exit(EXIT_FAILURE);
   }
@@ -164,6 +166,7 @@ int main( int argc, char** argv )
   vtkSmartPointer<vtkImageData> groundTruth = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> groundTruthAlpha = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> testingImage = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> testingAlpha = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> slicesAlpha = vtkSmartPointer<vtkImageData>::New();
 
   // read in the volumes
@@ -185,11 +188,17 @@ int main( int argc, char** argv )
   reader3->Update();
   testingImage = vtkImageData::SafeDownCast(reader3->GetOutput());
 
-  LOG_INFO("Reading input slices alpha: " << inputSliceAlphaFileName );
+  LOG_INFO("Reading input testing alpha: " << inputTestingAlphaFileName );
   vtkSmartPointer<vtkDataSetReader> reader4 = vtkSmartPointer<vtkDataSetReader>::New();
-  reader4->SetFileName(inputSliceAlphaFileName.c_str());
+  reader4->SetFileName(inputTestingAlphaFileName.c_str());
   reader4->Update();
-  slicesAlpha = vtkImageData::SafeDownCast(reader4->GetOutput());
+  testingAlpha = vtkImageData::SafeDownCast(reader4->GetOutput());
+
+  LOG_INFO("Reading input slices alpha: " << inputSliceAlphaFileName );
+  vtkSmartPointer<vtkDataSetReader> reader5 = vtkSmartPointer<vtkDataSetReader>::New();
+  reader5->SetFileName(inputSliceAlphaFileName.c_str());
+  reader5->Update();
+  slicesAlpha = vtkImageData::SafeDownCast(reader5->GetOutput());
 
   // check to make sure extents match
   int extentGT[6];
@@ -198,11 +207,13 @@ int main( int argc, char** argv )
   groundTruthAlpha->GetExtent(extentGTAlpha[0],extentGTAlpha[1],extentGTAlpha[2],extentGTAlpha[3],extentGTAlpha[4],extentGTAlpha[5]);
   int extentTest[6];
   testingImage->GetExtent(extentTest[0],extentTest[1],extentTest[2],extentTest[3],extentTest[4],extentTest[5]);
+  int extentTestAlpha[6];
+  testingAlpha->GetExtent(extentTestAlpha[0],extentTestAlpha[1],extentTestAlpha[2],extentTestAlpha[3],extentTestAlpha[4],extentTestAlpha[5]);
   int extentSlicesAlpha[6];
   slicesAlpha->GetExtent(extentSlicesAlpha[0],extentSlicesAlpha[1],extentSlicesAlpha[2],extentSlicesAlpha[3],extentSlicesAlpha[4],extentSlicesAlpha[5]);
   bool match(true);
   for (int i = 0; i < 6; i++)
-    if (extentGT[i] != extentGTAlpha[i] || extentGT[i] != extentSlicesAlpha[i] || extentGT[i] != extentSlicesAlpha[i])
+    if (extentGT[i] != extentGTAlpha[i] || extentGT[i] != extentSlicesAlpha[i] || extentGT[i] != extentTestAlpha[i] || extentGT[i] != extentSlicesAlpha[i])
       match = false;
   if (!match) {
     LOG_ERROR("Image sizes do not match!");
@@ -213,6 +224,7 @@ int main( int argc, char** argv )
   vtkSmartPointer<vtkImageData> groundTruthCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> groundTruthAlphaCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> testingImageCropped = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> testingAlphaCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> slicesAlphaCropped = vtkSmartPointer<vtkImageData>::New();
   if (!useWholeExtent) {
     // calculate and check new extents
@@ -252,6 +264,13 @@ int main( int argc, char** argv )
     clipTest->Update();
     testingImageCropped = clipTest->GetOutput();
     
+    vtkSmartPointer<vtkImageClip> clipTestAlpha = vtkSmartPointer<vtkImageClip>::New();
+    clipTestAlpha->SetInput(testingAlpha);
+    clipTestAlpha->SetClipData(1);
+    clipTestAlpha->SetOutputWholeExtent(updatedExtent);
+    clipTestAlpha->Update();
+    testingAlphaCropped = clipTestAlpha->GetOutput();
+
     vtkSmartPointer<vtkImageClip> clipSlicesAlpha = vtkSmartPointer<vtkImageClip>::New();
     clipSlicesAlpha->SetInput(slicesAlpha);
     clipSlicesAlpha->SetClipData(1);
@@ -264,6 +283,7 @@ int main( int argc, char** argv )
     groundTruthCropped = groundTruth;
     groundTruthAlphaCropped = groundTruthAlpha;
     testingImageCropped = testingImage;
+    testingAlphaCropped = testingAlpha;
     slicesAlphaCropped = slicesAlpha;
   }
 
@@ -273,6 +293,7 @@ int main( int argc, char** argv )
   histogramGenerator->SetInputGT(groundTruthCropped);
   histogramGenerator->SetInputGTAlpha(groundTruthAlphaCropped);
   histogramGenerator->SetInputTest(testingImageCropped);
+  histogramGenerator->SetInputTestAlpha(testingAlphaCropped);
   histogramGenerator->SetInputSliceAlpha(slicesAlphaCropped);
   histogramGenerator->Update();
 
@@ -319,9 +340,11 @@ int main( int argc, char** argv )
                    << inputGTAlphaFileName << ","
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
+                   << inputTestingAlphaFileName << ","
                    << center[0] << "_" << center[1] << "_" << center[2] << ","
                    << size[0] << "_" << size[1] << "_" << size[2] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
+                   << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
                    << histogramGenerator->GetTrueMaximum() << ","
                    << histogramGenerator->GetTrueMinimum() << ","
@@ -336,7 +359,8 @@ int main( int argc, char** argv )
                    << histogramGenerator->GetAbsoluteMean() << ","
                    << histogramGenerator->GetAbsoluteStdev() << ","
                    << histogramGenerator->GetAbsolute5thPercentile() << ","
-                   << histogramGenerator->GetAbsolute95thPercentile();
+                   << histogramGenerator->GetAbsolute95thPercentile() << ","
+                   << histogramGenerator->GetRMS();
       for (int i = 0; i < 511; i++)
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)
@@ -347,7 +371,7 @@ int main( int argc, char** argv )
     { // need to create the file and write to it. First give it a header row.
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str());
-      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile";
+      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
       }
@@ -360,9 +384,11 @@ int main( int argc, char** argv )
                    << inputGTAlphaFileName << ","
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
+                   << inputTestingAlphaFileName << ","
                    << center[0] << "_" << center[1] << "_" << center[2] << ","
                    << size[0] << "_" << size[1] << "_" << size[2] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
+                   << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
                    << histogramGenerator->GetTrueMaximum() << ","
                    << histogramGenerator->GetTrueMinimum() << ","
@@ -377,7 +403,8 @@ int main( int argc, char** argv )
                    << histogramGenerator->GetAbsoluteMean() << ","
                    << histogramGenerator->GetAbsoluteStdev() << ","
                    << histogramGenerator->GetAbsolute5thPercentile() << ","
-                   << histogramGenerator->GetAbsolute95thPercentile();
+                   << histogramGenerator->GetAbsolute95thPercentile() << ","
+                   << histogramGenerator->GetRMS();
       for (int i = 0; i < 511; i++)
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)

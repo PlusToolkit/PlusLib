@@ -32,7 +32,7 @@ vtkStandardNewMacro(vtkCompareVolumes);
 
 vtkCompareVolumes::vtkCompareVolumes()
 {
-  this->SetNumberOfInputPorts(4);
+  this->SetNumberOfInputPorts(5);
   this->SetNumberOfOutputPorts(2);
   this->SetNumberOfThreads(1); // TODO: Remove when testing is done
 }
@@ -59,6 +59,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
                               T* gtPtr,
                               T* gtAlphaPtr,
                               T* testPtr,
+                              T* testAlphaPtr,
                               T* slicesAlphaPtr,
                               double* outPtrTru,
                               double* outPtrAbs,
@@ -79,6 +80,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   std::vector<double> absoluteDifferences;
 
   int countVisibleVoxels(0);
+  int countFilledHoles(0);
 
 	for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
 	{
@@ -86,13 +88,16 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 		{
 			for (xtemp = 0; xtemp <= outExt[1] - outExt[0]; xtemp++)
 			{
-        int inIndex =  inOffsets[0] *xtemp+inOffsets[1] *ytemp+inOffsets[2] *ztemp;
+        int inIndex  =  inOffsets[0]*xtemp+ inOffsets[1]*ytemp+ inOffsets[2]*ztemp;
         int outIndex = outOffsets[0]*xtemp+outOffsets[1]*ytemp+outOffsets[2]*ztemp;
         if (gtAlphaPtr[inIndex] != 0) 
         {
           countVisibleVoxels++;
           if (slicesAlphaPtr[inIndex] == 0) 
           {
+            if (testAlphaPtr[inIndex] != 0) {
+              countFilledHoles++;
+            }
             double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
             trueDifferences.push_back(difference);
             self->incTrueHistogramAtIndex(PlusMath::Round(difference));
@@ -119,13 +124,17 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 
   int numberOfHoles = trueDifferences.size(); // will be the same as AbsoluteDifferences.size();
 
-  double trueMean =0.0; double absoluteMean = 0.0;
+  double trueMean(0.0);
+  double absoluteMean(0.0);
+  double rms(0.0);
   for (int i = 0; i < numberOfHoles; i++) {
     trueMean += trueDifferences[i];
     absoluteMean += absoluteDifferences[i];
+    rms += trueDifferences[i] * trueDifferences[i];
   }
   trueMean /= numberOfHoles;
   absoluteMean /= numberOfHoles;
+  rms = sqrt(rms/numberOfHoles);
 
   double trueStdev = 0.0; double absoluteStdev = 0.0;
   for (int i = 0; i < numberOfHoles; i++) {
@@ -185,6 +194,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 
   self->SetNumberOfHoles(numberOfHoles);
   self->SetNumberVoxelsVisible(countVisibleVoxels);
+  self->SetNumberOfFilledHoles(countFilledHoles);
 
   self->SetTrue95thPercentile(true95thPercentile);
   self->SetTrue5thPercentile(true5thPercentile);
@@ -201,6 +211,8 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   self->SetAbsoluteMedian(absoluteMedian);
   self->SetAbsoluteStdev(absoluteStdev);
   self->SetAbsoluteMean(absoluteMean);
+
+  self->SetRMS(rms);
 
   int dummy = 0;
 }
@@ -239,7 +251,10 @@ void vtkCompareVolumes::ThreadedRequestData (
   void* testPtr = inVolData2->GetScalarPointer();
   
   vtkImageData* inVolData3 = inData[3][0];
-  void* slicesAlphaPtr = inVolData3->GetScalarPointer();
+  void* testAlphaPtr = inVolData3->GetScalarPointer();
+
+  vtkImageData* inVolData4 = inData[4][0];
+  void* slicesAlphaPtr = inVolData4->GetScalarPointer();
   
   vtkImageData* outVolData0 = outData[0];
   double* outPtrTru = static_cast<double *>(outVolData0->GetScalarPointer());
@@ -251,8 +266,9 @@ void vtkCompareVolumes::ThreadedRequestData (
   {
     vtkTemplateMacro(
       vtkCompareVolumesExecute(this, inVolData0, outVolData0,
-                               static_cast<VTK_TT *>(gtPtr), static_cast<VTK_TT *>(gtAlphaPtr), 
-                               static_cast<VTK_TT *>(testPtr), static_cast<VTK_TT *>(slicesAlphaPtr), 
+                               static_cast<VTK_TT *>(gtPtr),   static_cast<VTK_TT *>(gtAlphaPtr), 
+                               static_cast<VTK_TT *>(testPtr), static_cast<VTK_TT *>(testAlphaPtr), 
+                               static_cast<VTK_TT *>(slicesAlphaPtr), 
                                outPtrTru, outPtrAbs, outExt, threadId)
                     );
     default:
