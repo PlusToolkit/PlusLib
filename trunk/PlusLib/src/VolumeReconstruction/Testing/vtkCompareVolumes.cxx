@@ -81,6 +81,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 
   int countVisibleVoxels(0);
   int countFilledHoles(0);
+  int countHoles(0);
 
 	for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
 	{
@@ -95,16 +96,17 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
           countVisibleVoxels++;
           if (slicesAlphaPtr[inIndex] == 0) 
           {
+            countHoles++;
             if (testAlphaPtr[inIndex] != 0) {
               countFilledHoles++;
+              double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
+              trueDifferences.push_back(difference);
+              self->incTrueHistogramAtIndex(PlusMath::Round(difference));
+              outPtrTru[outIndex] = difference; // cast to double to minimize precision loss
+              absoluteDifferences.push_back(abs(difference));
+              self->incAbsoluteHistogramAtIndex(PlusMath::Round(abs(difference)));
+              outPtrAbs[outIndex] = abs(difference);
             }
-            double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
-            trueDifferences.push_back(difference);
-            self->incTrueHistogramAtIndex(PlusMath::Round(difference));
-            outPtrTru[outIndex] = difference; // cast to double to minimize precision loss
-            absoluteDifferences.push_back(abs(difference));
-            self->incAbsoluteHistogramAtIndex(PlusMath::Round(abs(difference)));
-            outPtrAbs[outIndex] = abs(difference);
           }
           else // not a hole, but these may still be different
           {
@@ -122,32 +124,30 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
     } // end y loop
   } // end z loop
 
-  int numberOfHoles = trueDifferences.size(); // will be the same as AbsoluteDifferences.size();
-
   double trueMean(0.0);
   double absoluteMean(0.0);
   double rms(0.0);
-  for (int i = 0; i < numberOfHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++) {
     trueMean += trueDifferences[i];
     absoluteMean += absoluteDifferences[i];
     rms += trueDifferences[i] * trueDifferences[i];
   }
-  trueMean /= numberOfHoles;
-  absoluteMean /= numberOfHoles;
-  rms = sqrt(rms/numberOfHoles);
+  trueMean /= countFilledHoles;
+  absoluteMean /= countFilledHoles;
+  rms = sqrt(rms/countFilledHoles);
 
   double trueStdev = 0.0; double absoluteStdev = 0.0;
-  for (int i = 0; i < numberOfHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++) {
     trueStdev += pow((trueDifferences[i]-trueMean),2);
     absoluteStdev += pow((absoluteDifferences[i]-absoluteMean),2);
   }
-  trueStdev = sqrt(trueStdev/numberOfHoles);
-  absoluteStdev = sqrt(absoluteStdev/numberOfHoles);
+  trueStdev = sqrt(trueStdev/countFilledHoles);
+  absoluteStdev = sqrt(absoluteStdev/countFilledHoles);
 
   // need to sort, temporarily store in a list, sort, then assign back to vector <== THIS IS SLOW SLOW SLOW, as in about half a minute for this alone, so TODO: Make this faster
   std::list<double> trueDifferencesList;
   std::list<double> absoluteDifferencesList;
-  for (int i = 0; i < numberOfHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++) {
     trueDifferencesList.push_front(trueDifferences.back());
     trueDifferences.pop_back();
     absoluteDifferencesList.push_front(absoluteDifferences.back());
@@ -155,7 +155,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   }
   trueDifferencesList.sort();
   absoluteDifferencesList.sort();
-  for (int i = 0; i < numberOfHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++) {
     trueDifferences.push_back(trueDifferencesList.front());
     trueDifferencesList.pop_front();
     absoluteDifferences.push_back(absoluteDifferencesList.front());
@@ -163,36 +163,36 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   }
 
   double trueMinimum = trueDifferences[0];
-  double trueMaximum = trueDifferences[numberOfHoles-1];
+  double trueMaximum = trueDifferences[countFilledHoles-1];
   double absoluteMinimum = absoluteDifferences[0];
-  double absoluteMaximum = absoluteDifferences[numberOfHoles-1];
+  double absoluteMaximum = absoluteDifferences[countFilledHoles-1];
 
   // old median calculation
-  //double trueMedian = (numberOfHoles%2==0)?(trueDifferences[numberOfHoles/2]+trueDifferences[(numberOfHoles/2)-1])/2.0:trueDifferences[(numberOfHoles-1)/2];
-  //double absoluteMedian = (numberOfHoles%2==0)?(absoluteDifferences[numberOfHoles/2]+absoluteDifferences[(numberOfHoles/2)-1])/2.0:absoluteDifferences[(numberOfHoles-1)/2];
+  //double trueMedian = (countFilledHoles%2==0)?(trueDifferences[countFilledHoles/2]+trueDifferences[(countFilledHoles/2)-1])/2.0:trueDifferences[(countFilledHoles-1)/2];
+  //double absoluteMedian = (countFilledHoles%2==0)?(absoluteDifferences[countFilledHoles/2]+absoluteDifferences[(countFilledHoles/2)-1])/2.0:absoluteDifferences[(countFilledHoles-1)/2];
 
-  double medianRank = (numberOfHoles-1)*0.5;
+  double medianRank = (countFilledHoles-1)*0.5;
   double medianFraction = fmod(medianRank,1.0);
   int medianFloor = (int)floor(medianRank); if (medianFloor < 0) medianFloor = 0;
-  int medianCeil = (int)ceil(medianRank); if (medianCeil > (numberOfHoles-1)) medianCeil = (numberOfHoles-1);
+  int medianCeil = (int)ceil(medianRank); if (medianCeil > (countFilledHoles-1)) medianCeil = (countFilledHoles-1);
   double trueMedian = trueDifferences[medianFloor]*(1-medianFraction) + trueDifferences[medianCeil]*medianFraction;
   double absoluteMedian = absoluteDifferences[medianFloor]*(1-medianFraction) + absoluteDifferences[medianCeil]*medianFraction;
 
-  double percentile5rank = (numberOfHoles-1)*0.05;
+  double percentile5rank = (countFilledHoles-1)*0.05;
   double percentile5fraction = fmod(percentile5rank,1.0);
   int percentile5floor = (int)floor(percentile5rank); if (percentile5floor < 0) percentile5floor = 0;
-  int percentile5ceil = (int)ceil(percentile5rank); if (percentile5ceil > (numberOfHoles-1)) percentile5ceil = (numberOfHoles-1);
+  int percentile5ceil = (int)ceil(percentile5rank); if (percentile5ceil > (countFilledHoles-1)) percentile5ceil = (countFilledHoles-1);
   double true5thPercentile = trueDifferences[percentile5floor]*(1-percentile5fraction) + trueDifferences[percentile5ceil]*percentile5fraction;
   double absolute5thPercentile = absoluteDifferences[percentile5floor]*(1-percentile5fraction) + absoluteDifferences[percentile5ceil]*percentile5fraction;
 
-  double percentile95rank = (numberOfHoles-1)*0.95;
+  double percentile95rank = (countFilledHoles-1)*0.95;
   double percentile95fraction = fmod(percentile95rank,1.0);
   int percentile95floor = (int)floor(percentile95rank); if (percentile95floor < 0) percentile95floor = 0;
-  int percentile95ceil = (int)ceil(percentile95rank); if (percentile95ceil > (numberOfHoles-1)) percentile95ceil = (numberOfHoles-1);
+  int percentile95ceil = (int)ceil(percentile95rank); if (percentile95ceil > (countFilledHoles-1)) percentile95ceil = (countFilledHoles-1);
   double true95thPercentile = trueDifferences[percentile95floor]*(1-percentile95fraction) + trueDifferences[percentile95ceil]*percentile95fraction;
   double absolute95thPercentile = absoluteDifferences[percentile95floor]*(1-percentile95fraction) + absoluteDifferences[percentile95ceil]*percentile95fraction;
 
-  self->SetNumberOfHoles(numberOfHoles);
+  self->SetNumberOfHoles(countHoles);
   self->SetNumberVoxelsVisible(countVisibleVoxels);
   self->SetNumberOfFilledHoles(countFilledHoles);
 
