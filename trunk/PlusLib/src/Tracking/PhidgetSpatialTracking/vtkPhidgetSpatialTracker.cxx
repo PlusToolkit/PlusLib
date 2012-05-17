@@ -185,29 +185,15 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 
 void vtkPhidgetSpatialTracker::ConvertVectorToTransformationMatrix(double *inputVector, vtkMatrix4x4* outputMatrix)
 {
-  // Tracker x, y, z axes
-  double trackerX[3]={inputVector[0],inputVector[1],inputVector[2]};
-  vtkMath::Normalize(trackerX);   
+  // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
+  double primaryRotationAngleDeg = atan2( inputVector[2],sqrt(inputVector[1]*inputVector[1]+inputVector[0]*inputVector[0]) )*180.0/vtkMath::Pi();
+  double secondaryRotationAngleDeg = atan2( inputVector[1],sqrt( inputVector[2]*inputVector[2] + inputVector[0]*inputVector[0]) )*180.0/vtkMath::Pi();
+  //LOG_TRACE("Pri="<<primaryRotationAngleDeg<<"  Sec="<<secondaryRotationAngleDeg<<"    x="<<inputVector[0]<<"    y="<<inputVector[1]<<"    z="<<inputVector[2]);
 
-  double trackerY[3]={0,1,0};
-  double trackerZ[3]={0,0,1};
-
-  if (trackerX[0]<0.9999) // if the vector is very close to (1,0,0) then just use it as is
-  {
-    double xUnitVector[3]={1,0,0};
-    vtkMath::Cross(xUnitVector, trackerX, trackerZ);
-    vtkMath::Normalize(trackerZ);
-    vtkMath::Cross(trackerZ, trackerX, trackerY);
-    vtkMath::Normalize(trackerY);
-  }   
-  
-  outputMatrix->Identity();
-  for ( int row = 0; row < 3; ++ row )
-  {
-    outputMatrix->SetElement( row, 0, trackerX[row]);
-    outputMatrix->SetElement( row, 1, trackerY[row]);
-    outputMatrix->SetElement( row, 2, trackerZ[row]);
-  }
+  vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+  transform->RotateX(primaryRotationAngleDeg);
+  transform->RotateY(secondaryRotationAngleDeg);  
+  transform->GetMatrix(outputMatrix);
 }
 
 //-------------------------------------------------------------------------
