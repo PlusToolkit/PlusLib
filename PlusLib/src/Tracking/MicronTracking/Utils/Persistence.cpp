@@ -32,10 +32,10 @@ Persistence::~Persistence()
 
 /****************************/
 /** Set the path of the .ini file */
-void Persistence::setPath(char* path)
+int Persistence::setPath(const char* path)
 {
-
-  Persistence_PathSet(this->m_handle, path); 
+  mtCompletionCode status=Persistence_PathSet(this->m_handle, path); 
+  return status;
 }
 
 /****************************/
