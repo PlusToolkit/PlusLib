@@ -262,6 +262,14 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         {
           tempElement.type = FillHolesInVolumeElement::HFTYPE_STICK;
         }
+        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "NEAREST_NEIGHBOR") == 0)
+        {
+          tempElement.type = FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR;
+        }
+        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "DISTANCE_WEIGHT_INVERSE") == 0)
+        {
+          tempElement.type = FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE;
+        }
         else
         {
           LOG_ERROR("Unknown hole filling element option: "<<nestedElement->GetAttribute("Type")<<". Valid options: GAUSSIAN, STICK.");
@@ -278,17 +286,6 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       switch (tempElement.type) {
       case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
       case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
-        // read size
-        if ( nestedElement->GetScalarAttribute("Size", size) )
-        {
-          tempElement.size = size;
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
         // read stdev
         if ( nestedElement->GetScalarAttribute("Stdev", stdev) )
         {
@@ -297,6 +294,20 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         else
         {
           LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
+          numberOfErrors++; 
+          continue; 
+        }
+      // note that at this point, GAUSSIAN and GAUSSIAN_ACCUMULATION will also read what is below (there is no break). This is intended.
+      case FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE:
+      case FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR:
+        // read size
+        if ( nestedElement->GetScalarAttribute("Size", size) )
+        {
+          tempElement.size = size;
+        }
+        else
+        {
+          LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
           numberOfErrors++; 
           continue; 
         }
