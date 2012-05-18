@@ -35,19 +35,18 @@ public:
   double getMaxShutterTime();
   double getMinShutterTime();
 
-    double getShutterTimeLimit();
-    double setShutterTimeLimit(double limit);
+  double getShutterTimeLimit();
+  double setShutterTimeLimit(double limit);
 
   double getGain();
   int setGain(double g);
   double getMinGain();
   double getMaxGain();
 
-    double getGainLimit();
-    double setGainLimit(double limit);
+  double getGainLimit();
+  double setGainLimit(double limit);
 
-    
-    double getDBGain();
+  double getDBGain();
 
   double getExposure();
   int setExposure(double e);
@@ -57,8 +56,8 @@ public:
   int getAutoExposure();
   int setAutoExposure(int ae);
 
-    double getLightCoolness();
-    int setLightCoolness(double value);
+  double getLightCoolness();
+  int setLightCoolness(double value);
   int AdjustCoolnessFromColorVector(int ColorVectorHandle);
 
   bool getImages( unsigned char ***li, unsigned char ***ri);

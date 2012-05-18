@@ -20,7 +20,7 @@ public:
   inline int getHandle() { return m_handle; };
 
   // Set/Get path
-  void setPath(char* path);
+  int setPath(const char* path);
   //char* getPath();
   void setSection(char* section);
   int retrieveInt(char* name, int defaultVal);

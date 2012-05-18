@@ -114,7 +114,7 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Save the changes in the INI (persistence) file */
-  void UpdateINI();
+  void SaveSettingsToINI();
 
   /*! Get the number of attached cameras. */
   int GetNumOfCameras();
@@ -192,7 +192,7 @@ public:
   /*! Saves the marker with the name markerName. Returns 0 if successful, -1 if not */
   int SaveTemplate(char* markerName);
   /*! Refresh the loaded markers. If successful returns 0, if not -1 */
-  void RefreshMarkerTemplates();
+  PlusStatus RefreshMarkerTemplates();
   /*! Stops the process of collecting frames for the new template */
   int StopSampling(char* name, double jitter);  
   /*! Get the number of loaded markers */
@@ -313,8 +313,8 @@ public:
     be manipulated or displayed in the desired form by the client.
   */
   void UpdateLeftRightImage();
-  /*! Saves the current camera images into files in the current directory */
-  void GetSnapShot(char* testNum, char* identifier);
+  /*! Saves the current camera images into JPG files */
+  void GetSnapShot(const std::string &leftJpgFilePath, const std::string &rightJpgFilePath);
 
   /*! Get identified markers xpoints */
   vtkDoubleArray* vtkGetIdentifiedMarkersXPoints(int markerIdx);
@@ -358,7 +358,10 @@ public:
 
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
   PlusStatus ReadConfiguration( vtkXMLDataElement* config );
-  
+
+  /*! Write current MicronTracker configuration settings to XML */
+  PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
+
   /*! Connect to the tracker hardware */
   PlusStatus Connect();
   /*! Disconnect from the tracker hardware */
@@ -413,6 +416,8 @@ protected:
   int MarkerIndexAssingedToTools[MAX_TOOL_NUM];
 
   unsigned int FrameNumber;
+  std::string TemplateDirectory;
+  std::string IniFile;
 
 private:
   vtkMicronTracker(const vtkMicronTracker&);

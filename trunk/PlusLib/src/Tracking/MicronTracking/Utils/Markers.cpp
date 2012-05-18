@@ -64,8 +64,7 @@ int Markers::addTemplate(int markerHandle)
 /** Clears the templates of this marker. Returns 0 if successful. Otherwise a non_zero value is returned. */
 int Markers::clearTemplates()
 {
-  int result;
-  result = Markers_ClearTemplates();
+  int result = Markers_ClearTemplates();
   return result;
 }
 

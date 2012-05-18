@@ -8,8 +8,6 @@ SET (MicronTrackerInterface_INCLUDE_DIRS
 SET(MicronTrackerInterface_SRCS
   MicronTrackerInterface.h
   MicronTrackerInterface.cpp
-  UtilityFunctions.h
-  UtilityFunctions.cpp
   Cameras.h
   Cameras.cpp
   MCamera.h

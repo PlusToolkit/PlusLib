@@ -29,7 +29,7 @@ public:
   int getTemplateFacets();
   int restoreTemplate(int persistenceHandle, char* name);
   
-  char* getName();
+  std::string getName();
   void setName(char* name);
   bool wasIdentified(MCamera *cam);
   Xform3D* marker2CameraXf(int camHandle);
@@ -41,7 +41,7 @@ public:
 private:
   int m_handle;
   bool ownedByMe;
-  char m_MarkerName[400];
+  std::string m_MarkerName;
 
 };
 

@@ -6,7 +6,7 @@
       Description="MicronTracker" 
     />
 
-    <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" >
+    <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" TemplateDirectory="Markers" IniFile="MicronTracker.ini">
       <Tool Name="Probe" PortName="probeMarker" />
       <Tool Name="Reference"  PortName="patientMarker" />
       <Tool Name="Stylus" PortName="stitchMarker" />

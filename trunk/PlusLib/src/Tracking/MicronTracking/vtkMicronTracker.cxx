@@ -99,9 +99,9 @@ std::string vtkMicronTracker::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
-void vtkMicronTracker::UpdateINI()
+void vtkMicronTracker::SaveSettingsToINI()
 {
-  this->MT->mtUpdateINI();
+  this->MT->mtSaveSettingsToINI();
 }
 
 //----------------------------------------------------------------------------
@@ -113,7 +113,8 @@ PlusStatus vtkMicronTracker::Probe()
     return PLUS_FAIL;
   }
 
-  if (this->MT->mtInit()!=1)
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
+  if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
@@ -184,12 +185,12 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   // method of this->MT, until the problem is solved.
   if (this->MT->mtGrabFrame() == -1)
   {
-    LOG_ERROR("Error in grabing a frame! (" << this->MT->mtGetErrorString() <<")");
+    LOG_ERROR("Error in grabing a frame! (" << this->MT->GetLastErrorString() <<")");
     return PLUS_FAIL;
   }
   if (this->MT->mtProcessFrame() == -1)
   {
-    LOG_ERROR("Error in processing a frame! (" << this->MT->mtGetErrorString() <<")");
+    LOG_ERROR("Error in processing a frame! (" << this->MT->GetLastErrorString() <<")");
     return PLUS_FAIL;
   }
 
@@ -298,26 +299,29 @@ void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
 }
 
 //----------------------------------------------------------------------------
-void vtkMicronTracker::RefreshMarkerTemplates()
+PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
 {
   std::vector<std::string> vTemplatesName;
   std::vector<std::string> vTemplatesError;
   std::vector<std::string> vTemplatesWarn;
 
-  int i = 0;
-  int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError);
-  LOG_DEBUG("Loading the marker templates... ");
-  for (i=0; i<vTemplatesName.size(); i++)
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
+  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
+  for (int i=0; i<vTemplatesName.size(); i++)
   {
     LOG_DEBUG("Loaded " << vTemplatesName[i]);
   }
-  if ( callResult == -1)
+  if (callResult != 0)
   {
-    for (i=0; i<vTemplatesError.size(); i++)
+    LOG_ERROR("Failed to load marker templates from "<<templateFullPath);
+    for (int i=0; i<vTemplatesError.size(); i++)
     {
       LOG_ERROR("MicronTracker error: " << vTemplatesError[i]);
     }
+    return PLUS_FAIL;
   }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -417,40 +421,12 @@ vtkImageImport* vtkMicronTracker::GetRightImage()
 }
 
 //----------------------------------------------------------------------------
-void vtkMicronTracker::GetSnapShot(char* testNum, char* identifier)
+void vtkMicronTracker::GetSnapShot(const std::string &leftJpgFilePath, const std::string &rightJpgFilePath)
 {
   this->UpdateLeftRightImage();
 
-  //static leftSnapShotCounter = 0;
-  //static rightSnapShotCounter = 0;
-
-  // For left image
-  std::string fileName = this->MT->mtGetCurrDir();
-#if (WIN32)
-  fileName += "\\SnapShots\\";
-#else
-  fileName += "/SnapShots/";
-#endif
-  fileName += testNum;
-  fileName += "_LeftSnapShot_";
-  fileName += identifier;
-  fileName += ".JPEG";
-
-  PlusVideoFrame::SaveImageToFile(this->GetLeftImage()->GetOutput(), fileName.c_str()); 
-
-  // For right image
-  fileName = this->MT->mtGetCurrDir();
-#if (WIN32)
-  fileName += "\\SnapShots\\";
-#else
-  fileName += "/SnapShots/";
-#endif
-  fileName += testNum;
-  fileName += "_RightSnapShot_";
-  fileName += identifier;
-  fileName += ".JPEG"; 
-
-  PlusVideoFrame::SaveImageToFile(this->GetRightImage()->GetOutput(), fileName.c_str()); 
+  PlusVideoFrame::SaveImageToFile(this->GetLeftImage()->GetOutput(), leftJpgFilePath.c_str()); 
+  PlusVideoFrame::SaveImageToFile(this->GetRightImage()->GetOutput(), rightJpgFilePath.c_str()); 
 }
 
 //----------------------------------------------------------------------------
@@ -469,7 +445,8 @@ void vtkMicronTracker::ResetNewSampleFramesCollected()
 //----------------------------------------------------------------------------
 int vtkMicronTracker::SaveTemplate(char* markerName)
 {
-  int callResult = this->MT->mtSaveMarkerTemplate(markerName);
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
+  int callResult = this->MT->mtSaveMarkerTemplate(markerName, templateFullPath);
   this->RefreshMarkerTemplates();
   return callResult;
 }
@@ -722,7 +699,7 @@ void vtkMicronTracker::SetTemplateName(int markerIdx, char* templateName)
   int callResult =  this->MT->mtSetTemplateName(markerIdx, templateName);
   if (callResult != 0)
   {
-    LOG_ERROR(this->MT->mtGetErrorString());
+    LOG_ERROR(this->MT->GetLastErrorString());
   }
   this->RefreshMarkerTemplates();
 }
@@ -733,7 +710,7 @@ void vtkMicronTracker::DeleteTemplate(int markerIdx)
   int callResult = this->MT->mtDeleteTemplate(markerIdx);
   if (callResult != 0 )
   {
-    LOG_ERROR(this->MT->mtGetErrorString());
+    LOG_ERROR(this->MT->GetLastErrorString());
   }
   this->RefreshMarkerTemplates();
 }
@@ -790,9 +767,54 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
   }	
+  
+  const char* templateDirectory = trackerConfig->GetAttribute("TemplateDirectory"); 
+  if ( templateDirectory != NULL )
+  { 
+  	this->TemplateDirectory=templateDirectory;
+  }
+
+  const char* iniFile = trackerConfig->GetAttribute("IniFile"); 
+  if ( iniFile!= NULL )
+  { 
+	  this->IniFile=iniFile;
+  }
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMicronTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+  if ( rootConfigElement == NULL )
+  {
+    LOG_ERROR("Configuration is invalid");
+    return PLUS_FAIL;
+  }
+
+  // Write configuration 
+  Superclass::WriteConfiguration(rootConfigElement); 
+
+  // Get data collection and then Tracker configuration element
+  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if ( trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  trackerConfig->SetAttribute("TemplateDirectory",this->TemplateDirectory.c_str()); 
+  trackerConfig->SetAttribute("IniFile", this->IniFile.c_str()); 
+
+  return PLUS_SUCCESS;
+} 
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::Connect()
@@ -802,8 +824,10 @@ PlusStatus vtkMicronTracker::Connect()
     LOG_DEBUG("Already connected to MicronTracker");
     return PLUS_SUCCESS;
   }
-
-  if (this->MT->mtInit()!=1)
+  
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
+  LOG_INFO("Use MicronTracker ini file: "<<iniFilePath);
+  if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
@@ -825,7 +849,12 @@ PlusStatus vtkMicronTracker::Connect()
     return PLUS_FAIL;
   }
 
-  RefreshMarkerTemplates();
+  if (RefreshMarkerTemplates()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the template directory is correct.");
+    this->MT->mtEnd();
+    return PLUS_FAIL;
+  }
 
   this->IsMicronTrackingInitialized=1;
 

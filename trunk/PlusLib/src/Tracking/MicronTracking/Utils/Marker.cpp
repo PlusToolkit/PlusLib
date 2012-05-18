@@ -19,9 +19,13 @@ Marker::Marker(int h)
 {
   // If a handle is provided to this class, don't create a new one
   if (h != 0)
+  {
     this->m_handle = h;
+  }
   else
+  {
     this->m_handle = Marker_New();
+  }
   this->ownedByMe = TRUE;
 }
 
@@ -30,17 +34,18 @@ Marker::Marker(int h)
 Marker::~Marker()
 {
   if (this->m_handle != 0 && this->ownedByMe)
+  {
     Marker_Free(this->m_handle);
+  }
 }
 
 /****************************/
 /** Return a handle to the collection of the identified facets */
 int Marker::identifiedFacets(MCamera *cam)
 {
-  int camHandle;
-  if (cam == NULL) {
-    camHandle = NULL;
-  } else {
+  int camHandle = NULL;
+  if (cam != NULL) 
+  {
     camHandle = cam->Handle();
   }
   int identifiedHandle = Collection_New();
@@ -71,14 +76,13 @@ int Marker::restoreTemplate(int persistenceHandle, char* name)
 /** */
 bool Marker::wasIdentified(MCamera *cam)
 {
-  int camHandle;
-  bool result;
-  if (cam == NULL) {
-    camHandle = NULL;
-  } else {
+  int camHandle = NULL;
+  if (cam != NULL) 
+  {
     camHandle = cam->Handle();
   }
-  short stat = Marker_WasIdentifiedGet(this->m_handle, camHandle, &result);
+  bool result=false;
+  int stat = Marker_WasIdentifiedGet(this->m_handle, camHandle, &result);
   return result;
 }
 
@@ -87,24 +91,27 @@ bool Marker::wasIdentified(MCamera *cam)
 Xform3D* Marker::marker2CameraXf(int camHandle)
 {
   Xform3D* xf = new Xform3D;
-  int identifyingCamHandle;
+  int identifyingCamHandle=0;
   int result = Marker_Marker2CameraXfGet(this->m_handle, camHandle, xf->getHandle(), &identifyingCamHandle);
-
   // if the result is ok then return the handle, otherwise return NULL
-  if (result == mtOK)
-    return xf;
-  else
+  if (result != mtOK)
+  {
     return NULL;
+  }
+  return xf;
 }
 
 /****************************/
 /** Returns the name of the marker. */
-char* Marker::getName()
+std::string Marker::getName()
 {
-  int size;
-
-  mtCompletionCode st = Marker_NameGet(this->m_handle, m_MarkerName, sizeof(m_MarkerName), &size);
-  m_MarkerName[size] = '\0';
+  const int BUF_SIZE=400;
+  char buf[BUF_SIZE+1];
+  buf[BUF_SIZE]='\0';
+  int size=0;
+  mtCompletionCode st = Marker_NameGet(this->m_handle, buf, BUF_SIZE, &size);
+  buf[size]='\0';
+  m_MarkerName = buf;
   return m_MarkerName;
 }
 
@@ -133,7 +140,9 @@ bool Marker::validateTemplate(double positionToleranceMM, std::string complStrin
   {
     Facet* f = new Facet(facetsColl->itemI(k));
     if (!f->validateTemplate(positionToleranceMM, complString))
+    {
       return false;
+    }
   }
 
   std::vector<Vector*> vs;
@@ -145,7 +154,9 @@ bool Marker::validateTemplate(double positionToleranceMM, std::string complStrin
       Facet* Ftj = new Facet(fj);
       vs = Ftj->TemplateVectors();
       if (Fti->identify(NULL, vs, 2*positionToleranceMM))
+      {
         return false; //mtDifferentFacetsGeometryTooSimilar
+      }
     }
   }
 /*

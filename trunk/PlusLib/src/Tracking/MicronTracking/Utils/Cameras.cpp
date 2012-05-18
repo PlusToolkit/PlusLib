@@ -12,7 +12,6 @@
 
 #include "Cameras.h"
 #include "MCamera.h"
-#include "UtilityFunctions.h"
 #include "MTC.h"
 #include "MTVideo.h"
 
@@ -23,7 +22,7 @@ Cameras::Cameras()
   this->ownedByMe = TRUE;
   this->mCurrCam = NULL;
   this->mFailedCam = NULL;
-// error handling here
+  // error handling here
 }
 
 /****************************/
@@ -31,52 +30,62 @@ Cameras::Cameras()
 Cameras::~Cameras()
 {
   // Clear all previously connected camera
-  std::vector<MCamera *>::iterator camsIterator;
-  for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end();
-         camsIterator++)
-    {
-    free (*camsIterator);
+  for (std::vector<MCamera *>::iterator camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); camsIterator++)
+  {
+    free(*camsIterator);
   }
-  if (mCurrCam != NULL) free(mCurrCam);
-  if (mFailedCam != NULL) free(mFailedCam);
-  
+  m_vCameras.clear();
 
+  if (mCurrCam != NULL)
+  {
+    free(mCurrCam);
+    mCurrCam=NULL;
+  }
+
+  if (mFailedCam != NULL) 
+  {
+    free(mFailedCam);
+    mFailedCam=NULL;
+  }
 }
 
 /****************************/
 /** Returns the camera with the index of /param index. */
 MCamera* Cameras::getCamera(int index)
 {
+  if (index>=(int)this->m_vCameras.size() || index<0)
+  {
+    return NULL;
+  }
   return this->m_vCameras[index];
 }
 
-bool Cameras::grabFrame(MCamera *cam)
+int Cameras::grabFrame(MCamera *cam)
 {
-  bool r = true;
-  if (NULL == cam)
-    {
+  int result = 0; // success
+  if (cam == NULL)
+  {
     // grab from all cameras
     std::vector<MCamera *>::iterator camsIterator;
-    for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end();
-       camsIterator++)
+    for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); camsIterator++)
     {
-      if (false == (*camsIterator)->grabFrame())
-            {
+      if (!(*camsIterator)->grabFrame())
+      {
         mFailedCam = *camsIterator;
-        r = false;
+        result = -1;
         break;
       }
     }
   }
-    else
+  else
+  {
+    if (!cam->grabFrame())
     {
-    if (false == cam->grabFrame())
-        {
       mFailedCam = cam;
-      r = false;
+      result = -1;
     }
   }
-  return r;
+  return result;
 }
 
 
@@ -86,87 +95,99 @@ void Cameras::Detach()
 }
 
 
-int Cameras::getMTHome (  char *sMTHome, int size )
-    {
+int Cameras::getMTHome(std::string &mtHomeDirectory)
+{
+  const char mfile[] = "MTHome";
+
 #ifdef _WIN32
-    LONG err;
-    HKEY key;
-    char *mfile = "MTHome";
-    DWORD value_type;
-    DWORD value_size = size;
+  HKEY topkey=HKEY_LOCAL_MACHINE;
+  const char subkey[]="SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
 
-    /* Check registry key to determine log file name: */
-    if ( (err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", 0,
-      KEY_QUERY_VALUE, &key)) != ERROR_SUCCESS ) {
-    return(-1);
+  /* Check registry key to determine log file name: */
+  LONG err=ERROR_SUCCESS;
+  HKEY key=NULL;
+  if ( (err = RegOpenKeyEx(topkey, subkey, 0, KEY_QUERY_VALUE, &key)) != ERROR_SUCCESS ) 
+  {
+    return (-1);
   }
 
-    if ( RegQueryValueEx( key,
-      mfile,
-      0,  /* reserved */
-      &value_type,
-      (unsigned char*)sMTHome,
-      &value_size ) != ERROR_SUCCESS || value_size <= 1 ){
+  const int smtHomeDirectorySize=512;
+  char smtHomeDirectory[smtHomeDirectorySize+1];
+  smtHomeDirectory[smtHomeDirectorySize]=0;
+  DWORD value_type=0;
+  DWORD value_size = smtHomeDirectorySize;
+  if ( RegQueryValueEx( key, mfile, 0,  /* reserved */ &value_type, (unsigned char*)smtHomeDirectory, &value_size ) != ERROR_SUCCESS || value_size <= 1 )
+  {
     /* size always >1 if exists ('\0' terminator) ? */
-    return(-1);
+    return (-1);
   }
+  mtHomeDirectory=smtHomeDirectory;
 #else
-  char *localNamePtr = getenv("MTHome");
-  if ( localNamePtr) {
-    strncpy(sMTHome, localNamePtr, size-1);
-    sMTHome[size] = '\0';
-  } else {
-    return(-1);
+  char *localNamePtr = getenv(mfile);
+  if ( localNamePtr == NULL) 
+  {
+    return (-1);
   }
-  
-
+  mtHomeDirectory=localNamePtr;
 #endif
-    return(0);
-    }
 
+  return(0);
+}
 
 int Cameras::AttachAvailableCameras()
 {
-  const int calibrationDirSize=512;
-  char calibrationDir[calibrationDirSize+1];
-  calibrationDir[calibrationDirSize]=0;
-  int result = 0;
-
-    if ( getMTHome (calibrationDir, sizeof(calibrationDir)) < 0 ) {
+  std::string calibrationDir;
+  if ( getMTHome(calibrationDir) != 0 ) 
+  {
     // No Environment
-    return result;
-  } else {
-    sprintf_s(calibrationDir, calibrationDirSize, "%s/CalibrationFiles",calibrationDir);
-  }
+    return -1;
+  } 
+  calibrationDir+=std::string("/CalibrationFiles");
+
 #if 0
   // Clear all previously connected camera
   vector<MCamera *>::iterator camsIterator;
-  for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end();
-         camsIterator++)
-    {
+  for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); camsIterator++)
+  {
     free (*camsIterator);
   }
-  if (mCurrCam != NULL) free(mCurrCam);
-  if (mFailedCam != NULL) free(mFailedCam);
+  if (mCurrCam != NULL) 
+  {
+    free(mCurrCam);
+  }
+  if (mFailedCam != NULL) 
+  {
+    free(mFailedCam);
+  }
 #endif
-  result = Cameras_AttachAvailableCameras( calibrationDir);
+  int result = Cameras_AttachAvailableCameras((char*)calibrationDir.c_str());
+  if ( result != mtOK) 
+  {
+    return -1;
+  }
 
-  if ( result != mtOK) return result;
   // Number of the attached cameras
   this->m_attachedCamNums = Cameras_Count();
-  
-  if (this->m_attachedCamNums <=0) return -1;
-  
-  int camHandle;
+  if (this->m_attachedCamNums <=0) 
+  {
+    return -1;
+  }
+
   // Populate the array of camera that are already attached
   for (int c=0; c < this->m_attachedCamNums; c++)
   {
-    if ( c > MaxCameras) break;
-    Cameras_ItemGet( c , &camHandle);
-    m_vCameras.push_back( new MCamera(camHandle));
+    if ( c > MaxCameras) 
+    {
+      break;
+    }
+    int camHandle=0;
+    if (Cameras_ItemGet( c , &camHandle)==mtOK)
+    {
+      m_vCameras.push_back( new MCamera(camHandle));
+    }
   }
 
-  return result;
+  return 0;
 }
 
 /****************************/

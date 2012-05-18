@@ -12,7 +12,6 @@
 #ifndef __MARKERS_H__
 #define __MARKERS_H__
 
-#include "UtilityFunctions.h"
 #include "Collection.h"
 #include "Marker.h"
 #include "MCamera.h"
