@@ -66,13 +66,15 @@ public:
   {
     HFTYPE_GAUSSIAN,
     HFTYPE_GAUSSIAN_ACCUMULATION,
+    HFTYPE_DISTANCE_WEIGHT_INVERSE,
+    HFTYPE_NEAREST_NEIGHBOR,
     HFTYPE_STICK
   };
 
   FillHolesInVolumeElement() 
   {
-    type = HFTYPE_GAUSSIAN;
-    size = 0;
+    type = HFTYPE_NEAREST_NEIGHBOR;
+    size = 3;
     stdev = 0;
     minRatio = 0.0f;
     stickLengthLimit = 0;
@@ -83,9 +85,42 @@ public:
   }
   ~FillHolesInVolumeElement() {switch(type) {case HFTYPE_GAUSSIAN: delete[] kernel; break;
                                              case HFTYPE_GAUSSIAN_ACCUMULATION: delete[] kernel; break;
+                                             case HFTYPE_DISTANCE_WEIGHT_INVERSE: delete[] kernel; break;
                                              case HFTYPE_STICK: delete[] sticksList; break;}}
 
   HFElementTypeIdentifier type;
+
+  // NEAREST_NEIGHBOR ONLY
+  void setupAsNearestNeighbor(int size, float minRatio);
+  template <class T>
+  bool applyNearestNeighbor(T* inputData,            // contains the dataset being interpolated between
+										 unsigned short* accData, // contains the weights of each voxel
+										 vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+										 vtkIdType* accOffsets,
+										 const int& inputComp,	  // the component index of interest
+										 int* bounds,             // the boundaries of the thread
+                     int* wholeExtent,        // the boundaries of the volume, outputExtent
+										 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
+										 T& returnVal);           // The value of the pixel being calculated (unknown);
+  //int size;       // <= this is also used here, see GAUSSIAN below
+  //float minRatio; // <= this is also used here, see GAUSSIAN below
+
+  // DISTANCE_WEIGHT_INVERSE ONLY
+  void setupAsDistanceWeightInverse(int size, float minRatio);
+  template <class T>
+  bool applyDistanceWeightInverse(T* inputData,            // contains the dataset being interpolated between
+										 unsigned short* accData, // contains the weights of each voxel
+										 vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+										 vtkIdType* accOffsets,
+										 const int& inputComp,	  // the component index of interest
+										 int* bounds,             // the boundaries of the thread
+                     int* wholeExtent,        // the boundaries of the volume, outputExtent
+										 int* thisPixel,		      // The x,y,z coordinates of the voxel being calculated
+										 T& returnVal);           // The value of the pixel being calculated (unknown);
+  void allocateDistanceWeightInverse();
+  //int size;       // <= this is also used here, see GAUSSIAN below
+  //float minRatio; // <= this is also used here, see GAUSSIAN below
+  //float* kernel; // <= this is also used here, see GAUSSIAN below
 
   // GAUSSIAN AND GAUSSIAN_ACCUMULATION ONLY
   void setupAsGaussian(int size, float stdev, float minRatio);
@@ -114,7 +149,7 @@ public:
   int size;
   float stdev;
   float minRatio;
-  unsigned int* kernel; // stores the gaussian weights for this kernel
+  float* kernel; // stores the gaussian weights for this kernel
 
   // STICKS ONLY
   void setupAsStick(int stickLengthLimit, int numberOfSticksToUse);
