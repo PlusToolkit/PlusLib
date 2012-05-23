@@ -391,7 +391,7 @@ void CapturingToolbox::ClearRecordedFrames()
 {
 	LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
 
-  if ( QMessageBox::question(this, tr("fCal - Capturing"), tr("Dou you want to discard all the recorded frames?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No )
+  if ( QMessageBox::question(this, tr("fCal - Capturing"), tr("Do you want to discard all the recorded frames?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No )
   {
     return; 
   }
