@@ -281,8 +281,9 @@ bool FillHolesInVolumeElement::applyNearestNeighbor(
 	double sumIntensities(0); // unsigned long because these rise in value quickly
 	int sumAccumulator(0);
   int maxRange((size-1)/2);
+  bool exit(false);
 
-  for (int range = 1; range <= maxRange; range++) {
+  for (int range = 1; range <= maxRange && !exit; range++) {
 	  int minX = thisPixel[0] - range;
 	  int minY = thisPixel[1] - range;
 	  int minZ = thisPixel[2] - range;
@@ -304,6 +305,7 @@ bool FillHolesInVolumeElement::applyNearestNeighbor(
 						  int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
 						  sumIntensities += inputData[volIndex];
 						  sumAccumulator++;
+              exit = true;
 					  }
 				  } // end boundary check
 			  } // end z loop
