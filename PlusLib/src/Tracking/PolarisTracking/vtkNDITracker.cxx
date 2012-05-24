@@ -86,8 +86,6 @@ vtkNDITracker::vtkNDITracker()
   this->ServerMode=0;
   this->RemoteAddress=NULL;
   this->SocketCommunicator=vtkSocketCommunicator::New();
-
-  this->ReferenceTool=0;
 }
 
 //----------------------------------------------------------------------------
@@ -461,7 +459,6 @@ PlusStatus vtkNDITracker::InternalUpdate()
   int absent[VTK_NDI_NTOOLS];
   unsigned long frame[VTK_NDI_NTOOLS];
   double transform[VTK_NDI_NTOOLS][8];
-  double *referenceTransform = 0;
   long flags;
   const unsigned long mflags = NDI_TOOL_IN_PORT | NDI_INITIALIZED | NDI_ENABLED;
 
@@ -546,11 +543,6 @@ PlusStatus vtkNDITracker::InternalUpdate()
     }
   }
 
-  if (this->ReferenceTool >= 0)
-  { // copy reference tool transform
-    referenceTransform = transform[this->ReferenceTool];
-  }
-
   for (tool = 0; tool < VTK_NDI_NTOOLS; tool++) 
   {
     // convert status flags from NDI to vtkTracker format
@@ -567,24 +559,6 @@ PlusStatus vtkNDITracker::InternalUpdate()
       //if (port_status & NDI_SWITCH_1_ON)  { flags = TOOL_SWITCH1_IS_ON; } // TODO all these button state flags are on regardless of the actual state
       //if (port_status & NDI_SWITCH_2_ON)  { flags = TOOL_SWITCH2_IS_ON; }
       //if (port_status & NDI_SWITCH_3_ON)  { flags = TOOL_SWITCH3_IS_ON; }
-    }
-
-    // if tracking relative to another tool
-    if (this->ReferenceTool >= 0 && tool != this->ReferenceTool)
-    {
-      if (!absent[tool])
-      {
-        if (absent[this->ReferenceTool])
-        {
-          flags = TOOL_OUT_OF_VIEW;
-        }
-        if (status[this->ReferenceTool] & NDI_OUT_OF_VOLUME)
-        {
-          flags = TOOL_OUT_OF_VOLUME;
-        }
-      }
-      // pre-multiply transform by inverse of relative tool transform
-      ndiRelativeTransform(transform[tool],referenceTransform,transform[tool]);
     }
 
     ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
