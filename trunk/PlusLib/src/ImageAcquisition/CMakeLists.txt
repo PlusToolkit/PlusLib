@@ -4,6 +4,7 @@
 OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
+OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 
 # --------------------------------------------------------------------------
 # Sources
@@ -279,6 +280,34 @@ IF (PLUS_USE_VFW_VIDEO)
     )
 
 ENDIF (PLUS_USE_VFW_VIDEO)
+
+# --------------------------------------------------------------------------
+# Epiphan support
+
+IF (PLUS_USE_EPIPHAN)
+	SET (ImageAcquisition_SRCS ${ImageAcquisition_SRCS} 
+		Epiphan/vtkEpiphanVideoSource.cxx
+		)
+	if (WIN32)	
+		SET (ImageAcquisition_HDRS ${ImageAcquisition_HDRS}
+			Epiphan/vtkEpiphanVideoSource.h
+			)
+	endif (WIN32)	
+	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/Win32/frmgrab.lib
+#    		${EPIPHAN_LIBRARY/frmgrab.lib}
+    	)		
+  	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
+  		C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/
+  		#${EPIPHAN_INCLUDE_DIR} 	
+  		CACHE INTERNAL "" FORCE
+    	)      
+  	
+  	SET ( External_Libraries_Install ${External_Libraries_Install}
+    				C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/Win32/frmgrab.dll 
+	)
+
+ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------
 # Build the library

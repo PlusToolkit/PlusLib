@@ -39,6 +39,10 @@ See License.txt for details.
 #include "vtkOpenIGTLinkVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_EPIPHAN
+#include "C:\\Users\\Kitware\\Documents\\Toolkits\\PLUS\\Bin\\PlusLib\\src\\ImageAcquisition\\Epiphan\\vtkEpiphanVideoSource.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusVideoSourceFactory, "$Revision: 1.0 $");
@@ -47,6 +51,7 @@ vtkStandardNewMacro(vtkPlusVideoSourceFactory);
 //----------------------------------------------------------------------------
 vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 {	
+	LOG_ERROR("Debugging...... ");
   VideoSourceTypes["None"]=NULL; 
   VideoSourceTypes["SavedDataset"]=(PointerToVideoSource)&vtkSavedDataVideoSource::New; 
   VideoSourceTypes["NoiseVideo"]=(PointerToVideoSource)&vtkPlusVideoSource::New; 
@@ -68,6 +73,10 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 #endif 
 #ifdef PLUS_USE_LINUX_VIDEO
   VideoSourceTypes["LinuxVideo"]=(PointerToVideoSource)&vtkV4L2LinuxSource2::New; 
+#endif 
+#ifdef PLUS_USE_EPIPHAN
+  VideoSourceTypes["Epiphan"]=(PointerToVideoSource)&vtkEpiphanVideoSource::New; 
+  LOG_ERROR("Epiphan detected ");
 #endif 
 }
 
