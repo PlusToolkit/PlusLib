@@ -70,6 +70,7 @@ SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 1 CACHE STRING "Set Ultrasonix SDK patch 
 
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
+OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
 
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
@@ -271,10 +272,19 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
     ENDIF()
 ENDIF()
 
+IF ( PLUS_USE_EPIPHAN_VIDEO )
+   FIND_PACKAGE (EPIPHAN)
+    IF ( NOT EPIPHAN_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires Epiphan SDK for supporting the Epiphan frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_EPIPHAN_VIDEO.")
+    ENDIF()
+ENDIF()
+
+
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
     INCLUDE(External_PlusApp.cmake)
+    
 ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
 
 #-----------------------------------------------------------------------------
