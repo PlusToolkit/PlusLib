@@ -9,7 +9,7 @@
 
 #include "vtkPlusVideoSource.h"
 #include "vtkMultiThreader.h"
-
+#include "vtkTimerLog.h"
 #include "epiphan/frmgrab.h"
 
 /* exit codes */
@@ -29,12 +29,14 @@ class VTK_EXPORT vtkEpiphanVideoSource;
   \brief Class that cleans up (deletes singleton instance of) vtkICCapturingSource when destroyed
   \ingroup PlusLibImageAcquisition
 */
+/*
 class VTK_EXPORT vtkEpiphanVideoSourceCleanup
 {
 public:
 	vtkEpiphanVideoSourceCleanup();
 	~vtkEpiphanVideoSourceCleanup();
 };
+*/
 
 /*!
   \class vtkICCapturingSource 
@@ -44,6 +46,7 @@ public:
 class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusVideoSource
 {
 public:
+	static vtkEpiphanVideoSource *New();
 	vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
   /*! This is a singleton pattern New.  There will only be ONE
@@ -52,26 +55,26 @@ public:
 	 counting will work.   The single instance will be unreferenced when
 	 the program exits
   */
-	static vtkEpiphanVideoSource* New();
   /*! Return the singleton instance with no reference counting. */
-	static vtkEpiphanVideoSource* GetInstance();
+	//static vtkEpiphanVideoSource* GetInstance();
 
   /*! Supply a user defined output window. Call ->Delete() on the supplied instance after setting it. */
-	static void SetInstance(vtkEpiphanVideoSource *instance);
+	//static void SetInstance(vtkEpiphanVideoSource *instance);
 
 	//BTX
 	/*! Use this as a way of memory management when the
 	 program exits the SmartPointer will be deleted which
 	 will delete the Instance singleton
   */
-	static vtkEpiphanVideoSourceCleanup Cleanup;
+	//static vtkEpiphanVideoSourceCleanup Cleanup;
 	//ETX
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
-  /*! Read configuration from xml data */	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */	
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Set the IC capturing device name (e.g. "DFG/USB2-lt") */
 	vtkSetStringMacro(DeviceName); 
@@ -98,6 +101,8 @@ public:
   /*! Get the IC capturing device buffer size ( Default: 50 frame ) */
 	vtkGetMacro(ICBufferSize, int); 
 
+	V2U_TIME v2u_computeTime();
+
 protected:
   /*! Constructor */
 	vtkEpiphanVideoSource();
@@ -120,7 +125,7 @@ protected:
 	PlusStatus InternalGrab();
 
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. */
-	PlusStatus AddFrameToBuffer(unsigned char * data, unsigned long size, unsigned long frameNumber);
+	//PlusStatus AddFrameToBuffer(unsigned char * data, unsigned long size, unsigned long frameNumber);
 
   /*! Frame grabber device - DShowLib::Grabber type */
 	void* FrameGrabber;
@@ -152,10 +157,12 @@ protected:
 	// status of the frame grabber
 	int status;
 
+	int FrameSize[2];
+
 private:
 
-	static vtkEpiphanVideoSource* Instance;
-	static bool vtkEpiphanVideoSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber);
+	//static vtkEpiphanVideoSource* Instance;
+	//static bool vtkEpiphanVideoSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber);
 	vtkEpiphanVideoSource(const vtkEpiphanVideoSource&);  // Not implemented.
 	void operator=(const vtkEpiphanVideoSource&);  // Not implemented.
 };

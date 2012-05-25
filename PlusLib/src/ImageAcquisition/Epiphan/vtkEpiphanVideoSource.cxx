@@ -33,18 +33,19 @@
 #include <vtkstd/string> 
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkEpiphanVideoSource);
+//vtkEpiphanVideoSource* vtkEpiphanVideoSource::Instance = 0;
+//vtkEpiphanVideoSourceCleanup vtkEpiphanVideoSource::Cleanup;
 
-vtkEpiphanVideoSource* vtkEpiphanVideoSource::Instance = 0;
-vtkEpiphanVideoSourceCleanup vtkEpiphanVideoSource::Cleanup;
+//vtkEpiphanVideoSourceCleanup::vtkEpiphanVideoSourceCleanup(){}
 
-vtkEpiphanVideoSourceCleanup::vtkEpiphanVideoSourceCleanup(){}
-
+/*
 vtkEpiphanVideoSourceCleanup::~vtkEpiphanVideoSourceCleanup()
 {
 	// Destroy any remaining output window.
 	vtkEpiphanVideoSource::SetInstance(NULL);
 }
-
+*/
 
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::vtkEpiphanVideoSource()
@@ -73,7 +74,10 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::~vtkEpiphanVideoSource()
 { 
-	this->Disconnect();
+	if( !this->Connected )
+	{
+		this->Disconnect();
+	}
 
 	if ( this->fg != NULL) 
 	{
@@ -81,26 +85,23 @@ vtkEpiphanVideoSource::~vtkEpiphanVideoSource()
 		//delete this->FrameGrabber; 
 		this->fg = NULL;
 	}
-
- /* if ( this->FrameGrabberListener != NULL) 
-	{
-		delete this->FrameGrabberListener; 
-		this->FrameGrabberListener = NULL;
-	}*/
 }
 
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
+/*
 vtkEpiphanVideoSource* vtkEpiphanVideoSource::New()
 {
 	vtkEpiphanVideoSource* ret = vtkEpiphanVideoSource::GetInstance();
 	ret->Register(NULL);
 	return ret;
 }
+*/
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
+/*
 vtkEpiphanVideoSource* vtkEpiphanVideoSource::GetInstance()
 {
 	if(!vtkEpiphanVideoSource::Instance)
@@ -119,8 +120,9 @@ vtkEpiphanVideoSource* vtkEpiphanVideoSource::GetInstance()
 	// return the instance
 	return vtkEpiphanVideoSource::Instance;
 }
-
+*/
 //----------------------------------------------------------------------------
+/*
 void vtkEpiphanVideoSource::SetInstance(vtkEpiphanVideoSource* instance)
 {
 	if (vtkEpiphanVideoSource::Instance==instance)
@@ -140,7 +142,7 @@ void vtkEpiphanVideoSource::SetInstance(vtkEpiphanVideoSource* instance)
 	// user will call ->Delete() after setting instance
 	instance->Register(NULL);
 }
-
+*/
 //----------------------------------------------------------------------------
 /////
 std::string vtkEpiphanVideoSource::GetSdkVersion()
@@ -162,92 +164,49 @@ void vtkEpiphanVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-// the callback function used when there is a new frame of data received
-/////
-bool vtkEpiphanVideoSource::vtkEpiphanVideoSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber)
-{   
-/**
-	if(data==NULL || size==0)
-	{
-		LOG_ERROR("No actual frame data received from the framegrabber");
-		return false;
-	}
-
-  vtkEpiphanVideoSource::GetInstance()->AddFrameToBuffer(data, size, frameNumber);    
-*/
-	return true;
-
-	}
-
-//----------------------------------------------------------------------------
-// copy the Device Independent Bitmap from the VFW framebuffer into the
-// vtkVideoSource framebuffer (don't do the unpacking yet)
-/////
-PlusStatus vtkEpiphanVideoSource::AddFrameToBuffer(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
-{
-/**
-	if (!this->Recording)
-  {
-    // drop the frame, we are not recording data now
-    return PLUS_SUCCESS;
-  }
-
-	this->FrameNumber = frameNumber; 
-
-  const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
-	int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
-  if (frameBufferBitsPerPixel!=8)
-  {
-    LOG_ERROR("vtkEpiphanVideoSource::AddFrameToBuffer: only 8-bit acquisition is supported, current frameBufferBitsPerPixel="<<frameBufferBitsPerPixel);
-    return PLUS_FAIL;
-  }
-
-  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, 0, this->FrameNumber); 
-  this->Modified();
-*/
-	PlusStatus status;
-	return status;
-
-	}
-
-//----------------------------------------------------------------------------
-/////
 PlusStatus vtkEpiphanVideoSource::InternalConnect()
 {
+
+  LOG_TRACE( "vtkEpiphanVideoSource::InternalConnect" );
+
   // Clear buffer on connect 
   this->GetBuffer()->Clear();
 
+  // Initialize frmgrab library
   FrmGrabNet_Init();
-
-  //char input[15];
-  //strncpy_s(input, "sn:", 15);
-  //strncat_s(input, this->serialNumber, 15);
 
   strncpy_s(this->serialNumber,15,"V2U109999",9);
 
-  this->fg = FrmGrab_Open(this->serialNumber);
-  
-  if (this->fg == NULL) {
-	LOG_ERROR("Epiphan Device with set serial number not found, looking for any available device instead");
-	this->fg = FrmGrabLocal_Open();
-	
-  }
-
-  if (this->fg == NULL) {
+  if ( (this->fg = FrmGrab_Open( this->serialNumber )) == NULL ) 
+  {
+    LOG_ERROR("Epiphan Device with set serial number not found, looking for any available device instead");
+	if ( (this->fg = FrmGrabLocal_Open()) == NULL )
+	{
 	  LOG_ERROR("Epiphan Device Not found");
-	  return PLUS_FAIL;;
+	  return PLUS_FAIL;
+	}
   }
-
+  
   V2U_VideoMode vm;
 
   if (FrmGrab_DetectVideoMode(this->fg,&vm) && vm.width && vm.height) {
-	 // this->SetFrameSize(vm.width,vm.height,1);
-	  //this->SetFrameRate((vm.vfreq+50)/1000);
+	 //this->SetFrameSize(vm.width,vm.height);
+	 this->SetFrameRate((vm.vfreq+50)/1000);
   } else {
 	LOG_ERROR("No signal detected");
   }
 
-  FrmGrab_SetMaxFps(this->fg, 25.0);
+  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+
+  this->cropRect->x = 0;
+  this->cropRect->y = 0;
+  this->cropRect->width = 400;
+  this->cropRect->height = 400;
+
+  this->FrameSize[0] = cropRect->width;
+  this->FrameSize[1] = cropRect->height;
+
+  //FrmGrab_SetMaxFps(this->fg, 25.0);
 
   // Initialization worked
   //this->Initialized = 1;
@@ -255,30 +214,11 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   // Update frame buffer  to reflect any changes
   //this->UpdateFrameBuffer();
 
-  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR ); 
-  this->GetBuffer()->SetFrameSize(vm.width,vm.height);
-
   return PLUS_SUCCESS;
 
   }  
 
 //----------------------------------------------------------------------------
-/////
-/**
-void vtkEpiphanVideoSource::ReleaseSystemResources()
-{
-
-  this->Initialized = 0;
-  if (this->fg != NULL) {
-	FrmGrab_Close(this->fg);
-  }
-
-	return PLUS_SUCCESS; 
-
-	}
-*/
-//----------------------------------------------------------------------------
-/////
 PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 {
 
@@ -301,12 +241,6 @@ PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 /////
 PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
 {
-
-   //if (this->Playing)
-   // {
-   // this->Stop();
-   // }
-
   if (!this->Recording)
     {
 		return PLUS_SUCCESS;
@@ -323,33 +257,8 @@ PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
     //  this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
     //                            &vtkEpiphanVideoSourceRecordThread,this);
     //}
-
 }
 
-
-/**
-static void *vtkEpiphanVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
-{
-
-	vtkEpiphanVideoSource *self = (vtkEpiphanVideoSource *)(data->UserData);
-  
-  double startTime = vtkTimerLog::GetUniversalTime();
-  double rate = self->GetFrameRate();
-  int frame = 0;
-
-  do
-    {
-    self->InternalGrab();
-    frame++;
-    }
-  while (vtkThreadSleep(data, startTime + frame/rate));
-
-  return NULL;
-
-  }
-*/
-
-/////
 
 PlusStatus vtkEpiphanVideoSource::InternalGrab()
 {
@@ -361,9 +270,9 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
   }
 
   V2U_GrabFrame2 * frame = NULL;
-  V2U_UINT32 format = V2U_GRABFRAME_BOTTOM_UP_FLAG; // seems to be needed to orientate correctly.
+  //V2U_UINT32 format = V2U_GRABFRAME_BOTTOM_UP_FLAG; // seems to be needed to orientate correctly.
 
-  format |= V2U_GRABFRAME_FORMAT_RGB24;
+  V2U_UINT32 format = V2U_GRABFRAME_FORMAT_RGB8;
   /*
   if (this->OutputFormat == VTK_LUMINANCE) {
 	format |= V2U_GRABFRAME_FORMAT_YUY2;
@@ -377,32 +286,49 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
 	  return;
   }
 */
-  /*
-  this->cropRect.x = 0;
-  this->cropRect.y = 0;
-  this->cropRect.width = 400;
-  this->cropRect.width = 400;
-*/
-  frame= FrmGrab_Frame(this->fg, format, NULL);
+  
+
+
+  frame= FrmGrab_Frame(this->fg, format, cropRect);
+
+  if (frame == NULL)
+  {
+	  return PLUS_SUCCESS;
+  }
 
   this->FrameNumber++;
 
-  int FrameSize[2] = {frame->imagelen, frame->imagelen};
-  
-  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetUsImageOrientation(), FrameSize, 
-	  itk::ImageIOBase::UCHAR,0,this->FrameNumber); 
-  this->Modified();
-  return status;
-/*
+  // Set unfiltered and filtered timestamp
+  double unfilteredTimestamp = vtkTimerLog::GetUniversalTime();//v2u_computeTime();  
+  double filteredTimestamp = vtkTimerLog::GetUniversalTime();//v2u_computeTime();  
+
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( this->GetBuffer()->GetNumberOfItems() == 0 )
   {
-    this->GetBuffer()->SetPixelType(pixelType);  
-    this->GetBuffer()->SetFrameSize( imgSize[0], imgSize[1] );
+    this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);  
+    this->GetBuffer()->SetFrameSize( FrameSize );
   }
-*/
+
+  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetUsImageOrientation(), FrameSize, 
+	  itk::ImageIOBase::UCHAR,0,this->FrameNumber);//,unfilteredTimestamp, filteredTimestamp); 
+  this->Modified();
+  FrmGrab_Release(this->fg, frame);
+  return status;
 }
 
+V2U_TIME vtkEpiphanVideoSource::v2u_computeTime()
+{
+    V2U_TIME now;
+    SYSTEMTIME sysTime;
+    FILETIME   fileTime;
+    GetSystemTime(&sysTime);
+    SystemTimeToFileTime(&sysTime, &fileTime);
+    now = ((V2U_TIME)fileTime.dwHighDateTime << 32) 
+         + (V2U_TIME)fileTime.dwLowDateTime;
+    now /= 10000;  /* convert from 100-ns ticks to milliseconds */
+    now -= 11644473600000i64;   /* Jan 1st 1601 to Jan 1st 1970 */
+    return now;
+}
 
 //----------------------------------------------------------------------------
 /////

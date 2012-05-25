@@ -51,7 +51,6 @@ vtkStandardNewMacro(vtkPlusVideoSourceFactory);
 //----------------------------------------------------------------------------
 vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 {	
-	LOG_ERROR("Debugging...... ");
   VideoSourceTypes["None"]=NULL; 
   VideoSourceTypes["SavedDataset"]=(PointerToVideoSource)&vtkSavedDataVideoSource::New; 
   VideoSourceTypes["NoiseVideo"]=(PointerToVideoSource)&vtkPlusVideoSource::New; 
@@ -76,7 +75,6 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 #endif 
 #ifdef PLUS_USE_EPIPHAN
   VideoSourceTypes["Epiphan"]=(PointerToVideoSource)&vtkEpiphanVideoSource::New; 
-  LOG_ERROR("Epiphan detected ");
 #endif 
 }
 
