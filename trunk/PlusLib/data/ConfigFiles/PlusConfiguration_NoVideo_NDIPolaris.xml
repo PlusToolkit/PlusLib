@@ -6,8 +6,10 @@
       Description="Configuration file for No video + NDI Polaris"
     />
 
-    <Tracker Type="PolarisTracker" SerialPort="5" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="Reference" PortName="4" RomFile="d:\_download\rom\ta104.rom" />
+    <Tracker Type="PolarisTracker" SerialPort="3" BaudRate="115200" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+      <Tool Name="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" />
+      <Tool Name="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" />
+      <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" />
     </Tracker>
 
     <ImageAcquisition Type="None" />

@@ -317,6 +317,9 @@ IF (PLUS_USE_EPIPHAN)
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
+  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+    ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------
@@ -351,9 +354,9 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
     )                
 ELSE()
-    FILE(COPY ${External_Libraries_Install}
-      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-      )        
+  FILE(COPY ${External_Libraries_Install}
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+    )        
 ENDIF()
     
 # --------------------------------------------------------------------------
@@ -369,7 +372,8 @@ INSTALL(TARGETS vtkImageAcquisition
   RUNTIME
   DESTINATION bin
   CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries)
+  COMPONENT RuntimeLibraries
+  )
 
 # --------------------------------------------------------------------------
 # Testing

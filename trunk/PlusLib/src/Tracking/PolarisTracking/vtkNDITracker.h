@@ -48,6 +48,7 @@ POSSIBILITY OF SUCH DAMAGES.
 // the number of tools the polaris can handle
 #define VTK_NDI_NTOOLS 12
 #define VTK_NDI_REPLY_LEN 2048
+#define RETURN_VALUE_LEN 9
 
 /*!
   \class vtkNDITracker
@@ -215,14 +216,11 @@ protected:
 
   char CommandReply[VTK_NDI_REPLY_LEN];
 
-  double ReturnValue[9];
+  double ReturnValue[RETURN_VALUE_LEN];
 
   int ServerMode;
   char* RemoteAddress;
   vtkSocketCommunicator* SocketCommunicator;
-
-  /*! Deprecated. Computing transforms relative to a reference tracker are now handled at the data collection level. */
-  int ReferenceTool;
 
 private:
   vtkNDITracker(const vtkNDITracker&);
