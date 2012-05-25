@@ -42,8 +42,7 @@ IF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ndicapi
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 
 	SET (Tracking_LIBS ${Tracking_LIBS} 
 		vtkndicapi
@@ -58,27 +57,26 @@ ENDIF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
 
 IF (PLUS_USE_CERTUS)
     SET (Tracking_SRCS ${Tracking_SRCS} 
-    NDICertusTracking/vtkNDICertusTracker.cxx
-    )
+      NDICertusTracking/vtkNDICertusTracker.cxx
+      )
         
     SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${NDIOAPI_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
 	
     IF (WIN32)	
-		SET (Tracking_HDRS ${Tracking_HDRS}
-			NDICertusTracking/vtkNDICertusTracker.h
-			)
-	ENDIF (WIN32)
+      SET (Tracking_HDRS ${Tracking_HDRS}
+        NDICertusTracking/vtkNDICertusTracker.h
+        )
+    ENDIF (WIN32)
 	  
     SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
-        CACHE INTERNAL "" FORCE
-    )
+      ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
+      CACHE INTERNAL "" FORCE)
             
     SET (Tracking_LIBS ${Tracking_LIBS} ${NDIOAPI_LIBRARY} )
     
     SET ( External_Libraries_Install ${External_Libraries_Install}
-        ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
-        )
+      ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
 ENDIF (PLUS_USE_CERTUS)
 
 #--------------------------------------------------------------------------
@@ -118,8 +116,7 @@ IF (PLUS_USE_MICRONTRACKER)
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking/Utils
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 	 
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
@@ -163,8 +160,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking/Utils
-    CACHE INTERNAL "" FORCE
-    )		
+    CACHE INTERNAL "" FORCE)		
   
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -203,8 +199,7 @@ IF( PLUS_USE_Ascension3DG )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${ATC_TRAKSTAR_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -235,8 +230,7 @@ IF( PLUS_USE_Ascension3DGm )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${ATC_MEDSAFE_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -273,8 +267,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -302,8 +295,7 @@ IF( PLUS_USE_OpenIGTLink )
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 	
   SET (Tracking_LIBS ${Tracking_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
@@ -351,17 +343,18 @@ ENDIF()
 #
 
 INSTALL(FILES 
-	${External_Libraries_Install}
-	DESTINATION bin
-    CONFIGURATIONS Release
-	COMPONENT RuntimeLibraries
-	)
+  ${External_Libraries_Install}
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries
+  )
 	
 INSTALL(TARGETS vtkTracking
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries
+  )
 
 # --------------------------------------------------------------------------
 # Testing
