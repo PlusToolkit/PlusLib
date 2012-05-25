@@ -86,6 +86,23 @@ vtkNDITracker::vtkNDITracker()
   this->ServerMode=0;
   this->RemoteAddress=NULL;
   this->SocketCommunicator=vtkSocketCommunicator::New();
+
+  for (int toolIndex=0; toolIndex<VTK_NDI_NTOOLS; toolIndex++)
+  {
+    this->PortEnabled[toolIndex]=0;
+    this->PortHandle[toolIndex]=0;
+    this->VirtualSROM[toolIndex]=0;
+  }
+
+  for (int i=0; i<VTK_NDI_REPLY_LEN; i++)
+  {
+    this->CommandReply[i]='\0';
+  }
+
+  for (int i=0; i<RETURN_VALUE_LEN; i++)
+  {
+    this->ReturnValue[i]=0.0;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -318,7 +335,7 @@ PlusStatus vtkNDITracker::InternalStartTracking()
   this->Device = ndiOpen(devicename);
   if (this->Device == 0) 
   {
-    LOG_ERROR(ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to open port: " << devicename << " - " << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
   // initialize Device
@@ -454,12 +471,24 @@ PlusStatus vtkNDITracker::InternalStopTracking()
 
 PlusStatus vtkNDITracker::InternalUpdate()
 {
-  int errnum, tool, ph;
+  int errnum=0;
   int status[VTK_NDI_NTOOLS];
   int absent[VTK_NDI_NTOOLS];
   unsigned long frame[VTK_NDI_NTOOLS];
   double transform[VTK_NDI_NTOOLS][8];
-  long flags;
+
+  for (int tool = 0; tool < VTK_NDI_NTOOLS; tool++)
+  {
+    status[tool]=0;
+    absent[tool]=0;
+    frame[tool]=0;
+    for (int i=0; i<8; i++)
+    {
+      transform[tool][i]=0;
+    }
+  }
+
+  long flags = 0;
   const unsigned long mflags = NDI_TOOL_IN_PORT | NDI_INITIALIZED | NDI_ENABLED;
 
   if (!this->IsDeviceTracking)
@@ -469,7 +498,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
   }
 
   // initialize transformations to identity
-  for (tool = 0; tool < VTK_NDI_NTOOLS; tool++)
+  for (int tool = 0; tool < VTK_NDI_NTOOLS; tool++)
   {
     transform[tool][0] = 1.0;
     transform[tool][1] = transform[tool][2] = transform[tool][3] = 0.0;
@@ -499,9 +528,9 @@ PlusStatus vtkNDITracker::InternalUpdate()
   // no transforms for any tools)
   unsigned long nextcount = 0;
 
-  for (tool = 0; tool < VTK_NDI_NTOOLS; tool++)
+  for (int tool = 0; tool < VTK_NDI_NTOOLS; tool++)
   {
-    ph = this->PortHandle[tool];
+    int ph = this->PortHandle[tool];
     if (ph == 0)
     {
       continue;
@@ -537,13 +566,13 @@ PlusStatus vtkNDITracker::InternalUpdate()
   }
   else
   {
-    for (tool = 0; tool < VTK_NDI_NTOOLS; tool++)
+    for (int tool = 0; tool < VTK_NDI_NTOOLS; tool++)
     {
       this->PortEnabled[tool] = ((status[tool] & mflags) == mflags);
     }
   }
 
-  for (tool = 0; tool < VTK_NDI_NTOOLS; tool++) 
+  for (int tool = 0; tool < VTK_NDI_NTOOLS; tool++) 
   {
     // convert status flags from NDI to vtkTracker format
     int port_status = status[tool];
@@ -581,7 +610,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     {
       if (flags != TOOL_MISSING)
       {
-        LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+        LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() << ", flags="<<flags ); 
       }
     }
     else
@@ -1329,6 +1358,12 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
+  int baudRate=0;
+  if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
+  {
+    this->BaudRate=baudRate; 
+  } 
+
   // Read ROM files for tools
   for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
   {
@@ -1365,8 +1400,8 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
         LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
         continue;
       }
-
-      this->LoadVirtualSROM(portNumber, romFileName);
+      std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
+      this->LoadVirtualSROM(portNumber, romFilePath.c_str());
     }
   }
 
@@ -1376,8 +1411,8 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
 //----------------------------------------------------------------------------
 PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* config)
 {
-  // Read superclass configuration
-  Superclass::ReadConfiguration(config); 
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
 
   if ( config == NULL ) 
   {
@@ -1400,6 +1435,8 @@ PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* config)
   }
 
   trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
+
+  trackerConfig->SetIntAttribute("BaudRate", this->BaudRate );
 
   return PLUS_SUCCESS;
 }
