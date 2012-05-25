@@ -41,20 +41,24 @@ SET (ImageAcquisition_LIBS)
 IF (PLUS_USE_OpenIGTLink)
 
 	SET (ImageAcquisition_SRCS
-        ${ImageAcquisition_SRCS}
+    ${ImageAcquisition_SRCS}
 		OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.cxx
 		)
 	IF (WIN32)	
-        SET (ImageAcquisition_HDRS
-            ${ImageAcquisition_HDRS}
-			OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
-			)
+    SET (ImageAcquisition_HDRS
+      ${ImageAcquisition_HDRS}
+      OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
+    )
 	ENDIF (WIN32)
 	
 	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
-		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo CACHE INTERNAL "" FORCE )
+		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo
+    CACHE INTERNAL "" FORCE)
 	
-	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} OpenIGTLink vtkPlusOpenIGTLink CACHE INTERNAL "" FORCE)
+	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
+    OpenIGTLink
+    vtkPlusOpenIGTLink
+    CACHE INTERNAL "" FORCE)
 	
 ENDIF(PLUS_USE_OpenIGTLink)
 
@@ -64,72 +68,72 @@ ENDIF(PLUS_USE_OpenIGTLink)
 IF (PLUS_USE_ULTRASONIX_VIDEO)
 
 	SET (ImageAcquisition_SRCS
-        ${ImageAcquisition_SRCS}
-        SonixVideo/vtkSonixVideoSource.cxx
-        SonixVideo/vtkSonixVolumeReader.cxx
-        SonixVideo/itkUlteriusImageIO.cxx
-        SonixVideo/itkUlteriusImageIOFactory.cxx   
-		SonixVideo/vtkSonixPortaVideoSource.cxx
-        )
+    ${ImageAcquisition_SRCS}
+    SonixVideo/vtkSonixVideoSource.cxx
+    SonixVideo/vtkSonixVolumeReader.cxx
+    SonixVideo/itkUlteriusImageIO.cxx
+    SonixVideo/itkUlteriusImageIOFactory.cxx   
+    SonixVideo/vtkSonixPortaVideoSource.cxx
+    )
 		
 	IF (WIN32)	
-        SET (ImageAcquisition_HDRS
-            ${ImageAcquisition_HDRS}
-            SonixVideo/vtkSonixVideoSource.h
-            SonixVideo/vtkSonixVolumeReader.h
-            SonixVideo/itkUlteriusImageIO.h
-            SonixVideo/itkUlteriusImageIOFactory.h
-			SonixVideo/vtkSonixPortaVideoSource.h
-            )
+    SET (ImageAcquisition_HDRS
+      ${ImageAcquisition_HDRS}
+      SonixVideo/vtkSonixVideoSource.h
+      SonixVideo/vtkSonixVolumeReader.h
+      SonixVideo/itkUlteriusImageIO.h
+      SonixVideo/itkUlteriusImageIOFactory.h
+      SonixVideo/vtkSonixPortaVideoSource.h
+      )
 	ENDIF (WIN32)	
 
-    MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
+  MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
 	IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 1)
-        # Use Ultrasonix SDK 1.2 (only Ulterius is supported)
-        SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)        
-        SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-        SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)    
-        SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-          optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
-          debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
-          )    
-        SET ( External_Libraries_Install ${External_Libraries_Install}
-          ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-          )
-       SET  ( External_Libraries_Debug ${External_Libraries_Debug}
-          ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-          )
+    # Use Ultrasonix SDK 1.2 (only Ulterius is supported)
+    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)        
+    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)    
+    SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+      optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
+      debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
+      )    
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+   SET  ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
 	ELSEIF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
-        # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
-        SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
-        SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-        SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)    
-        SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
-          ${ULTERIUS_LIB_DIR}/ulterius.lib
-          )
-        SET ( Ultrasonix_External_Libs 
-          ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
-          ${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
-          )
-       SET ( External_Libraries_Install ${External_Libraries_Install} ${Ultrasonix_External_Libs} )
-       SET ( External_Libraries_Debug ${External_Libraries_Debug} ${Ultrasonix_External_Libs} )
-    ELSE()
-        SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
-        SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
-        SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/ulterius/lib CACHE PATH "Path to the Ultrasonix SDK Ulterius library directory." FORCE)
-        SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc ${ULTRASONIX_SDK_DIR}/porta/wrapper CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
-        SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)			      			
-        
-        SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-            ${ULTERIUS_LIB_DIR}/ulterius.lib
-			${PORTA_LIB_DIR}/porta.lib
-            )
+    # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
+    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)    
+    SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
+      ${ULTERIUS_LIB_DIR}/ulterius.lib
+      )
+    SET ( Ultrasonix_External_Libs 
+      ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Install ${External_Libraries_Install} ${Ultrasonix_External_Libs} )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug} ${Ultrasonix_External_Libs} )
+  ELSE()
+    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
+    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
+    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/ulterius/lib CACHE PATH "Path to the Ultrasonix SDK Ulterius library directory." FORCE)
+    SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc ${ULTRASONIX_SDK_DIR}/porta/wrapper CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
+    SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)			      			
+
+    SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+      ${ULTERIUS_LIB_DIR}/ulterius.lib
+      ${PORTA_LIB_DIR}/porta.lib
+      )
 		
 		IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
 			# All DLLs except ITK, VTK, and QT libraries
@@ -203,18 +207,19 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 			FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}") 
 		ENDIF()
 		
-        SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
-        SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
-    ENDIF()
+    SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
+  ENDIF()
     
-    SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
-        ${ULTERIUS_INCLUDE_DIR}        
-		${PORTA_INCLUDE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
-        CACHE INTERNAL "" FORCE
-        )
+  SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
+    ${ULTERIUS_INCLUDE_DIR}        
+    ${PORTA_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
+    CACHE INTERNAL "" FORCE)
     
-	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} CACHE INTERNAL "" FORCE)
+	SET (ImageAcquisition_LIBS
+    ${ImageAcquisition_LIBS}
+    CACHE INTERNAL "" FORCE)
 	
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
@@ -225,7 +230,7 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 		${ImageAcquisition_SRCS}
 		ICCapturing/vtkICCapturingSource.cxx
 		ICCapturing/ICCapturingListener.cxx
-	)	
+    )	
 	if (WIN32)	
 		SET (ImageAcquisition_HDRS
 			${ImageAcquisition_HDRS}
@@ -237,8 +242,7 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
     ${ICCAPTURING_INCLUDE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ICCapturing
-    CACHE INTERNAL "" FORCE
-    )
+    CACHE INTERNAL "" FORCE)
 	
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
 		optimized ${ICCAPTURING_TIS_UDSHL09_STATIC_LIB}
@@ -273,18 +277,28 @@ IF (PLUS_USE_VFW_VIDEO)
     )		
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
   	${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows 	
-  	CACHE INTERNAL "" FORCE
-    )      
+  	CACHE INTERNAL "" FORCE)      
   SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-	Vfw32.lib CACHE INTERNAL "" FORCE
-    )
-
+    Vfw32.lib
+    CACHE INTERNAL "" FORCE)
 ENDIF (PLUS_USE_VFW_VIDEO)
 
 # --------------------------------------------------------------------------
 # Epiphan support
 
 IF (PLUS_USE_EPIPHAN)
+
+  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+  	SET (EPIPHAN_PLATFORM_SUBDIR x64)
+  ELSE()
+    SET (EPIPHAN_PLATFORM_SUBDIR Win32)
+  ENDIF()
+
+  SET (EPIPHAN_SDK_BASE_DIR ${PLUSLIB_TOOLS_DIR}/epiphan)
+  SET (EPIPHAN_INCLUDE_DIR ${EPIPHAN_SDK_BASE_DIR} CACHE PATH "Path to the Epiphan SDK include (*.h) directory." FORCE)  
+  SET (EPIPHAN_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/${EPIPHAN_PLATFORM_SUBDIR} CACHE PATH "Path to the Epiphan SDK binary (*.dll) directory." FORCE)
+  SET (EPIPHAN_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/${EPIPHAN_PLATFORM_SUBDIR} CACHE PATH "Path to the Epiphan SDK library (*.lib) directory." FORCE)
+
 	SET (ImageAcquisition_SRCS ${ImageAcquisition_SRCS} 
 		Epiphan/vtkEpiphanVideoSource.cxx
 		)
@@ -294,19 +308,15 @@ IF (PLUS_USE_EPIPHAN)
 			)
 	endif (WIN32)	
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
-C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/Win32/frmgrab.lib
-#    		${EPIPHAN_LIBRARY/frmgrab.lib}
-    	)		
-  	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
-  		C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/
-  		#${EPIPHAN_INCLUDE_DIR} 	
-  		CACHE INTERNAL "" FORCE
-    	)      
-  	
-  	SET ( External_Libraries_Install ${External_Libraries_Install}
-    				C:/Users/Kitware/Documents/Toolkits/PLUS/Bin/PlusLib/src/ImageAcquisition/Epiphan/epiphan/Win32/frmgrab.dll 
-	)
-
+    ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )		
+  SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}     
+    ${EPIPHAN_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Epiphan
+    CACHE INTERNAL "" FORCE)        	
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------
@@ -334,32 +344,32 @@ SET(vcProj_vtkImageAcquisition vtkImageAcquisition;"${PlusLib_BINARY_DIR}/src/Im
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-    FILE(COPY ${External_Libraries_Install}
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-        )
-    FILE(COPY ${External_Libraries_Debug}
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-        )                
+  FILE(COPY ${External_Libraries_Install}
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
+    )
+  FILE(COPY ${External_Libraries_Debug}
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+    )                
 ELSE()
     FILE(COPY ${External_Libraries_Install}
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        )        
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+      )        
 ENDIF()
     
 # --------------------------------------------------------------------------
 # Install
 INSTALL(FILES 
-	${External_Libraries_Install}
-	DESTINATION bin
-    CONFIGURATIONS Release
-	COMPONENT RuntimeLibraries
-	)
+  ${External_Libraries_Install}
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries
+  )
 
 INSTALL(TARGETS vtkImageAcquisition
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries)
 
 # --------------------------------------------------------------------------
 # Testing

@@ -40,7 +40,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_EPIPHAN
-#include "C:\\Users\\Kitware\\Documents\\Toolkits\\PLUS\\Bin\\PlusLib\\src\\ImageAcquisition\\Epiphan\\vtkEpiphanVideoSource.h"
+#include "vtkEpiphanVideoSource.h"
 #endif
 
 //----------------------------------------------------------------------------
