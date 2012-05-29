@@ -550,8 +550,17 @@ PlusStatus TrackedFrame::WriteToFile(std::string &filename, vtkMatrix4x4* mImage
 
   typedef itk::CastImageFilter< Image2dType, Image3dType> CastFilterType;
   CastFilterType::Pointer castFilter = CastFilterType::New(); 
-  castFilter->SetInput(this->ImageData.GetDisplayableImage());
-  castFilter->Update();
+  try 
+  {      
+    castFilter->SetInput(this->ImageData.GetDisplayableImage());
+    castFilter->Update();
+  }
+  catch(itk::ExceptionObject & err)
+  {
+    LOG_ERROR("Failed to cast image for writing it to file: " << err.GetDescription() ); 
+    return PLUS_FAIL; 
+  }
+
   Image3dType::Pointer image=castFilter->GetOutput();     
 
   double origin[3]=

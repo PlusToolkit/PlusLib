@@ -79,11 +79,18 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  if (configRootElement->FindNestedElementWithName("CoordinateDefinitions")!=NULL)
   {
-    LOG_ERROR("Failed to read transforms for transform repository!"); 
-    return EXIT_FAILURE; 
+    if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read transforms from CoordinateDefinitions"); 
+      return EXIT_FAILURE; 
+    }
+  }
+  else
+  {
+    LOG_DEBUG("No transforms were found in CoordinateDefinitions. Only the transforms defined in the input image will be available.");
   }
 
   // Print calibration transform
@@ -98,10 +105,43 @@ int main (int argc, char* argv[])
 
   // Reconstruct volume 
   PlusTransformName imageToReferenceTransformName;
-  if ( imageToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
-  { 
-    LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
-    return EXIT_FAILURE; 
+  if (!inputImageToReferenceTransformName.empty())
+  {
+    // image to reference transform is specified at the command-line
+    if ( imageToReferenceTransformName.SetTransformName(inputImageToReferenceTransformName.c_str()) != PLUS_SUCCESS )
+    { 
+      LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
+      return EXIT_FAILURE; 
+    }
+  }
+  else
+  {
+    // Read image to reference transform from the XML configuration
+    vtkXMLDataElement* reconConfig = configRootElement->FindNestedElementWithName("VolumeReconstruction");
+    if (reconConfig == NULL)
+    {
+      LOG_ERROR("Image to reference transform is not specified at the command-line and could not load from the VolumeReconstruction element in the XML tree either!");
+      return EXIT_FAILURE;
+    }
+    const char* referenceCoordinateFrameName=reconConfig->GetAttribute("ReferenceCoordinateFrame");
+    if (referenceCoordinateFrameName==NULL)
+    {
+      LOG_ERROR("Image to reference transform is not specified at the command-line and could not find the ReferenceCoordinateFrame attribute in the VolumeReconstruction element in the XML tree either!");
+      return EXIT_FAILURE;
+    }
+    const char* imageCoordinateFrameName=reconConfig->GetAttribute("ImageCoordinateFrame");
+    if (referenceCoordinateFrameName==NULL)
+    {
+      LOG_ERROR("Image to reference transform is not specified at the command-line and could not find the ImageCoordinateFrame attribute in the VolumeReconstruction element in the XML tree either!");
+      return EXIT_FAILURE;
+    }
+    // image to reference transform is specified in the XML tree
+    imageToReferenceTransformName=PlusTransformName(imageCoordinateFrameName,referenceCoordinateFrameName);
+    if (!imageToReferenceTransformName.IsValid())
+    { 
+      LOG_ERROR("Cannot create a transform name from '" << imageCoordinateFrameName <<"' to '"<<referenceCoordinateFrameName<<"'" ); 
+      return EXIT_FAILURE; 
+    }
   }
   
   LOG_INFO("Set volume output extent...");
@@ -179,7 +219,7 @@ int main (int argc, char* argv[])
 
 
 
-  LOG_INFO("Filling holes...");
+  LOG_INFO("Finalize reconstructed volume...");
   vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
   reconstructor->LoadReconstructedVolume();
 
