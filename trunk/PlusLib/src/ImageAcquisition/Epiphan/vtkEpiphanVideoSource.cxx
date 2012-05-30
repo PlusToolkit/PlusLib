@@ -11,6 +11,7 @@
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
+#include "epiphan/frmgrab.h"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkEpiphanVideoSource);
@@ -18,8 +19,11 @@ vtkStandardNewMacro(vtkEpiphanVideoSource);
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 {
-	this->VideoFormat = V2U_GRABFRAME_FORMAT_Y8; 
-	this->CropRect = new V2URect;
+	this->VideoFormat = VIDEO_FORMAT_Y8; 
+  this->ClipRectangleOrigin[0]=0;
+  this->ClipRectangleOrigin[1]=0;
+  this->ClipRectangleSize[0]=0;
+  this->ClipRectangleSize[1]=0;
 	this->SerialNumber = NULL;
 	this->SpawnThreadForRecording = true;
 	this->SetFrameBufferSize(200); 
@@ -34,12 +38,11 @@ vtkEpiphanVideoSource::~vtkEpiphanVideoSource()
 		this->Disconnect();
 	}
 
-	if ( this->fg != NULL) 
+	if ( this->FrameGrabber != NULL) 
 	{
 		FrmGrab_Deinit();
-		this->fg = NULL;
+		this->FrameGrabber = NULL;
 	}
-	delete CropRect;
 }
 
 //----------------------------------------------------------------------------
@@ -63,20 +66,27 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
 
   if ( this->SerialNumber != NULL )
   {
-	  if ( (this->fg = FrmGrab_Open( this->SerialNumber )) == NULL ) 
-	  {
-		LOG_WARNING("Epiphan Device with set serial number not found, looking for any available device instead");
-		if ( (this->fg = FrmGrabLocal_Open()) == NULL )
-		{
-		  LOG_ERROR("Epiphan Device Not found");
-		  return PLUS_FAIL;
-		}
-	  }
+	  if ( (this->FrameGrabber = FrmGrab_Open( this->SerialNumber )) == NULL ) 
+    {      
+      if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
+      {
+        LOG_ERROR("Epiphan Device found");
+        return PLUS_FAIL;
+      }
+      const char UNKNOWN_DEVICE[]="UNKNOWN";
+      const char* connectedTo=FrmGrab_GetSN((FrmGrabber*)this->FrameGrabber);      
+      if (connectedTo==NULL)
+      {
+        connectedTo=UNKNOWN_DEVICE;
+      }
+      
+      LOG_WARNING("Epiphan Device with the requested serial number '"<<this->SerialNumber<<"' not found. Connected to " << connectedTo << " device instead.");
+    }
   }
   else
   {
-	  LOG_WARNING("Serial Number not specified. Looking for any available device");
-	  if ( (this->fg = FrmGrabLocal_Open()) == NULL )
+	  LOG_DEBUG("Serial Number not specified. Looking for any available device");
+	  if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
 		{
 		  LOG_ERROR("Epiphan Device Not found");
 		  return PLUS_FAIL;
@@ -84,29 +94,37 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   }
   
   V2U_VideoMode vm;
-
-  if (FrmGrab_DetectVideoMode(this->fg,&vm) && vm.width && vm.height) 
-  {
-	  //this->SetFrameSize(vm.width,vm.height);
-	  this->SetFrameRate(vm.vfreq/1000);
-  } 
-  else
+  if (!FrmGrab_DetectVideoMode((FrmGrabber*)this->FrameGrabber,&vm)) 
   {
 	  LOG_ERROR("No signal detected");
+    return PLUS_FAIL;
+  }
+
+  double maxPossibleFrameRate=vm.vfreq/1000;
+  if (this->GetFrameRate()>maxPossibleFrameRate)
+  {
+    this->SetFrameRate(maxPossibleFrameRate);
+  }
+  if (vm.width==0 || vm.height==0)
+  {
+    LOG_ERROR("No valid signal detected. Invalid frame size is received from the framegrabber: "<<vm.width<<"x"<<vm.height);
+    return PLUS_FAIL;
+  }
+  this->FrameSize[0] = vm.width;
+  this->FrameSize[1] = vm.height;  
+ 
+  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
+  {
+    if (this->ClipRectangleSize[0]%4!=0)
+    {
+      LOG_WARNING("ClipRectangleSize[0] is not a multiple of 4. Acquired image may be skewed.");
+    }
+	  this->FrameSize[0] = this->ClipRectangleSize[0];
+	  this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
   this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
-
-  if( (CropRect->height != NULL) && (CropRect->width != NULL) )
-  {
-	  this->FrameSize[0] = CropRect->width;
-	  this->FrameSize[1] = CropRect->height;
-  }
-  else
-  {
-	  this->FrameSize[0] = vm.width;
-	  this->FrameSize[1] = vm.height;
-  }
+  this->GetBuffer()->SetFrameSize(this->FrameSize); 
 
   return PLUS_SUCCESS;
 }
@@ -119,10 +137,10 @@ PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
   LOG_DEBUG("Disconnect from Epiphan ");
 
   //this->Initialized = 0;
-  if (this->fg != NULL) {
-	FrmGrab_Close(this->fg);
+  if (this->FrameGrabber != NULL) {
+	FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
   }
-  this->fg = NULL;
+  this->FrameGrabber = NULL;
 
   return this->StopRecording();
 
@@ -137,7 +155,7 @@ PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
     {
 		return PLUS_SUCCESS;
 	}
-  FrmGrab_Start(fg); 
+  FrmGrab_Start((FrmGrabber*)this->FrameGrabber); 
 
   return this->Connect();
 }
@@ -145,7 +163,7 @@ PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalStopRecording()
 {
-  FrmGrab_Stop(fg);
+  FrmGrab_Stop((FrmGrabber*)this->FrameGrabber);
   return PLUS_SUCCESS;
 }
 
@@ -160,7 +178,31 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
   }
 
   V2U_GrabFrame2 * frame = NULL;
-  frame= FrmGrab_Frame(this->fg, VideoFormat, CropRect);
+  
+  V2U_UINT32 videoFormat=V2U_GRABFRAME_FORMAT_Y8;
+  switch (this->VideoFormat)
+  {
+  case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
+  case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
+  default:
+    LOG_ERROR("Unkonwn video format: "<<this->VideoFormat);
+    return PLUS_FAIL;
+  }
+
+  V2URect *cropRect=NULL;
+  if (this->ClipRectangleSize[0]>0 && this->ClipRectangleSize[1]>0)
+  {
+    cropRect=new V2URect;
+    cropRect->x = this->ClipRectangleOrigin[0];
+    cropRect->y = this->ClipRectangleOrigin[1];
+    cropRect->width = this->ClipRectangleSize[0];
+    cropRect->height = this->ClipRectangleSize[1];
+  }
+
+  frame= FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
+
+  delete cropRect;
+  cropRect = NULL;
 
   if (frame == NULL)
   {
@@ -180,7 +222,7 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
   PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetUsImageOrientation(), FrameSize, 
 	  itk::ImageIOBase::UCHAR,0,this->FrameNumber);
   this->Modified();
-  FrmGrab_Release(this->fg, frame);
+  FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
   return status;
 }
 
@@ -216,16 +258,16 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		if( !strcmp(videoFormat,"RGB8") )
 		{
-			this->SetVideoFormat( V2U_GRABFRAME_FORMAT_RGB8 );
+			this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
 		}
 		else if ( !strcmp(videoFormat,"Y8") )
 		{
-			this->SetVideoFormat( V2U_GRABFRAME_FORMAT_Y8 );
+			this->SetVideoFormat( VIDEO_FORMAT_Y8 );
 		}
 		else 
 		{
 			LOG_WARNING("Video Format unspecified/not supported. Using Y8"); 
-			this->SetVideoFormat( V2U_GRABFRAME_FORMAT_Y8 );
+			this->SetVideoFormat( VIDEO_FORMAT_Y8 );
 		}
 	}
 
@@ -239,41 +281,18 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 		LOG_WARNING("Serial Number not specified. Will try detecting it automatically");
 	}
 
-	int CropRectX,CropRectY,CropRectWidth,CropRectHeight;
-	if ( imageAcquisitionConfig->GetScalarAttribute("CropRectX",CropRectX) )
-	{
-		this->CropRect->x=CropRectX;
-	}
-	else
-	{
-		this->CropRect->x=NULL;
-	}
-	if ( imageAcquisitionConfig->GetScalarAttribute("CropRectY",CropRectY) )
-	{
-		this->CropRect->y=CropRectY;
-	}
-	else
-	{
-		this->CropRect->y=NULL;
-	}
-	if ( imageAcquisitionConfig->GetScalarAttribute("CropRectWidth",CropRectWidth) )
-	{
-		this->CropRect->width=CropRectWidth;
-	}
-	else
-	{
-		LOG_WARNING("Crop Rectangle Width not specified. Setting it to NULL");
-		this->CropRect->width=NULL;
-	}
-	if ( imageAcquisitionConfig->GetScalarAttribute("CropRectHeight",CropRectHeight) )
-	{
-		this->CropRect->height=CropRectHeight;
-	}
-	else
-	{
-		LOG_WARNING("Crop Rectangle Height not specified. Setting it to NULL");
-		this->CropRect->height=NULL;
-	}
+
+  // clipping parameters
+  int clipRectangleOrigin[2]={0,0};
+  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
+  {
+    this->SetClipRectangleOrigin(clipRectangleOrigin);
+  }
+  int clipRectangleSize[2]={0,0};
+  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
+  {
+    this->SetClipRectangleSize(clipRectangleSize);
+  }
 
 	return PLUS_SUCCESS;
 
@@ -305,19 +324,25 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  if ( this->VideoFormat == V2U_GRABFRAME_FORMAT_RGB8 )
+  if ( this->VideoFormat == VIDEO_FORMAT_RGB8 )
   {
 	  imageAcquisitionConfig->SetAttribute("VideoFormat", "RGB8");
   }
-  else
+  else if ( this->VideoFormat == VIDEO_FORMAT_Y8 )
   {
 	  imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
   }
+  else
+  {
+    LOG_ERROR("Attempted to write invalid video format into the config file: "<<this->VideoFormat<<". Written Y8 instead.");
+    imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
+  }
+
   imageAcquisitionConfig->SetAttribute("SerialNumber", this->SerialNumber);
-  imageAcquisitionConfig->SetIntAttribute("CropX", this->CropRect->x);
-  imageAcquisitionConfig->SetIntAttribute("CropY", this->CropRect->y);
-  imageAcquisitionConfig->SetIntAttribute("CropWidth", this->CropRect->width);
-  imageAcquisitionConfig->SetIntAttribute("CropHeight", this->CropRect->height);
+
+  // clipping parameters
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
 
   return PLUS_SUCCESS;
 }
