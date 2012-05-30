@@ -8,19 +8,6 @@
 #define __vtkEpiphanVideoSource_h
 
 #include "vtkPlusVideoSource.h"
-#include "epiphan/frmgrab.h"
-
-/* exit codes */
-#define V2U_GRABFRAME_STATUS_OK       0  /* successful completion */
-#define V2U_GRABFRAME_STATUS_NODEV    1  /* VGA2USB device not found */
-#define V2U_GRABFRAME_STATUS_VMERR    2  /* Video mode detection failure */
-#define V2U_GRABFRAME_STATUS_NOSIGNAL 3  /* No signal detected */
-#define V2U_GRABFRAME_STATUS_GRABERR  4  /* Capture error */
-#define V2U_GRABFRAME_STATUS_IOERR    5  /* File save error */
-#define V2U_GRABFRAME_STATUS_CMDLINE  6  /* Command line syntax error */
-
-
-class VTK_EXPORT vtkEpiphanVideoSource;
 
 /*!
   \class vtkEpiphanVideoSource 
@@ -34,24 +21,49 @@ public:
 	vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 
+  enum VideoFormatType
+  {
+    VIDEO_FORMAT_UNKNOWN,
+    VIDEO_FORMAT_RGB8,
+    VIDEO_FORMAT_Y8
+  };
+
   /*! Read configuration from xml data */	
-    virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-  /*! Set the Epiphan device video format (e.g. "Y8" ) */
-	vtkSetMacro(VideoFormat,V2U_UINT32); 
-  /*! Get the Epiphan device video format (e.g. "Y8" ) */
-	vtkGetMacro(VideoFormat,V2U_UINT32);  
+  /*! Set the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
+	vtkSetMacro(VideoFormat,VideoFormatType); 
+  /*! Get the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
+	vtkGetMacro(VideoFormat,VideoFormatType);  
 
   /*! Set the Epiphan device serial */
 	vtkSetStringMacro(SerialNumber); 
   /*! Get the Epiphan device serial */
 	vtkGetStringMacro(SerialNumber); 
 
-  /*! Set the crop rectangle of frame grabber */
-//	vtkSetMacro(CropRect, V2URect);
-  /*! Get the crop rectangle of frame grabber */
-//	vtkGetMacro(CropRect, V2URect);
+  /*!
+    Set the clip rectangle size to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+    Width of the ClipRectangle typically have to be a multiple of 4.
+  */
+  vtkSetVector2Macro(ClipRectangleSize,int);
+  /*!
+    Get the clip rectangle size to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleSize,int);
+
+  /*!
+    Set the clip rectangle origin to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkSetVector2Macro(ClipRectangleOrigin,int);
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleOrigin,int);
 
 protected:
   /*! Constructor */
@@ -75,16 +87,20 @@ protected:
 	PlusStatus InternalGrab();
 
   /*! Video format (e.g. Y8) */
-	V2U_UINT32 VideoFormat;
+	VideoFormatType VideoFormat;
 
-  /*! Crop rectangle for the grabber */
-	V2URect * CropRect;
+
+  /*! Crop rectangle origin for the grabber (in pixels) */
+	int ClipRectangleOrigin[2];
+
+  /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
+	int ClipRectangleSize[2];
 
   /*! Serial number of the frame grabber */
 	char* SerialNumber;
 
   /*! Epiphan Pointer to the grabber */
-	FrmGrabber* fg;
+	void* FrameGrabber;
 
   /*! Frame size of the captured image */
 	int FrameSize[2];

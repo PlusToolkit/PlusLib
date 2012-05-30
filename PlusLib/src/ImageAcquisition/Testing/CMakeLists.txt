@@ -97,12 +97,17 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 #Test is to be added.
 
-#***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
+#***************************  vtkWin32VideoSourceTest.cxx ***************************
 IF (PLUS_USE_VFW_VIDEO)
 	ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx )
 	TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkImageAcquisition )
 ENDIF (PLUS_USE_VFW_VIDEO)
 
+#***************************  vtkEpiphanVideoSourceTest.cxx ***************************
+IF (PLUS_USE_EPIPHAN)
+	ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
+	TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkImageAcquisition )
+ENDIF (PLUS_USE_EPIPHAN)
 
 #*************************** vtkPlusVideoSourceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusVideoSourceFactoryTest vtkPlusVideoSourceFactoryTest.cxx)
