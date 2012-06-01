@@ -120,7 +120,6 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 {
   this->Internal = new vtkWin32VideoSource2Internal;
 
-  this->AcquisitionRate = 30;
   this->Buffer->SetFrameSize(640,480);
   this->SetFrameBufferSize(200);
 
@@ -717,7 +716,7 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkWin32VideoSource2::SetFrameRate(float rate)
+PlusStatus vtkWin32VideoSource2::SetAcquisitionRate(double rate)
 {
   if (rate == this->AcquisitionRate)
   {

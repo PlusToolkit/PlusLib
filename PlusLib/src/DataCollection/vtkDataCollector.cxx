@@ -43,7 +43,6 @@ vtkDataCollector::~vtkDataCollector()
 {
 }
 
-
 //----------------------------------------------------------------------------
 void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 {

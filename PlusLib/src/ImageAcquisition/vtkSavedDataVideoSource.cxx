@@ -44,7 +44,7 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->ReplayEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
-  this->SpawnThreadForRecording=true;
+  this->SpawnThreadForRecording = true;
 }
 
 //----------------------------------------------------------------------------
