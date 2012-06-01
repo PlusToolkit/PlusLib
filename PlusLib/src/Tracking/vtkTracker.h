@@ -8,21 +8,18 @@ See License.txt for details.
 #define __vtkTracker_h
 
 #include "PlusConfigure.h"
-#include "vtkObject.h"
+#include "vtkPlusDevice.h"
 #include "vtkCriticalSection.h"
 #include "vtkXMLDataElement.h"
 #include "TrackedFrame.h"
-#include "vtkMultiThreader.h" 
+#include "vtkMultiThreader.h"
+
 #include <string>
-#include <vector>
 #include <map>
 
 class vtkMatrix4x4;
 class vtkTrackerTool;
-class vtkSocketCommunicator;
-class vtkCharArray;
-class vtkDataArray;
-class vtkDoubleArray;
+class vtkXMLDataElement;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
 class vtkTrackerBuffer; 
@@ -65,15 +62,12 @@ for new tracking systems.
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkTracker : public vtkObject
+class VTK_EXPORT vtkTracker : public vtkPlusDevice
 {
 public:
   static vtkTracker *New();
-  vtkTypeMacro(vtkTracker,vtkObject);
+  vtkTypeMacro(vtkTracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  /*! Hardware device SDK version. This method should be overridden in subclasses. */
-  virtual std::string GetSdkVersion(); 
 
   /*! 
   Probe to see to see if the tracking system is connected to the 
@@ -93,7 +87,7 @@ public:
   virtual PlusStatus StopTracking();
 
   /*! Test whether or not the system is tracking. */
-  virtual int IsTracking() { return this->Tracking; };
+  virtual int IsTracking() { return this->Recording; };
 
   /*! Set recording start time for each tool */
   virtual void SetStartTime( double startTime ); 
@@ -206,10 +200,8 @@ public:
   virtual PlusStatus WriteToMetafile(const char* outputFolder, const char* metaFileName, bool useCompression = false );
 
 public:
-  /*! Set the acquisition frequency */
-  vtkSetMacro(Frequency, double);
-  /*! Get the acquisition frequency */
-  vtkGetMacro(Frequency, double);
+  /*! Set the acquisition rate */
+  vtkSetMacro(AcquisitionRate, double);
 
 protected:
   vtkTracker();
@@ -254,32 +246,18 @@ protected:
   virtual PlusStatus InternalSetToolLED(const char* portName, int led, int state) { return PLUS_SUCCESS; };
 
 protected:
-
   /*! Tracker tools */
   ToolContainerType ToolContainer; 
 
-  /*! Flag to strore tracking state of the class */
-  int Tracking;
-
   /*! Flag to strore tracking thread state */
   bool TrackingThreadAlive; 
-
-  /*! Thread used for data acquisition */
-  vtkMultiThreader *Threader;
-  
-  /*! Tracking thread id */
-  int ThreadId;
-
-  /*! Tracking frequency */
-  double Frequency; 
 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 
 
 private:
-  vtkTracker(const vtkTracker&);
-  void operator=(const vtkTracker&);  
+  vtkTracker(const vtkTracker&);  // Not implemented.
+  void operator=(const vtkTracker&);  // Not implemented. 
 };
 
 #endif
-

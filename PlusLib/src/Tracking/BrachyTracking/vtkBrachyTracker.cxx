@@ -75,7 +75,7 @@ vtkBrachyTracker::vtkBrachyTracker()
 //----------------------------------------------------------------------------
 vtkBrachyTracker::~vtkBrachyTracker() 
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     this->StopTracking();
   }
@@ -122,7 +122,7 @@ PlusStatus vtkBrachyTracker::Disconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::Probe()
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     return PLUS_SUCCESS;
   }
@@ -185,7 +185,7 @@ PlusStatus vtkBrachyTracker::InternalUpdate()
 {
   ToolStatus status = TOOL_OK;
 
-  if (!this->Tracking)
+  if (!this->Recording)
   {
     LOG_ERROR("called Update() when Brachy stepper was not tracking");
     return PLUS_FAIL;

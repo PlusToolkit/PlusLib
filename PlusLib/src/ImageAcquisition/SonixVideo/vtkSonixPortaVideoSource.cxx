@@ -864,7 +864,7 @@ PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams()
   // frame rate is a function of several parameters, such as
   // bline density and image-depths.
   //
-  this->FrameRate = (float)(this->Porta.getFrameRate() );
+  this->AcquisitionRate = (float)(this->Porta.getFrameRate() );
 
 /*  this->Porta.updateDisplayParams();*/
 

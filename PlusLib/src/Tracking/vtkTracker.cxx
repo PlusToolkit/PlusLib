@@ -34,15 +34,12 @@ vtkStandardNewMacro(vtkTracker);
 //----------------------------------------------------------------------------
 vtkTracker::vtkTracker()
 {
-  this->Tracking = 0;
   this->InternalUpdateRate = 0;
-  this->Frequency = 50; 
+  this->AcquisitionRate = 50; 
   this->ToolReferenceFrameName = NULL; 
   this->TrackingThreadAlive = false; 
 
-  // for threaded capture of transformations
-  this->Threader = vtkMultiThreader::New();
-  this->ThreadId = -1;
+  // For threaded capture of transformations
   this->UpdateMutex = vtkCriticalSection::New();
 
   this->SetToolReferenceFrameName("Tracker"); 
@@ -60,23 +57,18 @@ vtkTracker::~vtkTracker()
     it->second->Delete(); 
   }
 
-  DELETE_IF_NOT_NULL(this->Threader); 
   DELETE_IF_NOT_NULL(this->UpdateMutex); 
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkObject::PrintSelf(os,indent);
-  os << indent << "Tracking: " << this->Tracking << "\n";
-}
+  this->Superclass::PrintSelf(os,indent);
 
-//----------------------------------------------------------------------------
-std::string vtkTracker::GetSdkVersion()
-{
-  // Base class version is the same as the Plus library version
-  std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 
-  return ver; 
+  if (this->ToolReferenceFrameName)
+  {
+    os << indent << "ToolReferenceFrameName: " << this->ToolReferenceFrameName << "\n";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -191,7 +183,7 @@ void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
   double currtime[10]={0};
   unsigned long updatecount = 0; 
   // loop until cancelled
-  while ( self->Tracking )
+  while ( self->Recording )
   {
     double newtime = vtkAccurateTimer::GetSystemTime(); 
 
@@ -209,7 +201,7 @@ void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
       self->UpdateTime.Modified();
     }
 
-    double delay = ( newtime + 1.0 / self->GetFrequency() - vtkAccurateTimer::GetSystemTime() );
+    double delay = ( newtime + 1.0 / self->GetAcquisitionRate() - vtkAccurateTimer::GetSystemTime() );
     if ( delay > 0 )
     {
       vtkAccurateTimer::Delay(delay); 
@@ -248,7 +240,7 @@ PlusStatus vtkTracker::Probe()
 PlusStatus vtkTracker::StartTracking()
 {
   // start the tracking thread
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     LOG_ERROR("Cannot start the tracking thread - tracking still running!");
     return PLUS_FAIL;
@@ -260,7 +252,7 @@ PlusStatus vtkTracker::StartTracking()
     return PLUS_FAIL; 
   } 
 
-  this->Tracking = 1;
+  this->Recording = 1;
 
   // start the tracking thread
   this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
@@ -272,14 +264,14 @@ PlusStatus vtkTracker::StartTracking()
 PlusStatus vtkTracker::StopTracking()
 {
 
-  if (!this->Tracking)
+  if (!this->Recording)
   {
     // tracking already stopped, nothing to do
     return PLUS_SUCCESS;
   }
 
   this->ThreadId = -1;
-  this->Tracking = 0;
+  this->Recording = 0;
 
   // Let's give a chance to the thread to stop before we kill the tracker connection
   while ( this->TrackingThreadAlive )
@@ -421,7 +413,7 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   }
 
   this->InternalUpdateRate = tracker->GetInternalUpdateRate();
-  this->SetFrequency(tracker->GetFrequency()); 
+  this->SetAcquisitionRate(tracker->GetAcquisitionRate()); 
 }
 
 //-----------------------------------------------------------------------------
@@ -540,10 +532,10 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     this->SetToolsBufferSize(bufferSize); 
   }
 
-  double frequency = 0; 
-  if ( trackerConfig->GetScalarAttribute("Frequency", frequency) ) 
+  double acquisitionRate = 0; 
+  if ( trackerConfig->GetScalarAttribute("AcquisitionRate", acquisitionRate) ) 
   {
-    this->SetFrequency(frequency);  
+    this->SetAcquisitionRate(acquisitionRate);  
   }
 
   int averagedItemsForFiltering = 0; 

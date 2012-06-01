@@ -540,7 +540,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  if ( !this->Tracking )
+  if ( !this->Recording )
   {
     const char* mode = trackerConfig->GetAttribute("Mode"); 
     if ( mode != NULL ) 

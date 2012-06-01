@@ -5,7 +5,6 @@ SET (DataCollection_SRCS
   vtkDataCollectorSynchronizer.cxx 
   vtkDataCollectorHardwareDevice.cxx
   vtkDataCollectorFile.cxx
-  
 	)
 
 SET (DataCollection_HDRS)
@@ -21,8 +20,8 @@ endif (WIN32)
 IF (PLUS_USE_OpenIGTLink)
 	SET (DataCollection_SRCS ${DataCollection_SRCS}
 		vtkOpenIGTLinkBroadcaster.cxx
-	    vtkPlusOpenIGTLinkServer.cxx
-	    vtkPlusOpenIGTLinkClient.cxx
+	  vtkPlusOpenIGTLinkServer.cxx
+	  vtkPlusOpenIGTLinkClient.cxx
 		OpenIGTLinkCommands/vtkPlusCommand.cxx
 		OpenIGTLinkCommands/vtkPlusCommandCollection.cxx
 		OpenIGTLinkCommands/vtkPlusCommandFactory.cxx

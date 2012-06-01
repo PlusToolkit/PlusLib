@@ -14,6 +14,7 @@ SET (PlusCommon_SRCS
   vtkTrackedFrameList.cxx
   TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
+  vtkPlusDevice.cxx
   )
 
 SET (PlusCommon_HDRS)
@@ -34,6 +35,7 @@ if (WIN32)
     TrackedFrame.h
     PlusVideoFrame.h
     vtkMetaImageSequenceIO.h
+    vtkPlusDevice.h
     )
 endif (WIN32)	
 

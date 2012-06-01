@@ -17,19 +17,15 @@ Authors include: Danielle Pace
 #define __vtkPlusVideoSource_h
 
 #include "PlusConfigure.h"
-#include <vector>
+#include "vtkPlusDevice.h"
 #include "vtkImageAlgorithm.h"
 #include "vtkXMLDataElement.h"
 #include "vtkMultiThreader.h"
 #include "PlusVideoFrame.h"
 
-class vtkTimerLog;
-class vtkCriticalSection;
-class vtkMultiThreader;
-class vtkScalarsToColors;
 class vtkVideoBuffer;
-class vtkHTMLGenerator; 
-class vtkGnuplotExecuter; 
+class vtkHTMLGenerator;
+class vtkGnuplotExecuter;
 class VideoBufferItem;
 
 /*!
@@ -44,19 +40,17 @@ recording.
 \ingroup PlusLibImageAcquisition
 */
 
-class VTK_EXPORT vtkPlusVideoSource : public vtkImageAlgorithm
+class VTK_EXPORT vtkPlusVideoSource : public vtkPlusDevice
 {
 public:
 
   static vtkPlusVideoSource *New();
-  vtkTypeRevisionMacro(vtkPlusVideoSource,vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  /*! Hardware device SDK version. This method should be overridden in subclasses. */
-  virtual std::string GetSdkVersion(); 
-
-  /*! Read/write main configuration from/to xml data */
+  /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Connect to device. Connection is needed for recording or single frame grabbing */
@@ -84,9 +78,6 @@ public:
   */
   virtual PlusStatus Grab();
 
-  /*! Are we in record mode? */
-  vtkGetMacro(Recording,int);
-
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
 
@@ -96,16 +87,20 @@ public:
     automatically choose a new frame size.
   */
   virtual PlusStatus SetFrameSize(int x, int y);
+
   /*!
     Set the full-frame size.  This must be an allowed size for the device,
     the device may either refuse a request for an illegal frame size or
     automatically choose a new frame size.
   */
   virtual PlusStatus SetFrameSize(int dim[2]) { return this->SetFrameSize(dim[0], dim[1]); };
+
   /*! Get the full-frame size */
   virtual int* GetFrameSize();
+
   /*! Get the full-frame size */
   virtual void GetFrameSize(int &x, int &y);
+
   /*! Get the full-frame size */
   virtual void GetFrameSize(int dim[2]);
 
@@ -116,9 +111,7 @@ public:
   //virtual unsigned int GetNumberOfBitsPerPixel();
 
   /*! Set the requested frame rate. Actual frame rate may be different. (default 30 frames per second). */
-  virtual PlusStatus SetFrameRate(float rate);
-  /*! Get the requested frame rate. Actual frame rate may be different. */
-  vtkGetMacro(FrameRate,float);
+  virtual PlusStatus SetAcquisitionRate(double rate);
 
   /*! 
     Set size of the internal frame buffer, i.e. the number of most recent frames that
@@ -205,6 +198,7 @@ public:
 protected:
   vtkPlusVideoSource();
   virtual ~vtkPlusVideoSource();
+
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data);
@@ -237,8 +231,7 @@ protected:
   /*! Return the latest or desired image frame. This method can be overridden in subclasses */
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-  ///////////////////////////
-
+protected:
   int Connected;
 
   /*!
@@ -258,9 +251,7 @@ protected:
   int UpdateWithDesiredTimestamp;
   double TimestampClosestToDesired;
 
-  int Recording;
   /*! Requested frame rate in FPS. Actual frame rate may be different. */
-  float FrameRate;
   unsigned long FrameNumber; 
   double FrameTimeStamp;
 
@@ -268,13 +259,6 @@ protected:
 
   /*! Set if output needs to be cleared to be cleared before being written */
   int OutputNeedsInitialization;
-
-  /*! 
-    Threader, which is used when spawning of a new thread is required for continuous recording
-    (when the hardware does not call back the video source class upon a new frame arrival)
-  */
-  vtkMultiThreader *RecordThreader;
-  int RecordThreadId;
 
   /*! The buffer used to hold the last N frames */
   vtkVideoBuffer *Buffer;

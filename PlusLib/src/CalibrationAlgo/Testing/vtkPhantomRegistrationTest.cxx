@@ -135,7 +135,7 @@ int main (int argc, char* argv[])
   for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
-    vtkAccurateTimer::Delay(2.1 / fakeTracker->GetFrequency());
+    vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
