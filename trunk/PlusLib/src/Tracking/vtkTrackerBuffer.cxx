@@ -514,6 +514,10 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
     return ITEM_OK;
   }
 
+  // TODO: remove this, just for test if SLERP interpolation can introduce outliers
+  bufferItem->DeepCopy(&itemA);
+  return ITEM_OK;
+
   //============== Get item weights ==================
 
   double itemAtime(0);
