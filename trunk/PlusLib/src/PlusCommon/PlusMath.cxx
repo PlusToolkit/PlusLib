@@ -359,7 +359,7 @@ double PlusMath::GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* b
 // Spherical linear interpolation between two rotation quaternions.
 // t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
 // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
-// Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
+// Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path. True is recommended, otherwise the interpolation sometimes give unexpected results. 
 // References: From Adv Anim and Rendering Tech. Pg 364
 void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/) 	
 {
