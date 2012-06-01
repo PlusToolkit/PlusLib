@@ -320,10 +320,22 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
   str.InterpolationMode = this->InterpolationMode;
   str.CalculationMode = this->CalculationMode;
   str.Optimization = this->Optimization;
-  str.ClipRectangleOrigin[0]=this->ClipRectangleOrigin[0];
-  str.ClipRectangleOrigin[1]=this->ClipRectangleOrigin[1];
-  str.ClipRectangleSize[0]=this->ClipRectangleSize[0];
-  str.ClipRectangleSize[1]=this->ClipRectangleSize[1];
+  if (this->ClipRectangleSize[0]>0 && this->ClipRectangleSize[1]>0)
+  {
+    // ClipRectangle specified
+    str.ClipRectangleOrigin[0]=this->ClipRectangleOrigin[0];
+    str.ClipRectangleOrigin[1]=this->ClipRectangleOrigin[1];
+    str.ClipRectangleSize[0]=this->ClipRectangleSize[0];
+    str.ClipRectangleSize[1]=this->ClipRectangleSize[1];
+  }
+  else
+  {
+    // ClipRectangle not specified, use full image slice
+    str.ClipRectangleOrigin[0]=image->GetExtent()[0];
+    str.ClipRectangleOrigin[1]=image->GetExtent()[2];
+    str.ClipRectangleSize[0]=image->GetExtent()[1];
+    str.ClipRectangleSize[1]=image->GetExtent()[3];
+  }
   str.FanAngles[0]=this->FanAngles[0];
   str.FanAngles[1]=this->FanAngles[1];
   str.FanOrigin[0]=this->FanOrigin[0];
