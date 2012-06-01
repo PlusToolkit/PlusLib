@@ -108,7 +108,7 @@ vtkNDITracker::vtkNDITracker()
 //----------------------------------------------------------------------------
 vtkNDITracker::~vtkNDITracker() 
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     this->StopTracking();
   }
@@ -675,7 +675,7 @@ PlusStatus vtkNDITracker::LoadVirtualSROM(int tool, const char *filename)
   }
   if( this->ServerMode || !this->RemoteAddress) // server  & normal
   {
-    if (this->Tracking)
+    if (this->Recording)
     {
       PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
       if (this->IsDeviceTracking)
@@ -704,7 +704,7 @@ void vtkNDITracker::ClearVirtualSROM(int tool)
 
   this->VirtualSROM[tool] = 0;
 
-  if (this->Tracking)
+  if (this->Recording)
   {
     PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     if (this->IsDeviceTracking)
@@ -1070,7 +1070,7 @@ PlusStatus vtkNDITracker::InternalBeep(int n)
     n = 0;
   }
 
-  if (this->Tracking)
+  if (this->Recording)
   {
     ndiCommand(this->Device,"BEEP:%i",n);
     errnum = ndiGetError(this->Device);
@@ -1100,7 +1100,7 @@ PlusStatus  vtkNDITracker::InternalSetToolLED(int tool, int led, int state)
   case 2: plstate = NDI_FLASH; break;
   }
 
-  if (this->Tracking && tool >= 0 && tool < 3 && led > 0 && led < 3)
+  if (this->Recording && tool >= 0 && tool < 3 && led > 0 && led < 3)
   {
     int ph = this->PortHandle[tool];
     if (ph == 0)

@@ -7,13 +7,22 @@
     />
 	
     <Tracker Type="OpenIGTLinkTracker"  MessageType="TRANSFORM" ServerAddress="127.0.0.1" ServerPort="18944"
-	  BufferSize="500" Frequency="30" LocalTimeOffset="0.0" AveragedItemsForFiltering="20"  >
+      BufferSize="500" AcquisitionRate="30" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
+
       <Tool Name="Probe" PortName="0" />
       <Tool Name="Reference" PortName="1" />
     </Tracker>
 
-    <ImageAcquisition Type="OpenIGTLinkVideo" MessageType="IMAGE" ServerAddress="127.0.0.1" ServerPort="18944"
-      BufferSize="500" UsImageOrientation="MF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0"
+    <ImageAcquisition
+      Type="OpenIGTLinkVideo"
+      MessageType="IMAGE"
+      ServerAddress="127.0.0.1"
+      ServerPort="18944"
+      BufferSize="500"
+      UsImageOrientation="MF"
+      AcquisitionRate="30"
+      AveragedItemsForFiltering="20"
+      LocalTimeOffsetSec="0"
     />
   </DataCollection>
 

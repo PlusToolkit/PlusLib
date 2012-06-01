@@ -51,7 +51,7 @@ vtkAscension3DGTracker::vtkAscension3DGTracker()
 //-------------------------------------------------------------------------
 vtkAscension3DGTracker::~vtkAscension3DGTracker() 
 {
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     this->StopTracking();
   }
@@ -184,7 +184,7 @@ PlusStatus vtkAscension3DGTracker::Probe()
 PlusStatus vtkAscension3DGTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     return PLUS_SUCCESS;
   }
@@ -245,7 +245,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
 
-  if ( ! this->Tracking )
+  if ( ! this->Recording )
   {
     LOG_ERROR("called Update() when not tracking" );
     return PLUS_FAIL;

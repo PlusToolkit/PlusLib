@@ -7,7 +7,7 @@
 The computer needs to be on the same local network as SonixTOUCH and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
     />
 
-    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+    <Tracker Type="CertusTracker" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" />
       <Tool Name="Reference" PortName="1" />
       <Tool Name="Stylus" PortName="2" Model="Example" />
@@ -18,7 +18,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       BufferSize="500" 
       FrameSize="820 616" 
       UsImageOrientation="UF"
-      FrameRate="30" 
+      AcquisitionRate="30" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 

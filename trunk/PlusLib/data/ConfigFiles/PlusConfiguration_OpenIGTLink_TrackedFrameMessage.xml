@@ -6,8 +6,16 @@
       Description="OpenIGTLink configuration file for TRACKEDFRAME messages + fCal 1.2" 
     />
 	
-    <ImageAcquisition Type="OpenIGTLinkVideo" MessageType="TRACKEDFRAME" ServerAddress="127.0.0.1" ServerPort="18944"
-      BufferSize="500" UsImageOrientation="MF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0"
+    <ImageAcquisition
+      Type="OpenIGTLinkVideo"
+      MessageType="TRACKEDFRAME"
+      ServerAddress="127.0.0.1"
+      ServerPort="18944"
+      BufferSize="500"
+      UsImageOrientation="MF"
+      AcquisitionRate="30"
+      AveragedItemsForFiltering="20"
+      LocalTimeOffsetSec="0"
     />
   </DataCollection>
 

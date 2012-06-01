@@ -120,7 +120,7 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 {
   this->Internal = new vtkWin32VideoSource2Internal;
 
-  this->FrameRate = 30;
+  this->AcquisitionRate = 30;
   this->Buffer->SetFrameSize(640,480);
   this->SetFrameBufferSize(200);
 
@@ -326,9 +326,9 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   // set the capture parameters
   capCaptureGetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
 
-  if (this->FrameRate > 0)
+  if (this->AcquisitionRate > 0)
   {
-    this->Internal->CaptureParms.dwRequestMicroSecPerFrame = int(1000000/this->FrameRate);
+    this->Internal->CaptureParms.dwRequestMicroSecPerFrame = int(1000000/this->AcquisitionRate);
   }
   else
   {
@@ -719,20 +719,20 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 //----------------------------------------------------------------------------
 PlusStatus vtkWin32VideoSource2::SetFrameRate(float rate)
 {
-  if (rate == this->FrameRate)
+  if (rate == this->AcquisitionRate)
   {
     // no change
     return PLUS_SUCCESS;
   }
 
-  this->FrameRate = rate;
+  this->AcquisitionRate = rate;
 
   if (GetConnected())
   {
     capCaptureGetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
-    if (this->FrameRate > 0)
+    if (this->AcquisitionRate > 0)
     {
-      this->Internal->CaptureParms.dwRequestMicroSecPerFrame = int(1000000/this->FrameRate);
+      this->Internal->CaptureParms.dwRequestMicroSecPerFrame = int(1000000/this->AcquisitionRate);
     }
     else
     {

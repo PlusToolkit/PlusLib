@@ -45,6 +45,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTracker.h"
 #include "ndicapi.h"
 
+class vtkSocketCommunicator;
+
 // the number of tools the polaris can handle
 #define VTK_NDI_NTOOLS 12
 #define VTK_NDI_REPLY_LEN 2048

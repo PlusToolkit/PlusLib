@@ -12,7 +12,7 @@
       Description="" 
     />
 
-    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+    <Tracker Type="CertusTracker" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool PortName="0" Model="L14-5_38" Name="Probe" />
     </Tracker>
   </DataCollection>

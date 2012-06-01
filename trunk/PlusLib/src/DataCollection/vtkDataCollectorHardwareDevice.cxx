@@ -1315,11 +1315,11 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameRate(double &aFrameRate)
 
   if ( this->VideoEnabled && this->VideoSource )
   {
-    aFrameRate = this->VideoSource->GetFrameRate();
+    aFrameRate = this->VideoSource->GetAcquisitionRate();
   }
   else if ( this->Tracker )
   {
-    aFrameRate = this->Tracker->GetFrequency();
+    aFrameRate = this->Tracker->GetAcquisitionRate();
   }
   else
   {

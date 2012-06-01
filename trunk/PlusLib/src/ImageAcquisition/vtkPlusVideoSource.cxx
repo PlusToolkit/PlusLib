@@ -9,30 +9,22 @@
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
 #include "vtkCriticalSection.h"
-#include "vtkDataArray.h"
 #include "vtkImageData.h"
-#include "vtkMutexLock.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkObjectFactory.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkTimerLog.h"
-#include "vtkUnsignedCharArray.h"
 #include "vtkWindows.h"
-#include "vtkDoubleArray.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkMetaImageReader.h"
-#include "vtkImageData.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkTrackedFrameList.h"
 
-
 #include <ctype.h>
 #include <time.h>
 
-vtkCxxRevisionMacro(vtkPlusVideoSource, "$Revision: 2.0 $");
 vtkStandardNewMacro(vtkPlusVideoSource);
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
@@ -47,9 +39,7 @@ vtkPlusVideoSource::vtkPlusVideoSource()
  
   this->SpawnThreadForRecording=0;
 
-  this->Recording = 0;
-
-  this->FrameRate = 30;
+  this->AcquisitionRate = 30;
 
   this->FrameTimeStamp = 0;
 
@@ -60,9 +50,6 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->NumberOfOutputFrames = 1;
 
   this->RecordingThreadAlive = false; 
-
-  this->RecordThreader = vtkMultiThreader::New();
-  this->RecordThreadId = -1;
 
   this->CurrentVideoBufferItem = new VideoBufferItem();
 
@@ -87,12 +74,6 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
     Disconnect();
   }
 
-  if ( this->RecordThreader != NULL )
-  {
-    this->RecordThreader->Delete();
-    this->RecordThreader=NULL;
-  }
-
   if ( this->CurrentVideoBufferItem != NULL )
   {
     delete this->CurrentVideoBufferItem;
@@ -109,24 +90,12 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusVideoSource::GetSdkVersion()
-{
-  // Base class version is the same as the Plus library version
-  std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 
-  return ver; 
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "SDK version: " << this->GetSdkVersion() << "\n";
-  os << indent << "FrameRate: " << this->FrameRate << "\n";
   os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");
   os << indent << "SpawnThreadForRecording: " << (this->SpawnThreadForRecording ? "Yes\n" : "No\n");
-  os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
   os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
   os << indent << "Buffer:\n";
 
@@ -202,17 +171,18 @@ PlusCommon::ITKScalarPixelType vtkPlusVideoSource::GetPixelType()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVideoSource::SetFrameRate(float rate)
+PlusStatus vtkPlusVideoSource::SetAcquisitionRate(double rate)
 {
-  LOG_TRACE("vtkPlusVideoSource::SetFrameRate(" << rate << ")");
+  LOG_TRACE("vtkPlusVideoSource::SetAcquisitionRate(" << rate << ")");
 
-  if (this->FrameRate == rate)
+  if (this->AcquisitionRate == rate)
   {
     return PLUS_SUCCESS;
   }
 
-  this->FrameRate = rate;
+  this->AcquisitionRate = rate;
   this->Modified();
+
   return PLUS_SUCCESS;
 }
 
@@ -299,7 +269,7 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
   vtkPlusVideoSource *self = (vtkPlusVideoSource *)(data->UserData);
 
   double startTime = vtkAccurateTimer::GetSystemTime();
-  double rate = self->GetFrameRate();
+  double rate = self->GetAcquisitionRate();
   unsigned long frame = 0;
   self->RecordingThreadAlive = true; 
 
@@ -351,8 +321,8 @@ PlusStatus vtkPlusVideoSource::StartRecording()
 
   if (SpawnThreadForRecording)
   {
-    this->RecordThreadId =
-      this->RecordThreader->SpawnThread((vtkThreadFunctionType)\
+    this->ThreadId =
+      this->Threader->SpawnThread((vtkThreadFunctionType)\
       &vtkVideoSourceRecordThread,this);
   }
 
@@ -381,7 +351,7 @@ PlusStatus vtkPlusVideoSource::StopRecording()
   {
     vtkAccurateTimer::Delay(0.1);
   }
-  this->RecordThreadId = -1; 
+  this->ThreadId = -1; 
 
   InternalStopRecording();
  
@@ -567,10 +537,10 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  int frameRate = 0;
-  if ( imageAcquisitionConfig->GetScalarAttribute("FrameRate", frameRate) )
+  int acquisitionRate = 0;
+  if ( imageAcquisitionConfig->GetScalarAttribute("AcquisitionRate", AcquisitionRate) )
   {
-    this->SetFrameRate(frameRate);
+    this->SetAcquisitionRate(acquisitionRate);
   }
 
   int averagedItemsForFiltering = 0;

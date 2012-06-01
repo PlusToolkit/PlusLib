@@ -60,7 +60,7 @@ vtkNDICertusTracker::vtkNDICertusTracker()
 //----------------------------------------------------------------------------
 vtkNDICertusTracker::~vtkNDICertusTracker() 
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     this->StopTracking();
   }
@@ -262,7 +262,7 @@ PlusStatus vtkNDICertusTracker::DeActivateCertusMarkers()
 PlusStatus vtkNDICertusTracker::Probe()
 {
   // If device is already tracking, return success.
-  if (this->Tracking)
+  if (this->Recording)
   {
     return PLUS_SUCCESS;
   }
@@ -293,7 +293,7 @@ PlusStatus vtkNDICertusTracker::StartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkNDICertusTracker::InternalStartTracking()
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     return PLUS_SUCCESS;
   }
@@ -353,7 +353,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
   long statusFlags[VTK_CERTUS_NTOOLS];
   double transform[VTK_CERTUS_NTOOLS][8];
 
-  if (!this->Tracking)
+  if (!this->Recording)
   {
     LOG_ERROR("called Update() when Certus was not tracking");
     return PLUS_FAIL;
@@ -488,7 +488,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
   }
 
   // stop tracking
-  if (this->Tracking)
+  if (this->Recording)
   {
     LOG_DEBUG("DeActivating Markers");
     if(!this->DeActivateCertusMarkers())
@@ -765,7 +765,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
   }
 
   // re-start the tracking
-  if (this->Tracking)
+  if (this->Recording)
   {
     LOG_DEBUG("Activating Markers");
     if (!this->ActivateCertusMarkers())
@@ -783,7 +783,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 PlusStatus vtkNDICertusTracker::DisableToolPorts()
 {
   // stop tracking
-  if (this->Tracking)
+  if (this->Recording)
   {
     if (!this->DeActivateCertusMarkers())
     {
@@ -805,7 +805,7 @@ PlusStatus vtkNDICertusTracker::DisableToolPorts()
   }
 
   // re-start the tracking
-  if (this->Tracking)
+  if (this->Recording)
   {
     if (!this->ActivateCertusMarkers())
     {
@@ -859,7 +859,7 @@ PlusStatus vtkNDICertusTracker::InternalSetToolLED(const char* portName, int led
 // change the state of an LED on the tool
 PlusStatus vtkNDICertusTracker::InternalSetToolLED(int portNumber, int led, int state)
 {
-  if (this->Tracking &&
+  if (this->Recording &&
     portNumber >= 0 && portNumber < VTK_CERTUS_NTOOLS &&
     led >= 0 && led < 3)
   {

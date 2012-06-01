@@ -6,7 +6,7 @@
       Description="Configuration file for No video + Phidget Spatial accelerometer" 
     />
 
-    <Tracker Type="PhidgetSpatial" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+    <Tracker Type="PhidgetSpatial" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool Name="Accelerometer" PortName="Accelerometer" />
       <Tool Name="Gyroscope" PortName="Gyroscope" />
       <Tool Name="Magnetometer" PortName="Magnetometer" />

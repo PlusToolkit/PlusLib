@@ -11,15 +11,15 @@
 
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 
     <DefaultClientInfo> 
-	  <MessageTypes> 
-	    <Message Type="IMAGE" />
-		<Message Type="TRANSFORM" />
-	  </MessageTypes>
-	  <TransformNames> 
-	    <Transform Name="ProbeToTracker" /> 
-		<Transform Name="ReferenceToTracker" /> 
-	  </TransformNames>
-	</DefaultClientInfo>
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
   
   <CoordinateDefinitions>

@@ -42,7 +42,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker() 
 {
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     this->StopTracking();
   }
@@ -166,7 +166,7 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
 PlusStatus vtkOpenIGTLinkTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStartTracking" ); 
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     return PLUS_SUCCESS;
   }
@@ -187,7 +187,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalUpdate" ); 
 
-  if ( ! this->Tracking )
+  if ( ! this->Recording )
   {
     LOG_ERROR("called Update() when not tracking" );
     return PLUS_FAIL;

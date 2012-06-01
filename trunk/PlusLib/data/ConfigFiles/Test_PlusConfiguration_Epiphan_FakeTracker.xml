@@ -6,7 +6,7 @@
       Description="Test mode for vtkDataCollectorTest with Epiphan framegrabber and Fake tracker" 
     />
 
-    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="20" LocalTimeOffset="0.0" Mode="SmoothMove" AveragedItemsForFiltering="20" >
+    <Tracker Type="FakeTracker" BufferSize="1000" AcquisitionRate="20" LocalTimeOffset="0.0" Mode="SmoothMove" AveragedItemsForFiltering="20" >
       <Tool Name="Probe" PortName="0" /> 
       <Tool Name="Reference" PortName="1" />
       <Tool Name="MissingTool" PortName="2" /> 
@@ -15,7 +15,7 @@
     <ImageAcquisition Type="Epiphan" 
       BufferSize="100" 
       FrameSize="1024 768" 
-      FrameRate="30" 
+      AcquisitionRate="30" 
       UsImageOrientation="MF"
       AveragedItemsForFiltering="20"
     />

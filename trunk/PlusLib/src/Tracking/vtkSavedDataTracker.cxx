@@ -33,7 +33,7 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 //----------------------------------------------------------------------------
 vtkSavedDataTracker::~vtkSavedDataTracker() 
 {
-  if (this->Tracking)
+  if (this->Recording)
   {
     this->StopTracking();
   }
@@ -166,7 +166,7 @@ PlusStatus vtkSavedDataTracker::Probe()
 PlusStatus vtkSavedDataTracker::InternalStartTracking()
 {
   LOG_TRACE("vtkSavedDataTracker::InternalStartTracking"); 
-  if (this->Tracking)
+  if (this->Recording)
   {
     return PLUS_SUCCESS;
   }
@@ -185,7 +185,7 @@ PlusStatus vtkSavedDataTracker::InternalStopTracking()
 PlusStatus vtkSavedDataTracker::InternalUpdate()
 {
   LOG_TRACE("vtkSavedDataTracker::InternalUpdate"); 
-  if (!this->Tracking)
+  if (!this->Recording)
   {
     //not tracking (probably tracker is being started/stopped), ignore the received data
     return PLUS_SUCCESS;

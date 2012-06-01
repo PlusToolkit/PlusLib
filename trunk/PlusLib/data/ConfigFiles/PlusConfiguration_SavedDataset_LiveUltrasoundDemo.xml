@@ -7,7 +7,7 @@
 The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
     />
 
-    <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
+    <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
         SequenceMetafile=""
         ReplayEnabled="TRUE"
     >
@@ -19,7 +19,7 @@ The desired file name with path needs to be added to this XML file as values Seq
     <ImageAcquisition Type="SavedDataset" 
       BufferSize="200" 
       FrameSize="820 616" 
-      FrameRate="10" 
+      AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.1908" 
       SequenceMetafile=""
