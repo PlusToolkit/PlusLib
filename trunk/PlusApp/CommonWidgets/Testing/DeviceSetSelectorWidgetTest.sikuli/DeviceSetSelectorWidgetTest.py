@@ -56,8 +56,8 @@ def findApplicationOnAllMonitors(pattern, maxNumberOfTries=20):
 #------------------------------------------------------------------------------
 # Main program
 
-exe = getCommandFromArguments("D:/devel/PlusBuild-bin")
-
+exe = getCommandFromArguments("c:/devel/Plus/Plus-bin")
+print exe
 appTitle = "SegmentationParameterDialogTest"
 
 testApp = App.open(exe)
@@ -99,6 +99,7 @@ except FindFailed:
 
 # Connect to device set that is supposed to work
 click(comboBoxDropDown)
+wait(1)
 
 try:
   segmentationParameterDialogTestItem = comboBoxRegion.find("DeviceSetItemToConnect.png")

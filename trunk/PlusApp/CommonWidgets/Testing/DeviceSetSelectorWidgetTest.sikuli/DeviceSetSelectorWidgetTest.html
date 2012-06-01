@@ -81,10 +81,7 @@
 
     <span class="cmt"># Concatenate the command line arguments to the executable name
 </span>    <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
-      <span class="kw">if</span> argnum == <span class="dig">2</span>:
-        exe = exe + <span class="str">' '</span> + sys.argv[argnum]
-      <span class="kw">else</span>:
-        exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+      exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
   <span class="kw">else</span>:
     <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
 </span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
@@ -131,8 +128,8 @@
 <span class="cmt">#------------------------------------------------------------------------------
 </span><span class="cmt"># Main program
 </span>
-exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
-
+exe = getCommandFromArguments(<span class="str">"c:/devel/Plus/Plus-bin"</span>)
+<span class="kw">print</span> exe
 appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
 
 testApp = App.open(exe)
@@ -174,6 +171,7 @@ comboBoxRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class=
 
 <span class="cmt"># Connect to device set that is supposed to work
 </span><span class="skw">click</span>(comboBoxDropDown)
+<span class="skw">wait</span>(<span class="dig">1</span>)
 
 <span class="kw">try</span>:
   segmentationParameterDialogTestItem = comboBoxRegion.<span class="skw">find</span>(<img src="DeviceSetItemToConnect.png" />)

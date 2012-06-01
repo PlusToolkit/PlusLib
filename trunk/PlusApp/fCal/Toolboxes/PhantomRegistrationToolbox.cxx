@@ -515,7 +515,7 @@ void PhantomRegistrationToolbox::RecordPoint()
     {
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
       fakeTracker->SetTransformRepository(m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository());
-      vtkAccurateTimer::Delay(2.1 / fakeTracker->GetFrequency());
+      vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
     }
   }
 

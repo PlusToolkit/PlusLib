@@ -56,7 +56,7 @@ def findApplicationOnAllMonitors(pattern, maxNumberOfTries=20):
 #------------------------------------------------------------------------------
 # Main program
 
-exe = getCommandFromArguments("D:/devel/PlusBuild-bin")
+exe = getCommandFromArguments("c:/devel/Plus/Plus-bin")
 
 appTitle = "SegmentationParameterDialogTest"
 
@@ -131,6 +131,7 @@ click(saveButton)
 wait(5)
 type("TEST_ConfigFileSaverDialogTest_Result")
 type(Key.ENTER)
+wait(5)
 
 # Check if errors occurred
 import java.awt.Robot as JRobot

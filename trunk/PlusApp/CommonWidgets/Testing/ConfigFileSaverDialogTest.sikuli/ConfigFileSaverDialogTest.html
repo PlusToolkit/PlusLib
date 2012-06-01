@@ -81,10 +81,7 @@
 
     <span class="cmt"># Concatenate the command line arguments to the executable name
 </span>    <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
-      <span class="kw">if</span> argnum == <span class="dig">2</span>:
-        exe = exe + <span class="str">' '</span> + sys.argv[argnum]
-      <span class="kw">else</span>:
-        exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+      exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
   <span class="kw">else</span>:
     <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
 </span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
@@ -131,7 +128,7 @@
 <span class="cmt">#------------------------------------------------------------------------------
 </span><span class="cmt"># Main program
 </span>
-exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
+exe = getCommandFromArguments(<span class="str">"c:/devel/Plus/Plus-bin"</span>)
 
 appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
 
@@ -206,6 +203,7 @@ messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, ap
 <span class="skw">wait</span>(<span class="dig">5</span>)
 <span class="skw">type</span>(<span class="str">"TEST_ConfigFileSaverDialogTest_Result"</span>)
 <span class="skw">type</span>(Key.ENTER)
+<span class="skw">wait</span>(<span class="dig">5</span>)
 
 <span class="cmt"># Check if errors occurred
 </span><span class="kw">import</span> java.awt.Robot <span class="kw">as</span> JRobot
