@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="SonixTouch with Fake tracker" 
-      Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
+      Name="SonixTouch with Fake tracker (UBC)" 
+      Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC"
     />
 
     <Tracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
@@ -15,7 +15,6 @@
       BufferSize="400" 
       FrameSize="640 480" 
       UsImageOrientation="MF"
-      AcquisitionRate="-1" 
       AveragedItemsForFiltering="20" 
       IP="137.82.56.185" 
       ImagingMode="BMode"

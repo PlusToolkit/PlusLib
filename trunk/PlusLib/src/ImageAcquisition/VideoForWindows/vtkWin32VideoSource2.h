@@ -50,7 +50,7 @@ public:
   virtual PlusStatus SetFrameSize(int x, int y);
   
   /*! Request a particular frame rate (default 30 frames per second). */
-  virtual PlusStatus SetFrameRate(float rate);
+  virtual PlusStatus SetAcquisitionRate(double rate);
 
   /*! Request a particular output format (default: VTK_RGB). */
   virtual PlusStatus SetOutputFormat(int format);

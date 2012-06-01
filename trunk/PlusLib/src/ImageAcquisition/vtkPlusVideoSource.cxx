@@ -36,23 +36,15 @@ vtkStandardNewMacro(vtkPlusVideoSource);
 vtkPlusVideoSource::vtkPlusVideoSource()
 {
   this->Connected = 0;
- 
-  this->SpawnThreadForRecording=0;
-
   this->AcquisitionRate = 30;
-
   this->FrameTimeStamp = 0;
-
   this->FrameNumber = 0; 
-
   this->OutputNeedsInitialization = 1;
-
   this->NumberOfOutputFrames = 1;
-
+  this->SpawnThreadForRecording = false;
   this->RecordingThreadAlive = false; 
 
   this->CurrentVideoBufferItem = new VideoBufferItem();
-
   this->Buffer = vtkVideoBuffer::New();
 
   this->UpdateWithDesiredTimestamp = 0;

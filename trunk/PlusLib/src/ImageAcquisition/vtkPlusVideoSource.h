@@ -241,7 +241,7 @@ protected:
     the application when a new frame is available (then the notification
     triggers the frame grabbing)
   */
-  int SpawnThreadForRecording;
+  bool SpawnThreadForRecording;
 
   /*! Flag to strore recording thread state */
   bool RecordingThreadAlive; 

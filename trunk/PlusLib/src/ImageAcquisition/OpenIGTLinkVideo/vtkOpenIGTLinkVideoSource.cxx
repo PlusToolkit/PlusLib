@@ -30,7 +30,7 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
   this->ClientSocket = igtl::ClientSocket::New(); 
-  this->SpawnThreadForRecording=true;
+  this->SpawnThreadForRecording = true;
   this->NumberOfRetryAttempts = 3; 
 }
 
