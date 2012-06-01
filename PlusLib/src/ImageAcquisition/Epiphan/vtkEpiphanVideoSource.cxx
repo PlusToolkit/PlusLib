@@ -100,10 +100,10 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  double maxPossibleFrameRate=vm.vfreq/1000;
-  if (this->GetFrameRate()>maxPossibleFrameRate)
+  double maxPossibleAcquisitionRate=vm.vfreq/1000;
+  if (this->GetAcquisitionRate()>maxPossibleAcquisitionRate)
   {
-    this->SetFrameRate(maxPossibleFrameRate);
+    this->SetAcquisitionRate(maxPossibleAcquisitionRate);
   }
   if (vm.width==0 || vm.height==0)
   {

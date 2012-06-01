@@ -42,7 +42,7 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
 //-------------------------------------------------------------------------
 vtkPhidgetSpatialTracker::~vtkPhidgetSpatialTracker() 
 {
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     this->StopTracking();
   }
@@ -244,7 +244,7 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 	}
 
 	//Set the data rate for the spatial events
-  int userDataRateMsec=1000/this->GetFrequency();
+  int userDataRateMsec=1000/this->GetAcquisitionRate();
 	CPhidgetSpatial_setDataRate(this->SpatialDeviceHandle, userDataRateMsec);
 	LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
 
@@ -277,7 +277,7 @@ PlusStatus vtkPhidgetSpatialTracker::Probe()
 PlusStatus vtkPhidgetSpatialTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartTracking" ); 
-  if ( this->Tracking )
+  if ( this->Recording )
   {
     return PLUS_SUCCESS;
   }  

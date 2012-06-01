@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     frameGrabber->SetSerialNumber(serialNumber.c_str());
   }
   
-  frameGrabber->SetFrameRate(frameRate);
+  frameGrabber->SetAcquisitionRate(frameRate);
 
   if (clipRectOrigin.size()>0 || clipRectSize.size()>0)
   {
