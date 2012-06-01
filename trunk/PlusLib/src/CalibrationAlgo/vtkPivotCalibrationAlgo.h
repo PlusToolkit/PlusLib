@@ -30,7 +30,7 @@ public:
   vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);
 	static vtkPivotCalibrationAlgo *New();
 
-  /*! Initialize algorithm - clear calibration array */
+  /*! Initialize algorithm - clear the MarkerToReferenceTransformMatrix array */
   PlusStatus Initialize();
 
   /*!
@@ -75,7 +75,7 @@ protected:
 
   vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
 
-  vtkSetObjectMacro(CalibrationArray, vtkDoubleArray);
+  vtkSetObjectMacro(MarkerToReferenceTransformMatrixArray, vtkDoubleArray);
 
   vtkSetStringMacro(ObjectMarkerCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
@@ -100,7 +100,7 @@ protected:
   vtkAmoebaMinimizer* Minimizer;
 
   /*! Array of the input points */
-  vtkDoubleArray*     CalibrationArray;
+  vtkDoubleArray*     MarkerToReferenceTransformMatrixArray;
 
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;
