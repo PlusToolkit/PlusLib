@@ -18,6 +18,7 @@
 #include "TrackedFrame.h"
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
+static const double ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG=10; // if the interpolated orientation differs from both the interpolated orientation by more than this threshold then display a warning
 
 vtkStandardNewMacro(vtkTrackerBuffer);
 
@@ -574,7 +575,7 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
   double matrixBquat[4]= {0};
   vtkMath::Matrix3x3ToQuaternion(matrixB, matrixBquat);
   double interpolatedRotationQuat[4]= {0};
-  PlusMath::Slerp(interpolatedRotationQuat, itemBweight, matrixAquat, matrixBquat, false);
+  PlusMath::Slerp(interpolatedRotationQuat, itemBweight, matrixAquat, matrixBquat);
   double interpolatedRotation[3][3] = {0};
   vtkMath::QuaternionToMatrix3x3(interpolatedRotationQuat, interpolatedRotation);
 
@@ -600,6 +601,13 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
   bufferItem->SetMatrix(interpolatedMatrix); 
   bufferItem->SetFilteredTimestamp(time);
   bufferItem->SetUnfilteredTimestamp(interpolatedUnfilteredTimestamp); 
+
+  double angleDiffA=PlusMath::GetOrientationDifference(interpolatedMatrix, itemAmatrix);
+  double angleDiffB=PlusMath::GetOrientationDifference(interpolatedMatrix, itemBmatrix);
+  if (fabs(angleDiffA)>ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG && fabs(angleDiffB)>ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG)
+  {
+    LOG_WARNING("Angle difference between interpolated orientations is large ("<<fabs(angleDiffA)<<" and "<<fabs(angleDiffB)<<" deg, warning threshold is "<<ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG<<"), interpolation may be inaccurate. Consider moving the tools slower.");
+  }
 
   return ITEM_OK; 
 }
