@@ -326,6 +326,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       // a previous connection setup attempt failed after connection has been made, so
       // disconnect before trying to connect again
+	  this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
       this->Ult.disconnect();
       this->UlteriusConnected=false;
     }
@@ -455,6 +456,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 PlusStatus vtkSonixVideoSource::InternalDisconnect()
 {
   this->UlteriusConnected=false;
+  this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
   this->Ult.disconnect();  
   return PLUS_SUCCESS;
 }
