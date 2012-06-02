@@ -227,19 +227,28 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
 
-
   // Compare the transforms
   double posDiff = PlusMath::GetPositionDifference(transformCurrent, transformBaseline); 
   double rotDiff = PlusMath::GetOrientationDifference(transformCurrent, transformBaseline); 
 
-  if ( posDiff > TRANSLATION_ERROR_THRESHOLD || rotDiff > ROTATION_ERROR_THRESHOLD )
-  {
-    std::ostringstream currentTransform; 
-    transformCurrent->PrintSelf(currentTransform, vtkIndent(0));
-    std::ostringstream baselineTransform; 
-    transformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
+  std::ostringstream currentTransform; 
+  transformCurrent->PrintSelf(currentTransform, vtkIndent(0));
+  std::ostringstream baselineTransform; 
+  transformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
 
-    LOG_ERROR("Transform mismatch: current=" << currentTransform.str() << ", baseline=" << baselineTransform.str() );
+  if ( posDiff > TRANSLATION_ERROR_THRESHOLD)
+  {
+    LOG_ERROR("Transform mismatch: translation difference is " <<posDiff<< ", maximum allowed is "<<TRANSLATION_ERROR_THRESHOLD);
+    LOG_INFO("Current transform: " << currentTransform.str());
+    LOG_INFO("Baseline transform: " << baselineTransform.str());
+    numberOfFailures++;
+  }
+
+  if (rotDiff > ROTATION_ERROR_THRESHOLD )
+  {
+    LOG_ERROR("Transform mismatch: rotation difference is " <<rotDiff<< ", maximum allowed is "<<TRANSLATION_ERROR_THRESHOLD);
+    LOG_INFO("Current transform: " << currentTransform.str());
+    LOG_INFO("Baseline transform: " << baselineTransform.str());
     numberOfFailures++;
   }
 
