@@ -121,6 +121,9 @@ public:
 
   /*! Get video buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
+
+  /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */
+  virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
   
   /*! Get the oldest buffer item unique ID */
   virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->TrackerBuffer->GetOldestItemUidInBuffer(); }
@@ -139,13 +142,14 @@ public:
   /*! Make this buffer into a copy of another buffer. You should Lock both of the buffers before doing this. */
   void DeepCopy(vtkTrackerBuffer *buffer);
 
-  /*! 
-  Get the frame rate from the buffer based on the number of frames in the buffer
-  and the elapsed time.
-  Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
-  number difference (aka the device frame rate)
+  /*!
+    Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
+    Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
+    number difference (aka the device frame rate).
+    If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
+    stored at the specified address.
   */
-  virtual double GetFrameRate( bool ideal = false) { return this->TrackerBuffer->GetFrameRate(ideal); }
+  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL) { return this->TrackerBuffer->GetFrameRate(ideal, framePeriodStdevSecPtr); }
 
   /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 
