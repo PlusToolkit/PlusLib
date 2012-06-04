@@ -201,7 +201,7 @@ protected:
   double UpdateNominalFrequency;
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  double LastFrameNumber;
+  unsigned long LastFrameNumber;
 
   ndicapi *Device;
   char *Version;
