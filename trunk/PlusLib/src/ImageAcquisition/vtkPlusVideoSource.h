@@ -78,6 +78,16 @@ public:
   */
   virtual PlusStatus Grab();
 
+  /*! Get tracked frame containing the image acquired from the device at a specific timestamp */
+  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame *trackedFrame);
+
+  /*!
+    Add generated html report from video data acquisition to the existing html report
+    htmlReport and plotter arguments has to be defined by the caller function
+  */
+  virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
+
+public:
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
 
@@ -139,7 +149,7 @@ public:
   /*!
     Get a time stamp in seconds (resolution of milliseconds) for
     the most recent frame.  Time began on Jan 1, 1970.  This timestamp is only
-    valid after the Output has been Updated.   Usually set to the
+    valid after the Output has been Updated.  Usually set to the
     timestamp for the output if UpdateWithDesiredTimestamp is off,
     otherwise it is the timestamp for the most recent frame, which is not
     necessarily the output
@@ -188,12 +198,6 @@ public:
   vtkSetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
   /*! Get ultrasound image orientation of the device set */
   vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION);
-
-  /*!
-    Add generated html report from video data acquisition to the existing html report
-    htmlReport and plotter arguments has to be defined by the caller function
-  */
-  virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
 protected:
   vtkPlusVideoSource();

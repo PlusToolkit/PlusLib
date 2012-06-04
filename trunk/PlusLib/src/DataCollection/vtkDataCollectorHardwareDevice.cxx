@@ -569,55 +569,6 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideoFrame& frame, FieldMapType& fieldMap, double& aTimestamp)
-{
-  //LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameByTime"); 
-  if ( this->GetVideoSource() == NULL ) 
-  {	
-    LOG_ERROR("Unable to get frame - there is no video source selected!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get frame UID
-  BufferItemUidType frameUID(0); 
-  ItemStatus status = this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(time, frameUID); 
-  if ( status != ITEM_OK )
-  {
-    if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
-    {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ") - item not available anymore!"); 
-    }
-    else if ( status == ITEM_NOT_AVAILABLE_YET )
-    {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ") - item not available yet!"); 
-    }
-    else
-    {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ")!"); 
-    }
-
-    return PLUS_FAIL; 
-  }
-
-  VideoBufferItem currentVideoBufferItem; 
-  if ( this->GetVideoSource()->GetBuffer()->GetVideoBufferItem(frameUID, &currentVideoBufferItem) != ITEM_OK )
-  {
-    LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
-    return PLUS_FAIL; 
-  }
-
-  // Copy frame 
-  frame=currentVideoBufferItem.GetFrame(); 
-
-  // Copy all custom fields
-  fieldMap=currentVideoBufferItem.GetCustomFrameFieldMap();
-
-  // Copy frame timestamp 
-  aTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec() ); 
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
 int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo)
 {
   LOG_TRACE("vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(" << aTimestampFrom << ", " << aTimestampTo << ")");
@@ -977,39 +928,27 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(TrackedFrame* tracked
 PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameByTime - TrackedFrame");
-  double synchronizedTime(0); 
+  double synchronizedTime = 0; 
 
-  if ( this->GetVideoEnabled() )
+  if ( this->GetVideoEnabled() && this->GetVideoSource() )
   {
-    PlusVideoFrame frame; 
-		VideoBufferItem::FieldMapType fieldMap;
-
-    // Get the frame by time
-    if ( ! this->GetFrameByTime(time, frame, fieldMap, synchronizedTime) )
+    if ( this->GetVideoSource()->GetTrackedFrame(time, trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tracked frame by time: " << std::fixed << time ); 
-      return PLUS_FAIL; 
+      LOG_ERROR("Failed to get tracked frame from video source by time: " << std::fixed << time );
+      return PLUS_FAIL;
     }
 
-    //Add all information to the tracked frame
-    trackedFrame->SetImageData(frame);
-
-    //Add all custom fields to the tracked frame
-    VideoBufferItem::FieldMapType::iterator fieldIterator;
-    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
-    {
-      trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
-    }
+    synchronizedTime = trackedFrame->GetTimestamp();
   }
 
   if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )
   {
     if ( !this->GetVideoEnabled() )
     {
-      synchronizedTime = time;  
+      synchronizedTime = time;
     }
 
-    if ( this->GetTracker()->GetAllTransforms(synchronizedTime, trackedFrame) != PLUS_SUCCESS )
+    if ( this->GetTracker()->GetTrackedFrame(synchronizedTime, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get all transforms from tracker at: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 

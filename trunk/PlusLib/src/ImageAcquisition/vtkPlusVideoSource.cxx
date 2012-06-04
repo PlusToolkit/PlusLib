@@ -641,6 +641,7 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
   LOG_ERROR("InternalGrab is not implemented");
   return PLUS_FAIL;
 }
+
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
 {
@@ -661,4 +662,61 @@ PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
 	this->Buffer=newBuffer;
   this->Buffer->Register(this);
 	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *trackedFrame)
+{
+  if (!trackedFrame)
+  {
+    return PLUS_FAIL;
+  }
+
+  // Get frame UID
+  BufferItemUidType frameUID = 0; 
+  ItemStatus status = this->Buffer->GetItemUidFromTime(timestamp, frameUID); 
+  if ( status != ITEM_OK )
+  {
+    if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
+    {
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time <<
+        ") - item not available anymore!"); 
+    }
+    else if ( status == ITEM_NOT_AVAILABLE_YET )
+    {
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time <<
+        ") - item not available yet!"); 
+    }
+    else
+    {
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ")!"); 
+    }
+
+    return PLUS_FAIL; 
+  }
+
+  VideoBufferItem currentVideoBufferItem; 
+  if ( this->Buffer->GetVideoBufferItem(frameUID, &currentVideoBufferItem) != ITEM_OK )
+  {
+    LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
+    return PLUS_FAIL; 
+  }
+
+  // Copy frame 
+  PlusVideoFrame frame = currentVideoBufferItem.GetFrame(); 
+  trackedFrame->SetImageData(frame);
+
+  // Copy all custom fields
+  VideoBufferItem::FieldMapType fieldMap = currentVideoBufferItem.GetCustomFrameFieldMap();
+  VideoBufferItem::FieldMapType::iterator fieldIterator;
+  for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+  {
+    trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+  }
+
+  // Copy frame timestamp 
+  trackedFrame->SetTimestamp(
+    currentVideoBufferItem.GetTimestamp(this->Buffer->GetLocalTimeOffsetSec()) );
+
+  return PLUS_SUCCESS; 
 }

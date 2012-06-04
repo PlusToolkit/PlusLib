@@ -636,11 +636,16 @@ std::string vtkTracker::ConvertToolStatusToString(ToolStatus status)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame )
+PlusStatus vtkTracker::GetTrackedFrame(double timestamp, TrackedFrame *aTrackedFrame)
 {
   int numberOfErrors(0); 
 
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  if (!aTrackedFrame)
+  {
+    return PLUS_FAIL;
+  }
+
+  for (ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 
     if ( ! toolTransformName.IsValid() )

@@ -64,7 +64,7 @@ public:
   PlusStatus InitializeStepper( std::string &calibMsg );
 
    /*! Get all transforms from buffer element values of each tool by timestamp. */
-  virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
+  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame* aTrackedFrame ); 
 
   /*! Get stepper encoder values from the buffer by UID */
   PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
