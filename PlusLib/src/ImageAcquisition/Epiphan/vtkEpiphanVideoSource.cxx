@@ -278,9 +278,8 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 	}
 	else
 	{
-		LOG_WARNING("Serial Number not specified. Will try detecting it automatically");
+		LOG_DEBUG("Epiphan device SerialNumber is not specified in the configuration");
 	}
-
 
   // clipping parameters
   int clipRectangleOrigin[2]={0,0};
