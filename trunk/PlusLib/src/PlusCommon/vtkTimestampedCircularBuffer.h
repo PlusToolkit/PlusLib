@@ -229,9 +229,12 @@ public:
     Get the frame rate from the buffer based on the number of frames in the buffer
     and the elapsed time.
     Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
-    number difference (aka the device frame rate)
+    number difference (a.k.a. the device frame rate, a.k.a. the frame rate that would have been achieved
+    if frames were not dropped).
+    If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
+    stored at the specified address.
   */
-  virtual double GetFrameRate(bool ideal = false);
+  virtual double GetFrameRate(bool ideal = false, double *framePeriodStdevSecPtr=NULL );
 
   /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 

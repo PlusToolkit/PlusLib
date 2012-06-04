@@ -506,7 +506,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::Clear()
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
-double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=false*/)
+double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=false*/, double *framePeriodStdevSecPtr /* =NULL */)
 {
 	// TODO: Start the frame rate computation from the latest frame UID with using a few seconds of items in the buffer
 	std::vector<double> framePeriods; 
@@ -531,12 +531,18 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 		}
 		
 		unsigned long prevframenum(0); 
-		if ( this->GetIndex(frame - 1, framenum) != ITEM_OK)
+		if ( this->GetIndex(frame - 1, prevframenum) != ITEM_OK)
 		{
 			continue; 
 		}
 
-		int frameDiff = framenum - prevframenum; 
+		int frameDiff = framenum - prevframenum;
+		if (frameDiff == 0)
+		{
+			// the same frame number was set for different frame indexes; this should not happen
+			continue;
+		}
+		 
 		double frameperiod = (time - prevtime); 
 		if ( ideal )
 		{
@@ -553,13 +559,27 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 	double samplingPeriod(0); 
 	for ( int i = 0; i < numberOfFramePeriods; i++ )
 	{
-		samplingPeriod += framePeriods[i] / (1.0 * numberOfFramePeriods); 
+		samplingPeriod += framePeriods[i];
 	}
+	samplingPeriod /= 1.0 * numberOfFramePeriods;
 
 	double frameRate(0); 
 	if ( samplingPeriod != 0 )
 	{
 		frameRate = 1.0/samplingPeriod;
+	}
+	
+	if (framePeriodStdevSecPtr!=NULL)
+	{
+		// Standard deviation of sampling period
+		// stdev = sqrt ( 1/N * sum[ (xi-mean)^2 ] ) = sqrt ( 1/N * sumOfXiMeanDiffSquare )
+		double sumOfXiMeanDiffSquare=0;
+		for ( int i = 0; i < numberOfFramePeriods; i++ )
+		{
+			sumOfXiMeanDiffSquare += (framePeriods[i]-samplingPeriod)*(framePeriods[i]-samplingPeriod);
+		}		
+		double framePeriodStdev = sqrt (sumOfXiMeanDiffSquare/numberOfFramePeriods);
+		(*framePeriodStdevSecPtr) = framePeriodStdev;
 	}
 
 	return frameRate; 

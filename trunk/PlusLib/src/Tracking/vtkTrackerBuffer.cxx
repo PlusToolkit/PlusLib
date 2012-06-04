@@ -266,6 +266,12 @@ ItemStatus vtkTrackerBuffer::GetTimeStamp( BufferItemUidType uid, double& timest
 }
 
 //----------------------------------------------------------------------------
+ItemStatus vtkTrackerBuffer::GetIndex( BufferItemUidType uid, unsigned long& index)
+{
+  return this->TrackerBuffer->GetIndex(uid, index); 
+}
+
+//----------------------------------------------------------------------------
 ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, TrackerBufferItem* bufferItem)
 {
   if ( bufferItem == NULL )

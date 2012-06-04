@@ -374,6 +374,12 @@ ItemStatus vtkVideoBuffer::GetTimeStamp( BufferItemUidType uid, double& timestam
 }
 
 //----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetIndex( BufferItemUidType uid, unsigned long& index)
+{
+  return this->VideoBuffer->GetIndex(uid, index); 
+}
+
+//----------------------------------------------------------------------------
 void vtkVideoBuffer::SetAveragedItemsForFiltering( int averagedItemsForFiltering)
 {
   this->VideoBuffer->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
