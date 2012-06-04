@@ -289,32 +289,7 @@ PlusStatus vtkTracker::StopTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp) 
-{
-  if ( aToolName == NULL )
-  {
-    LOG_ERROR("Failed to update tool - tool name is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkTrackerTool* tool = NULL; 
-  if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
-    return PLUS_FAIL; 
-  }
-  
-  // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
-  unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-  vtkTrackerBuffer *buffer = tool->GetBuffer();
-  PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
-  tool->SetFrameNumber(frameNumber); 
-
-  return bufferStatus; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
+PlusStatus vtkTracker::ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
 {
   if ( aToolName == NULL )
   {
@@ -339,8 +314,7 @@ PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, 
-                                             double unfilteredtimestamp) 
+PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
 {
   if ( aToolName == NULL )
   {

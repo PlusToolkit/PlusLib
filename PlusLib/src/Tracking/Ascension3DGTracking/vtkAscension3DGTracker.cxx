@@ -338,7 +338,9 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
       continue; 
     }
           
-    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, unfilteredTimestamp);
+    // Devices has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
+    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
   }
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);

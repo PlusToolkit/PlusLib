@@ -595,12 +595,12 @@ PlusStatus vtkNDITracker::InternalUpdate()
 
     // by default (if there is no camera frame number associated with
     // the tool transformation) the most recent timestamp is used.
-    double tooltimestamp = unfilteredTimestamp;
-    double toolframe = this->LastFrameNumber;
+    double toolTimestamp = unfilteredTimestamp;
+    double toolFrameNumber = this->LastFrameNumber;
     if (!absent[tool] && frame[tool])
     {
       // this will create a timestamp from the frame number      
-      toolframe = frame[tool];
+      toolFrameNumber = frame[tool];
     }
     
     std::ostringstream toolPortName; 
@@ -616,7 +616,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     else
     {
       // send the matrix and status to the tool's vtkTrackerBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolframe, tooltimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
     }
   }
   
