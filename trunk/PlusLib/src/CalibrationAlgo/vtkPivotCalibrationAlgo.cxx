@@ -105,41 +105,65 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 	pivotPointToMarkerTransformMatrix->SetElement(1,3,y);
 	pivotPointToMarkerTransformMatrix->SetElement(2,3,z);
 
-  // Compute the stylus orientation and position using the first acquired point
-	double firstMarkerToReferenceTransformElements[16];
-  this->MarkerToReferenceTransformMatrixArray->GetTuple(0, firstMarkerToReferenceTransformElements);
-  vtkSmartPointer<vtkMatrix4x4> firstMarkerToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  firstMarkerToReferenceTransformMatrix->DeepCopy(firstMarkerToReferenceTransformElements);
-
   // Compute tool orientation
   // X axis: from the pivot point to the marker is on the X axis of the tool
   double pivotPointToMarkerTransformX[3]={x,y,z};
   vtkMath::Normalize(pivotPointToMarkerTransformX);
-	pivotPointToMarkerTransformMatrix->SetElement(0,0,pivotPointToMarkerTransformX[0]); //0
+	pivotPointToMarkerTransformMatrix->SetElement(0,0,pivotPointToMarkerTransformX[0]);
 	pivotPointToMarkerTransformMatrix->SetElement(1,0,pivotPointToMarkerTransformX[1]);
 	pivotPointToMarkerTransformMatrix->SetElement(2,0,pivotPointToMarkerTransformX[2]);
+
   // Z axis: orthogonal to tool's X axis and the marker's Y axis
-  double markerToReferenceY[3]={
-    firstMarkerToReferenceTransformMatrix->GetElement(0,1),
-    firstMarkerToReferenceTransformMatrix->GetElement(1,1),
-    firstMarkerToReferenceTransformMatrix->GetElement(2,1) }; 
   double pivotPointToMarkerTransformZ[3]={0,0,0};
-  vtkMath::Cross(pivotPointToMarkerTransformX, markerToReferenceY, pivotPointToMarkerTransformZ);
+  // Use the unitY vector as pivotPointToMarkerTransformY vector, unless unitY is parallel to pivotPointToMarkerTransformX.
+  // If unitY is parallel to pivotPointToMarkerTransformX then use the unitZ vector as pivotPointToMarkerTransformY.
+
+  double unitY[3]={0,1,0};  
+  double angle = acos(vtkMath::Dot(pivotPointToMarkerTransformX,unitY));
+  // Normalize between -pi/2 .. +pi/2
+  if (angle>vtkMath::Pi()/2)
+  {
+    angle -= vtkMath::Pi();
+  }
+  else if (angle<-vtkMath::Pi()/2)
+  {
+    angle += vtkMath::Pi();
+  }
+  if (fabs(angle)*180.0/vtkMath::Pi()>20.0) 
+  {
+    // unitY is not parallel to pivotPointToMarkerTransformX
+    vtkMath::Cross(pivotPointToMarkerTransformX, unitY, pivotPointToMarkerTransformZ);
+    LOG_DEBUG("Use unitY");
+  }
+  else
+  {
+    // unitY is parallel to pivotPointToMarkerTransformX
+    // use the unitZ instead
+    double unitZ[3]={0,0,1};
+    vtkMath::Cross(pivotPointToMarkerTransformX, unitZ, pivotPointToMarkerTransformZ);    
+    LOG_DEBUG("Use unitZ");
+  }
   vtkMath::Normalize(pivotPointToMarkerTransformZ);
-  pivotPointToMarkerTransformMatrix->SetElement(0,2,pivotPointToMarkerTransformZ[0]); // 2
+  pivotPointToMarkerTransformMatrix->SetElement(0,2,pivotPointToMarkerTransformZ[0]);
 	pivotPointToMarkerTransformMatrix->SetElement(1,2,pivotPointToMarkerTransformZ[1]);
 	pivotPointToMarkerTransformMatrix->SetElement(2,2,pivotPointToMarkerTransformZ[2]);
+
   // Y axis: orthogonal to tool's Z axis and X axis
   double pivotPointToMarkerTransformY[3]={0,0,0};
   vtkMath::Cross(pivotPointToMarkerTransformZ, pivotPointToMarkerTransformX, pivotPointToMarkerTransformY);
   vtkMath::Normalize(pivotPointToMarkerTransformY);
-  pivotPointToMarkerTransformMatrix->SetElement(0,1,pivotPointToMarkerTransformY[0]); // 1
+  pivotPointToMarkerTransformMatrix->SetElement(0,1,pivotPointToMarkerTransformY[0]);
 	pivotPointToMarkerTransformMatrix->SetElement(1,1,pivotPointToMarkerTransformY[1]);
 	pivotPointToMarkerTransformMatrix->SetElement(2,1,pivotPointToMarkerTransformY[2]);
 
 	this->SetPivotPointToMarkerTransformMatrix(pivotPointToMarkerTransformMatrix);
 
   // Compute a tooltip position based on the first acquired position
+	double firstMarkerToReferenceTransformElements[16];
+  this->MarkerToReferenceTransformMatrixArray->GetTuple(0, firstMarkerToReferenceTransformElements);
+  vtkSmartPointer<vtkMatrix4x4> firstMarkerToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  firstMarkerToReferenceTransformMatrix->DeepCopy(firstMarkerToReferenceTransformElements);
+
   vtkSmartPointer<vtkTransform> pivotPointToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   pivotPointToReferenceTransform->Identity();
   pivotPointToReferenceTransform->Concatenate(firstMarkerToReferenceTransformMatrix);
