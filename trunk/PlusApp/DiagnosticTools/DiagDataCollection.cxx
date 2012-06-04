@@ -132,17 +132,53 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Print statistics
-	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
-	{
-		double realVideoFrameRate = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetFrameRate();
-		double idealVideoFrameRate = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetFrameRate(true);
-		int numOfItems = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetNumberOfItems(); 
-		int bufferSize = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize(); 
+  vtkPlusVideoSource* videoSource=dataCollectorHardwareDevice->GetVideoSource();
+	if ( videoSource != NULL ) 
+	{    
+    double realVideoFramePeriodStdevSec=0;
+		double realVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
+		double idealVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(true);
+		int numOfItems = videoSource->GetBuffer()->GetNumberOfItems(); 
+		int bufferSize = videoSource->GetBuffer()->GetBufferSize(); 
 
-		LOG_INFO("Real video frame rate: " << realVideoFrameRate << "fps"); 
-		LOG_INFO("Ideal video frame rate: " << idealVideoFrameRate << "fps"); 
-		LOG_INFO("Number of items in the video buffer: " << numOfItems ); 
+		LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps"); 
+    LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)"); 
+    LOG_INFO("Number of items in the video buffer: " << numOfItems ); 
 		LOG_INFO("Video buffer size: " << bufferSize); 
+
+    // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
+    int numberOfNonUniqueFrames=0;
+    int numberOfValidFrames=0;
+    for ( BufferItemUidType frameUid = videoSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+    {
+      double time(0); 
+      if ( videoSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+      unsigned long framenum(0); 
+      if ( videoSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+      numberOfValidFrames++;
+      if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+      { 
+        // no previous frame
+        continue;
+      }
+      double prevtime(0); 
+      if ( videoSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
+      unsigned long prevframenum(0); 
+      if ( videoSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
+      if (framenum == prevframenum)
+      {
+        // the same frame number was set for different frame indexes; this should not happen
+        LOG_DEBUG("Non-unique frame has been found with frame number "<<framenum<<" (uid: "<<frameUid-1<<", "<<frameUid<<", time: "<<prevtime<<", "<<time<<")");
+        numberOfNonUniqueFrames++;
+      }
+    }  	
+    LOG_INFO("Number of valid frames: "<<numberOfValidFrames);      
+    LOG_INFO("Number of non-unique frames: "<<numberOfNonUniqueFrames);
+    if (numberOfNonUniqueFrames>0)
+    {
+      LOG_WARNING("Non-unique frames are recorded in the buffer, probably the requested acquisition rate is too high");
+    }
+
 	}
 
 	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
@@ -153,22 +189,56 @@ int main(int argc, char **argv)
 
 			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
 			int bufferSize = tool->GetBuffer()->GetBufferSize(); 
-			double realFrameRate = tool->GetBuffer()->GetFrameRate();
+      double realFramePeriodStdevSec=0;
+			double realFrameRate = tool->GetBuffer()->GetFrameRate(false, &realFramePeriodStdevSec);
 			double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
 			LOG_INFO("------------------ " << tool->GetToolName() << " ---------------------"); 
-			LOG_INFO("Tracker tool " << tool <<  " real sampling frequency: " << realFrameRate << "fps"); 
-			LOG_INFO("Tracker tool " << tool <<  " ideal sampling frequency: " << idealFrameRate << "fps"); 
+			LOG_INFO("Tracker tool " << tool <<  " actual sampling frequency: " << realFrameRate << "fps (sampling period stdev: "<<realFramePeriodStdevSec*1000.0<<"ms)"); 
+			LOG_INFO("Tracker tool " << tool <<  " nominal sampling frequency: " << idealFrameRate << "fps"); 
 			LOG_INFO("Number of items in the tool buffer: " << numOfItems ); 
 			LOG_INFO("Tool buffer size: " << bufferSize); 
+
+      // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
+      int numberOfNonUniqueFrames=0;
+      int numberOfValidFrames=0;
+	    for ( BufferItemUidType frameUid = tool->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= tool->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+	    {
+		    double time(0); 
+		    if ( tool->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+		    unsigned long framenum(0); 
+		    if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+        numberOfValidFrames++;
+        if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+        { 
+          // no previous frame
+          continue;
+        }
+		    double prevtime(0); 
+		    if ( tool->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
+		    unsigned long prevframenum(0); 
+		    if ( tool->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
+		    if (framenum == prevframenum)
+		    {
+			    // the same frame number was set for different frame indexes; this should not happen
+          LOG_DEBUG("Non-unique frame has been found with frame number "<<framenum<<" (uid: "<<frameUid-1<<", "<<frameUid<<", time: "<<prevtime<<", "<<time<<")");
+          numberOfNonUniqueFrames++;
+		    }
+	    }  	
+      LOG_INFO("Number of valid frames: "<<numberOfValidFrames);      
+      LOG_INFO("Number of non-unique frames: "<<numberOfNonUniqueFrames);
+      if (numberOfNonUniqueFrames>0)
+      {
+        LOG_WARNING("Non-unique frames are recorded in the buffer, probably the requested acquisition rate is too high");
+      }
 		}
-	}
+	}  
 
 
 	//************************************************************************************
 	// Generate html report
   LOG_INFO("Generate report ...");
   vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-  htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
+  htmlReport->SetTitle("Data Collection Report"); 
 
   vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
   plotter->SetHideWindow(true); 
@@ -185,7 +255,7 @@ int main(int argc, char **argv)
     dataCollectorHardwareDevice->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
   }
 
-  std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/iCALDataCollectionReport.html"); 
+  std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 
   htmlReport->SaveHtmlPage(reportFileName.c_str()); 
 
 	//************************************************************************************
