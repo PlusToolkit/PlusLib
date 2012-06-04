@@ -262,8 +262,11 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     // Get flags
     ToolStatus toolStatus = bufferItem.GetStatus(); 
 
+    // This device has no frame numbering, just auto increment tool frame number if new frame received
+    unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
+
     // send the transformation matrix and flags to the tool
-    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, unfilteredTimestamp)!=PLUS_SUCCESS)
+    if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, frameNumber, unfilteredTimestamp)!=PLUS_SUCCESS)
     {
       numOfErrors++;
     }

@@ -568,8 +568,6 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 //----------------------------------------------------------------------------
 // for accurate timing of the frame: an exponential moving average
 // is computed to smooth out the jitter in the times that are returned by the system clock:
-// EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-// Smaller SmoothingFactor results leads to less jitter.
 template<class BufferItemType>
 PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid)
 {
@@ -770,7 +768,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::GetTimeStampReportTable
       return PLUS_FAIL; 
   }
 
-	this->Lock(); 
+  this->Lock(); 
   timeStampReportTable->DeepCopy(this->TimeStampReportTable); 
   this->Unlock(); 
 
