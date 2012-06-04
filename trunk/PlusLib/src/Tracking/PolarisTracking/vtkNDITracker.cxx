@@ -596,7 +596,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     // by default (if there is no camera frame number associated with
     // the tool transformation) the most recent timestamp is used.
     double toolTimestamp = unfilteredTimestamp;
-    double toolFrameNumber = this->LastFrameNumber;
+    unsigned long toolFrameNumber = this->LastFrameNumber;
     if (!absent[tool] && frame[tool])
     {
       // this will create a timestamp from the frame number      
