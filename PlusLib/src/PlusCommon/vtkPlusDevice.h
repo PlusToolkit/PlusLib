@@ -10,6 +10,8 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h"
 
+#include "vtkTrackedFrameList.h"
+
 #include <string>
 
 class vtkMultiThreader;
@@ -48,6 +50,12 @@ public:
     application might hang during exit.
   */
   virtual PlusStatus Disconnect() = 0;
+
+  /*!
+    Get tracked frame containing the transform(s) or the
+    image(s) acquired from the device at a specific timestamp
+  */
+  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame *trackedFrame) = 0;
 
 public:
   /*! Get the acquisition rate */

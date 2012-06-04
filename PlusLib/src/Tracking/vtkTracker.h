@@ -110,8 +110,8 @@ public:
   /*! Convert TrackedFrameFieldStatus to tool status */
   static ToolStatus ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus); 
 
-  /*! Get all transforms from buffer element values of each tool by timestamp. */
-  virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
+  /*! Get tracked frame containing all transforms from buffer element values of each tool by timestamp */
+  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame *trackedFrame);
 
   /*! Add generated html report from tracking data acquisition to the existing html report. htmlReport and plotter arguments has to be defined by the caller function */
   virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 

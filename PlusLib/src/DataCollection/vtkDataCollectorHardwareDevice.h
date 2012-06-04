@@ -120,9 +120,6 @@ protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
-  /*! Get frame data by time  */
-	virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, FieldMapType& fieldMap, double & aTimestamp); 
-
   /*! This is called by the superclass. */
   virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 

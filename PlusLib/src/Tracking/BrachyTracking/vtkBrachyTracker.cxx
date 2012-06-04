@@ -553,8 +553,12 @@ PlusStatus vtkBrachyTracker::InitializeStepper( std::string &calibMsg )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame )
+PlusStatus vtkBrachyTracker::GetTrackedFrame(double timestamp, TrackedFrame* aTrackedFrame )
 {
+  if (!aTrackedFrame)
+  {
+    return PLUS_FAIL;
+  }
 
   // PROBEHOME_TO_PROBE_TRANSFORM
   ToolStatus probehome2probeStatus = TOOL_OK; 
