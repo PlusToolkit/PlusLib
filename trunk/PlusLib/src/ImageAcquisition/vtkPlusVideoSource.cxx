@@ -530,7 +530,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   int acquisitionRate = 0;
-  if ( imageAcquisitionConfig->GetScalarAttribute("AcquisitionRate", AcquisitionRate) )
+  if ( imageAcquisitionConfig->GetScalarAttribute("AcquisitionRate", acquisitionRate) )
   {
     this->SetAcquisitionRate(acquisitionRate);
   }
