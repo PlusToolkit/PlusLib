@@ -710,3 +710,15 @@ PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char
 
   return status;
 }
+
+//-----------------------------------------------------------------------------
+void vtkVideoBuffer::SetTimeStampReporting(bool enable)
+{
+  this->VideoBuffer->SetTimeStampReporting(enable);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkVideoBuffer::GetTimeStampReporting()
+{
+  return this->VideoBuffer->GetTimeStampReporting();
+}

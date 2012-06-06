@@ -176,6 +176,11 @@ public:
   /*! Get the table report of the timestamped buffer  */
   virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
 
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  void SetTimeStampReporting(bool enable);
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  bool GetTimeStampReporting();
+
   /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(int x, int y); 
   /*! Set the frame size in pixel  */

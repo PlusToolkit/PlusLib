@@ -277,8 +277,13 @@ public:
   */
   virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid); 
 
-  /*! Get the table report of the timestamped buffer */
+  /*! Get the table report of the timestamped buffer. To fill this table TimeStampReporting has to be enabled.  */
   PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
+
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  vtkSetMacro(TimeStampReporting,bool);
+  vtkGetMacro(TimeStampReporting,bool); 
+  vtkBooleanMacro(TimeStampReporting,bool);  
 
   /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
   vtkSetMacro(AveragedItemsForFiltering, int); 
@@ -300,8 +305,8 @@ protected:
   */
   virtual ItemStatus GetBufferIndex( BufferItemUidType uid, int& bufferIndex ); 
 
-  /*! Initialize the timestamp report table by adding the proper cols */
-  virtual void InitTimeStampReportTable(); 
+  /*! Add values to the timestamp report. If reporting is not enabled then no values will be added. */
+  void AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp);
 
 protected:
   vtkCriticalSection *Mutex;
@@ -351,6 +356,12 @@ protected:
 
   /*! Table used for storing timestamp filtering results */
   vtkTable* TimeStampReportTable; 
+
+  /*!
+    If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in
+    a table. As the table is continuously growing it should be enabled only temporarily, for diagnostic purposes.
+  */
+  bool TimeStampReporting;
 
 private:
   vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);

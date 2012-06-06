@@ -84,14 +84,26 @@ public:
   /*! Get recording start time */
   virtual double GetStartTime(); 
 
-  /*! Get the table report of the timestamped buffer */
+  /*! Get the table report of the timestamped buffer. To fill this table TimeStampReporting has to be enabled.  */
   virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
+
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  void SetTimeStampReporting(bool enable);
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  bool GetTimeStampReporting();
 
   /*! Get the number of items in the buffer */
   int GetNumberOfItems() { return this->TrackerBuffer->GetNumberOfItems(); };
 
-  /*! Add a matrix plus status to the list.  If the timestamp is less than or equal to the previous timestamp, then nothing  will be done. */
+  /*!
+    Add a matrix plus status to the list. Filtered timestamp will be computed from the input unfiltered timestamp.
+    If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
+  */
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp);
+  /*!
+    Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
+    If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
+  */
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
 
   /*! Get tracker item from buffer.  */
