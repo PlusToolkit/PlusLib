@@ -537,6 +537,13 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
     return ITEM_UNKNOWN_ERROR;
   }
 
+  if (fabs(itemAtime-itemBtime)<NEGLIGIBLE_TIME_DIFFERENCE)
+  {
+    // exact time match, no need for interpolation
+    bufferItem->DeepCopy(&itemA);
+    return ITEM_OK;    
+  }
+  
   double itemAweight=fabs(itemBtime-time)/fabs(itemAtime-itemBtime);
   double itemBweight=1-itemAweight;
 
