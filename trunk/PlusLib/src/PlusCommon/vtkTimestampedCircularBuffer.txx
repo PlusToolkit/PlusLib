@@ -627,7 +627,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // If we don't have enough unfiltered timestamps or we don't want to use afiltering then just use the unfiltered timestamps
   if ( this->AveragedItemsForFiltering < 2 || this->FilterContainersNumberOfValidElements < this->AveragedItemsForFiltering )
   {  
-	AddToTimeStampReport(itemIndex, inUnfilteredTimestamp, inUnfilteredTimestamp);  
+    outFilteredTimestamp = inUnfilteredTimestamp; 
+    AddToTimeStampReport(itemIndex, inUnfilteredTimestamp, outFilteredTimestamp);  
     this->Unlock(); 
     return PLUS_SUCCESS; 
   }
