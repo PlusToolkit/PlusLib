@@ -13,6 +13,7 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/EC9-5_10_Assembly.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.0.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.1.stl
+  ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.2.stl
   ${PLUSLIB_DATA_DIR}/CADModels/LinearProbe/L14-5_38_ProbeModel.stl
   ${PLUSLIB_DATA_DIR}/CADModels/Stylus/Stylus_Example.stl
   ${PLUSLIB_DATA_DIR}/TestImages/NwirePhantomFreehandReconstructionOnly.xml 
