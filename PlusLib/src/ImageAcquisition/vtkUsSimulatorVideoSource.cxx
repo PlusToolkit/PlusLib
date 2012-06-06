@@ -5,56 +5,55 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkSavedDataVideoSource.h"
+#include "vtkUsSimulatorVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
 #include "vtkTrackedFrameList.h"
 
 
-vtkCxxRevisionMacro(vtkSavedDataVideoSource, "$Revision: 1.0$");
+vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkSavedDataVideoSource);
+vtkInstantiatorNewMacro(vtkUsSimulatorVideoSource);
 
 //----------------------------------------------------------------------------
 
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::Instance = 0;
-vtkSavedDataVideoSourceCleanup2 vtkSavedDataVideoSource::Cleanup;
+vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::Instance = 0;
+vtkUsSimulatorVideoSourceCleanup2 vtkUsSimulatorVideoSource::Cleanup;
 
 
 //----------------------------------------------------------------------------
-vtkSavedDataVideoSourceCleanup2::vtkSavedDataVideoSourceCleanup2()
+vtkUsSimulatorVideoSourceCleanup2::vtkUsSimulatorVideoSourceCleanup2()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSavedDataVideoSourceCleanup2::~vtkSavedDataVideoSourceCleanup2()
+vtkUsSimulatorVideoSourceCleanup2::~vtkUsSimulatorVideoSourceCleanup2()
 {
   // Destroy any remaining video source
-  vtkSavedDataVideoSource::SetInstance(NULL);
+  vtkUsSimulatorVideoSource::SetInstance(NULL);
 }
 //----------------------------------------------------------------------------
-vtkSavedDataVideoSource::vtkSavedDataVideoSource()
+vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 {
-  this->FrameBufferRowAlignment = 1;
+  this->UsSimulator = NULL; 
   this->LocalVideoBuffer = NULL;
-  this->SequenceMetafile = NULL; 
-  this->ReplayEnabled = false; 
-  this->LoopStartTime = 0.0; 
-  this->LoopTime = 0.0; 
-  this->SpawnThreadForRecording = true;
 }
 
 //----------------------------------------------------------------------------
-vtkSavedDataVideoSource::~vtkSavedDataVideoSource()
+vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
 { 
   if (!this->Connected)
   {
     this->Disconnect();
   }
 
+  if ( this->UsSimulator != NULL )
+  {
+    this->UsSimulator->Delete(); 
+    this->UsSimulator = NULL; 
+  }
   if ( this->LocalVideoBuffer != NULL )
   {
     this->LocalVideoBuffer->Delete(); 
@@ -64,47 +63,47 @@ vtkSavedDataVideoSource::~vtkSavedDataVideoSource()
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::New()
+vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::New()
 {
-  vtkSavedDataVideoSource* ret = vtkSavedDataVideoSource::GetInstance();
+  vtkUsSimulatorVideoSource* ret = vtkUsSimulatorVideoSource::GetInstance();
   ret->Register(NULL);
   return ret;
 }
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::GetInstance()
+vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::GetInstance()
 {
-  if(!vtkSavedDataVideoSource::Instance)
+  if(!vtkUsSimulatorVideoSource::Instance)
   {
     // Try the factory first
-    vtkSavedDataVideoSource::Instance = (vtkSavedDataVideoSource*)vtkObjectFactory::CreateInstance("vtkSavedDataVideoSource");    
-    if(!vtkSavedDataVideoSource::Instance)
+    vtkUsSimulatorVideoSource::Instance = (vtkUsSimulatorVideoSource*)vtkObjectFactory::CreateInstance("vtkUsSimulatorVideoSource");    
+    if(!vtkUsSimulatorVideoSource::Instance)
     {
-      vtkSavedDataVideoSource::Instance = new vtkSavedDataVideoSource();     
+      vtkUsSimulatorVideoSource::Instance = new vtkUsSimulatorVideoSource();     
     }
-    if(!vtkSavedDataVideoSource::Instance)
+    if(!vtkUsSimulatorVideoSource::Instance)
     {
       int error = 0;
     }
   }
   // return the instance
-  return vtkSavedDataVideoSource::Instance;
+  return vtkUsSimulatorVideoSource::Instance;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::SetInstance(vtkSavedDataVideoSource* instance)
+void vtkUsSimulatorVideoSource::SetInstance(vtkUsSimulatorVideoSource* instance)
 {
-  if (vtkSavedDataVideoSource::Instance==instance)
+  if (vtkUsSimulatorVideoSource::Instance==instance)
   {
     return;
   }
   // preferably this will be NULL
-  if (vtkSavedDataVideoSource::Instance)
+  if (vtkUsSimulatorVideoSource::Instance)
   {
-    vtkSavedDataVideoSource::Instance->Delete();;
+    vtkUsSimulatorVideoSource::Instance->Delete();;
   }
-  vtkSavedDataVideoSource::Instance = instance;
+  vtkUsSimulatorVideoSource::Instance = instance;
   if (!instance)
   {
     return;
@@ -113,23 +112,23 @@ void vtkSavedDataVideoSource::SetInstance(vtkSavedDataVideoSource* instance)
   instance->Register(NULL);
 }
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::InternalGrab()
-{
-  /*LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");*/
+PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
+{/*
+  //LOG_TRACE("vtkUsSimulatorVideoSource::InternalGrab");
 
   // Compute elapsed time since we restarted the timer
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->Buffer->GetStartTime();
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
 
   double latestFrameTimestamp(0); 
   if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
   {
-    LOG_ERROR("vtkSavedDataVideoSource: Unable to get latest timestamp from local buffer!");
+    LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get latest timestamp from local buffer!");
     return PLUS_FAIL; 
   }
 
@@ -154,15 +153,15 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   {
     if ( nextItemStatus == ITEM_NOT_AVAILABLE_YET )
     {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time - frame not available yet !");
+      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time - frame not available yet !");
     }
     else if ( nextItemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
     {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time - frame not available anymore !");
+      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time - frame not available anymore !");
     }
     else
     {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time!");
+      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time!");
     }
     return PLUS_FAIL; 
   }
@@ -171,31 +170,31 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->UsImageOrientation, this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->GetUsImageOrientation(), this->FrameNumber); 
   this->Modified();
-  return status;
+  return status;*/return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::InternalConnect()
-{
-  LOG_TRACE("vtkSavedDataVideoSource::InternalConnect"); 
+PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
+{/*
+  LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
-  if (this->SequenceMetafile==NULL)
+  if (this->GetSequenceMetafile()==NULL)
   {
     LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile. No filename is specified."); 
     return PLUS_FAIL; 
   }
-  if ( !vtksys::SystemTools::FileExists(this->SequenceMetafile, true) )
+  if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
   {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->SequenceMetafile); 
+    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->GetSequenceMetafile()); 
     return PLUS_FAIL; 
   }
 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile) != PLUS_SUCCESS )
+  if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read video buffer from sequence metafile!"); 
     return PLUS_FAIL; 
@@ -235,19 +234,19 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
   this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;*/return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::InternalDisconnect()
+PlusStatus vtkUsSimulatorVideoSource::InternalDisconnect()
 {
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
-{
-  LOG_TRACE("vtkSavedDataVideoSource::ReadConfiguration"); 
+PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+{/*
+  LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
     LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
@@ -304,13 +303,13 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  return PLUS_SUCCESS;
+  return PLUS_SUCCESS;*/return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config)
-{
-  LOG_TRACE("vtkSavedDataVideoSource::WriteConfiguration"); 
+PlusStatus vtkUsSimulatorVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+{/*
+  LOG_TRACE("vtkUsSimulatorVideoSource::WriteConfiguration"); 
 
   // Write superclass configuration
   Superclass::WriteConfiguration(config); 
@@ -346,6 +345,6 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
     imageAcquisitionConfig->SetAttribute("ReplayEnabled", "FALSE");
   }
 
-  return PLUS_SUCCESS;
+  return PLUS_SUCCESS;*/return PLUS_FAIL;
 }
 

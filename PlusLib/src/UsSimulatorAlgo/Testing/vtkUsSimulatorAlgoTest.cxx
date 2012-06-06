@@ -6,18 +6,18 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
+
 #include <iomanip>
 #include <iostream>
+
 #include "vtkXMLUtilities.h"
-
-
 #include "vtkSmartPointer.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
-#include <vtkSTLReader.h>
+#include "vtkSTLReader.h"
 #include "vtkPolyData.h"
 #include "vtkTransform.h"
 #include "vtkUsSimulatorAlgo.h"
@@ -30,7 +30,8 @@ See License.txt for details.
 #include "vtkJPEGWriter.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkXMLImageDataWriter.h"
-#include <vtkSTLWriter.h>
+#include "vtkSTLWriter.h"
+
 //display
 #include "vtkImageActor.h"
 #include "vtkActor.h"
@@ -41,10 +42,10 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkInteractorStyleImage.h"
 
+//-----------------------------------------------------------------------------
 void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformRepository *transformRepository, PlusTransformName &imageToReferenceTransformName, vtkPolyData *outputPolyData)
 {
   // Prepare the output polydata.
-
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
 
   // Loop over each tracked image slice.
@@ -89,16 +90,13 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
     CubeToTracker->Update();
 
     appender->AddInputConnection( CubeToTracker->GetOutputPort() );
-
   }  
 
   appender->Update();
   outputPolyData->DeepCopy(appender->GetOutput());
-
 }
 
-
-
+//-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   std::string inputModelFile;
@@ -159,12 +157,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-
-
-
   //Read transformations data 
-
-
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 				
   trackedFrameList->ReadFromSequenceMetafile( inputTransformsFile.c_str() );
@@ -173,18 +166,10 @@ int main(int argc, char **argv)
   // create repository for ultrasound images correlated to the iput tracked frames
   vtkSmartPointer<vtkTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-
-
-  ///// Take out when implementing read all frames !!! 
-  //int testFrameIndex=30;
-  //trackedFrameList->RemoveTrackedFrameRange(0,testFrameIndex-1);
-  //trackedFrameList->RemoveTrackedFrameRange(1,trackedFrameList->GetNumberOfTrackedFrames()-1);
-
-
   // Read config file
   LOG_DEBUG("Reading config file...")
 
-    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
@@ -202,9 +187,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 
-
   //Read model
-
   LOG_DEBUG("Reading in model stl file...");
   vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
   modelReader->SetFileName(inputModelFile.c_str());
@@ -212,10 +195,8 @@ int main(int argc, char **argv)
   LOG_DEBUG("Finished reading model stl file."); 
 
   // Acquire modeldata in appropriate containers to prepare for filter
-
   vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
-
-  model= modelReader->GetOutput(); 
+  model = modelReader->GetOutput(); 
 
   //Setup Renderer to visualize surface model and ultrasound planes
   vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
@@ -277,9 +258,7 @@ int main(int argc, char **argv)
     }   
 
     // We use the model coordinate system as reference coordinate system
-    /*
-    Alter to get new position? Or does it do it automatically ?
-    */
+    // TODO:Alter to get new position? Or does it do it automatically ?
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
     if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS )
     {
@@ -288,7 +267,6 @@ int main(int argc, char **argv)
       LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
       return EXIT_FAILURE;
     }
-
 
     vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
     stencilBackgroundImage->SetSpacing(1,1,1);
@@ -305,7 +283,6 @@ int main(int argc, char **argv)
     memset(stencilBackgroundImage->GetScalarPointer(), 0,
       ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
-
     //prepare  filter and filter input 
     vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
     usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
@@ -318,73 +295,56 @@ int main(int argc, char **argv)
     usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
     usSimulator->Update();
 
-    vtkImageData* simOutput=usSimulator->GetOutputImage();
-
-
+    vtkImageData* simOutput = usSimulator->GetOutput();
 
     double origin[3]={
       imageToReferenceMatrix->Element[0][3],
       imageToReferenceMatrix->Element[1][3],
       imageToReferenceMatrix->Element[2][3]};
-      simOutput->SetOrigin(origin);
-      double spacing[3]={
-        sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
-        imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
-        imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
-        sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
-        imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
-        imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
-        1.0};
-        simOutput->SetSpacing(spacing);
+    simOutput->SetOrigin(origin);
+    
+    double spacing[3]={
+      sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
+      imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
+      imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
+      sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
+      imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
+      imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
+      1.0};
+    simOutput->SetSpacing(spacing);
 
+    PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
+    simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
 
-        PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
-        simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
+    frame->SetImageData(*simulatorOutputPlusVideoFrame); 
 
-        frame->SetImageData(*simulatorOutputPlusVideoFrame); 
+    vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
+    usImage->DeepCopy(simOutput);
 
-        vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-        usImage->DeepCopy(simOutput);
+    //display output of filter
+    vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
+    redImageActor->SetInput(simOutput);
+    
+    // Visualize
+    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
 
-        //-----------------------------------------------------------------------------------
+    // Red image is displayed
+    renderer->AddActor(redImageActor);
+    renderer->ResetCamera();
 
-        //display output of filter
-        vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
+    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(renderer);
+    renderer->SetBackground(0, 72, 0);
 
-        redImageActor->SetInput(simOutput);
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
 
-
-        // Visualize
-        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-
-        // Red image is displayed
-        renderer->AddActor(redImageActor);
-
-
-        renderer->ResetCamera();
-
-        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-        renderWindow->AddRenderer(renderer);
-        renderer->SetBackground(0, 72, 0);
-
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-
-        renderWindowInteractor->SetInteractorStyle(style);
-
-        renderWindowInteractor->SetRenderWindow(renderWindow);
-
-
+    renderWindowInteractor->SetInteractorStyle(style);
+    renderWindowInteractor->SetRenderWindow(renderWindow);
   }
-
-
 
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
-
-
-
-
 }
