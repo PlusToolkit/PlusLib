@@ -32,6 +32,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
   this->MaxAllowedFilteringTimeDifference=0.500; // sec
    
   this->TimeStampReportTable = NULL; 
+  this->TimeStampReporting = false;
 
   this->StartTime = 0; 
 
@@ -594,14 +595,6 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   this->Lock();   
   filteredTimestampProbablyValid=true;
 
-  if ( this->TimeStampReportTable == NULL )
-  {
-    this->InitTimeStampReportTable(); 
-  }
-
-  // create a new row for the timestamp report table 
-  vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New(); 
-
   if ( this->FilterContainerIndexVector.size() != this->AveragedItemsForFiltering 
     || this->FilterContainerTimestampVector.size() != this->AveragedItemsForFiltering )
   {
@@ -633,22 +626,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   
   // If we don't have enough unfiltered timestamps or we don't want to use afiltering then just use the unfiltered timestamps
   if ( this->AveragedItemsForFiltering < 2 || this->FilterContainersNumberOfValidElements < this->AveragedItemsForFiltering )
-  {
-    outFilteredTimestamp = inUnfilteredTimestamp; 
-    // save the current results into the timestamp report table
-    timeStampReportTableRow->InsertNextValue(itemIndex); 
-    //timeStampReportTableRow->InsertNextValue(frameCountDiff); 
-    std::ostringstream strUnfilteredTimestamp; 
-    strUnfilteredTimestamp << std::fixed << inUnfilteredTimestamp - this->StartTime; 
-    timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
-
-    std::ostringstream strFilteredTimestamp; 
-    strFilteredTimestamp << std::fixed << outFilteredTimestamp - this->StartTime; 
-    timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
-    //timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
-    //timeStampReportTableRow->InsertNextValue(frameperiod); 
-    //timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
-    this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
+  {  
+	AddToTimeStampReport(itemIndex, inUnfilteredTimestamp, inUnfilteredTimestamp);  
     this->Unlock(); 
     return PLUS_SUCCESS; 
   }
@@ -693,20 +672,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   LOG_TRACE("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
   LOG_TRACE("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
 
-  // save the current results into the timestamp report table
-  timeStampReportTableRow->InsertNextValue(itemIndex); 
-  //timeStampReportTableRow->InsertNextValue(frameCountDiff); 
-  std::ostringstream strUnfilteredTimestamp; 
-  strUnfilteredTimestamp << std::fixed << inUnfilteredTimestamp - this->StartTime; 
-  timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
-
-  std::ostringstream strFilteredTimestamp; 
-  strFilteredTimestamp << std::fixed << outFilteredTimestamp - this->StartTime; 
-  timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
-  //timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
-  //timeStampReportTableRow->InsertNextValue(frameperiod); 
-  //timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
-  this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
+  AddToTimeStampReport(itemIndex, inUnfilteredTimestamp, outFilteredTimestamp);  
 
   if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
   { 
@@ -722,55 +688,6 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   return PLUS_SUCCESS; 
 }
 
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::InitTimeStampReportTable()
-{
-  if ( this->TimeStampReportTable )
-  {
-    // Delete table just to make sure the col's are well prepared
-    this->TimeStampReportTable->Delete(); 
-  }
-
-  this->TimeStampReportTable = vtkTable::New(); 
-
-  const char* colFrameNumberName = "FrameNumber"; 
-  vtkSmartPointer<vtkDoubleArray> colFrameNumber = vtkSmartPointer<vtkDoubleArray>::New(); 
-  colFrameNumber->SetName(colFrameNumberName); 
-  this->TimeStampReportTable->AddColumn(colFrameNumber); 
-
-  /*const char* colFrameNumberDifferenceName = "FrameNumberDifference"; 
-  vtkSmartPointer<vtkDoubleArray> colFrameNumberDifference = vtkSmartPointer<vtkDoubleArray>::New(); 
-  colFrameNumberDifference->SetName(colFrameNumberDifferenceName); 
-  this->TimeStampReportTable->AddColumn(colFrameNumberDifference); */
-
-  const char* colUnfilteredTimestampName = "UnfilteredTimestamp"; 
-  vtkSmartPointer<vtkStringArray> colUnfilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
-  colUnfilteredTimestamp->SetName(colUnfilteredTimestampName); 
-  this->TimeStampReportTable->AddColumn(colUnfilteredTimestamp); 
-
-  const char* colFilteredTimestampName = "FilteredTimestamp"; 
-  vtkSmartPointer<vtkStringArray> colFilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
-  colFilteredTimestamp->SetName(colFilteredTimestampName); 
-  this->TimeStampReportTable->AddColumn(colFilteredTimestamp); 
-
-  /*const char* colUnfilteredTimeDifferenceName = "UnfilteredTimeDifference"; 
-  vtkSmartPointer<vtkDoubleArray> colUnfilteredTimeDifference = vtkSmartPointer<vtkDoubleArray>::New(); 
-  colUnfilteredTimeDifference->SetName(colUnfilteredTimeDifferenceName); 
-  this->TimeStampReportTable->AddColumn(colUnfilteredTimeDifference); */
-
-  /*const char* colSamplingPeriodName = "SamplingPeriod"; 
-  vtkSmartPointer<vtkDoubleArray> colSamplingPeriod = vtkSmartPointer<vtkDoubleArray>::New(); 
-  colSamplingPeriod->SetName(colSamplingPeriodName); 
-  this->TimeStampReportTable->AddColumn(colSamplingPeriod); */
-
-  /*const char* colEstimatedFramePeriodName = "EstimatedFramePeriod"; 
-  vtkSmartPointer<vtkDoubleArray> colEstimatedFramePeriod = vtkSmartPointer<vtkDoubleArray>::New(); 
-  colEstimatedFramePeriod->SetName(colEstimatedFramePeriodName); 
-  this->TimeStampReportTable->AddColumn(colEstimatedFramePeriod); */
-
-}
 //----------------------------------------------------------------------------
 template<class BufferItemType>
 PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::GetTimeStampReportTable(vtkTable* timeStampReportTable)
@@ -793,4 +710,53 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::GetTimeStampReportTable
   this->Unlock(); 
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+template<class BufferItemType>
+void vtkTimestampedCircularBuffer<BufferItemType>::AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp)
+{
+  if (!this->TimeStampReporting)
+  {
+    // no reporting is needed
+    return;
+  }
+      
+  if ( this->TimeStampReportTable == NULL )
+  {
+    this->TimeStampReportTable = vtkTable::New();   
+
+    const char* colFrameNumberName = "FrameNumber"; 
+    vtkSmartPointer<vtkDoubleArray> colFrameNumber = vtkSmartPointer<vtkDoubleArray>::New(); 
+    colFrameNumber->SetName(colFrameNumberName); 
+    this->TimeStampReportTable->AddColumn(colFrameNumber); 
+
+    const char* colUnfilteredTimestampName = "UnfilteredTimestamp"; 
+    vtkSmartPointer<vtkStringArray> colUnfilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
+    colUnfilteredTimestamp->SetName(colUnfilteredTimestampName); 
+    this->TimeStampReportTable->AddColumn(colUnfilteredTimestamp); 
+
+    const char* colFilteredTimestampName = "FilteredTimestamp"; 
+    vtkSmartPointer<vtkStringArray> colFilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
+    colFilteredTimestamp->SetName(colFilteredTimestampName); 
+    this->TimeStampReportTable->AddColumn(colFilteredTimestamp); 
+  }			
+
+  // create a new row for the timestamp report table 
+  vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New();  
+  
+  timeStampReportTableRow->InsertNextValue(itemIndex); 
+
+  // insert as string to control floating point formatting
+  std::ostringstream strUnfilteredTimestamp; 
+  strUnfilteredTimestamp << std::fixed << unfilteredTimestamp - this->StartTime; 
+  timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
+
+  // insert as string to control floating point formatting
+  std::ostringstream strFilteredTimestamp; 
+  strFilteredTimestamp << std::fixed << filteredTimestamp - this->StartTime; 
+  timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
+
+  this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow);
+
 }

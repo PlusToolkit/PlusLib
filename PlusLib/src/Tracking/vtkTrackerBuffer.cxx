@@ -774,3 +774,15 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
 
   return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );
 }
+
+//-----------------------------------------------------------------------------
+void vtkTrackerBuffer::SetTimeStampReporting(bool enable)
+{
+  this->TrackerBuffer->SetTimeStampReporting(enable);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkTrackerBuffer::GetTimeStampReporting()
+{
+  return this->TrackerBuffer->GetTimeStampReporting();
+}
