@@ -26,19 +26,3 @@ INSTALL(TARGETS DiagDataCollection
   )
   
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
-
-
-# ---------------------- DiagDataSync ---------------------
-#
-ADD_EXECUTABLE(DiagDataSync DiagDataSync.cxx)
-TARGET_LINK_LIBRARIES(DiagDataSync ${DIAGDATA_LIBS} )
-
-# Install
-IF(PLUSAPP_INSTALL_BIN_DIR)
-
-INSTALL(TARGETS DiagDataSync
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-  
-ENDIF(PLUSAPP_INSTALL_BIN_DIR)

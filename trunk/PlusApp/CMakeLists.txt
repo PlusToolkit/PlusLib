@@ -104,7 +104,6 @@ ADD_SUBDIRECTORY(PointSetExtractor)
 IF (PLUSAPP_BUILD_DiagnosticTools)
     ADD_SUBDIRECTORY(DiagnosticTools)
     ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
-    ADD_DEPENDENCIES( DiagDataSync ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_DiagnosticTools)
 
 # --------------------------------------------------------------------------

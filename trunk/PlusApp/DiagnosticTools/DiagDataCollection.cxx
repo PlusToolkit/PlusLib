@@ -99,7 +99,21 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to initialize data collector!"); 
     exit(EXIT_FAILURE); 
   }
-
+  
+  // Enable timestamp reporting for video and all tools
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
+	{
+		dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->SetTimeStampReporting(true);
+	}
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
+	{
+    for (ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
+		{
+      vtkTrackerTool* tool = it->second;
+		  tool->GetBuffer()->SetTimeStampReporting(true);
+    }
+	}
+  
 	if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start data collection!"); 
