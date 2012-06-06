@@ -16,6 +16,7 @@ SET (ImageAcquisition_SRCS
   vtkPlusVideoSource.cxx 
   vtkPlusVideoSourceFactory.cxx
   vtkSavedDataVideoSource.cxx
+  vtkUsSimulatorVideoSource.cxx
   )
 	
 SET (ImageAcquisition_HDRS)
@@ -26,7 +27,8 @@ if (WIN32)
     vtkVideoBuffer.h 
     vtkPlusVideoSource.h 
     vtkPlusVideoSourceFactory.h
-    vtkSavedDataVideoSource.h 
+    vtkSavedDataVideoSource.h
+    vtkUsSimulatorVideoSource.h
     )
 endif (WIN32)	
 
@@ -226,6 +228,7 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 # --------------------------------------------------------------------------
 # ICCapturing support
 IF (PLUS_USE_ICCAPTURING_VIDEO)
+
 	SET (ImageAcquisition_SRCS
 		${ImageAcquisition_SRCS}
 		ICCapturing/vtkICCapturingSource.cxx
@@ -264,6 +267,7 @@ ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 # Video-for-Windows video digitizer support
 
 IF (PLUS_USE_VFW_VIDEO)
+
 	SET (ImageAcquisition_SRCS ${ImageAcquisition_SRCS} 
 		VideoForWindows/vtkWin32VideoSource2.cxx
 		)
@@ -331,7 +335,12 @@ SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
   vtkPlusCommon
   ITKIO
   ITKBasicFilters
+  UsSimulatorAlgo
   )
+
+SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/../UsSimulatorAlgo
+  CACHE INTERNAL "" FORCE)
 
 INCLUDE_DIRECTORIES( ${ImageAcquisition_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkImageAcquisition ${ImageAcquisition_SRCS} ${ImageAcquisition_HDRS})

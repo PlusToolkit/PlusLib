@@ -26,6 +26,7 @@ See License.txt for details.
 #include "vtkPointData.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkImageStencilData.h"
+
 //-----------------------------------------------------------------------------
 
 const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 155;
@@ -36,6 +37,7 @@ const int vtkUsSimulatorAlgo::OUTPUTOBJECTNUM = 0;
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
 
+//-----------------------------------------------------------------------------
 vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 {
   SetNumberOfInputPorts(1); 
@@ -47,24 +49,36 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->OutputImage=vtkImageData::New();
 }
 
-int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
+//-----------------------------------------------------------------------------
+vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
 {
-
-  info->Set(vtkImageAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData"); 
-  return 1; 
-
-
+  SetModelToImageMatrix(NULL); 
+  SetStencilBackgroundImage(NULL);
+  this->OutputImage->Delete();
+  this->OutputImage=NULL;
 }
 
+//-----------------------------------------------------------------------------
+void vtkUsSimulatorAlgo::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
+
+//-----------------------------------------------------------------------------
+int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
+{
+  info->Set(vtkImageAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData"); 
+  return 1; 
+}
+
+//-----------------------------------------------------------------------------
 int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
 {
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData"); 
   return 1; 
 }
 
-
-
-
+//-----------------------------------------------------------------------------
 int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector** inputVector,vtkInformationVector* outputVector)
 {
   if( this->ModelToImageMatrix== NULL)
@@ -143,22 +157,4 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   this->OutputImage->DeepCopy(combinedStencilOutput); 
 
   return 1; 
-}
-
-
-
-void vtkUsSimulatorAlgo::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-  os << indent << "Dummy value : "<< m_Dummy <<"\n";
-
-
-}
-
-vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
-{
-  SetModelToImageMatrix(NULL); 
-  SetStencilBackgroundImage(NULL);
-  this->OutputImage->Delete();
-  this->OutputImage=NULL;
 }

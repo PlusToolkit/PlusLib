@@ -5,10 +5,9 @@ SET (UsSimulatorAlgo_SRCS
 
 SET (UsSimulatorAlgo_HDRS)
 if (WIN32)    
-    SET (UsSimulatorAlgo_HDRS
-      vtkUsSimulatorAlgo.h
-
-    )
+  SET (UsSimulatorAlgo_HDRS
+    vtkUsSimulatorAlgo.h
+  )
 endif (WIN32)
 
 SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
@@ -17,20 +16,7 @@ SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" 
 # Build the library
 
 SET (UsSimulatorAlgo_LIBS
-    
-    winmm
-    vtkPlusCommon # An example of a pre-built library
-	vtkCommon 
-	vtkInfovis 
-	itkvnl 
-	itkvnl_algo 
-	PatternLocAlgo 
-	vtkTracking
-	vtkFiltering
-	vtkImageAcquisition
-	vtkSignaling
-	vtkHybrid 
-
+  vtkPlusCommon
   )     
 
 SET (UsSimulatorAlgo_INCLUDE_DIRS ${UsSimulatorAlgo_INCLUDE_DIRS} ${UsSimulatorAlgo_INCLUDE_DIRS} CACHE INTERNAL "" FORCE    )
@@ -47,7 +33,7 @@ SET(vcProj_UsSimulatorAlgo UsSimulatorAlgo ${PlusLib_BINARY_DIR}/src/UsSimulator
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY (Testing)
+  ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 
@@ -55,7 +41,8 @@ ENDIF (BUILD_TESTING)
 #
 
 INSTALL(TARGETS UsSimulatorAlgo
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries
+  )
