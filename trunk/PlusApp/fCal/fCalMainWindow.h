@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #ifndef __fCalMainWindow_h
@@ -24,77 +24,83 @@ class QTimer;
 
 enum ToolboxType
 {
-	ToolboxType_Undefined = -1,
-	ToolboxType_Configuration,
-	ToolboxType_StylusCalibration,
-	ToolboxType_PhantomRegistration,
-	ToolboxType_FreehandCalibration,
+  ToolboxType_Undefined = -1,
+  ToolboxType_Configuration,
+  ToolboxType_StylusCalibration,
+  ToolboxType_PhantomRegistration,
+  ToolboxType_FreehandCalibration,
   ToolboxType_Capturing,
-	ToolboxType_VolumeReconstruction
+  ToolboxType_VolumeReconstruction
 };
 
 //-----------------------------------------------------------------------------
 
 /*! \class fCalMainWindow 
- * \brief Main window of the fCal application
- * \ingroup PlusAppFCal
- */
+* \brief Main window of the fCal application
+* \ingroup PlusAppFCal
+*/
 class fCalMainWindow : public QMainWindow
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	/*!
-	* Constructor
-	* \param aParent parent
-	* \param aFlags widget flag
-	*/
-	fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+  /*!
+  * Constructor
+  * \param aParent parent
+  * \param aFlags widget flag
+  */
+  fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
 
-	/*!
-	* Destructor
-	*/
-	~fCalMainWindow();
+  /*!
+  * Destructor
+  */
+  ~fCalMainWindow();
 
-	/*!
-	* Initialize controller, toolboxes, canvas and connect to devices
-	*/
-	void Initialize();
+  /*!
+  * Initialize controller, toolboxes, canvas and connect to devices
+  */
+  void Initialize();
 
-	/*!
-	* Get object visualizer object
+  /*!
+  * Get object visualizer object
   * \return Object visualizer
-	*/
+  */
   vtkObjectVisualizer* GetObjectVisualizer() { return m_ObjectVisualizer; };
 
-	/*!
-	* Set status bar text
+  /*!
+  * Set status bar text
   * \param aText Status bar text
-	*/
+  */
   void SetStatusBarText(QString aText);
 
-	/*!
-	* Set status bar progress
+  /*!
+  * Set status bar progress
   * \param aPercent Progress percent of the status bar (if -1 then hide progress bar)
-	*/
+  */
   void SetStatusBarProgress(int aPercent);
 
-	/*!
-	* Enable/disable tab changing
-	* \param Enable/Disable flag
-	*/
-	void SetTabsEnabled(bool);
+  /*!
+  * Enable/disable tab changing
+  * \param Enable/Disable flag
+  */
+  void SetTabsEnabled(bool);
 
-	/*!
-	* Reset all toolboxes and hide all tools (called when disconnected from a device set)
-	*/
+  /*!
+  * Enable/disable image manipulation
+  * \param Enable/Disable flag
+  */
+  void SetImageManipulationEnabled(bool);
+
+  /*!
+  * Reset all toolboxes and hide all tools (called when disconnected from a device set)
+  */
   void ResetAllToolboxes();
 
-	/*!
-	* Return a toolbox
+  /*!
+  * Return a toolbox
   * \param aType Toolbox type identifier
   * \return Toolbox object
-	*/
+  */
   AbstractToolbox* GetToolbox(ToolboxType aType) { return m_ToolboxList[aType]; };
 
   /*! Get image coordinate frame name */
@@ -129,75 +135,81 @@ public:
   void ResetShowDevices() { ui.pushButton_ShowDevices->setChecked(false); };
 
 protected:
-	/*!
-	* Create toolboxes
-	*/
-	void CreateToolboxes();
-
-	/*!
-	* Set up status bar (label and progress)
-	*/
-	void SetupStatusBar();
-
   /*!
-	* Filters events if this object has been installed as an event filter for the watched object
-	* \param obj object
-	* \param ev event
-	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
-	*/
-	bool eventFilter(QObject *obj, QEvent *ev);
-
-protected slots:
-	/*!
-	* Handle tab change
-	* \param aTabIndex Index of the currently active tab
-	*/
-	void CurrentTabChanged(int aTabIndex);
-
-	/*!
-	* Changes tab back to the locked one if tabbing is disabled
-	* \param Mandatory but unused argument to match the signal
-	*/
-	void ChangeBackTab(int);
-
-	/*!
-	* Updates every part of the GUI (called by ui refresh timer)
-	*/
-	void UpdateGUI();
-
-  /*!
-  * Slot handling show devices combobox state change
-  * \param Slot aOn True if toggled, false otherwise
+  * Create toolboxes
   */
-  void ShowDevicesToggled(bool aOn);
+  void CreateToolboxes();
 
-	/*!
-	* Resize event handler
-  * \param aEvent Resize event
-	*/
-  virtual void resizeEvent(QResizeEvent* aEvent);
+  /*!
+  * Set up status bar (label and progress)
+  */
+  void SetupStatusBar();
 
-  /*! Save buffers into files */
-  void DumpBuffers();
+  /*!
+  * Filters events if this object has been installed as an event filter for the watched object
+  * \param obj object
+  * \param ev event
+  * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+  */
+  bool eventFilter(QObject *obj, QEvent *ev);
 
-  /*! Save current device set configuration */
-  void SaveDeviceSetConfiguration();
+  protected slots:
+    /*!
+    * Handle tab change
+    * \param aTabIndex Index of the currently active tab
+    */
+    void CurrentTabChanged(int aTabIndex);
+
+    /*!
+    * Changes tab back to the locked one if tabbing is disabled
+    * \param Mandatory but unused argument to match the signal
+    */
+    void ChangeBackTab(int);
+
+    /*!
+    * Updates every part of the GUI (called by ui refresh timer)
+    */
+    void UpdateGUI();
+
+    /*!
+    * Slot handling show devices combobox state change
+    * \param Slot aOn True if toggled, false otherwise
+    */
+    void ShowDevicesToggled(bool aOn);
+
+    /*!
+    * Resize event handler
+    * \param aEvent Resize event
+    */
+    virtual void resizeEvent(QResizeEvent* aEvent);
+
+    /*! Save buffers into files */
+    void DumpBuffers();
+
+    /*! Save current device set configuration */
+    void SaveDeviceSetConfiguration();
+
+    /*! Flip 2D Image horizontally */
+    void FlipHorizontally();
+
+    /*! Flip 2D Image vertically */
+    void FlipVertically();
 
 protected:
   /*! Object visualizer */
   vtkObjectVisualizer*  m_ObjectVisualizer;
 
-	/*! Label on the left of the statusbar */
-	QLabel*					    m_StatusBarLabel;
+  /*! Label on the left of the statusbar */
+  QLabel*					    m_StatusBarLabel;
 
-	/*! Progress bar on the right of the statusbar */
-	QProgressBar*		    m_StatusBarProgress;
+  /*! Progress bar on the right of the statusbar */
+  QProgressBar*		    m_StatusBarProgress;
 
-	/*! Index of locked (current) tab if tabbing is disabled */
-	int							    m_LockedTabIndex;
+  /*! Index of locked (current) tab if tabbing is disabled */
+  int							    m_LockedTabIndex;
 
-	/*! Active toolbox identifier */
-	ToolboxType			    m_ActiveToolbox;
+  /*! Active toolbox identifier */
+  ToolboxType			    m_ActiveToolbox;
 
   /*! Timer that refreshes the UI */
   QTimer*             m_UiRefreshTimer;
@@ -230,7 +242,7 @@ protected:
   bool m_ShowPoints;
 
 private:
-	Ui::fCalMainWindow	ui;
+  Ui::fCalMainWindow	ui;
 
 };
 

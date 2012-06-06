@@ -315,6 +315,8 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
   }
 
+  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+
   double videoTimeOffset = 0.0;
   if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
   {

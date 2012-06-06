@@ -119,6 +119,13 @@ public:
 	 */
   PlusStatus EnableImageMode(bool aOn);
 
+  /*!
+  * Flip canvas in image mode
+  * \param aFlipX Flip X flag
+  * \param aFlipY Flip Y flag
+  */
+  PlusStatus ImageModeFlip(bool aFlipX, bool aFlipY);
+
 	/*!
 	 * Enable/disable camera movements (mouse interactions on rendering window)
 	 * \param aEnabled Trackball interactions if true, no interactions if false

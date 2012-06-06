@@ -127,6 +127,8 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
+  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+
 	if (m_State == ToolboxState_Uninitialized)
   {
 		ui.label_Instructions->setText("N/A");

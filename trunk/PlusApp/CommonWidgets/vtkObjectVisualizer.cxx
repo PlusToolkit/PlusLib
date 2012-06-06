@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
@@ -77,7 +77,7 @@ vtkObjectVisualizer::~vtkObjectVisualizer()
     delete this->AcquisitionTimer;
     this->AcquisitionTimer = NULL;
   } 
-  
+
   if (this->DataCollector != NULL)
   {
     this->DataCollector->Stop();
@@ -170,7 +170,7 @@ PlusStatus vtkObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aConfig)
   const char* worldCoordinateFrame = renderingElement->GetAttribute("WorldCoordinateFrame");
   if (worldCoordinateFrame == NULL)
   {
-	  LOG_ERROR("WorldCoordinateFrame is not specified in DisplayableTool element of the configuration!");
+    LOG_ERROR("WorldCoordinateFrame is not specified in DisplayableTool element of the configuration!");
     return PLUS_FAIL;     
   }
 
@@ -586,12 +586,34 @@ PlusStatus vtkObjectVisualizer::EnableImageMode(bool aOn)
   }
 
   // Disable camera movements in image mode and enable otherwise
-  EnableCameraMovements(!aOn);
+  EnableCameraMovements(true);//!aOn);
 
   this->CanvasRenderer->SetGradientBackground(!aOn);
   this->CanvasRenderer->Modified();
 
   this->SetImageMode(aOn);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkObjectVisualizer::ImageModeFlip( bool aFlipX, bool aFlipY )
+{
+  LOG_TRACE("vtkObjectVisualizer::ImageModeFlip(" << (aFlipX?"true":"false") << ", " << (aFlipY?"true":"false") << ")");
+
+  if( this->ImageMode )
+  {
+    if( aFlipX )
+    {
+      this->ImageCamera->SetPosition(0.0, 0.0, -this->ImageCamera->GetPosition()[2]);
+    }
+    if( aFlipY )
+    {
+      this->ImageCamera->Roll(180);
+      this->ImageCamera->SetPosition(0.0, 0.0, -this->ImageCamera->GetPosition()[2]);
+    }
+  }
 
   return PLUS_SUCCESS;
 }
@@ -730,7 +752,7 @@ PlusStatus vtkObjectVisualizer::CalculateImageCameraParameters()
 
   // Set up camera
   vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-  imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
+  imageCamera->SetFocalPoint(0.0, 0.0, 0);
   imageCamera->SetViewUp(0, -1, 0);
   imageCamera->SetClippingRange(0.1, 2000.0);
   imageCamera->ParallelProjectionOn();
@@ -747,12 +769,15 @@ PlusStatus vtkObjectVisualizer::CalculateImageCameraParameters()
     imageCamera->SetParallelScale(imageCenterX * (double)renderWindowSize[1] / (double)renderWindowSize[0]);
   }
 
-  imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
+  imageCamera->SetPosition(0.0, 0.0, -200.0);
 
   // Set camera
   this->SetImageCamera(imageCamera);
 
   this->CanvasRenderer->SetActiveCamera(this->ImageCamera);
+
+  // Move image actor to have the center of the image be the world-space origin, this will allow flipping about x and y axes without translation
+  this->ImageActor->SetPosition(-imageCenterX, -imageCenterY, 0.0);
 
   return PLUS_SUCCESS;
 }
@@ -823,7 +848,7 @@ PlusStatus vtkObjectVisualizer::StartDataCollection()
     LOG_ERROR("Unable to initialize DataCollector!"); 
     return PLUS_FAIL;
   }
-  
+
   // Fill up transform repository
   this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
@@ -1000,4 +1025,3 @@ PlusStatus vtkObjectVisualizer::GetTransformMatrix(PlusTransformName aTransform,
 
   return PLUS_SUCCESS;
 }
-

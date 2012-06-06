@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CapturingToolbox.h"
@@ -27,28 +27,28 @@
 //-----------------------------------------------------------------------------
 
 CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
-	: AbstractToolbox(aParentMainWindow)
-	, QWidget(aParentMainWindow, aFlags)
-	, m_RecordedFrames(NULL)
-  , m_RecordingTimer(NULL)
-  , m_LastRecordedFrameTimestamp(0.0)
-  , m_SamplingFrameRate(8)
-  , m_RequestedFrameRate(0.0)
-  , m_ActualFrameRate(0.0)
+: AbstractToolbox(aParentMainWindow)
+, QWidget(aParentMainWindow, aFlags)
+, m_RecordedFrames(NULL)
+, m_RecordingTimer(NULL)
+, m_LastRecordedFrameTimestamp(0.0)
+, m_SamplingFrameRate(8)
+, m_RequestedFrameRate(0.0)
+, m_ActualFrameRate(0.0)
 {
-	ui.setupUi(this);
+  ui.setupUi(this);
 
   // Create tracked frame list
   m_RecordedFrames = vtkTrackedFrameList::New();
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
   // Connect events
-	connect( ui.pushButton_Snapshot, SIGNAL( clicked() ), this, SLOT( TakeSnapshot() ) );
-	connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
-	connect( ui.pushButton_ClearRecordedFrames, SIGNAL( clicked() ), this, SLOT( ClearRecordedFrames() ) );
-	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
+  connect( ui.pushButton_Snapshot, SIGNAL( clicked() ), this, SLOT( TakeSnapshot() ) );
+  connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
+  connect( ui.pushButton_ClearRecordedFrames, SIGNAL( clicked() ), this, SLOT( ClearRecordedFrames() ) );
+  connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 
-	connect( ui.horizontalSlider_SamplingRate, SIGNAL( valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
+  connect( ui.horizontalSlider_SamplingRate, SIGNAL( valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
 
   // Create and connect recording timer
   m_RecordingTimer = new QTimer(this); 
@@ -59,17 +59,17 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 
 CapturingToolbox::~CapturingToolbox()
 {
-	if (m_RecordedFrames != NULL) {
-		m_RecordedFrames->Delete();
-		m_RecordedFrames = NULL;
-	}
+  if (m_RecordedFrames != NULL) {
+    m_RecordedFrames->Delete();
+    m_RecordedFrames = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void CapturingToolbox::Initialize()
 {
-	LOG_TRACE("CapturingToolbox::Initialize"); 
+  LOG_TRACE("CapturingToolbox::Initialize"); 
 
   if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
   {
@@ -78,7 +78,7 @@ void CapturingToolbox::Initialize()
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)
     {
-	    SetState(ToolboxState_Idle);
+      SetState(ToolboxState_Idle);
     }
     else
     {
@@ -95,7 +95,7 @@ void CapturingToolbox::Initialize()
 
 void CapturingToolbox::RefreshContent()
 {
-	//LOG_TRACE("CapturingToolbox::RefreshContent");
+  //LOG_TRACE("CapturingToolbox::RefreshContent");
 
   if (m_State == ToolboxState_InProgress)
   {
@@ -116,23 +116,25 @@ void CapturingToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
   }
 
-	if (m_State == ToolboxState_Uninitialized)
+  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+
+  if (m_State == ToolboxState_Uninitialized)
   {
-		ui.pushButton_Snapshot->setEnabled(false);
+    ui.pushButton_Snapshot->setEnabled(false);
     ui.pushButton_Record->setEnabled(false);
     ui.pushButton_ClearRecordedFrames->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
     ui.horizontalSlider_SamplingRate->setEnabled(false);
-	}
+  }
   else if (m_State == ToolboxState_Idle)
   {
     ui.pushButton_Record->setText("Record");
     ui.pushButton_Record->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
 
-		ui.pushButton_Snapshot->setEnabled(true);
+    ui.pushButton_Snapshot->setEnabled(true);
     ui.pushButton_Record->setEnabled(true);
     ui.pushButton_ClearRecordedFrames->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
     ui.horizontalSlider_SamplingRate->setEnabled(true);
 
     SamplingRateChanged(ui.horizontalSlider_SamplingRate->value());
@@ -141,31 +143,31 @@ void CapturingToolbox::SetDisplayAccordingToState()
     ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText("0");
-	}
+  }
   else if (m_State == ToolboxState_InProgress)
   {
     ui.pushButton_Record->setText(tr("Stop"));
     ui.pushButton_Record->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
 
-		ui.pushButton_Snapshot->setEnabled(false);
+    ui.pushButton_Snapshot->setEnabled(false);
     ui.pushButton_Record->setEnabled(true);
     ui.pushButton_ClearRecordedFrames->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
     ui.horizontalSlider_SamplingRate->setEnabled(false);
 
     // Change the function to be invoked on clicking on the now Stop button
-	  disconnect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
-	  connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Stop() ) );
-	}
+    disconnect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
+    connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Stop() ) );
+  }
   else if (m_State == ToolboxState_Done)
   {
     ui.pushButton_Record->setText(tr("Record"));
     ui.pushButton_Record->setIcon( QIcon( ":/icons/Resources/icon_Record.png" ) );
 
-		ui.pushButton_Snapshot->setEnabled(true);
+    ui.pushButton_Snapshot->setEnabled(true);
     ui.pushButton_Record->setEnabled(true);
     ui.pushButton_ClearRecordedFrames->setEnabled(true);
-		ui.pushButton_Save->setEnabled(true);
+    ui.pushButton_Save->setEnabled(true);
     ui.horizontalSlider_SamplingRate->setEnabled(true);
 
     ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
@@ -174,26 +176,26 @@ void CapturingToolbox::SetDisplayAccordingToState()
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
 
     // Change the function to be invoked on clicking on the now Record button
-	  disconnect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Stop() ) );
-	  connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
-	}
+    disconnect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Stop() ) );
+    connect( ui.pushButton_Record, SIGNAL( clicked() ), this, SLOT( Record() ) );
+  }
   else if (m_State == ToolboxState_Error)
   {
-		ui.pushButton_Snapshot->setEnabled(false);
+    ui.pushButton_Snapshot->setEnabled(false);
     ui.pushButton_Record->setEnabled(false);
     ui.pushButton_ClearRecordedFrames->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
     ui.horizontalSlider_SamplingRate->setEnabled(false);
-	}
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void CapturingToolbox::TakeSnapshot()
 {
-	LOG_TRACE("CapturingToolbox::TakeSnapshot"); 
+  LOG_TRACE("CapturingToolbox::TakeSnapshot"); 
 
-	TrackedFrame trackedFrame;
+  TrackedFrame trackedFrame;
 
   if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
@@ -226,10 +228,10 @@ void CapturingToolbox::TakeSnapshot()
   }
 
   if ( !validFrame )
-	{
-		LOG_WARNING("Unable to record tracked frame: All the tool transforms are invalid!"); 
+  {
+    LOG_WARNING("Unable to record tracked frame: All the tool transforms are invalid!"); 
     return;
-	}
+  }
 
   // Add tracked frame to the list
   if (m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
@@ -272,7 +274,7 @@ void CapturingToolbox::Record()
 
 void CapturingToolbox::Capture()
 {
-	//LOG_TRACE("CapturingToolbox::Capture");
+  //LOG_TRACE("CapturingToolbox::Capture");
 
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
@@ -334,35 +336,35 @@ void CapturingToolbox::Stop()
 
 void CapturingToolbox::Save()
 {
-	LOG_TRACE("CapturingToolbox::Save"); 
+  LOG_TRACE("CapturingToolbox::Save"); 
 
-	QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
+  QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
 
-	if (! fileName.isNull() )
+  if (! fileName.isNull() )
   {
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     // Actual saving
     std::string filePath = fileName.ascii();
-	  std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
-	  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
-	  std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
+    std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
+    std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
+    std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
 
-	  vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-	  if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
-	  {
-		  ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
-	  }
-	  else
-	  {
-		  ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
-	  }
-
-	  if ( m_RecordedFrames->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false) != PLUS_SUCCESS )
+    vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
+    if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
     {
-       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-       return;
+      ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
+    }
+    else
+    {
+      ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
+    }
+
+    if ( m_RecordedFrames->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+      return;
     }
 
     // Add file name to image list in Volume reconstruction toolbox
@@ -376,11 +378,11 @@ void CapturingToolbox::Save()
     std::string configFileName = path + "/" + filename + "_config.xml";
     vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(configFileName.c_str());
 
-	  m_RecordedFrames->Clear(); 
+    m_RecordedFrames->Clear(); 
     SetState(ToolboxState_Idle);
 
-		QApplication::restoreOverrideCursor();
-	}	
+    QApplication::restoreOverrideCursor();
+  }	
 
   LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
 }
@@ -389,7 +391,7 @@ void CapturingToolbox::Save()
 
 void CapturingToolbox::ClearRecordedFrames()
 {
-	LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
+  LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
 
   if ( QMessageBox::question(this, tr("fCal - Capturing"), tr("Do you want to discard all the recorded frames?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No )
   {
@@ -407,7 +409,7 @@ void CapturingToolbox::ClearRecordedFrames()
 
 void CapturingToolbox::SamplingRateChanged(int aValue)
 {
-	LOG_TRACE("CapturingToolbox::RecordingFrameRateChanged(" << aValue << ")"); 
+  LOG_TRACE("CapturingToolbox::RecordingFrameRateChanged(" << aValue << ")"); 
 
   double maxFrameRate = GetMaximumFrameRate();
   int samplingRate = (int)(pow(2.0, ui.horizontalSlider_SamplingRate->maxValue() - aValue));
@@ -424,7 +426,7 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 
 double CapturingToolbox::GetMaximumFrameRate()
 {
-	LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
+  LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
   if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetObjectVisualizer() == NULL || m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() == NULL)
   {

@@ -299,6 +299,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
+  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_StylusPosition->setText(tr("N/A"));

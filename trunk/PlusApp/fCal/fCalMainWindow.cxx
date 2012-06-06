@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "fCalMainWindow.h"
@@ -27,23 +27,23 @@
 //-----------------------------------------------------------------------------
 
 fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags)
-	, m_StatusBarLabel(NULL)
-	, m_StatusBarProgress(NULL)
-	, m_LockedTabIndex(-1)
-	, m_ActiveToolbox(ToolboxType_Undefined)
-  , m_ObjectVisualizer(NULL)
-  , m_StatusIcon(NULL)
-  , m_ImageCoordinateFrame("")
-  , m_ProbeCoordinateFrame("")
-  , m_ReferenceCoordinateFrame("")
-  , m_TransducerOriginCoordinateFrame("")
-  , m_TransducerOriginPixelCoordinateFrame("")
-  , m_ShowDevices(false)
-  , m_ShowPoints(false)
+: QMainWindow(parent, flags)
+, m_StatusBarLabel(NULL)
+, m_StatusBarProgress(NULL)
+, m_LockedTabIndex(-1)
+, m_ActiveToolbox(ToolboxType_Undefined)
+, m_ObjectVisualizer(NULL)
+, m_StatusIcon(NULL)
+, m_ImageCoordinateFrame("")
+, m_ProbeCoordinateFrame("")
+, m_ReferenceCoordinateFrame("")
+, m_TransducerOriginCoordinateFrame("")
+, m_TransducerOriginPixelCoordinateFrame("")
+, m_ShowDevices(false)
+, m_ShowPoints(false)
 {
-	// Set up UI
-	ui.setupUi(this);
+  // Set up UI
+  ui.setupUi(this);
 
   // Maximize window
   this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
@@ -53,24 +53,24 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
 fCalMainWindow::~fCalMainWindow()
 {
-	if (m_ObjectVisualizer != NULL)
+  if (m_ObjectVisualizer != NULL)
   {
-		m_ObjectVisualizer->Delete();
+    m_ObjectVisualizer->Delete();
     m_ObjectVisualizer = NULL;
-	}
+  }
 
   if (m_StatusIcon != NULL)
   {
-		delete m_StatusIcon;
+    delete m_StatusIcon;
     m_StatusIcon = NULL;
-	}
+  }
 
   if (m_UiRefreshTimer != NULL)
   {
     m_UiRefreshTimer->stop();
-		delete m_UiRefreshTimer;
-		m_UiRefreshTimer = NULL;
-	}
+    delete m_UiRefreshTimer;
+    m_UiRefreshTimer = NULL;
+  }
 
   m_ToolboxList.clear();
 }
@@ -82,40 +82,48 @@ void fCalMainWindow::Initialize()
   LOG_TRACE("fCalMainWindow::Initialize");
 
   // Create status icon
-	m_StatusIcon = new StatusIcon(this);
+  m_StatusIcon = new StatusIcon(this);
 
-	// Set up timer for refreshing UI
-	m_UiRefreshTimer = new QTimer(this);
+  // Set up timer for refreshing UI
+  m_UiRefreshTimer = new QTimer(this);
 
   // Set up menu items for tools button
   QAction* dumpBuffersAction = new QAction("Dump buffers into files...", ui.pushButton_Tools);
   connect(dumpBuffersAction, SIGNAL(triggered()), this, SLOT(DumpBuffers()));
   ui.pushButton_Tools->addAction(dumpBuffersAction);
-
   ui.pushButton_Tools->installEventFilter(this);
+
+  // Set up menu items for image manipulation button
+  QAction* flipHorizAction = new QAction("Flip Horizontally", ui.pushButton_ImageOrientation);
+  connect(flipHorizAction, SIGNAL(triggered()), this, SLOT(FlipHorizontally()));
+  ui.pushButton_ImageOrientation->addAction(flipHorizAction);
+  QAction* flipVertAction = new QAction("Flip Vertically", ui.pushButton_ImageOrientation);
+  connect(flipVertAction, SIGNAL(triggered()), this, SLOT(FlipVertically()));
+  ui.pushButton_ImageOrientation->addAction(flipVertAction);
+  ui.pushButton_ImageOrientation->installEventFilter(this);
 
   // Create visualizer
   m_ObjectVisualizer = vtkObjectVisualizer::New();
   m_ObjectVisualizer->Initialize();
-	ui.canvas->GetRenderWindow()->AddRenderer(m_ObjectVisualizer->GetCanvasRenderer());
+  ui.canvas->GetRenderWindow()->AddRenderer(m_ObjectVisualizer->GetCanvasRenderer());
 
-	// Create toolboxes
-	CreateToolboxes();
+  // Create toolboxes
+  CreateToolboxes();
 
-	// Set up status bar (message and progress bar)
-	SetupStatusBar();
+  // Set up status bar (message and progress bar)
+  SetupStatusBar();
 
-	// Make connections
-	connect( ui.tabWidgetToolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentTabChanged(int) ) );
+  // Make connections
+  connect( ui.tabWidgetToolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentTabChanged(int) ) );
   connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
   connect( ui.pushButton_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
-	connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
+  connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
 
   // Initialize default tab widget
-	CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
+  CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
 
   // Start timer
-	m_UiRefreshTimer->start(50);
+  m_UiRefreshTimer->start(50);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,69 +135,69 @@ void fCalMainWindow::CreateToolboxes()
   // Resize toolbox list to the number of toolboxes
   m_ToolboxList.resize(6);
 
-	// Configuration widget
-	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
-	if (configurationToolbox != NULL)
+  // Configuration widget
+  ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
+  if (configurationToolbox != NULL)
   {
-		QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
-		grid->addWidget(configurationToolbox);
-		ui.tab_Configuration->setLayout(grid);
-	}
+    QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
+    grid->addWidget(configurationToolbox);
+    ui.tab_Configuration->setLayout(grid);
+  }
 
   m_ToolboxList[ToolboxType_Configuration] = configurationToolbox;
 
-	// Stylus calibration widget
-	StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(this);
-	if (stylusCalibrationToolbox != NULL)
+  // Stylus calibration widget
+  StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(this);
+  if (stylusCalibrationToolbox != NULL)
   {
-		QGridLayout* grid = new QGridLayout(ui.tab_StylusCalibration, 1, 1, 0, 0, "");
-		grid->addWidget(stylusCalibrationToolbox);
-		ui.tab_StylusCalibration->setLayout(grid);
-	}
+    QGridLayout* grid = new QGridLayout(ui.tab_StylusCalibration, 1, 1, 0, 0, "");
+    grid->addWidget(stylusCalibrationToolbox);
+    ui.tab_StylusCalibration->setLayout(grid);
+  }
 
   m_ToolboxList[ToolboxType_StylusCalibration] = stylusCalibrationToolbox;
 
-	// Phantom registration widget
-	PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
-	if (phantomRegistrationToolbox != NULL)
+  // Phantom registration widget
+  PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
+  if (phantomRegistrationToolbox != NULL)
   {
-		QGridLayout* grid = new QGridLayout(ui.tab_PhantomRegistration, 1, 1, 0, 0, "");
-		grid->addWidget(phantomRegistrationToolbox);
-		ui.tab_PhantomRegistration->setLayout(grid);
-	}
+    QGridLayout* grid = new QGridLayout(ui.tab_PhantomRegistration, 1, 1, 0, 0, "");
+    grid->addWidget(phantomRegistrationToolbox);
+    ui.tab_PhantomRegistration->setLayout(grid);
+  }
 
   m_ToolboxList[ToolboxType_PhantomRegistration] = phantomRegistrationToolbox;
 
-	// Freehand calibration widget
-	FreehandCalibrationToolbox* freehandCalibrationToolbox = new FreehandCalibrationToolbox(this);
-	if (freehandCalibrationToolbox != NULL)
+  // Freehand calibration widget
+  FreehandCalibrationToolbox* freehandCalibrationToolbox = new FreehandCalibrationToolbox(this);
+  if (freehandCalibrationToolbox != NULL)
   {
-		QGridLayout* grid = new QGridLayout(ui.tab_FreehandCalibration, 1, 1, 0, 0, "");
-		grid->addWidget(freehandCalibrationToolbox);
-		ui.tab_FreehandCalibration->setLayout(grid);
-	}
+    QGridLayout* grid = new QGridLayout(ui.tab_FreehandCalibration, 1, 1, 0, 0, "");
+    grid->addWidget(freehandCalibrationToolbox);
+    ui.tab_FreehandCalibration->setLayout(grid);
+  }
 
   m_ToolboxList[ToolboxType_FreehandCalibration] = freehandCalibrationToolbox;
 
-	// Capturing widget
-	CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
-	if (capturingToolbox != NULL)
+  // Capturing widget
+  CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
+  if (capturingToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.tab_Capturing, 1, 1, 0, 0, "");
-		grid->addWidget(capturingToolbox);
+    grid->addWidget(capturingToolbox);
     ui.tab_Capturing->setLayout(grid);
-	}
+  }
 
   m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
 
   // Volume reconstruction widget
-	VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
-	if (volumeReconstructionToolbox != NULL)
+  VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
+  if (volumeReconstructionToolbox != NULL)
   {
-		QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
-		grid->addWidget(volumeReconstructionToolbox);
-		ui.tab_VolumeReconstruction->setLayout(grid);
-	}
+    QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
+    grid->addWidget(volumeReconstructionToolbox);
+    ui.tab_VolumeReconstruction->setLayout(grid);
+  }
 
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
 }
@@ -200,21 +208,21 @@ void fCalMainWindow::SetupStatusBar()
 {
   LOG_TRACE("fCalMainWindow::SetupStatusBar");
 
-	// Set up status bar
-	QSizePolicy sizePolicy;
-	sizePolicy.setHorizontalPolicy(QSizePolicy::Expanding);
+  // Set up status bar
+  QSizePolicy sizePolicy;
+  sizePolicy.setHorizontalPolicy(QSizePolicy::Expanding);
 
-	m_StatusBarLabel = new QLabel(ui.statusBar);
-	m_StatusBarLabel->setSizePolicy(sizePolicy);
+  m_StatusBarLabel = new QLabel(ui.statusBar);
+  m_StatusBarLabel->setSizePolicy(sizePolicy);
 
-	m_StatusBarProgress = new QProgressBar(ui.statusBar);
-	m_StatusBarProgress->setSizePolicy(sizePolicy);
-	m_StatusBarProgress->hide();
+  m_StatusBarProgress = new QProgressBar(ui.statusBar);
+  m_StatusBarProgress->setSizePolicy(sizePolicy);
+  m_StatusBarProgress->hide();
 
-	ui.statusBar->addWidget(m_StatusBarLabel, 1);
-	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
-	
-	ui.statusBar->addPermanentWidget(m_StatusIcon);
+  ui.statusBar->addWidget(m_StatusBarLabel, 1);
+  ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
+
+  ui.statusBar->addPermanentWidget(m_StatusIcon);
 }
 
 //-----------------------------------------------------------------------------
@@ -223,36 +231,36 @@ void fCalMainWindow::CurrentTabChanged(int aTabIndex)
 {
   LOG_TRACE("fCalMainWindow::CurrentTabChanged(" << aTabIndex << ")");
 
-	// Initialize new tab
-	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration")
+  // Initialize new tab
+  if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration")
   {
-		m_ActiveToolbox = ToolboxType_Configuration;
-	}
+    m_ActiveToolbox = ToolboxType_Configuration;
+  }
   else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration")
   {
-		m_ActiveToolbox = ToolboxType_StylusCalibration;
-	}
+    m_ActiveToolbox = ToolboxType_StylusCalibration;
+  }
   else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Phantom Registration")
   {
-		m_ActiveToolbox = ToolboxType_PhantomRegistration;
-	}
+    m_ActiveToolbox = ToolboxType_PhantomRegistration;
+  }
   else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration")
   {
-		m_ActiveToolbox = ToolboxType_FreehandCalibration;
-	}
+    m_ActiveToolbox = ToolboxType_FreehandCalibration;
+  }
   else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Capturing")
   {
-		m_ActiveToolbox = ToolboxType_Capturing;
-	}
+    m_ActiveToolbox = ToolboxType_Capturing;
+  }
   else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction")
   {
-		m_ActiveToolbox = ToolboxType_VolumeReconstruction;
-	}
+    m_ActiveToolbox = ToolboxType_VolumeReconstruction;
+  }
   else
   {
-		LOG_ERROR("No tab with this title found!");
+    LOG_ERROR("No tab with this title found!");
     return;
-	}
+  }
 
   m_ToolboxList[m_ActiveToolbox]->Initialize();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
@@ -266,15 +274,24 @@ void fCalMainWindow::SetTabsEnabled(bool aEnabled)
 {
   LOG_TRACE("fCalMainWindow::SetTabsEnabled(" << (aEnabled?"true":"false") << ")");
 
-	if (aEnabled) {
-		m_LockedTabIndex = -1;
-		disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
-		connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
-	} else {
-		m_LockedTabIndex = ui.tabWidgetToolbox->currentIndex();
-		disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
-		connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
-	}
+  if (aEnabled) {
+    m_LockedTabIndex = -1;
+    disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
+    connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
+  } else {
+    m_LockedTabIndex = ui.tabWidgetToolbox->currentIndex();
+    disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
+    connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetImageManipulationEnabled( bool aEnabled )
+{
+  LOG_TRACE("fCalMainWindow::SetImageManipulationEnabled(" << (aEnabled?"true":"false") << ")");
+
+  ui.pushButton_ImageOrientation->setEnabled(aEnabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -283,9 +300,9 @@ void fCalMainWindow::ChangeBackTab(int aTabIndex)
 {
   LOG_TRACE("fCalMainWindow::ChangeBackTab(" << aTabIndex << ")");
 
-	ui.tabWidgetToolbox->blockSignals(true);
-	ui.tabWidgetToolbox->setCurrentIndex(m_LockedTabIndex);
-	ui.tabWidgetToolbox->blockSignals(false);
+  ui.tabWidgetToolbox->blockSignals(true);
+  ui.tabWidgetToolbox->setCurrentIndex(m_LockedTabIndex);
+  ui.tabWidgetToolbox->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -306,8 +323,8 @@ void fCalMainWindow::SetStatusBarProgress(int aPercent)
   if (aPercent == -1) {
     m_StatusBarProgress->setVisible(false);
   } else {
-		m_StatusBarProgress->setValue(aPercent);
-		m_StatusBarProgress->setVisible(true);
+    m_StatusBarProgress->setValue(aPercent);
+    m_StatusBarProgress->setVisible(true);
   }
 }
 
@@ -317,15 +334,15 @@ void fCalMainWindow::UpdateGUI()
 {
   //LOG_TRACE("fCalMainWindow::UpdateGUI");
 
-	// We do not update the gui when a mouse button is pressed
-	if (QApplication::mouseButtons() != Qt::NoButton)
+  // We do not update the gui when a mouse button is pressed
+  if (QApplication::mouseButtons() != Qt::NoButton)
   {
-		return;
-	}
+    return;
+  }
 
   m_ToolboxList[m_ActiveToolbox]->RefreshContent();
 
-	// Refresh tool state display if detached
+  // Refresh tool state display if detached
   if (m_ActiveToolbox != ToolboxType_Configuration)
   {
     ConfigurationToolbox* configurationToolbox = dynamic_cast<ConfigurationToolbox*>(m_ToolboxList[ToolboxType_Configuration]);
@@ -333,13 +350,13 @@ void fCalMainWindow::UpdateGUI()
     {
       configurationToolbox->RefreshToolDisplayIfDetached();
     }
-	}
+  }
 
-	// Update canvas
+  // Update canvas
   if ((m_ObjectVisualizer->GetDataCollector() != NULL) && (m_ObjectVisualizer->GetDataCollector()->GetConnected()))
   {
     m_ObjectVisualizer->GetDataCollector()->Modified();
-	  ui.canvas->update();
+    ui.canvas->update();
   }
 }
 
@@ -375,15 +392,15 @@ void fCalMainWindow::ResetAllToolboxes()
 
 bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
-	//LOG_TRACE("fCalMainWindow::eventFilter"); 
+  //LOG_TRACE("fCalMainWindow::eventFilter"); 
 
-	if (obj == ui.pushButton_Tools)
+  if (obj == ui.pushButton_Tools)
   {
-		if (ev->type() == QEvent::MouseButtonRelease)
+    if (ev->type() == QEvent::MouseButtonRelease)
     {
-			QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
-			if ( mouseEvent->button() == Qt::LeftButton )
-			{
+      QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
+      if ( mouseEvent->button() == Qt::LeftButton )
+      {
         QMenu* menu = new QMenu(tr("Options"), ui.pushButton_Tools);
         menu->addActions(ui.pushButton_Tools->actions());
         menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
@@ -391,12 +408,29 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         delete menu;
 
         return true;
-			}	
-		}
+      }	
+    }
+  }
+  else if( obj == ui.pushButton_ImageOrientation)
+  {
+    if (ev->type() == QEvent::MouseButtonRelease && ui.pushButton_ImageOrientation->isEnabled())
+    {
+      QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
+      if ( mouseEvent->button() == Qt::LeftButton )
+      {
+        QMenu* menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
+        menu->addActions(ui.pushButton_ImageOrientation->actions());
+        menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
+        menu->exec();
+        delete menu;
+
+        return true;
+      }	
+    }
   }
 
-	// Pass the event on to the parent class
-	return QWidget::eventFilter( obj, ev );
+  // Pass the event on to the parent class
+  return QWidget::eventFilter( obj, ev );
 }
 
 //-----------------------------------------------------------------------------
@@ -414,6 +448,28 @@ void fCalMainWindow::DumpBuffers()
   }
 
   LOG_INFO("Raw buffers dumped into directory '" << dirName.toAscii().data() << "'");
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::FlipHorizontally()
+{
+  LOG_TRACE("fCalMainWindow::FlipHorizontally");
+
+  m_ObjectVisualizer->ImageModeFlip(true, false);
+  
+  LOG_INFO("fCalMainWindow::FlipHorizontally completed");
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::FlipVertically()
+{
+  LOG_TRACE("fCalMainWindow::FlipVertically");
+
+  m_ObjectVisualizer->ImageModeFlip(false, true);
+  
+  LOG_INFO("fCalMainWindow::FlipVertically completed");
 }
 
 //-----------------------------------------------------------------------------
@@ -460,6 +516,8 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
     m_ObjectVisualizer->ShowInput(m_ShowPoints);
     m_ObjectVisualizer->ShowResult(m_ShowPoints);
     m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
+
+    SetImageManipulationEnabled(false);
   }
   else
   {
@@ -468,4 +526,3 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
 
   LOG_INFO("Show devices " << (aOn?"enabled":"disabled"));
 }
-

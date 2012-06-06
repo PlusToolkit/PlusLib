@@ -117,6 +117,8 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
+  m_ParentMainWindow->SetImageManipulationEnabled(false);
+
   // No state handling in this toolbox
   if (m_ParentMainWindow->AreDevicesShown() == false)
   {
