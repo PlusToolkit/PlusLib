@@ -57,8 +57,8 @@ vtkObjectVisualizer::vtkObjectVisualizer()
 , HorizontalOrientationTextActor(NULL)
 , VerticalOrientationTextActor(NULL)
 , OrientationMarkerAssembly(NULL)
-, m_OrientationMarkerCurrentXRotation(0.0)
-, m_OrientationMarkerCurrentYRotation(0.0)
+, OrientationMarkerCurrentXRotation(0.0)
+, OrientationMarkerCurrentYRotation(0.0)
 {
   this->InitializedOff();
   this->ImageModeOff();
@@ -578,7 +578,7 @@ PlusStatus vtkObjectVisualizer::EnableImageMode(bool aOn)
     }
 
     this->SetImageMode(aOn);
-    this->Modify2DImageOrientation(MF_SCREEN_RIGHT_DOWN);
+    this->SetScreenRightDownAxesOrientation();
   }
   else if (this->ImageMode == true) // If just changed from image mode to show devices mode
   {
@@ -610,9 +610,9 @@ PlusStatus vtkObjectVisualizer::EnableImageMode(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewOrientation )
+PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
 {
-  LOG_TRACE("vtkObjectVisualizer::Modify2DImageOrientation(" << aNewOrientation << ")");
+  LOG_TRACE("vtkObjectVisualizer::SetScreenRightDownAxesOrientation(" << aOrientation << ")");
 
   if( this->ImageMode )
   {
@@ -622,10 +622,11 @@ PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewO
     // Depending on the desired orientation either roll the camera about its view vector 
     // and/or position the camera on the +z or -z side of the image plane.
     // This depends on having back face culling disabled.
-    switch(aNewOrientation)
+    switch(aOrientation)
     {
-    case MF_SCREEN_LEFT_UP:
+    case US_IMG_ORIENT_UN:
       {
+        //Unmarked, near
         this->ImageCamera->SetRoll(0);
         if( cameraPos[2] > 0.0 )
         {
@@ -633,11 +634,12 @@ PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewO
         }
 
         // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(MF_SCREEN_LEFT_UP);
+        CalculateOrientationMarkerTransform(US_IMG_ORIENT_UN);
       }
       break;
-    case MF_SCREEN_LEFT_DOWN:
+    case US_IMG_ORIENT_UF:
       {
+        // Unmarked, far
         this->ImageCamera->SetRoll(-180);
         if( cameraPos[2] < 0.0 )
         {
@@ -645,11 +647,12 @@ PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewO
         }
 
         // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(MF_SCREEN_LEFT_DOWN);
+        CalculateOrientationMarkerTransform(US_IMG_ORIENT_UF);
       }
       break;
-    case MF_SCREEN_RIGHT_DOWN:
+    case US_IMG_ORIENT_MF:
       {
+        // Marked, far
         this->ImageCamera->SetRoll(-180);
         if( cameraPos[2] > 0.0 )
         {
@@ -657,11 +660,12 @@ PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewO
         }
 
         // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(MF_SCREEN_RIGHT_DOWN);
+        CalculateOrientationMarkerTransform(US_IMG_ORIENT_MF);
       }
       break;
-    case MF_SCREEN_RIGHT_UP:
+    case US_IMG_ORIENT_MN:
       {
+        // Marked, near
         this->ImageCamera->SetRoll(0);
         if( cameraPos[2] < 0.0 )
         {
@@ -669,7 +673,7 @@ PlusStatus vtkObjectVisualizer::Modify2DImageOrientation( ImageOrientation aNewO
         }
 
         // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(MF_SCREEN_RIGHT_UP);
+        CalculateOrientationMarkerTransform(US_IMG_ORIENT_MN);
       }
       break;
     }
@@ -1186,7 +1190,9 @@ PlusStatus vtkObjectVisualizer::InitializeOrientationMarkers()
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform(ImageOrientation aOrientation)
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
 {
   int dimensions[2];
   this->DataCollector->GetFrameSize(dimensions);
@@ -1194,49 +1200,49 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform(ImageOrienta
 
   // Undo any existing rotations to the markers, so that all subsequent rotations are from a base orientation
   // Base orientation is MF_SCREEN_RIGHT_DOWN
-  this->GetOrientationMarkerAssembly()->RotateX(-m_OrientationMarkerCurrentXRotation);
-  this->GetOrientationMarkerAssembly()->RotateY(-m_OrientationMarkerCurrentYRotation);
+  this->GetOrientationMarkerAssembly()->RotateX(-OrientationMarkerCurrentXRotation);
+  this->GetOrientationMarkerAssembly()->RotateY(-OrientationMarkerCurrentYRotation);
 
   // Apply any necessary rotations and repositionings
   // Also change the letters on the display to indicate the new orientation
   switch(aOrientation)
   {
-  case MF_SCREEN_RIGHT_DOWN:
+  case US_IMG_ORIENT_MF:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("F");
-    m_OrientationMarkerCurrentXRotation = 0;
-    m_OrientationMarkerCurrentYRotation = 0;
+    OrientationMarkerCurrentXRotation = 0;
+    OrientationMarkerCurrentYRotation = 0;
     newPosition[0] = 0.0;
     newPosition[1] = 0.0;
     newPosition[2] = -1.0;
     break;
-  case MF_SCREEN_RIGHT_UP:
+  case US_IMG_ORIENT_MN:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("N");
-    m_OrientationMarkerCurrentYRotation = 0;
+    OrientationMarkerCurrentYRotation = 0;
     this->GetOrientationMarkerAssembly()->RotateX(180);
-    m_OrientationMarkerCurrentXRotation = 180;
+    OrientationMarkerCurrentXRotation = 180;
     newPosition[0] = 0.0;
     newPosition[1] = dimensions[1];
     newPosition[2] = 1.0;
     break;
-  case MF_SCREEN_LEFT_UP:
+  case US_IMG_ORIENT_UN:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("N");
     this->GetOrientationMarkerAssembly()->RotateX(180);
-    m_OrientationMarkerCurrentXRotation = 180.0;
+    OrientationMarkerCurrentXRotation = 180.0;
     this->GetOrientationMarkerAssembly()->RotateY(180);
-    m_OrientationMarkerCurrentYRotation = 180.0;
+    OrientationMarkerCurrentYRotation = 180.0;
     newPosition[0] = dimensions[0];
     newPosition[1] = dimensions[1];
     newPosition[2] = -1.0;
     break;
-  case MF_SCREEN_LEFT_DOWN:
+  case US_IMG_ORIENT_UF:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("F");
     this->GetOrientationMarkerAssembly()->RotateY(180);
-    m_OrientationMarkerCurrentYRotation = 180.0;
-    m_OrientationMarkerCurrentXRotation = 0;
+    OrientationMarkerCurrentYRotation = 180.0;
+    OrientationMarkerCurrentXRotation = 0;
     newPosition[0] = dimensions[0];
     newPosition[1] = 0.0;
     newPosition[2] = 1.0;

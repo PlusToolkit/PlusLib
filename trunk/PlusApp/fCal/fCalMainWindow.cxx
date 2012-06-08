@@ -76,6 +76,7 @@ fCalMainWindow::~fCalMainWindow()
   if( m_ShowOrientationMarkerAction != NULL )
   {
     delete m_ShowOrientationMarkerAction;
+    m_ShowOrientationMarkerAction = NULL;
   }
 
   m_ToolboxList.clear();
@@ -484,7 +485,7 @@ void fCalMainWindow::SetOrientationMRightFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightUp");
 
-  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_RIGHT_UP);
+  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MN);
 }
 
 //-----------------------------------------------------------------------------
@@ -493,7 +494,7 @@ void fCalMainWindow::SetOrientationMLeftFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftUp");
 
-  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_LEFT_UP);
+  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UN);
 }
 
 //-----------------------------------------------------------------------------
@@ -502,7 +503,7 @@ void fCalMainWindow::SetOrientationMRightFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightDown");
 
-  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_RIGHT_DOWN);
+  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
 }
 
 //-----------------------------------------------------------------------------
@@ -511,7 +512,7 @@ void fCalMainWindow::SetOrientationMLeftFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftDown");
 
-  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_LEFT_DOWN);
+  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UF);
 }
 
 //-----------------------------------------------------------------------------
