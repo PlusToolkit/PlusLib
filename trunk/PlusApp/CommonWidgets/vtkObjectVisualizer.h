@@ -7,24 +7,39 @@
 #ifndef __vtkObjectVisualizer_h
 #define __vtkObjectVisualizer_h
 
-#include "vtkDataCollector.h"
-#include "TrackedFrame.h"
-#include "vtkDisplayableObject.h"
-
-#include "vtkRenderer.h"
-#include "vtkImageActor.h"
-#include "vtkPolyData.h"
+#include "PlusCommon.h"
+#include "vtkActor.h"
+#include "vtkAssembly.h"
 #include "vtkCamera.h"
+#include "vtkDataCollector.h"
+#include "vtkDisplayableObject.h"
+#include "vtkImageActor.h"
+#include "vtkObject.h"
+#include "vtkPolyData.h"
+#include "vtkRenderer.h"
+#include "vtkSmartPointer.h"
+#include "vtkTextActor3D.h"
 #include "vtkTransformRepository.h"
-
 #include <QObject>
 
 class vtkMatrix4x4;
+class vtkSTLReader;
 class vtkTransform;
+class vtkXMLDataElement;
 
 class QTimer;
 
-class vtkSTLReader;
+/*! 
+  \enum ImageOrientation
+  \brief 2D image orientation formats
+  */
+enum ImageOrientation 
+{
+  MF_SCREEN_RIGHT_UP,
+  MF_SCREEN_LEFT_UP, 
+  MF_SCREEN_LEFT_DOWN, 
+  MF_SCREEN_RIGHT_DOWN       
+};
 
 //-----------------------------------------------------------------------------
 
@@ -120,11 +135,16 @@ public:
   PlusStatus EnableImageMode(bool aOn);
 
   /*!
-  * Flip canvas in image mode
-  * \param aFlipX Flip X flag
-  * \param aFlipY Flip Y flag
+  * Set MF orientation in 2D mode
+  * \param aNewOrientation The new MF orientation
   */
-  PlusStatus ImageModeFlip(bool aFlipX, bool aFlipY);
+  PlusStatus Modify2DImageOrientation(ImageOrientation aNewOrientation);
+
+  /*!
+  * Enable or Disable the MF orientation markers
+  * \param aEnable Enable/Disable
+  */
+  PlusStatus EnableOrientationMarkers( bool aEnable );
 
 	/*!
 	 * Enable/disable camera movements (mouse interactions on rendering window)
@@ -187,6 +207,16 @@ protected:
 	*/
 	PlusStatus InitializeBasicVisualization();
 
+  /*!
+	* Initialize Orientation 3D Actors
+	*/
+  PlusStatus InitializeOrientationMarkers();
+
+  /*!
+	* Calculate the correct orientation and position of the markers
+	*/
+  PlusStatus CalculateOrientationMarkerTransform(ImageOrientation aOrientation);
+
 protected slots:
 	/*!
 	* Displays the displayable objects if not in image mode
@@ -222,6 +252,10 @@ public:
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
 
+  vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
+  vtkGetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
+  vtkGetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
+
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
 	vtkSetObjectMacro(InputActor, vtkActor);
@@ -231,6 +265,10 @@ protected:
 	vtkSetObjectMacro(VolumeActor, vtkActor);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);
 	vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+
+  vtkSetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
+  vtkSetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
+  vtkSetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
 
 	vtkSetMacro(ImageMode, bool); 
 	vtkBooleanMacro(ImageMode, bool); 
@@ -262,7 +300,7 @@ protected:
   /*! Initialization flag */
 	bool Initialized;
 
-  /*! Flag indicating if the cisualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on) */
+  /*! Flag indicating if the visualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on) */
   bool ImageMode;
 
 	/*! Desired frame rate of synchronized recording */
@@ -294,6 +332,15 @@ protected:
 
   /*! Camera of the scene */
 	vtkCamera* ImageCamera;
+
+  /*! Actors for displaying the MF orientation */
+  vtkAssembly* OrientationMarkerAssembly;
+  vtkTextActor3D* HorizontalOrientationTextActor;
+  vtkTextActor3D* VerticalOrientationTextActor;
+
+  /*! Member variables to record the current orientation of the orientation markers */
+  double m_OrientationMarkerCurrentXRotation;
+  double m_OrientationMarkerCurrentYRotation;
 };
 
 #endif

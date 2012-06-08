@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>Resources/icon_512.png</file>
+    <file>Resources/icon_horizontalFlip.png</file>
     <file>Resources/icon_fCal.png</file>
     <file>Resources/icon_Import.png</file>
     <file>Resources/icon_Tools.png</file>

@@ -299,7 +299,9 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
+  // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+  m_ParentMainWindow->GetObjectVisualizer()->EnableOrientationMarkers(false);
 
   if (m_State == ToolboxState_Uninitialized)
   {

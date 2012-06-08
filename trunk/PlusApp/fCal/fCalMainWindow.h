@@ -91,6 +91,11 @@ public:
   */
   void SetImageManipulationEnabled(bool);
 
+  /*! 
+  * Accessor to query the state of the check box 
+  */
+  bool IsOrientationMarkersEnabled();
+
   /*!
   * Reset all toolboxes and hide all tools (called when disconnected from a device set)
   */
@@ -189,11 +194,12 @@ protected:
     /*! Save current device set configuration */
     void SaveDeviceSetConfiguration();
 
-    /*! Flip 2D Image horizontally */
-    void FlipHorizontally();
-
-    /*! Flip 2D Image vertically */
-    void FlipVertically();
+    /*! Functions to set orientation of the 2D image */
+    void SetOrientationMRightFUp();
+    void SetOrientationMLeftFUp();
+    void SetOrientationMRightFDown();
+    void SetOrientationMLeftFDown();
+    void EnableOrientationMarkers();
 
 protected:
   /*! Object visualizer */
@@ -240,6 +246,9 @@ protected:
 
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;
+
+  /*! Keep a reference to this action because we'll need to reference its state */
+  QAction* m_ShowOrientationMarkerAction;
 
 private:
   Ui::fCalMainWindow	ui;

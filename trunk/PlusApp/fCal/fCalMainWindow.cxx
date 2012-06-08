@@ -41,6 +41,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_TransducerOriginPixelCoordinateFrame("")
 , m_ShowDevices(false)
 , m_ShowPoints(false)
+, m_ShowOrientationMarkerAction(NULL)
 {
   // Set up UI
   ui.setupUi(this);
@@ -72,6 +73,11 @@ fCalMainWindow::~fCalMainWindow()
     m_UiRefreshTimer = NULL;
   }
 
+  if( m_ShowOrientationMarkerAction != NULL )
+  {
+    delete m_ShowOrientationMarkerAction;
+  }
+
   m_ToolboxList.clear();
 }
 
@@ -91,15 +97,29 @@ void fCalMainWindow::Initialize()
   QAction* dumpBuffersAction = new QAction("Dump buffers into files...", ui.pushButton_Tools);
   connect(dumpBuffersAction, SIGNAL(triggered()), this, SLOT(DumpBuffers()));
   ui.pushButton_Tools->addAction(dumpBuffersAction);
+
+  // Declare this class as the event handler
   ui.pushButton_Tools->installEventFilter(this);
 
   // Set up menu items for image manipulation button
-  QAction* flipHorizAction = new QAction("Flip Horizontally", ui.pushButton_ImageOrientation);
-  connect(flipHorizAction, SIGNAL(triggered()), this, SLOT(FlipHorizontally()));
-  ui.pushButton_ImageOrientation->addAction(flipHorizAction);
-  QAction* flipVertAction = new QAction("Flip Vertically", ui.pushButton_ImageOrientation);
-  connect(flipVertAction, SIGNAL(triggered()), this, SLOT(FlipVertically()));
-  ui.pushButton_ImageOrientation->addAction(flipVertAction);
+  QAction* mfRightUpAction = new QAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
+  connect(mfRightUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFUp()));
+  ui.pushButton_ImageOrientation->addAction(mfRightUpAction);
+  QAction* mfLeftUpAction = new QAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
+  connect(mfLeftUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFUp()));
+  ui.pushButton_ImageOrientation->addAction(mfLeftUpAction);
+  QAction* mfRightDownAction = new QAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
+  connect(mfRightDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFDown()));
+  ui.pushButton_ImageOrientation->addAction(mfRightDownAction);
+  QAction* mfLeftDownAction = new QAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
+  connect(mfLeftDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFDown()));
+  ui.pushButton_ImageOrientation->addAction(mfLeftDownAction);
+  m_ShowOrientationMarkerAction = new QAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
+  connect(m_ShowOrientationMarkerAction, SIGNAL(triggered()), this, SLOT(EnableOrientationMarkers()));
+  m_ShowOrientationMarkerAction->setCheckable(true);
+  ui.pushButton_ImageOrientation->addAction(m_ShowOrientationMarkerAction);
+
+  // Declare this class as the event handler
   ui.pushButton_ImageOrientation->installEventFilter(this);
 
   // Create visualizer
@@ -118,6 +138,10 @@ void fCalMainWindow::Initialize()
   connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
   connect( ui.pushButton_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
+
+  // Tell the object visualizer to show orientation markers
+  m_ShowOrientationMarkerAction->setChecked(true);
+  m_ObjectVisualizer->EnableOrientationMarkers(true);
 
   // Initialize default tab widget
   CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
@@ -407,6 +431,8 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         menu->exec();
         delete menu;
 
+        ui.pushButton_Tools->setDown(false);
+
         return true;
       }	
     }
@@ -423,6 +449,8 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
         menu->exec();
         delete menu;
+
+        ui.pushButton_ImageOrientation->setDown(false);
 
         return true;
       }	
@@ -452,24 +480,59 @@ void fCalMainWindow::DumpBuffers()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::FlipHorizontally()
+void fCalMainWindow::SetOrientationMRightFUp()
 {
-  LOG_TRACE("fCalMainWindow::FlipHorizontally");
+  LOG_TRACE("fCalMainWindow::SetOrientationMFRightUp");
 
-  m_ObjectVisualizer->ImageModeFlip(true, false);
-  
-  LOG_INFO("fCalMainWindow::FlipHorizontally completed");
+  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_RIGHT_UP);
 }
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::FlipVertically()
+void fCalMainWindow::SetOrientationMLeftFUp()
 {
-  LOG_TRACE("fCalMainWindow::FlipVertically");
+  LOG_TRACE("fCalMainWindow::SetOrientationMFLeftUp");
 
-  m_ObjectVisualizer->ImageModeFlip(false, true);
-  
-  LOG_INFO("fCalMainWindow::FlipVertically completed");
+  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_LEFT_UP);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetOrientationMRightFDown()
+{
+  LOG_TRACE("fCalMainWindow::SetOrientationMFRightDown");
+
+  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_RIGHT_DOWN);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetOrientationMLeftFDown()
+{
+  LOG_TRACE("fCalMainWindow::SetOrientationMFLeftDown");
+
+  this->GetObjectVisualizer()->Modify2DImageOrientation(MF_SCREEN_LEFT_DOWN);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::EnableOrientationMarkers()
+{
+  LOG_TRACE("fCalMainWindow::EnableOrientationMarkers");
+  if( m_ShowOrientationMarkerAction->isChecked() )
+  {
+    if( this->GetObjectVisualizer()->EnableOrientationMarkers(true) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to enable orientation markers in vtkObjectVisualiser.");
+    }
+  }
+  else
+  {
+    if( this->GetObjectVisualizer()->EnableOrientationMarkers(false) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to disable orientation markers in vtkObjectVisualiser.");
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -518,6 +581,7 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
     m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
 
     SetImageManipulationEnabled(false);
+    m_ObjectVisualizer->EnableOrientationMarkers(false);
   }
   else
   {
@@ -525,4 +589,11 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
   }
 
   LOG_INFO("Show devices " << (aOn?"enabled":"disabled"));
+}
+
+//-----------------------------------------------------------------------------
+
+bool fCalMainWindow::IsOrientationMarkersEnabled()
+{
+  return m_ShowOrientationMarkerAction->isChecked();
 }

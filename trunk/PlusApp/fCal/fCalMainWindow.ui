@@ -87,6 +87,51 @@
           </widget>
          </item>
          <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_ImageOrientation">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="contextMenuPolicy">
+            <enum>Qt::DefaultContextMenu</enum>
+           </property>
+           <property name="toolTip">
+            <string>Flip Image</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="fCal.qrc">
+             <normaloff>:/icons/Resources/icon_horizontalFlip.png</normaloff>:/icons/Resources/icon_horizontalFlip.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pushButton_ShowDevices">
            <property name="minimumSize">
             <size>
@@ -108,7 +153,7 @@
            </property>
            <property name="icon">
             <iconset resource="fCal.qrc">
-             <normaloff>:/icons/Resources/icon_ShowDevices.png</normaloff>:/icons/Resources/icon_ShowDevices.png</iconset>
+             <normaloff>:/icons/Resources/icon_512.png</normaloff>:/icons/Resources/icon_512.png</iconset>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -116,46 +161,13 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_ImageOrientation">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="maximumSize">
+          <widget class="QPushButton" name="pushButton_Tools">
+           <property name="minimumSize">
             <size>
              <width>23</width>
              <height>23</height>
             </size>
            </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::DefaultContextMenu</enum>
-           </property>
-           <property name="toolTip">
-            <string>Flip Image</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="fCal.qrc">
-             <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_Tools">
            <property name="maximumSize">
             <size>
              <width>23</width>
