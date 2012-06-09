@@ -59,9 +59,10 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusMath.h"
 
 
-#ifndef OPAQUE_ALPHA
-static const unsigned char OPAQUE_ALPHA=255;
-#endif
+#define OPAQUE_ALPHA 255;
+#define ACCUMULATION_MULTIPLIER 255
+#define ACCUMULATION_MAXIMUM 65535
+#define ACCUMULATION_THRESHOLD 65279
 
 
 /*!
@@ -82,7 +83,7 @@ template <class F, class T>
 static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
                                      vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                     int outExt[6], vtkIdType  outInc[3])
+                                     int outExt[6], vtkIdType  outInc[3], unsigned int* accOverflowCount)
 {
   F fx, fy, fz;
 
@@ -138,7 +139,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
     F fyrz = fy*rz;
     F fyfz = fy*fz;
 
-    F fdx[8];
+    F fdx[8]; // fdx is the weight towards the corner
     fdx[0] = rx*ryrz;
     fdx[1] = rx*ryfz;
     fdx[2] = rx*fyrz;
@@ -168,6 +169,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         inPtrTmp = inPtr;
         outPtrTmp = outPtr+idx[j];
         accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
+        a = *accPtrTmp;
 
         int i = numscalars;
         do
@@ -177,14 +179,15 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
           {
             case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
               f = fdx[j];
-              r = F((*accPtrTmp)/255.);	// added division by float or double, since this always returned 0 otherwise
+              r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);	// added division by double, since this always returned 0 otherwise
               a = f + r;
               PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
               break;
             case vtkPasteSliceIntoVolume::MAXIMUM:
               if (*inPtrTmp > *outPtrTmp) {
                 *outPtrTmp = *inPtrTmp;
-                a = F((*accPtrTmp)/255.);
+                f = fdx[j];
+                a = f;
               }
               break;
           }
@@ -193,13 +196,16 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         }
         while (i);
 
-        *accPtrTmp = 65535;
+        // TODO: Investigate why the result is different when newa is declared as unsigned short instead of F
+        F newa = a * ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
+        if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
+          (*accOverflowCount) += 1;
+        *accPtrTmp = ACCUMULATION_MAXIMUM;
         *outPtrTmp = (T)OPAQUE_ALPHA; //alpha set to opaque
-        a *= 255;
         // don't allow accumulation buffer overflow
-        if (a < F(65535))
+        if (newa < ACCUMULATION_MAXIMUM)
         {
-          PlusMath::Round(a, *accPtrTmp);
+          PlusMath::Round(newa, *accPtrTmp);
         }
       }
       while (j);

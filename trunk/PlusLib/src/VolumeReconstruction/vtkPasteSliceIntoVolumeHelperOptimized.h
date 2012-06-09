@@ -502,7 +502,8 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
                                                  T *&inPtr, T *outPtr,
                                                  int *outExt, vtkIdType *outInc,
                                                  int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode, 
-                                                 unsigned short *accPtr)
+                                                 unsigned short *accPtr,
+                                                 unsigned int *accOverflowCount)
 {
   switch (calculationMode) {
   case  vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE :
@@ -520,38 +521,42 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
         int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
 
-        // bounds checking turned off to improve performance
-        //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
-        //    outIdY < 0 || outIdY > outExt[3] - outExt[2] ||
-        //    outIdZ < 0 || outIdZ > outExt[5] - outExt[4])
-        //  {
-        //  cerr << "out of bounds!!!\n";
-        //  inPtr += numscalars;
-        //  return;
-        //  }
-
         int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
         T *outPtr1 = outPtr + inc;
         // divide by outInc[0] to accomodate for the difference
         // in the number of scalar pointers between the output
         // and the accumulation buffer
         unsigned short *accPtr1 = accPtr + (inc/outInc[0]); // removed cast to unsigned short because it might cause loss in larger numbers
-        unsigned short newa = *accPtr1 + ((unsigned short)(255)); 
-        int i = numscalars;
-        do 
-        {
-          i--;
-          *outPtr1 = ((*inPtr++)*255 + (*outPtr1)*(*accPtr1))/newa;
-          outPtr1++;
-        }
-        while (i);
 
-        *outPtr1 = (T)OPAQUE_ALPHA;
-        *accPtr1 = 65535;
-        if (newa < 65535)
-        {
-          *accPtr1 = newa;
+        if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
+          unsigned short newa = *accPtr1 + ((unsigned short)(ACCUMULATION_MULTIPLIER)); 
+
+          if (newa > ACCUMULATION_THRESHOLD)
+            (*accOverflowCount) += 1;
+
+          int i = numscalars;
+          do 
+          {
+            i--;
+            *outPtr1 = ((*inPtr++)*ACCUMULATION_MULTIPLIER + (*outPtr1)*(*accPtr1))/newa;
+            outPtr1++;
+          }
+          while (i);
+
+          *outPtr1 = (T)OPAQUE_ALPHA;
+          *accPtr1 = ACCUMULATION_MAXIMUM;
+          if (newa < ACCUMULATION_MAXIMUM)
+          {
+            *accPtr1 = newa;
+          } 
+
+        } else {
+
+          *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+
         }
+
       }
     }
 
@@ -567,16 +572,6 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
         int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
         int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
-
-        // bounds checking turned off to improve performance
-        //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
-        //    outIdY < 0 || outIdY > outExt[3] - outExt[2] ||
-        //    outIdZ < 0 || outIdZ > outExt[5] - outExt[4])
-        //  {
-        //  cerr << "out of bounds!!!\n";
-        //  inPtr += numscalars;
-        //  return;
-        //  }
 
         int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
         T *outPtr1 = outPtr + inc;
@@ -635,7 +630,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         while (i);
 
         *outPtr1 = (T)OPAQUE_ALPHA;
-        *accPtr1 = (unsigned short)255;
+        *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
       }
     }
 
@@ -693,8 +688,10 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
                                                  T *&inPtr, T *outPtr,
                                                  int *outExt, vtkIdType *outInc,
                                                  int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                                 unsigned short *accPtr)
+                                                 unsigned short *accPtr,
+                                                 unsigned int *accOverflowCount)
 {
+
   outPoint[0] = outPoint1[0] + xIntersectionPixStart*xAxis[0] - outExt[0];
   outPoint[1] = outPoint1[1] + xIntersectionPixStart*xAxis[1] - outExt[2];
   outPoint[2] = outPoint1[2] + xIntersectionPixStart*xAxis[2] - outExt[4];
@@ -726,21 +723,34 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         // in the number of scalar pointers between the output
         // and the accumulation buffer
         unsigned short *accPtr1 = accPtr + (inc/outInc[0]);
-        unsigned short newa = *accPtr1 + ((unsigned short)(255));
-        int i = numscalars;
-        do 
-        {
-          i--;
-          *outPtr1 = ((*inPtr++)*255 + (*outPtr1)*(*accPtr1))/newa;
-          outPtr1++;
-        }
-        while (i);
 
-        *outPtr1 = (T)OPAQUE_ALPHA;
-        *accPtr1 = 65535;
-        if (newa < 65535)
-        {
-          *accPtr1 = newa;
+        if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
+          unsigned short newa = *accPtr1 + ((unsigned short)(ACCUMULATION_MULTIPLIER));
+
+          if (newa > ACCUMULATION_THRESHOLD)
+            (*accOverflowCount) += 1;
+
+          int i = numscalars;
+          do 
+          {
+            i--;
+            *outPtr1 = ((*inPtr++)*ACCUMULATION_MULTIPLIER + (*outPtr1)*(*accPtr1))/newa;
+            outPtr1++;
+          }
+          while (i);
+
+          *outPtr1 = (T)OPAQUE_ALPHA;
+          *accPtr1 = ACCUMULATION_MAXIMUM;
+          if (newa < ACCUMULATION_MAXIMUM)
+          {
+            *accPtr1 = newa;
+          }
+
+        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights
+
+          *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+
         }
 
         outPoint[0] += xAxis[0];
@@ -823,7 +833,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
         while (i);
 
         *outPtr1 = (T)OPAQUE_ALPHA;
-        *accPtr1 = (unsigned short)255;
+        *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
 
         outPoint[0] += xAxis[0];
         outPoint[1] += xAxis[1];
@@ -889,7 +899,8 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     double fanOrigin[2],
                                     double fanDepth,
                                     vtkPasteSliceIntoVolume::InterpolationType interpolationMode,
-                                    vtkPasteSliceIntoVolume::CalculationType calculationMode)
+                                    vtkPasteSliceIntoVolume::CalculationType calculationMode,
+                                    unsigned int* accOverflowCount)
 {
   LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
     <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
@@ -978,29 +989,6 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
     zAxis[i]  = matrix[i][2];
     origin[i] = matrix[i][3];
   }
-
-  ///////////////////////////////////////////////
-  // LOOP through output pixels and turn them all white
-  // little hack when making sure that you set extents/
-  // origins right in AR environment
-  /*T* tempOutPtr = outPtr;
-  int outIncX, outIncY, outIncZ;
-  outData->GetContinuousIncrements(outExt, outIncX, outIncY, outIncZ);
-  int outNumScalars = outData->GetNumberOfScalarComponents();
-  for (idZ = outExt[4]; idZ <= outExt[5]; idZ++)
-  {
-  for (idY = outExt[2]; idY <= outExt[3]; idY++)
-  {
-  for (idX = outExt[0]; idX <= outExt[1]; idX++)
-  {
-  *tempOutPtr = 255;
-  tempOutPtr += outNumScalars;
-  }
-  tempOutPtr += outIncY;
-  }
-  tempOutPtr += outIncZ;
-  }*/
-  ///////////////////////////////////////////////
 
   int xIntersectionPixStart,xIntersectionPixEnd;
 
@@ -1103,7 +1091,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
           outPoint[1] = outPoint1[1] + idX*xAxis[1];
           outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc); // hit is either 1 or 0
+          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
 
           inPtr += numscalars; // go to the next x pixel
         }
@@ -1113,7 +1101,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
         // interpolating with nearest neighbor
         vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
           inPtr, outPtr, outExt, outInc,
-          numscalars, calculationMode, accPtr);
+          numscalars, calculationMode, accPtr, accOverflowCount);
         // we added all the pixels between xIntersectionPixStart and xIntersectionPixEnd, so increment our count of the number of pixels added
       }
 
