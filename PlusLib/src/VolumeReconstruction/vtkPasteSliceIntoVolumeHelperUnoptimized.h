@@ -84,7 +84,7 @@ template <class F, class T>
 static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
                                            unsigned short *accPtr, 
                                            int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                           int outExt[6], vtkIdType outInc[3])
+                                           int outExt[6], vtkIdType outInc[3], unsigned int* accOverflowCount)
 {
   int i;
   // The nearest neighbor interpolation occurs here
@@ -103,10 +103,10 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
     outPtr += inc;
     if (calculationMode == vtkPasteSliceIntoVolume::MAXIMUM)
     {
-      if (accPtr)
+      if (accPtr) // accumulation buffer: do compounding
       {
         accPtr += inc/outInc[0];
-        int newa = *accPtr + 255;
+        int newa = *accPtr + ACCUMULATION_MULTIPLIER;
         for (i = 0; i < numscalars; i++)
         {
           if (*inPtr > *outPtr)
@@ -115,8 +115,8 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
           outPtr++;
         }
         *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
-        *accPtr = 65535; // set to 0xFFFF by default for overflow protection
-        if (newa < 65535)
+        *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
+        if (newa < ACCUMULATION_MAXIMUM)
         {
           *accPtr = newa;
         }
@@ -137,17 +137,23 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       if (accPtr) // accumulation buffer: do compounding
       {
         accPtr += inc/outInc[0];
-        int newa = *accPtr + 255;
-        for (i = 0; i < numscalars; i++)
-        {
-          *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
-          outPtr++;
-        }
-        *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
-        *accPtr = 65535; // set to 0xFFFF by default for overflow protection
-        if (newa < 65535)
-        {
-          *accPtr = newa;
+        if (*accPtr > ACCUMULATION_THRESHOLD) {
+          int newa = *accPtr + ACCUMULATION_MULTIPLIER;
+          if (newa > ACCUMULATION_THRESHOLD)
+            (*accOverflowCount) += 1;
+          for (i = 0; i < numscalars; i++)
+          {
+            *outPtr = ((*inPtr++)*ACCUMULATION_MULTIPLIER + (*outPtr)*(*accPtr))/newa;
+            outPtr++;
+          }
+          *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
+          *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
+          if (newa < ACCUMULATION_MAXIMUM)
+          {
+            *accPtr = newa;
+          }
+        } else {
+          *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
         }
       }
       // no accumulation buffer, replace what was there before
@@ -174,7 +180,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
 */
 template <class T>
 static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
-  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::CalculationType calculationMode)
+  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::CalculationType calculationMode, unsigned int * accOverflowCount)
 {
 
   LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
@@ -234,7 +240,7 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
   int numscalars = inData->GetNumberOfScalarComponents();
 
   // Set interpolation method - nearest neighbor or trilinear  
-  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], vtkIdType b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
+  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   switch (interpolationMode)
   {
   case vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
@@ -286,7 +292,7 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
             outPoint[3] = 1;
 
             // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc);
+            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount);
           }
         }
 
