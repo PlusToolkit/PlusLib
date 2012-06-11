@@ -551,7 +551,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
             *accPtr1 = newa;
           } 
 
-        } else {
+        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
 
           *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
 
@@ -747,7 +747,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
             *accPtr1 = newa;
           }
 
-        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights
+        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
 
           *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
 

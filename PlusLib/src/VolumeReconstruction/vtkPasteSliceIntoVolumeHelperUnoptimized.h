@@ -137,7 +137,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       if (accPtr) // accumulation buffer: do compounding
       {
         accPtr += inc/outInc[0];
-        if (*accPtr > ACCUMULATION_THRESHOLD) {
+        if (*accPtr > ACCUMULATION_THRESHOLD) { // no overflow, act normally
           int newa = *accPtr + ACCUMULATION_MULTIPLIER;
           if (newa > ACCUMULATION_THRESHOLD)
             (*accOverflowCount) += 1;
@@ -152,7 +152,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
           {
             *accPtr = newa;
           }
-        } else {
+        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
         }
       }
