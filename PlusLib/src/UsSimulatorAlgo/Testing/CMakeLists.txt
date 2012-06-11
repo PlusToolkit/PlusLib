@@ -1,13 +1,12 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
-#SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #INCLUDE_DIRECTORIES( ${UsSimulatorTest_INCLUDE_DIRS} )
 ADD_EXECUTABLE(UsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
 TARGET_LINK_LIBRARIES(UsSimulatorAlgoTest UsSimulatorAlgo vtkCommon )
 ADD_TEST(UsSimulatorAlgoRunTest
 	${EXECUTABLE_OUTPUT_PATH}/UsSimulatorAlgoTest
-	--input-model-file=${TestDataDir}/UsSimulatorAlgoTestModel.stl
-	--input-config-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData_config.xml
+	--input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_UsSimulatorAlgoTest.xml
 	--input-transforms-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
 	--output-us-img-file=simulatorOutput.mha 
 	--input-transform-name=ImageToPhantom

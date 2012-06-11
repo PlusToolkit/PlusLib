@@ -25,6 +25,7 @@ See License.txt for details.
 #include "vtkPlusVideoSourceFactory.h"
 #include "vtkVideoBuffer.h"
 #include "vtkSavedDataVideoSource.h"
+#include "vtkUsSimulatorVideoSource.h"
 
 //----------------------------------------------------------------------------
 // Signal boxes
@@ -170,8 +171,7 @@ PlusStatus vtkDataCollectorHardwareDevice::SetLoopTimes()
 
   }
 
-  vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
-
+  vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource());
   if( savedDataVideoSource != NULL)
   {
     if ( savedDataVideoSource->GetLocalVideoBuffer() == NULL ) 
@@ -191,7 +191,6 @@ PlusStatus vtkDataCollectorHardwareDevice::SetLoopTimes()
       LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
       return PLUS_FAIL;
     }
-
   }
 
   // Item timestamps should computed in the following way for saved datasets (time intersection of the two buffers)
@@ -1063,17 +1062,19 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadConfiguration(vtkXMLDataElement* 
     LOG_DEBUG("StartupDelaySec: " << std::fixed << startupDelaySec ); 
   }
 
-  // Read ImageAcquisition
-  if (this->ReadImageAcquisitionProperties(aConfigurationData) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to read image acquisition configuration!");
-    return PLUS_FAIL;
-  }
-
   // Read Tracker
   if (this->ReadTrackerProperties(aConfigurationData) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read tracker configuration!");
+    return PLUS_FAIL;
+  }
+
+  // Read ImageAcquisition
+  //   Note: now it's important to read the tracker configuration first because of the UsSimulatorVideoSource
+  //   (later when dealing with the streams - #461 - we hopefully will not need this)
+  if (this->ReadImageAcquisitionProperties(aConfigurationData) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to read image acquisition configuration!");
     return PLUS_FAIL;
   }
 
@@ -1156,6 +1157,22 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
     return this->VideoSource->ReadConfiguration(aConfigurationData); 
   }
  
+  // Set tracker to the UsSimulatorVideoSource
+  //   TODO: Change this when dealing with the streams - #461
+  vtkUsSimulatorVideoSource* usSimulatorVideoSource = dynamic_cast<vtkUsSimulatorVideoSource*>(this->VideoSource);
+  if (usSimulatorVideoSource)
+  {
+    if (this->Tracker)
+    {
+      usSimulatorVideoSource->SetTracker(this->Tracker);
+    }
+    else
+    {
+      LOG_ERROR("There is no tracker to set to US Simulator Video Source!");
+      return PLUS_FAIL; 
+    }
+  }
+
   return PLUS_SUCCESS;
 }
 

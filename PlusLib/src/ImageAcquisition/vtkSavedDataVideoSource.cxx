@@ -281,7 +281,7 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
     else
     {
-      LOG_ERROR("Cannot find input sequence metafile!");
+      LOG_ERROR("Unable to find SequenceMetafile element in configuration XML structure!");
       return PLUS_FAIL;
     }
   }

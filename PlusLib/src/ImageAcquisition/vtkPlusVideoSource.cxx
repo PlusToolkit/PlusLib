@@ -87,6 +87,7 @@ void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");
+  os << indent << "AcquisitionRate: " << this->AcquisitionRate << "\n";
   os << indent << "SpawnThreadForRecording: " << (this->SpawnThreadForRecording ? "Yes\n" : "No\n");
   os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
   os << indent << "Buffer:\n";
@@ -565,7 +566,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   else
   {
     LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!");
-    this->SetUsImageOrientation(US_IMG_ORIENT_XX );
+    this->SetUsImageOrientation(US_IMG_ORIENT_XX);
   }
 
   return PLUS_SUCCESS;
@@ -605,7 +606,7 @@ PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenera
     return PLUS_FAIL;
   }
 
-    const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
   std::string plotBufferTimestampScript = scriptsFolder + std::string("/gnuplot/PlotBufferTimestamp.gnu");
   if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
   {
@@ -651,17 +652,17 @@ PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
     return PLUS_SUCCESS;
   }
   if ( newBuffer == NULL )
-	{
+  {
     // this->Buffer pointer assumed to be valid (non-NULL) pointer throughout the 
     // vtkPlusVideoSource class and its child classes, therefore setting it to NULL
     // is not allowed
-		LOG_ERROR( "A valid buffer is required as input for vtkPlusVideoSource::SetBuffer" );
-		return PLUS_FAIL;
-	}
+    LOG_ERROR( "A valid buffer is required as input for vtkPlusVideoSource::SetBuffer" );
+    return PLUS_FAIL;
+  }
   this->Buffer->UnRegister(this);
-	this->Buffer=newBuffer;
+  this->Buffer=newBuffer;
   this->Buffer->Register(this);
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

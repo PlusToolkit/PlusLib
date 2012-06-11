@@ -335,11 +335,13 @@ SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
   vtkPlusCommon
   ITKIO
   ITKBasicFilters
+  vtkTracking
   UsSimulatorAlgo
   )
 
 SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
   ${CMAKE_CURRENT_SOURCE_DIR}/../UsSimulatorAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Tracking
   CACHE INTERNAL "" FORCE)
 
 INCLUDE_DIRECTORIES( ${ImageAcquisition_INCLUDE_DIRS} )
@@ -351,7 +353,7 @@ TARGET_LINK_LIBRARIES(vtkImageAcquisition ${ImageAcquisition_LIBS})
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkImageAcquisition CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkImageAcquisition vtkImageAcquisition;"${PlusLib_BINARY_DIR}/src/ImageAcquisition/vtkImageAcquisition.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkImageAcquisition vtkImageAcquisition;"${PlusLib_BINARY_DIR}/src/ImageAcquisition/vtkImageAcquisition.vcproj";vtkPlusCommon;vtkTracking;UsSimulatorAlgo CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH

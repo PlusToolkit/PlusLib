@@ -255,7 +255,7 @@ protected:
   int UpdateWithDesiredTimestamp;
   double TimestampClosestToDesired;
 
-  /*! Requested frame rate in FPS. Actual frame rate may be different. */
+  /*! Requested frame rate in FPS. Actual frame rate may be different. TODO: Is it really the FPS? -Csaba */
   unsigned long FrameNumber; 
   double FrameTimeStamp;
 
