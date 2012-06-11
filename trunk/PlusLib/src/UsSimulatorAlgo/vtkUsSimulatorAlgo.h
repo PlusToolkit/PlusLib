@@ -25,13 +25,43 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   static vtkUsSimulatorAlgo *New();
 
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+
 public:
   // Set model to image transformation matrix
   vtkSetObjectMacro(ModelToImageMatrix, vtkMatrix4x4); 
   // Get model to image transformation matrix
   vtkGetObjectMacro(ModelToImageMatrix, vtkMatrix4x4); 
 
-  // Set stencil background image
+  /*! Set model file name */
+  vtkSetStringMacro(ModelFileName); 
+  /*! Get model file name */
+  vtkGetStringMacro(ModelFileName);
+
+  /*! Set image frame name */
+  vtkSetStringMacro(ImageCoordinateFrame); 
+  /*! Get image frame name */
+  vtkGetStringMacro(ImageCoordinateFrame);
+
+  /*! Set reference frame name */
+  vtkSetStringMacro(ReferenceCoordinateFrame); 
+  /*! Get reference frame name */
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+
+  /*! Set background value */
+  vtkSetMacro(BackgroundValue, int); 
+  /*! Get background value */
+  vtkGetMacro(BackgroundValue, int);
+
+  /*! Get frame size */
+  vtkGetVector2Macro(FrameSize, int);
+
+  /*! Get pixel spacing */
+  vtkGetVector2Macro(SpacingMmPerPixel, double);
+
+protected:
+  /*! Set stencil background image */
   vtkSetObjectMacro(StencilBackgroundImage, vtkImageData); 
 
 protected:
@@ -46,14 +76,29 @@ protected:
   ~vtkUsSimulatorAlgo(); 
 
 private:
-  // Stencil background image
-  vtkImageData* StencilBackgroundImage; 
+  /*! Stencil background image */
+  vtkImageData* StencilBackgroundImage;
 
-  // Model to image transformation matrix
-  vtkMatrix4x4* ModelToImageMatrix;  
+  /*! Model to image transformation matrix */
+  vtkMatrix4x4* ModelToImageMatrix;
 
-  // Output image
-  vtkImageData* OutputImage;
+  /*! Grayscale value of the background */
+  int BackgroundValue;
+
+  /*! Image frame size in pixel */
+  int FrameSize[2];
+
+  /*! Pixel spacing */
+  double SpacingMmPerPixel[2];
+
+  /*! Path and name of the STL model file */
+  char* ModelFileName;
+
+  /*! Name of the image coordinate frame */
+  char* ImageCoordinateFrame;
+
+  /*! Name of the reference coordinate frame */
+  char* ReferenceCoordinateFrame;
 
   static const unsigned char OUTVALSTENCILFOREGROUND;
   static const int INPUTOBJECTNUM;

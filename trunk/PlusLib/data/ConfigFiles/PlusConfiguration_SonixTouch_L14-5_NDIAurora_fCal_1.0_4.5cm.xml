@@ -71,7 +71,7 @@
     
     
     </Tracker>
-    <ImageAcquisition Type="SonixVideo" BufferSize="500" FrameSize="820 616" UsImageOrientation="UF" AcquisitionRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.008" IP="127.0.0.1" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="6" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" RfAcquisitionMode="RfOnly" ConnectionSetupDelayMs="3000">
+    <ImageAcquisition Type="SonixVideo" BufferSize="500" UsImageOrientation="UF" AcquisitionRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.008" IP="127.0.0.1" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="6" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" RfAcquisitionMode="RfOnly" ConnectionSetupDelayMs="3000">
       
       
       

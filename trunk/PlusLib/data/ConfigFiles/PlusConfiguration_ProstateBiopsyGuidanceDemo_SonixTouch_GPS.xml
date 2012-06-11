@@ -12,7 +12,6 @@
 
     <ImageAcquisition Type="SonixVideo" 
       BufferSize="400" 
-      FrameSize="640 480" 
       UsImageOrientation="MF"
       AveragedItemsForFiltering="20" 
       IP="137.82.56.185" 

@@ -14,7 +14,6 @@
 
     <ImageAcquisition Type="VFWVideo" 
       BufferSize="100" 
-      FrameSize="640 480" 
       UsImageOrientation="MF"
       AveragedItemsForFiltering="20"
     />

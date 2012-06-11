@@ -17,11 +17,11 @@ SET (Tracking_SRCS
   vtkTrackerBuffer.cxx 
   vtkTrackerTool.cxx 
   vtkSavedDataTracker.cxx 
-	)
+  )
 
 SET (Tracking_HDRS)
 
-if (WIN32)	
+if (WIN32)  
   SET (Tracking_HDRS
     vtkTrackerFactory.h
     vtkFakeTracker.h
@@ -30,7 +30,7 @@ if (WIN32)
     vtkTrackerTool.h 
     vtkSavedDataTracker.h
     )
-endif (WIN32)	
+endif (WIN32)  
 
 SET (External_Libraries_Install)
 SET (Tracking_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
@@ -44,9 +44,9 @@ IF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
     ${CMAKE_CURRENT_SOURCE_DIR}/ndicapi
     CACHE INTERNAL "" FORCE)
 
-	SET (Tracking_LIBS ${Tracking_LIBS} 
-		vtkndicapi
-		)
+  SET (Tracking_LIBS ${Tracking_LIBS} 
+    vtkndicapi
+    )
     
   ADD_SUBDIRECTORY(ndicapi)
 
@@ -61,13 +61,13 @@ IF (PLUS_USE_CERTUS)
       )
         
     SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${NDIOAPI_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
-	
-    IF (WIN32)	
+  
+    IF (WIN32)  
       SET (Tracking_HDRS ${Tracking_HDRS}
         NDICertusTracking/vtkNDICertusTracker.h
         )
     ENDIF (WIN32)
-	  
+    
     SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
       ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
       CACHE INTERNAL "" FORCE)
@@ -83,47 +83,47 @@ ENDIF (PLUS_USE_CERTUS)
 # NDI POLARIS support
 IF (PLUS_USE_POLARIS)
 
-	SET (Tracking_SRCS ${Tracking_SRCS}
-		PolarisTracking/vtkNDITracker.cxx
-	  )
-	
-	if (WIN32)	
-		SET (Tracking_HDRS ${Tracking_HDRS}
-			PolarisTracking/vtkNDITracker.h
-			)
-	endif (WIN32)
+  SET (Tracking_SRCS ${Tracking_SRCS}
+    PolarisTracking/vtkNDITracker.cxx
+    )
+  
+  if (WIN32)  
+    SET (Tracking_HDRS ${Tracking_HDRS}
+      PolarisTracking/vtkNDITracker.h
+      )
+  endif (WIN32)
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
     CACHE INTERNAL "" FORCE)
-					  	
+              
 ENDIF (PLUS_USE_POLARIS)
 
 #--------------------------------------------------------------------------
 # MICRONTRACKER support
 IF (PLUS_USE_MICRONTRACKER)
 
-	SET (Tracking_SRCS ${Tracking_SRCS}
-		MicronTracking/vtkMicronTracker.cxx
-	)
-	
-	if (WIN32)	
-		SET (Tracking_HDRS ${Tracking_HDRS}
-			MicronTracking/vtkMicronTracker.h
-			)
-	endif (WIN32)
+  SET (Tracking_SRCS ${Tracking_SRCS}
+    MicronTracking/vtkMicronTracker.cxx
+  )
+  
+  if (WIN32)  
+    SET (Tracking_HDRS ${Tracking_HDRS}
+      MicronTracking/vtkMicronTracker.h
+      )
+  endif (WIN32)
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking/Utils
     CACHE INTERNAL "" FORCE)
-	 
+   
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
-	SET (Tracking_LIBS ${Tracking_LIBS} 
-		MicronTrackerInterface
+  SET (Tracking_LIBS ${Tracking_LIBS} 
+    MicronTrackerInterface
     ${MICRONTRACKER_LIBRARY}
-		)
+    )
     
   ADD_SUBDIRECTORY(MicronTracking/Utils)
   
@@ -146,11 +146,11 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET(USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE)
   SET(USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE)
 
-	SET (Tracking_SRCS ${Tracking_SRCS}
-		BrachyTracking/vtkBrachyTracker.cxx
-	)
-	
-  if (WIN32)	
+  SET (Tracking_SRCS ${Tracking_SRCS}
+    BrachyTracking/vtkBrachyTracker.cxx
+  )
+  
+  if (WIN32)  
     SET (Tracking_HDRS
       ${Tracking_HDRS}
       BrachyTracking/vtkBrachyTracker.h
@@ -160,7 +160,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking/Utils
-    CACHE INTERNAL "" FORCE)		
+    CACHE INTERNAL "" FORCE)    
   
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -223,10 +223,10 @@ IF( PLUS_USE_Ascension3DGm )
 
       
   SET (Tracking_SRCS ${Tracking_SRCS} Ascension3DGTracking/vtkAscension3DGTracker.cxx )
-	if (WIN32)	
-		SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGTracker.h )
-	endif (WIN32)
-	
+  if (WIN32)  
+    SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGTracker.h )
+  endif (WIN32)
+  
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${ATC_MEDSAFE_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
@@ -249,7 +249,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)
   
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-  	SET(PHIDGET_SPATIAL_BIN_SUBDIR x64)
+    SET(PHIDGET_SPATIAL_BIN_SUBDIR x64)
   ELSE()
     SET(PHIDGET_SPATIAL_BIN_SUBDIR x86)
   ENDIF()
@@ -260,10 +260,10 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial dll folder" FORCE ) 
       
   SET (Tracking_SRCS ${Tracking_SRCS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx )
-  if (WIN32)	
+  if (WIN32)  
     SET (Tracking_HDRS ${Tracking_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
   endif (WIN32)
-	
+  
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
@@ -296,7 +296,7 @@ IF( PLUS_USE_OpenIGTLink )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking
     CACHE INTERNAL "" FORCE)
-	
+  
   SET (Tracking_LIBS ${Tracking_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
 ENDIF( PLUS_USE_OpenIGTLink )
@@ -306,7 +306,6 @@ ENDIF( PLUS_USE_OpenIGTLink )
 
 SET (Tracking_LIBS ${Tracking_LIBS}
   vtkPlusCommon 
-  vtkImageAcquisition 
   vtkCommon 
   vtkHybrid 
   vtkFiltering 
@@ -321,7 +320,7 @@ TARGET_LINK_LIBRARIES( vtkTracking ${Tracking_LIBS} )
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTracking CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkTracking vtkTracking;"${PlusLib_BINARY_DIR}/src/Tracking/vtkTracking.vcproj";vtkPlusCommon;vtkImageAcquisition CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkTracking vtkTracking;"${PlusLib_BINARY_DIR}/src/Tracking/vtkTracking.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
@@ -348,7 +347,7 @@ INSTALL(FILES
   CONFIGURATIONS Release
   COMPONENT RuntimeLibraries
   )
-	
+  
 INSTALL(TARGETS vtkTracking
   RUNTIME
   DESTINATION bin
@@ -361,5 +360,5 @@ INSTALL(TARGETS vtkTracking
 #
 
 IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY(Testing)
+  ADD_SUBDIRECTORY(Testing)
 ENDIF (BUILD_TESTING)

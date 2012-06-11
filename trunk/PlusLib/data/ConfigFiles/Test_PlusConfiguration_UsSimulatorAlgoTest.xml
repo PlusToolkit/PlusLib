@@ -1,0 +1,34 @@
+<PlusConfiguration version="1.4">
+  <CoordinateDefinitions>
+    <Transform
+      From="Image" To="Probe"
+      Matrix="0.0       0.084     0.0        12.5
+              -0.087    0.0       0.0        51.0
+              0.0       0.0       0.087      -4.3    
+              0         0         0          1"
+      Error="1.0" Date="022412_110829" />
+      
+    <Transform
+      From="Phantom" To="Reference" 
+      Matrix="-0.0122295 0.0247489 -0.999619  10.661 
+              -0.0104145 0.999636  0.0248767  -37.1121 
+              0.999871   0.0107148 -0.0119673 -86.5167 
+              0          0         0          1" 
+      Error="0.965947" Date="022412_105333" />
+  </CoordinateDefinitions>
+
+  <vtkUsSimulatorAlgo
+    BackgroundValue="0"
+    ImageCoordinateFrame="Image"
+    ReferenceCoordinateFrame="Reference"
+    FrameSize="820 616"
+    SpacingMmPerPixel="1.0 1.0"
+
+    ModelFileName="UsSimulatorAlgoTestModel.stl"
+    ModelToReferenceTransform="
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1"
+  />
+</PlusConfiguration>

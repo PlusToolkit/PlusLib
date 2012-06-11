@@ -37,8 +37,13 @@ vtkUsSimulatorVideoSourceCleanup2::~vtkUsSimulatorVideoSourceCleanup2()
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 {
-  this->UsSimulator = NULL; 
-  this->LocalVideoBuffer = NULL;
+  this->UsSimulator = NULL;
+  vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New();
+  this->SetUsSimulator(usSimulator);
+
+  this->TransformRepository = NULL;
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  this->SetTransformRepository(transformRepository);
 }
 
 //----------------------------------------------------------------------------
@@ -49,16 +54,8 @@ vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
     this->Disconnect();
   }
 
-  if ( this->UsSimulator != NULL )
-  {
-    this->UsSimulator->Delete(); 
-    this->UsSimulator = NULL; 
-  }
-  if ( this->LocalVideoBuffer != NULL )
-  {
-    this->LocalVideoBuffer->Delete(); 
-    this->LocalVideoBuffer = NULL; 
-  }
+  this->SetUsSimulator(NULL);
+  this->SetTransformRepository(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -119,122 +116,63 @@ void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
-{/*
+{
   //LOG_TRACE("vtkUsSimulatorVideoSource::InternalGrab");
 
-  // Compute elapsed time since we restarted the timer
+  // Compute elapsed time since we restarted the timer and the current timestamp
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
-
-  double latestFrameTimestamp(0); 
-  if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
-  {
-    LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get latest timestamp from local buffer!");
-    return PLUS_FAIL; 
-  }
-
-  // Compute the next timestamp 
-  double nextFrameTimestamp = this->LoopStartTime + elapsedTime; 
-  if ( nextFrameTimestamp > latestFrameTimestamp )
-  {
-    if ( this->ReplayEnabled )
-    {
-      nextFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
-    }
-    else
-    {
-      // Use the latest frame always
-      nextFrameTimestamp = latestFrameTimestamp; 
-    }
-  }
-
-  VideoBufferItem nextVideoBufferItem; 
-  ItemStatus nextItemStatus = this->LocalVideoBuffer->GetVideoBufferItemFromTime( nextFrameTimestamp, &nextVideoBufferItem); 
-  if ( nextItemStatus != ITEM_OK )
-  {
-    if ( nextItemStatus == ITEM_NOT_AVAILABLE_YET )
-    {
-      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time - frame not available yet !");
-    }
-    else if ( nextItemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
-    {
-      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time - frame not available anymore !");
-    }
-    else
-    {
-      LOG_ERROR("vtkUsSimulatorVideoSource: Unable to get next item from local buffer from time!");
-    }
-    return PLUS_FAIL; 
-  }
 
   // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->GetUsImageOrientation(), this->FrameNumber); 
+  // Get image to tracker transform from the tracker
+  TrackedFrame trackedFrame;
+  if (this->Tracker->GetTrackedFrame(elapsedTime, &trackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame from the tracker with timestamp" << elapsedTime);
+    return PLUS_FAIL;
+  }
+
+  if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
+    return PLUS_FAIL;
+  }
+
+  PlusTransformName imageToReferenceTransformName(this->UsSimulator->GetImageCoordinateFrame(), this->UsSimulator->GetReferenceCoordinateFrame());
+  vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
+  if (this->TransformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS)
+  {
+    std::string strTransformName; 
+    imageToReferenceTransformName.GetTransformName(strTransformName); 
+    LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
+    return PLUS_FAIL;
+  }
+
+  // Get the simulated US image
+  this->UsSimulator->SetModelToImageMatrix(imageToReferenceTransformMatrix);
+  this->UsSimulator->Update();
+
+  PlusStatus status = this->Buffer->AddItem(
+    this->UsSimulator->GetOutput(), this->GetUsImageOrientation(), this->FrameNumber);
+
   this->Modified();
-  return status;*/return PLUS_FAIL;
+  return status;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
-{/*
+{
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
-
-  if (this->GetSequenceMetafile()==NULL)
-  {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile. No filename is specified."); 
-    return PLUS_FAIL; 
-  }
-  if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
-  {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->GetSequenceMetafile()); 
-    return PLUS_FAIL; 
-  }
-
-  vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-
-  // Read metafile
-  if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read video buffer from sequence metafile!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( savedDataBuffer->GetNumberOfTrackedFrames() < 1 ) 
-  {
-    LOG_ERROR("Failed to connect to saved dataset - there is no frame in the sequence metafile!"); 
-    return PLUS_FAIL; 
-  }
 
   // Set to default MF internal image orientation (sequence metafile reader always converts it to MF)
   this->SetUsImageOrientation(US_IMG_ORIENT_MF); 
 
-  // Set buffer size 
-  if ( this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Set local buffer 
-  if ( this->LocalVideoBuffer != NULL )
-  {
-    this->LocalVideoBuffer->Delete();
-  }
-
-  this->LocalVideoBuffer = vtkVideoBuffer::New(); 
-  // Copy all the settings from the video buffer 
-  this->LocalVideoBuffer->DeepCopy( this->Buffer );
-
-  // Fill local video buffer
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS); 
-  savedDataBuffer->Clear(); 
-
   this->Buffer->Clear();
-  this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
+  this->Buffer->SetFrameSize( this->UsSimulator->GetFrameSize() ); 
 
-  return PLUS_SUCCESS;*/return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -245,7 +183,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalDisconnect()
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* config)
-{/*
+{
   LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
@@ -270,45 +208,28 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
     return PLUS_FAIL;
   }
 
-  const char* sequenceMetafile = imageAcquisitionConfig->GetAttribute("SequenceMetafile"); 
-  if ( sequenceMetafile != NULL ) 
+  // Read US simulator configuration
+  if ( !this->UsSimulator
+    || this->UsSimulator->ReadConfiguration(config) != PLUS_SUCCESS)
   {
-    std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
-    {
-      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
-    }
-    else
-    {
-      LOG_ERROR("Cannot find input sequence metafile!");
-      return PLUS_FAIL;
-    }
+    LOG_ERROR("Failed to read US simulator configuration!");
+    return PLUS_FAIL;
   }
 
-  const char* replayEnabled = imageAcquisitionConfig->GetAttribute("ReplayEnabled"); 
-  if ( replayEnabled != NULL ) 
+  // Read transform repository configuration
+  if ( !this->TransformRepository
+    || this->TransformRepository->ReadConfiguration(config) != PLUS_SUCCESS )
   {
-    if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
-    {
-      this->ReplayEnabled = true; 
-    }
-    else if ( STRCASECMP("FALSE", replayEnabled ) == 0 )
-    {
-      this->ReplayEnabled = false; 
-    }
-    else
-    {
-      LOG_WARNING("Unable to recognize ReplayEnabled attribute: " << replayEnabled << " - changed to false by default!"); 
-      this->ReplayEnabled = false; 
-    }
+    LOG_ERROR("Failed to read transform repository configuration!"); 
+    return PLUS_FAIL;
   }
 
-  return PLUS_SUCCESS;*/return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorVideoSource::WriteConfiguration(vtkXMLDataElement* config)
-{/*
+{
   LOG_TRACE("vtkUsSimulatorVideoSource::WriteConfiguration"); 
 
   // Write superclass configuration
@@ -334,17 +255,6 @@ PlusStatus vtkUsSimulatorVideoSource::WriteConfiguration(vtkXMLDataElement* conf
     return PLUS_FAIL;
   }
 
-  imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
-
-  if (this->ReplayEnabled)
-  {
-    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "TRUE");
-  }
-  else
-  {
-    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "FALSE");
-  }
-
-  return PLUS_SUCCESS;*/return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 

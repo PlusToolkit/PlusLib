@@ -13,7 +13,6 @@
 
     <ImageAcquisition Type="SonixVideo" 
       BufferSize="1000" 
-      FrameSize="640 480" 
       UsImageOrientation="MF"
       AcquisitionRate="-1" 
       AveragedItemsForFiltering="20" 

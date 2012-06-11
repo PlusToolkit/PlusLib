@@ -13,7 +13,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
 
     <ImageAcquisition Type="SonixVideo" 
       BufferSize="200" 
-      FrameSize="820 616" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
       AveragedItemsForFiltering="20" 

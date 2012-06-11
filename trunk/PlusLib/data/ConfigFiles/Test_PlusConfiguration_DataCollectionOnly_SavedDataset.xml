@@ -12,7 +12,6 @@
 
     <ImageAcquisition Type="SavedDataset" 
       BufferSize="200" 
-      FrameSize="640 480" 
       AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="0.0" 

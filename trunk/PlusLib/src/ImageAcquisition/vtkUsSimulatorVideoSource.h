@@ -9,6 +9,8 @@
 
 #include "vtkPlusVideoSource.h"
 #include "vtkUsSimulatorAlgo.h"
+#include "vtkTracker.h"
+#include "vtkTransformRepository.h"
 
 class vtkVideoBuffer; 
 
@@ -53,14 +55,21 @@ public:
   /*! Write configuration to xml data */
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Set ultrasound simulator */
-  vtkSetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
   /*! Get ultrasound simulator */
   vtkGetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
 
-  /*! Get local video buffer */
-  vtkGetObjectMacro(LocalVideoBuffer, vtkVideoBuffer); 
-	
+  /*! Set ultrasound simulator */
+  vtkSetObjectMacro(Tracker, vtkTracker); 
+  /*! Get ultrasound simulator */
+  vtkGetObjectMacro(Tracker, vtkTracker); 
+
+protected:
+  /*! Set ultrasound simulator */
+  vtkSetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
+
+  /*! Set transform repository */
+	vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+
 protected:
 	/*! Constructor */
 	vtkUsSimulatorVideoSource();
@@ -80,8 +89,11 @@ protected:
   /*! Ultrasound simulator */
   vtkUsSimulatorAlgo* UsSimulator;
 
-  /*! Local viceo buffer */
-	vtkVideoBuffer* LocalVideoBuffer; 
+  /*! Tracker used in the simulator */
+  vtkTracker* Tracker;
+
+  /* Transform repository */
+  vtkTransformRepository* TransformRepository;
 
 private:
 	static vtkUsSimulatorVideoSource* Instance;
@@ -90,4 +102,3 @@ private:
 };
 
 #endif
-

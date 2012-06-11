@@ -18,7 +18,6 @@ The desired file name with path needs to be added to this XML file as values Seq
 
     <ImageAcquisition Type="SavedDataset" 
       BufferSize="200" 
-      FrameSize="820 616" 
       AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.1908" 

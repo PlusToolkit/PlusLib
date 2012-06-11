@@ -14,7 +14,6 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
 
     <ImageAcquisition Type="ICCapturing" 
       BufferSize="100" 
-      FrameSize="640 480" 
       UsImageOrientation="MF"
       AcquisitionRate="30" 
       AveragedItemsForFiltering="20" 

@@ -17,8 +17,6 @@ See License.txt for details.
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
-#include "vtkSTLReader.h"
-#include "vtkPolyData.h"
 #include "vtkTransform.h"
 #include "vtkUsSimulatorAlgo.h"
 #include "vtkImageData.h" 
@@ -27,7 +25,6 @@ See License.txt for details.
 #include "vtkAppendPolyData.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkCubeSource.h"
-#include "vtkJPEGWriter.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkXMLImageDataWriter.h"
 #include "vtkSTLWriter.h"
@@ -125,7 +122,6 @@ int main(int argc, char **argv)
   ///////////////////////////////////////
 
   // Input arguments error checking
-
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -135,18 +131,12 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if (inputModelFile.empty())
-  {
-    std::cerr << "--input-model-file required" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if (inputTransformsFile.empty())
+  if (inputConfigFile.empty())
   {
     std::cerr << "--input-config-file required " << std::endl;
     exit(EXIT_FAILURE);
   }
-  if (inputConfigFile.empty())
+  if (inputTransformsFile.empty())
   {
     std::cerr << "--input-transforms-file required" << std::endl;
     exit(EXIT_FAILURE);
@@ -157,13 +147,13 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  //Read transformations data 
+  // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 				
   trackedFrameList->ReadFromSequenceMetafile( inputTransformsFile.c_str() );
   LOG_DEBUG("Reading input meta file completed"); 
 
-  // create repository for ultrasound images correlated to the iput tracked frames
+  // Create repository for ultrasound images correlated to the iput tracked frames
   vtkSmartPointer<vtkTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read config file
@@ -187,18 +177,11 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 
-  //Read model
-  LOG_DEBUG("Reading in model stl file...");
-  vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
-  modelReader->SetFileName(inputModelFile.c_str());
-  modelReader->Update();
-  LOG_DEBUG("Finished reading model stl file."); 
+  // Create simulator
+  vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
+  usSimulator->ReadConfiguration(configRead);
 
-  // Acquire modeldata in appropriate containers to prepare for filter
-  vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
-  model = modelReader->GetOutput(); 
-
-  //Setup Renderer to visualize surface model and ultrasound planes
+  // Setup Renderer to visualize surface model and ultrasound planes
   vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
   vtkSmartPointer<vtkRenderWindow> renderWindowPoly = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindowPoly->AddRenderer(rendererPoly);
@@ -212,7 +195,7 @@ int main(int argc, char **argv)
   // Visualization of the surface model
   {
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInput(model);  
+    mapper->SetInput((vtkPolyData*)usSimulator->GetInput());  
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     rendererPoly->AddActor(actor);
@@ -223,7 +206,6 @@ int main(int argc, char **argv)
     vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
 
-
     if(!intersectionFile.empty()) 
     {
       vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
@@ -231,7 +213,6 @@ int main(int argc, char **argv)
       surfaceModelWriter->SetInput(slicesPolyData);
       surfaceModelWriter->Write(); 
     }
-
 
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInput(slicesPolyData);  
@@ -248,14 +229,13 @@ int main(int argc, char **argv)
 
   for(int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
-
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
       return EXIT_FAILURE;
-    }   
+    }
 
     // We use the model coordinate system as reference coordinate system
     // TODO:Alter to get new position? Or does it do it automatically ?
@@ -268,31 +248,11 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-    stencilBackgroundImage->SetSpacing(1,1,1);
-    stencilBackgroundImage->SetOrigin(0,0,0);
-
-    int* frameSize = frame->GetFrameSize();
-    stencilBackgroundImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
-
-    stencilBackgroundImage->SetScalarTypeToUnsignedChar();
-    stencilBackgroundImage->SetNumberOfScalarComponents(1);
-    stencilBackgroundImage->AllocateScalars(); 
-
-    int* extent = stencilBackgroundImage->GetExtent();
-    memset(stencilBackgroundImage->GetScalarPointer(), 0,
-      ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
-
-    //prepare  filter and filter input 
-    vtkSmartPointer< vtkUsSimulatorAlgo >  usSimulator ; 
-    usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
-
-    usSimulator->SetInput(model); 
-    vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    // Prepare filter and filter input
+    vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     modelToImageMatrix->DeepCopy(imageToReferenceMatrix);
     modelToImageMatrix->Invert();
     usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
-    usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
     usSimulator->Update();
 
     vtkImageData* simOutput = usSimulator->GetOutput();
@@ -321,7 +281,7 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
     usImage->DeepCopy(simOutput);
 
-    //display output of filter
+    // Display output of filter
     vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
     redImageActor->SetInput(simOutput);
     
