@@ -119,7 +119,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
   // Hide or show the orientation markers based on the value of the checkbox
-  m_ParentMainWindow->GetObjectVisualizer()->EnableOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
+  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
   if (m_State == ToolboxState_Uninitialized)
   {

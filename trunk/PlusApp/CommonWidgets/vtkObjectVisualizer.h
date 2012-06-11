@@ -56,6 +56,30 @@ public:
   static vtkObjectVisualizer *New();
 
 public:
+  /*! Constant for initial image camera position */
+  static const double IMAGE_CAMERA_Z_POSITION;
+  /*! Constant for the offset from the root of the assembly for the horizontal text actor */
+  static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3];
+  /*! Constant for the offset from the root of the assembly for the vertical text actor */
+  static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3];
+  /*! Constant for the color of the marker */
+  static double ORIENTATION_MARKER_COLOUR[3];
+  /*! Constant for the end point of the horizontal line */
+  static double HORIZONTAL_LINE_ORIENTATION_MARKER_END_POINT[3];
+  /*! Constant for the end point of the vertical line */
+  static double VERTICAL_LINE_ORIENTATION_MARKER_END_POINT[3];
+  /*! Constant for the initial position of the assembly */
+  static double ORIENTATION_MARKER_ASSEMBLY_POSITION[3];
+  /*! Constant for the orientation marker cone radius */
+  static const double ORIENTATION_MARKER_CONE_RADIUS;
+  /*! Constant for the orientation marker cone height */
+  static const double ORIENTATION_MARKER_CONE_HEIGHT;
+  /*! Constant for the offset from the root of the assembly for the horizontal cone actor */
+  static double HORIZONTAL_CONE_ORIENTATION_MARKER_OFFSET[3];
+  /*! Constant for the offset from the root of the assembly for the vertical cone actor */
+  static double VERTICAL_CONE_ORIENTATION_MARKER_OFFSET[3];
+
+public:
   /*!
   * Initialize object
   */
@@ -130,10 +154,10 @@ public:
   PlusStatus SetScreenRightDownAxesOrientation(US_IMAGE_ORIENTATION aOrientation = US_IMG_ORIENT_MF);
 
   /*!
-  * Enable or Disable the MF orientation markers
-  * \param aEnable Enable/Disable
+  * Show or hide the MF orientation markers
+  * \param aEnable Show/Hide
   */
-  PlusStatus EnableOrientationMarkers( bool aEnable );
+  PlusStatus ShowOrientationMarkers( bool aShow );
 
   /*!
   * Enable/disable camera movements (mouse interactions on rendering window)
@@ -204,7 +228,7 @@ protected:
   /*!
   * Calculate the correct orientation and position of the markers
   */
-  PlusStatus CalculateOrientationMarkerTransform(US_IMAGE_ORIENTATION aOrientation = US_IMG_ORIENT_MF);
+  PlusStatus UpdateOrientationMarkerTransformPosition(US_IMAGE_ORIENTATION aOrientation = US_IMG_ORIENT_MF);
 
   protected slots:
     /*!

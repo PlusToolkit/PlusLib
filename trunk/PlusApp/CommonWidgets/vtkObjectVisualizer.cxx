@@ -40,6 +40,20 @@ vtkStandardNewMacro(vtkObjectVisualizer);
 
 //-----------------------------------------------------------------------------
 
+const double vtkObjectVisualizer::IMAGE_CAMERA_Z_POSITION = -10.0;  // value here must be greater in magnitude than any other Z coordinate that needs to be displayed
+double vtkObjectVisualizer::HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
+double vtkObjectVisualizer::VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
+double vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR[3] = {0.0, 1.0, 0.0};
+double vtkObjectVisualizer::HORIZONTAL_LINE_ORIENTATION_MARKER_END_POINT[3] = {45.0, 0.0, -0.5};
+double vtkObjectVisualizer::VERTICAL_LINE_ORIENTATION_MARKER_END_POINT[3] = {0.0, 45.0, -0.5};
+double vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[3] = {5.0, 5.0, -1.0};
+const double vtkObjectVisualizer::ORIENTATION_MARKER_CONE_RADIUS = 5.0;
+const double vtkObjectVisualizer::ORIENTATION_MARKER_CONE_HEIGHT = 15.0;
+double vtkObjectVisualizer::HORIZONTAL_CONE_ORIENTATION_MARKER_OFFSET[3] = {51.0, 0.0, -0.5};
+double vtkObjectVisualizer::VERTICAL_CONE_ORIENTATION_MARKER_OFFSET[3] = {0.0, 51.0, -0.5};
+
+//-----------------------------------------------------------------------------
+
 vtkObjectVisualizer::vtkObjectVisualizer()
 : DataCollector(NULL)
 , TransformRepository(NULL)
@@ -59,9 +73,9 @@ vtkObjectVisualizer::vtkObjectVisualizer()
 , OrientationMarkerAssembly(NULL)
 , OrientationMarkerCurrentXRotation(0.0)
 , OrientationMarkerCurrentYRotation(0.0)
+, Initialized(false)
+, ImageMode(false)
 {
-  this->InitializedOff();
-  this->ImageModeOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -616,7 +630,7 @@ PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIE
 
   if( this->ImageMode )
   {
-    double cameraPos[3];
+    double cameraPos[3] = {0.0, 0.0, 0.0};
     this->ImageCamera->GetPosition(cameraPos);
 
     // Depending on the desired orientation either roll the camera about its view vector 
@@ -632,9 +646,6 @@ PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIE
         {
           this->ImageCamera->SetPosition(cameraPos[0], cameraPos[1], -cameraPos[2]);
         }
-
-        // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(US_IMG_ORIENT_UN);
       }
       break;
     case US_IMG_ORIENT_UF:
@@ -645,9 +656,6 @@ PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIE
         {
           this->ImageCamera->SetPosition(cameraPos[0], cameraPos[1], -cameraPos[2]);
         }
-
-        // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(US_IMG_ORIENT_UF);
       }
       break;
     case US_IMG_ORIENT_MF:
@@ -658,9 +666,6 @@ PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIE
         {
           this->ImageCamera->SetPosition(cameraPos[0], cameraPos[1], -cameraPos[2]);
         }
-
-        // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(US_IMG_ORIENT_MF);
       }
       break;
     case US_IMG_ORIENT_MN:
@@ -671,26 +676,23 @@ PlusStatus vtkObjectVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIE
         {
           this->ImageCamera->SetPosition(cameraPos[0], cameraPos[1], -cameraPos[2]);
         }
-
-        // Move and Orient the Orientation Markers to face the camera
-        CalculateOrientationMarkerTransform(US_IMG_ORIENT_MN);
       }
       break;
     }
   }
 
-  return PLUS_SUCCESS;
+  return UpdateOrientationMarkerTransformPosition(aOrientation);
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkObjectVisualizer::EnableOrientationMarkers( bool aEnable )
+PlusStatus vtkObjectVisualizer::ShowOrientationMarkers( bool aShow )
 {
   vtkSmartPointer<vtkPropCollection> collection = vtkSmartPointer<vtkPropCollection>::New();
   this->OrientationMarkerAssembly->GetActors(collection);
   collection->InitTraversal();
 
-  if( !aEnable )
+  if( !aShow )
   {
     this->OrientationMarkerAssembly->VisibilityOff();
   }
@@ -720,6 +722,7 @@ PlusStatus vtkObjectVisualizer::UpdateObjectVisualization()
     if ( displayableObject->IsDisplayable() && displayableObject->GetActor() && displayableObject->GetActor()->GetVisibility() > 0 )
     {
       noObjectsToDisplay = false;
+      break;
     }
   }
 
@@ -853,7 +856,7 @@ PlusStatus vtkObjectVisualizer::CalculateImageCameraParameters()
     imageCamera->SetParallelScale(imageCenterX * (double)renderWindowSize[1] / (double)renderWindowSize[0]);
   }
 
-  imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
+  imageCamera->SetPosition(imageCenterX, imageCenterY, vtkObjectVisualizer::IMAGE_CAMERA_Z_POSITION);
 
   // Set camera
   this->SetImageCamera(imageCamera);
@@ -1115,20 +1118,20 @@ PlusStatus vtkObjectVisualizer::InitializeOrientationMarkers()
 
   // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  horizontalOrientationTextActor->GetTextProperty()->SetColor(0.0, 1.0, 0.0);
+  horizontalOrientationTextActor->GetTextProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   horizontalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   horizontalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   horizontalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
   horizontalOrientationTextActor->GetTextProperty()->SetVerticalJustificationToTop();
   horizontalOrientationTextActor->GetTextProperty()->BoldOn(); 
   horizontalOrientationTextActor->SetInput("M");
-  horizontalOrientationTextActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0); 
-  horizontalOrientationTextActor->SetPosition(35.0, 22.0, -1.0);
+  horizontalOrientationTextActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0);
+  horizontalOrientationTextActor->SetPosition(vtkObjectVisualizer::HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET);
   this->SetHorizontalOrientationTextActor(horizontalOrientationTextActor);
   this->OrientationMarkerAssembly->AddPart(horizontalOrientationTextActor);
 
   vtkSmartPointer<vtkTextActor3D> verticalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  verticalOrientationTextActor->GetTextProperty()->SetColor(0.0, 1.0, 0.0);
+  verticalOrientationTextActor->GetTextProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   verticalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   verticalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   verticalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
@@ -1136,63 +1139,65 @@ PlusStatus vtkObjectVisualizer::InitializeOrientationMarkers()
   verticalOrientationTextActor->GetTextProperty()->BoldOn(); 
   verticalOrientationTextActor->SetInput("F");
   verticalOrientationTextActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0); 
-  verticalOrientationTextActor->SetPosition(9.0, 45.0, -1.0);
+  verticalOrientationTextActor->SetPosition(vtkObjectVisualizer::VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET);
   this->SetVerticalOrientationTextActor(verticalOrientationTextActor);
   this->OrientationMarkerAssembly->AddPart(verticalOrientationTextActor);
 
   vtkSmartPointer<vtkActor> horizontalLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   vtkSmartPointer<vtkLineSource> horizontalLineSource = vtkSmartPointer<vtkLineSource>::New();
-  horizontalLineSource->SetPoint1(5.0, 5.0, -0.5);
-  horizontalLineSource->SetPoint2(50.0, 5.0, -0.5);
+  horizontalLineSource->SetPoint1(0.0, 0.0, -0.5);
+  horizontalLineSource->SetPoint2(vtkObjectVisualizer::HORIZONTAL_LINE_ORIENTATION_MARKER_END_POINT);
   horizontalLineMapper->SetInputConnection(horizontalLineSource->GetOutputPort());
-  horizontalLineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+  horizontalLineActor->GetProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   horizontalLineActor->SetMapper(horizontalLineMapper);
   this->OrientationMarkerAssembly->AddPart(horizontalLineActor);
 
   vtkSmartPointer<vtkActor> verticalLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> verticalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   vtkSmartPointer<vtkLineSource> verticalLineSource = vtkSmartPointer<vtkLineSource>::New();
-  verticalLineSource->SetPoint1(5.0, 5.0, -0.5);
-  verticalLineSource->SetPoint2(5.0, 50.0, -0.5);
+  verticalLineSource->SetPoint1(0.0, 0.0, -0.5);
+  verticalLineSource->SetPoint2(vtkObjectVisualizer::VERTICAL_LINE_ORIENTATION_MARKER_END_POINT);
   verticalLineMapper->SetInputConnection(verticalLineSource->GetOutputPort());
-  verticalLineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+  verticalLineActor->GetProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   verticalLineActor->SetMapper(verticalLineMapper);
   this->OrientationMarkerAssembly->AddPart(verticalLineActor);
 
   vtkSmartPointer<vtkActor> horizontalConeActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> horizontalConeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   vtkSmartPointer<vtkConeSource> horizontalConeSource = vtkSmartPointer<vtkConeSource>::New();
-  horizontalConeSource->SetHeight(15.0);
-  horizontalConeSource->SetRadius(5.0);
+  horizontalConeSource->SetHeight(vtkObjectVisualizer::ORIENTATION_MARKER_CONE_HEIGHT);
+  horizontalConeSource->SetRadius(vtkObjectVisualizer::ORIENTATION_MARKER_CONE_RADIUS);
   horizontalConeMapper->SetInputConnection(horizontalConeSource->GetOutputPort());
-  horizontalConeActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+  horizontalConeActor->GetProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   horizontalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
-  horizontalConeActor->SetPosition(56.0, 5.0, -0.5);
+  horizontalConeActor->SetPosition(vtkObjectVisualizer::HORIZONTAL_CONE_ORIENTATION_MARKER_OFFSET);
   horizontalConeActor->SetMapper(horizontalConeMapper);
   this->OrientationMarkerAssembly->AddPart(horizontalConeActor);
 
   vtkSmartPointer<vtkActor> verticalConeActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> verticalConeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   vtkSmartPointer<vtkConeSource> verticalConeSource = vtkSmartPointer<vtkConeSource>::New();
-  verticalConeSource->SetHeight(15.0);
-  verticalConeSource->SetRadius(5.0);
+  verticalConeSource->SetHeight(vtkObjectVisualizer::ORIENTATION_MARKER_CONE_HEIGHT);
+  verticalConeSource->SetRadius(vtkObjectVisualizer::ORIENTATION_MARKER_CONE_RADIUS);
   verticalConeMapper->SetInputConnection(verticalConeSource->GetOutputPort());
-  verticalConeActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+  verticalConeActor->GetProperty()->SetColor(vtkObjectVisualizer::ORIENTATION_MARKER_COLOUR);
   verticalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
   verticalConeActor->RotateWXYZ(90.0, 0.0, 0.0, 1.0); 
-  verticalConeActor->SetPosition(5.0, 56.0, -0.5);
+  verticalConeActor->SetPosition(vtkObjectVisualizer::VERTICAL_CONE_ORIENTATION_MARKER_OFFSET);
   verticalConeActor->SetMapper(verticalConeMapper);
   this->OrientationMarkerAssembly->AddPart(verticalConeActor);
 
   this->GetCanvasRenderer()->AddActor(this->OrientationMarkerAssembly);
+
+  this->OrientationMarkerAssembly->SetPosition(vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION);
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
+PlusStatus vtkObjectVisualizer::UpdateOrientationMarkerTransformPosition( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
 {
   int dimensions[2];
   this->DataCollector->GetFrameSize(dimensions);
@@ -1203,7 +1208,7 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_OR
   this->GetOrientationMarkerAssembly()->RotateX(-OrientationMarkerCurrentXRotation);
   this->GetOrientationMarkerAssembly()->RotateY(-OrientationMarkerCurrentYRotation);
 
-  // Apply any necessary rotations and repositionings
+  // Apply any necessary rotations and repositioning
   // Also change the letters on the display to indicate the new orientation
   switch(aOrientation)
   {
@@ -1212,9 +1217,9 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_OR
     this->GetVerticalOrientationTextActor()->SetInput("F");
     OrientationMarkerCurrentXRotation = 0;
     OrientationMarkerCurrentYRotation = 0;
-    newPosition[0] = 0.0;
-    newPosition[1] = 0.0;
-    newPosition[2] = -1.0;
+    newPosition[0] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
+    newPosition[1] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
+    newPosition[2] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_MN:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
@@ -1222,9 +1227,9 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_OR
     OrientationMarkerCurrentYRotation = 0;
     this->GetOrientationMarkerAssembly()->RotateX(180);
     OrientationMarkerCurrentXRotation = 180;
-    newPosition[0] = 0.0;
-    newPosition[1] = dimensions[1];
-    newPosition[2] = 1.0;
+    newPosition[0] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
+    newPosition[1] = dimensions[1] - vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
+    newPosition[2] = -vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_UN:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
@@ -1233,9 +1238,9 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_OR
     OrientationMarkerCurrentXRotation = 180.0;
     this->GetOrientationMarkerAssembly()->RotateY(180);
     OrientationMarkerCurrentYRotation = 180.0;
-    newPosition[0] = dimensions[0];
-    newPosition[1] = dimensions[1];
-    newPosition[2] = -1.0;
+    newPosition[0] = dimensions[0] - vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
+    newPosition[1] = dimensions[1] - vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
+    newPosition[2] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_UF:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
@@ -1243,9 +1248,9 @@ PlusStatus vtkObjectVisualizer::CalculateOrientationMarkerTransform( US_IMAGE_OR
     this->GetOrientationMarkerAssembly()->RotateY(180);
     OrientationMarkerCurrentYRotation = 180.0;
     OrientationMarkerCurrentXRotation = 0;
-    newPosition[0] = dimensions[0];
-    newPosition[1] = 0.0;
-    newPosition[2] = 1.0;
+    newPosition[0] = dimensions[0] - vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
+    newPosition[1] = vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
+    newPosition[2] = -vtkObjectVisualizer::ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   }
   this->GetOrientationMarkerAssembly()->SetPosition(newPosition[0], newPosition[1], newPosition[2]);

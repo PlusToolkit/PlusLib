@@ -142,7 +142,7 @@ void fCalMainWindow::Initialize()
 
   // Tell the object visualizer to show orientation markers
   m_ShowOrientationMarkerAction->setChecked(true);
-  m_ObjectVisualizer->EnableOrientationMarkers(true);
+  m_ObjectVisualizer->ShowOrientationMarkers(true);
 
   // Initialize default tab widget
   CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
@@ -522,14 +522,14 @@ void fCalMainWindow::EnableOrientationMarkers()
   LOG_TRACE("fCalMainWindow::EnableOrientationMarkers");
   if( m_ShowOrientationMarkerAction->isChecked() )
   {
-    if( this->GetObjectVisualizer()->EnableOrientationMarkers(true) != PLUS_SUCCESS )
+    if( this->GetObjectVisualizer()->ShowOrientationMarkers(true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to enable orientation markers in vtkObjectVisualiser.");
     }
   }
   else
   {
-    if( this->GetObjectVisualizer()->EnableOrientationMarkers(false) != PLUS_SUCCESS )
+    if( this->GetObjectVisualizer()->ShowOrientationMarkers(false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disable orientation markers in vtkObjectVisualiser.");
     }
@@ -582,7 +582,7 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
     m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
 
     SetImageManipulationEnabled(false);
-    m_ObjectVisualizer->EnableOrientationMarkers(false);
+    m_ObjectVisualizer->ShowOrientationMarkers(false);
   }
   else
   {

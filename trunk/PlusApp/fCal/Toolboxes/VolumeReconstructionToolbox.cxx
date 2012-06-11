@@ -130,7 +130,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
   // Hide the orientation markers
-  m_ParentMainWindow->GetObjectVisualizer()->EnableOrientationMarkers(false);
+  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
 
 	if (m_State == ToolboxState_Uninitialized)
   {

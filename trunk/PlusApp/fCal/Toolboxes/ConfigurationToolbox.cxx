@@ -120,7 +120,7 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
   // Disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(false);
   // Hide the orientation markers
-  m_ParentMainWindow->GetObjectVisualizer()->EnableOrientationMarkers(false);
+  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
 
   // No state handling in this toolbox
   if (m_ParentMainWindow->AreDevicesShown() == false)
