@@ -92,7 +92,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     return 1; 
   } 
 
-  //Get input
+  // Get input
   vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
