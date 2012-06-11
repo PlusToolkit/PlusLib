@@ -70,8 +70,8 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtk
 #
 	
 INSTALL (TARGETS vtkPlusCommon
-  RUNTIME
-  DESTINATION bin
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION bin
   CONFIGURATIONS Release
   COMPONENT RuntimeLibraries
   )

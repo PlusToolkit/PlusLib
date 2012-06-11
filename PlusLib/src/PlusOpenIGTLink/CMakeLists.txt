@@ -52,8 +52,8 @@ SET(vcProj_vtkPlusOpenIGTLink vtkPlusOpenIGTLink;"${PlusLib_BINARY_DIR}/src/Plus
 # Install
 #
 INSTALL(TARGETS vtkPlusOpenIGTLink
-    RUNTIME
-    DESTINATION bin
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION bin
     CONFIGURATIONS Release
     COMPONENT RuntimeLibraries)
 
