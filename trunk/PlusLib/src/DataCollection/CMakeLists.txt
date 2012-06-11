@@ -81,8 +81,8 @@ SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCo
 # Install
 #
 INSTALL(TARGETS vtkDataCollection
-    RUNTIME
-    DESTINATION bin
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION bin
     CONFIGURATIONS Release
     COMPONENT RuntimeLibraries)
 

@@ -106,12 +106,12 @@ IF (PLUS_USE_MICRONTRACKER)
   SET (Tracking_SRCS ${Tracking_SRCS}
     MicronTracking/vtkMicronTracker.cxx
   )
-  
-  if (WIN32)  
-    SET (Tracking_HDRS ${Tracking_HDRS}
-      MicronTracking/vtkMicronTracker.h
-      )
-  endif (WIN32)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS ${Tracking_HDRS}
+			MicronTracking/vtkMicronTracker.h
+			)
+	endif (WIN32)
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
@@ -351,6 +351,7 @@ INSTALL(FILES
 INSTALL(TARGETS vtkTracking
   RUNTIME
   DESTINATION bin
+  LIBRARY DESTINATION bin
   CONFIGURATIONS Release
   COMPONENT RuntimeLibraries
   )
