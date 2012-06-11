@@ -2,7 +2,7 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
-TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest UsSimulatorAlgo vtkCommon )
+TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgo vtkCommon )
 ADD_TEST(vtkUsSimulatorAlgoRunTest
 	${EXECUTABLE_OUTPUT_PATH}/vtkUsSimulatorAlgoTest
 	--input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_UsSimulatorAlgoTest.xml
