@@ -1,29 +1,29 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-#INCLUDE_DIRECTORIES( ${UsSimulatorTest_INCLUDE_DIRS} )
-ADD_EXECUTABLE(UsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
-TARGET_LINK_LIBRARIES(UsSimulatorAlgoTest UsSimulatorAlgo vtkCommon )
-ADD_TEST(UsSimulatorAlgoRunTest
-	${EXECUTABLE_OUTPUT_PATH}/UsSimulatorAlgoTest
+ADD_EXECUTABLE(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
+TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest UsSimulatorAlgo vtkCommon )
+ADD_TEST(vtkUsSimulatorAlgoRunTest
+	${EXECUTABLE_OUTPUT_PATH}/vtkUsSimulatorAlgoTest
 	--input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_UsSimulatorAlgoTest.xml
 	--input-transforms-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
 	--output-us-img-file=simulatorOutput.mha 
 	--input-transform-name=ImageToPhantom
 
 	)
-	SET_TESTS_PROPERTIES( UsSimulatorAlgoRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+	SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(UsSimulatorAlgoCompareToBaselineTest
+ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    simulatorOutput.mha 
    ${TestDataDir}/simulatorOutputBaseline.mha
   )
-SET_TESTS_PROPERTIES(UsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS UsSimulatorAlgoRunTest)
+SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTest)
 
 
-INSTALL(TARGETS UsSimulatorAlgoTest
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeExecutables)
+INSTALL(TARGETS vtkUsSimulatorAlgoTest
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeExecutables
+  )

@@ -14,27 +14,8 @@
 
 
 vtkCxxRevisionMacro(vtkSavedDataVideoSource, "$Revision: 1.0$");
-//----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkSavedDataVideoSource);
+vtkStandardNewMacro(vtkSavedDataVideoSource);
 
-//----------------------------------------------------------------------------
-
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::Instance = 0;
-vtkSavedDataVideoSourceCleanup2 vtkSavedDataVideoSource::Cleanup;
-
-
-//----------------------------------------------------------------------------
-vtkSavedDataVideoSourceCleanup2::vtkSavedDataVideoSourceCleanup2()
-{
-}
-
-//----------------------------------------------------------------------------
-vtkSavedDataVideoSourceCleanup2::~vtkSavedDataVideoSourceCleanup2()
-{
-  // Destroy any remaining video source
-  vtkSavedDataVideoSource::SetInstance(NULL);
-}
 //----------------------------------------------------------------------------
 vtkSavedDataVideoSource::vtkSavedDataVideoSource()
 {
@@ -62,56 +43,6 @@ vtkSavedDataVideoSource::~vtkSavedDataVideoSource()
   }
 }
 
-//----------------------------------------------------------------------------
-// Up the reference count so it behaves like New
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::New()
-{
-  vtkSavedDataVideoSource* ret = vtkSavedDataVideoSource::GetInstance();
-  ret->Register(NULL);
-  return ret;
-}
-
-//----------------------------------------------------------------------------
-// Return the single instance of the vtkOutputWindow
-vtkSavedDataVideoSource* vtkSavedDataVideoSource::GetInstance()
-{
-  if(!vtkSavedDataVideoSource::Instance)
-  {
-    // Try the factory first
-    vtkSavedDataVideoSource::Instance = (vtkSavedDataVideoSource*)vtkObjectFactory::CreateInstance("vtkSavedDataVideoSource");    
-    if(!vtkSavedDataVideoSource::Instance)
-    {
-      vtkSavedDataVideoSource::Instance = new vtkSavedDataVideoSource();     
-    }
-    if(!vtkSavedDataVideoSource::Instance)
-    {
-      int error = 0;
-    }
-  }
-  // return the instance
-  return vtkSavedDataVideoSource::Instance;
-}
-
-//----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::SetInstance(vtkSavedDataVideoSource* instance)
-{
-  if (vtkSavedDataVideoSource::Instance==instance)
-  {
-    return;
-  }
-  // preferably this will be NULL
-  if (vtkSavedDataVideoSource::Instance)
-  {
-    vtkSavedDataVideoSource::Instance->Delete();;
-  }
-  vtkSavedDataVideoSource::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
-  // user will call ->Delete() after setting instance
-  instance->Register(NULL);
-}
 //----------------------------------------------------------------------------
 void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {

@@ -13,27 +13,8 @@
 
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
-//----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkUsSimulatorVideoSource);
+vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 
-//----------------------------------------------------------------------------
-
-vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::Instance = 0;
-vtkUsSimulatorVideoSourceCleanup2 vtkUsSimulatorVideoSource::Cleanup;
-
-
-//----------------------------------------------------------------------------
-vtkUsSimulatorVideoSourceCleanup2::vtkUsSimulatorVideoSourceCleanup2()
-{
-}
-
-//----------------------------------------------------------------------------
-vtkUsSimulatorVideoSourceCleanup2::~vtkUsSimulatorVideoSourceCleanup2()
-{
-  // Destroy any remaining video source
-  vtkUsSimulatorVideoSource::SetInstance(NULL);
-}
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 {
@@ -58,56 +39,6 @@ vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
   this->SetTransformRepository(NULL);
 }
 
-//----------------------------------------------------------------------------
-// Up the reference count so it behaves like New
-vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::New()
-{
-  vtkUsSimulatorVideoSource* ret = vtkUsSimulatorVideoSource::GetInstance();
-  ret->Register(NULL);
-  return ret;
-}
-
-//----------------------------------------------------------------------------
-// Return the single instance of the vtkOutputWindow
-vtkUsSimulatorVideoSource* vtkUsSimulatorVideoSource::GetInstance()
-{
-  if(!vtkUsSimulatorVideoSource::Instance)
-  {
-    // Try the factory first
-    vtkUsSimulatorVideoSource::Instance = (vtkUsSimulatorVideoSource*)vtkObjectFactory::CreateInstance("vtkUsSimulatorVideoSource");    
-    if(!vtkUsSimulatorVideoSource::Instance)
-    {
-      vtkUsSimulatorVideoSource::Instance = new vtkUsSimulatorVideoSource();     
-    }
-    if(!vtkUsSimulatorVideoSource::Instance)
-    {
-      int error = 0;
-    }
-  }
-  // return the instance
-  return vtkUsSimulatorVideoSource::Instance;
-}
-
-//----------------------------------------------------------------------------
-void vtkUsSimulatorVideoSource::SetInstance(vtkUsSimulatorVideoSource* instance)
-{
-  if (vtkUsSimulatorVideoSource::Instance==instance)
-  {
-    return;
-  }
-  // preferably this will be NULL
-  if (vtkUsSimulatorVideoSource::Instance)
-  {
-    vtkUsSimulatorVideoSource::Instance->Delete();;
-  }
-  vtkUsSimulatorVideoSource::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
-  // user will call ->Delete() after setting instance
-  instance->Register(NULL);
-}
 //----------------------------------------------------------------------------
 void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
