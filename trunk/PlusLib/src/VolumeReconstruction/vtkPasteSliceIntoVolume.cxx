@@ -125,7 +125,7 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
 
   this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
 
-  this->disableAccumulationBufferOverflowWarning = true;
+  this->EnableAccumulationBufferOverflowWarning = true;
 }
 
 //----------------------------------------------------------------------------
@@ -366,7 +366,7 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
   for (int i = 0; i < numThreads; i++) {
     sumAccOverflowErrors += str.AccumulationBufferSaturationErrors[i];
   }
-  if (sumAccOverflowErrors && !disableAccumulationBufferOverflowWarning) {
+  if (sumAccOverflowErrors && !EnableAccumulationBufferOverflowWarning) {
     LOG_WARNING(sumAccOverflowErrors << " voxels have had too many pixels inserted. This can result in errors in the final volume. It is recommended that the output volume resolution be increased.");
   }
 

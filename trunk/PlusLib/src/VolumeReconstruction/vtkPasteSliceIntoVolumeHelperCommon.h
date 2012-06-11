@@ -40,6 +40,40 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
+/* MODIFIED JUNE 2012 by Thomas Vaughan:
+A few notes about the code:
+
+It is unclear why the variable 255 was used in many places. Following the 
+logic, it is the equivalent to the accumulation buffer value for inserting 
+a whole pixel into a single voxel. In this case it would make more sense if 
+the value was 256 (which is consistent with the fixed point representation). 
+However, as mentioned above, it is unclear what the original intent with this 
+number was. I changed it to 256. For readability and to make it easier to 
+change  later, I defined it as a preprocessor statement in this header file - 
+see ACCUMULATION_MULTIPLIER.
+
+Depending on the data type used to store the accumulation buffer, there will
+be a different maximum value that can be stored for any single voxel. At the
+time of writing, the data type is unsigned short, meaning the maximum value
+in the accumulation buffer is exactly 65535. ACCUMULATION_MAXIMUM is this
+value.
+
+The two values are used to determine a threshold for the accumulation buffer
+as to when we should stop taking in pixel values (to prevent overflow). The
+calculation will be correct as long as inserting the pixel does not cause
+the accumulation buffer to overflow. The highest value that can be inserted
+into the accumulation value is ACCUMULATION_MULTIPLIER. As long as the current
+accumulation buffer value plus ACCUMULATION_MULTIPLIER is less than or equal
+to the maximm value, we are safe. Therefore, the threshold should be defined 
+as: 
+ACCUMULATION_THRESHOLD = (ACCUMULATION_MAXIMUM - ACCUMULATION_MULTIPLIER)
+
+Note that, in order to deal with overflow, the code previously would take in 
+the additional pixel value and  calculate a weighted average, as normally done 
+in compounding, but then reset the  accumulation value for the voxel to 65535 
+afterward. This resulted in unwanted and clearly-wrong artifacts.
+*/
+
 /*!
   \file vtkPasteSliceIntoVolumeHelperCommon.h
   \brief Helper functions for pasting slice into volume
@@ -59,10 +93,12 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusMath.h"
 
 
-#define OPAQUE_ALPHA 255;
-#define ACCUMULATION_MULTIPLIER 255
+#define OPAQUE_ALPHA 255
+
+// regarding these values, see comments at the top of this file by Thomas Vaughan
+#define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
-#define ACCUMULATION_THRESHOLD 65279
+#define ACCUMULATION_THRESHOLD 65279 // calculate manually to possibly save on computation time
 
 
 /*!
@@ -196,7 +232,6 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         }
         while (i);
 
-        // TODO: Investigate why the result is different when newa is declared as unsigned short instead of F
         F newa = a * ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
         if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
           (*accOverflowCount) += 1;
@@ -205,6 +240,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         // don't allow accumulation buffer overflow
         if (newa < ACCUMULATION_MAXIMUM)
         {
+          // round the fixed point to the nearest whole unit, and save the result as an unsigned short into the accumulation buffer
           PlusMath::Round(newa, *accPtrTmp);
         }
       }

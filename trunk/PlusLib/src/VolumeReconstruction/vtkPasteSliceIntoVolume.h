@@ -310,7 +310,7 @@ private:
   vtkPasteSliceIntoVolume(const vtkPasteSliceIntoVolume&);
   void operator=(const vtkPasteSliceIntoVolume&);
 
-  bool disableAccumulationBufferOverflowWarning; // TODO: Remove this and all references once we've figured out how to handle this problem
+  bool EnableAccumulationBufferOverflowWarning; // TODO: Remove this and all references once we've figured out how to handle this problem
 };
 
 #endif
