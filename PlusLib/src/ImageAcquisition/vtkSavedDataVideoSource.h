@@ -14,18 +14,6 @@ class vtkVideoBuffer;
 class VTK_EXPORT vtkSavedDataVideoSource;
 
 /*!
-  \class vtkSavedDataVideoSourceCleanup2 
-  \brief Class that cleans up (deletes singleton instance of) vtkSavedDataVideoSource when destroyed
-  \ingroup PlusLibImageAcquisition
-*/
-class VTK_EXPORT vtkSavedDataVideoSourceCleanup2
-{
-public:
-	vtkSavedDataVideoSourceCleanup2();
-	~vtkSavedDataVideoSourceCleanup2();
-};
-
-/*!
   \class vtkSavedDataVideoSource 
   \brief Class for providing VTK video input interface from sequence metafile
   \ingroup PlusLibImageAcquisition
@@ -36,16 +24,6 @@ public:
 	vtkTypeRevisionMacro(vtkSavedDataVideoSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	static vtkSavedDataVideoSource* New();
-	static vtkSavedDataVideoSource* GetInstance();
-	static void SetInstance(vtkSavedDataVideoSource *instance);
-
-	//BTX
-	/*! Use this as a way of memory management when the
-	 program exits the SmartPointer will be deleted which
-	 will delete the Instance singleton
-  */
-	static vtkSavedDataVideoSourceCleanup2 Cleanup;
-	//ETX
 
   /*! Read configuration from xml data */
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 

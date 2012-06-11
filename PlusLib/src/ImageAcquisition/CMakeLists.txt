@@ -336,12 +336,12 @@ SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
   ITKIO
   ITKBasicFilters
   vtkTracking
-  UsSimulatorAlgo
+  vtkUsSimulatorAlgo
   )
 
 SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
-  ${CMAKE_CURRENT_SOURCE_DIR}/../UsSimulatorAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/../Tracking
+  ${UsSimulatorAlgo_INCLUDE_DIRS}
+  ${Tracking_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
 
 INCLUDE_DIRECTORIES( ${ImageAcquisition_INCLUDE_DIRS} )

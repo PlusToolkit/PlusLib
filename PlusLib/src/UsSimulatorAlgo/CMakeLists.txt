@@ -21,15 +21,15 @@ SET (UsSimulatorAlgo_LIBS
 
 SET (UsSimulatorAlgo_INCLUDE_DIRS ${UsSimulatorAlgo_INCLUDE_DIRS} ${UsSimulatorAlgo_INCLUDE_DIRS} CACHE INTERNAL "" FORCE    )
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )
-ADD_LIBRARY(UsSimulatorAlgo ${UsSimulatorAlgo_SRCS} ${UsSimulatorAlgo_HDRS})
-TARGET_LINK_LIBRARIES(UsSimulatorAlgo ${UsSimulatorAlgo_LIBS})
+ADD_LIBRARY(vtkUsSimulatorAlgo ${UsSimulatorAlgo_SRCS} ${UsSimulatorAlgo_HDRS})
+TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgo ${UsSimulatorAlgo_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} UsSimulatorAlgo CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkUsSimulatorAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_UsSimulatorAlgo UsSimulatorAlgo ${PlusLib_BINARY_DIR}/src/UsSimulatorAlgo/UsSimulatorAlgo.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkUsSimulatorAlgo vtkUsSimulatorAlgo ${PlusLib_BINARY_DIR}/src/UsSimulatorAlgo/vtkUsSimulatorAlgo.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
@@ -40,7 +40,7 @@ ENDIF (BUILD_TESTING)
 # Install
 #
 
-INSTALL(TARGETS UsSimulatorAlgo
+INSTALL(TARGETS vtkUsSimulatorAlgo
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION bin
   CONFIGURATIONS Release

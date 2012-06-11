@@ -119,7 +119,7 @@ int main(int argc, char **argv)
   args.AddArgument("--output-model-frame-intersection-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of stl file containing the visualization of the intersection between the model and the frames");
   args.AddArgument("--input-transform-name",vtksys::CommandLineArguments::EQUAL_ARGUMENT,&inputTransformName,"Desired transform");
   args.AddArgument("--show-model-frames-intersection-display",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &showModel,"If empty, does not display a visualization of the model and the frame"); 
-  ///////////////////////////////////////
+
 
   // Input arguments error checking
   if ( !args.Parse() )
@@ -158,8 +158,8 @@ int main(int argc, char **argv)
 
   // Read config file
   LOG_DEBUG("Reading config file...")
-
   vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  LOG_DEBUG("Reading config file finished.");
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
@@ -167,7 +167,6 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to read transforms for transform repository!"); 
     exit(EXIT_FAILURE); 
   }
-  LOG_DEBUG("Reading config file finished.");
 
   PlusTransformName imageToReferenceTransformName; 
 
@@ -230,6 +229,7 @@ int main(int argc, char **argv)
   for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
+
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
     }
 
     // We use the model coordinate system as reference coordinate system
-    // TODO:Alter to get new position? Or does it do it automatically ?
+    // TODO: Alter to get new position? Or does it do it automatically?
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
     if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS )
     {
@@ -248,27 +248,11 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-    stencilBackgroundImage->SetSpacing(1,1,1);
-    stencilBackgroundImage->SetOrigin(0,0,0);
-
-    int* frameSize = frame->GetFrameSize();
-    stencilBackgroundImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
-
-    stencilBackgroundImage->SetScalarTypeToUnsignedChar();
-    stencilBackgroundImage->SetNumberOfScalarComponents(1);
-    stencilBackgroundImage->AllocateScalars(); 
-
-    int* extent = stencilBackgroundImage->GetExtent();
-    memset(stencilBackgroundImage->GetScalarPointer(), 0,
-      ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
-
     // Prepare filter and filter input
     vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     modelToImageMatrix->DeepCopy(imageToReferenceMatrix);
     modelToImageMatrix->Invert();
-    usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
-    usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
+    usSimulator->SetModelToImageMatrix(modelToImageMatrix);
     usSimulator->Update();
 
     vtkImageData* simOutput = usSimulator->GetOutput();
@@ -323,4 +307,7 @@ int main(int argc, char **argv)
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
+
+  LOG_INFO("Test completed successfully!");
+	return EXIT_SUCCESS; 
 }

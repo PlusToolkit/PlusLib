@@ -27,11 +27,6 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-const unsigned char vtkUsSimulatorAlgo::OUTVALSTENCILFOREGROUND = 155;
-const int vtkUsSimulatorAlgo::INPUTOBJECTNUM = 0;
-const int vtkUsSimulatorAlgo::OUTPUTOBJECTNUM = 0;
-
-
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
 
@@ -42,6 +37,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   SetNumberOfOutputPorts(1);
 
   this->BackgroundValue = 0;
+  this->ForegroundValue = 155;
   this->StencilBackgroundImage = NULL;
   this->ModelToImageMatrix = NULL;
 
@@ -97,8 +93,8 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   } 
 
   //Get input
-  vtkInformation* inInfoPort = inputVector[INPUTOBJECTNUM]->GetInformationObject(INPUTOBJECTNUM );
-  vtkInformation* outInfo = outputVector->GetInformationObject(OUTPUTOBJECTNUM); 
+  vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
+  vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
   vtkPolyData* modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
   if (modelModel == NULL)
@@ -153,9 +149,9 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencilOutput);
   combineModelwithBackgroundStencil->ReverseStencilOn();
-  combineModelwithBackgroundStencil->SetBackgroundValue(OUTVALSTENCILFOREGROUND);
+  combineModelwithBackgroundStencil->SetBackgroundValue(this->ForegroundValue);
   combineModelwithBackgroundStencil->Update();
-  vtkImageData *combinedStencilOutput=combineModelwithBackgroundStencil->GetOutput();
+  vtkImageData *combinedStencilOutput = combineModelwithBackgroundStencil->GetOutput();
 
   simulatedUsImage->DeepCopy(combinedStencilOutput); 
 
@@ -201,7 +197,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
   // Pixel spacing
-	int spacingMmPerPixel[2] = {0};
+	double spacingMmPerPixel[2] = {0};
 	if ( usSimulatorAlgoElement->GetVectorAttribute("SpacingMmPerPixel", 2, spacingMmPerPixel) )
 	{
     this->SpacingMmPerPixel[0] = spacingMmPerPixel[0];
@@ -213,25 +209,23 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
 	}
 
-  /*
   // Create and set stencil background image
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
   stencilBackgroundImage->SetOrigin(0,0,0);
 
+  //int* frameSize = frame->GetFrameSize();
   stencilBackgroundImage->SetExtent(0, this->FrameSize[0]-1, 0, this->FrameSize[1]-1, 0, 0);
+
   stencilBackgroundImage->SetScalarTypeToUnsignedChar();
   stencilBackgroundImage->SetNumberOfScalarComponents(1);
   stencilBackgroundImage->AllocateScalars(); 
 
   int* extent = stencilBackgroundImage->GetExtent();
-
-  memset(stencilBackgroundImage->GetScalarPointer(), this->BackgroundValue,
-    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)
-    *stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
+  memset(stencilBackgroundImage->GetScalarPointer(), 0,
+    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
   this->SetStencilBackgroundImage(stencilBackgroundImage);
-  */
 
   // Model file name
   const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
