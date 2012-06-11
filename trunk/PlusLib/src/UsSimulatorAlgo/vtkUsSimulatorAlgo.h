@@ -60,7 +60,7 @@ public:
   /*! Get pixel spacing */
   vtkGetVector2Macro(SpacingMmPerPixel, double);
 
-protected:
+//protected:
   /*! Set stencil background image */
   vtkSetObjectMacro(StencilBackgroundImage, vtkImageData); 
 

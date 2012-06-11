@@ -227,7 +227,7 @@ int main(int argc, char **argv)
     renderWindowInteractorPoly->Start();
   }
 
-  for(int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
+  for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
     // Update transform repository 
@@ -248,11 +248,27 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
+    vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+    stencilBackgroundImage->SetSpacing(1,1,1);
+    stencilBackgroundImage->SetOrigin(0,0,0);
+
+    int* frameSize = frame->GetFrameSize();
+    stencilBackgroundImage->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+
+    stencilBackgroundImage->SetScalarTypeToUnsignedChar();
+    stencilBackgroundImage->SetNumberOfScalarComponents(1);
+    stencilBackgroundImage->AllocateScalars(); 
+
+    int* extent = stencilBackgroundImage->GetExtent();
+    memset(stencilBackgroundImage->GetScalarPointer(), 0,
+      ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
+
     // Prepare filter and filter input
     vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     modelToImageMatrix->DeepCopy(imageToReferenceMatrix);
     modelToImageMatrix->Invert();
     usSimulator->SetModelToImageMatrix(modelToImageMatrix); 
+    usSimulator->SetStencilBackgroundImage(stencilBackgroundImage); 
     usSimulator->Update();
 
     vtkImageData* simOutput = usSimulator->GetOutput();

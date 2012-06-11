@@ -43,7 +43,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->BackgroundValue = 0;
   this->StencilBackgroundImage = NULL;
-  this->ModelToImageMatrix= NULL;
+  this->ModelToImageMatrix = NULL;
 
   this->FrameSize[0] = 640;
   this->FrameSize[1] = 480;
@@ -213,6 +213,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
 	}
 
+  /*
   // Create and set stencil background image
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
@@ -230,6 +231,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     *stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
   this->SetStencilBackgroundImage(stencilBackgroundImage);
+  */
 
   // Model file name
   const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
