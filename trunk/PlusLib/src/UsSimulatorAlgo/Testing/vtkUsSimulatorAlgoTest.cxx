@@ -308,6 +308,5 @@ int main(int argc, char **argv)
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
 
-  LOG_INFO("Test completed successfully!");
 	return EXIT_SUCCESS; 
 }
