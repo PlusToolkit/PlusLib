@@ -179,7 +179,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 	}
 
   // Verify root element name
-  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL)
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != 0)
   {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig')");
     return PLUS_FAIL;
@@ -249,7 +249,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   this->SetApplicationConfigurationData(applicationConfigurationRoot); 
 
   // Verify root element name
-  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL)
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != 0)
   {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig' instead of '" << applicationConfigurationRoot->GetName() << "')");
     return PLUS_FAIL;

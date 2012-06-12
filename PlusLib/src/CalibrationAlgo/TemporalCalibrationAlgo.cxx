@@ -318,7 +318,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
   //  Find the mean tracker position
   itk::Point<double, 3> trackerPositionSum;
   trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
-  std::vector<itk::Point<double, 3>> trackerPositions;
+  std::vector<itk::Point<double, 3> > trackerPositions;
   int numberOfValidFrames = 0;
   for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
@@ -395,7 +395,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
+void TemporalCalibration::ComputePrincipalAxis(std::vector<itk::Point<double, 3> > &trackerPositions, 
                                                itk::Point<double,3> &principalAxisOfMotion, int numValidFrames)
 {
   // Set the X-values
@@ -503,7 +503,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
     }
 
 
-    std::vector<itk::Point<double,2>> intensityPeakPositions;
+    std::vector<itk::Point<double,2> > intensityPeakPositions;
     charImageType::RegionType region = localImage->GetLargestPossibleRegion();
     int numOfValidScanlines = 0;
 
@@ -1626,7 +1626,7 @@ void TemporalCalibration::plotDoubleArray(std::vector<double> intensityValues)
 } //  End plot()
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters)
+PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters)
 {
 
   typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;

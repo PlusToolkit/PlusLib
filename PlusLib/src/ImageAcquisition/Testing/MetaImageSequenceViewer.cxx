@@ -110,7 +110,7 @@ public:
 
 protected:
 
-  vtkMyCallback::vtkMyCallback()
+  vtkMyCallback()
   {
     this->FrameNum = 0; 
     this->CurrentActor = NULL; 
@@ -121,7 +121,7 @@ protected:
     this->ImageTransforms=NULL; 
   }
 
-  virtual vtkMyCallback::~vtkMyCallback()
+  virtual ~vtkMyCallback()
   {
   }
 

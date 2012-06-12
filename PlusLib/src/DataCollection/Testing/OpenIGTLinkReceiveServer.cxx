@@ -17,7 +17,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 /*! This function runs on a separate thread to collect OpenIGTLink messages. */
-static void* vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
+void* vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
 {
   OpenIGTLinkReceiveServer* self = (OpenIGTLinkReceiveServer*)( data->UserData );
 

@@ -35,28 +35,6 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	  )
 	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
-
-
-#***************************  vtkDataCollectorSynchronizerTest ***************************
-ADD_EXECUTABLE(vtkDataCollectorSynchronizerTest vtkDataCollectorSynchronizerTest.cxx)
-TARGET_LINK_LIBRARIES(vtkDataCollectorSynchronizerTest vtkDataCollection )
-ADD_TEST(vtkDataCollectorSynchronizerTest1 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorSynchronizerTest
-  --input-threshold-multiplier=5
-  --input-video-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
-  --input-tracker-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
-  --input-baseline-report-file=${TestDataDir}/DataCollectorSyncReportBaseline.txt
-  --input-transform-name=ToolToTrackerTransform
-  --input-number-of-averaged-frames=6
-  --input-max-frame-difference=10
-  --input-min-frame-threshold=200
-  --input-number-of-averaged-transforms=15
-  --input-max-transform-difference=2.0
-  --input-min-transform-threshold=5.0
-  --verbose=3
-  
-  ) 
-SET_TESTS_PROPERTIES( vtkDataCollectorSynchronizerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)

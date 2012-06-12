@@ -74,25 +74,25 @@ public:
   
 	/*!
     Get current date in string 
-    \return Format: [MMDDYY]
+    \return Format: MMDDYY
    */
 	static std::string GetDateString(); 
 
 	/*!
     Get current time in string 
-    \return Format: [HHMMSS]
+    \return Format: HHMMSS
    */
 	static std::string GetTimeString(); 
 
 	/*!
     Get current date with time in string 
-    \return Format: [MMDDYY_HHMMSS]
+    \return Format: MMDDYY_HHMMSS
    */
 	static std::string GetDateAndTimeString(); 
 
 	/*!
     Get current date with time ans ms in string 
-    \return Format: [MMDDYY_HHMMSS.MS]
+    \return Format: MMDDYY_HHMMSS.MS
    */
 	static std::string GetDateAndTimeMSecString(); 
 
@@ -118,6 +118,16 @@ private:
 
 	/*! The singleton cleanup instance */
 	static vtkAccurateTimerCleanup Cleanup;
+  
+  enum CurrentDateTimeFormat
+  {
+    CURRENT_DATE,
+    CURRENT_TIME,
+    CURRENT_DATE_TIME,
+    CURRENT_DATE_TIME_MSEC
+  };
+  
+  static std::string GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded); 
 }; 
 
 #endif

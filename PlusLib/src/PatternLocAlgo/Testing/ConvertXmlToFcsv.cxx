@@ -20,6 +20,16 @@
 static const int FIDUCIAL_COUNT_PER_SLICE=7;
 static const int MAX_FIDUCIAL_COUNT=50;
 
+struct FiducialInfo
+{
+  std::string label;
+  double x;
+  double y;
+  double z;
+  int sel;
+  int vis;
+};
+
 int main(int argc, char **argv)
 {
 	std::string inputXmlFileName;
@@ -126,16 +136,6 @@ int main(int argc, char **argv)
 		{
 			LOG_WARNING("Too many baseline fiducials");
 		}
-
-		struct FiducialInfo
-		{
-			std::string label;
-			double x;
-			double y;
-			double z;
-			int sel;
-			int vis;
-		};
 
 		std::vector<FiducialInfo> fids(FIDUCIAL_COUNT_PER_SLICE);
 		for (int i=0; i<FIDUCIAL_COUNT_PER_SLICE; i++)

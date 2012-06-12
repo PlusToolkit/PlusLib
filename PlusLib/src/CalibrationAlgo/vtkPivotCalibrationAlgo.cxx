@@ -77,6 +77,60 @@ PlusStatus vtkPivotCalibrationAlgo::InsertNextCalibrationPoint(vtkSmartPointer<v
 
 //----------------------------------------------------------------------------
 
+void vtkTrackerToolCalibrationFunction(void *userData)
+{
+  LOG_TRACE("(vtkPivotCalibrationAlgo)vtkTrackerToolCalibrationFunction");
+
+  vtkPivotCalibrationAlgo *self = (vtkPivotCalibrationAlgo*)userData;
+
+	int i;
+	int n = self->MarkerToReferenceTransformMatrixArray->GetNumberOfTuples();
+
+	double x = self->Minimizer->GetParameterValue("x");
+	double y = self->Minimizer->GetParameterValue("y");
+	double z = self->Minimizer->GetParameterValue("z");
+	double nx,ny,nz,sx,sy,sz,sxx,syy,szz;
+
+	double matrix[4][4];
+
+	sx = sy = sz = 0.0;
+	sxx = syy = szz = 0.0;
+
+	for (i = 0; i < n; i++)
+	{
+		self->MarkerToReferenceTransformMatrixArray->GetTuple(i,*matrix);
+
+		nx = matrix[0][0]*x + matrix[0][1]*y + matrix[0][2]*z + matrix[0][3];
+		ny = matrix[1][0]*x + matrix[1][1]*y + matrix[1][2]*z + matrix[1][3];
+		nz = matrix[2][0]*x + matrix[2][1]*y + matrix[2][2]*z + matrix[2][3];
+
+		sx += nx;
+		sy += ny;
+		sz += nz;
+
+		sxx += nx*nx;
+		syy += ny*ny;
+		szz += nz*nz;
+	}
+
+	double r;
+
+	if (n > 1)
+	{
+		r = sqrt((sxx - sx*sx/n)/(n-1) +
+			(syy - sy*sy/n)/(n-1) +
+			(szz - sz*sz/n)/(n-1));
+	}
+	else
+	{
+		r = 0;
+	}
+
+	self->Minimizer->SetFunctionValue(r);
+}
+
+//----------------------------------------------------------------------------
+
 PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* aTransformRepository/* = NULL*/)
 {
   LOG_TRACE("vtkPivotCalibrationAlgo::DoPivotCalibration");
@@ -200,65 +254,13 @@ std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString()
     return "";
   }
 
-	char pivotPointToMarkerTranslationChars[32];
-	sprintf_s(pivotPointToMarkerTranslationChars, 32, "%.2lf X %.2lf X %.2lf", this->PivotPointToMarkerTransformMatrix->GetElement(0,3), this->PivotPointToMarkerTransformMatrix->GetElement(1,3), this->PivotPointToMarkerTransformMatrix->GetElement(2,3));
-	std::string pivotPointToMarkerTranslationString(pivotPointToMarkerTranslationChars);
-
-	return pivotPointToMarkerTranslationString;
-}
-
-//----------------------------------------------------------------------------
-
-void vtkTrackerToolCalibrationFunction(void *userData)
-{
-  LOG_TRACE("(vtkPivotCalibrationAlgo)vtkTrackerToolCalibrationFunction");
-
-  vtkPivotCalibrationAlgo *self = (vtkPivotCalibrationAlgo*)userData;
-
-	int i;
-	int n = self->MarkerToReferenceTransformMatrixArray->GetNumberOfTuples();
-
-	double x = self->Minimizer->GetParameterValue("x");
-	double y = self->Minimizer->GetParameterValue("y");
-	double z = self->Minimizer->GetParameterValue("z");
-	double nx,ny,nz,sx,sy,sz,sxx,syy,szz;
-
-	double matrix[4][4];
-
-	sx = sy = sz = 0.0;
-	sxx = syy = szz = 0.0;
-
-	for (i = 0; i < n; i++)
-	{
-		self->MarkerToReferenceTransformMatrixArray->GetTuple(i,*matrix);
-
-		nx = matrix[0][0]*x + matrix[0][1]*y + matrix[0][2]*z + matrix[0][3];
-		ny = matrix[1][0]*x + matrix[1][1]*y + matrix[1][2]*z + matrix[1][3];
-		nz = matrix[2][0]*x + matrix[2][1]*y + matrix[2][2]*z + matrix[2][3];
-
-		sx += nx;
-		sy += ny;
-		sz += nz;
-
-		sxx += nx*nx;
-		syy += ny*ny;
-		szz += nz*nz;
-	}
-
-	double r;
-
-	if (n > 1)
-	{
-		r = sqrt((sxx - sx*sx/n)/(n-1) +
-			(syy - sy*sy/n)/(n-1) +
-			(szz - sz*sz/n)/(n-1));
-	}
-	else
-	{
-		r = 0;
-	}
-
-	self->Minimizer->SetFunctionValue(r);
+  std::ostrstream s;
+  s << this->PivotPointToMarkerTransformMatrix->GetElement(0,3) 
+    << " x " << this->PivotPointToMarkerTransformMatrix->GetElement(1,3)
+    << " x " << this->PivotPointToMarkerTransformMatrix->GetElement(2,3)
+    << std::ends;	
+    
+	return s.str();
 }
 
 //-----------------------------------------------------------------------------

@@ -18,7 +18,7 @@ const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
 
 // ************************ PlusMath::LSQRMinimize ****************************
 int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest); 
-PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
+PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector); 
 PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData, int numberOfOutliers); 
 
 template<class floatType> int TestFloor(const char* floatName);
@@ -103,7 +103,7 @@ int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest)
     return numberOfErrors; 
   }
 
-  std::vector<vnl_vector<double>> aMatrix; 
+  std::vector<vnl_vector<double> > aMatrix; 
   std::vector<double> bVector;  
   vnl_vector<double> resultVector(2,0); 
 
@@ -175,7 +175,7 @@ int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
+PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector)
 {
   vtkXMLDataElement* xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
   if ( xmlLinearEquation == NULL )

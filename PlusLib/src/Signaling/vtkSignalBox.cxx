@@ -238,7 +238,9 @@ double vtkSignalBox::CalculateRetrospectiveTimestamp(int phase)
 //-------------------------------------------------------------------------
 void vtkSignalBox::UpdateTimestamp() 
 {
+/* TODO: update this
   struct _timeb timeTmp;
   _ftime(&timeTmp);  // seconds from Jan. 1, 1970
   this->Timestamp = timeTmp.time + 0.001*timeTmp.millitm;
+  */
 }

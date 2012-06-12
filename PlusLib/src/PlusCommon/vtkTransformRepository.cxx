@@ -110,10 +110,9 @@ void vtkTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkTransformRepository::TransformInfo* vtkTransformRepository::GetOriginalTransform(PlusTransformName& aTransformName)
+vtkTransformRepository::TransformInfo* vtkTransformRepository::GetOriginalTransform(const PlusTransformName& aTransformName)
 {
   CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
-  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[aTransformName.To()];
 
   // Check if the transform already exist
   CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(aTransformName.To());
@@ -167,7 +166,7 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid/*=true*/ )
+PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid/*=true*/ )
 {
   if ( ! aTransformName.IsValid() )
   {
@@ -237,13 +236,13 @@ PlusStatus vtkTransformRepository::SetTransform(PlusTransformName& aTransformNam
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransformValid(PlusTransformName& aTransformName, bool isValid)
+PlusStatus vtkTransformRepository::SetTransformValid(const PlusTransformName& aTransformName, bool isValid)
 {
   return SetTransform(aTransformName, NULL, isValid);
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid /*=NULL*/ )
+PlusStatus vtkTransformRepository::GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid /*=NULL*/ )
 {
   if ( !aTransformName.IsValid() )
   {
@@ -262,7 +261,6 @@ PlusStatus vtkTransformRepository::GetTransform(PlusTransformName& aTransformNam
   // Create transform chain and compute transform status
   vtkSmartPointer<vtkTransform> combinedTransform=vtkSmartPointer<vtkTransform>::New();
   bool combinedTransformValid=true;
-  bool combinedTransformPersistent=true;
   for (TransformInfoListType::iterator transformInfo=transformInfoList.begin(); transformInfo!=transformInfoList.end(); ++transformInfo)
   {
     combinedTransform->Concatenate((*transformInfo)->m_Transform);
@@ -286,13 +284,13 @@ PlusStatus vtkTransformRepository::GetTransform(PlusTransformName& aTransformNam
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransformValid(PlusTransformName& aTransformName, bool &isValid)
+PlusStatus vtkTransformRepository::GetTransformValid(const PlusTransformName& aTransformName, bool &isValid)
 {
   return GetTransform(aTransformName, NULL, &isValid);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransformPersistent(PlusTransformName& aTransformName, bool isPersistent)
+PlusStatus vtkTransformRepository::SetTransformPersistent(const PlusTransformName& aTransformName, bool isPersistent)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -305,7 +303,7 @@ PlusStatus vtkTransformRepository::SetTransformPersistent(PlusTransformName& aTr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransformPersistent(PlusTransformName& aTransformName, bool &isPersistent)
+PlusStatus vtkTransformRepository::GetTransformPersistent(const PlusTransformName& aTransformName, bool &isPersistent)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -318,7 +316,7 @@ PlusStatus vtkTransformRepository::GetTransformPersistent(PlusTransformName& aTr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransformError(PlusTransformName& aTransformName, double aError)
+PlusStatus vtkTransformRepository::SetTransformError(const PlusTransformName& aTransformName, double aError)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -331,7 +329,7 @@ PlusStatus vtkTransformRepository::SetTransformError(PlusTransformName& aTransfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransformError(PlusTransformName& aTransformName, double &aError)
+PlusStatus vtkTransformRepository::GetTransformError(const PlusTransformName& aTransformName, double &aError)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -344,7 +342,7 @@ PlusStatus vtkTransformRepository::GetTransformError(PlusTransformName& aTransfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransformDate(PlusTransformName& aTransformName, const char* aDate)
+PlusStatus vtkTransformRepository::SetTransformDate(const PlusTransformName& aTransformName, const char* aDate)
 {
   if ( aDate == NULL )
   {
@@ -363,7 +361,7 @@ PlusStatus vtkTransformRepository::SetTransformDate(PlusTransformName& aTransfor
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransformDate(PlusTransformName& aTransformName, std::string& aDate)
+PlusStatus vtkTransformRepository::GetTransformDate(const PlusTransformName& aTransformName, std::string& aDate)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -376,7 +374,7 @@ PlusStatus vtkTransformRepository::GetTransformDate(PlusTransformName& aTransfor
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
+PlusStatus vtkTransformRepository::FindPath(const PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
 {
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
@@ -444,7 +442,7 @@ PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransf
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::DeleteTransform(PlusTransformName& aTransformName)
+PlusStatus vtkTransformRepository::DeleteTransform(const PlusTransformName& aTransformName)
 {
   CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
   CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(aTransformName.To());

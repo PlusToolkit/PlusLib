@@ -26,7 +26,12 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 
-typedef unsigned __int64 BufferItemUidType;
+#ifdef _WIN32
+  typedef unsigned __int64 BufferItemUidType;
+#else
+  typedef unsigned long long BufferItemUidType;
+#endif
+
 enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, ITEM_UNKNOWN_ERROR };
 
 /*!

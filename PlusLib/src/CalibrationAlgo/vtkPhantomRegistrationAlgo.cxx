@@ -62,8 +62,8 @@ PlusStatus vtkPhantomRegistrationAlgo::Register(vtkTransformRepository* aTransfo
 
   // Create input point vectors
   //int numberOfLandmarks = this->DefinedLandmarks->GetNumberOfPoints();
-  std::vector<itk::Point<double,3>> fixedPoints;
-  std::vector<itk::Point<double,3>> movingPoints;
+  std::vector<itk::Point<double,3> > fixedPoints;
+  std::vector<itk::Point<double,3> > movingPoints;
 
   for (int i=0; i<this->RecordedLandmarks->GetNumberOfPoints(); ++i)
   {

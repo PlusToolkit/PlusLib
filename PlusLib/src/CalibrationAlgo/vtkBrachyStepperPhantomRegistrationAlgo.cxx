@@ -135,7 +135,7 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
   //    FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
   // ==================================================================================
 
-  std::vector<vtkSmartPointer<vtkPoints>> vectorOfWirePoints; 
+  std::vector<vtkSmartPointer<vtkPoints> > vectorOfWirePoints; 
   for ( int index = 0; index < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++index )
   {    
     // Get tracked frame from list 

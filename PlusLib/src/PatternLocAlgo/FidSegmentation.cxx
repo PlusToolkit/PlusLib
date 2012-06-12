@@ -7,6 +7,7 @@
 #include "FidSegmentation.h"
 #include "vtkMath.h"
 
+#include <limits.h>
 #include <iostream>
 #include <algorithm>
 

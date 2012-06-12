@@ -86,6 +86,9 @@ public:
 protected:
   vtkMetaImageSequenceIO();
   virtual ~vtkMetaImageSequenceIO();
+  
+  /*! Opens a file. Doesn't log error if it fails because it may be expected. */
+  PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
 
   /*! Set a custom string field value for a specific frame */
   PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
@@ -145,7 +148,11 @@ protected:
 
 private:
 
+#ifdef _WIN32
   typedef __int64 FilePositionOffsetType;
+#else
+  typedef off64_t FilePositionOffsetType;
+#endif  
     
   /*! Custom frame fields and image data are stored in the m_FrameList for each frame */
   vtkTrackedFrameList* TrackedFrameList;

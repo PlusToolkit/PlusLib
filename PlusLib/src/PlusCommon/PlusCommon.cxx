@@ -24,7 +24,7 @@ PlusTransformName::PlusTransformName(std::string aFrom, std::string aTo )
 }
 
 //-------------------------------------------------------
-bool PlusTransformName::IsValid()
+bool PlusTransformName::IsValid() const
 {
   if ( this->m_From.empty() )
   {
@@ -83,12 +83,14 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   // Set coordinate frame names 
   this->m_From = regexp.match(1); 
   this->m_To = regexp.match(2); 
+  this->Capitalize(this->m_From); 
+  this->Capitalize(this->m_To); 
 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------
-PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName)
+PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) const
 {
   if ( this->m_From.empty() )
   {
@@ -107,16 +109,14 @@ PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName)
 }
 
 //-------------------------------------------------------
-std::string PlusTransformName::From()
+std::string PlusTransformName::From() const
 {
-  this->Capitalize(this->m_From); 
   return this->m_From; 
 }
 
 //-------------------------------------------------------
-std::string PlusTransformName::To()
+std::string PlusTransformName::To() const
 {
-  this->Capitalize(this->m_To); 
   return this->m_To; 
 }
 
@@ -131,4 +131,18 @@ void PlusTransformName::Capitalize(std::string& aString )
   aString[0] = toupper( aString[0] );
 }
 
+//-------------------------------------------------------
+void PlusCommon::Trim(std::string &str)
+{
+  str.erase(str.find_last_not_of(" \t\r\n")+1);
+  str.erase(0,str.find_first_not_of(" \t\r\n"));
+}
 
+//-------------------------------------------------------
+std::string PlusCommon::Trim(const char* c)
+{
+  std::string str = c; 
+  str.erase(str.find_last_not_of(" \t\r\n")+1);
+  str.erase(0,str.find_first_not_of(" \t\r\n"));
+  return str; 
+}

@@ -109,7 +109,7 @@ protected:
   virtual PlusStatus Update();
 
   /*! Construct linear equation for center of rotation calibration */
-  virtual PlusStatus ConstructLinearEquationForCalibration(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector);
+  virtual PlusStatus ConstructLinearEquationForCalibration(std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector);
 
   /*! Add new column to the report table */
   PlusStatus AddNewColumnToReportTable( const char* columnName ); 

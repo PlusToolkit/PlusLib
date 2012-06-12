@@ -326,7 +326,7 @@ PlusStatus TrackedFrame::DeleteCustomFrameField( const char* fieldName )
  
 
 //----------------------------------------------------------------------------
-bool TrackedFrame::IsCustomFrameTransformNameDefined(PlusTransformName& transformName)
+bool TrackedFrame::IsCustomFrameTransformNameDefined(const PlusTransformName& transformName)
 {
   std::string toolTransformName; 
   if ( transformName.GetTransformName(toolTransformName) != PLUS_SUCCESS )
@@ -364,7 +364,7 @@ bool TrackedFrame::IsCustomFrameFieldDefined(const char* fieldName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]) 
+PlusStatus TrackedFrame::GetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]) 
 {
   std::string transformName; 
   if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
@@ -399,7 +399,7 @@ PlusStatus TrackedFrame::GetCustomFrameTransform(PlusTransformName& frameTransfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransform( PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix )
+PlusStatus TrackedFrame::GetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix )
 {
   double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
   const PlusStatus retValue = this->GetCustomFrameTransform(frameTransformName, transform); 
@@ -409,7 +409,7 @@ PlusStatus TrackedFrame::GetCustomFrameTransform( PlusTransformName& frameTransf
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status)
+PlusStatus TrackedFrame::GetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status)
 {
   status = FIELD_INVALID; 
   std::string transformStatusName; 
@@ -444,7 +444,7 @@ PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameT
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus status)
+PlusStatus TrackedFrame::SetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status)
 {
   std::string transformStatusName; 
   if ( frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS )
@@ -471,8 +471,9 @@ PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameT
 
   return PLUS_SUCCESS; 
 }
+
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]) 
+PlusStatus TrackedFrame::SetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]) 
 {
   std::ostringstream strTransform; 
   for ( int i = 0; i < 16; ++i )
@@ -500,7 +501,7 @@ PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transform) 
+PlusStatus TrackedFrame::SetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transform) 
 {
   double dTransform[ 16 ];
   vtkMatrix4x4::DeepCopy( dTransform, transform );
@@ -542,7 +543,7 @@ std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus sta
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker)
+PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker)
 {
   typedef unsigned char			PixelType; 
   typedef itk::Image< PixelType, 2 > Image2dType; 
@@ -739,7 +740,7 @@ bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )
 //----------------------------------------------------------------------------
 // ****************** TrackedFrameTransformFinder ****************************
 //----------------------------------------------------------------------------
-TrackedFrameTransformFinder::TrackedFrameTransformFinder(TrackedFrame* frame, PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg)
+TrackedFrameTransformFinder::TrackedFrameTransformFinder(TrackedFrame* frame, const PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg)
 : mTrackedFrame(frame), 
 mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
 mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg),

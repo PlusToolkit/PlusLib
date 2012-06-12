@@ -13,6 +13,18 @@
 
 #include "itk_zlib.h"
 
+  //#include <stdio.h>
+  
+#ifdef _WIN32
+  #define FSEEK _fseeki64
+  #define FTELL _ftelli64
+#else
+  #define FSEEK fseek
+  #define FTELL ftell
+#endif
+
+    
+
 // Size of MetaIO fields, in bytes (adopted from metaTypes.h)
 enum
 {
@@ -149,14 +161,13 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( fopen_s( &stream, this->FileName, "rb" ) != 0 )
+  if ( FileOpen(&stream, this->FileName, "rb" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading");
     return PLUS_FAIL;
   }
 
   char line[MAX_LINE_LENGTH+1]={0};
-  char *fgetsResult=(char*)1;
   while (fgets( line, MAX_LINE_LENGTH, stream ))
   {
 
@@ -189,7 +200,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
         if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL)==0)
         {
           // pixel data stored locally
-          this->PixelDataFileOffset=_ftelli64(stream);
+          this->PixelDataFileOffset=FTELL(stream);
         }
         else
         {
@@ -321,7 +332,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 
   FILE *stream=NULL;
 
-  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), "rb" ) != 0 )
+  if ( FileOpen( &stream, GetPixelDataFilePath().c_str(), "rb" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<GetPixelDataFilePath()<<" could not be opened for reading");
     return PLUS_FAIL;
@@ -333,7 +344,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   std::vector<unsigned char> allFramesPixelBuffer;
   if (this->UseCompression)
   {    
-    int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
+    unsigned int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
     allFramesPixelBuffer.resize(allFramesPixelBufferSize);
 
     int allFramesCompressedPixelBufferSize=0;
@@ -341,7 +352,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     std::vector<unsigned char> allFramesCompressedPixelBuffer;
     allFramesCompressedPixelBuffer.resize(allFramesCompressedPixelBufferSize);
 
-    _fseeki64(stream, this->PixelDataFileOffset, SEEK_SET);    
+    FSEEK(stream, this->PixelDataFileOffset, SEEK_SET);    
     if (fread(&(allFramesCompressedPixelBuffer[0]), 1, allFramesCompressedPixelBufferSize, stream)!=allFramesCompressedPixelBufferSize)
     {
       LOG_ERROR("Could not read "<<allFramesCompressedPixelBufferSize<<" bytes from "<<GetPixelDataFilePath());
@@ -399,7 +410,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     if (!this->UseCompression)
     {
       FilePositionOffsetType offset=PixelDataFileOffset+frameNumber*frameSizeInBytes;
-      _fseeki64(stream, offset, SEEK_SET);
+      FSEEK(stream, offset, SEEK_SET);
       if (fread(&(pixelBuffer[0]), 1, frameSizeInBytes, stream)!=frameSizeInBytes)
       {
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
@@ -477,7 +488,7 @@ bool vtkMetaImageSequenceIO::CanReadFile(const char*)
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( fopen_s( &stream, this->FileName, "rb" ) != 0 )
+  if ( FileOpen( &stream, this->FileName, "rb" ) != PLUS_SUCCESS )
   {
     LOG_DEBUG("The file "<<this->FileName<<" could not be opened for reading");
     return false;
@@ -636,7 +647,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
 
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( fopen_s( &stream, this->FileName, "wb" ) != 0 )
+  if ( FileOpen( &stream, this->FileName, "wb" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
     return PLUS_FAIL;
@@ -732,7 +743,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
     // Pixel data is stored locally in the header file (MHA file), so we append the image data to an existing file
     fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
   }
-  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), fileOpenMode.c_str() ) != 0 )
+  if ( FileOpen( &stream, GetPixelDataFilePath().c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
     return PLUS_FAIL;
@@ -1062,11 +1073,12 @@ std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
   return path;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 {
   FILE *stream=NULL;
   // open in read+write binary mode
-  if ( fopen_s( &stream, this->FileName, "r+b" ) != 0 )
+  if ( FileOpen( &stream, this->FileName, "r+b" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading and writing");
     return PLUS_FAIL;
@@ -1075,7 +1087,6 @@ PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldNam
   fseek(stream, 0, SEEK_SET);
 
   char line[MAX_LINE_LENGTH+1]={0};
-  char *fgetsResult=(char*)1;
   while (fgets( line, MAX_LINE_LENGTH, stream ))
   {
     std::string lineStr=line;
@@ -1138,4 +1149,22 @@ PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldNam
   fclose( stream );
   LOG_ERROR("Field "<<fieldName<<" is not found in the header file, update with new value is failed:"); 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::FileOpen(FILE **stream, const char* filename, const char* flags)
+{
+#ifdef _WIN32
+  if (fopen_s(stream, filename, flags)!=0)
+  {
+    (*stream)=NULL;
+  }
+#else
+  (*stream)=fopen(filename, flags);
+#endif
+  if ((*stream)==0)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
 }

@@ -44,7 +44,7 @@ public:
   TrackedFrame();
   ~TrackedFrame(); 
   TrackedFrame(const TrackedFrame& frame); 
-  TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
+  TrackedFrame& operator=(TrackedFrame const&trackedFrame); 
 
 public:
   /*! Set image data */
@@ -78,23 +78,23 @@ public:
     Check if a custom frame transform name field is defined or not 
     \return true, if the field is defined; false, if the field is not defined
   */
-  bool IsCustomFrameTransformNameDefined(PlusTransformName& transformName); 
+  bool IsCustomFrameTransformNameDefined(const PlusTransformName& transformName); 
 
   /*! Get custom frame transform */
-  PlusStatus GetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]); 
+  PlusStatus GetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]); 
   /*! Get custom frame transform */
-  PlusStatus GetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix); 
+  PlusStatus GetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix); 
   
   /*! Get custom frame status */
-  PlusStatus GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status); 
+  PlusStatus GetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status); 
   /*! Set custom frame status */
-  PlusStatus SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackedFrameFieldStatus status); 
+  PlusStatus SetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status); 
 
   /*! Set custom frame transform */
-  PlusStatus SetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]); 
-
+  PlusStatus SetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]); 
+    
   /*! Set custom frame transform */
-  PlusStatus SetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transform); 
+  PlusStatus SetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transform); 
 
   /*! Get the list of the name of all custom frame fields */
   void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
@@ -118,7 +118,7 @@ public:
   vtkPoints* GetFiducialPointsCoordinatePx() { return this->FiducialPointsCoordinatePx; };
 
   /*! Write image with image to tracker transform to file */ 
-  PlusStatus WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker);
+  PlusStatus WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker);
 
   /*! Print tracked frame human readable serialization data to XML data */ 
   PlusStatus PrintToXML(vtkXMLDataElement* xmlData); 
@@ -227,7 +227,7 @@ protected:
 class TrackedFrameTransformFinder
 {	
 public:
-  TrackedFrameTransformFinder(TrackedFrame* frame, PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
+  TrackedFrameTransformFinder(TrackedFrame* frame, const PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
   ~TrackedFrameTransformFinder(); 
 
   /*! 

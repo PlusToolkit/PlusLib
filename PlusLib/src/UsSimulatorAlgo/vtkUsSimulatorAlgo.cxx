@@ -209,6 +209,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
 	}
 
+  /*
   // Create and set stencil background image
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
   stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
@@ -226,6 +227,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
 
   this->SetStencilBackgroundImage(stencilBackgroundImage);
+  */
 
   // Model file name
   const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");

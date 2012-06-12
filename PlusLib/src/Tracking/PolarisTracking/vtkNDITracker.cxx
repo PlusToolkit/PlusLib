@@ -870,16 +870,24 @@ void vtkNDITracker::EnableToolPorts()
     // decompose identity string from end to front
     ndiGetPHINFToolInfo(this->Device, identity);
     identity[31] = '\0';
-    trackerTool->SetToolSerialNumber(PlusCommon::Trim(&identity[23]).c_str());
+    std::string serialNumber(&identity[23]);
+    PlusCommon::Trim(serialNumber);
+    trackerTool->SetToolSerialNumber(serialNumber.c_str());
     identity[23] = '\0';
-    trackerTool->SetToolRevision(PlusCommon::Trim(&identity[20]).c_str());
+    std::string toolRevision(&identity[20]);
+    PlusCommon::Trim(toolRevision);
+    trackerTool->SetToolRevision(toolRevision.c_str());
     identity[20] = '\0';
-    trackerTool->SetToolManufacturer(PlusCommon::Trim(&identity[8]).c_str());
+    std::string toolManufacturer(&identity[8]);
+    PlusCommon::Trim(toolManufacturer);
+    trackerTool->SetToolManufacturer(toolManufacturer.c_str());
     identity[8] = '\0';
     //trackerTool->SetToolName(PlusCommon::Trim(&identity[0]).c_str()); // Here the tool name that comes from the configuration would be overridden by the tool number (setting also fails)
     ndiGetPHINFPartNumber(this->Device, partNumber);
     partNumber[20] = '\0';
-    trackerTool->SetToolPartNumber(PlusCommon::Trim(&partNumber[0]).c_str());
+    std::string toolPartNumber(&partNumber[0]);
+    PlusCommon::Trim(toolPartNumber);
+    trackerTool->SetToolPartNumber(toolPartNumber.c_str());
     status = ndiGetPHINFPortStatus(this->Device);
 
     // send the Tool Info to the server

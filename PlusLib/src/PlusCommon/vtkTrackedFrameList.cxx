@@ -46,7 +46,7 @@ vtkTrackedFrameList::~vtkTrackedFrameList()
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::RemoveTrackedFrame( int frameNumber )
 {
-  if ( frameNumber < 0 || frameNumber >= this->GetNumberOfTrackedFrames() )
+  if ( frameNumber < 0 || (unsigned int)frameNumber >= this->GetNumberOfTrackedFrames() )
   {
     LOG_WARNING("Failed to remove tracked frame from list - invalid frame number: " << frameNumber ); 
     return PLUS_FAIL; 
@@ -61,7 +61,7 @@ PlusStatus vtkTrackedFrameList::RemoveTrackedFrame( int frameNumber )
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::RemoveTrackedFrameRange( int frameNumberFrom, int frameNumberTo )
 {
-  if ( frameNumberFrom < 0 || frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo)
+  if ( frameNumberFrom < 0 || (unsigned int)frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo)
   {
     LOG_WARNING("Failed to remove tracked frame from list - invalid frame number range: (" << frameNumberFrom << ", " << frameNumberTo << ")" ); 
     return PLUS_FAIL; 
@@ -80,7 +80,7 @@ PlusStatus vtkTrackedFrameList::RemoveTrackedFrameRange( int frameNumberFrom, in
 //----------------------------------------------------------------------------
 void vtkTrackedFrameList::Clear()
 {
-  for ( int i = 0; i < this->TrackedFrameList.size(); i++ )
+  for ( unsigned int i = 0; i < this->TrackedFrameList.size(); i++ )
   {
     if (this->TrackedFrameList[i] != NULL )
     {
@@ -106,7 +106,7 @@ void vtkTrackedFrameList::PrintSelf(std::ostream &os, vtkIndent indent)
 //----------------------------------------------------------------------------
 TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 {
-  if ( frameNumber >= this->GetNumberOfTrackedFrames() )
+  if ( (unsigned int)frameNumber >= this->GetNumberOfTrackedFrames() )
   {
     LOG_ERROR("vtkTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber="<<frameNumber);
     return NULL; 
@@ -118,7 +118,7 @@ TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList)
 {
   PlusStatus status = PLUS_SUCCESS; 
-  for ( int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for ( unsigned int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i) ) != PLUS_SUCCESS )
     {
@@ -450,7 +450,7 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
     return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
   }
   
-  for ( int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
   {
     if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
     {

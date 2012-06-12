@@ -214,7 +214,7 @@ private:
   double ComputeSadForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB,
                                     int indexOffset);
 
-  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2>> &data, std::vector<double> &planeParameters);
+  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
   
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
@@ -227,7 +227,7 @@ private:
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
   double m_VideoPositionMetricNormalizationFactor;
 
-  void ComputePrincipalAxis(std::vector<itk::Point<double, 3>> &trackerPositions, 
+  void ComputePrincipalAxis(std::vector<itk::Point<double, 3> > &trackerPositions, 
                                                itk::Point<double,3> &principalAxis,  int numValidFrames);
 
 };
