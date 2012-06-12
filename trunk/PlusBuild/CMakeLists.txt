@@ -58,6 +58,13 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Options to control build process
 #-----------------------------------------------------------------------------
+if (WIN32)	
+	SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
+else (WIN32)
+	SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
+endif (WIN32)	
+
+
 OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like ITK, VTK, OpenIGTLink)" OFF)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
@@ -75,8 +82,8 @@ OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OF
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
-OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
-OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
+OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
+OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
