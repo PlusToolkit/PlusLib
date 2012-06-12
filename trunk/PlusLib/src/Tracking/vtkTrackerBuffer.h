@@ -28,7 +28,7 @@ public:
   TrackerBufferItem(); 
   ~TrackerBufferItem(); 
   TrackerBufferItem(const TrackerBufferItem& TrackerBufferItem); 
-  TrackerBufferItem& TrackerBufferItem::operator=(TrackerBufferItem const& trackerBufferItem); 
+  TrackerBufferItem& operator=(TrackerBufferItem const& trackerBufferItem); 
 
   /*! Copy tracker buffer item */
   PlusStatus DeepCopy(TrackerBufferItem* trackerBufferItem); 

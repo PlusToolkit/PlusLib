@@ -6,6 +6,8 @@ See License.txt for details.
 
 #include "FidLabeling.h"
 
+#include "float.h"
+
 #include <algorithm>
 
 #include "PlusMath.h"
@@ -54,7 +56,7 @@ void FidLabeling::UpdateParameters()
   double epsilon = 0.001;
 
   // Compute normal of each pattern and evaluate the other wire endpoints if they are on the computed plane
-  std::vector<vtkSmartPointer<vtkPlane>> planes;
+  std::vector<vtkSmartPointer<vtkPlane> > planes;
   for (int i=0; i<numOfPatterns; ++i) 
   {
     double normal[3]={0,0,0};
@@ -263,7 +265,7 @@ bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<do
 
 Line FidLabeling::SortPointsByDistanceFromStartPoint(Line fiducials) 
 {
-  std::vector<std::vector<double>> temporaryLine;
+  std::vector<std::vector<double> > temporaryLine;
   Dot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
 
   for(int i=0 ; i<fiducials.GetPoints()->size() ; i++)

@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #include <Windows.h> // required for setting the text color on the console output
+#else
+#include <errno.h> // required for getting last error on linux
 #endif
 
 #include "PlusConfigure.h"
@@ -62,8 +64,12 @@ void vtkPlusLoggerOutputWindow::DisplayErrorText(const char* text)
   ReplaceNewlineBySeparator(textStr);
   LOG_ERROR("VTK log: " << textStr);
 
+#ifdef _WIN32
   DWORD lastErr=GetLastError();
   LOG_ERROR("Last error: "<<lastErr);
+#else
+  LOG_ERROR("Last error: "<<strerror(errno));
+#endif
 
   this->InvokeEvent(vtkCommand::ErrorEvent, (void*)text);
 }

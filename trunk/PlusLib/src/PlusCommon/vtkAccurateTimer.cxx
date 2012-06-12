@@ -14,9 +14,9 @@
 #ifdef _WIN32
 #include "WindowsAccurateTimer.h"
 WindowsAccurateTimer WindowsAccurateTimer::m_Instance;
-double vtkAccurateTimer::SystemStartTime=0;
 #endif
 
+double vtkAccurateTimer::SystemStartTime=0;
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkAccurateTimer, "$Revision: 1.0 $");
@@ -129,54 +129,69 @@ double vtkAccurateTimer::GetSystemTime()
 }
 
 //----------------------------------------------------------------------------
+std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded)
+{
+  double currentTime=vtkTimerLog::GetUniversalTime();
+  time_t timeSec = floor(currentTime);   
+  // Obtain the time of day, and convert it to a tm struct.
+#ifdef _WIN32    
+  struct tm tmstruct;
+  struct tm* ptm=&tmstruct;
+  localtime_s( ptm, &timeSec );           
+#else
+  struct tm *ptm = localtime (&timeSec);
+#endif
+
+  // Format the date and time, down to a single second.
+  char timeStrSec[80];
+  switch (detailsNeeded)
+  {
+    case CURRENT_DATE:
+      strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y", ptm);
+      break;
+    case CURRENT_TIME:
+      strftime (timeStrSec, sizeof (timeStrSec), "%H%M%S", ptm);
+      break;
+    case CURRENT_DATE_TIME:
+    case CURRENT_DATE_TIME_MSEC:
+      strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y_%H%M%S", ptm);
+      break;
+    default:
+      return "";
+  }
+  if (detailsNeeded!=CURRENT_DATE_TIME_MSEC)
+  {
+    return timeStrSec;
+  }
+  // Get millisecond as well
+  long milliseconds = floor((currentTime-floor(currentTime))*1000.0);  
+          
+  std::ostrstream mSecStream; 
+  mSecStream << timeStrSec << "." << std::setw(3) << std::setfill('0') << milliseconds << std::ends;
+
+  return mSecStream.str();
+}
+
+//----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateString()
 {
-	char dateStr[128];
-	_strdate_s( dateStr, 128 );
-	std::string dateInString(dateStr);
-	dateInString.erase(5,1);	// remove '/'
-	dateInString.erase(2,1);	// remove '/'
-	// DATE IN STRING: [MMDDYY]
-	return dateInString; 
+  return GetDateAndTimeString(CURRENT_DATE);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetTimeString()
 {
-	char timeStr[128];
-	_strtime_s( timeStr, 128 );
-	std::string timeInString(timeStr);
-	timeInString.erase(5,1);	// remove ':'
-	timeInString.erase(2,1);	// remove ':'
-	// TIME IN STRING: [HHMMSS]
-	return timeInString; 
+  return GetDateAndTimeString(CURRENT_TIME);  
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateAndTimeString()
 {
-	std::string date = vtkAccurateTimer::GetInstance()->GetDateString(); 
-
-	std::string time = vtkAccurateTimer::GetInstance()->GetTimeString(); 
-
-	// DATE AND TIME IN STRING: [MMDDYY_HHMMSS]
-	std::string dateAndTime = (date + "_" + time); 
-	return dateAndTime; 
+  return GetDateAndTimeString(CURRENT_DATE_TIME);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateAndTimeMSecString()
 {
-	std::string date = vtkAccurateTimer::GetInstance()->GetDateString(); 
-
-	std::string time = vtkAccurateTimer::GetInstance()->GetTimeString(); 
-
-	struct _timeb tstruct;
-	_ftime_s( &tstruct );
-	unsigned short ms = tstruct.millitm; 
-
-	// DATE AND TIME WITH MS IN STRING: [MMDDYY_HHMMSS.MS]
-	std::ostringstream dateAndTimeMs; 
-	dateAndTimeMs << date << "_"  << time << "." << std::setw(3) << std::right << std::setfill('0') << ms;  
-	return dateAndTimeMs.str(); 
+  return GetDateAndTimeString(CURRENT_DATE_TIME_MSEC);
 }

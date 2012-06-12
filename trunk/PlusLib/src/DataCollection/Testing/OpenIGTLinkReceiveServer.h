@@ -33,7 +33,7 @@ public:
   
   igtl::ServerSocket::Pointer GetServerSocket();
   
-  friend static void* vtkReceiverThread( vtkMultiThreader::ThreadInfo *data );
+  friend void* vtkReceiverThread( vtkMultiThreader::ThreadInfo *data );
   
 private:
   

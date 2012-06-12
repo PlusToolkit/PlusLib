@@ -63,7 +63,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::~vtkTimestampedCircularBuffer()
 template<class BufferItemType>
 void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+	//this->Superclass::PrintSelf(os,indent);
 
 	os << indent << "BufferSize: " << this->GetBufferSize() << "\n";
 	os << indent << "NumberOfItems: " << this->NumberOfItems << "\n";
@@ -159,7 +159,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsi
 	// if the new buffer is bigger than the old buffer
 	else if ( this->GetBufferSize() < bufsize )
 	{
-		std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+    typename std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
 		const int numberOfNewBufferObjects = bufsize - this->GetBufferSize(); 
 		for ( int i = 0; i < numberOfNewBufferObjects; ++i )
 		{
@@ -173,7 +173,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsi
 		// delete the oldest buffer objects 
 		for (int i = 0; i < this->GetBufferSize() - bufsize; ++i)
 		{
-			std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+			typename std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
 			this->BufferItemContainer.erase(it); 
 			if ( this->WritePointer >= this->GetBufferSize() )
 			{

@@ -47,7 +47,7 @@ double Line::ComputeAngleRad(Line &line1, Line &line2)
 
 //-----------------------------------------------------------------------------
 
-bool Dot::IntensityLessThan( Dot &dot1, Dot &dot2 )
+bool Dot::IntensityLessThan( const Dot &dot1, const Dot &dot2 )
 {
 	/* Use > to get descending. */
 	return dot1.GetDotIntensity() > dot2.GetDotIntensity();
@@ -69,7 +69,7 @@ double	Dot::GetDistanceFrom(Dot &d)
 
 //-----------------------------------------------------------------------------
 
-bool Line::lessThan( Line &line1, Line &line2 )
+bool Line::lessThan( const Line &line1, const Line &line2 )
 {
 	/* Use > to get descending. */
 	return line1.GetIntensity() > line2.GetIntensity();

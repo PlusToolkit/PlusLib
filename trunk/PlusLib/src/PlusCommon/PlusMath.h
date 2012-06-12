@@ -43,7 +43,7 @@ public:
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
   */
-  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param sparseMatrixLeftSide The coefficient matrix of size m-by-n. (aMatrix)
@@ -61,7 +61,7 @@ public:
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
   /*! Returns the distance between a line, defined by two point (x and y) and a point (z) */
-  static double PlusMath::ComputeDistanceLinePoint(const double x[3], const double y[3], const double z[3]);
+  static double ComputeDistanceLinePoint(const double x[3], const double y[3], const double z[3]);
 
   /*!
     Spherical linear interpolation between two rotation quaternions.

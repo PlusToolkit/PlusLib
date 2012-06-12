@@ -48,7 +48,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
 
-  std::vector<vnl_vector<double>> aMatrixVnl(m); 
+  std::vector<vnl_vector<double> > aMatrixVnl(m); 
   vnl_vector<double> row(n); 
   for ( unsigned int i = 0; i < aMatrix.size(); ++i )
   {
@@ -63,7 +63,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -249,8 +249,8 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
   }
 
   // Temporary containers for input data 
-  std::vector<vcl_vector<double>> matrixRowsData; 
-  std::vector<vcl_vector<int>> matrixRowsIndecies; 
+  std::vector< vcl_vector<double> > matrixRowsData; 
+  std::vector< vcl_vector<int> > matrixRowsIndecies; 
   std::vector<double> bVector;   
  
   vcl_vector<double> rowData(numberOfUnknowns, 0.0); 
@@ -290,13 +290,13 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
     // Copy back the new aMatrix and bVector 
     vectorRightSide.clear(); 
     vectorRightSide.set_size(bVector.size()); 
-    for ( int i = 0; i < bVector.size(); ++i )
+    for ( unsigned int i = 0; i < bVector.size(); ++i )
     {
       vectorRightSide.put(i, bVector[i]); 
     }
 
     sparseMatrixLeftSide.resize(matrixRowsData.size(), numberOfUnknowns); 
-    for ( int r = 0; r < matrixRowsData.size(); r++ )
+    for ( unsigned int r = 0; r < matrixRowsData.size(); r++ )
     {
       sparseMatrixLeftSide.set_row(r, matrixRowsIndecies[r], matrixRowsData[r]); 
     }

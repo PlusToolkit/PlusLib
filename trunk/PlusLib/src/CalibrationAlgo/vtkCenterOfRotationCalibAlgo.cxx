@@ -122,7 +122,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::Update()
   }
 
   // Data containers
-  std::vector<vnl_vector<double>> aMatrix;
+  std::vector<vnl_vector<double> > aMatrix;
   std::vector<double> bVector;
 
   if ( this->ConstructLinearEquationForCalibration(aMatrix, bVector) != PLUS_SUCCESS )
@@ -220,7 +220,7 @@ int vtkCenterOfRotationCalibAlgo::GetNumberOfNWirePatterns()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
+PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector)
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration"); 
   aMatrix.clear(); 
@@ -266,7 +266,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
   }
 
   // Reserve memory for wire points 
-  std::vector<vtkSmartPointer<vtkPoints>> vectorOfWirePoints; 
+  std::vector<vtkSmartPointer<vtkPoints> > vectorOfWirePoints; 
   vectorOfWirePoints.reserve(numberOfFrames); 
 
   for ( int i = 0; i < this->TrackedFrameListIndices.size(); ++i )
@@ -392,8 +392,8 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
 
   const double sX = this->Spacing[0]; 
   const double sY = this->Spacing[1]; 
-  std::vector<std::vector<double>> wireRadiusVector(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
-  std::vector<std::vector<double>> wirePositions(this->GetNumberOfNWirePatterns()*4); // each wire has 2 point and each point has 2 coordinates 
+  std::vector<std::vector<double> > wireRadiusVector(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
+  std::vector<std::vector<double> > wirePositions(this->GetNumberOfNWirePatterns()*4); // each wire has 2 point and each point has 2 coordinates 
 
 #ifdef PLUS_USE_BRACHY_TRACKER
   std::vector<double> probePosVector; 
@@ -458,7 +458,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     }
   }
 
-  std::vector<std::vector<double>> wireDistancesFromMeanRadius(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
+  std::vector<std::vector<double> > wireDistancesFromMeanRadius(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
   for ( int i = 0; i < numberOfElements; ++i ) 
   {
     for ( int w = 0; w < this->GetNumberOfNWirePatterns()*2; ++w)

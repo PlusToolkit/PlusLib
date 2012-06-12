@@ -26,7 +26,7 @@ enum PlusStatus
 #    define STRCASECMP _stricmp
 #  endif
 #else
-#  define STRCASECMP STRCASECMP
+#  define STRCASECMP strcasecmp
 #endif
 
 #define ROUND(x) (static_cast<int>(floor( x + 0.5 )))
@@ -185,19 +185,10 @@ namespace PlusCommon
 
   //----------------------------------------------------------------------------
   /*! Trim whitespace characters from the left and right */
-  static void Trim(std::string &str)
-  {
-    str.erase(str.find_last_not_of(" \t\r\n")+1);
-    str.erase(0,str.find_first_not_of(" \t\r\n"));
-  }
-
-  static std::string Trim(const char* c)
-  {
-    std::string str = c; 
-    str.erase(str.find_last_not_of(" \t\r\n")+1);
-    str.erase(0,str.find_first_not_of(" \t\r\n"));
-    return str; 
-  }
+  VTK_EXPORT void Trim(std::string &str);
+  
+  VTK_EXPORT std::string Trim(const char* c);
+  
 };
 
 /*!
@@ -255,16 +246,16 @@ public:
   PlusStatus SetTransformName(const char* aTransformName); 
 
   /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
-  PlusStatus GetTransformName(std::string& aTransformName); 
+  PlusStatus GetTransformName(std::string& aTransformName) const; 
 
   /*! Return 'From' coordinate frame name, give a warning if it's not capitalized and capitalize it*/ 
-  std::string From(); 
+  std::string From() const; 
 
   /*! Return 'To' coordinate frame name, give a warning if it's not capitalized and capitalize it */ 
-  std::string To(); 
+  std::string To() const; 
 
   /*! Check if the current transform name is valid */ 
-  bool IsValid(); 
+  bool IsValid() const; 
 
   bool operator== (const PlusTransformName& in) const
   {

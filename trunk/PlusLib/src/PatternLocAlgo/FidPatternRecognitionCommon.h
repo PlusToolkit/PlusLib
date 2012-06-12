@@ -8,6 +8,7 @@ See License.txt for details.
 #define _FIDUCIAL_ALGORITHM_COMMON_H
 
 #include <vector>
+#include <string>
 
 typedef unsigned char PixelType;
 
@@ -22,7 +23,7 @@ class Dot
 {
 public:
   /*! Compare the intensity of 2 dots */
-  static bool IntensityLessThan( Dot &dot1, Dot &dot2 );
+  static bool IntensityLessThan( const Dot &dot1, const Dot &dot2 );
 
   /*! Compare the position of 2 dots */
   static bool PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 );
@@ -43,7 +44,7 @@ public:
   void	SetDotIntensity(double value) { m_DotIntensity = value; };
 
   /*! Get the intensity of the dot */
-  double	GetDotIntensity() { return m_DotIntensity; };
+  double	GetDotIntensity() const { return m_DotIntensity; };
 
   /*! Get Euclidean distance from another point */
   double	GetDistanceFrom(Dot &d);
@@ -69,7 +70,7 @@ class Line
 {
 public:
   /*! Compare the intensity of 2 lines */
-  static bool lessThan( Line &line1, Line &line2 );
+  static bool lessThan( const Line &line1, const Line &line2 );
 
   /*! Compare 2 lines to know if they are the same */
   static bool compareLines( Line line1, Line line2 );
@@ -96,7 +97,7 @@ public:
   void	SetIntensity(double value) { m_Intensity = value; };
 
   /*! Get the intensity of the line, which is the sum of its dots intensity */
-  double	GetIntensity() { return m_Intensity; };
+  double	GetIntensity() const { return m_Intensity; };
 
   /*! Set the length of the line */
   void SetLength(double value) { m_Length = value; };

@@ -16,6 +16,8 @@ Authors include: Danielle Pace
 #ifndef __vtkVideoBuffer_h
 #define __vtkVideoBuffer_h
 
+#include <float.h>
+
 #include "PlusConfigure.h"
 #include "vtkObject.h"
 

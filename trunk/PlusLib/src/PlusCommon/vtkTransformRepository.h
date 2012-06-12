@@ -58,7 +58,7 @@ public:
     set transform is allowed. The transform is computed even if one or more of the used transforms
     have non valid status.
   */
-  virtual PlusStatus SetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid = true);
+  virtual PlusStatus SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid = true);
 
   /*! 
     Set all transform matrices between two coordinate frames stored in TrackedFrame. The method fails if any of the transforms
@@ -72,25 +72,25 @@ public:
     Set the valid status of a transform matrix between two coordinate frames. A transform is normally valid,
     but temporarily it can be set to non valid (e.g., when a tracked tool gets out of view). 
   */
-  virtual PlusStatus SetTransformValid(PlusTransformName& aTransformName, bool isValid);
+  virtual PlusStatus SetTransformValid(const PlusTransformName& aTransformName, bool isValid);
   
   /*! 
     Set the persistent status of a transform matrix between two coordinate frames. A transform is non persistent by default. 
     Transforms with status persistent will be written into config file on WriteConfiguration call. 
   */
-  virtual PlusStatus SetTransformPersistent(PlusTransformName& aTransformName, bool isPersistent);
+  virtual PlusStatus SetTransformPersistent(const PlusTransformName& aTransformName, bool isPersistent);
 
   /*! Set the computation error of the transform matrix between two coordinate frames. */
-  virtual PlusStatus SetTransformError(PlusTransformName& aTransformName, double aError);
+  virtual PlusStatus SetTransformError(const PlusTransformName& aTransformName, double aError);
   
   /*! Get the computation error of the transform matrix between two coordinate frames. */
-  virtual PlusStatus GetTransformError(PlusTransformName& aTransformName, double &aError);
+  virtual PlusStatus GetTransformError(const PlusTransformName& aTransformName, double &aError);
 
   /*! Set the computation date of the transform matrix between two coordinate frames. */
-  virtual PlusStatus SetTransformDate(PlusTransformName& aTransformName, const char* aDate);
+  virtual PlusStatus SetTransformDate(const PlusTransformName& aTransformName, const char* aDate);
   
   /*! Get the computation date of the transform matrix between two coordinate frames. */
-  virtual PlusStatus GetTransformDate(PlusTransformName& aTransformName, std::string& aDate);
+  virtual PlusStatus GetTransformDate(const PlusTransformName& aTransformName, std::string& aDate);
 
   /*! 
     Read all transformations from XML data CoordinateDefinitions element and add them to the transforms with 
@@ -113,25 +113,25 @@ public:
     \param matrix the retrieved transform is copied into this matrix 
     \param isValid if this parameter is not NULL then the transform's validity status is returned at that memory address 
   */
-  virtual PlusStatus GetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid=NULL);
+  virtual PlusStatus GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid=NULL);
 
   /*! 
     Get the valid status of a transform matrix between two coordinate frames.
     The status is typically invalid when a tracked tool is out of view.
   */
-  virtual PlusStatus GetTransformValid(PlusTransformName& aTransformName, bool &isValid);
+  virtual PlusStatus GetTransformValid(const PlusTransformName& aTransformName, bool &isValid);
 
   /*! Get the persistent status of a transform matrix between two coordinate frames. */
-  virtual PlusStatus GetTransformPersistent(PlusTransformName& aTransformName, bool &isPersistent);
+  virtual PlusStatus GetTransformPersistent(const PlusTransformName& aTransformName, bool &isPersistent);
 
   /*! Removes a transform from the repository */
-  virtual PlusStatus DeleteTransform(PlusTransformName& aTransformName);
+  virtual PlusStatus DeleteTransform(const PlusTransformName& aTransformName);
 
   /*! Removes all the transforms from the repository */
   void Clear();
 
   /*! Checks if a transform exist */
-  virtual PlusStatus IsExistingTransform(PlusTransformName aTransformName, bool aSilent = true);
+  virtual PlusStatus IsExistingTransform(const PlusTransformName aTransformName, bool aSilent = true);
 
 protected:
   vtkTransformRepository();
@@ -180,7 +180,7 @@ protected:
   typedef std::list<TransformInfo*> TransformInfoListType;
 
   /*! Get a user-defined original input transform (or its inverse). Does not combine user-defined input transforms. */ 
-  TransformInfo* GetOriginalTransform(PlusTransformName& aTransformName);
+  TransformInfo* GetOriginalTransform(const PlusTransformName& aTransformName);
 
   /*! 
     Find a transform path between the specified coordinate frames.
@@ -190,7 +190,7 @@ protected:
     \param silent Don't log an error if path cannot be found (it's normal while searching in branches of the graph)
     \return returns PLUS_SUCCESS if a path can be found, PLUS_FAIL otherwise
   */ 
-  PlusStatus FindPath(PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName=NULL, bool silent=false);
+  PlusStatus FindPath(const PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName=NULL, bool silent=false);
 
   CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
 

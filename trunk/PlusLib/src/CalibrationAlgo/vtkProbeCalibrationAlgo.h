@@ -51,7 +51,7 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
+  PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
@@ -60,7 +60,7 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires ); 
+  PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
   /*! Check user image home to probe home transform orthogonality */
   bool IsImageToProbeTransformOrthogonal(); 

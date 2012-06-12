@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+#include "float.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
@@ -145,7 +146,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires )
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
 
@@ -154,7 +155,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
@@ -346,7 +347,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
   }
 
   // Convert segmented points to vnl
-	std::vector<vnl_vector<double>> segmentedPoints;
+	std::vector<vnl_vector<double> > segmentedPoints;
   for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); i++)
 	{
 		vnl_vector<double> vnlPoint(4,0);

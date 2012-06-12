@@ -60,14 +60,14 @@ protected:
   virtual PlusStatus Update();
 
   /*! Construct linear equation for spacing calibration */
-  virtual PlusStatus ConstructLinearEquationForCalibration(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector);
+  virtual PlusStatus ConstructLinearEquationForCalibration(std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector);
 
   /*! Add new column to the report table */
   PlusStatus AddNewColumnToReportTable( const char* columnName ); 
 
   /*! Update spacing calibration error report table */
   virtual PlusStatus UpdateReportTable(
-    const std::vector<vnl_vector<double>> &aMatrix, 
+    const std::vector<vnl_vector<double> > &aMatrix, 
     const std::vector<double> &bVector, 
     const vnl_vector<double> &resultVector); 
 

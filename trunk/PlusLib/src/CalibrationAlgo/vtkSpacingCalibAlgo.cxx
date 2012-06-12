@@ -109,7 +109,7 @@ PlusStatus vtkSpacingCalibAlgo::Update()
 
   // Construct linear equations Ax = b, where A is a matrix with m rows and 
   // n columns, b is an m-vector. 
-  std::vector<vnl_vector<double>> aMatrix;
+  std::vector<vnl_vector<double> > aMatrix;
   std::vector<double> bVector; 
 
   // Construct linear equation for spacing calibration
@@ -152,7 +152,7 @@ PlusStatus vtkSpacingCalibAlgo::Update()
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
+PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double> > &aMatrix, std::vector<double> &bVector)
 {
   LOG_TRACE("vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration"); 
   aMatrix.clear(); 
@@ -253,7 +253,7 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpacingCalibAlgo::UpdateReportTable(const std::vector<vnl_vector<double>> &aMatrix, 
+PlusStatus vtkSpacingCalibAlgo::UpdateReportTable(const std::vector<vnl_vector<double> > &aMatrix, 
                                                   const std::vector<double> &bVector, 
                                                   const vnl_vector<double> &resultVector)
 {
