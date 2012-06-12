@@ -9,7 +9,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkDoubleArray.h"
 #include "vtkUnsignedLongLongArray.h"
-#include "vtkCriticalSection.h"
 #include "vtkImageData.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"

@@ -45,8 +45,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkMultiThreader.h"
-#include "vtkCriticalSection.h"
-#include "vtkMutexLock.h"
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
 #include "vtkIndent.h"

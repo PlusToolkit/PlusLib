@@ -13,7 +13,7 @@ Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
 #define __vtkUSBECGBox_h
 
 #include "vtkObject.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 
 #include "vtkDoubleArray.h"
 #include "vtkIntArray.h"
@@ -65,7 +65,7 @@ public:
   // VTK doesn't generally use 'friend' functions they are public
   // instead of protected.  Do not use them anywhere except inside
   // vtkUSBECGBox.cxx.
-  //vtkCriticalSection *UpdateMutex;
+  //vtkRecursiveCriticalSection *UpdateMutex;
  // vtkTimeStamp UpdateTime;
   //double InternalUpdateRate;  
 //ETX

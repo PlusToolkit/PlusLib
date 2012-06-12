@@ -13,7 +13,7 @@ Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
 #define __vtkSignalBox_h
 
 #include "vtkObject.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 
 class vtkMultiThreader;
 
@@ -58,7 +58,7 @@ public:
   // instead of protected.  Do not use them anywhere except inside
   // vtkSignalBox.cxx.
   /*! Internal use only */
-  vtkCriticalSection *UpdateMutex;
+  vtkRecursiveCriticalSection *UpdateMutex;
   /*! Internal use only */
   vtkTimeStamp UpdateTime;
   /*! Internal use only */

@@ -19,7 +19,7 @@
 #include "vtkPlusCommand.h"
 
 class vtkMultiThreader; 
-class vtkMutexLock;
+class vtkRecursiveCriticalSection;
 
 /*!
   \class vtkPlusOpenIGTLinkClient 
@@ -67,10 +67,10 @@ private:
   void operator=( const vtkPlusOpenIGTLinkClient& );
   
   vtkMultiThreader*  Threader;
-  vtkMutexLock*      Mutex;
+  vtkRecursiveCriticalSection*      Mutex;
   
   igtl::ClientSocket::Pointer ClientSocket;
-  vtkMutexLock*               SocketMutex;
+  vtkRecursiveCriticalSection*               SocketMutex;
   
   int         NetworkPort;
   char*       ServerAddress;

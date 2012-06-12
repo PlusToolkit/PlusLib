@@ -51,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkNDITracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkObjectFactory.h"
@@ -271,7 +271,7 @@ char *vtkNDITracker::Command(const char *command)
 
   if (this->Device)
   {
-    PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     strncpy(this->CommandReply, ndiCommand(this->Device, command), 
       VTK_NDI_REPLY_LEN-1);
     this->CommandReply[VTK_NDI_REPLY_LEN-1] = '\0';
@@ -677,7 +677,7 @@ PlusStatus vtkNDITracker::LoadVirtualSROM(int tool, const char *filename)
   {
     if (this->Recording)
     {
-      PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
       if (this->IsDeviceTracking)
       {
         ndiCommand(this->Device,"TSTOP:");
@@ -706,7 +706,7 @@ void vtkNDITracker::ClearVirtualSROM(int tool)
 
   if (this->Recording)
   {
-    PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     if (this->IsDeviceTracking)
     {
       ndiCommand(this->Device,"TSTOP:");

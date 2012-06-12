@@ -38,7 +38,7 @@ vtkSignalBox::vtkSignalBox()
   // for threaded capture of transformations
   this->Threader = vtkMultiThreader::New();
   this->ThreadId = -1;
-  this->UpdateMutex = vtkCriticalSection::New();
+  this->UpdateMutex = vtkRecursiveCriticalSection::New();
 }
 
 //-------------------------------------------------------------------------

@@ -10,11 +10,10 @@
 #include <math.h>
 #include <sstream>
 #include "vtkCharArray.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMultiThreader.h"
-#include "vtkMutexLock.h"
 #include "vtkObjectFactory.h"
 #include "vtkSocketCommunicator.h" // VTK_PARALLEL support has to be enabled
 #include "vtkTracker.h"
@@ -40,7 +39,7 @@ vtkTracker::vtkTracker()
   this->TrackingThreadAlive = false; 
 
   // For threaded capture of transformations
-  this->UpdateMutex = vtkCriticalSection::New();
+  this->UpdateMutex = vtkRecursiveCriticalSection::New();
 
   this->SetToolReferenceFrameName("Tracker"); 
 }
@@ -196,7 +195,7 @@ void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     }    
 
     { // Lock before update 
-      PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
       self->InternalUpdate();
       self->UpdateTime.Modified();
     }
@@ -219,7 +218,7 @@ void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::Probe()
 {
-  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
   // Client
 
@@ -340,14 +339,14 @@ PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4
 void vtkTracker::Beep(int n)
 {
 
-  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   this->InternalBeep(n);
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::SetToolLED(const char* portName, int led, int state)
 {
-  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   this->InternalSetToolLED(portName, led, state);
 }
 

@@ -62,7 +62,12 @@ ENDIF()
 # --------------------------------------------------------------------------
 # gnuplot binary directory path.
 # 
-SET(GNUPLOT_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
+IF (WIN32)
+  SET(GNUPLOT_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
+ELSE (WIN32)
+  # Use system gnuplot on non-Windows OS
+  SET(GNUPLOT_BIN_DIR "/usr/bin" CACHE PATH "Path to the Gnuplot binary directory." FORCE)
+ENDIF (WIN32)
 
 # --------------------------------------------------------------------------
 # Sikuli binary directory path.

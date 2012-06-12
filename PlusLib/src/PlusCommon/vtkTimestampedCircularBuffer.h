@@ -15,7 +15,7 @@
 #include <deque>
 #include <vector>
 #include <queue>
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkTable.h"
 #include "vtkVariantArray.h"
 #include "vtkDoubleArray.h"
@@ -314,7 +314,7 @@ protected:
   void AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp);
 
 protected:
-  vtkCriticalSection *Mutex;
+  vtkRecursiveCriticalSection *Mutex;
 
   int NumberOfItems;
 

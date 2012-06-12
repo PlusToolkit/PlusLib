@@ -86,7 +86,7 @@ enum PlusStatus
   
   Example:
   \code
-  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   \endcode
 
   \ingroup PlusLibCommon

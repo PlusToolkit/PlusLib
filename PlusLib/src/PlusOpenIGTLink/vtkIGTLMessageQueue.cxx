@@ -8,7 +8,7 @@ See License.txt for details.
 
 #include "vtkIGTLMessageQueue.h"
 
-#include "vtkMutexLock.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include <vtksys/SystemTools.hxx>
 
@@ -59,7 +59,7 @@ int vtkIGTLMessageQueue::GetSize()
 //----------------------------------------------------------------------------
 vtkIGTLMessageQueue::vtkIGTLMessageQueue()
 {
-  this->Mutex = vtkMutexLock::New();
+  this->Mutex = vtkRecursiveCriticalSection::New();
 }
 
 //----------------------------------------------------------------------------

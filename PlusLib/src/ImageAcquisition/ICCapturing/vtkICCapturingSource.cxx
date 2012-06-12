@@ -11,7 +11,6 @@
 #include <tisudshl.h>
 
 #include "vtkImageData.h"
-#include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"

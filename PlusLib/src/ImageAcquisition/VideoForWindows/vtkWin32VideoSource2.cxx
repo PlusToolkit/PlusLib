@@ -14,7 +14,6 @@ Authors include: Danielle Pace
 
 #include "vtkWin32VideoSource2.h"
 #include "PlusConfigure.h"
-#include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkVideoBuffer.h"

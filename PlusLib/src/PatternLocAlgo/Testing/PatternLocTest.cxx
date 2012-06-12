@@ -424,7 +424,7 @@ int main(int argc, char **argv)
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read from metafile");
-  std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
+  std::string inputImageSequencePath=inputTestDataDir+"/"+inputImageSequenceFileName;
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
   {

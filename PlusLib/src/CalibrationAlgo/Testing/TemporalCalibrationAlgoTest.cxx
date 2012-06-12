@@ -170,7 +170,7 @@ int main(int argc, char **argv)
   }
   LOG_INFO("Max calibration error: " << maxCalibrationError);
   std::ostrstream trackerLagOutputFilename;
-  trackerLagOutputFilename << intermediateFileOutputDirectory << "\\TemporalCalibrationResults.xml" << std::ends;
+  trackerLagOutputFilename << intermediateFileOutputDirectory << "/TemporalCalibrationResults.xml" << std::ends;
   ofstream myfile;
   myfile.open (trackerLagOutputFilename.str());
   myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << trackerLagSec << "\" CalibrationError=\"" << calibrationError << "\" MaxCalibrationError=\"" << maxCalibrationError<< "\" />";
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
     // Uncalibrated
     vtkSmartPointer<vtkTable> uncalibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal(uncalibratedTrackerPositionMetric);
-    std::string filename=intermediateFileOutputDirectory + "\\MetricPlotUncalibrated.png";
+    std::string filename=intermediateFileOutputDirectory + "/MetricPlotUncalibrated.png";
 
     std::string xLabel = "Time [s]";
     std::string yLabel = "Position Metric";
@@ -193,13 +193,13 @@ int main(int argc, char **argv)
     // Calibrated
     vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
-    filename=intermediateFileOutputDirectory + "\\MetricPlotCalibrated.png";
+    filename=intermediateFileOutputDirectory + "/MetricPlotCalibrated.png";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric,  xLabel, yLabel);
     
     // Correlation Signal
     vtkSmartPointer<vtkTable> correlationSignal = vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCorrelationSignal(correlationSignal);
-    filename = intermediateFileOutputDirectory + "\\CorrelationSignal.png";
+    filename = intermediateFileOutputDirectory + "/CorrelationSignal.png";
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
     SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);

@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLDataElement.h"
 #include "TrackedFrame.h"
 #include "vtkMultiThreader.h"
@@ -176,7 +176,7 @@ public:
   // VTK doesn't generally use 'friend' functions they are public
   // instead of protected.  Do not use them anywhere except inside
   // vtkTracker.cxx.
-  vtkCriticalSection *UpdateMutex;
+  vtkRecursiveCriticalSection *UpdateMutex;
   vtkTimeStamp UpdateTime;
   double InternalUpdateRate;  
   //ETX
