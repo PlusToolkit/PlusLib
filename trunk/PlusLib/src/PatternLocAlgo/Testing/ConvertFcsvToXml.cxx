@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 	UsFidSegResultFile::WriteSegmentationResultsParameters(outputXmlFile, patternRecognition, inputFcsvFileName);
 
 	
-	std::string inputFcsvFilePath=inputTestDataDir+"\\"+inputFcsvFileName;
+	std::string inputFcsvFilePath=inputTestDataDir+"/"+inputFcsvFileName;
 	WriteFiducialPositions(outputXmlFile, inputTestcaseName, inputImageSequenceFileName, inputFcsvFilePath); 
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outputXmlFile);
 	outputXmlFile.close();

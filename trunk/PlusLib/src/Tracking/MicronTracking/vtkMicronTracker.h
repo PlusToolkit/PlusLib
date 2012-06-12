@@ -56,7 +56,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkCriticalSection.h"
 #include "vtkMicronTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkObjectFactory.h"

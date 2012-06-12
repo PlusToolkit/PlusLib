@@ -14,8 +14,7 @@ Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
 #include <math.h>
 #include "vtkUSBECGBox.h"
 #include "vtkMultiThreader.h"
-#include "vtkMutexLock.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +38,7 @@ vtkUSBECGBox::vtkUSBECGBox()
   // for threaded capture of transformations
   this->Threader = vtkMultiThreader::New();
   this->ThreadId = -1;
-  this->UpdateMutex = vtkCriticalSection::New();
+  this->UpdateMutex = vtkRecursiveCriticalSection::New();
 
   /* Variable Declarations */
   this->BoardNum = 0;

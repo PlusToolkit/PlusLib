@@ -17,7 +17,6 @@ Authors include: Siddharth Vikal (Queen's University),
 #include "vtkSonixPortaVideoSource.h"
 
 #include "vtkImageData.h"
-#include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
 #include "vtkInformation.h"

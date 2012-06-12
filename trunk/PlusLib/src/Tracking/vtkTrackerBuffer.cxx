@@ -12,7 +12,6 @@
 #include "vtkDoubleArray.h"
 #include "vtkIntArray.h"
 #include "vtkUnsignedLongLongArray.h"
-#include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"

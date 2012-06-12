@@ -16,7 +16,7 @@
 class vtkDataCollector;
 class vtkTransformRepository; 
 class TrackedFrame; 
-class vtkMutexLock; 
+class vtkRecursiveCriticalSection; 
 
 /*!
   \class vtkPlusOpenIGTLinkServer 
@@ -96,7 +96,7 @@ private:
   vtkSmartPointer<vtkMultiThreader> Threader;
 
   /*! Mutex instance for safe data access */ 
-  vtkSmartPointer<vtkMutexLock> Mutex;
+  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
   
   /*! Server listening port */ 
   int  ListeningPort;

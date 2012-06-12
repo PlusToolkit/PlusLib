@@ -16,7 +16,7 @@ template<class BufferItemType>
 vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 {
 	this->BufferItemContainer.resize(0); 
-	this->Mutex = vtkCriticalSection::New();
+	this->Mutex = vtkRecursiveCriticalSection::New();
 	this->NumberOfItems = 0;
 	this->WritePointer = 0;
 	this->CurrentTimeStamp = 0.0;

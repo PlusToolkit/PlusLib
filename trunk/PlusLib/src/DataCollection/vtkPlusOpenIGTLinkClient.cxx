@@ -8,7 +8,7 @@ See License.txt for details.
 #include "vtkPlusOpenIGTLinkClient.h"
 
 #include "vtkMultiThreader.h"
-#include "vtkMutexLock.h"
+#include "vtkRecursiveCriticalSection.h"
 
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
@@ -108,9 +108,9 @@ vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
   this->ServerAddress = NULL; 
 
   this->Threader = vtkMultiThreader::New();
-  this->Mutex = vtkMutexLock::New();
+  this->Mutex = vtkRecursiveCriticalSection::New();
   this->ClientSocket = igtl::ClientSocket::New();
-  this->SocketMutex = vtkMutexLock::New();
+  this->SocketMutex = vtkRecursiveCriticalSection::New();
 }
 
 //----------------------------------------------------------------------------

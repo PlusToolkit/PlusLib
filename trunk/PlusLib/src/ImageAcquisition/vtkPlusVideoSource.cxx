@@ -8,7 +8,6 @@
 
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
-#include "vtkCriticalSection.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -680,17 +679,17 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
   {
     if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time <<
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
         ") - item not available anymore!"); 
     }
     else if ( status == ITEM_NOT_AVAILABLE_YET )
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time <<
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
         ") - item not available yet!"); 
     }
     else
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ")!"); 
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp << ")!"); 
     }
 
     return PLUS_FAIL; 

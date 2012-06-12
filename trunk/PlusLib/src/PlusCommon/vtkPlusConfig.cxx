@@ -132,7 +132,28 @@ vtkPlusConfig::vtkPlusConfig()
   GetModuleFileName ( NULL, cProgramPath, 2048 ); 
   this->SetProgramPath(vtksys::SystemTools::GetProgramPath(cProgramPath).c_str()); 
 #else
-  this->SetProgramPath(vtksys::SystemTools::CollapseFullPath("./").c_str()); 
+  const unsigned int pathBuffSize=1000;
+  char pathBuff[pathBuffSize+1];
+  pathBuff[pathBuffSize]=0;    
+  // linux
+  if (readlink ("/proc/self/exe", pathBuff, pathBuffSize) != -1)
+  {
+    // linux
+    std::string path=vtksys::SystemTools::CollapseFullPath(pathBuff);
+    std::string dirName;
+    std::string fileName;
+    vtksys::SystemTools::SplitProgramPath(path.c_str(), dirName, fileName);
+    this->SetProgramPath(dirName.c_str()); 
+  }
+  else
+  {      
+    // non-linux systems
+    // currently simply the working directory is used instead of the executable path
+    // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe
+    std::string path=vtksys::SystemTools::CollapseFullPath("./");
+    LOG_WARNING("Cannot get program path. PlusConfig.xml will be read from  "<<path);
+    this->SetProgramPath(path.c_str());       
+  }
 #endif
 
 }
@@ -351,7 +372,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   else
   {
     LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
-  	std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
+    std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
     this->SetGnuplotDirectory(defaultGnuplotDirectory.c_str());
     saveNeeded = true;
   }
@@ -849,7 +870,7 @@ PlusStatus vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath, std::stri
   {
     return PLUS_SUCCESS;
   }
-
+  LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
   // Make sure the device set configuration path is absolute
   std::string absoluteDeviceSetConfigurationDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 
@@ -859,6 +880,7 @@ PlusStatus vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath, std::stri
   {
     return PLUS_SUCCESS;
   }
+  LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
   aFoundAbsolutePath = "";
   LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory nor to device set configuration directory!");

@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   }
 
   //  Write file indicating whether test was succesful; initially set to 0 (= 'No')
-  std::string isTestValidFileName = outputFilepath + "\\IsTestValid.txt"; 
+  std::string isTestValidFileName = outputFilepath + "/IsTestValid.txt"; 
   std::ofstream isTestValidFile;
   isTestValidFile.open(isTestValidFileName.c_str());
   isTestValidFile << 0 << std::endl;
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
   NormalizeMetric(trackerMetric);
 
   //  Write the tracker metric to file.
-  std::string trackerMetricFileName = outputFilepath + "\\normalizedTrackerMetric.txt";
+  std::string trackerMetricFileName = outputFilepath + "/normalizedTrackerMetric.txt";
   std::ofstream probeToReferenceTransformNormalizedFile;
   probeToReferenceTransformNormalizedFile.open (trackerMetricFileName.c_str());
   for(int i = 0; i < trackerMetric.size(); ++i)
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
   NormalizeMetric(videoMetric);
 
   //  Write image metric to file
-  std::string imageMetricFileName = outputFilepath +  "\\normalizedImageMetric.txt";
+  std::string imageMetricFileName = outputFilepath +  "/normalizedImageMetric.txt";
   std::ofstream videoMetricFile;
   videoMetricFile.open(imageMetricFileName.c_str());
   for(int i = 0; i < videoMetric.size(); ++i)
@@ -276,14 +276,14 @@ int main(int argc, char **argv)
   time(&endTime);
 
   //  Write run-time to file.
-  std::string runTimeFileName =  outputFilepath + "\\Runtime.txt";
+  std::string runTimeFileName =  outputFilepath + "/Runtime.txt";
   std::ofstream runTimeFile;
   runTimeFile.open(runTimeFileName.c_str());
   runTimeFile << difftime(endTime, startTime) << std::endl;
   runTimeFile.close();
 
   //  Write the calculated tracker lag to file.
-  std::string trackerLagFilename =  outputFilepath + "\\TrackerLag.txt";
+  std::string trackerLagFilename =  outputFilepath + "/TrackerLag.txt";
   std::ofstream trackerLagFile;
   trackerLagFile.open(trackerLagFilename.c_str());
   trackerLagFile << trackerLag << std::endl;

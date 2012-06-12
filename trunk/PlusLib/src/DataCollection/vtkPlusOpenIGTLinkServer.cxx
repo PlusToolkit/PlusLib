@@ -12,7 +12,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
 
-#include "vtkMutexLock.h"
+#include "vtkRecursiveCriticalSection.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
@@ -54,7 +54,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   this->TransformRepository = NULL; 
   
   this->Threader = vtkSmartPointer<vtkMultiThreader>::New();
-  this->Mutex = vtkSmartPointer<vtkMutexLock>::New();
+  this->Mutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
   
   this->ServerSocket = igtl::ServerSocket::New();
 }
@@ -198,7 +198,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
     if (newClientSocket.IsNotNull())
     {
       // Lock before we change the clients list 
-      PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
 
       newClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC ); 
 
@@ -330,7 +330,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
   {
     // make a copy of client infos to avoid lock 
     {
-      PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
       igtlClients = self->IgtlClients; 
     }
 
@@ -375,7 +375,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           client.ClientSocket->GetSocketAddressAndPort(clientAddress, port);
 #endif
           // Message received from client, need to lock to modify client info
-          PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(self->Mutex);
+          PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
           std::list<PlusIgtlClientInfo>::iterator it = std::find(self->IgtlClients.begin(), self->IgtlClients.end(), client ); 
           if ( it != self->IgtlClients.end() )
           {
@@ -428,7 +428,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
   }
 
   // Lock before we send message to the clients 
-  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   bool clientDisconnected = false;
 
   std::list<PlusIgtlClientInfo>::iterator clientIterator = this->IgtlClients.begin();
@@ -523,7 +523,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
   int numberOfErrors = 0; 
 
   // Lock before we send message to the clients 
-  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   bool clientDisconnected = false;
 
   std::list<PlusIgtlClientInfo>::iterator clientIterator = this->IgtlClients.begin();
@@ -578,7 +578,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
 int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
 {
   // Lock before we send message to the clients 
-  PlusLockGuard<vtkMutexLock> updateMutexGuardedLock(this->Mutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   return this->IgtlClients.size(); 
 }
 

@@ -28,7 +28,7 @@ Authors include: Jan Gumprecht (Harvard Medical School)
 #include "vtkV4L2VideoSource.h"
 
 #include "vtkImageData.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
 #include "vtkInformation.h"
@@ -40,7 +40,7 @@ Authors include: Jan Gumprecht (Harvard Medical School)
 //New-Start
 #include "vtkDataArray.h"
 #include "vtkMultiThreader.h"
-#include "vtkMutexLock.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkWindows.h"
 
 #include <ctype.h>
@@ -193,7 +193,7 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
   this->PlayerThreader = vtkMultiThreader::New();
   this->PlayerThreadId = -1;
 
-  this->FrameBufferMutex = vtkCriticalSection::New();
+  this->FrameBufferMutex = vtkRecursiveCriticalSection::New();
 
   this->FrameBufferSize = 0;
   this->FrameBuffer = NULL;

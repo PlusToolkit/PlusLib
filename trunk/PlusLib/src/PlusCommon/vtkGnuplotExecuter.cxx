@@ -27,7 +27,16 @@ vtkGnuplotExecuter::vtkGnuplotExecuter()
   this->SetTimeout(15.0);  // seconds
   
   std::ostringstream commandpath; 
-  commandpath << vtkPlusConfig::GetInstance()->GetGnuplotDirectory() << "/gnuplot.exe"; 
+  std::string dir=vtkPlusConfig::GetInstance()->GetGnuplotDirectory();
+  if (dir.size()>0)
+  {
+    commandpath << dir << "/"; 
+  }
+  commandpath << "gnuplot"; 
+#ifdef _WIN32
+  commandpath << ".exe"; 
+#endif
+
   this->SetGnuplotCommand(  vtksys::SystemTools::CollapseFullPath(commandpath.str().c_str()).c_str()); 
 
   std::ostringstream workingDirectory; 

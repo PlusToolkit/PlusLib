@@ -15,7 +15,7 @@ Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
 #include "vtkHeartSignalBox.h"
 #include "vtkObjectFactory.h"
 #include "vtkMultiThreader.h"
-#include "vtkMutexLock.h"
+#include "vtkRecursiveCriticalSection.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/timeb.h>

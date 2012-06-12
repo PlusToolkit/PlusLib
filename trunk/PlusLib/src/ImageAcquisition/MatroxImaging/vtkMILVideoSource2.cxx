@@ -16,7 +16,7 @@ Authors include: Danielle Pace
 #include "vtkMILVideoSource2.h"
 #include "vtkTimerLog.h"
 #include "vtkObjectFactory.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkDataArray.h"
 #include "vtkVideoBuffer.h"
 

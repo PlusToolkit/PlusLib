@@ -32,7 +32,7 @@ Authors include: Jan Gumprecht (Harvard Medical School)
 #include "vtkImageAlgorithm.h"
 
 class vtkTimerLog;
-class vtkCriticalSection;
+class vtkRecursiveCriticalSection;
 class vtkMultiThreader;
 class vtkScalarsToColors;
 
@@ -342,7 +342,7 @@ protected:
     A mutex for the frame buffer: must be applied when any of the
     below data is modified.
   */
-  vtkCriticalSection *FrameBufferMutex;
+  vtkRecursiveCriticalSection *FrameBufferMutex;
 
   /*!
     Set according to the needs of the hardware:

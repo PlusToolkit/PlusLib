@@ -1316,7 +1316,7 @@ void MicronTrackerInterface::getFileNamesFromDirectory(std::vector<std::string> 
           //If returnCompletePath is true return the full path of the files, otherwise return just the file names.
           if (returnCompletePath)
           {
-            fileNames.push_back(std::string(dir) + "\\" +  fileName);
+            fileNames.push_back(std::string(dir) + "/" +  fileName);
           }
           else
           {

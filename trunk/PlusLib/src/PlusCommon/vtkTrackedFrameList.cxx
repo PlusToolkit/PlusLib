@@ -420,7 +420,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  std::string trackedSequenceDataFileName=std::string(outputFolder)+std::string("\\")+std::string(sequenceDataFileName);
+  std::string trackedSequenceDataFileName=std::string(outputFolder)+std::string("/")+std::string(sequenceDataFileName);
   if (extension==SEQ_METAFILE_MHA)
   {
     trackedSequenceDataFileName+=".mha";

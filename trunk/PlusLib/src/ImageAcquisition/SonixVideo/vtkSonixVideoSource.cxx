@@ -49,7 +49,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSonixVideoSource.h"
 
 #include "vtkImageData.h"
-#include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
 #include "vtkInformation.h"

@@ -15,7 +15,7 @@
 #include "igtlMessageBase.h"
 
 
-class vtkMutexLock;
+class vtkRecursiveCriticalSection;
 
 /*!
   \class vtkIGTLMessageQueue 
@@ -47,7 +47,7 @@ protected:
   
 protected:
 
-  vtkMutexLock* Mutex;
+  vtkRecursiveCriticalSection* Mutex;
   
   std::deque< igtl::MessageBase* > DataBuffer;
   

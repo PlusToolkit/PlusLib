@@ -12,7 +12,7 @@
 #include <fstream>
 #include <sstream>
 
-class vtkSimpleCriticalSection; 
+class vtkRecursiveCriticalSection;
 
 /*!
   \class vtkConsoleOutputWindow
@@ -170,7 +170,7 @@ private:
     It is necessary because the logging object may be used in multiple
     threads simultaneously.
   */
-	vtkSimpleCriticalSection* m_CriticalSection; 
+  vtkRecursiveCriticalSection* m_CriticalSection;
 };
 
 #endif

@@ -633,7 +633,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
       {
         // Write image showing the scan lines to file
         std::ostrstream scanLineImageFilename;
-        scanLineImageFilename << m_IntermediateFilesOutputDirectory << "\\scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+        scanLineImageFilename << m_IntermediateFilesOutputDirectory << "/scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
         PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
 
         // Test writing of colour image to file
@@ -717,7 +717,7 @@ PlusStatus TemporalCalibration::ComputeVideoPositionMetric()
         }
 
         std::ostrstream rgbImageFilename;
-        rgbImageFilename << m_IntermediateFilesOutputDirectory << "\\rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
+        rgbImageFilename << m_IntermediateFilesOutputDirectory << "/rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
         typedef itk::ImageFileWriter<rgbImageType> rgbImageWriterType;
         rgbImageWriterType::Pointer rgbImageWriter = rgbImageWriterType::New();

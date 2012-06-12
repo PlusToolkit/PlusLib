@@ -11,7 +11,7 @@
 #include <time.h>
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkMultiThreader.h"
-#include "vtkCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 
 //----------------------------------------------------------------------------
 // Global variables for communicating with the threads
@@ -22,7 +22,7 @@ std::vector<double> gDelayErrorsSec; // access controlled by gCritSec
 int gNumberOfDelayErrors = 0; // access controlled by gCritSec
 int gNumberOfThreadCompletions = 0; // access controlled by gCritSec
 double gMaxDelayErrorSec = 0.010;
-vtkSmartPointer<vtkCriticalSection> gCritSec = vtkSmartPointer<vtkCriticalSection>::New();
+vtkSmartPointer<vtkRecursiveCriticalSection> gCritSec = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
 
 //----------------------------------------------------------------------------
 // Thread function

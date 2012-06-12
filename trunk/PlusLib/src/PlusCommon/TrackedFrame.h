@@ -136,7 +136,7 @@ public:
   static std::string ConvertFieldStatusToString(TrackedFrameFieldStatus status);
 
   /*! Return all custom fields in a map */ 
-  FieldMapType GetCustomFields() { return this->CustomFrameFields; }
+  const FieldMapType& GetCustomFields() { return this->CustomFrameFields; }
 
 public:
   bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
