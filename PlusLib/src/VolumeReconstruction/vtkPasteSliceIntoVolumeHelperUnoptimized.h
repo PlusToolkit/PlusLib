@@ -137,7 +137,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       if (accPtr) // accumulation buffer: do compounding
       {
         accPtr += inc/outInc[0];
-        if (*accPtr > ACCUMULATION_THRESHOLD) { // no overflow, act normally
+        if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
           int newa = *accPtr + ACCUMULATION_MULTIPLIER;
           if (newa > ACCUMULATION_THRESHOLD)
             (*accOverflowCount) += 1;
