@@ -22,6 +22,9 @@ SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${VTKNDICAPI_INCLUDE_DIRS} C
 
 ADD_LIBRARY(vtkndicapi STATIC ${common_SRCS})
 TARGET_LINK_LIBRARIES( vtkndicapi )
+IF(NOT WIN32)
+  SET_TARGET_PROPERTIES( vtkndicapi PROPERTIES COMPILE_FLAGS "-fPIC")
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Set external MS project 
