@@ -85,16 +85,11 @@ SET(vcProj_vtkSignaling vtkSignaling;"${PlusLib_BINARY_DIR}/src/Signaling/vtkSig
 # Install
 #
 
-INSTALL(FILES 
-  ${External_Libraries_Install}
-  DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries
+INSTALL(FILES ${External_Libraries_Install}
+  DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 	
 INSTALL(TARGETS vtkSignaling
-  RUNTIME DESTINATION bin
-  #LIBRARY DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )

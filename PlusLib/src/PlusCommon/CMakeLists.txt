@@ -71,11 +71,9 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtk
 # Install
 #
 	
-INSTALL (TARGETS vtkPlusCommon
-  RUNTIME DESTINATION bin
-  #LIBRARY DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries
+INSTALL(TARGETS vtkPlusCommon
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 
 # --------------------------------------------------------------------------

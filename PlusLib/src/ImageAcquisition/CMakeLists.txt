@@ -372,18 +372,13 @@ ENDIF()
     
 # --------------------------------------------------------------------------
 # Install
-INSTALL(FILES 
-  ${External_Libraries_Install}
-  DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries
+INSTALL(FILES ${External_Libraries_Install}
+  DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 
 INSTALL(TARGETS vtkImageAcquisition
-  RUNTIME DESTINATION bin
-  #LIBRARY DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeLibraries
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 
 # --------------------------------------------------------------------------
