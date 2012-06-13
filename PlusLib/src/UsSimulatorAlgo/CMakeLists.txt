@@ -19,7 +19,6 @@ SET (UsSimulatorAlgo_LIBS
   vtkPlusCommon
   )     
 
-SET (UsSimulatorAlgo_INCLUDE_DIRS ${UsSimulatorAlgo_INCLUDE_DIRS} ${UsSimulatorAlgo_INCLUDE_DIRS} CACHE INTERNAL "" FORCE    )
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkUsSimulatorAlgo ${UsSimulatorAlgo_SRCS} ${UsSimulatorAlgo_HDRS})
 TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgo ${UsSimulatorAlgo_LIBS})
