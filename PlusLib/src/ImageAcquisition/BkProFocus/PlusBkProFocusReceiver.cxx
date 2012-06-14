@@ -1,4 +1,4 @@
-
+/*
 
 
 //////////// IAcquitisionDataReceiver interface
@@ -89,3 +89,5 @@ void SetCallback(int *cb)
 {
 	this->CallbackPointer = cb;
 }
+
+*/
