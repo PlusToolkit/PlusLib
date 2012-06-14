@@ -5,13 +5,13 @@ PROJECT(PlusBuild)
 # 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 IF(COMMAND cmake_policy)
-    cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
 
 SET(CMAKE_MODULE_PATH
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules
-    ${CMAKE_MODULE_PATH}
-    )
+  ${CMAKE_CURRENT_SOURCE_DIR}/Modules
+  ${CMAKE_MODULE_PATH}
+  )
  
 #-----------------------------------------------------------------------------
 # SVN - Let's check if a valid version of SVN is available
@@ -64,20 +64,23 @@ else (WIN32)
 	SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
 endif (WIN32)	
 
-
 OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like ITK, VTK, OpenIGTLink)" OFF)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
+# Imaging hardware
+
 OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" OFF)
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 1 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
-
+OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound systems" OFF)
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
+
+# Tracking hardware
 
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
@@ -85,6 +88,8 @@ OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
+
+# Other
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
@@ -115,20 +120,20 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PLUSAPP) 
-    FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
-      PATH
-        $ENV{QTDIR}
-        "C:/Qt/4.7.3/bin"
-        "../Qt/4.7.3/bin"
-        "../../Qt/4.7.3/bin"
-      )
-    FIND_PACKAGE(Qt4)
-    IF ( NOT QT4_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires Qt4 for building PlusApp. One of these components is missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-    ENDIF()  
-    
-    SET(QT_USE_QT3SUPPORT TRUE) 
-    INCLUDE(${QT_USE_FILE})
+  FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
+    PATH
+      $ENV{QTDIR}
+      "C:/Qt/4.7.3/bin"
+      "../Qt/4.7.3/bin"
+      "../../Qt/4.7.3/bin"
+    )
+  FIND_PACKAGE(Qt4)
+  IF ( NOT QT4_FOUND)
+      MESSAGE( FATAL_ERROR "This project requires Qt4 for building PlusApp. One of these components is missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+  ENDIF()  
+  
+  SET(QT_USE_QT3SUPPORT TRUE) 
+  INCLUDE(${QT_USE_FILE})
 ENDIF(PLUSBUILD_BUILD_PLUSAPP) 
 
 #-----------------------------------------------------------------------------
@@ -161,14 +166,14 @@ ENDIF()
 
 SET(PlusLib_DEPENDENCIES)
 IF ( NOT PLUSBUILD_USE_3DSlicer )
-    SET(VTK_DEPENDENCIES)
-    SET(ITK_DEPENDENCIES)
-    LIST(APPEND PlusLib_DEPENDENCIES vtk itk)
-    
-    IF(PLUSBUILD_USE_OpenIGTLink)
-        SET(OpenIGTLink_DEPENDENCIES)
-        LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
-    ENDIF(PLUSBUILD_USE_OpenIGTLink)
+  SET(VTK_DEPENDENCIES)
+  SET(ITK_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES vtk itk)
+  
+  IF(PLUSBUILD_USE_OpenIGTLink)
+    SET(OpenIGTLink_DEPENDENCIES)
+    LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
+  ENDIF(PLUSBUILD_USE_OpenIGTLink)
 
 ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
 
@@ -182,108 +187,114 @@ SET(PlusApp_DEPENDENCIES PlusLib)
             
 IF ( PLUSBUILD_USE_3DSlicer )
 
-    SET(PLUSBUILD_SLICER_BIN_DIRECTORY "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND" CACHE PATH "Path to 3D Slicer binary directory" )
+  SET(PLUSBUILD_SLICER_BIN_DIRECTORY "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND" CACHE PATH "Path to 3D Slicer binary directory" )
 
-    IF("${PLUSBUILD_SLICER_BIN_DIRECTORY}" STREQUAL "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND")
-        MESSAGE(FATAL_ERROR "Cannot use 3D Slicer if PLUSBUILD_SLICER_BIN_DIRECTORY is not defined.")
-    ENDIF() 
+  IF("${PLUSBUILD_SLICER_BIN_DIRECTORY}" STREQUAL "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND")
+    MESSAGE(FATAL_ERROR "Cannot use 3D Slicer if PLUSBUILD_SLICER_BIN_DIRECTORY is not defined.")
+  ENDIF() 
 
-    ## Try to find Slicer4
-    FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
-    IF ( Slicer_FOUND )
-        INCLUDE( ${Slicer_USE_FILE} )
-        IF(PLUSBUILD_USE_OpenIGTLink)
-            FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
-        ENDIF(PLUSBUILD_USE_OpenIGTLink)
-        
-    ENDIF( Slicer_FOUND )
-    
-    ## Try to find Slicer3
-    FIND_PACKAGE( Slicer3 PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
-    IF ( Slicer3_FOUND )
-        INCLUDE( ${Slicer3_USE_FILE} )
-        IF(PLUSBUILD_USE_OpenIGTLink)
-            FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer3_HOME}/../Slicer3-lib/OpenIGTLink-build" NO_DEFAULT_PATH )
-        ENDIF(PLUSBUILD_USE_OpenIGTLink)
-    ENDIF( Slicer3_FOUND )
-    
-    IF ( NOT Slicer_FOUND AND NOT Slicer3_FOUND)
-        MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
-    ENDIF()
-    
-    IF(PLUSBUILD_BUILD_PLUSAPP) 
-        IF (NOT VTK_USE_QT)
-            MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
-        ENDIF (NOT VTK_USE_QT)
-    ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
-    
-    # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-    IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-        FILE(COPY 
-            ${VTK_LIBRARY_DIRS}/Release/
-            ${ITK_LIBRARY_DIRS}/Release/
-            ${OpenIGTLink_LIBRARY_DIRS}/Release/
-            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-            )
-        FILE(COPY 
-            ${VTK_LIBRARY_DIRS}/Debug/
-            ${ITK_LIBRARY_DIRS}/Debug/
-            ${OpenIGTLink_LIBRARY_DIRS}/Debug/
-            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-            )    
-    ELSE()
-        FILE(COPY 
-            ${VTK_LIBRARY_DIRS}/
-            ${ITK_LIBRARY_DIRS}/
-            ${OpenIGTLink_LIBRARY_DIRS}/
-            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-            )
-    ENDIF()
-ELSE ( PLUSBUILD_USE_3DSlicer )
-    INCLUDE(External_VTK.cmake)
-    INCLUDE(External_ITK.cmake)
-    
+  ## Try to find Slicer4
+  FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
+  IF ( Slicer_FOUND )
+    INCLUDE( ${Slicer_USE_FILE} )
     IF(PLUSBUILD_USE_OpenIGTLink)
-        INCLUDE(External_OpenIGTLink.cmake)
+      FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
     ENDIF(PLUSBUILD_USE_OpenIGTLink)
+      
+  ENDIF( Slicer_FOUND )
+  
+  ## Try to find Slicer3
+  FIND_PACKAGE( Slicer3 PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
+  IF ( Slicer3_FOUND )
+    INCLUDE( ${Slicer3_USE_FILE} )
+    IF(PLUSBUILD_USE_OpenIGTLink)
+      FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer3_HOME}/../Slicer3-lib/OpenIGTLink-build" NO_DEFAULT_PATH )
+    ENDIF(PLUSBUILD_USE_OpenIGTLink)
+  ENDIF( Slicer3_FOUND )
+  
+  IF ( NOT Slicer_FOUND AND NOT Slicer3_FOUND)
+    MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
+  ENDIF()
+  
+  IF(PLUSBUILD_BUILD_PLUSAPP) 
+    IF (NOT VTK_USE_QT)
+      MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+    ENDIF (NOT VTK_USE_QT)
+  ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+  
+  # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
+  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+    FILE(COPY 
+      ${VTK_LIBRARY_DIRS}/Release/
+      ${ITK_LIBRARY_DIRS}/Release/
+      ${OpenIGTLink_LIBRARY_DIRS}/Release/
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
+      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    FILE(COPY 
+      ${VTK_LIBRARY_DIRS}/Debug/
+      ${ITK_LIBRARY_DIRS}/Debug/
+      ${OpenIGTLink_LIBRARY_DIRS}/Debug/
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )    
+  ELSE()
+      FILE(COPY 
+        ${VTK_LIBRARY_DIRS}/
+        ${ITK_LIBRARY_DIRS}/
+        ${OpenIGTLink_LIBRARY_DIRS}/
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+  ENDIF()
+ELSE ( PLUSBUILD_USE_3DSlicer )
+  INCLUDE(External_VTK.cmake)
+  INCLUDE(External_ITK.cmake)
+  
+  IF(PLUSBUILD_USE_OpenIGTLink)
+    INCLUDE(External_OpenIGTLink.cmake)
+  ENDIF(PLUSBUILD_USE_OpenIGTLink)
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
 IF ( PLUS_USE_CERTUS )
-    FIND_PACKAGE (NDIOAPI)
-    IF ( NOT NDIOAPI_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of these components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
-    ENDIF()
+  FIND_PACKAGE (NDIOAPI)
+  IF ( NOT NDIOAPI_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of these components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
+  ENDIF()
 ENDIF() 
 
 IF ( PLUS_USE_ULTRASONIX_VIDEO )
-    FIND_PACKAGE (ULTRASONIX_SDK)
-    IF ( NOT ULTRASONIX_SDK_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK ${ULTRASONIX_SDK_VERSION} for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
-    ENDIF()
+  FIND_PACKAGE (ULTRASONIX_SDK)
+  IF ( NOT ULTRASONIX_SDK_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK ${ULTRASONIX_SDK_VERSION} for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
+  ENDIF()
 ENDIF() 
 
 IF ( PLUS_USE_MICRONTRACKER )
-    FIND_PACKAGE (MicronTracker)
-    IF ( NOT MICRONTRACKER_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires Claron MicronTracker SDK for supporting the MicronTracker tracking device. One of these components is missing. Please verify configuration or turn off PLUS_USE_MICRONTRACKER.")
-    ENDIF()
+  FIND_PACKAGE (MicronTracker)
+  IF ( NOT MICRONTRACKER_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires Claron MicronTracker SDK for supporting the MicronTracker tracking device. One of these components is missing. Please verify configuration or turn off PLUS_USE_MICRONTRACKER.")
+  ENDIF()
 ENDIF() 
 
+IF ( PLUS_USE_BKPROFOCUS_VIDEO )
+  FIND_PACKAGE (BKPROFOCUS)
+  IF ( NOT BKPROFOCUS_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires BK ProFocus SDK. Please verify configuration or turn off PLUS_USE_BKPROFOCUS_VIDEO.")
+  ENDIF()
+ENDIF()
+
 IF ( PLUS_USE_ICCAPTURING_VIDEO )
-   FIND_PACKAGE (ICCAPTURING)
-    IF ( NOT ICCAPTURING_FOUND)
-        MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
-    ENDIF()
+ FIND_PACKAGE (ICCAPTURING)
+  IF ( NOT ICCAPTURING_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
+  ENDIF()
 ENDIF()
 
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
-    INCLUDE(External_PlusApp.cmake)
-    
+  INCLUDE(External_PlusApp.cmake)
 ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
 
 #-----------------------------------------------------------------------------
