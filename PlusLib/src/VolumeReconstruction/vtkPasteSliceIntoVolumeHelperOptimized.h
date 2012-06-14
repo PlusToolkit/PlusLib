@@ -892,7 +892,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     vtkImageData *inData, // input slice
                                     T *inPtr, // scalar pointer to the input volume over the input slice extent
                                     int inExt[6], // input slice extent (could have been split for threading)
-                                    F matrix[4][4], // index matrix, output indices -> input indices
+                                    F matrix[16], // index matrix, output indices -> input indices
                                     double clipRectangleOrigin[2],
                                     double clipRectangleSize[2],
                                     double fanAngles[2],
@@ -902,10 +902,10 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     vtkPasteSliceIntoVolume::CalculationType calculationMode,
                                     unsigned int* accOverflowCount)
 {
-  LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
-    <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
-    <<(float)matrix[2][0]<<" "<<(float)matrix[2][1]<<" "<<(float)matrix[2][2]<<" "<<(float)matrix[2][3]<<"; "
-    <<(float)matrix[3][0]<<" "<<(float)matrix[3][1]<<" "<<(float)matrix[3][2]<<" "<<(float)matrix[3][3]
+  LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0]<<" "<<(float)matrix[1]<<" "<<(float)matrix[2]<<" "<<(float)matrix[3]<<"; "
+    <<(float)matrix[4]<<" "<<(float)matrix[5]<<" "<<(float)matrix[6]<<" "<<(float)matrix[7]<<"; "
+    <<(float)matrix[8]<<" "<<(float)matrix[9]<<" "<<(float)matrix[10]<<" "<<(float)matrix[11]<<"; "
+    <<(float)matrix[12]<<" "<<(float)matrix[13]<<" "<<(float)matrix[14]<<" "<<(float)matrix[15]
     );
   
   //////
@@ -984,10 +984,11 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
   // (this allows us to calculate the transform Incrementally)
   for (int i = 0; i < 3; i++)
   {
-    xAxis[i]  = matrix[i][0]; // remember that the matrix is the indexMatrix, and transforms
-    yAxis[i]  = matrix[i][1];  // output pixels to input pixels
-    zAxis[i]  = matrix[i][2];
-    origin[i] = matrix[i][3];
+    int rowindex = (i<<2);
+    xAxis[i]  = matrix[rowindex  ]; // remember that the matrix is the indexMatrix, and transforms
+    yAxis[i]  = matrix[rowindex+1];  // output pixels to input pixels
+    zAxis[i]  = matrix[rowindex+2];
+    origin[i] = matrix[rowindex+3];
   }
 
   int xIntersectionPixStart,xIntersectionPixEnd;

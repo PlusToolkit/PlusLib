@@ -178,15 +178,15 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
   output from the input - no optimization.
   (this one function is pretty much the be-all and end-all of the filter)
 */
-template <class T>
-static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
+template <class F, class T>
+static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], F *matrix,
   double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::CalculationType calculationMode, unsigned int * accOverflowCount)
 {
 
-  LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
-    <<matrix->GetElement(1,0)<<" "<<matrix->GetElement(1,1)<<" "<<matrix->GetElement(1,2)<<" "<<matrix->GetElement(1,3)<<"; "
-    <<matrix->GetElement(2,0)<<" "<<matrix->GetElement(2,1)<<" "<<matrix->GetElement(2,2)<<" "<<matrix->GetElement(2,3)<<"; "
-    <<matrix->GetElement(3,0)<<" "<<matrix->GetElement(3,1)<<" "<<matrix->GetElement(3,2)<<" "<<matrix->GetElement(3,3)
+  LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix[0]<<" "<<matrix[1]<<" "<<matrix[2]<<" "<<matrix[3]<<"; "
+    <<matrix[4]<<" "<<matrix[5]<<" "<<matrix[6]<<" "<<matrix[7]<<"; "
+    <<matrix[8]<<" "<<matrix[9]<<" "<<matrix[10]<<" "<<matrix[11]<<"; "
+    <<matrix[12]<<" "<<matrix[13]<<" "<<matrix[14]<<" "<<matrix[15]
     );
       
   // slice spacing and origin
@@ -283,7 +283,14 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
             inPoint[1] = idY;
             inPoint[2] = idZ;
 
-            matrix->MultiplyPoint(inPoint,outPoint);
+            // matrix multiplication - input -> output
+            for (int i = 0; i < 16; i+=4)
+            {
+              outPoint[i] =  matrix[i  ] * inPoint[0] + 
+                             matrix[i+1] * inPoint[1] + 
+                             matrix[i+2] * inPoint[2] + 
+                             matrix[i+3] * inPoint[3] ;
+            }
 
             // deal with w (homogeneous transform) if the transform was a perspective transform
             outPoint[0] /= outPoint[3]; 

@@ -449,13 +449,14 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
     // use fixed-point math
     // change transform matrix so that instead of taking 
     // input coords -> output coords it takes output indices -> input indices
-    fixed newmatrix[4][4]; // fixed because optimization = 2
+    fixed newmatrix[16]; // fixed because optimization = 2
     for (int i = 0; i < 4; i++)
     {
-      newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
-      newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
-      newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
-      newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
+      int rowindex = (i<<2);
+      newmatrix[rowindex  ] = mImagePixToVolumePix->GetElement(i,0);
+      newmatrix[rowindex+1] = mImagePixToVolumePix->GetElement(i,1);
+      newmatrix[rowindex+2] = mImagePixToVolumePix->GetElement(i,2);
+      newmatrix[rowindex+3] = mImagePixToVolumePix->GetElement(i,3);
     }
 
     switch (str->InputFrameImage->GetScalarType())
@@ -563,13 +564,14 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
 
     // change transform matrix so that instead of taking 
     // input coords -> output coords it takes output indices -> input indices
-    double newmatrix[4][4];
+    double newmatrix[16];
     for (int i = 0; i < 4; i++)
     {
-      newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
-      newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
-      newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
-      newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
+      int rowindex = (i<<2);
+      newmatrix[rowindex  ] = mImagePixToVolumePix->GetElement(i,0);
+      newmatrix[rowindex+1] = mImagePixToVolumePix->GetElement(i,1);
+      newmatrix[rowindex+2] = mImagePixToVolumePix->GetElement(i,2);
+      newmatrix[rowindex+3] = mImagePixToVolumePix->GetElement(i,3);
     }
 
 
@@ -680,7 +682,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (short *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (short *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -689,7 +691,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData,(unsigned short *)(outPtr),
           (unsigned short *)(accPtr), 
           inData, (unsigned short *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -698,7 +700,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData,(unsigned char *)(outPtr),
           (unsigned short *)(accPtr), 
           inData, (unsigned char *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -707,7 +709,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData,(char *)(outPtr),
           (unsigned short *)(accPtr), 
           inData, (char *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -716,7 +718,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (float *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (float *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -725,7 +727,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (double *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (double *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -734,7 +736,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (int *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (int *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -743,7 +745,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (unsigned int *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (unsigned int *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -752,7 +754,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (long *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (long *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
@@ -761,7 +763,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
         vtkUnoptimizedInsertSlice(outData, (unsigned long *)(outPtr), 
           (unsigned short *)(accPtr), 
           inData, (unsigned long *)(inPtr), 
-          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          inputFrameExtentForCurrentThread, newmatrix,
           str->ClipRectangleOrigin,str->ClipRectangleSize,
           str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
           accumulationBufferSaturationErrorsThread);
