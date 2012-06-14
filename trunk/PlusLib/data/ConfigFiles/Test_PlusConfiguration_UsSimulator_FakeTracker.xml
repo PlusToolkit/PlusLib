@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST Simulation mode for Stylus calibration"
+      Name="TEST UsSimulator with Fake tracker in PivotCalibraiton mode"
       Description="No Video with Fake tracker in Pivot calibration mode
 vtkStylusCalibrationTest uses this configuration" 
     />
