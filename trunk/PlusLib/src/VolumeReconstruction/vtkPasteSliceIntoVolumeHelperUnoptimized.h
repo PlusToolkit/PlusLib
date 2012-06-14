@@ -284,12 +284,13 @@ static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned
             inPoint[2] = idZ;
 
             // matrix multiplication - input -> output
-            for (int i = 0; i < 16; i+=4)
+            for (int i = 0; i < 4; i++)
             {
-              outPoint[i] =  matrix[i  ] * inPoint[0] + 
-                             matrix[i+1] * inPoint[1] + 
-                             matrix[i+2] * inPoint[2] + 
-                             matrix[i+3] * inPoint[3] ;
+              int rowindex = i << 2;
+              outPoint[i] =  matrix[rowindex  ] * inPoint[0] + 
+                             matrix[rowindex+1] * inPoint[1] + 
+                             matrix[rowindex+2] * inPoint[2] + 
+                             matrix[rowindex+3] * inPoint[3] ;
             }
 
             // deal with w (homogeneous transform) if the transform was a perspective transform
