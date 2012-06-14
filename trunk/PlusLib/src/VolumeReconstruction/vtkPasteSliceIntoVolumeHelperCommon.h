@@ -68,6 +68,9 @@ to the maximm value, we are safe. Therefore, the threshold should be defined
 as: 
 ACCUMULATION_THRESHOLD = (ACCUMULATION_MAXIMUM - ACCUMULATION_MULTIPLIER)
 
+In trilinear interpolation, we must use another value for recursive filtering -
+we need to know approximately how many pixels have been inserted into the volume thus far
+
 Note that, in order to deal with overflow, the code previously would take in 
 the additional pixel value and  calculate a weighted average, as normally done 
 in compounding, but then reset the  accumulation value for the voxel to 65535 
@@ -220,7 +223,8 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
               PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
               break;
             case vtkPasteSliceIntoVolume::MAXIMUM:
-              if (*inPtrTmp > *outPtrTmp) {
+              if (*inPtrTmp > *outPtrTmp)
+              {
                 *outPtrTmp = *inPtrTmp;
                 f = fdx[j];
                 a = f;
