@@ -444,6 +444,25 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   vtkSmartPointer<vtkMatrix4x4> mImagePixToVolumePix = vtkSmartPointer<vtkMatrix4x4>::New();
   tImagePixToVolumePix->GetMatrix(mImagePixToVolumePix);
 
+
+  // set up all the info for passing into the appropriate insertSlice function
+  vtkPasteSliceIntoVolumeInsertSliceParams insertionParams;
+  insertionParams.accOverflowCount = accumulationBufferSaturationErrorsThread;
+  insertionParams.accPtr = (unsigned short *)accPtr;
+  insertionParams.calculationMode = str->CalculationMode;
+  insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;
+  insertionParams.clipRectangleSize = str->ClipRectangleSize;
+  insertionParams.fanAngles = str->FanAngles;
+  insertionParams.fanDepth = str->FanDepth;
+  insertionParams.fanOrigin = str->FanOrigin;
+  insertionParams.inData = str->InputFrameImage;
+  insertionParams.inExt = inputFrameExtentForCurrentThread;
+  insertionParams.inPtr = inPtr;
+  insertionParams.interpolationMode = str->InterpolationMode;
+  insertionParams.outData = outData;
+  insertionParams.outPtr = outPtr;
+  // the matrix will be set once we know more about the optimization level
+
   if (str->Optimization == FULL_OPTIMIZATION)
   {
     // use fixed-point math
@@ -458,98 +477,39 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
       newmatrix[rowindex+2] = mImagePixToVolumePix->GetElement(i,2);
       newmatrix[rowindex+3] = mImagePixToVolumePix->GetElement(i,3);
     }
+    insertionParams.matrix = newmatrix;
 
     switch (str->InputFrameImage->GetScalarType())
     {
     case VTK_SHORT:
-      vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (short *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,short>(&insertionParams);
       break;
     case VTK_UNSIGNED_SHORT:
-      vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (unsigned short *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,unsigned short>(&insertionParams);
       break;
     case VTK_CHAR:
-      vtkOptimizedInsertSlice(outData,(char *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (char *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,char>(&insertionParams);
       break;
     case VTK_UNSIGNED_CHAR:
-      vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (unsigned char *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,unsigned char>(&insertionParams);
       break;
     case VTK_FLOAT:
-      vtkOptimizedInsertSlice(outData,(float *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (float *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,float>(&insertionParams);
       break;
     case VTK_DOUBLE:
-      vtkOptimizedInsertSlice(outData,(double *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (double *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,double>(&insertionParams);
       break;
     case VTK_INT:
-      vtkOptimizedInsertSlice(outData,(int *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (int *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,int>(&insertionParams);
       break;
     case VTK_UNSIGNED_INT:
-      vtkOptimizedInsertSlice(outData,(unsigned int *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (unsigned int *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,unsigned int>(&insertionParams);
       break;
     case VTK_LONG:
-      vtkOptimizedInsertSlice(outData,(long *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (long *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,long>(&insertionParams);
       break;
     case VTK_UNSIGNED_LONG:
-      vtkOptimizedInsertSlice(outData,(unsigned long *)(outPtr),
-        (unsigned short *)(accPtr), 
-        str->InputFrameImage, (unsigned long *)(inPtr), 
-        inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-        accumulationBufferSaturationErrorsThread);
+      vtkOptimizedInsertSlice<fixed,unsigned long>(&insertionParams);
       break;
     default:
       LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
@@ -573,6 +533,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
       newmatrix[rowindex+2] = mImagePixToVolumePix->GetElement(i,2);
       newmatrix[rowindex+3] = mImagePixToVolumePix->GetElement(i,3);
     }
+    insertionParams.matrix = newmatrix;
 
 
     if (str->Optimization==PARTIAL_OPTIMIZATION)
@@ -580,94 +541,34 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
       switch (inData->GetScalarType())
       {
       case VTK_SHORT:
-        vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (short *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,short>(&insertionParams);
         break;
       case VTK_UNSIGNED_SHORT:
-        vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned short *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
-        break;
-      case VTK_UNSIGNED_CHAR:
-        vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned char *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,unsigned short>(&insertionParams);
         break;
       case VTK_CHAR:
-        vtkOptimizedInsertSlice(outData,(char *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (char *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,char>(&insertionParams);
+        break;
+      case VTK_UNSIGNED_CHAR:
+        vtkOptimizedInsertSlice<double,unsigned char>(&insertionParams);
         break;
       case VTK_FLOAT:
-        vtkOptimizedInsertSlice(outData,(float *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (float *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,float>(&insertionParams);
         break;
       case VTK_DOUBLE:
-        vtkOptimizedInsertSlice(outData,(double *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (double *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,double>(&insertionParams);
         break;
       case VTK_INT:
-        vtkOptimizedInsertSlice(outData,(int *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (int *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,int>(&insertionParams);
         break;
       case VTK_UNSIGNED_INT:
-        vtkOptimizedInsertSlice(outData,(unsigned int *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned int *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,unsigned int>(&insertionParams);
         break;
       case VTK_LONG:
-        vtkOptimizedInsertSlice(outData,(long *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (long *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,long>(&insertionParams);
         break;
       case VTK_UNSIGNED_LONG:
-        vtkOptimizedInsertSlice(outData,(unsigned long *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned long *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkOptimizedInsertSlice<double,unsigned long>(&insertionParams);
         break;
       default:
         LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
@@ -679,94 +580,34 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
       switch (inData->GetScalarType())
       {
       case VTK_SHORT:
-        vtkUnoptimizedInsertSlice(outData, (short *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (short *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,short>(&insertionParams);
         break;
       case VTK_UNSIGNED_SHORT:
-        vtkUnoptimizedInsertSlice(outData,(unsigned short *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned short *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
-        break;
-      case VTK_UNSIGNED_CHAR:
-        vtkUnoptimizedInsertSlice(outData,(unsigned char *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (unsigned char *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,unsigned short>(&insertionParams);
         break;
       case VTK_CHAR:
-        vtkUnoptimizedInsertSlice(outData,(char *)(outPtr),
-          (unsigned short *)(accPtr), 
-          inData, (char *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,char>(&insertionParams);
+        break;
+      case VTK_UNSIGNED_CHAR:
+        vtkUnoptimizedInsertSlice<double,unsigned char>(&insertionParams);
         break;
       case VTK_FLOAT:
-        vtkUnoptimizedInsertSlice(outData, (float *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (float *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,float>(&insertionParams);
         break;
       case VTK_DOUBLE:
-        vtkUnoptimizedInsertSlice(outData, (double *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (double *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,double>(&insertionParams);
         break;
       case VTK_INT:
-        vtkUnoptimizedInsertSlice(outData, (int *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (int *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,int>(&insertionParams);
         break;
       case VTK_UNSIGNED_INT:
-        vtkUnoptimizedInsertSlice(outData, (unsigned int *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (unsigned int *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,unsigned int>(&insertionParams);
         break;
       case VTK_LONG:
-        vtkUnoptimizedInsertSlice(outData, (long *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (long *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,long>(&insertionParams);
         break;
       case VTK_UNSIGNED_LONG:
-        vtkUnoptimizedInsertSlice(outData, (unsigned long *)(outPtr), 
-          (unsigned short *)(accPtr), 
-          inData, (unsigned long *)(inPtr), 
-          inputFrameExtentForCurrentThread, newmatrix,
-          str->ClipRectangleOrigin,str->ClipRectangleSize,
-          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode, str->CalculationMode,
-          accumulationBufferSaturationErrorsThread);
+        vtkUnoptimizedInsertSlice<double,unsigned long>(&insertionParams);
         break;
       default:
         LOG_ERROR("UnoptimizedInsertSlice: Unknown input ScalarType");
