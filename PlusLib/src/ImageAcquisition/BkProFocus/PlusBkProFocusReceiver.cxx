@@ -120,7 +120,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lintes, int pitch, void const* fr
     //cimg_library::CImg<unsigned char> inputImage((const unsigned char*)bmodeFrame, this->params.n_samples / 2, bmodeLines);
     if (this->CallbackVideoSource!=NULL)
     {
-      int frameSizeInPix[2]={this->params.n_samples, bmodeLines};
+      int frameSizeInPix[2]={bmodeLines, this->params.n_samples};
       const int numberOfBitsPerPixel=8;
       this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, numberOfBitsPerPixel);
     }

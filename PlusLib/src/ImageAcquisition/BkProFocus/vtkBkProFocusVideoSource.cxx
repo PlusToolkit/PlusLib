@@ -61,6 +61,8 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->ShowSaperaWindow=false;
   this->ShowBModeWindow=false;
 
+  this->SetFrameBufferSize(200); 
+  
   SetLogFunc(LogInfoMessageCallback);
 	SetDbgFunc(LogDebugMessageCallback);
 }
@@ -123,6 +125,8 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
+  LOG_DEBUG("Sapera buffer size: numSamples="<<numSamples<<", numLines="<<numLines);
+  
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
   this->GetBuffer()->Clear();  
   
