@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ResearchInterface.h"
 
 ResearchInterface::ResearchInterface() : researchInterfaceCommunicator(), errorText(_T(""))
@@ -30,14 +29,14 @@ bool ResearchInterface::OpenConnection(const AcquisitionSettings& acquisitionSet
     // communication failed
     if (result == FALSE)
     {
-        CString error;
+        std::string error;
         if (acquisitionSettings.GetComportNumber() != -1)
         {
             error.Format(_T(": Cannot open com port no %d"), acquisitionSettings.GetComportNumber());
         }
         else
             error.Format(_T(": Cannot open com port called %s"), acquisitionSettings.GetComportName());
-        errorText.Append(CString(__FUNCTION__) + error);
+        errorText.Append(std::string(__FUNCTION__) + error);
         return false;
     }
     return true;
@@ -45,8 +44,8 @@ bool ResearchInterface::OpenConnection(const AcquisitionSettings& acquisitionSet
 
 bool ResearchInterface::SetupConnection(const AcquisitionSettings& acquisitionSettings)
 {
-    CString reply = _T("");
-    CString currentCommand = _T("");
+    std::string reply = _T("");
+    std::string currentCommand = _T("");
     int tokenIndex = 0;
     while(AfxExtractSubString(currentCommand, acquisitionSettings.GetSetupCommands(), tokenIndex, ';'))
     {
@@ -54,7 +53,7 @@ bool ResearchInterface::SetupConnection(const AcquisitionSettings& acquisitionSe
         currentCommand.Trim();
         if(!this->SendCommand(currentCommand + _T("\r"), &reply))
         {
-            CString error = CString(__FUNCTION__) + _T(": Failed sending command \"") 
+            std::string error = std::string(__FUNCTION__) + _T(": Failed sending command \"") 
                 + currentCommand + _T("\" in sequence \"")
                 + acquisitionSettings.GetSetupCommands() + _T("\" to research interface\n");
             errorText.Append(error);
@@ -70,11 +69,11 @@ bool ResearchInterface::CloseConnection()
     return researchInterfaceCommunicator.CloseSerial() == TRUE;
 }
 
-bool ResearchInterface::SendCommand(const CString& command, CString* reply)
+bool ResearchInterface::SendCommand(const std::string& command, std::string* reply)
 {
     if (command.IsEmpty())
     {
-        errorText.Append(CString(__FUNCTION__) + CString(_T(": Empty command\n")));
+        errorText.Append(std::string(__FUNCTION__) + std::string(_T(": Empty command\n")));
         return false;
     }
 
@@ -97,7 +96,7 @@ bool ResearchInterface::SendCommand(const CString& command, CString* reply)
     if(reply->GetLength() <= 0)
     {
         // no replies received
-        errorText.Append(CString(__FUNCTION__) + CString(_T(": No replies received\n")));
+        errorText.Append(std::string(__FUNCTION__) + std::string(_T(": No replies received\n")));
         return false;
     }
     ch = (*reply)[reply->GetLength()-1];
@@ -109,18 +108,18 @@ bool ResearchInterface::SendCommand(const CString& command, CString* reply)
     else if (ch=='!')
     {
         // R.I. encountered an error
-        errorText.Append(CString(__FUNCTION__) + CString(_T(": Research Interface encountered an error. Reply: " + *reply + "\n")));
+        errorText.Append(std::string(__FUNCTION__) + std::string(_T(": Research Interface encountered an error. Reply: " + *reply + "\n")));
         return false;
     }
     else
     {
         // R.I. sent us some data we do not understand
-        errorText.Append(CString(__FUNCTION__) + CString(_T(": Received unknown response. Reply: " + *reply + "\n")));
+        errorText.Append(std::string(__FUNCTION__) + std::string(_T(": Received unknown response. Reply: " + *reply + "\n")));
         return true;
     }
 }
 
-CString ResearchInterface::GetError() const
+std::string ResearchInterface::GetError() const
 {
     return errorText;
 }

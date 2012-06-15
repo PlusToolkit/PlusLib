@@ -500,7 +500,7 @@ ModeSpecificHeader* ModeSpecificHeaderFactory::CreateModeSpecificHeader(ImgModeT
 
 
 
-char * FileHeader::ToCString(char* str, size_t strLen)
+char * FileHeader::ToString(char* str, size_t strLen)
 {
 	const char *fmtFileHeader = "\n\n\
 File Header   \n\n\
@@ -544,7 +544,7 @@ void FileHeader::Reset()
 
 
 
-char* GenericDataHeader::ToCString(char *str, size_t numLen)
+char* GenericDataHeader::ToString(char *str, size_t numLen)
 {
 	const char *fmtDataHeader = "\n\n\
 Generic Data Header\n\n\
@@ -627,7 +627,7 @@ void GenericDataHeader::Reset()
 
 
 
-char * ModeSpecificHeader::ToCString(char* str, size_t strLen)
+char * ModeSpecificHeader::ToString(char* str, size_t strLen)
 {
 	const char* fmtModeHeader = "\n\n\
 Mode Specific Header\n\n\
@@ -687,7 +687,7 @@ ModeSpecificHeader::ModeSpecificHeader(UltrasoundDataInfo& ultrasoundDataInfo)
 }
 
 
-char * FreeTextHeader::ToCString(char* str, size_t strLen)
+char * FreeTextHeader::ToString(char* str, size_t strLen)
 {
 	snprintf(str, strLen, "%s", this->freeText);
 	return str;
@@ -986,7 +986,7 @@ void BkmDataFile::FillInTextHeader()
 	char const * ptrEndTxtHdr = this->textHeader.freeText + sizeof(this->textHeader.freeText)-1;
 	size_t remainChars = ptrEndTxtHdr - nextWrPosTxtHdr;
 	
-	this->fileHeader.ToCString(nextWrPosTxtHdr, remainChars);
+	this->fileHeader.ToString(nextWrPosTxtHdr, remainChars);
 
 
   /*
@@ -999,7 +999,7 @@ void BkmDataFile::FillInTextHeader()
 	assert(remainChars > 0);
 
 
-	this->dataHeader.ToCString(nextWrPosTxtHdr, remainChars);
+	this->dataHeader.ToString(nextWrPosTxtHdr, remainChars);
 
 	/*      ------------------------------------------------
 	 *     |   Mode Specific Header                         |
@@ -1010,7 +1010,7 @@ void BkmDataFile::FillInTextHeader()
 	remainChars = ptrEndTxtHdr - nextWrPosTxtHdr;
 	assert(remainChars > 0);
 
-	this->modeHeader->ToCString(nextWrPosTxtHdr, remainChars);
+	this->modeHeader->ToString(nextWrPosTxtHdr, remainChars);
 
 	nextWrPosTxtHdr = this->textHeader.freeText + strlen(this->textHeader.freeText);
 	remainChars = ptrEndTxtHdr - nextWrPosTxtHdr;

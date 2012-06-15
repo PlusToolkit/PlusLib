@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Windows.h> // for LPCTSTR
 #include "OemParams.h"  // TODO: remove this
 
 	

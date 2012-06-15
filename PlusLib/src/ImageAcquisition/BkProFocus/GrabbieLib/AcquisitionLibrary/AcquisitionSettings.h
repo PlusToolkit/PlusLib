@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include <cstring>
+#include <string>
 
 /// <summary>
 /// The acquisition settings class contains settings used by the grabber, as well as functionality to load settings from
@@ -57,7 +57,7 @@ public:
     /// </summary>
     /// <param name="fileName"> [in] Name of initialization file.</param>
     /// <returns>   true if ini loaded correctly, false otherwise. </returns>
-    bool LoadIni(CString fileName);
+    bool LoadIni(std::string fileName);
 
 	/// <summary>   Saves settings to ini file. </summary>
     /// <returns>   true if ini loaded correctly, false otherwise. </returns>
@@ -73,23 +73,23 @@ public:
 
     /// <summary>   Returns absolute path to the ccf file loaded from the ini. </summary>
     /// <returns>   The path to the ccf file. </returns>
-    CString GetCcfFile() const { return ccfFile; }
+    std::string GetCcfFile() const { return ccfFile; }
 
 	/// <summary>   Sets absolute path to the ccf file loaded from the ini. </summary>
     /// <param name="val">  The new value. </param>
-	void SetCcfFile(CString val) { this->ccfFile = val; }
+	void SetCcfFile(std::string val) { this->ccfFile = val; }
 
     /// <summary>   Returns the name of the communication port. </summary>
     /// <returns>   The name of the communication port. </returns>
-    CString GetComportName() const { return comportName; }
+    std::string GetComportName() const { return comportName; }
 
 	/// <summary>   Sets the name of the communication port. </summary>
     /// <param name="val">  The new value. </param>
-	void SetComportName(CString val) { this->comportName = val; }
+	void SetComportName(std::string val) { this->comportName = val; }
 
     /// <summary>   Returns the setup commands to send to the research interface. </summary>
     /// <returns>   The setup commands to send to the research interface. </returns>
-    CString GetSetupCommands() const { return setupCommands; }
+    std::string GetSetupCommands() const { return setupCommands; }
 
     /// <summary>
     /// Get the number of frames to grab in the next acquisition. Set to zero to request an
@@ -167,18 +167,18 @@ public:
     int CalculateNumberOfAcquisitionBufferFrames() const;
 
 private:
-    static bool RelativePathToAbsolutePath(const CString& relativePath, CString* absolutePath);
+    static bool RelativePathToAbsolutePath(const std::string& relativePath, std::string* absolutePath);
 
     /// <summary> Communication port number that communicate with research interface. Default is -1. </summary>
     int comportNumber;
     /// <summary>Baud Rate of communication link between research interface and capture card. Default is 9600. </summary>
     int baudRate;
     /// <summary> Absolute path to Camera-link Configuration File (configuration for capture card). </summary>
-    CString ccfFile;
+    std::string ccfFile;
     /// <summary> Custom name of communication port (if any). Default is \\.\X64-CL_Express_1_Serial_0. </summary>
-    CString comportName; 
+    std::string comportName; 
     /// <summary> Commands sent to the research interface during setu to configure which data is sent. </summary>
-    CString setupCommands;
+    std::string setupCommands;
 
     /// <summary> The number of frames to grab in the next acquisition </summary>
     int framesToGrab;

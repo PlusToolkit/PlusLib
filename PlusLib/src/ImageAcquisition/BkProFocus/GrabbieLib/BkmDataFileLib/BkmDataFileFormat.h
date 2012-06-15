@@ -204,7 +204,7 @@
  *  
  *   \li Override the virtual functions
  *   \code
- *    	char * BkmDf::ModeSpecificHeader::ToCString(char* str, size_t strLen);
+ *    	char * BkmDf::ModeSpecificHeader::ToString(char* str, size_t strLen);
  *      void BkmDf::ModeSpecificHeader::Reset();
  *      void BkmDf::ModeSpecificHeader::InitializeFrom(const UltrasoundDataInfo& ultrasDataInfo);
  *   \endcode

@@ -1,7 +1,9 @@
-#include "stdafx.h"
+#include "Windows.h" // for GetPrivateProfileString
+
 #include "UseCaseParser.h"
 #include <iostream>
 #include <assert.h>
+
 
 
 #define __DEFINE_VARS__
@@ -67,33 +69,6 @@ private:
 
 };
 
-
-
-
-#ifdef _MSC_VER  
-/// <summary> Microsoft uses sprintf_s for secure printing to a string. C99 standard specifies snprintf.
-/// 		  Instead of using a fully-fledged implementation of snprintf, a short implementation is
-/// 		  provided here, which makes it possible to use snprintf with GCC and MSVC  </summary>
-/// <param name="buffer">	[out] A buffer where text is written to </param>
-/// <param name="count"> 	Size of buffer including place for '\0'. </param>
-/// <param name="fmt">   	Format string. </param>
-/// <returns> Number of successfully written characters. Negative upon failure. </returns>
-static int snprintf(char *buffer, size_t count, const char *fmt, ...)
-{
-	va_list ap;
-	int ret;
-
-	va_start(ap, fmt);
-	ret = _vsnprintf_s(buffer,count, count-1, fmt, ap);
-	if (ret < 0)
-		buffer[count-1] = '\0';
-	va_end(ap);
-	return ret;
-}
-#endif
-
-
-
 #ifdef _MSC_VER
 /// <summary> Makes sure that in MSVC, strncpy_s is used. Needed to avoid warnings .</summary>
 /// <param name="dst">  	Destination string. </param>
@@ -143,7 +118,7 @@ bool UseCaseParserImp::GetActiveMidLevelModes(Int32Vector * mlm)
 
 	while(!done)
 	{
-		snprintf(key,sizeof(key),"%d", n);
+		_snprintf(key,sizeof(key),"%d", n);
 		GetPrivateProfileString(section, key, defaultValue, val, sizeof(val), this->useCaseName);
 
 		if (!strncmp(val, defaultValue,strlen(defaultValue)))
@@ -288,7 +263,7 @@ size_t UseCaseParserImp::PrintToCharArray(char * buf, size_t bufLen, const UseCa
 		{
 		case USECASE_INT:
 			pInt = (UseCaseInt *) ptr;
-			lastPrinted = snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pInt);
+			lastPrinted = _snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pInt);
 			ptr += sizeof(UseCaseInt);
 			remainBuf -= lastPrinted;
 
@@ -296,14 +271,14 @@ size_t UseCaseParserImp::PrintToCharArray(char * buf, size_t bufLen, const UseCa
 
 		case USECASE_DOUBLE:
 			pDouble = (UseCaseDouble *) ptr;
-			lastPrinted = snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pDouble);
+			lastPrinted = _snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pDouble);
 			ptr += sizeof(UseCaseDouble);
 			remainBuf -= lastPrinted;
 
 			break;
 		case USECASE_FLOAT:
 			pFloat = (UseCaseFloat *) ptr;
-			lastPrinted = snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pFloat);
+			lastPrinted = _snprintf(&buf[numPrinted], remainBuf, "%s = %d\n", def[n].key, *pFloat);
 			ptr += sizeof(UseCaseFloat);
 			remainBuf -= lastPrinted;
 

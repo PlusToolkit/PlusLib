@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "Acquisition.h"
 
 /// <summary>   Intended for use with CommandAndControl. Currently unused. </summary>

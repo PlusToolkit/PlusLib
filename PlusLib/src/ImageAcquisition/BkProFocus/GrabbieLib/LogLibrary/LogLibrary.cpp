@@ -2,7 +2,6 @@
  \file LogLibrary.cpp
  \brief Implementation of Debug Utilities. 
  */
-#include "stdafx.h"
 #include "LogLibrary.h"
 #include <stdlib.h>
 #include <stdio.h>

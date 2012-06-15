@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Windows.h" // for GetPrivateProfileInt
+
 #include "LogLibrary.h"
 /**
   \file CmdCtrlTypes.h

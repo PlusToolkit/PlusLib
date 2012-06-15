@@ -4,8 +4,6 @@ SET (GrabbieLib_INCLUDE_DIRS)
 SET (GrabbieLib_LIBS)
 
 SET (GrabbieLib_INCLUDE_DIRS ${GrabbieLib_INCLUDE_DIRS}
-  #${VTKNDICAPI_SOURCE_DIR} 
-  #${VTKNDICAPI_BINARY_DIR}
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/AcquisitionLibrary/
   ${PROJECT_SOURCE_DIR}/LogLibrary/
@@ -87,7 +85,10 @@ SET(GrabbieLib_SRCS ${GrabbieLib_SRCS}
 #set(LIB ${LIB} cfuff BkmDataFile)
 
 INCLUDE_DIRECTORIES( ${GrabbieLib_INCLUDE_DIRS} )
-SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} ${GrabbieLib_INCLUDE_DIRS} CACHE INTERNAL "")
+SET (GrabbieLib_INCLUDE_DIRS ${GrabbieLib_INCLUDE_DIRS} CACHE INTERNAL "")
+
+# Disable non-secure CRT call warnings (sptrinf, etc.)
+ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 
 ADD_LIBRARY(GrabbieLib STATIC ${GrabbieLib_SRCS})
 TARGET_LINK_LIBRARIES( GrabbieLib )

@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "WSAIF.h"
 #include "WinSock.h"
 

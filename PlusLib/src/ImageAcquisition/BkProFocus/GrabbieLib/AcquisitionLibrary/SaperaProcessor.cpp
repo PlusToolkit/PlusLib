@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "SaperaProcessor.h"
 
 SaperaProcessor::SaperaProcessor() : SapProcessing(NULL,NULL,NULL)

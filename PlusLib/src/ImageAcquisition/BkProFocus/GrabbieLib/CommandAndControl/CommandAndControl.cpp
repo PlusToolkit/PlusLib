@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "tchar.h" // for _T
 #include <iostream>
 #include <assert.h>
 

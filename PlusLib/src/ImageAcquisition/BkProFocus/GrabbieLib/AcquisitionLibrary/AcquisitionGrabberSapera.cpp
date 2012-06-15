@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include <algorithm>
 
 #include "BkmDataFile.h"
@@ -56,7 +54,7 @@ bool AcquisitionGrabberSapera::Init(const AcquisitionSettings& acquisitionSettin
     if( !researchInterface.OpenConnection(acquisitionSettings) || !researchInterface.SetupConnection(acquisitionSettings) || !researchInterface.CloseConnection() )
     {
         // Unable to properly start the research interface, so quit
-        LogPrintf(CString(__FUNCTION__) + _T(" : Unable to start the Research Interface.\n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Unable to start the Research Interface.\n"));
         LogPrintf(_T("Error: ") + researchInterface.GetError() + _T("\n"));
         researchInterface.ResetError();
         return false;
@@ -255,7 +253,7 @@ bool AcquisitionGrabberSapera::FindSaperaDevice()
     int serverCount = SapManager::GetServerCount();
     if (serverCount == 0)
     {
-        LogPrintf(CString(__FUNCTION__) + _T(" : No camera link board found! \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : No camera link board found! \n"));
         return false;
     }
 
@@ -285,7 +283,7 @@ bool AcquisitionGrabberSapera::FindSaperaDevice()
     }
 
     // no acquisition boards were found, so return an error
-    LogPrintf(CString(__FUNCTION__) + _T(": No acquisition board found! \n"));
+    LogPrintf(std::string(__FUNCTION__) + _T(": No acquisition board found! \n"));
     return false;
 }
 
@@ -308,7 +306,7 @@ bool AcquisitionGrabberSapera::AllocateSapera()
     if(saperaLocation == NULL || saperaAcquisition == NULL || saperaBuffer == NULL || saperaProcessor == NULL || saperaTransfer == NULL)
     {
         // allocation failed, so destroy objects and return
-        LogPrintf(CString(__FUNCTION__) + _T(" : Failed to allocate Sapera objects \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Failed to allocate Sapera objects \n"));
         delete saperaLocation;
         delete saperaAcquisition;
         delete saperaBuffer;
@@ -388,25 +386,25 @@ bool AcquisitionGrabberSapera::AllocateSapera()
     }
     else
     {
-        LogPrintf(CString(__FUNCTION__) + _T(" : Could not create Acquisition object \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Acquisition object \n"));
         return false;
     }
 
     if (saperaBuffer == NULL || !saperaBuffer->Create())
     {
-        LogPrintf(CString(__FUNCTION__) + _T(" : Could not create Buffer object \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Buffer object \n"));
         return false;
     }
 
     if (saperaTransfer == NULL || !saperaTransfer->Create())
     {
-        LogPrintf(CString(__FUNCTION__) + _T(" : Could not create Transfer object \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Transfer object \n"));
         return false;
     }
 
     if (saperaProcessor == NULL || !saperaProcessor->Create() || !saperaProcessor->LoadBufferSettings())
     {
-        LogPrintf(CString(__FUNCTION__) + _T(" : Could not create Processor object \n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Processor object \n"));
         return false;
     }
     saperaInitialized = true;
@@ -415,7 +413,7 @@ bool AcquisitionGrabberSapera::AllocateSapera()
 
 bool AcquisitionGrabberSapera::DestroySapera()
 {
-    CString failures = _T("");
+    std::string failures = _T("");
 
     // stop grabbing if transfer is in effect
     if( saperaTransfer != NULL && saperaTransfer->IsGrabbing() == TRUE )
@@ -449,7 +447,7 @@ bool AcquisitionGrabberSapera::DestroySapera()
     if( failures.GetLength() > 0 )
     {
         assert(false);
-        LogPrintf(CString(__FUNCTION__) + _T(" : Unable to Destroy ") + failures + _T("\n"));
+        LogPrintf(std::string(__FUNCTION__) + _T(" : Unable to Destroy ") + failures + _T("\n"));
         return false;
     }
     return true;
