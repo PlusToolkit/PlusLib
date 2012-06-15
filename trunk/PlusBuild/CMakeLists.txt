@@ -165,19 +165,16 @@ ENDIF()
 #------------------------------------------------------------------------------
 
 SET(PlusLib_DEPENDENCIES)
+
 IF ( NOT PLUSBUILD_USE_3DSlicer )
   SET(VTK_DEPENDENCIES)
   SET(ITK_DEPENDENCIES)
-  LIST(APPEND PlusLib_DEPENDENCIES vtk itk)
-  
+  LIST(APPEND PlusLib_DEPENDENCIES vtk itk)  
   IF(PLUSBUILD_USE_OpenIGTLink)
     SET(OpenIGTLink_DEPENDENCIES)
     LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
   ENDIF(PLUSBUILD_USE_OpenIGTLink)
-
 ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
-
-LIST(APPEND PlusLib_DEPENDENCIES )
 
 SET(PlusApp_DEPENDENCIES PlusLib)
 
@@ -250,7 +247,6 @@ IF ( PLUSBUILD_USE_3DSlicer )
 ELSE ( PLUSBUILD_USE_3DSlicer )
   INCLUDE(External_VTK.cmake)
   INCLUDE(External_ITK.cmake)
-  
   IF(PLUSBUILD_USE_OpenIGTLink)
     INCLUDE(External_OpenIGTLink.cmake)
   ENDIF(PLUSBUILD_USE_OpenIGTLink)
@@ -278,9 +274,9 @@ IF ( PLUS_USE_MICRONTRACKER )
 ENDIF() 
 
 IF ( PLUS_USE_BKPROFOCUS_VIDEO )
-  FIND_PACKAGE (BKPROFOCUS)
-  IF ( NOT BKPROFOCUS_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires BK ProFocus SDK. Please verify configuration or turn off PLUS_USE_BKPROFOCUS_VIDEO.")
+  FIND_PACKAGE (DALSASAPERA)
+  IF (NOT DALSASAPERA_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires Dalsa Sapera SDK for BK ProFocus support. Please verify configuration or turn off PLUS_USE_BKPROFOCUS_VIDEO.")
   ENDIF()
 ENDIF()
 
