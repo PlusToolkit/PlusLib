@@ -20,10 +20,10 @@ ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTest)
 
-
-INSTALL(TARGETS vtkUsSimulatorAlgoTest
-  RUNTIME
-  DESTINATION bin
-  CONFIGURATIONS Release
-  COMPONENT RuntimeExecutables
-  )
+#It is a test only, no need to include in the release package
+#INSTALL(TARGETS vtkUsSimulatorAlgoTest
+#  RUNTIME
+#  DESTINATION bin
+#  CONFIGURATIONS Release
+#  COMPONENT RuntimeExecutables
+#  )
