@@ -8,6 +8,8 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.1.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml  
   ${PLUSLIB_DATA_DIR}/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
   ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/EC9-5_10_Assembly.stl
@@ -17,6 +19,17 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/CADModels/LinearProbe/L14-5_38_ProbeModel.stl
   ${PLUSLIB_DATA_DIR}/CADModels/Stylus/Stylus_Example.stl
   ${PLUSLIB_DATA_DIR}/TestImages/NwirePhantomFreehandReconstructionOnly.xml 
+)
+
+SET ( NDI_TOOL_DEFINITIONS 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/NdiToolDefinitions/8700339.rom 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/NdiToolDefinitions/8700340.rom 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/NdiToolDefinitions/8700449.rom 
+)
+
+SET (BK_SETTINGS
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/BkSettings/IniFile.ccf 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/BkSettings/IniFile.ini 
 )
 
 SET ( PLUSLIB_DATA_FILES
@@ -68,6 +81,16 @@ IF(PLUSAPP_INSTALL_CONFIG_DIR)
     DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
     COMPONENT RuntimeLibraries
     )
+  INSTALL(FILES 
+    ${NDI_TOOL_DEFINITIONS}
+    DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}/NdiToolDefinitions
+    COMPONENT RuntimeLibraries
+    )
+  INSTALL(FILES 
+    ${BK_SETTINGS}
+    DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}/BkSettings
+    COMPONENT RuntimeLibraries
+    )    
 ENDIF()
 
 IF(PLUSAPP_INSTALL_DATA_DIR)
