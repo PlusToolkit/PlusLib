@@ -123,6 +123,9 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
+    // Clear buffer on connect because the new frames that we will acquire might have a different size 
+  this->GetBuffer()->Clear();  
+  
   if (!this->Internal->BKAcqSettings.LoadIni(iniFilePath.c_str()))
   {
     LOG_ERROR("Failed to load acquisition settings from file: "<<iniFilePath.c_str());
@@ -211,7 +214,21 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
   
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], int numberOfBitsPerPixel)
-{    
+{      
+  // If the buffer is empty, set the pixel type and frame size to the first received properties 
+  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  {
+    switch (numberOfBitsPerPixel)
+    {
+      case 8: this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR); break;
+      case 16: this->GetBuffer()->SetPixelType(itk::ImageIOBase::SHORT); break;
+      default:
+        LOG_ERROR("Unsupported bits per pixel: "<<numberOfBitsPerPixel<<", skip this frame");
+        return;
+    }      
+    this->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+  } 
+  
   this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, itk::ImageIOBase::UCHAR, 0, this->FrameNumber);
   this->FrameNumber++;
 }
