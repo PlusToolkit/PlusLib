@@ -886,29 +886,35 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
 //----------------------------------------------------------------------------
 /*! Actually inserts the slice, with optimization */
 template <class F, class T>
-static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
-                                    T *outPtr, // scalar pointer to the output volume over the output extent
-                                    unsigned short *accPtr, // scalar pointer to the accumulation buffer over the output extent
-                                    vtkImageData *inData, // input slice
-                                    T *inPtr, // scalar pointer to the input volume over the input slice extent
-                                    int inExt[6], // input slice extent (could have been split for threading)
-                                    F matrix[16], // index matrix, output indices -> input indices
-                                    double clipRectangleOrigin[2],
-                                    double clipRectangleSize[2],
-                                    double fanAngles[2],
-                                    double fanOrigin[2],
-                                    double fanDepth,
-                                    vtkPasteSliceIntoVolume::InterpolationType interpolationMode,
-                                    vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                    unsigned int* accOverflowCount)
+static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* insertionParams)
 {
+  // information on the volume
+  vtkImageData* outData = insertionParams->outData;
+  T* outPtr = reinterpret_cast<T*>(insertionParams->outPtr);
+  unsigned short* accPtr = insertionParams->accPtr;
+  vtkImageData* inData = insertionParams->inData;
+  T* inPtr = reinterpret_cast<T*>(insertionParams->inPtr);
+  int* inExt = insertionParams->inExt;
+  unsigned int* accOverflowCount = insertionParams->accOverflowCount;
+
+  // transform matrix for image -> volume
+  F* matrix = reinterpret_cast<F*>(insertionParams->matrix);
   LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0]<<" "<<(float)matrix[1]<<" "<<(float)matrix[2]<<" "<<(float)matrix[3]<<"; "
     <<(float)matrix[4]<<" "<<(float)matrix[5]<<" "<<(float)matrix[6]<<" "<<(float)matrix[7]<<"; "
     <<(float)matrix[8]<<" "<<(float)matrix[9]<<" "<<(float)matrix[10]<<" "<<(float)matrix[11]<<"; "
     <<(float)matrix[12]<<" "<<(float)matrix[13]<<" "<<(float)matrix[14]<<" "<<(float)matrix[15]
     );
-  
-  //////
+
+  // details specified by the user RE: how the voxels should be computed
+  vtkPasteSliceIntoVolume::InterpolationType interpolationMode = insertionParams->interpolationMode;   // linear or nearest neighbor
+  vtkPasteSliceIntoVolume::CalculationType calculationMode = insertionParams->calculationMode;         // weighted average or maximum
+
+  // parameters for clipping
+  double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
+  double* clipRectangleSize = insertionParams->clipRectangleSize; // array size 2
+  double* fanAngles = insertionParams->fanAngles; // array size 2, for transrectal/curvilinear transducers
+  double* fanOrigin = insertionParams->fanOrigin; // array size 2
+  double fanDepth = insertionParams->fanDepth;
 
   // slice spacing and origin
   vtkFloatingPointType inSpacing[3];  

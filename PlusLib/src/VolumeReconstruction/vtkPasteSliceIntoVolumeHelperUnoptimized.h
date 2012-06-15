@@ -179,16 +179,36 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
   (this one function is pretty much the be-all and end-all of the filter)
 */
 template <class F, class T>
-static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], F *matrix,
-  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode, vtkPasteSliceIntoVolume::CalculationType calculationMode, unsigned int * accOverflowCount)
+static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* insertionParams)
 {
+  // information on the volume
+  vtkImageData* outData = insertionParams->outData;
+  T* outPtr = reinterpret_cast<T*>(insertionParams->outPtr);
+  unsigned short* accPtr = insertionParams->accPtr;
+  vtkImageData* inData = insertionParams->inData;
+  T* inPtr = reinterpret_cast<T*>(insertionParams->inPtr);
+  int* inExt = insertionParams->inExt;
+  unsigned int* accOverflowCount = insertionParams->accOverflowCount;
 
+  // transform matrix for image -> volume
+  F* matrix = reinterpret_cast<F*>(insertionParams->matrix);
   LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix[0]<<" "<<matrix[1]<<" "<<matrix[2]<<" "<<matrix[3]<<"; "
     <<matrix[4]<<" "<<matrix[5]<<" "<<matrix[6]<<" "<<matrix[7]<<"; "
     <<matrix[8]<<" "<<matrix[9]<<" "<<matrix[10]<<" "<<matrix[11]<<"; "
     <<matrix[12]<<" "<<matrix[13]<<" "<<matrix[14]<<" "<<matrix[15]
     );
-      
+
+  // details specified by the user RE: how the voxels should be computed
+  vtkPasteSliceIntoVolume::InterpolationType interpolationMode = insertionParams->interpolationMode;   // linear or nearest neighbor
+  vtkPasteSliceIntoVolume::CalculationType calculationMode = insertionParams->calculationMode;         // weighted average or maximum
+
+  // parameters for clipping
+  double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
+  double* clipRectangleSize = insertionParams->clipRectangleSize; // array size 2
+  double* fanAngles = insertionParams->fanAngles; // array size 2, for transrectal/curvilinear transducers
+  double* fanOrigin = insertionParams->fanOrigin; // array size 2
+  double fanDepth = insertionParams->fanDepth;
+
   // slice spacing and origin
   vtkFloatingPointType inSpacing[3];  
   inData->GetSpacing(inSpacing);

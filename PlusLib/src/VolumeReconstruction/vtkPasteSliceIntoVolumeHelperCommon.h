@@ -68,9 +68,6 @@ to the maximm value, we are safe. Therefore, the threshold should be defined
 as: 
 ACCUMULATION_THRESHOLD = (ACCUMULATION_MAXIMUM - ACCUMULATION_MULTIPLIER)
 
-In trilinear interpolation, we must use another value for recursive filtering -
-we need to know approximately how many pixels have been inserted into the volume thus far
-
 Note that, in order to deal with overflow, the code previously would take in 
 the additional pixel value and  calculate a weighted average, as normally done 
 in compounding, but then reset the  accumulation value for the voxel to 65535 
@@ -102,6 +99,37 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 #define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
 #define ACCUMULATION_THRESHOLD 65279 // calculate manually to possibly save on computation time
+
+
+/*!
+  These are the parameters that are supplied to any given "InsertSlice" function, whether it be
+  optimized or unoptimized.
+ */
+struct vtkPasteSliceIntoVolumeInsertSliceParams 
+{
+  // information on the volume
+  vtkImageData* outData;            // the output volume
+  void* outPtr;                     // scalar pointer to the output volume over the output extent
+  unsigned short* accPtr;           // scalar pointer to the accumulation buffer over the output extent
+  vtkImageData* inData;             // input slice
+  void* inPtr;                      // scalar pointer to the input volume over the input slice extent
+  int* inExt;                       // array size 6, input slice extent (could have been split for threading)
+  unsigned int* accOverflowCount;   // the number of voxels that may have error due to accumulation overflow
+
+  // transform matrix for images -> volume
+  void* matrix;
+
+  // details specified by the user RE: how the voxels should be computed
+  vtkPasteSliceIntoVolume::InterpolationType interpolationMode;   // linear or nearest neighbor
+  vtkPasteSliceIntoVolume::CalculationType calculationMode;       // weighted average or maximum
+
+  // parameters for clipping
+  double* clipRectangleOrigin; // array size 2
+  double* clipRectangleSize; // array size 2
+  double* fanAngles; // array size 2, for transrectal/curvilinear transducers
+  double* fanOrigin; // array size 2
+  double fanDepth;
+};
 
 
 /*!
