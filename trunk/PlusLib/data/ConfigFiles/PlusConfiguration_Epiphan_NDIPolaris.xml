@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="No video + NDI Polaris" 
-      Description="Configuration file for No video + NDI Polaris"
+      Name="Epiphan framegrabber + NDI Polaris" 
+      Description="Epiphan framegrabber image acquisition + NDI Polaris for tracking"
     />
 
     <Tracker Type="PolarisTracker" SerialPort="3" BaudRate="115200" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
@@ -12,7 +12,12 @@
       <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
+    <ImageAcquisition Type="Epiphan" 
+      BufferSize="100" 
+      AcquisitionRate="30" 
+      UsImageOrientation="MF"
+      AveragedItemsForFiltering="20"
+    />
 
   </DataCollection>
 
