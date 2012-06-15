@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Winsock.h" // for SOCKET
+
 class WSAIF
 {
 public:

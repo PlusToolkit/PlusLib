@@ -1,5 +1,6 @@
 #pragma once
-#include "StdAfx.h"   // For CString
+
+#include <string> 
 
 static const int HOST_ADDRESS_LENGTH = 256;
 
@@ -27,7 +28,7 @@ public:
 	/// in the current working directory. 
 	/// </summary>
 	/// <param name="iniFileName">	Filename of the initialise file. </param>
-	ParamConnectionSettings(CString iniFileName = "");
+	ParamConnectionSettings(std::string iniFileName = "");
 
 	char* GetScannerAddress();        ///< Returns the name of
 	unsigned short GetOemPort() const;      ///< Returns the number of the TCP Port for the OEM interface
@@ -41,12 +42,12 @@ public:
 	/// <param name="fileName"> [in] Name of initialization file.</param>
 	/// <returns>	true if it succeeds, false if it fails. </returns>
 	/// \note The function has a side effect - it changes the file name.
-	bool LoadSettingsFromIniFile(CString fileName);
+	bool LoadSettingsFromIniFile(std::string fileName);
 	
 	/// <summary>	Saves the settings to Windows Initialization file. </summary>
 	/// <param name="fileName">	[in] Name of initialization file.  </param>
 	/// \note The function has as a side effect to change the default
-	void SaveSettingsToIniFile(CString fileName);
+	void SaveSettingsToIniFile(std::string fileName);
 
 	/// <summary> Finaliser. The last values of OEM Port, Toolbox Port, and Scanner Address are saved to the  
 	/// Initialization file. If such a file has never been specified, then a file in the working directory

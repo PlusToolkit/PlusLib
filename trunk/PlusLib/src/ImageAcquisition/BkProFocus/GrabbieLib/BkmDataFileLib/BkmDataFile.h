@@ -160,18 +160,18 @@ struct FileHeader{
 	FileHeader();                  ///< Default constructor. Calls Reset()
     /// <summary>
     /// Create a human-readable c-string with the values of the object. 
-    /// All headers have a ToCString() method. 
+    /// All headers have a ToString() method. 
     /// Example:
     /// <code>
     ///   char demoStr[256];
     ///   FileHeader theHeader;
-    ///   printf("The Header\n%s", theHeader.ToCString(demoStr, 256));
+    ///   printf("The Header\n%s", theHeader.ToString(demoStr, 256));
     /// </code>
     /// </summary>
     /// <param name="str">      [out] String buffer </param>
     /// <param name="strLen">	Length of the string buffer. </param>
     /// <returns>	\c str - a pointer to the location (same as the input str). </returns>
-	char * ToCString(char* str, size_t strLen); 
+	char * ToString(char* str, size_t strLen); 
 
     /// <summary>   Clears all variables. Sets magicID and len to their values. </summary>
 	void Reset();
@@ -249,18 +249,18 @@ struct GenericDataHeader{
 
     /// <summary>
     /// Create a human-readable c-string with the values of the object. 
-    /// All headers have a ToCString() method. 
+    /// All headers have a ToString() method. 
     /// Example:
     /// <code>
     ///   char demoStr[256];
     ///   FileHeader theHeader;
-    ///   printf("The Header\n%s", theHeader.ToCString(demoStr, 256));
+    ///   printf("The Header\n%s", theHeader.ToString(demoStr, 256));
     /// </code>
     /// </summary>
     /// <param name="str">      [out] String buffer </param>
     /// <param name="strLen">	Length of the string buffer. </param>
     /// <returns>	\c str - a pointer to the location (same as the input str). </returns>
-	char* ToCString(char* str, size_t strLen);  
+	char* ToString(char* str, size_t strLen);  
 
     /// <summary>   Clears all data specific fields. Sets the fields \c len and \c ver. </summary>
 	void Reset();
@@ -305,18 +305,18 @@ struct ModeSpecificHeader{
 
     /// <summary>
     /// Create a human-readable c-string with the values of the object. 
-    /// All headers have a ToCString() method. 
+    /// All headers have a ToString() method. 
     /// Example:
     /// <code>
     ///   char demoStr[256];
     ///   FileHeader theHeader;
-    ///   printf("The Header\n%s", theHeader.ToCString(demoStr, 256));
+    ///   printf("The Header\n%s", theHeader.ToString(demoStr, 256));
     /// </code>
     /// </summary>
     /// <param name="str">      [out] String buffer </param>
     /// <param name="strLen">	Length of the string buffer. </param>
     /// <returns>	\c str - a pointer to the location (same as the input str). </returns>
-	virtual char * ToCString(char* str, size_t strLen);
+	virtual char * ToString(char* str, size_t strLen);
 
     /// <summary>   Clears all data specific fields. Sets the fields \c len and \c ver. </summary>
 	virtual void Reset(); 
@@ -366,18 +366,18 @@ struct FreeTextHeader{
 
     /// <summary>
     /// Create a human-readable c-string with the values of the object. 
-    /// All headers have a ToCString() method. 
+    /// All headers have a ToString() method. 
     /// Example:
     /// <code>
     ///   char demoStr[256];
     ///   FileHeader theHeader;
-    ///   printf("The Header\n%s", theHeader.ToCString(demoStr, 256));
+    ///   printf("The Header\n%s", theHeader.ToString(demoStr, 256));
     /// </code>
     /// </summary>
     /// <param name="str">      [out] String buffer </param>
     /// <param name="strLen">	Length of the string buffer. </param>
     /// <returns>	\c str - a pointer to the location (same as the input str). </returns>
-	char * ToCString(char* str, size_t strLen);
+	char * ToString(char* str, size_t strLen);
 
     /// <summary>   Default constructor. Calls Reset(). </summary>
 	FreeTextHeader();
@@ -665,7 +665,7 @@ private:
 
 	/// <summary>
 	///   Write a textual description of the headers into the textHeader (Free Text Header). 
-	///   This function simply calls the ToCString() methods of the Header classes.
+	///   This function simply calls the ToString() methods of the Header classes.
 	///   The Free Text Header is written immediately after the File Header and allows for
 	///   visual inspection of what the file contains using a standard text editor.
 	///  </summary>

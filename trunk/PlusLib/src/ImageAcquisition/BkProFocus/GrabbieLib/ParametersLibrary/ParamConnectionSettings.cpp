@@ -1,4 +1,6 @@
-#include "StdAfx.h"
+#include "Windows.h"
+#include <sstream>
+
 #include "ParamConnectionSettings.h"
 
 #include <stdio.h>
@@ -19,15 +21,15 @@ private:
 	char scannerAddress[HOST_ADDRESS_LENGTH];
 	unsigned short oemPort;
 	unsigned short tlbxPort;
-	CString iniFileName;
+	std::string iniFileName;
 
 
 public:
 
-	ParamConnectionSettingsImpl(CString fileName="")
+	ParamConnectionSettingsImpl(std::string fileName="")
 	{
 		
-		if (fileName.GetLength() < 1)
+		if (fileName.size() < 1)
 		{
 			fileName = ".\\NoName.ini";
 		}
@@ -77,13 +79,13 @@ public:
 		tlbxPort = port;
 	};
 
-	void SetIniFileName(CString fileName) 
+	void SetIniFileName(std::string fileName) 
 	{
 		this->iniFileName = fileName;
 	};
 
 
-	CString GetIniFileName()
+	std::string GetIniFileName()
 	{
 		return iniFileName;
 	};
@@ -107,10 +109,10 @@ public:
 	/// <param name="fileName"> [in] Name of initialization file.</param>
 	/// <returns>	true if it succeeds, false if it fails. </returns>
 	/// \note The function has a side effect - it changes the file name.
-	bool LoadSettingsFromIniFile(CString fileName = "")
+	bool LoadSettingsFromIniFile(std::string fileName = "")
 	{
 		
-		if (fileName.GetLength() > 1)
+		if (fileName.size() > 1)
 		{
 			SetIniFileName(fileName);
 		}
@@ -121,9 +123,9 @@ public:
 			return false;
 		}
 
-		this->oemPort = (unsigned short) GetPrivateProfileInt("OemToolboxConnection", "OemPort", DefaultOemPort, this->iniFileName);
-		this->tlbxPort =(unsigned short) GetPrivateProfileInt("OemToolboxConnection", "ToolboxPort", DefaultTlbxPort, this->iniFileName);
-		GetPrivateProfileString("OemToolboxConnection", "ScannerAddress", "localhost",this->scannerAddress, sizeof(this->scannerAddress), this->iniFileName);
+    this->oemPort = (unsigned short) GetPrivateProfileInt("OemToolboxConnection", "OemPort", DefaultOemPort, this->iniFileName.c_str());
+		this->tlbxPort =(unsigned short) GetPrivateProfileInt("OemToolboxConnection", "ToolboxPort", DefaultTlbxPort, this->iniFileName.c_str());
+		GetPrivateProfileString("OemToolboxConnection", "ScannerAddress", "localhost",this->scannerAddress, sizeof(this->scannerAddress), this->iniFileName.c_str());
 
 		return true;
 	}
@@ -132,25 +134,23 @@ public:
 	/// <param name="fileName">	[in] Name of initialization file. If no file has been passed, then the
 	/// the settings are written to the file with name set by SetIniFileName </param>
 	/// \note The function has as a side effect to change the default
-	void SaveSettingsToIniFile(CString fileName = "")
+	void SaveSettingsToIniFile(std::string fileName = "")
 	{
 		
-		if (fileName.GetLength() > 1)
+		if (fileName.size() > 1)
 		{
 			SetIniFileName(fileName);
 		}
+	
+		std::ostringstream oemPortString; 
+    oemPortString << this->oemPort << std::ends; 
+    WritePrivateProfileString("OemToolboxConnection", "OemPort", oemPortString.str().c_str(), this->iniFileName.c_str() );
 
+    std::ostringstream tlbxPortString; 
+    tlbxPortString << this->tlbxPort << std::ends; 
+		WritePrivateProfileString("OemToolboxConnection", "ToolboxPort", tlbxPortString.str().c_str(), this->iniFileName.c_str());
 
-		CString str;
-		
-		
-		str.Format("%d", this->oemPort);
-		WritePrivateProfileString("OemToolboxConnection", "OemPort", str, this->iniFileName );
-
-		str.Format("%d", this->tlbxPort);
-		WritePrivateProfileString("OemToolboxConnection", "ToolboxPort", str, this->iniFileName);
-
-		WritePrivateProfileString("OemToolboxConnection", "ScannerAddress", this->scannerAddress, this->iniFileName);
+		WritePrivateProfileString("OemToolboxConnection", "ScannerAddress", this->scannerAddress, this->iniFileName.c_str());
 
 	}
 
@@ -174,10 +174,10 @@ public:
 	/// <summary>	Queries if a given file exists. </summary>
 	/// <param name="fileName">	Filename of the file. </param>
 	/// <returns>	true if file exists, false if it does not . </returns>
-	bool FileExists(CString fileName)
+	bool FileExists(std::string fileName)
 	{
 		DWORD fileAttr;
-		fileAttr = GetFileAttributes(fileName);
+		fileAttr = GetFileAttributes(fileName.c_str());
 		
 		if (INVALID_FILE_ATTRIBUTES == fileAttr)
 		{
@@ -191,7 +191,7 @@ public:
 
 
 
-ParamConnectionSettings::ParamConnectionSettings(CString iniFileName)
+ParamConnectionSettings::ParamConnectionSettings(std::string iniFileName)
 	:	impl(new ParamConnectionSettingsImpl(iniFileName))
 {
 }
@@ -239,14 +239,14 @@ ParamConnectionSettings::~ParamConnectionSettings()
 }
 
 
-void ParamConnectionSettings::SaveSettingsToIniFile(CString fileName)
+void ParamConnectionSettings::SaveSettingsToIniFile(std::string fileName)
 {
 
 	impl->SaveSettingsToIniFile(fileName);
 }
 
 
-bool ParamConnectionSettings::LoadSettingsFromIniFile(CString fileName)
+bool ParamConnectionSettings::LoadSettingsFromIniFile(std::string fileName)
 {
 	return impl->LoadSettingsFromIniFile(fileName);
 }

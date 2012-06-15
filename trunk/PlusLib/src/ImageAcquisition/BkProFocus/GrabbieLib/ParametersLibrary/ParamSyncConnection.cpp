@@ -1,5 +1,6 @@
-#include "StdAfx.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
 #include <math.h>
 #include "ParamSyncConnection.h"
 #include "TCPClient.h"
@@ -352,8 +353,8 @@ ParamSyncConnectionImp::ParamSyncConnectionImp(TcpClient* oemClient, TcpClient* 
 :	oemClient(oemClient),
 	toolboxCommandClient(toolboxCommandClient)
 {
-	ASSERT(this->oemClient);
-	ASSERT(this->toolboxCommandClient);
+	assert(this->oemClient);
+	assert(this->toolboxCommandClient);
 }
 
 
@@ -423,8 +424,8 @@ size_t ParamSyncConnectionImp::SendToolboxCommand(LPCTSTR command, bool getReply
 	try
 	{
 		size_t len = this->toolboxCommandClient->Read(s_ReadBuffer, READ_BUFFER_SIZE);	// Read reply.
-		ASSERT(s_ReadBuffer[len] == '\0');    // Is guaranteed by read(), however paranoia is good.
-		TRACE("Received reply: %s\n", s_ReadBuffer);
+		assert(s_ReadBuffer[len] == '\0');    // Is guaranteed by read(), however paranoia is good.
+		// TRACE("Received reply: " << s_ReadBuffer);
 		const char errorString[] = "ERROR";
 		if(_strnicmp(errorString, s_ReadBuffer, sizeof(errorString) - 1) == 0)
 		{
@@ -461,8 +462,8 @@ size_t ParamSyncConnectionImp::SendOemQuery(LPCTSTR query, bool getReply /* = tr
 	try
 	{
 		size_t len = this->oemClient->Read(s_ReadBuffer, READ_BUFFER_SIZE);	// Read reply.
-		ASSERT(s_ReadBuffer[len] == '\0');    // Is guaranteed by read(), however paranoia is good.
-		TRACE("Received reply: %s\n", s_ReadBuffer);
+		assert(s_ReadBuffer[len] == '\0');    // Is guaranteed by read(), however paranoia is good.
+		//TRACE("Received reply: %s\n", s_ReadBuffer);
 		const char errorString[] = "ERROR";
 		if(_strnicmp(errorString, s_ReadBuffer, sizeof(errorString) - 1) == 0)
 		{
@@ -575,7 +576,7 @@ bool ParamSyncConnectionImp::GetSingleOemParamVal(oemArray *oemArr, char view)
 
 
 	
-	ASSERT(oemArr != NULL);
+	assert(oemArr != NULL);
 
 	/*
 	 * We need to clean the buffer from previous queries
@@ -641,7 +642,7 @@ bool ParamSyncConnectionImp::GetOemParamList(OemParamDefStruct list[], bool getA
 		++numEntries;
 	}
 	
-	ASSERT((numVarNoView + numVarWithView) == numEntries);
+	assert((numVarNoView + numVarWithView) == numEntries);
 	
 
 	// Allocate the output
@@ -690,7 +691,7 @@ bool ParamSyncConnectionImp::GetOemParamList(OemParamDefStruct list[], bool getA
 
 	}
 
-	ASSERT( varCount == (unsigned int)(*nvar));
+	assert( varCount == (unsigned int)(*nvar));
 	return success;
 }
 
@@ -1047,7 +1048,7 @@ bool ParamSyncConnectionImp::CalcSapBufSizeFromSavedUseCase(int * numSamples, in
 			//DbgPrintf("B-mode : %d \n", activeMidLevelModes[n]);
 			parser.ReadUseCaseStruct("ScanParams", activeMidLevelModes[n], &scanParams, gScanParamsDef );
 			*numLines += scanParams.StopLineNumQ - scanParams.StartLineNumQ + 1;
-			*numSamples = max(*numSamples,  scanParams.LineLengthRF);
+			*numSamples = __max(*numSamples,  scanParams.LineLengthRF);
 			break;
 		}
 	}
@@ -1074,7 +1075,7 @@ bool ParamSyncConnectionImp::CalcSapBufSizeFromSavedUseCase(int * numSamples, in
 			int cfmBlockLen = macroShotParams.ShotsPerEstimate * macroShotParams.C_InterleaveFactor;
 
 			*numLines += cfmBlockLen * maxNumCfmBlocks;
-			*numSamples = max(*numSamples, scanParams.LineLengthRF);
+			*numSamples = __max(*numSamples, scanParams.LineLengthRF);
 			break;
 		}
 	}
@@ -1219,7 +1220,7 @@ bool  ParamSyncConnectionImp::CalcSapBufSizeUsingConsole(int *numSamples, int *n
 		this->GetSingleOemParamVal(&var, 'A');
 
 		*numLines += numAngles*(this->GetOemInteger("b_scanlines_count", 'A'));
-		*numSamples = max( *numSamples, (this->GetOemInteger("b_rf_line_length", 'A')) );
+		*numSamples = __max( *numSamples, (this->GetOemInteger("b_rf_line_length", 'A')) );
 		DbgPrintf("view A, Bimage numAngles : %d\n", numAngles);
 		DbgPrintf("view A, Accumulated numLines : %d\n", *numLines);
 	}
@@ -1235,7 +1236,7 @@ bool  ParamSyncConnectionImp::CalcSapBufSizeUsingConsole(int *numSamples, int *n
 			numAngles = 5;
 		}
 		*numLines += numAngles*(this->GetOemInteger("b_scanlines_count", 'B'));
-		*numSamples = max(*numSamples, (this->GetOemInteger("b_rf_line_length", 'B')));
+		*numSamples = __max(*numSamples, (this->GetOemInteger("b_rf_line_length", 'B')));
 
 		DbgPrintf("view B, Bimage numAngles : %d\n", numAngles);
 		DbgPrintf("view B, Accumulated numLines : %d\n", *numLines);

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Windows.h> // for DWORD
 
+#include <string>
 
 class TcpClientImp;
 class  WSAIF;
@@ -14,7 +16,7 @@ class TcpClientException
 {
 public:
 	/// String describing the exception condition.
-	CString Message;
+  std::string Message;
 	/// Value defining the exception.
 	DWORD ReturnValue;
 };

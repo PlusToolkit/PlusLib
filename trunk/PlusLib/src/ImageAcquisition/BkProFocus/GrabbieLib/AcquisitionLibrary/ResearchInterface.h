@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include "Serial.h"
 #include "AcquisitionSettings.h"
 
@@ -69,13 +68,13 @@ public:
     /// <param name="command">  Command to execute. </param>
     /// <param name="reply">    [out] Reply from research interface. </param>
     /// <returns>   Status: True if it went well, and false if it failed. </returns>
-    bool SendCommand(const CString& command, CString* reply);
+    bool SendCommand(const std::string& command, std::string* reply);
 
     /// <summary>
     /// Returns the latest error. After getting the error, the ResetError function should be called. 
     /// </summary>
     /// <returns>   The latest error. </returns>
-    CString GetError() const;
+    std::string GetError() const;
 
     /// <summary>   Resets the error. </summary>
     void ResetError();
@@ -85,5 +84,5 @@ private:
     Serial researchInterfaceCommunicator;
 
     /// <summary> The most recent error message </summary>
-    CString errorText;
+    std::string errorText;
 };

@@ -1,4 +1,6 @@
-#include "StdAfx.h"
+#include <assert.h>
+#include <sstream>
+#include <tchar.h>
 #include "TCPClient.h"
 #include "WSAIF.h"
 #include <list>
@@ -149,12 +151,12 @@ private:
 	/// <summary>	Convert an error code produced by a wait error to a message string. </summary>
 	/// <param name="errorCode">	The error code. </param>
 	/// <returns>	The error message string. </returns>
-	CString FormatWaitError(DWORD errorCode);
+  std::string FormatWaitError(DWORD errorCode);
 
 	/// <summary>	Convert a system error code to a message string. </summary>
 	/// <param name="errorCode">	The error code. </param>
 	/// <returns>	The error message string. </returns>
-	CString FormatSystemError(DWORD errorCode) const;
+	std::string FormatSystemError(DWORD errorCode) const;
 
 private:
 	WSAIF* wsaIf;
@@ -284,7 +286,7 @@ unsigned short TcpClient::GetPort() const
 TcpClientImp::TcpClientImp(WSAIF* wsaIf, size_t bufferSize, unsigned short port, LPCTSTR host)
 :	wsaIf(wsaIf)
 {
-	ASSERT(wsaIf);
+	assert(wsaIf);
 
 	int retval;
 
@@ -363,7 +365,7 @@ bool TcpClientImp::Connect()
 	{
 		//TRACE("gethostbyname() or gethostbyaddr() failed. Host tried: %s\n", this->serverIpName);
 		int error = this->wsaIf->WSAGetLastError();
-		CString errorMessage = FormatSystemError(error);
+		std::string errorMessage = FormatSystemError(error);
 		//TRACE("Error: %d: %s\n", error, errorMessage);
 	}
 
@@ -381,7 +383,7 @@ bool TcpClientImp::Connect()
 	{
 		//TRACE("socket() failed.\n");
 		int error = this->wsaIf->WSAGetLastError();
-		CString errorMessage = FormatSystemError(error);
+		std::string errorMessage = FormatSystemError(error);
 		//TRACE("Error: %d: %s\n", error, errorMessage);
 
 		this->wsaIf->WSACleanup();
@@ -395,7 +397,7 @@ bool TcpClientImp::Connect()
 	{
 		//TRACE("setsockopt() failed.\n");
 		int error = this->wsaIf->WSAGetLastError();
-		CString errorMessage = FormatSystemError(error);
+		std::string errorMessage = FormatSystemError(error);
 		//TRACE("Error: %d: %s\n", error, errorMessage);
 
 		this->wsaIf->WSACleanup();
@@ -406,7 +408,7 @@ bool TcpClientImp::Connect()
 	{
 		//TRACE("connect() failed to server: %s\n", this->serverIpName);
 		int error = this->wsaIf->WSAGetLastError();
-		CString errorMessage = FormatSystemError(error);
+		std::string errorMessage = FormatSystemError(error);
 		//TRACE("Error: %d: %s\n", error, errorMessage);
 		 
 		return (this->isConnected);
@@ -521,7 +523,7 @@ size_t TcpClientImp::Read(char* dest, size_t len, char* filter)
 	DWORD res = WaitForSingleObject(this->onReadEvent, CLIENT_READ_TIMEOUT);    /* Read is a blocking operation */
 	if(res != WAIT_OBJECT_0)
 	{
-		CString csMessage = FormatWaitError(res);
+		std::string csMessage = FormatWaitError(res);
 //		LogEngineError1(_T("WaitForSingleObject failed: %s\n"), csMessage);
 		TcpClientWaitException e;
 		e.Message = csMessage;
@@ -531,8 +533,8 @@ size_t TcpClientImp::Read(char* dest, size_t len, char* filter)
 	this->isReadPending = false;
 
 	// Paranoia is good!
-	ASSERT(dest[this->readClientLen] == '\0');
-	ASSERT(this->readClientLen < len);
+	assert(dest[this->readClientLen] == '\0');
+	assert(this->readClientLen < len);
 	if(this->readClientLen >= len)
 		this->readClientLen = len - 1;
 	dest[this->readClientLen] = '\0';
@@ -573,7 +575,7 @@ size_t TcpClientImp::Write(LPCTSTR src, size_t len)
 		if(numLastSent == SOCKET_ERROR)
 		{
 			DWORD error = this->wsaIf->WSAGetLastError();
-			CString errorMessage = FormatSystemError(error);
+			std::string errorMessage = FormatSystemError(error);
 //			LogEngineError3(_T("Write to socket failed: %s. Server: %s Port: %d\n"), errorMessage, this->serverIpName, this->port);
 			return totalNumSent;
 		}
@@ -685,7 +687,7 @@ void TcpClientImp::reader()
 		{
 			//TRACE("select() returned %d.\n", isReady);
 			int error = this->wsaIf->WSAGetLastError();
-			CString errorMessage = FormatSystemError(error);
+			std::string errorMessage = FormatSystemError(error);
 			//TRACE("Error: %d: %s\n", error, errorMessage);
 			//TRACE("Closing connection\n", error);
 			this->numReceivedBytes = 0;           // No need to process anything
@@ -714,11 +716,11 @@ void TcpClientImp::reader()
 			else
 			{
 				// Socket error.
-				ASSERT(res == SOCKET_ERROR); // No other values < 0 are expected.
+				assert(res == SOCKET_ERROR); // No other values < 0 are expected.
 
 				//TRACE("recv() failed.\n");
 				int error = this->wsaIf->WSAGetLastError();
-				CString errorMessage = FormatSystemError(error);
+				std::string errorMessage = FormatSystemError(error);
 				//TRACE("Error: %d: %s\n", error, errorMessage);
 				//TRACE("Closing connection\n", error);
 				this->numReceivedBytes = 0;           // No need to process anything
@@ -871,10 +873,10 @@ size_t TcpClientImp::setOutput(const char* src, size_t src_len)
 }
 
 
-CString TcpClientImp::FormatWaitError(DWORD errorCode)
+std::string TcpClientImp::FormatWaitError(DWORD errorCode)
 {
-	CString messageString;
-	CString systemErrorString;
+	std::string messageString;
+	std::string systemErrorString;
 	switch(errorCode)
 	{
 	case WAIT_ABANDONED:
@@ -888,17 +890,19 @@ CString TcpClientImp::FormatWaitError(DWORD errorCode)
 		break;
 	case WAIT_FAILED:
 		systemErrorString = FormatSystemError(GetLastError());
-		messageString.Format(_T("WAIT_FAILED : %s"), systemErrorString);
+		messageString=_T("WAIT_FAILED : ") + systemErrorString;
 		break;
 	default:
-		messageString.Format(_T("Unknown error: %d\n"), errorCode);
+    std::ostringstream s; 
+    s << "Unknown error: " << errorCode << std::ends; 
+    messageString=s.str();
 		break;
 	}
 	return messageString;
 }
 
 
-CString TcpClientImp::FormatSystemError(DWORD error) const
+std::string TcpClientImp::FormatSystemError(DWORD error) const
 {
 	LPVOID messageBuffer;
 	DWORD res = FormatMessage(
@@ -910,10 +914,13 @@ CString TcpClientImp::FormatSystemError(DWORD error) const
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR) &messageBuffer,
 		0, NULL );
-	CString formattedString;
+	std::string formattedString;
 	if(res == 0)
 	{
-		formattedString.Format(_T("**%d**"), error); // FormatMessage failed.
+    // FormatMessage failed.
+    std::ostringstream s; 
+    s << "***" << error << "***" << std::ends; 
+    formattedString=s.str();
 	}
 	else
 	{

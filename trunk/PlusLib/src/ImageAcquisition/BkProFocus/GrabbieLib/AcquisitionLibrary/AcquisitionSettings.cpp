@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include <assert.h>
 
 #include "AcquisitionSettings.h"
@@ -40,10 +38,10 @@ bool AcquisitionSettings::LoadGrabberSettings(int newAdjacentFrames, int newDisc
 }
 
 
-bool AcquisitionSettings::LoadIni(CString fileName)
+bool AcquisitionSettings::LoadIni(std::string fileName)
 {
     // investigate if iniFile contain the full path or the relative path
-    CString iniFileAbsolutePath;
+    std::string iniFileAbsolutePath;
     if(!RelativePathToAbsolutePath(fileName, &iniFileAbsolutePath))
     {
         // getting absolute path failed
@@ -54,7 +52,7 @@ bool AcquisitionSettings::LoadIni(CString fileName)
 	if (idx == -1)
 		idx = iniFileAbsolutePath.ReverseFind('/');
 
-    CString filePath = iniFileAbsolutePath.Mid(0,idx);
+    std::string filePath = iniFileAbsolutePath.Mid(0,idx);
     char ccfFileBuffer[MAX_PATH];
     char comportNameBuffer[MAX_PATH];
     char setupCommandsBuffer[MAX_PATH];
@@ -65,11 +63,11 @@ bool AcquisitionSettings::LoadIni(CString fileName)
     GetPrivateProfileString("RESEARCH_INTERFACE", "ccf_file", "IniFile.ccf", ccfFileBuffer, MAX_PATH, iniFileAbsolutePath);
     GetPrivateProfileString("RESEARCH_INTERFACE", "comport_name", "\\\\.\\X64-CL_Express_1_Serial_1", comportNameBuffer, MAX_PATH, iniFileAbsolutePath);
     GetPrivateProfileString("RESEARCH_INTERFACE", "setup_commands", "CLE;LID 1;FLT 15;TAF", setupCommandsBuffer, MAX_PATH, iniFileAbsolutePath);
-    comportName = CString(comportNameBuffer);
-    setupCommands = CString(setupCommandsBuffer);
+    comportName = std::string(comportNameBuffer);
+    setupCommands = std::string(setupCommandsBuffer);
 
     // compute absolute path to ccf file if relative path is specified
-    ccfFile = CString(ccfFileBuffer);
+    ccfFile = std::string(ccfFileBuffer);
 
     // if path contains ':', it contains a drive, so it must be an absolute path
     idx = ccfFile.Find(':');
@@ -83,7 +81,7 @@ bool AcquisitionSettings::SaveToIniFile(char * UseCaseName)
 {
 	char SectionName[] = "RESEARCH_INTERFACE";
 
-	CString str;
+	std::string str;
 
 	str.Format("%d", this->comportNumber);
 	WritePrivateProfileString(SectionName, "comport", str, UseCaseName);
@@ -108,7 +106,7 @@ int AcquisitionSettings::CalculateNumberOfAcquisitionBufferFrames() const
 }
 
 /// Utility function
-bool AcquisitionSettings::RelativePathToAbsolutePath(const CString& relativePath, CString* absolutePath)
+bool AcquisitionSettings::RelativePathToAbsolutePath(const std::string& relativePath, std::string* absolutePath)
 {
     if(relativePath.Find(':') == -1)
     {
