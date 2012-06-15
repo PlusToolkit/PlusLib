@@ -97,3 +97,7 @@ void  LogPrintf(const char *s, ...)
 	}
 }
 
+void LogPrintf(const std::string &msg) 
+{ 
+  LogPrintf(msg.c_str()); 
+}

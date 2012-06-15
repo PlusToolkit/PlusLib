@@ -31,6 +31,10 @@ See License.txt for details.
 #include "vtkSonixPortaVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_BKPROFOCUS_VIDEO
+#include "vtkBkProFocusVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
 #endif
@@ -60,6 +64,9 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   VideoSourceTypes["SonixVideo"]=(PointerToVideoSource)&vtkSonixVideoSource::New; 
   VideoSourceTypes["SonixPortaVideo"]=(PointerToVideoSource)&vtkSonixPortaVideoSource::New; 
+#endif 
+#ifdef PLUS_USE_BKPROFOCUS_VIDEO
+  VideoSourceTypes["BkProFocus"]=(PointerToVideoSource)&vtkBkProFocusVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_MATROX_IMAGING
   VideoSourceTypes["MatroxImaging"]=(PointerToVideoSource)&vtkMILVideoSource2::New; 

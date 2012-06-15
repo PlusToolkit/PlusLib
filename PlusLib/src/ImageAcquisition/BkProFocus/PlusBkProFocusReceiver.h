@@ -2,47 +2,27 @@
 #include "IAcquisitionDataReceiver.h"
 #include "libbmode.h"
 
-class PlusBKOEMReceiver : public IAcquisitionDataReceiver
+class vtkBkProFocusVideoSource;
+
+class PlusBkProFocusReceiver : public IAcquisitionDataReceiver
 {
-	Q_OBJECT
 public:
-	PlusBKOEMReceiver(QWidget *parent = 0);
+  PlusBkProFocusReceiver();
+  virtual ~PlusBkProFocusReceiver();
 
-    virtual bool DataAvailable(int lines, int pitch, void const* frameData);
+  virtual void SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource);
 
-    virtual bool Prepare(int samples, int lines, int pitch);
+  virtual bool Prepare(int samples, int lines, int pitch);
+  virtual bool DataAvailable(int lines, int pitch, void const* frameData);
+  virtual bool Cleanup();
 
-    virtual bool Cleanup();
-
-	virtual int SetCallback(int *CallbackFunction);
-
-	virtual void DoCallback();
-
-	virtual ~PlusBKOEMReceiver();
-
-	void SetOkToReceiveData(bool ok);
-
-public slots:
+  
 
 protected:
-	//void paintEvent(QPaintEvent *event);
+  vtkBkProFocusVideoSource* CallbackVideoSource;
 
-
-
-public:
-static const int MaxNumLines  = 256;
-static const int MaxNumSamples = 512;
-
-private:
-	int decimation;
-
-	bool okToReceiveData;
-
-	unsigned char* frame;
-	unsigned char* bmodeFrame;
-
-	TBModeParams params;
-
-   // CHANGE:
-	 vtkMutexLock mutexOkToRecvData;
+  TBModeParams params;
+  unsigned char* frame;
+  unsigned char* bmodeFrame;
+  int decimation;
 };

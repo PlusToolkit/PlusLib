@@ -1,4 +1,7 @@
+#include <Windows.h> // for MAX_PATH
 #include <assert.h>
+#include <sstream>
+#include <tchar.h> // for _T
 
 #include "AcquisitionSettings.h"
 
@@ -48,21 +51,18 @@ bool AcquisitionSettings::LoadIni(std::string fileName)
         return false;
     }
     
-    int idx = iniFileAbsolutePath.ReverseFind('\\');
-	if (idx == -1)
-		idx = iniFileAbsolutePath.ReverseFind('/');
-
-    std::string filePath = iniFileAbsolutePath.Mid(0,idx);
+    size_t idx = iniFileAbsolutePath.find_last_of("/\\");    
+    std::string filePath = iniFileAbsolutePath.substr(0,idx); // directory name without a trailing slash
     char ccfFileBuffer[MAX_PATH];
     char comportNameBuffer[MAX_PATH];
     char setupCommandsBuffer[MAX_PATH];
 
     // load settings from ini - consider optimizing by searching the ini manually
-    comportNumber = GetPrivateProfileInt("RESEARCH_INTERFACE", "comport", -1, iniFileAbsolutePath);
-    baudRate =  GetPrivateProfileInt("RESEARCH_INTERFACE", "baud_rate", 9600, iniFileAbsolutePath);
-    GetPrivateProfileString("RESEARCH_INTERFACE", "ccf_file", "IniFile.ccf", ccfFileBuffer, MAX_PATH, iniFileAbsolutePath);
-    GetPrivateProfileString("RESEARCH_INTERFACE", "comport_name", "\\\\.\\X64-CL_Express_1_Serial_1", comportNameBuffer, MAX_PATH, iniFileAbsolutePath);
-    GetPrivateProfileString("RESEARCH_INTERFACE", "setup_commands", "CLE;LID 1;FLT 15;TAF", setupCommandsBuffer, MAX_PATH, iniFileAbsolutePath);
+    comportNumber = GetPrivateProfileInt("RESEARCH_INTERFACE", "comport", -1, iniFileAbsolutePath.c_str());
+    baudRate =  GetPrivateProfileInt("RESEARCH_INTERFACE", "baud_rate", 9600, iniFileAbsolutePath.c_str());
+    GetPrivateProfileString("RESEARCH_INTERFACE", "ccf_file", "IniFile.ccf", ccfFileBuffer, MAX_PATH, iniFileAbsolutePath.c_str());
+    GetPrivateProfileString("RESEARCH_INTERFACE", "comport_name", "\\\\.\\X64-CL_Express_1_Serial_1", comportNameBuffer, MAX_PATH, iniFileAbsolutePath.c_str());
+    GetPrivateProfileString("RESEARCH_INTERFACE", "setup_commands", "CLE;LID 1;FLT 15;TAF", setupCommandsBuffer, MAX_PATH, iniFileAbsolutePath.c_str());
     comportName = std::string(comportNameBuffer);
     setupCommands = std::string(setupCommandsBuffer);
 
@@ -70,9 +70,11 @@ bool AcquisitionSettings::LoadIni(std::string fileName)
     ccfFile = std::string(ccfFileBuffer);
 
     // if path contains ':', it contains a drive, so it must be an absolute path
-    idx = ccfFile.Find(':');
-    if (idx==-1) 
-        ccfFile = filePath + "\\" + ccfFile; 
+    if (ccfFile.find(':')==std::string::npos)
+    {
+      // ':' not found, append root path
+      ccfFile = filePath + "\\" + ccfFile; 
+    }
 
     return true;
 }
@@ -83,15 +85,17 @@ bool AcquisitionSettings::SaveToIniFile(char * UseCaseName)
 
 	std::string str;
 
-	str.Format("%d", this->comportNumber);
-	WritePrivateProfileString(SectionName, "comport", str, UseCaseName);
+  std::ostringstream comPortNumberString; 
+  comPortNumberString << this->comportNumber << std::ends; 
+	WritePrivateProfileString(SectionName, "comport", comPortNumberString.str().c_str(), UseCaseName);
 
-	str.Format("%d", this->baudRate);
-	WritePrivateProfileString(SectionName, "baudRate", str, UseCaseName);
+  std::ostringstream baudRateString; 
+  baudRateString << this->baudRate << std::ends; 
+	WritePrivateProfileString(SectionName, "baudRate", baudRateString.str().c_str(), UseCaseName);
 
-	WritePrivateProfileString(SectionName, "ccf_file", this->ccfFile, UseCaseName);
-	WritePrivateProfileString(SectionName, "comport_name", this->comportName, UseCaseName);
-	WritePrivateProfileString(SectionName, "setup_commands", this->setupCommands, UseCaseName);
+  WritePrivateProfileString(SectionName, "ccf_file", this->ccfFile.c_str(), UseCaseName);
+	WritePrivateProfileString(SectionName, "comport_name", this->comportName.c_str(), UseCaseName);
+	WritePrivateProfileString(SectionName, "setup_commands", this->setupCommands.c_str(), UseCaseName);
 
 	return true;
 }
@@ -108,7 +112,7 @@ int AcquisitionSettings::CalculateNumberOfAcquisitionBufferFrames() const
 /// Utility function
 bool AcquisitionSettings::RelativePathToAbsolutePath(const std::string& relativePath, std::string* absolutePath)
 {
-    if(relativePath.Find(':') == -1)
+    if (relativePath.find(':')==std::string::npos)
     {
         // relative path, so find the absolute path
         TCHAR absolutePathBuffer[MAX_PATH];
@@ -118,11 +122,11 @@ bool AcquisitionSettings::RelativePathToAbsolutePath(const std::string& relative
             // getting absolute path failed
             return false;
         }
-        absolutePath->Format(_T("%s\\%s"), absolutePathBuffer, relativePath);
+        (*absolutePath)=std::string(absolutePathBuffer) + "\\" + relativePath;
     }
     else
     {
-        *absolutePath = relativePath;
+        (*absolutePath) = relativePath;
     }
     return true;
 }

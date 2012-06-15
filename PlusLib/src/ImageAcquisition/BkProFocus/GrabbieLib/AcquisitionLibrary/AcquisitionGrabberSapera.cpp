@@ -1,3 +1,5 @@
+#include <tchar.h> // for _T
+
 #include <algorithm>
 
 #include "BkmDataFile.h"
@@ -53,11 +55,11 @@ bool AcquisitionGrabberSapera::Init(const AcquisitionSettings& acquisitionSettin
     // setup the research interface
     if( !researchInterface.OpenConnection(acquisitionSettings) || !researchInterface.SetupConnection(acquisitionSettings) || !researchInterface.CloseConnection() )
     {
-        // Unable to properly start the research interface, so quit
-        LogPrintf(std::string(__FUNCTION__) + _T(" : Unable to start the Research Interface.\n"));
-        LogPrintf(_T("Error: ") + researchInterface.GetError() + _T("\n"));
-        researchInterface.ResetError();
-        return false;
+      // Unable to properly start the research interface, so quit
+      LogPrintf(std::string(__FUNCTION__) + _T(" : Unable to start the Research Interface.\n"));
+      LogPrintf(_T("Error: ") + researchInterface.GetError() + _T("\n"));
+      researchInterface.ResetError();
+      return false;
     }
     if(!FindSaperaDevice() || !AllocateSapera())
     {
@@ -91,15 +93,15 @@ bool AcquisitionGrabberSapera::StartGrabbing(AcquisitionInjector* acquisitionInj
     BOOL result = FALSE;
     if (settings->GetFramesToGrab() > 0)
     {
-        // compute the actual number of Sapera frames to grab, as this may differ from
-        // the number of frames that the user wants to grab.
-        int saperaFramesToGrab = settings->CalculateNumberOfAcquisitionBufferFrames();
-		LogPrintf("Frames to capture %d\n", saperaFramesToGrab);
-        result = saperaTransfer->Snap(saperaFramesToGrab);
+      // compute the actual number of Sapera frames to grab, as this may differ from
+      // the number of frames that the user wants to grab.
+      int saperaFramesToGrab = settings->CalculateNumberOfAcquisitionBufferFrames();
+      LogPrintf("Frames to capture %d\n", saperaFramesToGrab);
+      result = saperaTransfer->Snap(saperaFramesToGrab);
     }
     else
     {
-        result = saperaTransfer->Grab();
+      result = saperaTransfer->Grab();
     }
     return result == TRUE;
 }
@@ -253,8 +255,8 @@ bool AcquisitionGrabberSapera::FindSaperaDevice()
     int serverCount = SapManager::GetServerCount();
     if (serverCount == 0)
     {
-        LogPrintf(std::string(__FUNCTION__) + _T(" : No camera link board found! \n"));
-        return false;
+      LogPrintf(std::string(__FUNCTION__) + _T(" : No camera link board found! \n"));
+      return false;
     }
 
     // Scan the servers to find those that support acquisition
@@ -297,7 +299,7 @@ bool AcquisitionGrabberSapera::AllocateSapera()
 
     // construct sapera objects
     saperaLocation =  new SapLocation(acquisitionServerName, acquisitionDeviceIndex); 
-	saperaAcquisition =  new SapAcquisition(*saperaLocation, settings->GetCcfFile());
+    saperaAcquisition =  new SapAcquisition(*saperaLocation, settings->GetCcfFile().c_str());
     // the buffer loads capture card capabilities from the acquisition object. 
 	saperaBuffer = new SapBuffer(this->settings->GetFramesInGrabberBuffer(), saperaAcquisition);
 	saperaProcessor = new SaperaProcessor(saperaBuffer); 
@@ -305,21 +307,21 @@ bool AcquisitionGrabberSapera::AllocateSapera()
 
     if(saperaLocation == NULL || saperaAcquisition == NULL || saperaBuffer == NULL || saperaProcessor == NULL || saperaTransfer == NULL)
     {
-        // allocation failed, so destroy objects and return
-        LogPrintf(std::string(__FUNCTION__) + _T(" : Failed to allocate Sapera objects \n"));
-        delete saperaLocation;
-        delete saperaAcquisition;
-        delete saperaBuffer;
-        delete saperaProcessor;
-        delete saperaTransfer;
+      // allocation failed, so destroy objects and return
+      LogPrintf(std::string(__FUNCTION__) + _T(" : Failed to allocate Sapera objects \n"));
+      delete saperaLocation;
+      delete saperaAcquisition;
+      delete saperaBuffer;
+      delete saperaProcessor;
+      delete saperaTransfer;
 
-        saperaLocation = NULL;
-        saperaAcquisition = NULL;
-        saperaBuffer = NULL;
-        saperaProcessor = NULL;
-        saperaTransfer = NULL;
+      saperaLocation = NULL;
+      saperaAcquisition = NULL;
+      saperaBuffer = NULL;
+      saperaProcessor = NULL;
+      saperaTransfer = NULL;
 
-        return false;
+      return false;
     }
 
     // initialize sapera objects using Create()
@@ -386,8 +388,8 @@ bool AcquisitionGrabberSapera::AllocateSapera()
     }
     else
     {
-        LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Acquisition object \n"));
-        return false;
+      LogPrintf(std::string(__FUNCTION__) + _T(" : Could not create Acquisition object \n"));
+      return false;
     }
 
     if (saperaBuffer == NULL || !saperaBuffer->Create())
@@ -428,23 +430,23 @@ bool AcquisitionGrabberSapera::DestroySapera()
 
     if( !DestroySaperaObject(&saperaProcessor) )
     {
-        failures.Append(_T("saperaProcessor, "));
+        failures += _T("saperaProcessor, ");
     }
     if( !DestroySaperaObject(&saperaTransfer) )
     {
-        failures.Append(_T("saperaTransfer, "));
+        failures += _T("saperaTransfer, ");
     }
     if( !DestroySaperaObject(&saperaBuffer) )
     {
-        failures.Append(_T("saperaBuffer, "));
+        failures += _T("saperaBuffer, ");
     }
     if( !DestroySaperaObject(&saperaAcquisition) )
     {
-        failures.Append(_T("saperaAcquisition, "));
+        failures += _T("saperaAcquisition, ");
     }
     delete saperaLocation;
     saperaLocation = NULL;
-    if( failures.GetLength() > 0 )
+    if( failures.size() > 0 )
     {
         assert(false);
         LogPrintf(std::string(__FUNCTION__) + _T(" : Unable to Destroy ") + failures + _T("\n"));

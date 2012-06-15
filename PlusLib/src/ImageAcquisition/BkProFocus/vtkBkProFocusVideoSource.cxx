@@ -1,6 +1,7 @@
+#include "vtkBkProFocusVideoSource.h"
+#include "vtkVideoBuffer.h"
 
-// PLUS Includes
-
+#include "PlusBkProFocusReceiver.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
@@ -8,128 +9,288 @@
 #include "AcquisitionSettings.h"
 #include "CommandAndControl.h"
 #include "ParamConnectionSettings.h"
+#include "BmodeViewDataReceiver.h"
+#include "SaperaViewDataReceiver.h"
 
-// Other Includes
-#include "PlusBKOEMReceiver.h"
+vtkCxxRevisionMacro(vtkBkProFocusVideoSource, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkBkProFocusVideoSource);
 
-class vtkBKOEMVideoSource::vtkInternal
+class vtkBkProFocusVideoSource::vtkInternal
 {
 public:
-  vtkBKOEMVideoSource External;
-  
-  // OEM references
-  CommandAndControl* BKcmdCtrl
-  CmdCtrlSettings BKcmdCtrlSettings;
-  ParamConnectionSettings BKparamSettings;
-  AcquisitionInjector BKAcqInjector;
-  AcquisitionSettings BKAcqSettings;
-  AcquisitionGrabberSapera BKAcqSapera;
+  vtkBkProFocusVideoSource *External;
 
+  ParamConnectionSettings BKparamSettings; // parConnectSettings, for read/write settings from ini file
 
-  vtkBKOEMVideoSource::vtkInternal::vtkInternal(vtkBKOEMVideoSource* external) 
+  AcquisitionInjector BKAcqInjector; // injector
+  AcquisitionSettings BKAcqSettings; // settings
+  AcquisitionGrabberSapera BKAcqSapera; // sapera
+  BmodeViewDataReceiver BKBModeView; // bmodeView; 
+  SaperaViewDataReceiver* pBKSaperaView; // saperaView
+  PlusBkProFocusReceiver PlusReceiver;
+
+  CmdCtrlSettings BKcmdCtrlSettings; // cmdCtrlSet
+  CommandAndControl* pBKcmdCtrl; // cmdctrl
+    
+  vtkBkProFocusVideoSource::vtkInternal::vtkInternal(vtkBkProFocusVideoSource* external) 
   {
-    this->e = external;
+    this->External = external;
+    this->pBKSaperaView=NULL;
+    this->pBKcmdCtrl=NULL;
+    this->PlusReceiver.SetPlusVideoSource(this->External);
   }
-  
+
+  virtual vtkBkProFocusVideoSource::vtkInternal::~vtkInternal() 
+  {    
+    this->PlusReceiver.SetPlusVideoSource(NULL);
+    delete this->pBKSaperaView;
+    this->pBKSaperaView=NULL;
+    delete this->pBKcmdCtrl;
+    this->pBKcmdCtrl=NULL;
+    this->External = NULL;
+  }  
 };
 
-///////// PLUS Video Interface
-
 //----------------------------------------------------------------------------
-vtkBKOEMVideoSource::vtkBKOEMVideoSource()
+vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
 {
-  // Changes:
-  this->p = new vtkInternal(this);
-  this->DataReceiver = new PlusBKOEMDataReceiver();
-  
-  // End Changes
-  
-  
-  this->Connected = 0;
+  this->Internal = new vtkInternal(this);
  
   this->SpawnThreadForRecording=0;
+  this->IniFileName=NULL;
+  this->ShowSaperaWindow=false;
+  this->ShowBModeWindow=false;
 
-  this->Recording = 0;
-
-  this->FrameRate = 30;
-
-  this->FrameCount = 0;
-  this->FrameNumber = 0;
-
-  //this->StartTimeStamp = 0;
-  this->FrameTimeStamp = 0;
-
-  this->OutputNeedsInitialization = 1;
-
-  this->NumberOfOutputFrames = 1;
-
-  this->RecordThreader = vtkMultiThreader::New();
-  this->RecordThreadId = -1;
-
-  this->CurrentVideoBufferItem = new VideoBufferItem();
-
-  this->Buffer = vtkVideoBuffer::New();
-
-  this->UpdateWithDesiredTimestamp = 0;
-  this->DesiredTimestamp = -1;
-  this->TimestampClosestToDesired = -1;
-
-  this->SetNumberOfInputPorts(0);
-
-  this->UsImageOrientation = US_IMG_ORIENT_XX; 
+  SetLogFunc(LogInfoMessageCallback);
+	SetDbgFunc(LogDebugMessageCallback);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBKOEMVideoSource::InternalConnect()
+vtkBkProFocusVideoSource::~vtkBkProFocusVideoSource()
 {
+  SetIniFileName(NULL);
 
-	// TODO this->BKIniFileNameInit ..
-	this->i->BKcmdCtrl = new CommandAndControl(&parConnectSettings, &cmdCtrlSet);
+  delete this->Internal;
+  this->Internal=NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkBkProFocusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+} 
+
+//----------------------------------------------------------------------------
+void vtkBkProFocusVideoSource::LogInfoMessageCallback(char *msg)
+{
+	LOG_INFO(msg);
+}
+
+//----------------------------------------------------------------------------
+void vtkBkProFocusVideoSource::LogDebugMessageCallback(char *msg)
+{
+	LOG_INFO(msg);
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::InternalConnect()
+{
+  std::string iniFilePath;
+  GetFullIniFilePath(iniFilePath);
+  if (!this->Internal->BKparamSettings.LoadSettingsFromIniFile(iniFilePath.c_str()))
+  {
+    LOG_ERROR("Could not lot BK parameter settings from file: "<<iniFilePath.c_str());
+    return PLUS_FAIL;
+  }
+
+  LOG_DEBUG("BK scanner address: " << this->Internal->BKparamSettings.GetScannerAddress());
+	LOG_DEBUG("BK scanner OEM port: " << this->Internal->BKparamSettings.GetOemPort());
+	LOG_DEBUG("BK scanner toolbox port: " << this->Internal->BKparamSettings.GetToolboxPort());
+  
+	this->Internal->BKcmdCtrlSettings.useConsole = true;
+	this->Internal->BKcmdCtrlSettings.useConsoleLastOkUseCase = true;
+
+	this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
 	
-	int numSamples = 0;
+  int numSamples = 0;
 	int numLines = 0;
-
-	bool success = this->i->BKcmdCtrl->CalcSaperaBufSize(&numSamples, &numLines);
-	if (success)
+  if (!this->Internal->pBKcmdCtrl->CalcSaperaBufSize(&numSamples, &numLines))
 	{
-		success = this->i.CmdCtrlSettings.LoadIni(this->BKIniFilename);
-		if (!success)
-			{
-			// ?plus log function? error..
-			}
-		this->i.CmdCtrlSettings.SetRFLineLength(numSamples);
-		this->i.CmdCtrlSettings.SetLinesPerFrame(numLines);
-		this->i.CmdCtrlSettings.SetFramesToGrab(0); // continuous
+    LOG_ERROR("Failed to get Sapera framegrabber buffer size for RF data");
+    delete this->Internal->pBKcmdCtrl;
+    this->Internal->pBKcmdCtrl=NULL;
+    return PLUS_FAIL;
+  }
 
-		success = this->i.BKAcqSapera.Init(this->i.CmdCtrlSettings));
-		if () {} //TODO
-		else { return }
+  if (!this->Internal->BKAcqSettings.LoadIni(iniFilePath.c_str()))
+  {
+    LOG_ERROR("Failed to load acquisition settings from file: "<<iniFilePath.c_str());
+    delete this->Internal->pBKcmdCtrl;
+    this->Internal->pBKcmdCtrl=NULL;
+    return PLUS_FAIL;
+  }
+		
+  this->Internal->BKAcqSettings.SetRFLineLength(numSamples);
+  this->Internal->BKAcqSettings.SetLinesPerFrame(numLines);
+  this->Internal->BKAcqSettings.SetFramesToGrab(0); // continuous
 
-		// TODO: init
-		this->DataReceiver->SetDataCallback(NewFrameCallback);
-		this->i.BKAcqInjector.AddDataReceiver(this->DataReceiver);
-	}
-	
+	if (!this->Internal->BKAcqSapera.Init(this->Internal->BKAcqSettings))
+  {
+    LOG_ERROR("Failed to initialize framegrabber");
+    delete this->Internal->pBKcmdCtrl;
+    this->Internal->pBKcmdCtrl=NULL;
+    return PLUS_FAIL;
+  }
 
+  this->Internal->pBKSaperaView = new SaperaViewDataReceiver(this->Internal->BKAcqSapera.GetBuffer());
 
+  if (this->ShowSaperaWindow)
+  {
+    // show Sapera viewer
+    this->Internal->BKAcqInjector.AddDataReceiver(this->Internal->pBKSaperaView);
+  }
+
+  if (this->ShowBModeWindow)
+  {
+    // show B-mode image  
+    this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->BKBModeView); 
+  }
+  
+  // send frames to this video source
+  this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->PlusReceiver);
+
+  return PLUS_SUCCESS;
 }
-
-PlusStatus vtkBKOEMVideoSource::InternalDisconnect()
+	
+//----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 {
+  this->Internal->BKAcqSapera.Destroy();
+
+  this->Internal->BKAcqInjector.RemoveDataReceiver(&this->Internal->PlusReceiver);
+
+  if (this->ShowBModeWindow)
+  {
+    this->Internal->BKAcqInjector.RemoveDataReceiver(&this->Internal->BKBModeView);
+  }
+
+  if (this->ShowSaperaWindow)
+  {
+    this->Internal->BKAcqInjector.RemoveDataReceiver(this->Internal->pBKSaperaView);
+  }
+  
+  delete this->Internal->pBKSaperaView;
+  this->Internal->pBKSaperaView=NULL;
+  delete this->Internal->pBKcmdCtrl;
+  this->Internal->pBKcmdCtrl=NULL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-bool vtkBKOEMVideoSource::NewFrameCallback(void * data, int type, int sz, int frmnum)
+PlusStatus vtkBkProFocusVideoSource::InternalStartRecording()
+{
+  if (!this->Internal->BKAcqSapera.StartGrabbing(&this->Internal->BKAcqInjector))
+  {
+    LOG_ERROR("Failed to start grabbing");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
+{
+  if (!this->Internal->BKAcqSapera.StopGrabbing())
+  {
+    LOG_ERROR("Failed to start grabbing");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+  
+//----------------------------------------------------------------------------
+void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], int numberOfBitsPerPixel)
 {    
-	if(data==NULL || sz==0)
-	{
-    LOG_DEBUG("Error: no actual frame data received"); 
-    return false;
-	}
+  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, itk::ImageIOBase::UCHAR, 0, this->FrameNumber);
+  this->FrameNumber++;
+}
 
-	vtkBKOEMVideoSource::GetInstance()->Buffer->AddItem(data,
-				this->GetUsImageOrientation(), sz, 
-				type, 0, ?FrameNumber?);    // ?? TODO
 
-	return true;;
+//-----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+{
+  LOG_TRACE("vtkBkProFocusVideoSource::ReadConfiguration"); 
+  if ( config == NULL )
+  {
+    LOG_ERROR("Unable to configure BK ProFocus video source! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  Superclass::ReadConfiguration(config); 
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
+
+  const char* iniFileName = imageAcquisitionConfig->GetAttribute("IniFileName"); 
+  if ( iniFileName != NULL) 
+  {
+    this->SetIniFileName(iniFileName); 
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+{
+  // Write superclass configuration
+  Superclass::WriteConfiguration(config); 
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  imageAcquisitionConfig->SetAttribute("IniFileName", this->IniFileName);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::GetFullIniFilePath(std::string &fullPath)
+{
+  if (this->IniFileName==NULL)
+  {
+    LOG_ERROR("Ini file name has not been set");
+    return PLUS_FAIL;
+  }
+  fullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFileName;
+  return PLUS_SUCCESS;
 }

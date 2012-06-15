@@ -1,3 +1,8 @@
+#ifndef log_library_h
+#define log_library_h
+
+#include <string>
+
 /**
  \file LogLibrary.h
  \brief Declaration of Debug Utilities. 
@@ -87,6 +92,12 @@ void wLogPrintf(const wchar_t *fmt, ...);
 /// \par [in] fmt Format string. Same as in printf.
 void LogPrintf(const char* fmt, ...);      
 
+/// \brief Print Log message without formatting. 
+///  Messages are using 8-bit characters 
+///  
+/// \par [in] msg Message string.
+void LogPrintf(const std::string &msg);
+
 
 /// \brief Register a callback function for debug messages
 /// The function must be declared as
@@ -127,3 +138,5 @@ void SetLogFunc(TDbgFunc);
 /// \par [in] Pointer to the function
 
 void SetLogFuncW(TDbgFuncW);
+
+#endif // log_library_h
