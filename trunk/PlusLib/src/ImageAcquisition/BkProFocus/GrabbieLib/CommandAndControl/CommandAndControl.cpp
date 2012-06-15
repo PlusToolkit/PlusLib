@@ -150,7 +150,8 @@ CmdAndCtrlImpl::CmdAndCtrlImpl( ParamConnectionSettings* pSettings,  CmdCtrlSett
 {
 	if (CmdAndCtrlImpl::numInstances > 0)
 	{
-		MessageBox(NULL,"Command And Control must be singleton !!! .", "Error", MB_OK );
+    LogPrintf("ERROR: Command And Control must be singleton" );
+		//MessageBox(NULL,"Command And Control must be singleton !!! .", "Error", MB_OK );
 		assert(false);    // In debug mode come here
 		_exit(1);         // In release mode - terminate
 	}
@@ -202,7 +203,8 @@ CmdAndCtrlImpl::CmdAndCtrlImpl( ParamConnectionSettings* pSettings,  CmdCtrlSett
 		success = parSyncConnection->ConnectOEMInterface();
 		if (!success)
 		{
-			MessageBox(NULL,"Could not establish connection to OEM.\n DISABLING OEM USAGE.", "Error", MB_OK );
+      LogPrintf("ERROR: Could not establish connection to OEM. DISABLING OEM USAGE" );
+			//MessageBox(NULL,"Could not establish connection to OEM.\n DISABLING OEM USAGE.", "Error", MB_OK );
 			cmdCtrlSettings.useConsole = false;    // We cannot use the console
 		}
 		else
@@ -221,7 +223,8 @@ CmdAndCtrlImpl::CmdAndCtrlImpl( ParamConnectionSettings* pSettings,  CmdCtrlSett
 		success = parSyncConnection->ConnectToolboxCommandInterface();
 		if (!success)
 		{
-			MessageBox(NULL,"Could not establish connection to Tcp2Toolbox.\nDISABLING TOOLBOX USAGE.", "Error", MB_OK );
+      LogPrintf("ERROR: Could not establish connection to Tcp2Toolbox. DISABLING TOOLBOX USAGE." );
+      //MessageBox(NULL,"Could not establish connection to Tcp2Toolbox.\nDISABLING TOOLBOX USAGE.", "Error", MB_OK );
 			cmdCtrlSettings.useConsoleLastOkUseCase = false; 
 			cmdCtrlSettings.useToolBox = false;
 		}
@@ -241,7 +244,8 @@ CmdAndCtrlImpl::CmdAndCtrlImpl( ParamConnectionSettings* pSettings,  CmdCtrlSett
 		{
 			cmdCtrlSettings.useConsoleLastOkUseCase = false;
 			cmdCtrlSettings.autoUpdate = false;
-			MessageBox(NULL," No connection to Console!\n Disabling automatic update.", "Error", MB_OK );
+      LogPrintf("ERROR: No connection to Console! Disabling automatic update." );
+			//MessageBox(NULL," No connection to Console!\n Disabling automatic update.", "Error", MB_OK );
 		}
 		
 		
@@ -253,7 +257,8 @@ CmdAndCtrlImpl::CmdAndCtrlImpl( ParamConnectionSettings* pSettings,  CmdCtrlSett
 		LogPrintf("Inspecting if UseCase is automatically saved ");
 		if (!IsLatestCalcSavedToUseCase())
 		{
-			MessageBox(NULL,"Auto Save of Use Case is not enabled by Console.\nDisabling automatic update from LatestUseCase.", "Error", MB_OK );
+      LogPrintf("ERROR: Auto Save of Use Case is not enabled by Console. Disabling automatic update from LatestUseCase." );
+			//MessageBox(NULL,"Auto Save of Use Case is not enabled by Console.\nDisabling automatic update from LatestUseCase.", "Error", MB_OK );
 			cmdCtrlSettings.useConsoleLastOkUseCase = false;
 		}
 		else
@@ -352,7 +357,8 @@ void CmdAndCtrlImpl::AutoUpdate(char* buf, size_t bufferSize)
 	bufferSize = bufferSize; // dummy to escape C4189 in release builds
 	if (CmdAndCtrlImpl::ptrThis == NULL)
 	{
-		MessageBox(NULL, _T("CommandAndControl object has already been destroyed"), _T("BUG"), MB_OK);
+    LogPrintf("ERROR: CommandAndControl object has already been destroyed." );
+		//MessageBox(NULL, _T("CommandAndControl object has already been destroyed"), _T("BUG"), MB_OK);
 		assert(false);
 		
 		_exit(1);
@@ -602,7 +608,8 @@ bool CmdAndCtrlImpl::CalcSaperaBufSize(int *numSamples, int *numLines)
 	}
 	else
 	{
-		::MessageBox(NULL, "Not using either Console nor Toolbox ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+    LogPrintf("Param Sync Connection: Not using either Console nor Toolbox." );
+		//::MessageBox(NULL, "Not using either Console nor Toolbox ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 		success = false;
 	}
 	return success;

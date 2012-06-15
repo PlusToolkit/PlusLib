@@ -50,6 +50,18 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
+#***************************  vtkBkProFocusVideoSourceTest.cxx ***************************
+IF (PLUS_USE_BKPROFOCUS_VIDEO)
+	ADD_EXECUTABLE(vtkBkProFocusVideoSourceTest vtkBkProFocusVideoSourceTest.cxx )
+	TARGET_LINK_LIBRARIES(vtkBkProFocusVideoSourceTest vtkImageAcquisition vtkCharts)
+	ADD_TEST(vtkBkProFocusVideoSourceTest 
+	${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusVideoSourceTest
+	 --rendering-off
+   --sonix-ip=130.15.7.20
+	)
+	SET_TESTS_PROPERTIES( vtkBkProFocusVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
+
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
 IF (PLUS_USE_ICCAPTURING_VIDEO)
 ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )

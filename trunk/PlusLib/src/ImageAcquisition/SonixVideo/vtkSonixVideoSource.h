@@ -134,8 +134,9 @@ public:
   static vtkSonixVideoSourceCleanup Cleanup;
   //ETX
 
-  /*! Read/write main configuration from/to xml data */
+  /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Get the IP address of the Ultrasonix host machine */

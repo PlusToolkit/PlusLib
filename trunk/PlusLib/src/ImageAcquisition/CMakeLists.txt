@@ -1,7 +1,8 @@
 # --------------------------------------------------------------------------
 # Options
 
-OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for the SonixRP video source" OFF)
+OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
+OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
@@ -55,12 +56,12 @@ IF (PLUS_USE_OpenIGTLink)
 	
 	SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
 		${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo
-    CACHE INTERNAL "" FORCE)
+    )
 	
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
     OpenIGTLink
     vtkPlusOpenIGTLink
-    CACHE INTERNAL "" FORCE)
+    )
 	
 ENDIF(PLUS_USE_OpenIGTLink)
 
@@ -217,13 +218,34 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     ${ULTERIUS_INCLUDE_DIR}        
     ${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
-    CACHE INTERNAL "" FORCE)
-    
-	SET (ImageAcquisition_LIBS
-    ${ImageAcquisition_LIBS}
-    CACHE INTERNAL "" FORCE)
-	
+    )
+    	
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+
+# --------------------------------------------------------------------------
+# BK ProFocus support
+IF (PLUS_USE_BKPROFOCUS_VIDEO)
+  ADD_SUBDIRECTORY(BkProFocus/GrabbieLib)
+  SET (ImageAcquisition_SRCS
+    ${ImageAcquisition_SRCS}
+    BkProFocus/vtkBkProFocusVideoSource.cxx
+    BkProFocus/PlusBkProFocusReceiver.cxx
+    )
+  if (WIN32)	
+    SET (ImageAcquisition_HDRS
+      ${ImageAcquisition_HDRS}
+      BkProFocus/vtkBkProFocusVideoSource.h
+      BkProFocus/PlusBkProFocusReceiver.h
+      )
+  endif (WIN32)	
+  SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
+    ${GrabbieLib_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus
+    )
+  SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+    GrabbieLib
+    )
+ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
 # --------------------------------------------------------------------------
 # ICCapturing support
@@ -245,7 +267,7 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
     ${ICCAPTURING_INCLUDE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ICCapturing
-    CACHE INTERNAL "" FORCE)
+    )
 	
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
 		optimized ${ICCAPTURING_TIS_UDSHL09_STATIC_LIB}
@@ -281,10 +303,10 @@ IF (PLUS_USE_VFW_VIDEO)
     )		
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
   	${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows 	
-  	CACHE INTERNAL "" FORCE)      
+  	)      
   SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
     Vfw32.lib
-    CACHE INTERNAL "" FORCE)
+    )
 ENDIF (PLUS_USE_VFW_VIDEO)
 
 # --------------------------------------------------------------------------
@@ -317,7 +339,7 @@ IF (PLUS_USE_EPIPHAN)
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}     
     ${EPIPHAN_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Epiphan
-    CACHE INTERNAL "" FORCE)        	
+    )        	
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
@@ -342,8 +364,9 @@ SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
 SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
   ${UsSimulatorAlgo_INCLUDE_DIRS}
   ${Tracking_INCLUDE_DIRS}
-  CACHE INTERNAL "" FORCE)
+  )
 
+SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)      
 INCLUDE_DIRECTORIES( ${ImageAcquisition_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkImageAcquisition ${ImageAcquisition_SRCS} ${ImageAcquisition_HDRS})
 TARGET_LINK_LIBRARIES(vtkImageAcquisition ${ImageAcquisition_LIBS})

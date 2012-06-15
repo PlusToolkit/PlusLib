@@ -986,17 +986,20 @@ bool ParamSyncConnectionImp::CalcSapBufSizeFromSavedUseCase(int * numSamples, in
 		{
 		case RTSC_MIDLEVEL_MODE_M1:		///< M Mode (1D - time-motion)
 		case RTSC_MIDLEVEL_MODE_M2:		///< M Mode (1D - time-motion)
-			MessageBox(NULL, "M-mode not implemented yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+      LogPrintf("ERROR: Param Sync Connection: M-mode not implemented yet." );
+			//MessageBox(NULL, "M-mode not implemented yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 			success = false;
 			break;
 
 		case RTSC_MIDLEVEL_MODE_MC1:		///< M-CFM Mode (1D - time-motion)
 			success = false;
-			MessageBox(NULL, "Motion Color is not supported", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+      LogPrintf("ERROR: Param Sync Connection: Motion Color is not supported." );
+			//MessageBox(NULL, "Motion Color is not supported", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 			break;
 
 		case RTSC_MIDLEVEL_MODE_CWD1:	///< Continuous Doppler Mode (1D - time-motion)
-			MessageBox(NULL, " Continuous Wave Doppler is not supported yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+      LogPrintf("ERROR: Param Sync Connection: Continuous Wave Doppler is not supported yet." );
+			//MessageBox(NULL, " Continuous Wave Doppler is not supported yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 			success = false;
 			break;
 
@@ -1004,21 +1007,22 @@ bool ParamSyncConnectionImp::CalcSapBufSizeFromSavedUseCase(int * numSamples, in
 			break;
 
 		case RTSC_MIDLEVEL_MODE_ELASTO:  ///< Elastography
-			MessageBox(NULL, " Elastography is not supported yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+      LogPrintf("ERROR: Param Sync Connection: Elastography is not supported yet." );
+			//MessageBox(NULL, " Elastography is not supported yet ", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 			success = false;
 			break;
 
 		case RTSC_MIDLEVEL_MODE_EXPMT1:  ///< Just for fun
-			MessageBox(NULL, "Experimental Modes are not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK);
+      LogPrintf("ERROR: Param Sync Connection: Experimental Modes are not supported yet." );
+			//MessageBox(NULL, "Experimental Modes are not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK);
 			success = false;
 			break;
 
 		case RTSC_MIDLEVEL_MODE_UNUSED:  ///< For unused modes in BF_XmitDataTbl[bm].MidLevelModeSel
-			MessageBox(NULL, "Found unused Mid Level Mode", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+			LogPrintf("ERROR: Param Sync Connection: Found unused Mid Level Mode." );
+      //MessageBox(NULL, "Found unused Mid Level Mode", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 			success = false;
 			break;
-
-
 		}
 	}
 
@@ -1191,13 +1195,15 @@ bool  ParamSyncConnectionImp::CalcSapBufSizeUsingConsole(int *numSamples, int *n
 	
 	if (mode.A.present_cwd || mode.B.present_cwd)
 	{
-		MessageBox(NULL, "Continuous Wave Doppler not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+    LogPrintf("ERROR: Param Sync Connection: Continuous Wave Doppler not supported yet." );
+		//MessageBox(NULL, "Continuous Wave Doppler not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 		return false;
 	}
 
 	if (mode.A.present_m || mode.B.present_m)
 	{
-		MessageBox(NULL, "M-mode not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+    LogPrintf("ERROR: Param Sync Connection: M-mode not supported yet." );
+		//MessageBox(NULL, "M-mode not supported yet", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 		return false;
 	}
 
@@ -1297,7 +1303,8 @@ bool  ParamSyncConnectionImp::CalcSapBufSizeUsingConsole(int *numSamples, int *n
 	if (mode.A.present_pwd || mode.B.present_pwd)
 	{
 		// This is really serious
-		MessageBox(NULL, "Pulsed Wave Doppler not well supported by OEM. You should use UseCases instead.\n Assuming that every second shot is doppler shot.", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
+    LogPrintf("ERROR: Param Sync Connection: Pulsed Wave Doppler not well supported by OEM. You should use UseCases instead. Assuming that every second shot is doppler shot." );
+		//MessageBox(NULL, "Pulsed Wave Doppler not well supported by OEM. You should use UseCases instead.\n Assuming that every second shot is doppler shot.", "Param Sync Connection", MB_ICONWARNING | MB_OK); 
 		*numLines = 2 * (*numLines);
 	}
 	return true;
