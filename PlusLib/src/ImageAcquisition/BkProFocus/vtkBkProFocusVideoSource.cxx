@@ -215,9 +215,11 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], int numberOfBitsPerPixel)
 {      
+  LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]<<", "<<numberOfBitsPerPixel<<" bits, pixel data: "<<pixelDataPtr);
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( this->GetBuffer()->GetNumberOfItems() == 0 )
   {
+    LOG_DEBUG("Set up BK ProFocus image buffer");
     switch (numberOfBitsPerPixel)
     {
       case 8: this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR); break;
