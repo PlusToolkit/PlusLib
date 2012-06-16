@@ -40,6 +40,8 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int /*pitch*/)
 
   // initialize parameters
   this->params.n_lines = lines;
+  
+  // TODO: check this, in CuteGrabbie it is simply: this->params.n_samples = samples / 2;
   this->params.n_samples = (samples-2) / this->decimation; // subtract 2 due to header
 
   // the number of the samples must be 16 byte aligned
@@ -88,22 +90,24 @@ bool PlusBkProFocusReceiver::DataAvailable(int lintes, int pitch, void const* fr
     const ResearchInterfaceLineHeader* header = reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
 
     // only show bmode line
-    if(/*header->ModelID == 0 &&*/ header->CFM == 0 && header->FFT == 0)
+    if(/*header->ModelID == 0 &&*/ header->CFM == 0 && header->FFT == 0) // TODO: check this, in CuteGrabbie "header->ModelID == 0" is not commented out
     {
-      // increment number of bmode lines found in this frame
-      ++bmodeLines;
 
       ++currentInputPosition; // ResearchInterfaceLineHeader is 32 bit, so look past it by adding one
-      int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + i*this->params.n_samples*bytesPerSample);
+      int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + bmodeLines*this->params.n_samples*bytesPerSample);
 
       // n_samples is 16 bit samples, but we need to iterate over 32 bit iq samples, 
       // so divide by 2 to get the right number
-      for(int j = 0; j < this->params.n_samples / 2; ++j)
+      for(int j = 0; j < this->params.n_samples / 2; ++j) // TODO: check this, it might need to be this->params.n_samples/this->decimation/2
       {
         *currentOutputPosition = *currentInputPosition;
         currentInputPosition += this->decimation;
         currentOutputPosition += 1;
       }
+
+      // increment number of bmode lines found in this frame
+      ++bmodeLines;
+
     }
   }
 
@@ -121,7 +125,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lintes, int pitch, void const* fr
     if (this->CallbackVideoSource!=NULL)
     {
       // the image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-      int frameSizeInPix[2]={this->params.n_samples, bmodeLines};      
+      int frameSizeInPix[2]={this->params.n_samples/2, bmodeLines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
       const int numberOfBitsPerPixel=8;
       this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, numberOfBitsPerPixel);
     }
