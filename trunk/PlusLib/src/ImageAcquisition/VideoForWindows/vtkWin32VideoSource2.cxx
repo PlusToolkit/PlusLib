@@ -115,6 +115,70 @@ vtkStandardNewMacro(vtkWin32VideoSource2);
 #endif // 
 
 //----------------------------------------------------------------------------
+// codecs
+
+static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
+{ 
+  /* 
+  // floating point math (simpler but slower)
+  int Y = yuv[0] - 16;
+  int U = yuv[1] - 128;
+  int V = yuv[2] - 128;
+
+  int R = 1.164*Y + 1.596*V           + 0.5;
+  int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
+  int B = 1.164*Y           + 2.018*U + 0.5;
+  */
+
+  // integer math (faster but more complex to read)
+
+  int Y = (yuv[0] - 16)*76284;
+  int U = yuv[1] - 128;
+  int V = yuv[2] - 128;
+
+  int R = Y + 104595*V           ;
+  int G = Y -  53281*V -  25625*U;
+  int B = Y            + 132252*U;
+
+  // round
+  R += 32768;
+  G += 32768;
+  B += 32768;
+
+  // shift
+  R >>= 16;
+  G >>= 16;
+  B >>= 16;
+
+  // clamp
+  if (R < 0) { R = 0; }
+  if (G < 0) { G = 0; }
+  if (B < 0) { B = 0; }
+
+  if (R > 255) { R = 255; };
+  if (G > 255) { G = 255; };
+  if (B > 255) { B = 255; };
+
+  // output
+  rgb[0] = R;
+  rgb[1] = G;
+  rgb[2] = B;
+}
+
+// Note that this method computes the inensity (simple averaging of the RGB components).
+// This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
+static inline void Rgb24ToGray(int width, int height, unsigned char *s,unsigned char *d)
+{
+  int totalLen=width*height;
+  for (int i=0; i<totalLen; i++)
+  {
+    *d=((unsigned short)(s[0])+s[1]+s[2])/3;
+    d++;
+    s+=3;
+  }
+} 
+
+//----------------------------------------------------------------------------
 vtkWin32VideoSource2::vtkWin32VideoSource2()
 {
   this->Internal = new vtkWin32VideoSource2Internal;
@@ -480,11 +544,10 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   {  
   // supported compression
   case VTK_BI_YUY2:
-
+  case BI_RGB:
     break;
   // not supported compression
   case VTK_BI_UYVY:
-  case BI_RGB:
   default:
     char fourcchex[16]={0};
     char fourcc[8]={0};
@@ -523,10 +586,22 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
-  // decode the grabbed image to the requested output image type
-  if (!YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr))
+  switch (inputCompression)
   {
-    LOG_ERROR("Error while decoding the grabbed image");
+  case BI_RGB:
+    // decode the grabbed image to the requested output image type
+    Rgb24ToGray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr);
+    break;
+  case VTK_BI_YUY2:
+    // decode the grabbed image to the requested output image type
+    if (!YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr))
+    {
+      LOG_ERROR("Error while decoding the grabbed image");
+      return PLUS_FAIL;
+    }
+    break;
+  default:
+    LOG_ERROR("Unkown compression type: "<<inputCompression);
     return PLUS_FAIL;
   }
   
@@ -574,57 +649,6 @@ PlusStatus vtkWin32VideoSource2::InternalStopRecording()
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-// codecs
-
-static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
-{ 
-  /* 
-  // floating point math (simpler but slower)
-  int Y = yuv[0] - 16;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = 1.164*Y + 1.596*V           + 0.5;
-  int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
-  int B = 1.164*Y           + 2.018*U + 0.5;
-  */
-
-  // integer math (faster but more complex to read)
-
-  int Y = (yuv[0] - 16)*76284;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = Y + 104595*V           ;
-  int G = Y -  53281*V -  25625*U;
-  int B = Y            + 132252*U;
-
-  // round
-  R += 32768;
-  G += 32768;
-  B += 32768;
-
-  // shift
-  R >>= 16;
-  G >>= 16;
-  B >>= 16;
-
-  // clamp
-  if (R < 0) { R = 0; }
-  if (G < 0) { G = 0; }
-  if (B < 0) { B = 0; }
-
-  if (R > 255) { R = 255; };
-  if (G > 255) { G = 255; };
-  if (B > 255) { B = 255; };
-
-  // output
-  rgb[0] = R;
-  rgb[1] = G;
-  rgb[2] = B;
 }
 
 //----------------------------------------------------------------------------
