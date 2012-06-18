@@ -7,7 +7,7 @@ See License.txt for details.
 #include "StylusCalibrationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "PlusMath.h"
 
 #include "vtkPivotCalibrationAlgo.h"
@@ -77,7 +77,10 @@ void StylusCalibrationToolbox::Initialize()
   }
 
   // Clear results poly data
-  m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
+  if(m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData() != NULL)
+  {
+    m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
+  }
 
   if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
@@ -199,16 +202,16 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("StylusCalibrationToolbox::SetDisplayAccordingToState"); 
 
-  if (m_ParentMainWindow->AreDevicesShown() == false)
+  // If the force show devices isn't enabled, set it to 3D and hide all the devices
+  // Later, we will re-enable only those that we wish shown for this toolbox
+  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
-  // Hide the orientation markers
-  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
+  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
 
   if (m_State == ToolboxState_Uninitialized)
   {

@@ -7,7 +7,7 @@
 #include "VolumeReconstructionToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "CapturingToolbox.h"
 
 #include <QFileDialog>
@@ -82,7 +82,7 @@ void VolumeReconstructionToolbox::Initialize()
   }
 
   // Clear results poly data
-  if (m_State != ToolboxState_Done)
+  if (m_State != ToolboxState_Done && m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData() != NULL)
   {
     m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
   }
@@ -121,16 +121,16 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
 
-  if (m_ParentMainWindow->AreDevicesShown() == false)
+  // If the force show devices isn't enabled, set it to 3D and hide all the devices
+  // Later, we will re-enable only those that we wish shown for this toolbox
+  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
-  // Hide the orientation markers
-  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
+  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
 
 	if (m_State == ToolboxState_Uninitialized)
   {
@@ -182,7 +182,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarText(QString(" Reconstruction done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->VisibilityOn();
+    m_ParentMainWindow->GetObjectVisualizer()->EnableVolumeActor(true);
 	  m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->Modified();
 	  m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
 	}
@@ -412,8 +412,8 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 	vtkSmartPointer<vtkPolyDataMapper> contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	contourMapper->SetInputConnection(contourFilter->GetOutputPort());
 
-  m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->SetMapper(contourMapper);
-	m_ParentMainWindow->GetObjectVisualizer()->GetVolumeActor()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  m_ParentMainWindow->GetObjectVisualizer()->SetVolumeMapper(contourMapper);
+	m_ParentMainWindow->GetObjectVisualizer()->SetVolumeColor(0.0, 0.0, 1.0);
 }
 
 //-----------------------------------------------------------------------------

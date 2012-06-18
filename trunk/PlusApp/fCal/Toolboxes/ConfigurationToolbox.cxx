@@ -7,7 +7,7 @@
 #include "ConfigurationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "FidPatternRecognition.h"
 
@@ -117,16 +117,11 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
+  // No state handling in this toolbox, hide all visualization
+  m_ParentMainWindow->GetObjectVisualizer()->HideRenderer();
+
   // Disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(false);
-  // Hide the orientation markers
-  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
-
-  // No state handling in this toolbox
-  if (m_ParentMainWindow->AreDevicesShown() == false)
-  {
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -190,12 +185,14 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
           LOG_ERROR("Failed to read fCal configuration");
         }
 
+        // Initialize the object visualizer now that we have all necessary data
+        if( m_ParentMainWindow->GetObjectVisualizer()->Initialize() != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Unable to initialize visualization.");
+        }
+
         // Successful connection
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-
-        // Load device models based on the new configuration
-        m_ParentMainWindow->GetObjectVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-        m_ParentMainWindow->GetObjectVisualizer()->InitializeObjectVisualization();
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
@@ -234,7 +231,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       m_ParentMainWindow->ResetShowDevices();
       m_ParentMainWindow->ResetAllToolboxes();
 
-      m_ParentMainWindow->GetObjectVisualizer()->ClearDisplayableObjects();
+      m_ParentMainWindow->GetObjectVisualizer()->HideAll();
 		}
 	}
 

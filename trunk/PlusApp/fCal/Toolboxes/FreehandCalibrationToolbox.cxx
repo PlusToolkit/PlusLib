@@ -22,7 +22,7 @@ See License.txt for details.
 #include "SegmentationParameterDialog.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 
 #include "FidPatternRecognition.h"
 
@@ -176,7 +176,10 @@ void FreehandCalibrationToolbox::Initialize()
   }
 
   // Clear results poly data
-  m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
+  if(m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData() != NULL)
+  {
+    m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
+  }
 
   if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
@@ -309,14 +312,17 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("FreehandCalibrationToolbox::SetDisplayAccordingToState");
 
-  if (m_ParentMainWindow->AreDevicesShown() == false)
+  // If the force show devices isn't enabled, set it to 2D
+  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
-    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
+    // 2D mode auto-turns back on the image
+    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+
   // Hide or show the orientation markers based on the value of the checkbox
   m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
@@ -608,7 +614,8 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
   // Re-calculate camera parameters
-  m_ParentMainWindow->GetObjectVisualizer()->CalculateImageCameraParameters();
+  // TODO : restore image mode?
+  //m_ParentMainWindow->GetObjectVisualizer()->CalculateImageCameraParameters();
 
   SetDisplayAccordingToState();
 
@@ -622,7 +629,11 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
   LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
-  m_ParentMainWindow->GetObjectVisualizer()->GetImageActor()->SetInput(NULL);
+  if( m_ParentMainWindow->GetObjectVisualizer()->DisconnectInput() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to disconnect input. Cannot show input in SegmentationParameterDialog.");
+    return;
+  }
 
   // Show segmentation parameter dialog
   SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
@@ -631,7 +642,10 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
   delete segmentationParamDialog;
 
   // Re-connect realtime image to canvas
-  m_ParentMainWindow->GetObjectVisualizer()->GetImageActor()->SetInput(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetOutput());
+  if( m_ParentMainWindow->GetObjectVisualizer()->ConnectInput() != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Unable to reconnect input. Image will no longer show in main window.");
+  }
 
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)

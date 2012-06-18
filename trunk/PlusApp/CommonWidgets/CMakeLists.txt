@@ -14,8 +14,10 @@ SET (CommonWidgets_SRCS
 	ToolStateDisplayWidget.cxx
   ConfigFileSaverDialog.cxx
   SegmentationParameterDialog.cxx
-  vtkObjectVisualizer.cxx
+  vtkVisualizationController.cxx
   vtkDisplayableObject.cxx
+  vtkImageVisualizer.cxx
+  vtk3DObjectVisualizer.cxx
 	)
 
 if (WIN32)	
@@ -30,8 +32,10 @@ SET (CommonWidgets_UI_HDRS
 		ToolStateDisplayWidget.h
     ConfigFileSaverDialog.h
     SegmentationParameterDialog.h
-    vtkObjectVisualizer.h
+    vtkVisualizationController.h
     vtkDisplayableObject.h
+    vtkImageVisualizer.h
+    vtk3DObjectVisualizer.h
 	)
 
 SET (CommonWidgets_UI_SRCS

@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "fCalMainWindow.h"
 
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "ConfigurationToolbox.h"
 #include "StylusCalibrationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
@@ -39,8 +39,8 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ReferenceCoordinateFrame("")
 , m_TransducerOriginCoordinateFrame("")
 , m_TransducerOriginPixelCoordinateFrame("")
-, m_ShowDevices(false)
 , m_ShowPoints(false)
+, m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
 {
   // Set up UI
@@ -124,9 +124,11 @@ void fCalMainWindow::Initialize()
   ui.pushButton_ImageOrientation->installEventFilter(this);
 
   // Create visualizer
-  m_ObjectVisualizer = vtkObjectVisualizer::New();
-  m_ObjectVisualizer->Initialize();
-  ui.canvas->GetRenderWindow()->AddRenderer(m_ObjectVisualizer->GetCanvasRenderer());
+  m_ObjectVisualizer = vtkVisualizationController::New();
+  m_ObjectVisualizer->SetCanvas(ui.canvas);
+
+  // Hide it until we have something to show
+  ui.canvas->setVisible(false);
 
   // Create toolboxes
   CreateToolboxes();
@@ -142,7 +144,6 @@ void fCalMainWindow::Initialize()
 
   // Tell the object visualizer to show orientation markers
   m_ShowOrientationMarkerAction->setChecked(true);
-  m_ObjectVisualizer->ShowOrientationMarkers(true);
 
   // Initialize default tab widget
   CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
@@ -391,8 +392,9 @@ void fCalMainWindow::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("fCalMainWindow::resizeEvent");
 
-  if ((m_ObjectVisualizer != NULL) && (m_ObjectVisualizer->GetImageMode())) {
-    m_ObjectVisualizer->CalculateImageCameraParameters();
+  if( m_ObjectVisualizer != NULL )
+  {
+    m_ObjectVisualizer->resizeEvent(aEvent);
   }
 }
 
@@ -560,32 +562,21 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
 {
   LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
-  m_ShowDevices = aOn;
+  m_ForceShowAllDevicesIn3D = aOn;
 
-  if (m_ShowDevices == true)
+  if( aOn )
   {
-    if (m_ObjectVisualizer->IsExistingTransform(m_ImageCoordinateFrame.c_str(), m_ProbeCoordinateFrame.c_str()) == PLUS_SUCCESS)
-    {
-      // Show image
-      vtkDisplayableObject* imageDisplayable = NULL;
-      if (m_ObjectVisualizer->GetDisplayableObject(m_ImageCoordinateFrame.c_str(), imageDisplayable) == PLUS_SUCCESS)
-      {
-        imageDisplayable->DisplayableOn();
-      }
-    }
-
-    m_ObjectVisualizer->HideAll();
-    m_ObjectVisualizer->EnableImageMode(false);
+    // Force override, show 3D and ALLLLLL devices
+    m_ObjectVisualizer->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
     m_ObjectVisualizer->ShowAllObjects(true);
     m_ObjectVisualizer->ShowInput(m_ShowPoints);
     m_ObjectVisualizer->ShowResult(m_ShowPoints);
-    m_ObjectVisualizer->GetCanvasRenderer()->ResetCamera();
 
-    SetImageManipulationEnabled(false);
-    m_ObjectVisualizer->ShowOrientationMarkers(false);
+    SetImageManipulationEnabled(!aOn);
   }
   else
   {
+    // Let the toolbox restore its default state
     m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
   }
 
@@ -597,4 +588,18 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
 bool fCalMainWindow::IsOrientationMarkersEnabled()
 {
   return m_ShowOrientationMarkerAction->isChecked();
+}
+
+//-----------------------------------------------------------------------------
+
+bool fCalMainWindow::IsForceShowDevicesEnabled()
+{
+  return m_ForceShowAllDevicesIn3D;
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::ResetShowDevices()
+{
+  ui.pushButton_ShowDevices->setChecked(false);
 }

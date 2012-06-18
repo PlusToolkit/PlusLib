@@ -15,13 +15,13 @@
 
 class QTimer;
 
-class vtkDataCollector;
 class FidPatternRecognition;
 
 class vtkActor;
+class vtkDataCollector;
 class vtkImageActor;
+class vtkImageVisualizer;
 class vtkPolyData;
-
 class vtkROIModeHandler;
 class vtkSpacingModeHandler;
 
@@ -117,12 +117,6 @@ protected:
   PlusStatus WriteConfiguration();
 
   /*!
-	* Calculate image camera parameters
-  * \return Success flag
-	*/
-	PlusStatus CalculateImageCameraParameters();
-
-  /*!
 	* Switch to ROI mode - canvas events will answer to events of ROI mode
   * \return Success flag
 	*/
@@ -133,12 +127,6 @@ protected:
   * \return Success flag
 	*/
 	PlusStatus SwitchToSpacingMode();
-
-  /*!
-	* Draw indicators of US orientation
-  * \return Success flag
-	*/
-  PlusStatus DrawUSOrientationIndicators();
 
   /*!
 	* Segments the currently displayed image and draws the result on the canvas
@@ -286,17 +274,11 @@ protected:
   /*! Data collector */
   vtkDataCollector*         m_DataCollector;
 
-	/*! Actor displaying the image */
-	vtkImageActor*	          m_CanvasImageActor;
-
 	/*! Actor for displaying segmented points */
 	vtkActor*                 m_SegmentedPointsActor;
 
 	/*! Poly data for holding the segmented points */
 	vtkPolyData*              m_SegmentedPointsPolyData;
-
-	/*! Actor for displaying fiducial candidates */
-	vtkActor*                 m_CandidatesActor;
 
 	/*! Poly data for holding the fiducial candidates */
 	vtkPolyData*              m_CandidatesPolyData;
@@ -310,6 +292,9 @@ protected:
   /*! Renderer for the canvas */
 	vtkRenderer*			        m_CanvasRenderer; 
 
+  /*! 2D Image Visualization */
+  vtkImageVisualizer*       m_ImageVisualizer;
+
   /*! Timer for refreshing the canvas */
   QTimer*                   m_CanvasRefreshTimer;
 
@@ -319,7 +304,7 @@ protected:
   /*! Pattern recognition object for segmenting the images */
   FidPatternRecognition*    m_PatternRecognition;
 
-  /*! Flag indigating if image is frozen (using Freeze button) */
+  /*! Flag indicating if image is frozen (using Freeze button) */
   bool                      m_ImageFrozen;
 
 protected:

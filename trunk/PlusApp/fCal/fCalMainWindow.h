@@ -12,7 +12,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include <QtGui/QMainWindow>
 
-class vtkObjectVisualizer;
+class vtkVisualizationController;
 class AbstractToolbox;
 class StatusIcon;
 
@@ -65,7 +65,7 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkObjectVisualizer* GetObjectVisualizer() { return m_ObjectVisualizer; };
+  vtkVisualizationController* GetObjectVisualizer() { return m_ObjectVisualizer; };
 
   /*!
   * Set status bar text
@@ -133,11 +133,11 @@ public:
   /*! Set transducer origin pixel coordinate frame name */
   void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
 
-  /*! Get show devices status */
-  bool AreDevicesShown() { return m_ShowDevices; };
+  /*! Get force show devices status */
+  bool IsForceShowDevicesEnabled();
 
   /*! Reset show devices toggle button (on disconnect from devices) */
-  void ResetShowDevices() { ui.pushButton_ShowDevices->setChecked(false); };
+  void ResetShowDevices();
 
 protected:
   /*!
@@ -203,7 +203,7 @@ protected:
 
 protected:
   /*! Object visualizer */
-  vtkObjectVisualizer*  m_ObjectVisualizer;
+  vtkVisualizationController*  m_ObjectVisualizer;
 
   /*! Label on the left of the statusbar */
   QLabel*					    m_StatusBarLabel;
@@ -241,11 +241,11 @@ protected:
   /*! Transducer origin (pixel) coordinate frame name for Rendering */
   std::string m_TransducerOriginPixelCoordinateFrame;
 
-  /*! Show devices flag */
-  bool m_ShowDevices;
-
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;
+
+  /*! Force display mode from toolbox default to show all devices */
+  bool m_ForceShowAllDevicesIn3D;
 
   /*! Keep a reference to this action because we'll need to reference its state */
   QAction* m_ShowOrientationMarkerAction;

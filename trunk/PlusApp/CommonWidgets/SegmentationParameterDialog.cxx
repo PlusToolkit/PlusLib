@@ -1,62 +1,59 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "SegmentationParameterDialog.h"
-
 #include "ConfigFileSaverDialog.h"
-
-#include <QTimer>
-
-#include "vtkDataCollector.h"
-#include "FidPatternRecognitionCommon.h"
 #include "FidPatternRecognition.h"
+#include "FidPatternRecognitionCommon.h"
 #include "PlusVideoFrame.h"
-
-#include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
+#include "SegmentationParameterDialog.h"
+#include "TrackedFrame.h"
 #include "vtkActor.h"
-#include "vtkRenderer.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkGlyph3D.h"
-#include "vtkSphereSource.h"
-#include "vtkProperty.h"
-#include "vtkImageActor.h"
 #include "vtkActor.h"
-#include "vtkCamera.h"
-#include "vtkPolyData.h"
-#include "vtkRenderWindow.h"
 #include "vtkCallbackCommand.h"
-#include "vtkLineSource.h"
-#include "vtkCubeSource.h"
-#include "vtkPropPicker.h"
-#include "vtkMath.h"
+#include "vtkCamera.h"
 #include "vtkConeSource.h"
+#include "vtkCubeSource.h"
+#include "vtkDataCollector.h"
+#include "vtkGlyph3D.h"
+#include "vtkImageActor.h"
+#include "vtkImageData.h" 
+#include "vtkImageVisualizer.h"
+#include "vtkLineSource.h"
+#include "vtkMath.h"
+#include "vtkPlusVideoSource.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkPropPicker.h"
+#include "vtkProperty.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkImageData.h" 
-#include "vtkPlusVideoSource.h"
-#include "TrackedFrame.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+#include <QTimer>
 
 //----------------------------------------------------------------------
 
 /*! \class vtkSegmentationParameterDialogModeHandlerBase 
- *
- * \brief Base class for the segmentation parameter dialog mode handlers
- *
- * \ingroup PlusAppCommonWidgets
- *
- */
+*
+* \brief Base class for the segmentation parameter dialog mode handlers
+*
+* \ingroup PlusAppCommonWidgets
+*
+*/
 class vtkSegmentationParameterDialogModeHandlerBase : public vtkCallbackCommand
 {
 public:
   //----------------------------------------------------------------------
   /*!
-   * \brief Set parent segmentation parameter dialog
-   * \param aParentDialog Pointer to the parent dialog
-   */
+  * \brief Set parent segmentation parameter dialog
+  * \param aParentDialog Pointer to the parent dialog
+  */
   void SetParentDialog(SegmentationParameterDialog* aParentDialog)
   {
     LOG_TRACE("vtkSegmentationParameterDialogModeHandlerBase::SetParentDialog");
@@ -71,9 +68,9 @@ public:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Enable/Disable handler
-   * \param aOn True if enable, false if disable
-   */
+  * \brief Enable/Disable handler
+  * \param aOn True if enable, false if disable
+  */
   void SetEnabled(bool aOn)
   {
     LOG_TRACE("vtkSegmentationParameterDialogModeHandlerBase::SetEnabled(" << (aOn?"true":"false") << ")");
@@ -82,11 +79,11 @@ public:
     if (aOn) {
       prop->SetOpacity(1.0);
       prop->SetColor(1.0, 0.0, 0.0);
-      
+
     } else {
       prop->SetOpacity(0.0);
     }
-    
+
     m_ActorCollection->ApplyProperties(prop); 
 
     ColorActors();
@@ -95,8 +92,8 @@ public:
 protected:
   //----------------------------------------------------------------------
   /*!
-   * \brief Constructor
-   */
+  * \brief Constructor
+  */
   vtkSegmentationParameterDialogModeHandlerBase::vtkSegmentationParameterDialogModeHandlerBase()
   {
     m_ParentDialog = NULL;
@@ -105,8 +102,8 @@ protected:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Destructor
-   */
+  * \brief Destructor
+  */
   virtual vtkSegmentationParameterDialogModeHandlerBase::~vtkSegmentationParameterDialogModeHandlerBase()
   {
     if (m_ActorCollection != NULL) {
@@ -116,13 +113,13 @@ protected:
   }
 
   /*!
-   * \brief Initialize visualization (pure virtual function)
-   */
+  * \brief Initialize visualization (pure virtual function)
+  */
   virtual PlusStatus InitializeVisualization() = 0;
 
   /*!
-   * \brief Color certain actors after re-enabling (the color are set to the same then) (pure virtual function)
-   */
+  * \brief Color certain actors after re-enabling (the color are set to the same then) (pure virtual function)
+  */
   virtual PlusStatus ColorActors() = 0;
 
 protected:
@@ -136,32 +133,32 @@ protected:
 //----------------------------------------------------------------------
 
 /*! \class vtkROIModeHandler 
- *
- * \brief Class handling the events of the ROI mode in segmentation parameters dialog
- *
- * \ingroup PlusAppCommonWidgets
- *
- */
+*
+* \brief Class handling the events of the ROI mode in segmentation parameters dialog
+*
+* \ingroup PlusAppCommonWidgets
+*
+*/
 class vtkROIModeHandler : public vtkSegmentationParameterDialogModeHandlerBase
 {
 public:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Creator function
-   */
-	static vtkROIModeHandler *New()
-	{
-		vtkROIModeHandler *cb = new vtkROIModeHandler();
-		return cb;
-	}
+  * \brief Creator function
+  */
+  static vtkROIModeHandler *New()
+  {
+    vtkROIModeHandler *cb = new vtkROIModeHandler();
+    return cb;
+  }
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Execute function - called every time an observed event is fired
-   */
-	virtual void Execute(vtkObject *caller, unsigned long eventId, void *vtkNotUsed(callData))
-	{
+  * \brief Execute function - called every time an observed event is fired
+  */
+  virtual void Execute(vtkObject *caller, unsigned long eventId, void *vtkNotUsed(callData))
+  {
     //LOG_TRACE("vtkROIModeHandler::Execute");
 
     if (! (vtkCommand::LeftButtonPressEvent == eventId || vtkCommand::MouseMoveEvent == eventId || vtkCommand::LeftButtonReleaseEvent == eventId)) {
@@ -184,7 +181,7 @@ public:
       double offsetXMonitor = 0.0;
       double offsetYMonitor = 0.0;
       double monitorPerImageScaling = 0.0;
-    	if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
+      if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
         monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
         offsetXMonitor = ((double)canvasSize[0] - ((double)imageDimensions[0] * monitorPerImageScaling)) / 2.0;
       } else {
@@ -197,7 +194,7 @@ public:
 
       // Handle events
       if (vtkCommand::LeftButtonPressEvent == eventId)
-		  {
+      {
         LOG_DEBUG("Press - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
 
         vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
@@ -210,7 +207,7 @@ public:
             m_BottomRightHandlePicked = true;
           }
         }
-		  }
+      }
       else if ((vtkCommand::MouseMoveEvent == eventId) && (m_TopLeftHandlePicked || m_BottomRightHandlePicked))
       {
         LOG_DEBUG("Move - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
@@ -246,12 +243,12 @@ public:
         m_BottomRightHandlePicked = false;
       }
     }
-	}
+  }
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Draw ROI - draw handles and lines on canvas
-   */
+  * \brief Draw ROI - draw handles and lines on canvas
+  */
   PlusStatus DrawROI()
   {
     LOG_TRACE("vtkROIModeHandler::DrawROI");
@@ -284,8 +281,8 @@ public:
 private:
   //----------------------------------------------------------------------
   /*!
-   * \brief Constructor
-   */
+  * \brief Constructor
+  */
   vtkROIModeHandler::vtkROIModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
@@ -303,8 +300,8 @@ private:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Destructor
-   */
+  * \brief Destructor
+  */
   vtkROIModeHandler::~vtkROIModeHandler()
   {
     if (m_TopLeftHandleActor != NULL) {
@@ -352,8 +349,8 @@ protected:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Initialize visualization - create actors, draw input ROI (overridden function)
-   */
+  * \brief Initialize visualization - create actors, draw input ROI (overridden function)
+  */
   PlusStatus InitializeVisualization()
   {
     LOG_TRACE("vtkROIModeHandler::InitializeVisualization");
@@ -362,62 +359,62 @@ protected:
     m_ActorCollection = vtkActorCollection::New();
 
     vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
-	  vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_LeftLineSource = vtkLineSource::New();
     leftLineMapper->SetInputConnection(m_LeftLineSource->GetOutputPort());
-	  leftLineActor->SetMapper(leftLineMapper);
-	  leftLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    leftLineActor->SetMapper(leftLineMapper);
+    leftLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
     m_ActorCollection->AddItem(leftLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(leftLineActor);
 
     vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
-	  vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_TopLineSource = vtkLineSource::New();
     topLineMapper->SetInputConnection(m_TopLineSource->GetOutputPort());
-	  topLineActor->SetMapper(topLineMapper);
-	  topLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    topLineActor->SetMapper(topLineMapper);
+    topLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
     m_ActorCollection->AddItem(topLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(topLineActor);
 
     vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
-	  vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_RightLineSource = vtkLineSource::New();
     rightLineMapper->SetInputConnection(m_RightLineSource->GetOutputPort());
-	  rightLineActor->SetMapper(rightLineMapper);
-	  rightLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    rightLineActor->SetMapper(rightLineMapper);
+    rightLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
     m_ActorCollection->AddItem(rightLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(rightLineActor);
 
     vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
-	  vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_BottomLineSource = vtkLineSource::New();
     bottomLineMapper->SetInputConnection(m_BottomLineSource->GetOutputPort());
-	  bottomLineActor->SetMapper(bottomLineMapper);
-	  bottomLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    bottomLineActor->SetMapper(bottomLineMapper);
+    bottomLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
     m_ActorCollection->AddItem(bottomLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(bottomLineActor);
 
     m_TopLeftHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> topLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_TopLeftHandleCubeSource = vtkCubeSource::New();
-	  m_TopLeftHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> topLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_TopLeftHandleCubeSource = vtkCubeSource::New();
+    m_TopLeftHandleCubeSource->SetXLength(6.0);
     m_TopLeftHandleCubeSource->SetYLength(6.0);
     m_TopLeftHandleCubeSource->SetZLength(6.0);
-	  topLeftHandleMapper->SetInputConnection(m_TopLeftHandleCubeSource->GetOutputPort());
-	  m_TopLeftHandleActor->SetMapper(topLeftHandleMapper);
-	  m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    topLeftHandleMapper->SetInputConnection(m_TopLeftHandleCubeSource->GetOutputPort());
+    m_TopLeftHandleActor->SetMapper(topLeftHandleMapper);
+    m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
     m_BottomRightHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> bottomRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_BottomRightHandleCubeSource = vtkCubeSource::New();
-	  m_BottomRightHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> bottomRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_BottomRightHandleCubeSource = vtkCubeSource::New();
+    m_BottomRightHandleCubeSource->SetXLength(6.0);
     m_BottomRightHandleCubeSource->SetYLength(6.0);
     m_BottomRightHandleCubeSource->SetZLength(6.0);
-	  bottomRightHandleMapper->SetInputConnection(m_BottomRightHandleCubeSource->GetOutputPort());
-	  m_BottomRightHandleActor->SetMapper(bottomRightHandleMapper);
-	  m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    bottomRightHandleMapper->SetInputConnection(m_BottomRightHandleCubeSource->GetOutputPort());
+    m_BottomRightHandleActor->SetMapper(bottomRightHandleMapper);
+    m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -432,14 +429,14 @@ protected:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Color certain actors after re-enabling (the color are set to the same then) (overridden function)
-   */
+  * \brief Color certain actors after re-enabling (the color are set to the same then) (overridden function)
+  */
   PlusStatus ColorActors()
   {
     LOG_TRACE("vtkROIModeHandler::ColorActors");
 
-	  m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
-	  m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
 
     return PLUS_SUCCESS;
   }
@@ -479,28 +476,28 @@ private:
 //----------------------------------------------------------------------
 
 /*! \class vtkSpacingModeHandler 
- *
- * \brief Class handling the events of the spacing mode in segmentation parameters dialog
- *
- * \ingroup PlusAppCommonWidgets
- *
- */
+*
+* \brief Class handling the events of the spacing mode in segmentation parameters dialog
+*
+* \ingroup PlusAppCommonWidgets
+*
+*/
 class vtkSpacingModeHandler : public vtkSegmentationParameterDialogModeHandlerBase
 {
 public:
   //! Creator function
-	static vtkSpacingModeHandler *New()
-	{
-		vtkSpacingModeHandler *cb = new vtkSpacingModeHandler();
-		return cb;
-	}
+  static vtkSpacingModeHandler *New()
+  {
+    vtkSpacingModeHandler *cb = new vtkSpacingModeHandler();
+    return cb;
+  }
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Execute function - called every time an observed event is fired
-   */
-	virtual void Execute(vtkObject *caller, unsigned long eventId, void *vtkNotUsed(callData))
-	{
+  * \brief Execute function - called every time an observed event is fired
+  */
+  virtual void Execute(vtkObject *caller, unsigned long eventId, void *vtkNotUsed(callData))
+  {
     //LOG_TRACE("vtkSpacingModeHandler::Execute");
 
     if (! (vtkCommand::LeftButtonPressEvent == eventId || vtkCommand::MouseMoveEvent == eventId || vtkCommand::LeftButtonReleaseEvent == eventId)) {
@@ -523,7 +520,7 @@ public:
       double offsetXMonitor = 0.0;
       double offsetYMonitor = 0.0;
       double monitorPerImageScaling = 0.0;
-    	if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
+      if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
         monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
         offsetXMonitor = ((double)canvasSize[0] - ((double)imageDimensions[0] * monitorPerImageScaling)) / 2.0;
       } else {
@@ -536,7 +533,7 @@ public:
 
       // Handle events
       if (vtkCommand::LeftButtonPressEvent == eventId)
-		  {
+      {
         LOG_DEBUG("Press - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
 
         vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
@@ -553,7 +550,7 @@ public:
             m_VerticalBottomHandlePicked = true;
           }
         }
-		  }
+      }
       else if ((vtkCommand::MouseMoveEvent == eventId) && (m_HorizontalLeftHandlePicked || m_HorizontalRightHandlePicked || m_VerticalTopHandlePicked || m_VerticalBottomHandlePicked))
       {
         LOG_DEBUG("Move - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
@@ -620,12 +617,12 @@ public:
         m_VerticalBottomHandlePicked = false;
       }
     }
-	}
+  }
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Get summed line length
-   */
+  * \brief Get summed line length
+  */
   double GetLineLengthSumImagePixel()
   {
     LOG_TRACE("vtkSpacingModeHandler::GetLineLengthSumImagePixel");
@@ -636,8 +633,8 @@ public:
 private:
   //----------------------------------------------------------------------
   /*!
-   * \brief Constructor
-   */
+  * \brief Constructor
+  */
   vtkSpacingModeHandler::vtkSpacingModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
@@ -662,8 +659,8 @@ private:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Destructor
-   */
+  * \brief Destructor
+  */
   vtkSpacingModeHandler::~vtkSpacingModeHandler()
   {
     if (m_HorizontalLeftHandleActor != NULL) {
@@ -731,8 +728,8 @@ protected:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Initialize visualization - create actors, draw input ROI
-   */
+  * \brief Initialize visualization - create actors, draw input ROI
+  */
   PlusStatus InitializeVisualization()
   {
     LOG_TRACE("vtkSpacingModeHandler::InitializeVisualization");
@@ -741,68 +738,68 @@ protected:
     m_ActorCollection = vtkActorCollection::New();
 
     m_HorizontalLineActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_HorizontalLineSource = vtkLineSource::New();
     horizontalLineMapper->SetInputConnection(m_HorizontalLineSource->GetOutputPort());
-	  m_HorizontalLineActor->SetMapper(horizontalLineMapper);
-	  m_HorizontalLineActor->GetProperty()->SetColor(0.0, 0.7, 0.0);
+    m_HorizontalLineActor->SetMapper(horizontalLineMapper);
+    m_HorizontalLineActor->GetProperty()->SetColor(0.0, 0.7, 0.0);
     m_ActorCollection->AddItem(m_HorizontalLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalLineActor);
 
     m_VerticalLineActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> verticalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> verticalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_VerticalLineSource = vtkLineSource::New();
     verticalLineMapper->SetInputConnection(m_VerticalLineSource->GetOutputPort());
-	  m_VerticalLineActor->SetMapper(verticalLineMapper);
-	  m_VerticalLineActor->GetProperty()->SetColor(0.0, 0.0, 0.8);
+    m_VerticalLineActor->SetMapper(verticalLineMapper);
+    m_VerticalLineActor->GetProperty()->SetColor(0.0, 0.0, 0.8);
     m_ActorCollection->AddItem(m_VerticalLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalLineActor);
 
     m_HorizontalLeftHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> horizontalLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_HorizontalLeftHandleCubeSource = vtkCubeSource::New();
-	  m_HorizontalLeftHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> horizontalLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_HorizontalLeftHandleCubeSource = vtkCubeSource::New();
+    m_HorizontalLeftHandleCubeSource->SetXLength(6.0);
     m_HorizontalLeftHandleCubeSource->SetYLength(6.0);
     m_HorizontalLeftHandleCubeSource->SetZLength(6.0);
-	  horizontalLeftHandleMapper->SetInputConnection(m_HorizontalLeftHandleCubeSource->GetOutputPort());
-	  m_HorizontalLeftHandleActor->SetMapper(horizontalLeftHandleMapper);
-	  m_HorizontalLeftHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    horizontalLeftHandleMapper->SetInputConnection(m_HorizontalLeftHandleCubeSource->GetOutputPort());
+    m_HorizontalLeftHandleActor->SetMapper(horizontalLeftHandleMapper);
+    m_HorizontalLeftHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalLeftHandleActor);
 
     m_HorizontalRightHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> horizontalRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_HorizontalRightHandleCubeSource = vtkCubeSource::New();
-	  m_HorizontalRightHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> horizontalRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_HorizontalRightHandleCubeSource = vtkCubeSource::New();
+    m_HorizontalRightHandleCubeSource->SetXLength(6.0);
     m_HorizontalRightHandleCubeSource->SetYLength(6.0);
     m_HorizontalRightHandleCubeSource->SetZLength(6.0);
-	  horizontalRightHandleMapper->SetInputConnection(m_HorizontalRightHandleCubeSource->GetOutputPort());
-	  m_HorizontalRightHandleActor->SetMapper(horizontalRightHandleMapper);
-	  m_HorizontalRightHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    horizontalRightHandleMapper->SetInputConnection(m_HorizontalRightHandleCubeSource->GetOutputPort());
+    m_HorizontalRightHandleActor->SetMapper(horizontalRightHandleMapper);
+    m_HorizontalRightHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalRightHandleActor);
 
     m_VerticalTopHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> verticalTopHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_VerticalTopHandleCubeSource = vtkCubeSource::New();
-	  m_VerticalTopHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> verticalTopHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_VerticalTopHandleCubeSource = vtkCubeSource::New();
+    m_VerticalTopHandleCubeSource->SetXLength(6.0);
     m_VerticalTopHandleCubeSource->SetYLength(6.0);
     m_VerticalTopHandleCubeSource->SetZLength(6.0);
-	  verticalTopHandleMapper->SetInputConnection(m_VerticalTopHandleCubeSource->GetOutputPort());
-	  m_VerticalTopHandleActor->SetMapper(verticalTopHandleMapper);
-	  m_VerticalTopHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    verticalTopHandleMapper->SetInputConnection(m_VerticalTopHandleCubeSource->GetOutputPort());
+    m_VerticalTopHandleActor->SetMapper(verticalTopHandleMapper);
+    m_VerticalTopHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalTopHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalTopHandleActor);
 
     m_VerticalBottomHandleActor = vtkActor::New();
-	  vtkSmartPointer<vtkPolyDataMapper> verticalBottomHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	  m_VerticalBottomHandleCubeSource = vtkCubeSource::New();
-	  m_VerticalBottomHandleCubeSource->SetXLength(6.0);
+    vtkSmartPointer<vtkPolyDataMapper> verticalBottomHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    m_VerticalBottomHandleCubeSource = vtkCubeSource::New();
+    m_VerticalBottomHandleCubeSource->SetXLength(6.0);
     m_VerticalBottomHandleCubeSource->SetYLength(6.0);
     m_VerticalBottomHandleCubeSource->SetZLength(6.0);
-	  verticalBottomHandleMapper->SetInputConnection(m_VerticalBottomHandleCubeSource->GetOutputPort());
-	  m_VerticalBottomHandleActor->SetMapper(verticalBottomHandleMapper);
-	  m_VerticalBottomHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    verticalBottomHandleMapper->SetInputConnection(m_VerticalBottomHandleCubeSource->GetOutputPort());
+    m_VerticalBottomHandleActor->SetMapper(verticalBottomHandleMapper);
+    m_VerticalBottomHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalBottomHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalBottomHandleActor);
 
@@ -815,7 +812,7 @@ protected:
     double offsetXImage = 0.0;
     double offsetYImage = 0.0;
     double monitorPerImageScaling = 0.0;
-  	if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
+    if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
       monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
       offsetXImage = (((double)canvasSize[0] / monitorPerImageScaling) - (double)imageDimensions[0]) / 2.0;
     } else {
@@ -851,16 +848,16 @@ protected:
 
   //----------------------------------------------------------------------
   /*!
-   * \brief Color certain actors after re-enabling (the color are set to the same then) (overridden function)
-   */
+  * \brief Color certain actors after re-enabling (the color are set to the same then) (overridden function)
+  */
   PlusStatus ColorActors()
   {
     LOG_TRACE("vtkSpacingModeHandler::ColorActors");
 
-	  m_HorizontalLeftHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-	  m_HorizontalRightHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-	  m_VerticalTopHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
-	  m_VerticalBottomHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    m_HorizontalLeftHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    m_HorizontalRightHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    m_VerticalTopHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    m_VerticalBottomHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
     m_HorizontalLineActor->GetProperty()->SetColor(0.0, 0.7, 0.0);
     m_VerticalLineActor->GetProperty()->SetColor(0.0, 0.0, 0.8);
 
@@ -923,47 +920,46 @@ private:
 //-----------------------------------------------------------------------------
 
 SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector)
-	: QDialog(aParent)
-  , m_DataCollector(aDataCollector)
-  , m_CanvasImageActor(NULL)
-  , m_SegmentedPointsActor(NULL)
-  , m_SegmentedPointsPolyData(NULL)
-  , m_CandidatesActor(NULL)
-  , m_CandidatesPolyData(NULL)
-  , m_CanvasRenderer(NULL)
-  , m_CanvasRefreshTimer(NULL)
-  , m_ROIModeHandler(NULL)
-  , m_SpacingModeHandler(NULL)
-  , m_ApproximateSpacingMmPerPixel(0.0)
-  , m_ImageFrozen(false)
+: QDialog(aParent)
+, m_DataCollector(aDataCollector)
+//, m_CanvasImageActor(NULL)
+, m_SegmentedPointsActor(NULL)
+, m_SegmentedPointsPolyData(NULL)
+, m_CandidatesPolyData(NULL)
+, m_ImageVisualizer(NULL)
+, m_CanvasRefreshTimer(NULL)
+, m_ROIModeHandler(NULL)
+, m_SpacingModeHandler(NULL)
+, m_ApproximateSpacingMmPerPixel(0.0)
+, m_ImageFrozen(false)
 {
-	ui.setupUi(this);
+  ui.setupUi(this);
 
   connect( ui.groupBox_ROI, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxROIToggled(bool) ) );
   connect( ui.groupBox_Spacing, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxSpacingToggled(bool) ) );
-	connect( ui.pushButton_FreezeImage, SIGNAL( toggled(bool) ), this, SLOT( FreezeImage(bool) ) );
-	connect( ui.pushButton_ApplyAndClose, SIGNAL( clicked() ), this, SLOT( ApplyAndCloseClicked() ) );
-	connect( ui.pushButton_SaveAndClose, SIGNAL( clicked() ), this, SLOT( SaveAndCloseClicked() ) );
+  connect( ui.pushButton_FreezeImage, SIGNAL( toggled(bool) ), this, SLOT( FreezeImage(bool) ) );
+  connect( ui.pushButton_ApplyAndClose, SIGNAL( clicked() ), this, SLOT( ApplyAndCloseClicked() ) );
+  connect( ui.pushButton_SaveAndClose, SIGNAL( clicked() ), this, SLOT( SaveAndCloseClicked() ) );
   connect( ui.spinBox_XMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMinChanged(int) ) );
-	connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
-	connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
-	connect( ui.spinBox_YMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMaxChanged(int) ) );
-	connect( ui.spinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
-	connect( ui.spinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
-	connect( ui.doubleSpinBox_OpeningCircleRadius, SIGNAL( valueChanged(double) ), this, SLOT( OpeningCircleRadiusChanged(double) ) );
-	connect( ui.doubleSpinBox_OpeningBarSize, SIGNAL( valueChanged(double) ), this, SLOT( OpeningBarSizeChanged(double) ) );
+  connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
+  connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
+  connect( ui.spinBox_YMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMaxChanged(int) ) );
+  connect( ui.spinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
+  connect( ui.spinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
+  connect( ui.doubleSpinBox_OpeningCircleRadius, SIGNAL( valueChanged(double) ), this, SLOT( OpeningCircleRadiusChanged(double) ) );
+  connect( ui.doubleSpinBox_OpeningBarSize, SIGNAL( valueChanged(double) ), this, SLOT( OpeningBarSizeChanged(double) ) );
   connect( ui.doubleSpinBox_LinePairDistanceError, SIGNAL( valueChanged(double) ), this, SLOT( LinePairDistanceErrorChanged(double) ) );
-	connect( ui.doubleSpinBox_AngleDifference, SIGNAL( valueChanged(double) ), this, SLOT( AngleDifferenceChanged(double) ) );
-	connect( ui.doubleSpinBox_MinTheta, SIGNAL( valueChanged(double) ), this, SLOT( MinThetaChanged(double) ) );
-	connect( ui.doubleSpinBox_MaxTheta, SIGNAL( valueChanged(double) ), this, SLOT( MaxThetaChanged(double) ) );
-	connect( ui.doubleSpinBox_AngleTolerance, SIGNAL( valueChanged(double) ), this, SLOT( AngleToleranceChanged(double) ) );
-	connect( ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL( valueChanged(double) ), this, SLOT( CollinearPointsMaxDistanceFromLineChanged(double) ) );
-	connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
-	connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
+  connect( ui.doubleSpinBox_AngleDifference, SIGNAL( valueChanged(double) ), this, SLOT( AngleDifferenceChanged(double) ) );
+  connect( ui.doubleSpinBox_MinTheta, SIGNAL( valueChanged(double) ), this, SLOT( MinThetaChanged(double) ) );
+  connect( ui.doubleSpinBox_MaxTheta, SIGNAL( valueChanged(double) ), this, SLOT( MaxThetaChanged(double) ) );
+  connect( ui.doubleSpinBox_AngleTolerance, SIGNAL( valueChanged(double) ), this, SLOT( AngleToleranceChanged(double) ) );
+  connect( ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL( valueChanged(double) ), this, SLOT( CollinearPointsMaxDistanceFromLineChanged(double) ) );
+  connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
+  connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
 
-	// Set up timer for refreshing UI
-	m_CanvasRefreshTimer = new QTimer(this);
-	connect(m_CanvasRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateCanvas()));
+  // Set up timer for refreshing UI
+  m_CanvasRefreshTimer = new QTimer(this);
+  connect(m_CanvasRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateCanvas()));
 
   // Initialize calibration controller (does the segmentation)
   m_PatternRecognition = new FidPatternRecognition();
@@ -991,11 +987,6 @@ SegmentationParameterDialog::~SegmentationParameterDialog()
     m_PatternRecognition = NULL; 
   }
 
-  if (m_CanvasImageActor != NULL) {
-    m_CanvasImageActor->Delete();
-    m_CanvasImageActor = NULL;
-  }
-
   if (m_SegmentedPointsActor != NULL) {
     m_SegmentedPointsActor->Delete();
     m_SegmentedPointsActor = NULL;
@@ -1006,19 +997,9 @@ SegmentationParameterDialog::~SegmentationParameterDialog()
     m_SegmentedPointsPolyData = NULL;
   }
 
-  if (m_CandidatesActor != NULL) {
-    m_CandidatesActor->Delete();
-    m_CandidatesActor = NULL;
-  }
-
   if (m_CandidatesPolyData != NULL) {
     m_CandidatesPolyData->Delete();
     m_CandidatesPolyData = NULL;
-  }
-
-  if (m_CanvasRenderer != NULL) {
-    m_CanvasRenderer->Delete();
-    m_CanvasRenderer = NULL;
   }
 
   if (m_ROIModeHandler != NULL) {
@@ -1031,11 +1012,16 @@ SegmentationParameterDialog::~SegmentationParameterDialog()
     m_SpacingModeHandler = NULL; 
   }
 
-	if (m_CanvasRefreshTimer != NULL) {
+  if (m_CanvasRefreshTimer != NULL) {
     m_CanvasRefreshTimer->stop();
-		delete m_CanvasRefreshTimer;
-		m_CanvasRefreshTimer = NULL;
-	}
+    delete m_CanvasRefreshTimer;
+    m_CanvasRefreshTimer = NULL;
+  }
+
+  if( m_ImageVisualizer != NULL ) {
+    m_ImageVisualizer->Delete();
+    m_ImageVisualizer = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1049,79 +1035,54 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
     return PLUS_FAIL;
   }
 
-  // Create canvas image actor
-	m_CanvasImageActor = vtkImageActor::New();
-
-	if (m_DataCollector->GetVideoEnabled()) {
-		m_CanvasImageActor->VisibilityOn();
-		//m_CanvasImageActor->SetInput(m_DataCollector->GetOutput()); // Commented because instead of the live image, snapshots are displayed with the overlay (segmented points)
-	} else {
-		LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
-	}
+  if (!m_DataCollector->GetVideoEnabled()) 
+  {
+    LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+  }
 
   // Create segmented points actor
-	m_SegmentedPointsActor = vtkActor::New();
+  m_SegmentedPointsActor = vtkActor::New();
 
-	m_SegmentedPointsPolyData = vtkPolyData::New();
-	m_SegmentedPointsPolyData->Initialize();
+  m_SegmentedPointsPolyData = vtkPolyData::New();
+  m_SegmentedPointsPolyData->Initialize();
 
-	vtkSmartPointer<vtkPolyDataMapper> segmentedPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkGlyph3D> segmentedPointGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-	vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-	segmentedPointSphereSource->SetRadius(4.0);
+  vtkSmartPointer<vtkPolyDataMapper> segmentedPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  vtkSmartPointer<vtkGlyph3D> segmentedPointGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+  vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  segmentedPointSphereSource->SetRadius(4.0);
 
-	segmentedPointGlyph->SetInputConnection(m_SegmentedPointsPolyData->GetProducerPort());
-	segmentedPointGlyph->SetSourceConnection(segmentedPointSphereSource->GetOutputPort());
-	segmentedPointMapper->SetInputConnection(segmentedPointGlyph->GetOutputPort());
+  segmentedPointGlyph->SetInputConnection(m_SegmentedPointsPolyData->GetProducerPort());
+  segmentedPointGlyph->SetSourceConnection(segmentedPointSphereSource->GetOutputPort());
+  segmentedPointMapper->SetInputConnection(segmentedPointGlyph->GetOutputPort());
 
-	m_SegmentedPointsActor->SetMapper(segmentedPointMapper);
-	m_SegmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+  m_SegmentedPointsActor->SetMapper(segmentedPointMapper);
+  m_SegmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
   m_SegmentedPointsActor->VisibilityOn();
 
-  // Create fiducial candidates actor
-	m_CandidatesActor = vtkActor::New();
-
-	m_CandidatesPolyData = vtkPolyData::New();
-	m_CandidatesPolyData->Initialize();
-
-	vtkSmartPointer<vtkPolyDataMapper> candidatesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkGlyph3D> candidatesGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-	vtkSmartPointer<vtkSphereSource> candidatesSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-	candidatesSphereSource->SetRadius(3.0);
-
-	candidatesGlyph->SetInputConnection(m_CandidatesPolyData->GetProducerPort());
-	candidatesGlyph->SetSourceConnection(candidatesSphereSource->GetOutputPort());
-	candidatesMapper->SetInputConnection(candidatesGlyph->GetOutputPort());
-
-	m_CandidatesActor->SetMapper(candidatesMapper);
-	m_CandidatesActor->GetProperty()->SetColor(0.8, 0.0, 0.0);
-  m_CandidatesActor->GetProperty()->SetOpacity(0.7);
-  m_CandidatesActor->VisibilityOn();
+  // Re-use the results actor in ImageVisualizer, no need to duplicate!
+  m_CandidatesPolyData = vtkPolyData::New();
+  m_CandidatesPolyData->Initialize();
 
   // Setup canvas
-	m_CanvasRenderer = vtkRenderer::New(); 
-	m_CanvasRenderer->SetBackground(0.1, 0.1, 0.1);
-	ui.canvas->GetRenderWindow()->AddRenderer(m_CanvasRenderer);
+  m_ImageVisualizer = vtkImageVisualizer::New();
+  m_ImageVisualizer->Initialize(m_DataCollector, m_CandidatesPolyData);
+  m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
+  m_ImageVisualizer->GetCanvasRenderer()->SetBackground(0.1, 0.1, 0.1);
+  m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
+  m_ImageVisualizer->SetResultOpacity(0.8);
+  ui.canvas->GetRenderWindow()->AddRenderer(m_ImageVisualizer->GetCanvasRenderer());
 
   // Create default picker
-  m_CanvasRenderer->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
+  m_ImageVisualizer->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
 
-  // Add actors to renderer
-	m_CanvasRenderer->AddActor(m_CanvasImageActor);
-	m_CanvasRenderer->AddActor(m_SegmentedPointsActor);
-  m_CanvasRenderer->AddActor(m_CandidatesActor);
-
-	// Compute image camera parameters and set it to display live image
-	CalculateImageCameraParameters();
-
-  // Indicate US orientation
-  DrawUSOrientationIndicators();
+  // Add segmented points to renderer
+  m_ImageVisualizer->GetCanvasRenderer()->AddActor(m_SegmentedPointsActor);
 
   // Switch to ROI mode by default
   SwitchToROIMode();
 
   // Start refresh timer
- 	m_CanvasRefreshTimer->start(50);
+  m_CanvasRefreshTimer->start(50);
 
   return PLUS_SUCCESS;
 }
@@ -1134,107 +1095,107 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
 
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
-	if (segmentationParameters == NULL) {
-		LOG_ERROR("No Segmentation element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  if (segmentationParameters == NULL) {
+    LOG_ERROR("No Segmentation element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
   // Feed parameters
-	double approximateSpacingMmPerPixel(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
-	{
+  double approximateSpacingMmPerPixel(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
+  {
     m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel;
-		ui.label_SpacingResult->setText(QString("%1 (original)").arg(approximateSpacingMmPerPixel));
-	} else {
+    ui.label_SpacingResult->setText(QString("%1 (original)").arg(approximateSpacingMmPerPixel));
+  } else {
     LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration");
   }
 
-	double morphologicalOpeningCircleRadiusMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
-	{
-		ui.doubleSpinBox_OpeningCircleRadius->setValue(morphologicalOpeningCircleRadiusMm);
-	} else {
+  double morphologicalOpeningCircleRadiusMm(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
+  {
+    ui.doubleSpinBox_OpeningCircleRadius->setValue(morphologicalOpeningCircleRadiusMm);
+  } else {
     LOG_WARNING("Could not read MorphologicalOpeningCircleRadiusMm from configuration");
   }
 
-	double morphologicalOpeningBarSizeMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
-	{
-		ui.doubleSpinBox_OpeningBarSize->setValue(morphologicalOpeningBarSizeMm);
-	} else {
+  double morphologicalOpeningBarSizeMm(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
+  {
+    ui.doubleSpinBox_OpeningBarSize->setValue(morphologicalOpeningBarSizeMm);
+  } else {
     LOG_WARNING("Could not read MorphologicalOpeningBarSizeMm from configuration");
   }
 
-	int regionOfInterest[4] = {0}; 
-	if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
-	{
+  int regionOfInterest[4] = {0}; 
+  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  {
     ui.spinBox_XMin->setValue(regionOfInterest[0]);
     ui.spinBox_YMin->setValue(regionOfInterest[1]);
     ui.spinBox_XMax->setValue(regionOfInterest[2]);
     ui.spinBox_YMax->setValue(regionOfInterest[3]);
-	} else {
-		LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
-	}
+  } else {
+    LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+  }
 
-	double maxLinePairDistanceErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-	{
-		ui.doubleSpinBox_LinePairDistanceError->setValue(maxLinePairDistanceErrorPercent);
-	} else {
+  double maxLinePairDistanceErrorPercent(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+  {
+    ui.doubleSpinBox_LinePairDistanceError->setValue(maxLinePairDistanceErrorPercent);
+  } else {
     LOG_WARNING("Could not read MaxLinePairDistanceErrorPercent from configuration");
   }
 
-	double maxAngleDifferenceDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
-	{
-		ui.doubleSpinBox_AngleDifference->setValue(maxAngleDifferenceDegrees);
-	} else {
+  double maxAngleDifferenceDegrees(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
+  {
+    ui.doubleSpinBox_AngleDifference->setValue(maxAngleDifferenceDegrees);
+  } else {
     LOG_WARNING("Could not read MaxAngleDifferenceDegrees from configuration");
   }
 
-	double minThetaDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
-	{
-		ui.doubleSpinBox_MinTheta->setValue(minThetaDegrees);
-	} else {
+  double minThetaDegrees(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
+  {
+    ui.doubleSpinBox_MinTheta->setValue(minThetaDegrees);
+  } else {
     LOG_WARNING("Could not read MinThetaDegrees from configuration");
   }
 
-	double maxThetaDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
-	{
-		ui.doubleSpinBox_MaxTheta->setValue(maxThetaDegrees);
-	} else {
+  double maxThetaDegrees(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
+  {
+    ui.doubleSpinBox_MaxTheta->setValue(maxThetaDegrees);
+  } else {
     LOG_WARNING("Could not read MaxThetaDegrees from configuration");
   }
 
-	double angleToleranceDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
-	{
-		ui.doubleSpinBox_AngleTolerance->setValue(angleToleranceDegrees);
-	} else {
+  double angleToleranceDegrees(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
+  {
+    ui.doubleSpinBox_AngleTolerance->setValue(angleToleranceDegrees);
+  } else {
     LOG_WARNING("Could not read AngleToleranceDegrees from configuration");
   }
 
-	double thresholdImagePercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
-	{
-		ui.doubleSpinBox_ImageThreshold->setValue(thresholdImagePercent);
-	} else {
+  double thresholdImagePercent(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
+  {
+    ui.doubleSpinBox_ImageThreshold->setValue(thresholdImagePercent);
+  } else {
     LOG_WARNING("Could not read ThresholdImagePercent from configuration");
   }
 
-	double collinearPointsMaxDistanceFromLineMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
-	{
-		ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine->setValue(collinearPointsMaxDistanceFromLineMm);
-	} else {
+  double collinearPointsMaxDistanceFromLineMm(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
+  {
+    ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine->setValue(collinearPointsMaxDistanceFromLineMm);
+  } else {
     LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration");
   }
 
-	double useOriginalImageIntensityForDotIntensityScore(-1); 
-	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
-	{
+  double useOriginalImageIntensityForDotIntensityScore(-1); 
+  if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
+  {
     if (useOriginalImageIntensityForDotIntensityScore == 0) {
       ui.checkBox_OriginalIntensityForDots->setChecked(false);
     } else if (useOriginalImageIntensityForDotIntensityScore == 1) {
@@ -1242,7 +1203,7 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     } else {
       LOG_WARNING("The value of UseOriginalImageIntensityForDotIntensityScore segmentation parameter should be 0 or 1");
     }
-	} else {
+  } else {
     LOG_WARNING("Could not read UseOriginalImageIntensityForDotIntensityScore from configuration");
   }
 
@@ -1290,10 +1251,10 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
-	if (segmentationParameters == NULL) {
-		LOG_ERROR("No Segmentation element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  if (segmentationParameters == NULL) {
+    LOG_ERROR("No Segmentation element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
   // Save parameters
   bool ok = true;
@@ -1313,9 +1274,9 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", ui.doubleSpinBox_OpeningBarSize->value());
 
-	char ROIChars[256];
+  char ROIChars[256];
   sprintf_s(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
-	segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
+  segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
 
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
 
@@ -1398,58 +1359,14 @@ void SegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("SegmentationParameterDialog::resizeEvent");
 
-  CalculateImageCameraParameters();
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus SegmentationParameterDialog::CalculateImageCameraParameters()
-{
-	LOG_TRACE("SegmentationParameterDialog::CalculateImageCameraParameters");
-
-  if (m_CanvasRenderer == NULL)
-  {
-    return PLUS_FAIL;
-  }
-
-	// Calculate image center
-	double imageCenterX = 0;
-	double imageCenterY = 0;
-	int dimensions[2];
-	m_DataCollector->GetFrameSize(dimensions);
-	imageCenterX = dimensions[0] / 2.0;
-	imageCenterY = dimensions[1] / 2.0;
-
-	// Set up camera
-	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
-	imageCamera->SetViewUp(0, -1, 0);
-	imageCamera->SetClippingRange(0.1, 2000.0);
-	imageCamera->ParallelProjectionOn();
-
-	// Calculate distance of camera from the plane
-  QSize size = ui.canvas->size();
-  if ((double)size.width() / (double)size.height() > imageCenterX / imageCenterY) 
-  {
-		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
-		imageCamera->SetParallelScale(imageCenterY);
-	}
-  else
-  {
-		imageCamera->SetParallelScale(imageCenterX * (double)size.height() / (double)size.width());
-	}
-
-	imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
-  m_CanvasRenderer->SetActiveCamera(imageCamera);
-
-  return PLUS_SUCCESS;
+  m_ImageVisualizer->CalculateCameraParameters();
 }
 
 //-----------------------------------------------------------------------------
 
 void SegmentationParameterDialog::UpdateCanvas()
 {
-	//LOG_TRACE("SegmentationParameterDialog::UpdateCanvas");
+  //LOG_TRACE("SegmentationParameterDialog::UpdateCanvas");
 
   SegmentCurrentImage();
 
@@ -1480,7 +1397,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   trackedFrame->SetImageData(videoFrame);
 
   // Set image for canvas
-  m_CanvasImageActor->SetInput(currentImage);
+  m_ImageVisualizer->SetInput(currentImage);
 
   // Segment image
   PatternRecognitionResult segResults;
@@ -1497,32 +1414,32 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   }
 
   // Display candidate points
-	vtkSmartPointer<vtkPoints> candidatePoints = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkPoints> candidatePoints = vtkSmartPointer<vtkPoints>::New();
   candidatePoints->SetNumberOfPoints(segResults.GetCandidateFidValues().size());
 
   std::vector<Dot> candidateDots = segResults.GetCandidateFidValues();
-	for (int i=0; i<candidateDots.size(); ++i)
+  for (int i=0; i<candidateDots.size(); ++i)
   {
     candidatePoints->InsertPoint(i, candidateDots[i].GetX(), candidateDots[i].GetY(), -0.3);
-	}
+  }
   candidatePoints->Modified();
 
-	m_CandidatesPolyData->Initialize();
-	m_CandidatesPolyData->SetPoints(candidatePoints);
+  m_CandidatesPolyData->Initialize();
+  m_CandidatesPolyData->SetPoints(candidatePoints);
 
   // Display segmented points (result in tracked frame is not usable in themselves because we need to transform the points)
-	vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
   segmentedPoints->SetNumberOfPoints(segResults.GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> segmentedDots = segResults.GetFoundDotsCoordinateValue();
-	for (int i=0; i<segmentedDots.size(); ++i)
+  std::vector<std::vector<double>> segmentedDots = segResults.GetFoundDotsCoordinateValue();
+  for (int i=0; i<segmentedDots.size(); ++i)
   {
-		segmentedPoints->InsertPoint(i, segmentedDots[i][0], segmentedDots[i][1], -0.3);
-	}
-	segmentedPoints->Modified();
+    segmentedPoints->InsertPoint(i, segmentedDots[i][0], segmentedDots[i][1], -0.3);
+  }
+  segmentedPoints->Modified();
 
-	m_SegmentedPointsPolyData->Initialize();
-	m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
+  m_SegmentedPointsPolyData->Initialize();
+  m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
 
   delete trackedFrame;
 
@@ -1620,85 +1537,6 @@ double SegmentationParameterDialog::GetSpacingReferenceHeight()
   LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceHeight");
 
   return ui.spinBox_ReferenceHeight->text().toDouble();
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus SegmentationParameterDialog::DrawUSOrientationIndicators()
-{
-  LOG_TRACE("SegmentationParameterDialog::DrawUSOrientationIndicators");
-
-  // Since the internal orientation is always MF, display the indicators for MF in all cases
-	vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-	horizontalOrientationTextActor->GetTextProperty()->SetColor(0.0, 1.0, 0.0);
-	horizontalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
-  horizontalOrientationTextActor->GetTextProperty()->SetFontSize(16);
-	horizontalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
-	horizontalOrientationTextActor->GetTextProperty()->SetVerticalJustificationToTop();
-	horizontalOrientationTextActor->GetTextProperty()->BoldOn(); 
-  horizontalOrientationTextActor->SetInput("M");
-  horizontalOrientationTextActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0); 
-  horizontalOrientationTextActor->SetPosition(35.0, 22.0, -0.5);
-  m_CanvasRenderer->AddActor(horizontalOrientationTextActor);
-
-	vtkSmartPointer<vtkTextActor3D> verticalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-	verticalOrientationTextActor->GetTextProperty()->SetColor(0.0, 1.0, 0.0);
-	verticalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
-  verticalOrientationTextActor->GetTextProperty()->SetFontSize(16);
-	verticalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
-	verticalOrientationTextActor->GetTextProperty()->SetVerticalJustificationToTop();
-	verticalOrientationTextActor->GetTextProperty()->BoldOn(); 
-  verticalOrientationTextActor->SetInput("F");
-  verticalOrientationTextActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0); 
-  verticalOrientationTextActor->SetPosition(9.0, 45.0, -0.5);
-  m_CanvasRenderer->AddActor(verticalOrientationTextActor);
-
-  vtkSmartPointer<vtkActor> horizontalLineActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkLineSource> horizontalLineSource = vtkSmartPointer<vtkLineSource>::New();
-  horizontalLineSource->SetPoint1(5.0, 5.0, -0.5);
-  horizontalLineSource->SetPoint2(50.0, 5.0, -0.5);
-  horizontalLineMapper->SetInputConnection(horizontalLineSource->GetOutputPort());
-  horizontalLineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  horizontalLineActor->SetMapper(horizontalLineMapper);
-  m_CanvasRenderer->AddActor(horizontalLineActor);
-
-  vtkSmartPointer<vtkActor> verticalLineActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> verticalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkLineSource> verticalLineSource = vtkSmartPointer<vtkLineSource>::New();
-  verticalLineSource->SetPoint1(5.0, 5.0, -0.5);
-  verticalLineSource->SetPoint2(5.0, 50.0, -0.5);
-  verticalLineMapper->SetInputConnection(verticalLineSource->GetOutputPort());
-  verticalLineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  verticalLineActor->SetMapper(verticalLineMapper);
-  m_CanvasRenderer->AddActor(verticalLineActor);
-
-  vtkSmartPointer<vtkActor> horizontalConeActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> horizontalConeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkConeSource> horizontalConeSource = vtkSmartPointer<vtkConeSource>::New();
-  horizontalConeSource->SetHeight(15.0);
-  horizontalConeSource->SetRadius(5.0);
-  horizontalConeMapper->SetInputConnection(horizontalConeSource->GetOutputPort());
-  horizontalConeActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  horizontalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
-  horizontalConeActor->SetPosition(56.0, 5.0, -0.5);
-  horizontalConeActor->SetMapper(horizontalConeMapper);
-  m_CanvasRenderer->AddActor(horizontalConeActor);
-
-  vtkSmartPointer<vtkActor> verticalConeActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> verticalConeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkConeSource> verticalConeSource = vtkSmartPointer<vtkConeSource>::New();
-  verticalConeSource->SetHeight(15.0);
-  verticalConeSource->SetRadius(5.0);
-  verticalConeMapper->SetInputConnection(verticalConeSource->GetOutputPort());
-  verticalConeActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  verticalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
-  verticalConeActor->RotateWXYZ(90.0, 0.0, 0.0, 1.0); 
-  verticalConeActor->SetPosition(5.0, 56.0, -0.5);
-  verticalConeActor->SetMapper(verticalConeMapper);
-  m_CanvasRenderer->AddActor(verticalConeActor);
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

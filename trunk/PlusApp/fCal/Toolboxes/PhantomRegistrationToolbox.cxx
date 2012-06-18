@@ -7,7 +7,7 @@
 #include "PhantomRegistrationToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "vtkDataCollectorHardwareDevice.h"
 
 #include "ConfigFileSaverDialog.h"
@@ -293,15 +293,16 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("PhantomRegistrationToolbox::SetDisplayAccordingToState");
 
-  if (m_ParentMainWindow->AreDevicesShown() == false)
+  // If the force show devices isn't enabled, set it to 3D and hide all the devices
+  // Later, we will re-enable only those that we wish shown for this toolbox
+  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(false);
+    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
     m_ParentMainWindow->GetObjectVisualizer()->HideAll();
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
-  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(false);
+  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->Is2DMode());
 
   if (m_State == ToolboxState_Uninitialized)
   {

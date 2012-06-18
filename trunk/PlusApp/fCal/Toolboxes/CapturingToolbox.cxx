@@ -7,7 +7,7 @@ See License.txt for details.
 #include "CapturingToolbox.h"
 
 #include "fCalMainWindow.h"
-#include "vtkObjectVisualizer.h"
+#include "vtkVisualizationController.h"
 #include "VolumeReconstructionToolbox.h"
 
 #include "vtkDataCollectorFile.h" // Only to get maximum frame rate in file mode
@@ -110,14 +110,15 @@ void CapturingToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
 
-  if (m_ParentMainWindow->AreDevicesShown() == false)
+  // If the force show devices isn't enabled, set it to 2D
+  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
-    m_ParentMainWindow->GetObjectVisualizer()->EnableImageMode(true);
+    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->GetImageMode() == true);
+  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+
   // Hide or show the orientation markers based on the value of the checkbox
   m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
