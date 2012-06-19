@@ -1,7 +1,7 @@
 [Board]
 Server Name=X64-CL_Express
-Device Name=CameraLink Base Mono #2
-Device Index=1
+Device Name=CameraLink Base Mono #1
+Device Index=0
 [General]
 Version=301
 Vic Name=Default Area Scan 1 tap Mono
@@ -44,7 +44,7 @@ Saturation=100000
 Sharpness=0
 [Stream Conditioning]
 Crop Activation=0
-Crop Height=1500
+Crop Height=480
 Crop Left=0
 Crop Top=0
 Crop Width=640
@@ -59,7 +59,7 @@ Lut Number=0
 Pixel Mask=255
 Scale Horizontal=640
 Scale Horizontal Method=1
-Scale Vertical=1500
+Scale Vertical=480
 Scale Vertical Method=1
 Snap Count=1
 Vertical Sync Reference=2
@@ -203,7 +203,7 @@ Horizontal Back Porch=0
 Horizontal Front Invalid=0
 Horizontal Front Porch=0
 Horizontal Sync=8
-Vertical Active=1500
+Vertical Active=480
 Vertical Back Invalid=0
 Vertical Back Porch=0
 Vertical Front Invalid=0
