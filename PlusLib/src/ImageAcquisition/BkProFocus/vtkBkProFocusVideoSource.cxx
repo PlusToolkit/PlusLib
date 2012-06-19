@@ -102,7 +102,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   GetFullIniFilePath(iniFilePath);
   if (!this->Internal->BKparamSettings.LoadSettingsFromIniFile(iniFilePath.c_str()))
   {
-    LOG_ERROR("Could not lot BK parameter settings from file: "<<iniFilePath.c_str());
+    LOG_ERROR("Could not load BK parameter settings from file: "<<iniFilePath.c_str());
     return PLUS_FAIL;
   }
 
@@ -110,8 +110,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 	LOG_DEBUG("BK scanner OEM port: " << this->Internal->BKparamSettings.GetOemPort());
 	LOG_DEBUG("BK scanner toolbox port: " << this->Internal->BKparamSettings.GetToolboxPort());
   
-	this->Internal->BKcmdCtrlSettings.useConsole = true;
-	this->Internal->BKcmdCtrlSettings.useConsoleLastOkUseCase = true;
+	this->Internal->BKcmdCtrlSettings.LoadFromIniFile(iniFilePath.c_str());
 
 	this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
 	
@@ -237,6 +236,8 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int fr
   
   this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, itk::ImageIOBase::UCHAR, 0, this->FrameNumber);
   this->FrameNumber++;
+  
+  // just for testing: PlusVideoFrame::SaveImageToFile( (unsigned char*)pixelDataPtr, frameSizeInPix, numberOfBitsPerPixel, (char *)"test.jpg");
 }
 
 
