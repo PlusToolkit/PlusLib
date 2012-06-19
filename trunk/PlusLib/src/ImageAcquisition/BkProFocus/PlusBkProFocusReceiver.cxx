@@ -29,8 +29,9 @@ PlusBkProFocusReceiver::~PlusBkProFocusReceiver()
 }
 
 //----------------------------------------------------------------------------
-bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int /*pitch*/)
+bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 {
+	LOG_DEBUG("Prepare: samples"<<samples<<", lines="<<lines<<", pitch="<<pitch);
   // ensure that pointers have been garbage collected
   _aligned_free(frame);
   frame = NULL;

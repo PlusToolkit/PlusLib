@@ -134,6 +134,9 @@ int main(int argc, char **argv)
   iren->Initialize();
   iren->Start();
 
+	frameGrabber->StopRecording(); 
+    frameGrabber->Disconnect();
+
   LOG_INFO("Exit successfully"); 
   return EXIT_SUCCESS; 
 }

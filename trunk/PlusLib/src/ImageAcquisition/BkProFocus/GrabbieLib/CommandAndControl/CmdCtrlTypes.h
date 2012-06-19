@@ -25,7 +25,7 @@ struct CmdCtrlSettings
 		autoUpdate = false;
 	};
 	
-	void LoadFromIniFile(char * UseCaseName)
+	void LoadFromIniFile(const char * UseCaseName)
 	{
 		char SectionName[] = "Command And Control";
 		this->useToolBox = (1 == (GetPrivateProfileInt(SectionName, "useToolbox", 0, UseCaseName)));
