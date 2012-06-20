@@ -14,7 +14,6 @@
 #include "itkVTKImageExport.h"
 
 #include "itkFlipImageFilter.h"
-#include "itkVTKImageExport.h"
 #include "itkImportImageContainer.h"
 
 #include "vtkObjectFactory.h"
