@@ -13,6 +13,7 @@ See License.txt for details.
 
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
+#include "vtkTimerLog.h"
 
 // Needed for getting the value of VTK_DEBUG_LEAKS
 #include "vtkToolkits.h"
@@ -32,6 +33,9 @@ vtkDataCollector::vtkDataCollector()
 {	
   this->StartupDelaySec = 0.0; 
 
+  this->StartTimeAbsoluteUTC = 0.0; 
+  this->StartTimeRelative = 0.0; 
+
   this->ConnectedOff(); 
 
   this->TrackingEnabled = true;
@@ -47,6 +51,32 @@ vtkDataCollector::~vtkDataCollector()
 void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkDataCollector::SetAcquisitionStartTime()
+{
+  this->StartTimeRelative = vtkAccurateTimer::GetSystemTime(); 
+  this->StartTimeAbsoluteUTC = vtkTimerLog::GetUniversalTime(); 
+}
+
+//----------------------------------------------------------------------------
+void vtkDataCollector::ResetAcquisitionStartTime()
+{
+  this->StartTimeRelative = 0.0;
+  this->StartTimeAbsoluteUTC = 0.0; 
+}
+
+//----------------------------------------------------------------------------
+double vtkDataCollector::GetAcquisitionStartTimeRelative()
+{
+  return this->StartTimeRelative; 
+}
+
+//----------------------------------------------------------------------------
+double vtkDataCollector::GetAcquisitionStartTimeAbsoluteUTC()
+{
+  return this->StartTimeAbsoluteUTC; 
 }
 
 //----------------------------------------------------------------------------

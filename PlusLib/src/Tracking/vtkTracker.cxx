@@ -37,6 +37,8 @@ vtkTracker::vtkTracker()
   this->AcquisitionRate = 50; 
   this->ToolReferenceFrameName = NULL; 
   this->TrackingThreadAlive = false; 
+  this->StartTimeAbsoluteUTC = 0.0; 
+  this->StartTimeRelative = 0.0; 
 
   // For threaded capture of transformations
   this->UpdateMutex = vtkRecursiveCriticalSection::New();
@@ -555,11 +557,13 @@ PlusStatus vtkTracker::GetToolByPortName( const char* portName, vtkTrackerTool* 
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::SetStartTime( double startTime)
+void vtkTracker::SetAcquisitionStartTime( double relative, double absolute )
 {
+  this->StartTimeRelative = relative; 
+  this->StartTimeAbsoluteUTC = absolute; 
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->SetStartTime(startTime); 
+    it->second->GetBuffer()->SetStartTime(this->StartTimeRelative); 
   }
 }
 

@@ -129,9 +129,6 @@ protected:
   /*! Name of the used sequence metafile */
 	char*                 SequenceMetafileName;
 
-  /*! Acquisition start time */
-  double                StartTime; 
-
   /*! Flag indicating if replaying the simulated data is enabled */
 	bool                  ReplayEnabled;
 

@@ -265,6 +265,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     return PLUS_FAIL; 
   }
   
+  // Convert timestamp from UTC to relative  
+  unfilteredTimestamp -= this->StartTimeAbsoluteUTC; 
+
   double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
   if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
   {

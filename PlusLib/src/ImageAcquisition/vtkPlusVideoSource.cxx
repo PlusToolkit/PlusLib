@@ -42,6 +42,8 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->NumberOfOutputFrames = 1;
   this->SpawnThreadForRecording = false;
   this->RecordingThreadAlive = false; 
+  this->StartTimeAbsoluteUTC = 0.0; 
+  this->StartTimeRelative = 0.0; 
 
   this->CurrentVideoBufferItem = new VideoBufferItem();
   this->Buffer = vtkVideoBuffer::New();
@@ -640,6 +642,14 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
 {
   LOG_ERROR("InternalGrab is not implemented");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVideoSource::SetAcquisitionStartTime( double relative, double absolute )
+{
+  this->StartTimeRelative = relative; 
+  this->StartTimeAbsoluteUTC = absolute; 
+  this->Buffer->SetStartTime( this->StartTimeRelative ); 
 }
 
 //----------------------------------------------------------------------------
