@@ -79,7 +79,6 @@ vtkVisualizationController::vtkVisualizationController()
   vtkSmartPointer<vtk3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtk3DObjectVisualizer>::New();
   perspectiveVisualizer->InitializeResultPolyData(this->ResultPolyData);
   perspectiveVisualizer->InitializeInputPolyData(this->InputPolyData);
-  perspectiveVisualizer->InitializeTransformRepository(this->TransformRepository);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
@@ -723,6 +722,7 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLD
   // Pass on any configuration steps to children
   if( this->PerspectiveVisualizer != NULL )
   {
+    this->PerspectiveVisualizer->InitializeTransformRepository(this->TransformRepository);
     return this->PerspectiveVisualizer->ReadConfiguration(aXMLElement);
   }
 
