@@ -27,15 +27,63 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 , ImageActor(NULL)
 , InputPolyData(NULL)
 , InputActor(NULL)
+, InputGlyph(NULL)
 , ResultPolyData(NULL)
 , ResultActor(NULL)
+, ResultGlyph(NULL)
 , VolumeActor(NULL)
 , Camera(NULL)
 , WorldCoordinateFrame(NULL)
 , TransformRepository(NULL)
-, Initialized(false)
 {
+  // Set up canvas renderer
+  vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
+  canvasRenderer->SetBackground(0.1, 0.1, 0.1);
+  canvasRenderer->SetBackground2(0.4, 0.4, 0.4);
+  canvasRenderer->SetGradientBackground(true);
+  this->SetCanvasRenderer(canvasRenderer);
 
+  // Input points actor
+  vtkSmartPointer<vtkActor> inputActor = vtkSmartPointer<vtkActor>::New();
+  this->SetInputActor(inputActor);
+  vtkSmartPointer<vtkPolyDataMapper> inputMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  vtkSmartPointer<vtkGlyph3D> inputGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+  this->SetInputGlyph(inputGlyph);
+  vtkSmartPointer<vtkSphereSource> inputSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  inputSphereSource->SetRadius(1.5); // mm
+
+  // Connect all input items (except poly data) in chain
+  this->InputGlyph->SetSourceConnection(inputSphereSource->GetOutputPort());  
+  inputMapper->SetInputConnection(this->InputGlyph->GetOutputPort());
+  this->InputActor->SetMapper(inputMapper);
+  this->InputActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
+
+  // Result points actor
+  vtkSmartPointer<vtkActor> resultActor = vtkSmartPointer<vtkActor>::New();
+  this->SetResultActor(resultActor);
+  vtkSmartPointer<vtkPolyDataMapper> resultMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  vtkSmartPointer<vtkGlyph3D> resultGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+  this->SetResultGlyph(resultGlyph);
+  vtkSmartPointer<vtkSphereSource> resultSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  resultSphereSource->SetRadius(3.0); // mm
+
+  // Connect all result items (except poly data) in chain
+  this->ResultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
+  resultMapper->SetInputConnection(resultGlyph->GetOutputPort());
+  this->ResultActor->SetMapper(resultMapper);
+  this->ResultActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+
+  // Volume actor
+  vtkSmartPointer<vtkActor> volumeActor = vtkSmartPointer<vtkActor>::New();
+  this->SetVolumeActor(volumeActor);
+
+  // Create image actor
+  vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
+  this->SetImageActor(imageActor);
+
+  this->CanvasRenderer->AddActor(this->InputActor);
+  this->CanvasRenderer->AddActor(this->ResultActor);
+  this->CanvasRenderer->AddActor(this->VolumeActor);
 }
 
 //-----------------------------------------------------------------------------
@@ -74,6 +122,14 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
   if (noObjectsToDisplay)
   {
+    LOG_ERROR("No visible objects to display.");
+    return PLUS_FAIL;
+  }
+
+  if( this->DataCollector == NULL )
+  {
+    // With new member initialization flexibility, this is an acceptable fail... return PLUS_SUCCESS?
+    //LOG_WARNING("Update called with no data collector.");
     return PLUS_FAIL;
   }
 
@@ -85,6 +141,12 @@ PlusStatus vtk3DObjectVisualizer::Update()
     return PLUS_FAIL; 
   }
 
+  if( this->TransformRepository == NULL )
+  {
+    // With new member initialization flexibility, this is an acceptable fail... return PLUS_SUCCESS?
+    //LOG_WARNING("Update called with no transform repository.");
+    return PLUS_FAIL;
+  }
   if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set current transforms to transform repository!"); 
@@ -165,107 +227,231 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::Initialize(vtkSmartPointer<vtkDataCollector> aCollector, vtkSmartPointer<vtkPolyData> aInputPolyData, vtkSmartPointer<vtkPolyData> aResultPolyData, vtkSmartPointer<vtkTransformRepository> aTransformRepository)
+PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
 {
-  LOG_TRACE("vtkPerspectiveVisualizer::Initialize");
+  LOG_TRACE("vtkPerspectiveVisualizer::ClearDisplayableObjects");
 
-  if( aCollector == NULL )
+  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    LOG_ERROR("Data collector not initialized. Data collection must be present.");
-    return PLUS_FAIL;
+    vtkDisplayableObject* tool = it->second;
+    if (tool != NULL)
+    {
+      if (tool->GetActor() != NULL)
+      {
+        this->CanvasRenderer->RemoveActor(tool->GetActor());
+      }
+
+      tool->Delete();
+      tool = NULL;
+    }
   }
 
-  // Store a reference to the data collector
-  this->SetDataCollector(aCollector);
+  this->DisplayableObjects.clear();
 
-  if (this->DataCollector->GetConnected() == false)
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkDisplayableObject* vtk3DObjectVisualizer::GetDisplayableObject(const char* aObjectCoordinateFrame)
+{
+  LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObject");
+
+  if (aObjectCoordinateFrame == NULL)
   {
-    LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");
-    return PLUS_FAIL;
+    LOG_ERROR("Invalid object coordinate frame name!");
+    return NULL;
   }
 
-  // Set up canvas renderer
-  vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
-  canvasRenderer->SetBackground(0.1, 0.1, 0.1);
-  canvasRenderer->SetBackground2(0.4, 0.4, 0.4);
-  canvasRenderer->SetGradientBackground(true);
-  this->SetCanvasRenderer(canvasRenderer);
-
-  // Set link to Transform Repository
-  this->SetTransformRepository(aTransformRepository);
-
-  TrackedFrame trackedFrame;
-  if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.find(aObjectCoordinateFrame);
+  if ( it != this->DisplayableObjects.end())
   {
-    LOG_ERROR("Unable to get tracked frame from data collector");
-    return PLUS_FAIL;
-  }
-
-  if (this->DataCollector->GetTrackingEnabled() == false)
-  {
-    LOG_ERROR("No tracking data is available");
-    return PLUS_FAIL;
-  }
-
-  this->TransformRepository->SetTransforms(trackedFrame);
-
-  // Input points poly data
-  this->SetInputPolyData(aInputPolyData);
-
-  // Input points actor
-  vtkSmartPointer<vtkActor> inputActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> inputMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  vtkSmartPointer<vtkGlyph3D> inputGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-  vtkSmartPointer<vtkSphereSource> inputSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  inputSphereSource->SetRadius(1.5); // mm
-
-  inputGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
-  inputGlyph->SetSourceConnection(inputSphereSource->GetOutputPort());
-  inputMapper->SetInputConnection(inputGlyph->GetOutputPort());
-  inputActor->SetMapper(inputMapper);
-  inputActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
-  this->SetInputActor(inputActor);
-
-  // Result points poly data
-  this->SetResultPolyData(aResultPolyData);
-
-  // Result points actor
-  vtkSmartPointer<vtkActor> resultActor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkPolyDataMapper> resultMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  vtkSmartPointer<vtkGlyph3D> resultGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-  vtkSmartPointer<vtkSphereSource> resultSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  resultSphereSource->SetRadius(3.0); // mm
-
-  resultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
-  resultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
-  resultMapper->SetInputConnection(resultGlyph->GetOutputPort());
-  resultActor->SetMapper(resultMapper);
-  resultActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-  this->SetResultActor(resultActor);
-
-  // Volume actor
-  vtkSmartPointer<vtkActor> volumeActor = vtkSmartPointer<vtkActor>::New();
-  this->SetVolumeActor(volumeActor);
-
-  // Create image actor
-  vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
-  this->SetImageActor(imageActor);
-
-  // Connect data collector to image actor
-  if (this->DataCollector->GetVideoEnabled())
-  {
-    this->ImageActor->VisibilityOn();
-    this->ImageActor->SetInput(this->DataCollector->GetOutput());
+    return (*it).second;
   }
   else
   {
-    LOG_INFO("Data collector has no video output, cannot initialize image actor");
+    LOG_ERROR("Requested displayable object '" << aObjectCoordinateFrame << "' is missing!");
+    return NULL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
+{
+  LOG_TRACE("vtkPerspectiveVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
+
+  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  {
+    vtkDisplayableObject* displayableObject = it->second;
+    if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL))
+    {
+      displayableObject->GetActor()->SetVisibility(aOn);
+    }
   }
 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
+  return PLUS_SUCCESS;
+}
 
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
+{
+  LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
+
+  vtkDisplayableObject* obj = this->GetDisplayableObject(aObjectCoordinateFrame);
+  if( obj != NULL )
+  {
+    obj->GetActor()->SetVisibility(aOn);
+    this->CanvasRenderer->Modified();
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
+{
+  this->InputActor->SetVisibility(aOn);
+  this->CanvasRenderer->Modified();
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ShowResult(bool aOn)
+{
+  this->ResultActor->SetVisibility(aOn);
+  this->CanvasRenderer->Modified();
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::HideAll()
+{
+  this->InputActor->VisibilityOff();
+  this->ResultActor->VisibilityOff();
+  this->VolumeActor->VisibilityOff();
+  this->ImageActor->VisibilityOff();
+
+  ShowAllObjects(false);
+
+  this->CanvasRenderer->Modified();
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData( vtkSmartPointer<vtkPolyData> aInputPolyData )
+{
+  if( aInputPolyData != NULL )
+  {
+    this->SetInputPolyData(aInputPolyData);
+
+    this->InputGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPolyData> aResultPolyData )
+{
+  if( aResultPolyData != NULL )
+  {
+    this->SetResultPolyData(aResultPolyData);
+
+    this->ResultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository( vtkSmartPointer<vtkTransformRepository> aTransformRepository )
+{
+  LOG_TRACE("vtk3DObjectVisualizer::SetTransformRepository");
+
+  if( aTransformRepository != NULL )
+  {
+    if( this->DataCollector == NULL )
+    {
+      LOG_ERROR("Data collector not initialized. Data collection must be present before transform repository is set.");
+      return PLUS_FAIL;
+    }
+
+    if (this->DataCollector->GetConnected() == false)
+    {
+      LOG_ERROR("Device visualization cannot be initialized unless they are connected");
+      return PLUS_FAIL;
+    }
+
+    TrackedFrame trackedFrame;
+    if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to get tracked frame from data collector");
+      return PLUS_FAIL;
+    }
+
+    if (this->DataCollector->GetTrackingEnabled() == false)
+    {
+      LOG_ERROR("No tracking data is available");
+      return PLUS_FAIL;
+    }
+
+    this->SetTransformRepository(aTransformRepository);
+    this->TransformRepository->SetTransforms(trackedFrame);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataCollector> aCollector )
+{
+  if( aCollector != NULL )
+  {
+    // Store a reference to the data collector
+    this->DataCollector = aCollector;
+
+    if (this->DataCollector->GetConnected() == false)
+    {
+      LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");
+      return PLUS_FAIL;
+    }
+
+    // Connect data collector to image actor
+    if (this->DataCollector->GetVideoEnabled())
+    {
+      this->ImageActor->VisibilityOn();
+      this->ImageActor->SetInput(this->DataCollector->GetOutput());
+    }
+    else
+    {
+      LOG_INFO("Data collector has no video output, cannot initialize image actor");
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement)
+{
   // Rendering section
-  vtkXMLDataElement* renderingElement = configRootElement->FindNestedElementWithName("Rendering"); 
+  vtkXMLDataElement* renderingElement = aXMLElement->FindNestedElementWithName("Rendering"); 
 
   if (renderingElement == NULL)
   {
@@ -355,132 +541,6 @@ PlusStatus vtk3DObjectVisualizer::Initialize(vtkSmartPointer<vtkDataCollector> a
 
     this->CanvasRenderer->AddActor(displayableObject->GetActor());
   }
-
-  this->CanvasRenderer->AddActor(this->InputActor);
-  this->CanvasRenderer->AddActor(this->ResultActor);
-  this->CanvasRenderer->AddActor(this->VolumeActor);
-
-  this->InitializedOn();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::ClearDisplayableObjects");
-
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
-  {
-    vtkDisplayableObject* tool = it->second;
-    if (tool != NULL)
-    {
-      if (tool->GetActor() != NULL)
-      {
-        this->CanvasRenderer->RemoveActor(tool->GetActor());
-      }
-
-      tool->Delete();
-      tool = NULL;
-    }
-  }
-
-  this->DisplayableObjects.clear();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableObject)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObject");
-
-  if (aObjectCoordinateFrame == NULL)
-  {
-    LOG_ERROR("Invalid object coordinate frame name!");
-    return PLUS_FAIL;
-  }
-
-  if (this->DisplayableObjects.find(aObjectCoordinateFrame) != this->DisplayableObjects.end())
-  {
-    aDisplayableObject = this->DisplayableObjects[aObjectCoordinateFrame];
-    return PLUS_SUCCESS;
-  }
-  else
-  {
-    LOG_ERROR("Requested displayable object '" << aObjectCoordinateFrame << "' is missing!");
-    return PLUS_FAIL;
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
-
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
-  {
-    vtkDisplayableObject* displayableObject = it->second;
-    if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL))
-    {
-      displayableObject->GetActor()->SetVisibility(aOn);
-    }
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
-
-  if (this->DisplayableObjects.find(aObjectCoordinateFrame) != this->DisplayableObjects.end())
-  {
-    this->DisplayableObjects[aObjectCoordinateFrame]->GetActor()->SetVisibility(aOn);
-  }
-
-  this->CanvasRenderer->Modified();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
-{
-  this->InputActor->SetVisibility(aOn);
-  this->CanvasRenderer->Modified();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::ShowResult(bool aOn)
-{
-  this->ResultActor->SetVisibility(aOn);
-  this->CanvasRenderer->Modified();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::HideAll()
-{
-  this->InputActor->VisibilityOff();
-  this->ResultActor->VisibilityOff();
-  this->VolumeActor->VisibilityOff();
-  this->ImageActor->VisibilityOff();
-
-  ShowAllObjects(false);
-
-  this->CanvasRenderer->Modified();
 
   return PLUS_SUCCESS;
 }

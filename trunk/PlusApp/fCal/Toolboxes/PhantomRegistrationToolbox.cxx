@@ -176,8 +176,16 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
   if (m_State == ToolboxState_Uninitialized)
   {
     vtkDisplayableObject* phantomDisplayableObject = NULL;
-    if ( m_PhantomRegistration->GetPhantomCoordinateFrame() == NULL
-      || m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS )
+    if(m_PhantomRegistration->GetPhantomCoordinateFrame() != NULL)
+    {
+      phantomDisplayableObject = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame());
+    }
+    else
+    {
+      LOG_WARNING("Phantom coordinate frame not defined.");
+    }
+
+    if (phantomDisplayableObject == NULL)
     {
       LOG_ERROR("Unable to get phantom displayable object!");
       return PLUS_FAIL;

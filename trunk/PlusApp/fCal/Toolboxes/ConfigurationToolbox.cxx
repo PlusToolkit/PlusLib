@@ -185,11 +185,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
           LOG_ERROR("Failed to read fCal configuration");
         }
 
-        // Initialize the object visualizer now that we have all necessary data
-        if( m_ParentMainWindow->GetObjectVisualizer()->Initialize() != PLUS_SUCCESS)
-        {
-          LOG_ERROR("Unable to initialize visualization.");
-        }
+        // Allow object visualizer to load anything it needs
+        m_ParentMainWindow->GetObjectVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
         // Successful connection
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
@@ -458,8 +455,8 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get phantom displayable model object
-  vtkDisplayableObject* phantomDisplayableObject = NULL;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(phantomRegistration->GetPhantomCoordinateFrame(), phantomDisplayableObject) != PLUS_SUCCESS)
+  vtkDisplayableObject* phantomDisplayableObject = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(phantomRegistration->GetPhantomCoordinateFrame());
+  if (phantomDisplayableObject == NULL)
   {
     LOG_WARNING("Unable to find phantom displayable object '" << phantomRegistration->GetPhantomCoordinateFrame() << "' - phantom will not be shown");
     return PLUS_FAIL;

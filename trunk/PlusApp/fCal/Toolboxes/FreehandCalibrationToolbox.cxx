@@ -6,34 +6,28 @@ See License.txt for details.
 
 #include "FreehandCalibrationToolbox.h"
 
-#include "vtkProbeCalibrationAlgo.h"
-#include "TemporalCalibrationAlgo.h"
-#include "vtkDataCollectorHardwareDevice.h"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-
-#include "vtkPlusVideoSource.h" // Only for getting the local time offset in device mode
-#include "vtkVideoBuffer.h" // Only for getting the local time offset in device mode
-#include "vtkTracker.h" // Only for getting the local time offset in device mode
-#include "vtkTrackerTool.h" // Only for getting the local time offset in device mode
-#include "vtkTrackerBuffer.h" // Only for getting the local time offset in device mode
-
 #include "ConfigFileSaverDialog.h"
-#include "SegmentationParameterDialog.h"
-
-#include "fCalMainWindow.h"
-#include "vtkVisualizationController.h"
-
 #include "FidPatternRecognition.h"
-
-#include <vtkXMLUtilities.h>
-#include <vtkContextView.h>
-#include <vtkChartXY.h>
-#include <vtkTable.h>
-#include <vtkPlot.h>
-
+#include "SegmentationParameterDialog.h"
+#include "TemporalCalibrationAlgo.h"
+#include "TrackedFrame.h"
+#include "fCalMainWindow.h"
+#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkPlusVideoSource.h" // Only for getting the local time offset in device mode
+#include "vtkProbeCalibrationAlgo.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTracker.h" // Only for getting the local time offset in device mode
+#include "vtkTrackerBuffer.h" // Only for getting the local time offset in device mode
+#include "vtkTrackerTool.h" // Only for getting the local time offset in device mode
+#include "vtkVideoBuffer.h" // Only for getting the local time offset in device mode
+#include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QTimer>
+#include <vtkChartXY.h>
+#include <vtkContextView.h>
+#include <vtkPlot.h>
+#include <vtkTable.h>
+#include <vtkXMLUtilities.h>
 
 //-----------------------------------------------------------------------------
 
@@ -613,10 +607,6 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   // Replace USCalibration element with the one in the just read file
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
-  // Re-calculate camera parameters
-  // TODO : restore image mode?
-  //m_ParentMainWindow->GetObjectVisualizer()->CalculateImageCameraParameters();
-
   SetDisplayAccordingToState();
 
   LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
@@ -1041,7 +1031,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   // Compute time spent with processing one frame in this round
   double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
 
-  // Update last processing time if new tracked frames have been aquired
+  // Update last processing time if new tracked frames have been acquired
   if (trackedFrameListToUse->GetNumberOfTrackedFrames() > numberOfFramesBeforeRecording)
   {
     m_LastProcessingTimePerFrameMs = computationTimeMs / (trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
@@ -1084,13 +1074,13 @@ PlusStatus FreehandCalibrationToolbox::SetAndSaveResults()
   m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
-  vtkDisplayableObject* transducerOriginDisplayable = NULL;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str(), transducerOriginDisplayable) == PLUS_SUCCESS)
+  vtkDisplayableObject* transducerOriginDisplayable = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str());
+  if (transducerOriginDisplayable != NULL)
   {
     transducerOriginDisplayable->DisplayableOn();
   }
-  vtkDisplayableObject* imageDisplayable = NULL;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetImageCoordinateFrame().c_str(), imageDisplayable) == PLUS_SUCCESS)
+  vtkDisplayableObject* imageDisplayable = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
+  if (imageDisplayable != NULL)
   {
     imageDisplayable->DisplayableOn();
   }
@@ -1193,6 +1183,7 @@ void FreehandCalibrationToolbox::DisplaySegmentedPoints()
   // Look for last segmented image and display the points
   for (int i=trackedFrameListToUse->GetNumberOfTrackedFrames() - 1; i>=0; --i)
   {
+    TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(i);
     vtkPoints* segmentedPoints = trackedFrameListToUse->GetTrackedFrame(i)->GetFiducialPointsCoordinatePx();
     if (segmentedPoints)
     {

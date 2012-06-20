@@ -324,8 +324,8 @@ void StylusCalibrationToolbox::Start()
   m_PivotCalibration->Initialize();
 
   // Initialize stylus tool
-  vtkDisplayableObject* stylusTipDisplayable = NULL;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), stylusTipDisplayable) != PLUS_SUCCESS)
+  vtkDisplayableObject* stylusTipDisplayable = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame());
+  if (stylusTipDisplayable == NULL)
   {
     LOG_ERROR("Stylus tip displayable object not found!");
     return;

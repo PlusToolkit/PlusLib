@@ -11,6 +11,7 @@
 #include "vtkCamera.h"
 #include "vtkDataCollector.h"
 #include "vtkDisplayableObject.h"
+#include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkObject.h"
 #include "vtkPolyData.h"
@@ -33,16 +34,11 @@ public:
   static vtk3DObjectVisualizer *New();
 
   /*!
-  * Initializes device visualization - loads models, transforms, assembles visualization pipeline
-  */
-  PlusStatus Initialize(vtkSmartPointer<vtkDataCollector> aCollector, vtkSmartPointer<vtkPolyData> aInputPolyData, vtkSmartPointer<vtkPolyData> aResultPolyData, vtkSmartPointer<vtkTransformRepository> aTransformRepository);
-
-  /*!
   * Get displayable tool object
   * \param aObjectCoordinateFrame Object coordinate frame name
   * \param aDisplayableTool Displayable object out parameter
   */
-  PlusStatus GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableTool);
+  vtkDisplayableObject* GetDisplayableObject(const char* aObjectCoordinateFrame);
 
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
@@ -77,6 +73,11 @@ public:
   */
   PlusStatus HideAll();
 
+  /*!
+  * Read the active configuration file to create displayable objects
+  */
+  PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement);
+
 public:
   /*!
   * Update the displayable objects
@@ -84,21 +85,20 @@ public:
   PlusStatus Update();
 
   // Set/Get macros for member variables
-  vtkSetMacro(Initialized, bool); 
-  vtkGetMacro(Initialized, bool); 
-  vtkBooleanMacro(Initialized, bool); 
-
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector); 
   vtkGetObjectMacro(ImageActor, vtkImageActor);
   vtkGetObjectMacro(VolumeActor, vtkActor);
   vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
-
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkSetObjectMacro(DataCollector, vtkDataCollector); 
-
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
+
+  // These will conflict with vtk macros, figure out new naming convention instead of "Set"
+  PlusStatus InitializeDataCollector(vtkSmartPointer<vtkDataCollector> aCollector);
+  PlusStatus InitializeInputPolyData(vtkSmartPointer<vtkPolyData> aInputPolyData);
+  PlusStatus InitializeResultPolyData(vtkSmartPointer<vtkPolyData> aResultPolyData);
+  PlusStatus InitializeTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository);
 
 protected:
   vtkSetObjectMacro(Camera, vtkCamera);
@@ -109,6 +109,11 @@ protected:
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(VolumeActor, vtkActor);
   vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkSetObjectMacro(DataCollector, vtkDataCollector);
+  vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
+  vtkSetObjectMacro(InputGlyph, vtkGlyph3D);
+  vtkGetObjectMacro(ResultGlyph, vtkGlyph3D);
+  vtkGetObjectMacro(InputGlyph, vtkGlyph3D);
 
 protected:
   /*!
@@ -128,9 +133,6 @@ protected:
   /*! List of displayable objects */
   std::map<std::string, vtkDisplayableObject*> DisplayableObjects;
 
-  /*! Initialization flag */
-  bool Initialized;
-
   /*! Renderer for the canvas */
   vtkRenderer* CanvasRenderer; 
 
@@ -143,11 +145,17 @@ protected:
   /*! Actor for displaying the input points in 3D */
   vtkActor* InputActor;
 
+  /*! Glyph producer for result */
+  vtkGlyph3D* InputGlyph;
+
   /*! Polydata holding the result points (eg. stylus tip, segmented points) */
   vtkPolyData* ResultPolyData;
 
   /*! Actor for displaying the result points (eg. stylus tip, segmented points) */
   vtkActor* ResultActor;
+
+  /*! Glyph producer for result */
+  vtkGlyph3D* ResultGlyph;
 
   /*! Actor for displaying a volume */
   vtkActor* VolumeActor;

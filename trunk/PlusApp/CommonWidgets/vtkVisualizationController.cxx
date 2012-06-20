@@ -35,69 +35,20 @@ vtkStandardNewMacro(vtkVisualizationController);
 //-----------------------------------------------------------------------------
 
 vtkVisualizationController::vtkVisualizationController()
-: DataCollector(NULL)
-, AcquisitionFrameRate(20)
-, InputPolyData(NULL)
-, ResultPolyData(NULL)
-, AcquisitionTimer(NULL)
-, TransformRepository(NULL)
-, ImageVisualizer(NULL)
+: ImageVisualizer(NULL)
 , PerspectiveVisualizer(NULL)
-, Initialized(false)
+, Canvas(NULL)
+, DataCollector(NULL)
+, AcquisitionTimer(NULL)
+, ResultPolyData(NULL)
+, InputPolyData(NULL)
 , CurrentMode(DISPLAY_MODE_NONE)
+, AcquisitionFrameRate(20)
+, TransformRepository(NULL)
 {
-}
-
-//-----------------------------------------------------------------------------
-
-vtkVisualizationController::~vtkVisualizationController()
-{
-  // TODO : destroy all imaging modes
-
-  if (this->AcquisitionTimer != NULL)
-  {
-    disconnect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
-    this->AcquisitionTimer->stop();
-    delete this->AcquisitionTimer;
-    this->AcquisitionTimer = NULL;
-  } 
-
-  if (this->DataCollector != NULL)
-  {
-    this->DataCollector->Stop();
-    this->DataCollector->Disconnect();
-  }
-  this->SetDataCollector(NULL);
-
-  this->SetInputPolyData(NULL);
-  this->SetResultPolyData(NULL);
-
-  this->SetTransformRepository(NULL);
-  this->SetImageVisualizer(NULL);
-  this->SetPerspectiveVisualizer(NULL);
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkVisualizationController::Initialize()
-{
-  LOG_TRACE("vtkVisualizationController::Initialize"); 
-
-  if( this->GetCanvas() == NULL )
-  {
-    LOG_ERROR("ObjectVisualizer initialized without a valid canvas.");
-    return PLUS_FAIL;
-  }
-
   // Create transform repository
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
-  // Fill up transform repository
-  if( this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to initialize transform repository!"); 
-    return PLUS_FAIL;
-  }
 
   // Input points poly data
   vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -121,27 +72,47 @@ PlusStatus vtkVisualizationController::Initialize()
 
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
-  if( imageVisualizer->Initialize(this->DataCollector, this->ResultPolyData) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to create 2D visualization.");
-    return PLUS_FAIL;
-  }
+  imageVisualizer->InitializeResultPolyData(this->ResultPolyData);
   this->SetImageVisualizer(imageVisualizer);
 
   // Create 3D visualizer
   vtkSmartPointer<vtk3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtk3DObjectVisualizer>::New();
-  if( perspectiveVisualizer->Initialize(this->DataCollector, this->InputPolyData, this->ResultPolyData, this->TransformRepository) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to create 3D visualization.");
-    return PLUS_FAIL;
-  }
+  perspectiveVisualizer->InitializeResultPolyData(this->ResultPolyData);
+  perspectiveVisualizer->InitializeInputPolyData(this->InputPolyData);
+  perspectiveVisualizer->InitializeTransformRepository(this->TransformRepository);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
+}
 
-  this->SetInitialized(true);
+//-----------------------------------------------------------------------------
 
-  return PLUS_SUCCESS;
+vtkVisualizationController::~vtkVisualizationController()
+{
+  if (this->AcquisitionTimer != NULL)
+  {
+    disconnect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
+    this->AcquisitionTimer->stop();
+    delete this->AcquisitionTimer;
+    this->AcquisitionTimer = NULL;
+  } 
+
+  if (this->DataCollector != NULL)
+  {
+    this->DataCollector->Stop();
+    this->DataCollector->Disconnect();
+  }
+  this->SetDataCollector(NULL);
+
+  this->SetInputPolyData(NULL);
+  this->SetResultPolyData(NULL);
+
+  this->SetTransformRepository(NULL);
+  this->SetImageVisualizer(NULL);
+  this->SetPerspectiveVisualizer(NULL);
+
+  this->SetImageVisualizer(NULL);
+  this->SetPerspectiveVisualizer(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -235,6 +206,12 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
     return PLUS_FAIL;
   }
 
+  if( this->Canvas == NULL )
+  {
+    LOG_ERROR("Trying to change visualization mode but no canvas has been assigned for display.");
+    return PLUS_FAIL;
+  }
+
   this->DisconnectInput();
 
   if (aMode == DISPLAY_MODE_2D)
@@ -259,7 +236,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
     {
       this->GetCanvas()->GetRenderWindow()->AddRenderer(this->ImageVisualizer->GetCanvasRenderer());
       this->ImageVisualizer->GetImageActor()->VisibilityOn();
-      this->ImageVisualizer->CalculateCameraParameters();
+      this->ImageVisualizer->UpdateCameraPose();
       this->ImageVisualizer->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
     }
 
@@ -358,6 +335,9 @@ PlusStatus vtkVisualizationController::StartDataCollection()
     return PLUS_FAIL;
   }
 
+  this->ImageVisualizer->InitializeDataCollector(this->DataCollector);
+  this->PerspectiveVisualizer->InitializeDataCollector(this->DataCollector);
+
   return PLUS_SUCCESS;
 }
 
@@ -410,7 +390,7 @@ void vtkVisualizationController::resizeEvent( QResizeEvent* aEvent )
   LOG_TRACE("vtkVisualizationController::resizeEvent( ... )");
   if( this->ImageVisualizer != NULL)
   {
-    this->ImageVisualizer->CalculateCameraParameters();
+    this->ImageVisualizer->UpdateCameraPose();
   }
 }
 
@@ -433,7 +413,7 @@ PlusStatus vtkVisualizationController::SetScreenRightDownAxesOrientation( US_IMA
 
 PlusStatus vtkVisualizationController::Update()
 {
-  if( this->PerspectiveVisualizer != NULL)
+  if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D)
   {
     this->PerspectiveVisualizer->Update();
   }
@@ -568,14 +548,14 @@ PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, doubl
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableObject)
+vtkDisplayableObject* vtkVisualizationController::GetDisplayableObject(const char* aObjectCoordinateFrame)
 {
   if( this->PerspectiveVisualizer != NULL )
   {
-    return this->PerspectiveVisualizer->GetDisplayableObject(aObjectCoordinateFrame, aDisplayableObject);
+    return this->PerspectiveVisualizer->GetDisplayableObject(aObjectCoordinateFrame);
   }
 
-  return PLUS_FAIL;
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -691,6 +671,12 @@ PlusStatus vtkVisualizationController::HideRenderer()
 {
   LOG_TRACE("vtkVisualizationController::HideRenderer");
 
+  if( this->Canvas == NULL )
+  {
+    LOG_ERROR("Trying to hide a visualization controller that hasn't been assigned a canvas.");
+    return PLUS_FAIL;
+  }
+
   if( this->PerspectiveVisualizer != NULL && Canvas->GetRenderWindow()->HasRenderer(PerspectiveVisualizer->GetCanvasRenderer()) )
   {
     // If there's already been a renderer added, remove it
@@ -719,6 +705,25 @@ PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
   if( this->PerspectiveVisualizer != NULL )
   {
     return this->PerspectiveVisualizer->ShowAllObjects(aShow);
+  }
+
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement)
+{
+  // Fill up transform repository
+  if( this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to initialize transform repository!"); 
+  }
+
+  // Pass on any configuration steps to children
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    return this->PerspectiveVisualizer->ReadConfiguration(aXMLElement);
   }
 
   return PLUS_FAIL;

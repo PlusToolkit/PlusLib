@@ -922,7 +922,6 @@ private:
 SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector)
 : QDialog(aParent)
 , m_DataCollector(aDataCollector)
-//, m_CanvasImageActor(NULL)
 , m_SegmentedPointsActor(NULL)
 , m_SegmentedPointsPolyData(NULL)
 , m_CandidatesPolyData(NULL)
@@ -1065,7 +1064,8 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
-  m_ImageVisualizer->Initialize(m_DataCollector, m_CandidatesPolyData);
+  m_ImageVisualizer->InitializeResultPolyData(m_CandidatesPolyData);
+  m_ImageVisualizer->InitializeDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
   m_ImageVisualizer->GetCanvasRenderer()->SetBackground(0.1, 0.1, 0.1);
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
@@ -1359,7 +1359,7 @@ void SegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("SegmentationParameterDialog::resizeEvent");
 
-  m_ImageVisualizer->CalculateCameraParameters();
+  m_ImageVisualizer->UpdateCameraPose();
 }
 
 //-----------------------------------------------------------------------------

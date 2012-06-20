@@ -67,11 +67,6 @@ public:
   static vtkVisualizationController *New();
 
   /*!
-  * Initialize object
-  */
-  PlusStatus Initialize();
-
-  /*!
   * Read configuration file and start data collection
   */
   PlusStatus StartDataCollection();
@@ -178,6 +173,11 @@ public:
   */
   PlusStatus SetScreenRightDownAxesOrientation(US_IMAGE_ORIENTATION aOrientation = US_IMG_ORIENT_MF);
 
+  /*!
+  * Read from the active configuration to initialize any config based data dependency
+  */
+  PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement);
+
 public:
 
   /*!
@@ -204,7 +204,7 @@ public:
   * Return the displayable object from the perspective visualizer
   * \param aCoordinateFrame coordinate frame name
   */
-  PlusStatus GetDisplayableObject(const char* aObjectCoordinateFrame, vtkDisplayableObject* &aDisplayableTool);
+  vtkDisplayableObject* GetDisplayableObject(const char* aObjectCoordinateFrame);
 
   /*!
   * Disconnect the image input
@@ -224,13 +224,8 @@ protected slots:
 
 public:
   // Set/Get macros for member variables
-  vtkSetMacro(Initialized, bool); 
-  vtkBooleanMacro(Initialized, bool); 
-
   PlusStatus SetAcquisitionFrameRate(int aFrameRate); 
   vtkGetMacro(AcquisitionFrameRate, int); 
-  vtkGetMacro(Initialized, bool); 
-
   vtkGetObjectMacro(DataCollector, vtkDataCollector);
   vtkGetObjectMacro(InputPolyData, vtkPolyData);
   vtkGetObjectMacro(ResultPolyData, vtkPolyData);
@@ -290,9 +285,6 @@ protected:
 
   /*! Polydata holding the input points */
   vtkPolyData* InputPolyData;
-
-  /*! Initialization flag */
-  bool Initialized;
 
   /*! Flag indicating if the visualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on) or none */
   DISPLAY_MODE CurrentMode;
