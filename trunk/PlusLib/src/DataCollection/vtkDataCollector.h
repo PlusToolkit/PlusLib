@@ -84,6 +84,19 @@ public:
   /*! Get frame rate */
   virtual PlusStatus GetFrameRate(double &aFrameRate) = 0;
 
+  /*! Set acquisition start time to the current time in relative ( vtkAccurateTimer::GetSystemTime() )
+      and absolute ( vtkTimerLog::GetUniversalTime() ) format */ 
+  virtual void SetAcquisitionStartTime(); 
+
+  /*! Reset acquisition start time to 0.0 for both relative and absolute time */ 
+  virtual void ResetAcquisitionStartTime(); 
+
+  /*! Get acquisition start time in relative format ( vtkAccurateTimer::GetSystemTime() ) */ 
+  virtual double GetAcquisitionStartTimeRelative(); 
+
+  /*! Get acquisition start time in absolute ( vtkTimerLog::GetUniversalTime() ) format */
+  virtual double GetAcquisitionStartTimeAbsoluteUTC(); 
+
 public:
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]) = 0;
@@ -137,6 +150,16 @@ protected:
 
   /*! Collecting image data is enabled */
   bool                          VideoEnabled;
+
+  /*! Acquisition start time elapsed since AccurateTimer class instantiation (relative time) 
+      vtkAccurateTimer::GetSystemTime();
+  */
+  double StartTimeRelative;
+
+  /*! Acquisition start time elapsed since 00:00:00 January 1, 1970, UTC (absolute time) 
+      vtkTimerLog::GetUniversalTime()
+  */
+  double StartTimeAbsoluteUTC;
 
 private:
   vtkDataCollector(const vtkDataCollector&);

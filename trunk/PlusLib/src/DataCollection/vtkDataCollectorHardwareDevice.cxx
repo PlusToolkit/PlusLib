@@ -284,7 +284,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Start()
     return PLUS_FAIL;
   }
 
-  const double startTime = vtkAccurateTimer::GetSystemTime(); 
+  this->SetAcquisitionStartTime(); 
 
   if ( this->GetVideoEnabled() )
   {
@@ -295,7 +295,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Start()
         LOG_ERROR("Failed to start video recording!"); 
         return PLUS_FAIL; 
       }
-      this->GetVideoSource()->GetBuffer()->SetStartTime(startTime); 
+      this->GetVideoSource()->SetAcquisitionStartTime( this->GetAcquisitionStartTimeRelative(), this->GetAcquisitionStartTimeAbsoluteUTC() ); 
     }
   }
   else
@@ -313,7 +313,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Start()
         return PLUS_FAIL; 
       }
 
-      this->GetTracker()->SetStartTime(startTime); 
+      this->GetTracker()->SetAcquisitionStartTime( this->GetAcquisitionStartTimeRelative(), this->GetAcquisitionStartTimeAbsoluteUTC() ); 
     }
   }
   else
@@ -340,6 +340,8 @@ PlusStatus vtkDataCollectorHardwareDevice::Stop()
   {
     this->GetTracker()->StopTracking(); 
   }
+
+  this->ResetAcquisitionStartTime(); 
 
   return PLUS_SUCCESS;
 }

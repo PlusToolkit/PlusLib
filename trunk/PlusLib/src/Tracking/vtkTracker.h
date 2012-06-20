@@ -89,10 +89,11 @@ public:
   /*! Test whether or not the system is tracking. */
   virtual int IsTracking() { return this->Recording; };
 
-  /*! Set recording start time for each tool */
-  virtual void SetStartTime( double startTime ); 
+  /*! Set acquisition start time in relative ( vtkAccurateTimer::GetSystemTime() )
+      and absolute ( vtkTimerLog::GetUniversalTime() ) format */ 
+  virtual void SetAcquisitionStartTime( double relative, double absolute ); 
 
-  /*! Get recording start time */
+  /*! Get relative recording start time */
   virtual double GetStartTime(); 
 
   /*! Read main configuration from xml data */
@@ -246,6 +247,16 @@ protected:
 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 
+
+  /*! Acquisition start time elapsed since AccurateTimer class instantiation (relative time) 
+      vtkAccurateTimer::GetSystemTime();
+  */
+  double StartTimeRelative;
+
+  /*! Acquisition start time elapsed since 00:00:00 January 1, 1970, UTC (absolute time) 
+      vtkTimerLog::GetUniversalTime()
+  */
+  double StartTimeAbsoluteUTC;
 
 private:
   vtkTracker(const vtkTracker&);  // Not implemented.

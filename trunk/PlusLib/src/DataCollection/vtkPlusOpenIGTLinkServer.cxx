@@ -41,7 +41,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 
   this->MaxTimeSpentWithProcessingMs = 50; 
   this->LastProcessingTimePerFrameMs = -1;
-
+  
   this->ConnectionReceiverThreadId = -1;
   this->DataSenderThreadId = -1; 
   this->DataReceiverThreadId = -1; 
@@ -426,6 +426,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       numberOfErrors++;
     }
   }
+
+  // Convert relative timestamp to UTC
+  trackedFrame.SetTimestamp(trackedFrame.GetTimestamp() + this->DataCollector->GetAcquisitionStartTimeAbsoluteUTC() );
 
   // Lock before we send message to the clients 
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);

@@ -167,6 +167,10 @@ public:
   */
   virtual PlusStatus SetBuffer(vtkVideoBuffer *newBuffer);
 
+  /*! Set acquisition start time in relative ( vtkAccurateTimer::GetSystemTime() )
+      and absolute ( vtkTimerLog::GetUniversalTime() ) format */ 
+  virtual void SetAcquisitionStartTime( double relative, double absolute ); 
+
   /*!
     The result of GetOutput() will be the frame closest to DesiredTimestamp
     if it is set and if UpdateWithDesiredTimestamp is set on (default off)
@@ -269,6 +273,16 @@ protected:
   VideoBufferItem *CurrentVideoBufferItem; 
 
   US_IMAGE_ORIENTATION UsImageOrientation; 
+
+  /*! Acquisition start time elapsed since AccurateTimer class instantiation (relative time) 
+      vtkAccurateTimer::GetSystemTime();
+  */
+  double StartTimeRelative;
+
+  /*! Acquisition start time elapsed since 00:00:00 January 1, 1970, UTC (absolute time) 
+      vtkTimerLog::GetUniversalTime()
+  */
+  double StartTimeAbsoluteUTC;
 
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.
