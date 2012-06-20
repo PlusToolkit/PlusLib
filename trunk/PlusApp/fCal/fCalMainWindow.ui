@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1022</width>
-    <height>720</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -249,7 +249,7 @@
       </item>
      </layout>
     </item>
-    <item row="0" column="2">
+    <item row="0" column="3">
      <widget class="QVTKWidget" name="canvas" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -271,7 +271,7 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
+    <item row="0" column="2">
      <spacer name="pushToolboxLeftSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
