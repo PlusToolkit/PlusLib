@@ -54,11 +54,6 @@ public:
   /*! Get background value */
   vtkGetMacro(BackgroundValue, int);
 
-  /*! Set foreground value */
-  vtkSetMacro(ForegroundValue, int); 
-  /*! Get foreground value */
-  vtkGetMacro(ForegroundValue, int);
-
   /*! Get frame size */
   vtkGetVector2Macro(FrameSize, int);
 
@@ -89,9 +84,6 @@ private:
 
   /*! Grayscale value of the background */
   int BackgroundValue;
-
-  /*! Grayscale value of the foreground */
-  int ForegroundValue;
 
   /*! Image frame size in pixel */
   int FrameSize[2];
