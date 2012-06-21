@@ -10,6 +10,7 @@ See License.txt for details.
 #include "vtkGlyph3D.h"
 #include "vtkObjectFactory.h"
 #include "vtk3DObjectVisualizer.h"
+#include "vtkDisplayableObject.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkSmartPointer.h"
@@ -110,9 +111,9 @@ PlusStatus vtk3DObjectVisualizer::Update()
 {
   // If none of the objects are displayable then return with fail
   bool noObjectsToDisplay = true;
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = it->second;
+    vtkDisplayableObject* displayableObject = *it;
     if ( displayableObject->IsDisplayable() && displayableObject->GetActor() && displayableObject->GetActor()->GetVisibility() > 0 )
     {
       noObjectsToDisplay = false;
@@ -155,9 +156,9 @@ PlusStatus vtk3DObjectVisualizer::Update()
   bool resetCameraNeeded = false;
 
   // Update actors of displayable objects
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = it->second;
+    vtkDisplayableObject* displayableObject = *it;
     PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -230,9 +231,9 @@ PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ClearDisplayableObjects");
 
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* tool = it->second;
+    vtkDisplayableObject* tool = *it;
     if (tool != NULL)
     {
       if (tool->GetActor() != NULL)
@@ -252,37 +253,13 @@ PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtk3DObjectVisualizer::GetDisplayableObject(const char* aObjectCoordinateFrame)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObject");
-
-  if (aObjectCoordinateFrame == NULL)
-  {
-    LOG_ERROR("Invalid object coordinate frame name!");
-    return NULL;
-  }
-
-  std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.find(aObjectCoordinateFrame);
-  if ( it != this->DisplayableObjects.end())
-  {
-    return (*it).second;
-  }
-  else
-  {
-    LOG_ERROR("Requested displayable object '" << aObjectCoordinateFrame << "' is missing!");
-    return NULL;
-  }
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
 
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = it->second;
+    vtkDisplayableObject* displayableObject = *it;
     if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL))
     {
       displayableObject->GetActor()->SetVisibility(aOn);
@@ -298,9 +275,10 @@ PlusStatus vtk3DObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame,
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
 
-  vtkDisplayableObject* obj = this->GetDisplayableObject(aObjectCoordinateFrame);
-  if( obj != NULL )
+  std::vector<vtkDisplayableModel*> objects = this->GetDisplayableObjects<vtkDisplayableModel>(aObjectCoordinateFrame);
+  if( objects.size() == 1 )
   {
+    vtkDisplayableModel* obj = objects.at(0);
     obj->GetActor()->SetVisibility(aOn);
     this->CanvasRenderer->Modified();
     return PLUS_SUCCESS;
@@ -514,7 +492,7 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkSmartPointer<vtkXMLDataEl
       }
     }
 
-    this->DisplayableObjects[displayableObject->GetObjectCoordinateFrame()] = displayableObject;
+    this->DisplayableObjects.push_back(displayableObject);
   }
 
   if (this->DisplayableObjects.size() == 0)
@@ -529,9 +507,9 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkSmartPointer<vtkXMLDataEl
   }
 
   // Add displayable object actors to renderer
-  for (std::map<std::string, vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = it->second;
+    vtkDisplayableObject* displayableObject = *it;
     if (displayableObject == NULL)
     {
       LOG_ERROR("Invalid displayable object!");

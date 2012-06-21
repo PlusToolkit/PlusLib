@@ -175,17 +175,23 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 
   if (m_State == ToolboxState_Uninitialized)
   {
-    vtkDisplayableObject* phantomDisplayableObject = NULL;
+    vtkDisplayableModel* phantomDisplayableModel = NULL;
     if(m_PhantomRegistration->GetPhantomCoordinateFrame() != NULL)
     {
-      phantomDisplayableObject = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_PhantomRegistration->GetPhantomCoordinateFrame());
+      std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(m_PhantomRegistration->GetPhantomCoordinateFrame());
+      if( objects.size() != 1 )
+      {
+        LOG_ERROR("Expected only one displayable model for the phantom. Got: " << objects.size());
+        return PLUS_FAIL;
+      }
+      phantomDisplayableModel = objects.at(0);
     }
     else
     {
       LOG_WARNING("Phantom coordinate frame not defined.");
     }
 
-    if (phantomDisplayableObject == NULL)
+    if (phantomDisplayableModel == NULL)
     {
       LOG_ERROR("Unable to get phantom displayable object!");
       return PLUS_FAIL;
@@ -210,7 +216,6 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
     m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
     // Initialize phantom visualization in toolbox canvas
-    vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantomDisplayableObject);
     if ( phantomDisplayableModel->GetSTLModelFileName() != NULL && phantomDisplayableModel->GetModelToObjectTransform() != NULL )
     {
       std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(phantomDisplayableModel->GetSTLModelFileName());

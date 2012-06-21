@@ -6,22 +6,19 @@
 
 #include "ConfigurationToolbox.h"
 
-#include "fCalMainWindow.h"
-#include "vtkVisualizationController.h"
-#include "vtkPhantomRegistrationAlgo.h"
-#include "FidPatternRecognition.h"
-
 #include "DeviceSetSelectorWidget.h"
+#include "FidPatternRecognition.h"
 #include "ToolStateDisplayWidget.h"
-
-#include <QDialog>
-#include <QFileDialog>
-#include <QFile>
-
-#include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
-#include "vtksys/SystemTools.hxx"
+#include "fCalMainWindow.h"
 #include "vtkLineSource.h"
+#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkVisualizationController.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx"
+#include <QDialog>
+#include <QFile>
+#include <QFileDialog>
 
 //-----------------------------------------------------------------------------
 
@@ -448,19 +445,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get phantom displayable model object
-  vtkDisplayableObject* phantomDisplayableObject = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(phantomRegistration->GetPhantomCoordinateFrame());
-  if (phantomDisplayableObject == NULL)
+  vtkDisplayableModel* phantomDisplayableModel = NULL;
+  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
+  if( objects.size() != 1)
   {
-    LOG_WARNING("Unable to find phantom displayable object '" << phantomRegistration->GetPhantomCoordinateFrame() << "' - phantom will not be shown");
+    LOG_ERROR("Requested unique phantom displayable. Got: " << objects.size());
     return PLUS_FAIL;
   }
-
-  vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantomDisplayableObject);
-  if (phantomDisplayableModel == NULL)
-  {
-    LOG_ERROR("Phantom displayable object is invalid!");
-    return PLUS_FAIL;
-  }
+  phantomDisplayableModel = objects.at(0);
 
   // Get wire pattern
   FidPatternRecognition patternRecognition;

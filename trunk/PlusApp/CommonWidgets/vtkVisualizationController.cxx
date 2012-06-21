@@ -546,18 +546,6 @@ PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, doubl
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtkVisualizationController::GetDisplayableObject(const char* aObjectCoordinateFrame)
-{
-  if( this->PerspectiveVisualizer != NULL )
-  {
-    return this->PerspectiveVisualizer->GetDisplayableObject(aObjectCoordinateFrame);
-  }
-
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);

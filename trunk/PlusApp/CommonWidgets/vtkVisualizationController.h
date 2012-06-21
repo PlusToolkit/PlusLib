@@ -209,7 +209,8 @@ public:
   * Return the displayable object from the perspective visualizer
   * \param aCoordinateFrame coordinate frame name
   */
-  vtkDisplayableObject* GetDisplayableObject(const char* aObjectCoordinateFrame);
+  template <class T>
+  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
   /*!
   * Disconnect the image input
@@ -305,5 +306,19 @@ protected:
   /*! Transform repository to store and handle all transforms */
   vtkTransformRepository* TransformRepository;
 };
+
+//-----------------------------------------------------------------------------
+
+template <class T>
+std::vector<T*> vtkVisualizationController::GetDisplayableObjects(const char* aObjectCoordinateFrame)
+{
+  std::vector<T*> result;
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    result = this->PerspectiveVisualizer->GetDisplayableObjects<T>(aObjectCoordinateFrame);
+  }
+
+  return result;
+}
 
 #endif  // __vtkVisualizationController_h

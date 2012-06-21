@@ -1074,15 +1074,23 @@ PlusStatus FreehandCalibrationToolbox::SetAndSaveResults()
   m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
-  vtkDisplayableObject* transducerOriginDisplayable = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str());
-  if (transducerOriginDisplayable != NULL)
+  std::vector<vtkDisplayableObject*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableObject>(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str());
+  if (objects.size() == 1)
   {
-    transducerOriginDisplayable->DisplayableOn();
+    objects.at(0)->DisplayableOn();
   }
-  vtkDisplayableObject* imageDisplayable = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObject(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
-  if (imageDisplayable != NULL)
+  else
   {
-    imageDisplayable->DisplayableOn();
+    LOG_WARNING("Requested unique transducer displayable model. Got: " << objects.size());
+  }
+  objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableObject>(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
+  if (objects.size() == 1)
+  {
+    objects.at(0)->DisplayableOn();
+  }
+  else
+  {
+    LOG_WARNING("Requested unique image displayable object. Got: " << objects.size());
   }
 
   // Save result in configuration

@@ -38,7 +38,8 @@ public:
   * \param aObjectCoordinateFrame Object coordinate frame name
   * \param aDisplayableTool Displayable object out parameter
   */
-  vtkDisplayableObject* GetDisplayableObject(const char* aObjectCoordinateFrame);
+  template <class T>
+  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
@@ -131,7 +132,7 @@ protected:
   vtkDataCollector*	DataCollector;
 
   /*! List of displayable objects */
-  std::map<std::string, vtkDisplayableObject*> DisplayableObjects;
+  std::vector<vtkDisplayableObject*> DisplayableObjects;
 
   /*! Renderer for the canvas */
   vtkRenderer* CanvasRenderer; 
@@ -169,5 +170,37 @@ protected:
   /*! Reference to Transform repository that stores and handles all transforms */
   vtkTransformRepository* TransformRepository;
 };
+
+//-----------------------------------------------------------------------------
+
+template <class T>
+std::vector<T*> vtk3DObjectVisualizer::GetDisplayableObjects(const char* aObjectCoordinateFrame)
+{
+  LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObjects");
+
+  std::vector<T*> result;
+
+  if (aObjectCoordinateFrame == NULL)
+  {
+    LOG_ERROR("Invalid object coordinate frame name!");
+    return result;
+  }
+
+  for( std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  {
+    vtkDisplayableObject* pObj = *it;
+    if(STRCASECMP(pObj->GetObjectCoordinateFrame(), aObjectCoordinateFrame) == 0 && dynamic_cast<T*>(pObj) != NULL)
+    {
+      result.push_back(dynamic_cast<T*>(pObj));
+    }
+  }
+
+  if( result.size() == 0 )
+  {
+    LOG_ERROR("Requested displayable objects for identifier '" << aObjectCoordinateFrame << "' is/are missing!");
+  }
+
+  return result;
+}
 
 #endif  //__vtk3DObjectVisualizer_h
