@@ -36,8 +36,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   SetNumberOfInputPorts(1);
   SetNumberOfOutputPorts(1);
 
-  this->BackgroundValue = 0;
-  this->ForegroundValue = 155;
+  this->BackgroundValue = 155;
   this->StencilBackgroundImage = NULL;
   this->ModelToImageMatrix = NULL;
 
@@ -148,8 +147,8 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
   combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
   combineModelwithBackgroundStencil->SetStencil(modelStencilOutput);
-  combineModelwithBackgroundStencil->ReverseStencilOn();
-  combineModelwithBackgroundStencil->SetBackgroundValue(this->ForegroundValue);
+  combineModelwithBackgroundStencil->ReverseStencilOff();
+  combineModelwithBackgroundStencil->SetBackgroundValue(this->BackgroundValue);
   combineModelwithBackgroundStencil->Update();
   vtkImageData *combinedStencilOutput = combineModelwithBackgroundStencil->GetOutput();
 

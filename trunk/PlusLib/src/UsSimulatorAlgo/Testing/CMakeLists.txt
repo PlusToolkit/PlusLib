@@ -16,7 +16,7 @@ ADD_TEST(vtkUsSimulatorAlgoRunTest
 ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    simulatorOutput.mha 
-   ${TestDataDir}/simulatorOutputBaseline.mha
+   ${TestDataDir}/simulatorOutputGreyBackground.mha
   )
 SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTest)
 

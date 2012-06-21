@@ -18,7 +18,7 @@
   </CoordinateDefinitions>
 
   <vtkUsSimulatorAlgo
-    BackgroundValue="0"
+    BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Reference"
     FrameSize="820 616"
