@@ -67,9 +67,14 @@ public:
   static vtkVisualizationController *New();
 
   /*!
-  * Read configuration file and start data collection
+  * Start data collection
   */
   PlusStatus StartDataCollection();
+
+  /*
+  * Stop data collection and disconnect collector
+  */
+  PlusStatus StopAndDisconnectDataCollector();
 
   /*!
   * Hide all tools, other models and the image from main canvas
@@ -215,6 +220,11 @@ public:
   * Connect the image input to the DataCollector output
   */
   PlusStatus ConnectInput();
+
+  /*!
+  * Clear the transform repository
+  */
+  PlusStatus ClearTransformRepository();
 
 protected slots:
     /*!

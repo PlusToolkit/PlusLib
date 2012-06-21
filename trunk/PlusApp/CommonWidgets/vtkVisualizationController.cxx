@@ -47,8 +47,7 @@ vtkVisualizationController::vtkVisualizationController()
 , TransformRepository(NULL)
 {
   // Create transform repository
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
-  this->SetTransformRepository(transformRepository);
+  this->ClearTransformRepository();
 
   // Input points poly data
   vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -727,4 +726,30 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLD
   }
 
   return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
+{
+  if( this->DataCollector != NULL )
+  {
+    this->DataCollector->Stop();
+    this->DataCollector->Disconnect();
+    this->SetDataCollector(NULL);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_WARNING("Trying to disconnect from non-connected data collector.");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::ClearTransformRepository()
+{
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  this->SetTransformRepository(transformRepository);
+
+  return PLUS_SUCCESS;
 }

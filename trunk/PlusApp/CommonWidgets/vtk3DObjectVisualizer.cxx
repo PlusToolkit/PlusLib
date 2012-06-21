@@ -122,8 +122,7 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
   if (noObjectsToDisplay)
   {
-    LOG_ERROR("No visible objects to display.");
-    return PLUS_FAIL;
+    return PLUS_SUCCESS;
   }
 
   if( this->DataCollector == NULL )

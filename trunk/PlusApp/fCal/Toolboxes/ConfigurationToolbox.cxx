@@ -216,21 +216,14 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
-		vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
-		if ((dataCollector != NULL) && (dataCollector->GetConnected()))
-    {
-			dataCollector->Stop();
-			dataCollector->Disconnect();
-
-			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
-
-      m_ParentMainWindow->ResetShowDevices();
-      m_ParentMainWindow->ResetAllToolboxes();
-
-      m_ParentMainWindow->GetObjectVisualizer()->HideAll();
-		}
-	}
+    m_ParentMainWindow->GetObjectVisualizer()->StopAndDisconnectDataCollector();
+    m_ParentMainWindow->GetObjectVisualizer()->ClearTransformRepository();
+    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+    m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+    m_ParentMainWindow->ResetShowDevices();
+    m_ParentMainWindow->ResetAllToolboxes();
+    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+  }
 
   QApplication::restoreOverrideCursor();
 }
