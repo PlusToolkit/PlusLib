@@ -273,7 +273,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
   // Request data from each sensor one-by-one. This method works well in some cases (with 3DGm systems?) when the
   // ALL_SENSORS data request times out.
   // Scan the sensors and request a record if the sensor is physically attached
-  for(int sensorIndex=0;sensorID<sysConfig.numberSensors;sensorIndex++)
+  for(int sensorIndex=0;sensorIndex<sysConfig.numberSensors;sensorIndex++)
   {
     if(SensorAttached[sensorIndex])
     {
