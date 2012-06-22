@@ -31,7 +31,7 @@ public:
 
   CmdCtrlSettings BKcmdCtrlSettings; // cmdCtrlSet
   CommandAndControl* pBKcmdCtrl; // cmdctrl
-    
+
   vtkBkProFocusVideoSource::vtkInternal::vtkInternal(vtkBkProFocusVideoSource* external) 
   {
     this->External = external;
@@ -55,16 +55,16 @@ public:
 vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
 {
   this->Internal = new vtkInternal(this);
- 
+
   this->SpawnThreadForRecording=0;
   this->IniFileName=NULL;
   this->ShowSaperaWindow=false;
   this->ShowBModeWindow=false;
 
   this->SetFrameBufferSize(200); 
-  
+  this->Buffer->Modified();
   SetLogFunc(LogInfoMessageCallback);
-	SetDbgFunc(LogDebugMessageCallback);
+  SetDbgFunc(LogDebugMessageCallback);
 }
 
 //----------------------------------------------------------------------------
@@ -85,13 +85,13 @@ void vtkBkProFocusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::LogInfoMessageCallback(char *msg)
 {
-	LOG_INFO(msg);
+  LOG_INFO(msg);
 }
 
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::LogDebugMessageCallback(char *msg)
 {
-	LOG_INFO(msg);
+  LOG_INFO(msg);
 }
 
 
@@ -107,17 +107,24 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   }
 
   LOG_DEBUG("BK scanner address: " << this->Internal->BKparamSettings.GetScannerAddress());
-	LOG_DEBUG("BK scanner OEM port: " << this->Internal->BKparamSettings.GetOemPort());
-	LOG_DEBUG("BK scanner toolbox port: " << this->Internal->BKparamSettings.GetToolboxPort());
-  
+  LOG_DEBUG("BK scanner OEM port: " << this->Internal->BKparamSettings.GetOemPort());
+  LOG_DEBUG("BK scanner toolbox port: " << this->Internal->BKparamSettings.GetToolboxPort());
+
 	this->Internal->BKcmdCtrlSettings.LoadFromIniFile(iniFilePath.c_str());
 
-	this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
-	
+  if (!this->Internal->BKAcqSettings.LoadIni(iniFilePath.c_str()))
+  {
+    LOG_ERROR("Failed to load acquisition settings from file: "<<iniFilePath.c_str());
+    return PLUS_FAIL;
+  }
+
+  this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
+  this->Internal->BKcmdCtrlSettings = this->Internal->pBKcmdCtrl->GetCmdCtrlSettings();    // Get what has not failed !!!
+
   int numSamples = 0;
-	int numLines = 0;
+  int numLines = 0;
   if (!this->Internal->pBKcmdCtrl->CalcSaperaBufSize(&numSamples, &numLines))
-	{
+  {
     LOG_ERROR("Failed to get Sapera framegrabber buffer size for RF data");
     delete this->Internal->pBKcmdCtrl;
     this->Internal->pBKcmdCtrl=NULL;
@@ -125,23 +132,12 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   }
 
   LOG_DEBUG("Sapera buffer size: numSamples="<<numSamples<<", numLines="<<numLines);
-  
-    // Clear buffer on connect because the new frames that we will acquire might have a different size 
-  this->GetBuffer()->Clear();  
-  
-  if (!this->Internal->BKAcqSettings.LoadIni(iniFilePath.c_str()))
-  {
-    LOG_ERROR("Failed to load acquisition settings from file: "<<iniFilePath.c_str());
-    delete this->Internal->pBKcmdCtrl;
-    this->Internal->pBKcmdCtrl=NULL;
-    return PLUS_FAIL;
-  }
-		
-  this->Internal->BKAcqSettings.SetRFLineLength(numSamples);
+
   this->Internal->BKAcqSettings.SetLinesPerFrame(numLines);
+  this->Internal->BKAcqSettings.SetRFLineLength(numSamples);  
   this->Internal->BKAcqSettings.SetFramesToGrab(0); // continuous
 
-	if (!this->Internal->BKAcqSapera.Init(this->Internal->BKAcqSettings))
+  if (!this->Internal->BKAcqSapera.Init(this->Internal->BKAcqSettings))
   {
     LOG_ERROR("Failed to initialize framegrabber");
     delete this->Internal->pBKcmdCtrl;
@@ -150,7 +146,6 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   }
 
   this->Internal->pBKSaperaView = new SaperaViewDataReceiver(this->Internal->BKAcqSapera.GetBuffer());
-
   if (this->ShowSaperaWindow)
   {
     // show Sapera viewer
@@ -162,18 +157,19 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
     // show B-mode image  
     this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->BKBModeView); 
   }
-  
+
   // send frames to this video source
   this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->PlusReceiver);
 
+  // Clear buffer on connect because the new frames that we will acquire might have a different size 
+  this->GetBuffer()->Clear();  
+
   return PLUS_SUCCESS;
 }
-	
+
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 {
-  this->Internal->BKAcqSapera.Destroy();
-
   this->Internal->BKAcqInjector.RemoveDataReceiver(&this->Internal->PlusReceiver);
 
   if (this->ShowBModeWindow)
@@ -185,7 +181,9 @@ PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
   {
     this->Internal->BKAcqInjector.RemoveDataReceiver(this->Internal->pBKSaperaView);
   }
-  
+
+  this->Internal->BKAcqSapera.Destroy();
+
   delete this->Internal->pBKSaperaView;
   this->Internal->pBKSaperaView=NULL;
   delete this->Internal->pBKcmdCtrl;
@@ -214,7 +212,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
   }
   return PLUS_SUCCESS;
 }
-  
+
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], int numberOfBitsPerPixel)
 {      
@@ -225,16 +223,18 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int fr
     LOG_DEBUG("Set up BK ProFocus image buffer");
     switch (numberOfBitsPerPixel)
     {
-      case 8: this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR); break;
-      case 16: this->GetBuffer()->SetPixelType(itk::ImageIOBase::SHORT); break;
-      default:
-        LOG_ERROR("Unsupported bits per pixel: "<<numberOfBitsPerPixel<<", skip this frame");
-        return;
+    case 8: this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR); break;
+    case 16: this->GetBuffer()->SetPixelType(itk::ImageIOBase::SHORT); break;
+    default:
+      LOG_ERROR("Unsupported bits per pixel: "<<numberOfBitsPerPixel<<", skip this frame");
+      return;
     }      
     this->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]);
   } 
-  
+
   this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, itk::ImageIOBase::UCHAR, 0, this->FrameNumber);
+  this->Modified();
   this->FrameNumber++;
   
   // just for testing: PlusVideoFrame::SaveImageToFile( (unsigned char*)pixelDataPtr, frameSizeInPix, numberOfBitsPerPixel, (char *)"test.jpg");
