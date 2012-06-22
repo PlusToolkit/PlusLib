@@ -10,18 +10,18 @@ See License.txt for details.
 
 #include <sstream>
 
-
 #ifdef PLUS_USE_Ascension3DGm
-namespace atc
-{
 #include "ATC3DGm.h"
-}
+#define ATC
+SENSOR_CONFIGURATION* pSensor=NULL;
 #else /* PLUS_USE_Ascension3DGm */
 namespace atc
 {
 #include "ATC3DG.h"
 }
+#define ATC atc
 #endif /* PLUS_USE_Ascension3DGm */
+
 
 
 #include "vtkMatrix4x4.h"
@@ -36,7 +36,7 @@ namespace atc
 #include "vtkTrackerBuffer.h"
 
 vtkStandardNewMacro(vtkAscension3DGTracker);
-typedef atc::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
+typedef ATC::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
 
 //-------------------------------------------------------------------------
 vtkAscension3DGTracker::vtkAscension3DGTracker()
@@ -86,11 +86,11 @@ PlusStatus vtkAscension3DGTracker::Connect()
     return PLUS_FAIL;
   }
 
-  this->CheckReturnStatus( atc::InitializeBIRDSystem() );
+  this->CheckReturnStatus( ATC::InitializeBIRDSystem() );
 
-  atc::SYSTEM_CONFIGURATION systemConfig;
+  ATC::SYSTEM_CONFIGURATION systemConfig;
 
-  if (this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &systemConfig ) ) != PLUS_SUCCESS)
+  if (this->CheckReturnStatus( ATC::GetBIRDSystemConfiguration( &systemConfig ) ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Connection initialization failed");
     return PLUS_FAIL;
@@ -98,7 +98,7 @@ PlusStatus vtkAscension3DGTracker::Connect()
   // Change to metric units.
 
   int metric = 1;
-  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::METRIC, &metric, sizeof( metric ) ) )!= PLUS_SUCCESS)
+  if (this->CheckReturnStatus( ATC::SetSystemParameter( ATC::METRIC, &metric, sizeof( metric ) ) )!= PLUS_SUCCESS)
   {
     LOG_ERROR("Connection set to metric units failed");
     return PLUS_FAIL;
@@ -107,19 +107,22 @@ PlusStatus vtkAscension3DGTracker::Connect()
   // Go through all tools.
 
   int sensorID;
-  atc::DATA_FORMAT_TYPE formatType = atc::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON;
+  ATC::DATA_FORMAT_TYPE formatType = ATC::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON;
+
+pSensor = new SENSOR_CONFIGURATION[systemConfig.numberSensors];
 
   for ( sensorID = 0; sensorID < systemConfig.numberSensors; ++ sensorID )
   {
-    this->CheckReturnStatus( atc::SetSensorParameter( sensorID, atc::DATA_FORMAT, &formatType, sizeof( formatType ) ) );
+    this->CheckReturnStatus( ATC::SetSensorParameter( sensorID, ATC::DATA_FORMAT, &formatType, sizeof( formatType ) ) );
 
-    atc::DEVICE_STATUS status;
-    status = atc::GetSensorStatus( sensorID );
+    ATC::DEVICE_STATUS status;
+    status = ATC::GetSensorStatus( sensorID );
 
     this->SensorSaturated.push_back( ( status & SATURATED ) ? true : false );
     this->SensorAttached.push_back( ( status & NOT_ATTACHED ) ? false : true );
     this->SensorInMotion.push_back( ( status & OUT_OF_MOTIONBOX ) ? false : true );
     this->TransmitterAttached = ( ( status & NO_TRANSMITTER_ATTACHED ) ? false : true );
+
   }
 
 
@@ -197,7 +200,7 @@ PlusStatus vtkAscension3DGTracker::InternalStartTracking()
 
   // Turn on the first attached transmitter.
 
-  atc::BOARD_CONFIGURATION boardConfig;
+  ATC::BOARD_CONFIGURATION boardConfig;
   this->CheckReturnStatus( GetBoardConfiguration( 0, &boardConfig ) );
 
   short selectID = TRANSMITTER_OFF;
@@ -205,7 +208,7 @@ PlusStatus vtkAscension3DGTracker::InternalStartTracking()
   bool found = false;
   while( ( i < boardConfig.numberTransmitters ) && ( found == false ) )
   {
-    atc::TRANSMITTER_CONFIGURATION transConfig;
+    ATC:: TRANSMITTER_CONFIGURATION transConfig;
     this->CheckReturnStatus( GetTransmitterConfiguration( i, &transConfig ) );
     if ( transConfig.attached )
     {
@@ -215,7 +218,7 @@ PlusStatus vtkAscension3DGTracker::InternalStartTracking()
     ++ i;
   }
 
-  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) ) != PLUS_SUCCESS)
+  if (this->CheckReturnStatus( ATC::SetSystemParameter( ATC::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Select transmitter failed");
     return PLUS_FAIL;
@@ -230,7 +233,7 @@ PlusStatus vtkAscension3DGTracker::InternalStopTracking()
   LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
 
   short selectID = TRANSMITTER_OFF;
-  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) )
+  if (this->CheckReturnStatus( ATC::SetSystemParameter( ATC::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) )
     != PLUS_SUCCESS)
   {
     LOG_ERROR("Select transmitter failed");
@@ -251,8 +254,8 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  atc::SYSTEM_CONFIGURATION sysConfig;
-  if (this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &sysConfig ) )
+  ATC::SYSTEM_CONFIGURATION sysConfig;
+  if (this->CheckReturnStatus( ATC::GetBIRDSystemConfiguration( &sysConfig ) )
     != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot get system configuration");
@@ -274,13 +277,31 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     return PLUS_FAIL; 
   }
 
-  if (this->CheckReturnStatus( atc::GetAsynchronousRecord( ALL_SENSORS,
+#ifdef PLUS_USE_Ascension3DGm
+  // Request data from each sensor one-by-one. This method works well in some cases (with 3DGm systems?) when the
+  // ALL_SENSORS data request times out.
+  // Scan the sensors and request a record if the sensor is physically attached
+  for(int sensorID=0;sensorID<sysConfig.numberSensors;sensorID++)
+  {
+    if((pSensor+sensorID)->attached)
+    {
+      // sensor attached so get record
+      if (this->CheckReturnStatus( GetAsynchronousRecord(sensorID, record+sensorID, sizeof(*record)) ) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Cannot get synchronous record");
+        return PLUS_FAIL;
+      }
+    }
+  }
+#else
+  // Request data for all the sensors at once
+  if (this->CheckReturnStatus( atc::  GetAsynchronousRecord( ALL_SENSORS,
     record, sysConfig.numberSensors * sizeof( AscensionRecordType ) ) ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot get synchronous record");
     return PLUS_FAIL;
   }
-
+#endif
 
   // Set up reference matrix.
 
@@ -299,7 +320,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
       continue; 
     }
 
-    atc::DEVICE_STATUS status = atc::GetSensorStatus( sensorIndex );
+    ATC::DEVICE_STATUS status = ATC::GetSensorStatus( sensorIndex );
 
     saturated = status & SATURATED;
     attached = ! ( status & NOT_ATTACHED );
@@ -350,16 +371,20 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
 PlusStatus vtkAscension3DGTracker::InitAscension3DGTracker()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InitAscension3DGTracker" ); 
+#ifdef PLUS_USE_Ascension3DGm  
+  return PLUS_SUCCESS;
+#else
   return this->Connect(); 
+#endif  
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
 {
-  if( status != atc::BIRD_ERROR_SUCCESS )
+  if( status != ATC::BIRD_ERROR_SUCCESS )
   {
     char buffer[ 512 ];
-    atc::GetErrorText( status, buffer, sizeof( buffer ), atc::SIMPLE_MESSAGE );
+    ATC::GetErrorText( status, buffer, sizeof( buffer ), ATC::SIMPLE_MESSAGE );
     LOG_ERROR(buffer);
     return PLUS_FAIL;
   }
