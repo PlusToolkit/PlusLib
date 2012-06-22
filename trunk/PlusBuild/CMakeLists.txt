@@ -92,6 +92,7 @@ OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
+OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension MedSafe Tracker" OFF)
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 
 # Other
