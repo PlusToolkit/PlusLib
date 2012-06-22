@@ -58,7 +58,6 @@ SET(GrabbieLib_SRCS ${GrabbieLib_SRCS}
 SET(GrabbieLib_SRCS ${GrabbieLib_SRCS}
   CommandAndControl/CommandAndControl.cpp
   CommandAndControl/ObservedCmdCtrlState.cpp
-  CommandAndControl/ObserverCmdCtrlState.cpp
   )
   
 # LogLibrary
