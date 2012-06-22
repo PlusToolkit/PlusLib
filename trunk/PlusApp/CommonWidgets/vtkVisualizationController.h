@@ -210,7 +210,7 @@ public:
   * \param aCoordinateFrame coordinate frame name
   */
   template <class T>
-  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
+  std::vector<vtkDisplayableObject*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
   /*!
   * Disconnect the image input
@@ -310,9 +310,9 @@ protected:
 //-----------------------------------------------------------------------------
 
 template <class T>
-std::vector<T*> vtkVisualizationController::GetDisplayableObjects(const char* aObjectCoordinateFrame)
+std::vector<vtkDisplayableObject*> vtkVisualizationController::GetDisplayableObjects(const char* aObjectCoordinateFrame)
 {
-  std::vector<T*> result;
+  std::vector<vtkDisplayableObject*> result;
   if( this->PerspectiveVisualizer != NULL )
   {
     result = this->PerspectiveVisualizer->GetDisplayableObjects<T>(aObjectCoordinateFrame);
