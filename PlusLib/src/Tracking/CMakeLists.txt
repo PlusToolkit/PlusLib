@@ -259,7 +259,11 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial library folder" FORCE )
   SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial dll folder" FORCE ) 
       
-  SET (Tracking_SRCS ${Tracking_SRCS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx )
+  SET (Tracking_SRCS ${Tracking_SRCS} 
+    PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
+    #${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS/MadgwickAHRS.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAHRS/MahonyAHRS.cxx
+    )
   if (WIN32)  
     SET (Tracking_HDRS ${Tracking_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
   endif (WIN32)
@@ -267,6 +271,8 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAHRS
     CACHE INTERNAL "" FORCE)
 
   SET (Tracking_LIBS ${Tracking_LIBS}

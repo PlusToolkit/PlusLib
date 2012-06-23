@@ -8,6 +8,8 @@
 //----------------------------------------------------------------------------
 PlusBkProFocusReceiver::PlusBkProFocusReceiver()
 {
+  this->ImagingMode=BMode;
+
   this->frame = NULL;
   this->bmodeFrame = NULL;
   this->decimation = 4; // ignore IQ samples in each line
@@ -105,7 +107,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
 
     // only show bmode line
-    if(header->ModelID == 0 && header->CFM == 0 && header->FFT == 0) // TODO: check this, in CuteGrabbie "header->ModelID == 0" is not commented out
+    if(header->ModelID == 0 && header->CFM == 0 && header->FFT == 0)
     {
       int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + numBmodeLines*this->params.n_samples*bytesPerSample);
 
@@ -123,23 +125,48 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   }
 
   // compute bmode
-  if(numBmodeLines > 0)
+  if(numBmodeLines == 0)
   {
-    int tempLines = this->params.n_lines;
-    this->params.n_lines = numBmodeLines;
-    bmode_set_params_sqrt(&params);
-    bmode_detect_compress_sqrt_16sc_8u(reinterpret_cast<int16_t*>(this->frame), this->bmodeFrame, &(this->params));
-    this->params.n_lines = tempLines;
-    bmode_set_params_sqrt(&params);
+    LOG_DEBUG("No B-mode image lines were found");
+    return false;
+  }
 
-    //cimg_library::CImg<unsigned char> inputImage((const unsigned char*)bmodeFrame, this->params.n_samples / 2, numBmodeLines);
-    if (this->CallbackVideoSource!=NULL)
+  if (this->CallbackVideoSource==NULL)
+  {
+    LOG_WARNING("No BK video source callback is set");
+    return false;
+  }
+
+  switch (this->ImagingMode)
+  {
+  case BMode:
     {
-      // the image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-      int frameSizeInPix[2]={this->params.n_samples/2, std::min(this->params.n_lines, this->MaxNumLines)};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
+      int tempLines = this->params.n_lines;
+      this->params.n_lines = numBmodeLines;
+      bmode_set_params_sqrt(&params);
+      bmode_detect_compress_sqrt_16sc_8u(reinterpret_cast<int16_t*>(this->frame), this->bmodeFrame, &(this->params));
+      this->params.n_lines = tempLines;
+      bmode_set_params_sqrt(&params);
+      // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
+      int frameSizeInPix[2]={this->params.n_samples/2, std::min(this->params.n_lines, this->MaxNumLines)};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie; or try to change this->params.n_lines to numBmodeLines
       const int numberOfBitsPerPixel=8;
       this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, numberOfBitsPerPixel);
+      break;
     }
+  case RfMode:
+    {
+      if (this->CallbackVideoSource!=NULL)
+      {
+        // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
+        int frameSizeInPix[2]={this->params.n_samples/2, std::min(numBmodeLines, this->MaxNumLines)};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
+        const int numberOfBitsPerPixel=16;
+        this->CallbackVideoSource->NewFrameCallback(this->frame, frameSizeInPix, numberOfBitsPerPixel);
+      }
+      break;
+    }
+  default:
+    LOG_ERROR("Invalid imaging mode requested: "<<this->ImagingMode);
+    return false;
   }
 
   return true;
@@ -149,4 +176,10 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 void PlusBkProFocusReceiver::SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource)
 {
   this->CallbackVideoSource = videoSource;
+}
+
+//----------------------------------------------------------------------------
+void PlusBkProFocusReceiver::SetImagingMode(ImagingModeType imagingMode)
+{
+  this->ImagingMode = imagingMode;
 }

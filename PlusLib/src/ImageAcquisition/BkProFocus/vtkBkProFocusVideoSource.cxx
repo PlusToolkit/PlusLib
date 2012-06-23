@@ -218,22 +218,24 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int fr
 {      
   LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]<<", "<<numberOfBitsPerPixel<<" bits, pixel data: "<<pixelDataPtr);
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR;
+  switch (numberOfBitsPerPixel)
   {
-    LOG_DEBUG("Set up BK ProFocus image buffer");
-    switch (numberOfBitsPerPixel)
-    {
-    case 8: this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR); break;
-    case 16: this->GetBuffer()->SetPixelType(itk::ImageIOBase::SHORT); break;
+    case 8: pixelType=itk::ImageIOBase::UCHAR; break;
+    case 16: pixelType=itk::ImageIOBase::SHORT; break;
     default:
       LOG_ERROR("Unsupported bits per pixel: "<<numberOfBitsPerPixel<<", skip this frame");
       return;
-    }      
+  }
+  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  {
+    LOG_DEBUG("Set up BK ProFocus image buffer");
+    this->GetBuffer()->SetPixelType(pixelType);      
     this->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
-    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]);
+    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]<<", "<<numberOfBitsPerPixel<<" bits");
   } 
 
-  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, itk::ImageIOBase::UCHAR, 0, this->FrameNumber);
+  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, pixelType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
   
@@ -272,6 +274,26 @@ PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config
   {
     this->SetIniFileName(iniFileName); 
   }
+
+  const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
+  if ( imagingMode != NULL) 
+  {
+    if (STRCASECMP(imagingMode, "BMode")==0)
+    {
+      LOG_DEBUG("Imaging mode set: BMode"); 
+      this->Internal->PlusReceiver.SetImagingMode(PlusBkProFocusReceiver::BMode); 
+    }
+    else if (STRCASECMP(imagingMode, "RfMode")==0)
+    {
+      LOG_DEBUG("Imaging mode set: RfMode"); 
+      this->Internal->PlusReceiver.SetImagingMode(PlusBkProFocusReceiver::RfMode); 
+    }
+    else
+    {
+      LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
+    }
+  }
+
 
   return PLUS_SUCCESS;
 }

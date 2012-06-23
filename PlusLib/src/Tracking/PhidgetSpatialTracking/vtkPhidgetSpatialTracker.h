@@ -88,10 +88,12 @@ private:  // Variables.
   vtkMatrix4x4* LastAccelerometerToTrackerTransform;
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
   vtkMatrix4x4* LastMagnetometerToTrackerTransform;
+  vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
 
   vtkTrackerTool* AccelerometerTool;
   vtkTrackerTool* GyroscopeTool;
   vtkTrackerTool* MagnetometerTool;
+  vtkTrackerTool* OrientationSensorTool;
 };
 
 #endif
