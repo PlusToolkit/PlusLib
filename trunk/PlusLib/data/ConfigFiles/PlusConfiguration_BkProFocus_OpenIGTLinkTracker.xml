@@ -13,6 +13,11 @@
       <Tool Name="Reference" PortName="1" />
     </Tracker>
 
+    <xTracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
+      <Tool Name="Reference" PortName="0"></Tool> 
+      <Tool Name="Stylus" PortName="1" ></Tool>
+    </xTracker>
+
     <ImageAcquisition
       Type="BkProFocus"
       IniFileName="BkSettings/IniFile.ini"
@@ -21,6 +26,7 @@
       AcquisitionRate="30"
       AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0"
+      ImagingMode="BMode"
     />
   </DataCollection>
 

@@ -101,7 +101,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   const int bytesPerSample = 2;
   
   int numBmodeLines = 0; // number of bmode lines in this frame
-  for(int i = 0; i < this->params.n_lines && numBmodeLines < this->MaxNumLines; ++i)
+  for(int i = 0; i < this->params.n_lines; ++i)
   {
     const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + i*pitch);
     header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
@@ -148,7 +148,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       this->params.n_lines = tempLines;
       bmode_set_params_sqrt(&params);
       // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-      int frameSizeInPix[2]={this->params.n_samples/2, std::min(this->params.n_lines, this->MaxNumLines)};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie; or try to change this->params.n_lines to numBmodeLines
+	  int frameSizeInPix[2]={this->params.n_samples/2, this->params.n_lines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie; or try to change this->params.n_lines to numBmodeLines
       const int numberOfBitsPerPixel=8;
       this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, numberOfBitsPerPixel);
       break;
@@ -158,8 +158,8 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       if (this->CallbackVideoSource!=NULL)
       {
         // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-        int frameSizeInPix[2]={this->params.n_samples/2, std::min(numBmodeLines, this->MaxNumLines)};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
-        const int numberOfBitsPerPixel=16;
+		int frameSizeInPix[2]={this->params.n_samples, numBmodeLines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
+        const int numberOfBitsPerPixel=8;
         this->CallbackVideoSource->NewFrameCallback(this->frame, frameSizeInPix, numberOfBitsPerPixel);
       }
       break;
