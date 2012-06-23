@@ -222,9 +222,9 @@ IF( PLUS_USE_Ascension3DGm )
   SET( ATC_MEDSAFE_BINARY_DIR ${ATC_MEDSAFE_BASE_DIR}/bin CACHE PATH "Path to the Ascension medSAFE 3D Guidance dll folder" FORCE ) 
 
       
-  SET (Tracking_SRCS ${Tracking_SRCS} Ascension3DGTracking/vtkAscension3DGTracker.cxx )
+  SET (Tracking_SRCS ${Tracking_SRCS} Ascension3DGTracking/vtkAscension3DGmTracker.cxx )
   if (WIN32)  
-    SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGTracker.h )
+    SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGmTracker.h )
   endif (WIN32)
   
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 

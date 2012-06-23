@@ -6,17 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
-#include "vtkAscension3DGTracker.h"
-
 #include <sstream>
-
-#ifdef PLUS_USE_Ascension3DGm
-// MedSafe
-#include "ATC3DGm.h"
-#else
-// TrakStar
-#include "ATC3DG.h"
-#endif
 
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
@@ -29,11 +19,11 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-vtkStandardNewMacro(vtkAscension3DGTracker);
+vtkStandardNewMacro(vtkAscension3DGTrackerBase);
 typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
 
 //-------------------------------------------------------------------------
-vtkAscension3DGTracker::vtkAscension3DGTracker()
+vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
 {
   this->LocalTrackerBuffer = NULL;
   this->AscensionRecordBuffer = NULL; 
@@ -43,7 +33,7 @@ vtkAscension3DGTracker::vtkAscension3DGTracker()
 }
 
 //-------------------------------------------------------------------------
-vtkAscension3DGTracker::~vtkAscension3DGTracker() 
+vtkAscension3DGTrackerBase::~vtkAscension3DGTrackerBase() 
 {
   if ( this->Recording )
   {
@@ -64,15 +54,15 @@ vtkAscension3DGTracker::~vtkAscension3DGTracker()
 }
 
 //-------------------------------------------------------------------------
-void vtkAscension3DGTracker::PrintSelf( ostream& os, vtkIndent indent )
+void vtkAscension3DGTrackerBase::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkTracker::PrintSelf( os, indent );
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::Connect()
+PlusStatus vtkAscension3DGTrackerBase::Connect()
 {
-  LOG_TRACE( "vtkAscension3DGTracker::Connect" ); 
+  LOG_TRACE("vtkAscension3DGTracker::Connect" ); 
 
   if ( this->Probe()!=PLUS_SUCCESS )
   {
@@ -161,14 +151,14 @@ PlusStatus vtkAscension3DGTracker::Connect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::Disconnect()
+PlusStatus vtkAscension3DGTrackerBase::Disconnect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
   return this->StopTracking(); 
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::Probe()
+PlusStatus vtkAscension3DGTrackerBase::Probe()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Probe" ); 
 
@@ -176,19 +166,13 @@ PlusStatus vtkAscension3DGTracker::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::InternalStartTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStartTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
   if ( this->Recording )
   {
     return PLUS_SUCCESS;
   }
-
-  if ( ! this->InitAscension3DGTracker() )
-  {
-    LOG_ERROR( "Couldn't initialize vtkAscension3DGTracker" );
-    return PLUS_FAIL;
-  } 
 
   // Turn on the first attached transmitter.
 
@@ -220,7 +204,7 @@ PlusStatus vtkAscension3DGTracker::InternalStartTracking()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::InternalStopTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStopTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
 
@@ -236,7 +220,7 @@ PlusStatus vtkAscension3DGTracker::InternalStopTracking()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::InternalUpdate()
+PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
 
@@ -269,7 +253,14 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     return PLUS_FAIL; 
   }
 
-#ifdef PLUS_USE_Ascension3DGm
+#ifdef ATC_READ_ALL_SENSOR_AT_ONCE
+  // Request data for all the sensors at once
+  if (this->CheckReturnStatus(   GetAsynchronousRecord( ALL_SENSORS, record, sysConfig.numberSensors * sizeof( AscensionRecordType ) ) ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get synchronous record");
+    return PLUS_FAIL;
+  }
+#else
   // Request data from each sensor one-by-one. This method works well in some cases (with 3DGm systems?) when the
   // ALL_SENSORS data request times out.
   // Scan the sensors and request a record if the sensor is physically attached
@@ -280,18 +271,10 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
       // sensor attached so get record
       if (this->CheckReturnStatus( GetAsynchronousRecord(sensorIndex, record+sensorIndex, sizeof(*record)) ) != PLUS_SUCCESS)
       {
-        LOG_ERROR("Cannot get synchronous record");
+        LOG_ERROR("Cannot get synchronous record for sensor "<<sensorIndex);
         return PLUS_FAIL;
       }
     }
-  }
-#else
-  // Request data for all the sensors at once
-  if (this->CheckReturnStatus(   GetAsynchronousRecord( ALL_SENSORS,
-    record, sysConfig.numberSensors * sizeof( AscensionRecordType ) ) ) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Cannot get synchronous record");
-    return PLUS_FAIL;
   }
 #endif
 
@@ -360,18 +343,7 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::InitAscension3DGTracker()
-{
-  LOG_TRACE( "vtkAscension3DGTracker::InitAscension3DGTracker" ); 
-#ifdef PLUS_USE_Ascension3DGm  
-  return PLUS_SUCCESS;
-#else
-  return this->Connect(); 
-#endif  
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
+PlusStatus vtkAscension3DGTrackerBase::CheckReturnStatus( int status )
 {
   if( status != BIRD_ERROR_SUCCESS )
   {

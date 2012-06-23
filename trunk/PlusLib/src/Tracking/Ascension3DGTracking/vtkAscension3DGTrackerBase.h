@@ -4,15 +4,12 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkAscension3DGTracker_h
-#define __vtkAscension3DGTracker_h
-
 #include "vtkTracker.h"
 
 class vtkTrackerBuffer; 
 
 /*!
-\class vtkAscension3DGTracker 
+\class vtkAscension3DGTrackerBase 
 \brief Interface for the Ascension 3DG magnetic tracker 
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
@@ -21,12 +18,12 @@ This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 */
 class
   VTK_EXPORT
-vtkAscension3DGTracker : public vtkTracker
+vtkAscension3DGTrackerBase : public vtkTracker
 {
 public:
 
-  static vtkAscension3DGTracker *New();
-  vtkTypeMacro( vtkAscension3DGTracker,vtkTracker );
+  static vtkAscension3DGTrackerBase *New();
+  vtkTypeMacro( vtkAscension3DGTrackerBase,vtkTracker );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Connect to device */
@@ -54,11 +51,8 @@ public:
 
 protected:
 
-  vtkAscension3DGTracker();
-  ~vtkAscension3DGTracker();
-
-  /*! Initialize the tracking device */
-  PlusStatus InitAscension3DGTracker();
+  vtkAscension3DGTrackerBase();
+  ~vtkAscension3DGTrackerBase();
 
   /*! 
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
@@ -78,8 +72,8 @@ private:  // Definitions.
 
 private:  // Functions.
 
-  vtkAscension3DGTracker( const vtkAscension3DGTracker& );
-  void operator=( const vtkAscension3DGTracker& );  
+  vtkAscension3DGTrackerBase( const vtkAscension3DGTrackerBase& );
+  void operator=( const vtkAscension3DGTrackerBase& );  
 
   /*! Check return status and log in case of error */
   PlusStatus CheckReturnStatus( int status );
@@ -99,5 +93,3 @@ private:  // Variables.
   int NumberOfSensors; 
 
 };
-
-#endif
