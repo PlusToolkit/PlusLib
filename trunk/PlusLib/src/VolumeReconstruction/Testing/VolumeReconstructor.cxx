@@ -130,7 +130,7 @@ int main (int argc, char* argv[])
       return EXIT_FAILURE;
     }
     const char* imageCoordinateFrameName=reconConfig->GetAttribute("ImageCoordinateFrame");
-    if (referenceCoordinateFrameName==NULL)
+    if (imageCoordinateFrameName==NULL)
     {
       LOG_ERROR("Image to reference transform is not specified at the command-line and could not find the ImageCoordinateFrame attribute in the VolumeReconstruction element in the XML tree either!");
       return EXIT_FAILURE;
