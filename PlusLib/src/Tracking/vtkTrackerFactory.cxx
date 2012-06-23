@@ -31,7 +31,7 @@ See License.txt for details.
 #include "vtkAscension3DGTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DGm
-#include "vtkAscension3DGTracker.h"
+#include "vtkAscension3DGmTracker.h"
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #include "vtkPhidgetSpatialTracker.h"
@@ -73,7 +73,7 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["Ascension3DG"]=(PointerToTracker)&vtkAscension3DGTracker::New; 
 #endif
 #ifdef PLUS_USE_Ascension3DGm  
-  TrackerTypes["Ascension3DGm"]=(PointerToTracker)&vtkAscension3DGTracker::New; 
+  TrackerTypes["Ascension3DGm"]=(PointerToTracker)&vtkAscension3DGmTracker::New; 
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER  
   TrackerTypes["PhidgetSpatial"]=(PointerToTracker)&vtkPhidgetSpatialTracker::New; 

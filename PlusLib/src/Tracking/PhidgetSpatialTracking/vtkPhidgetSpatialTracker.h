@@ -15,9 +15,9 @@ class vtkTrackerBuffer;
 
 /*!
 \class vtkPhidgetSpatialTracker 
-\brief Interface for the Ascension 3DG magnetic tracker 
+\brief Interface for the Phidget 3/3/3 tracker 
 
-This class talks with PhidgetSpatial tracker over the ATC trakSTAR device driver
+This class talks with PhidgetSpatial 3/3/3 accelerometer/magnetometer/gyroscope device
 
 \ingroup PlusLibTracking
 */
