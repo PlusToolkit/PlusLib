@@ -19,6 +19,9 @@
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" /> 
       </TransformNames>
+	  <ImageNames>
+	    <Image Name="UsImage" CoordinateFrame="Reference" />
+	  </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
   
