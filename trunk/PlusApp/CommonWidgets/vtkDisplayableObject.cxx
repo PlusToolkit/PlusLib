@@ -399,87 +399,74 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
 
-  const char* modelFileName = aConfig->GetAttribute("File");
-  if (!modelFileName)
+  // ModelToObjectTransform stays identity if no model file has been found
+  double ModelToObjectTransformMatrixValue[16] = {0};
+  if ( aConfig->GetVectorAttribute("ModelToObjectTransform", 16, ModelToObjectTransformMatrixValue) )
   {
-    LOG_WARNING("Model file name not found for '" << this->ObjectCoordinateFrame << "' - no model displayed");
-    return PLUS_FAIL;
-  }
-  else if (STRCASECMP(modelFileName, "") != 0) // If model file name is not empty
-  {
-    this->SetSTLModelFileName(modelFileName);
-
-    // ModelToObjectTransform stays identity if no model file has been found
-	  double ModelToObjectTransformMatrixValue[16] = {0};
-	  if ( aConfig->GetVectorAttribute("ModelToObjectTransform", 16, ModelToObjectTransformMatrixValue) )
-	  {
-      this->ModelToObjectTransform->Identity();
-      this->ModelToObjectTransform->Concatenate(ModelToObjectTransformMatrixValue);
-	  }
+    this->ModelToObjectTransform->Identity();
+    this->ModelToObjectTransform->Concatenate(ModelToObjectTransformMatrixValue);
   }
 
-  // Load model
+  this->SetSTLModelFileName("");
   this->Displayable = false;
 
+  
+  // If the tool name contains stylus then we consider it a stylus - and do a few things differently
+  // It would be probably better to define this explicitly in the config file rather than trying to figure it out from the tool name
   std::string objectName(this->ObjectCoordinateFrame);
+  bool isStylus=(objectName.find("Stylus") != std::string::npos);
 
-  // Check if file name exists and file can be found
-  std::string stlFileName = "";
-  if ( (this->STLModelFileName == NULL) || (STRCASECMP(this->STLModelFileName, "") == 0) )
-  {
-    LOG_ERROR("No STL file name found for displayable object (" << objectName << ")");
-    return PLUS_FAIL;
-  }
-
-  std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(this->STLModelFileName);
-  if (STRCASECMP("", searchResult.c_str()) == 0)
-  {
-    LOG_WARNING("Displayable object (" << this->ObjectCoordinateFrame << ") model file is not found with name: " << this->STLModelFileName);
-  }
-  else
-  {
-    stlFileName = searchResult;
-  }
-
-  // Handle missing object models if possible
-  if (stlFileName.empty())
-  {
-    if (objectName.find("Stylus") != std::string::npos) // If the tool name contains stylus but there is no model for it
+  const char* modelFileName = aConfig->GetAttribute("File");
+  if (modelFileName==NULL || STRCASECMP(modelFileName, "")==0 )
+  {   
+    // Handle missing object models if possible
+    if (isStylus)
     {
       LOG_INFO("No stylus model file found - default model will be displayed");
-
       if (SetDefaultStylusModel() != PLUS_SUCCESS)
       {
         LOG_WARNING("Failed to load default stylus model for displayable object '" << this->ObjectCoordinateFrame << "'");
+        return PLUS_FAIL;
       }
-
       this->Displayable = true;
+      return PLUS_SUCCESS;
     }
+    // Model is missing
+    LOG_WARNING("Model file name not defined for '" << this->ObjectCoordinateFrame << "' - no model will be displayed");
+    return PLUS_FAIL;
   }
-  else
-  // Load STL model as usual
+
+
+  // Find absolute path for the file
+  std::string modelFileFullPath;
+  if (vtkPlusConfig::GetAbsoluteModelPath(modelFileName, modelFileFullPath)!=PLUS_SUCCESS)
   {
-    vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-    stlReader->SetFileName(stlFileName.c_str());
-
-    SetPolyData(stlReader->GetOutput());
-
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputConnection(this->PolyData->GetProducerPort());
-
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-
-    actor->SetMapper(mapper);
-    this->SetActor(actor);
-    this->SetOpacity( this->LastOpacity );
-
-    if (objectName.find("Stylus") != std::string::npos) // Stylus is always black (dark gray so that it can be seen in front of the image)
-    {
-      this->SetColor(0.2, 0.2, 0.2);
-    }
-
-    this->Displayable = true;
+    LOG_ERROR("Displayable object (" << this->ObjectCoordinateFrame << ") model file is not found with name: " << this->STLModelFileName);
+    return PLUS_FAIL;
   }
+  
+  this->SetSTLModelFileName(modelFileFullPath.c_str());
+
+  vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+  stlReader->SetFileName(this->STLModelFileName);
+  stlReader->Update();
+  SetPolyData(stlReader->GetOutput());
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputConnection(this->PolyData->GetProducerPort());
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+  this->SetActor(actor);
+  this->SetOpacity( this->LastOpacity );
+
+  // Stylus is always black (actually, dark gray so that it can be seen in front of the image)
+  if (isStylus)
+  {
+    this->SetColor(0.2, 0.2, 0.2);
+  }
+
+  this->Displayable = true;
 
   return PLUS_SUCCESS;
 }

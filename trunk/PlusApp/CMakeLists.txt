@@ -177,6 +177,7 @@ configure_file(
 # 
 SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "../config" )
 SET( PLUSCONFIG_IMAGE_DIR "../data" )
+SET( PLUSCONFIG_MODEL_DIR "../config" )
 SET( PLUSCONFIG_GNUPLOT_DIR "../gnuplot" )
 SET( PLUSCONFIG_SCRIPTS_DIR "../scripts" )
 

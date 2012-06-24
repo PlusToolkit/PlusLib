@@ -215,34 +215,26 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
     m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
     m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
+    m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
+
     // Initialize phantom visualization in toolbox canvas
-    if ( phantomDisplayableModel->GetSTLModelFileName() != NULL && phantomDisplayableModel->GetModelToObjectTransform() != NULL )
+    const char* modelFileName=phantomDisplayableModel->GetSTLModelFileName();
+    if ( modelFileName != NULL && phantomDisplayableModel->GetModelToObjectTransform() != NULL )
     {
-      std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(phantomDisplayableModel->GetSTLModelFileName());
-      if (STRCASECMP("", searchResult.c_str()) == 0)
-      {
-        LOG_ERROR("Failed to find phantom model file in configuration directory!");
-        return PLUS_FAIL;
-      }
-      
       vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
       m_PhantomActor = vtkActor::New();
       vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      stlReader->SetFileName(searchResult.c_str());
+      stlReader->SetFileName(modelFileName);
       stlMapper->SetInputConnection(stlReader->GetOutputPort());
       m_PhantomActor->SetMapper(stlMapper);
       m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
       m_PhantomActor->SetUserTransform(phantomDisplayableModel->GetModelToObjectTransform());
+      m_PhantomRenderer->AddActor(m_PhantomActor);
     }
     else
     {
-      LOG_ERROR("Phantom cannot be visualized in toolbox canvas because model or model to object transform is invalid!");
-      return PLUS_FAIL;
+      LOG_WARNING("Phantom cannot be visualized in toolbox canvas because model or model to object transform is invalid!");
     }
-
-    // Add actors
-    m_PhantomRenderer->AddActor(m_PhantomActor);
-    m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
 
     m_PhantomRenderer->ResetCamera();
   }
