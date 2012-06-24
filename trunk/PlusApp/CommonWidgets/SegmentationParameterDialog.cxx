@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkConeSource.h"
-#include "vtkCubeSource.h"
+#include "vtkSphereSource.h"
 #include "vtkDataCollector.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
@@ -36,6 +36,20 @@ See License.txt for details.
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include <QTimer>
+#include "vtkSphereSource.h"
+
+static const int HANDLE_SIZE=8;
+
+void CreateNewHandleActor(vtkActor* &actor, vtkSphereSource* &source, double r, double g, double b)
+{
+  actor = vtkActor::New();
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  source = vtkSphereSource::New();
+  source->SetRadius(HANDLE_SIZE);
+  mapper->SetInputConnection(source->GetOutputPort());
+  actor->SetMapper(mapper);
+  actor->GetProperty()->SetColor(r, g, b);
+}
 
 //----------------------------------------------------------------------
 
@@ -77,7 +91,7 @@ public:
 
     vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
     if (aOn) {
-      prop->SetOpacity(1.0);
+      prop->SetOpacity(0.5);
       prop->SetColor(1.0, 0.0, 0.0);
 
     } else {
@@ -219,14 +233,14 @@ public:
 
         if (m_TopLeftHandlePicked) {
           double bottomRightPosition[3];
-          m_BottomRightHandleCubeSource->GetCenter(bottomRightPosition);
+          m_BottomRightHandleSource->GetCenter(bottomRightPosition);
 
           newXMin = (int)(xWorld + 0.5);
           newYMin = (int)(yWorld + 0.5);
 
         } else if (m_BottomRightHandlePicked) {
           double topLeftPosition[3];
-          m_TopLeftHandleCubeSource->GetCenter(topLeftPosition);
+          m_TopLeftHandleSource->GetCenter(topLeftPosition);
 
           newXMax = (int)(xWorld + 0.5);
           newYMax = (int)(yWorld + 0.5);
@@ -272,8 +286,8 @@ public:
     m_BottomLineSource->SetPoint2(xMax, yMax, -0.5);
 
     // Set handle positions
-    m_TopLeftHandleCubeSource->SetCenter(xMin, yMin, -0.5);
-    m_BottomRightHandleCubeSource->SetCenter(xMax, yMax, -0.5);
+    m_TopLeftHandleSource->SetCenter(xMin, yMin, -0.5);
+    m_BottomRightHandleSource->SetCenter(xMax, yMax, -0.5);
 
     return PLUS_SUCCESS;
   }
@@ -288,8 +302,8 @@ private:
   {
     m_TopLeftHandleActor = NULL;
     m_BottomRightHandleActor = NULL;
-    m_TopLeftHandleCubeSource = NULL;
-    m_BottomRightHandleCubeSource = NULL;
+    m_TopLeftHandleSource = NULL;
+    m_BottomRightHandleSource = NULL;
     m_TopLeftHandlePicked = false;
     m_BottomRightHandlePicked = false;
     m_LeftLineSource = NULL;
@@ -314,14 +328,14 @@ private:
       m_BottomRightHandleActor = NULL;
     }
 
-    if (m_TopLeftHandleCubeSource != NULL) {
-      m_TopLeftHandleCubeSource->Delete();
-      m_TopLeftHandleCubeSource = NULL;
+    if (m_TopLeftHandleSource != NULL) {
+      m_TopLeftHandleSource->Delete();
+      m_TopLeftHandleSource = NULL;
     }
 
-    if (m_BottomRightHandleCubeSource != NULL) {
-      m_BottomRightHandleCubeSource->Delete();
-      m_BottomRightHandleCubeSource = NULL;
+    if (m_BottomRightHandleSource != NULL) {
+      m_BottomRightHandleSource->Delete();
+      m_BottomRightHandleSource = NULL;
     }
 
     if (m_LeftLineSource != NULL) {
@@ -394,27 +408,11 @@ protected:
     m_ActorCollection->AddItem(bottomLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(bottomLineActor);
 
-    m_TopLeftHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> topLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_TopLeftHandleCubeSource = vtkCubeSource::New();
-    m_TopLeftHandleCubeSource->SetXLength(6.0);
-    m_TopLeftHandleCubeSource->SetYLength(6.0);
-    m_TopLeftHandleCubeSource->SetZLength(6.0);
-    topLeftHandleMapper->SetInputConnection(m_TopLeftHandleCubeSource->GetOutputPort());
-    m_TopLeftHandleActor->SetMapper(topLeftHandleMapper);
-    m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, 1.0, 0.0, 0.5);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    m_BottomRightHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> bottomRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_BottomRightHandleCubeSource = vtkCubeSource::New();
-    m_BottomRightHandleCubeSource->SetXLength(6.0);
-    m_BottomRightHandleCubeSource->SetYLength(6.0);
-    m_BottomRightHandleCubeSource->SetZLength(6.0);
-    bottomRightHandleMapper->SetInputConnection(m_BottomRightHandleCubeSource->GetOutputPort());
-    m_BottomRightHandleActor->SetMapper(bottomRightHandleMapper);
-    m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
+    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, 1.0, 0.0, 0.5);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -449,10 +447,10 @@ private:
   vtkActor*                     m_BottomRightHandleActor;
 
   //! Cube source of the top left corner handle (direct access needed to move it around)
-  vtkCubeSource*                m_TopLeftHandleCubeSource;
+  vtkSphereSource*                m_TopLeftHandleSource;
 
   //! Cube source of the bottom right corner handle (direct access needed to move it around)
-  vtkCubeSource*                m_BottomRightHandleCubeSource;
+  vtkSphereSource*                m_BottomRightHandleSource;
 
   //! Line source of left line (one side of the ROI rectangle)
   vtkLineSource*                m_LeftLineSource;
@@ -557,42 +555,42 @@ public:
 
         // Get the positions of all handles
         double horizontalLeftPosition[3];
-        m_HorizontalLeftHandleCubeSource->GetCenter(horizontalLeftPosition);
+        m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
         double horizontalRightPosition[3];
-        m_HorizontalRightHandleCubeSource->GetCenter(horizontalRightPosition);
+        m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
         double verticalTopPosition[3];
-        m_VerticalTopHandleCubeSource->GetCenter(verticalTopPosition);
+        m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
         double verticalBottomPosition[3];
-        m_VerticalBottomHandleCubeSource->GetCenter(verticalBottomPosition);
+        m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
 
         // Change position of the picked handle
         if (m_HorizontalLeftHandlePicked) {
           if (xWorld < horizontalRightPosition[0] - 10.0) {
-            m_HorizontalLeftHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
+            m_HorizontalLeftHandleSource->SetCenter(xWorld, yWorld, -0.5);
             m_HorizontalLineSource->SetPoint1(xWorld, yWorld, -0.5);
           }
-          m_HorizontalLeftHandleCubeSource->GetCenter(horizontalLeftPosition);
+          m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
 
         } else if (m_HorizontalRightHandlePicked) {
           if (xWorld > horizontalLeftPosition[0] + 10.0) {
-            m_HorizontalRightHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
+            m_HorizontalRightHandleSource->SetCenter(xWorld, yWorld, -0.5);
             m_HorizontalLineSource->SetPoint2(xWorld, yWorld, -0.5);
           }
-          m_HorizontalRightHandleCubeSource->GetCenter(horizontalRightPosition);
+          m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
 
         } else if (m_VerticalTopHandlePicked) {
           if (yWorld < verticalBottomPosition[1] - 10.0) {
-            m_VerticalTopHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
+            m_VerticalTopHandleSource->SetCenter(xWorld, yWorld, -0.5);
             m_VerticalLineSource->SetPoint1(xWorld, yWorld, -0.5);
           }
-          m_VerticalTopHandleCubeSource->GetCenter(verticalTopPosition);
+          m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
 
         } else if (m_VerticalBottomHandlePicked) {
           if (yWorld > verticalTopPosition[1] + 10.0) {
-            m_VerticalBottomHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
+            m_VerticalBottomHandleSource->SetCenter(xWorld, yWorld, -0.5);
             m_VerticalLineSource->SetPoint2(xWorld, yWorld, -0.5);
           }
-          m_VerticalBottomHandleCubeSource->GetCenter(verticalBottomPosition);
+          m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
 
         }
 
@@ -644,10 +642,10 @@ private:
     m_VerticalBottomHandleActor = NULL;
     m_HorizontalLineActor = NULL;
     m_VerticalLineActor = NULL;
-    m_HorizontalLeftHandleCubeSource = NULL;
-    m_HorizontalRightHandleCubeSource = NULL;
-    m_VerticalTopHandleCubeSource = NULL;
-    m_VerticalBottomHandleCubeSource = NULL;
+    m_HorizontalLeftHandleSource = NULL;
+    m_HorizontalRightHandleSource = NULL;
+    m_VerticalTopHandleSource = NULL;
+    m_VerticalBottomHandleSource = NULL;
     m_HorizontalLeftHandlePicked = false;
     m_HorizontalRightHandlePicked = false;
     m_VerticalTopHandlePicked = false;
@@ -693,24 +691,24 @@ private:
       m_VerticalLineActor = NULL;
     }
 
-    if (m_HorizontalLeftHandleCubeSource != NULL) {
-      m_HorizontalLeftHandleCubeSource->Delete();
-      m_HorizontalLeftHandleCubeSource = NULL;
+    if (m_HorizontalLeftHandleSource != NULL) {
+      m_HorizontalLeftHandleSource->Delete();
+      m_HorizontalLeftHandleSource = NULL;
     }
 
-    if (m_HorizontalRightHandleCubeSource != NULL) {
-      m_HorizontalRightHandleCubeSource->Delete();
-      m_HorizontalRightHandleCubeSource = NULL;
+    if (m_HorizontalRightHandleSource != NULL) {
+      m_HorizontalRightHandleSource->Delete();
+      m_HorizontalRightHandleSource = NULL;
     }
 
-    if (m_VerticalTopHandleCubeSource != NULL) {
-      m_VerticalTopHandleCubeSource->Delete();
-      m_VerticalTopHandleCubeSource = NULL;
+    if (m_VerticalTopHandleSource != NULL) {
+      m_VerticalTopHandleSource->Delete();
+      m_VerticalTopHandleSource = NULL;
     }
 
-    if (m_VerticalBottomHandleCubeSource != NULL) {
-      m_VerticalBottomHandleCubeSource->Delete();
-      m_VerticalBottomHandleCubeSource = NULL;
+    if (m_VerticalBottomHandleSource != NULL) {
+      m_VerticalBottomHandleSource->Delete();
+      m_VerticalBottomHandleSource = NULL;
     }
 
     if (m_VerticalLineSource != NULL) {
@@ -718,9 +716,9 @@ private:
       m_VerticalLineSource = NULL;
     }
 
-    if (m_VerticalBottomHandleCubeSource != NULL) {
-      m_VerticalBottomHandleCubeSource->Delete();
-      m_VerticalBottomHandleCubeSource = NULL;
+    if (m_VerticalBottomHandleSource != NULL) {
+      m_VerticalBottomHandleSource->Delete();
+      m_VerticalBottomHandleSource = NULL;
     }
   }
 
@@ -755,51 +753,19 @@ protected:
     m_ActorCollection->AddItem(m_VerticalLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalLineActor);
 
-    m_HorizontalLeftHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> horizontalLeftHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_HorizontalLeftHandleCubeSource = vtkCubeSource::New();
-    m_HorizontalLeftHandleCubeSource->SetXLength(6.0);
-    m_HorizontalLeftHandleCubeSource->SetYLength(6.0);
-    m_HorizontalLeftHandleCubeSource->SetZLength(6.0);
-    horizontalLeftHandleMapper->SetInputConnection(m_HorizontalLeftHandleCubeSource->GetOutputPort());
-    m_HorizontalLeftHandleActor->SetMapper(horizontalLeftHandleMapper);
-    m_HorizontalLeftHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    CreateNewHandleActor(m_HorizontalLeftHandleActor, m_HorizontalLeftHandleSource, 0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalLeftHandleActor);
 
-    m_HorizontalRightHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> horizontalRightHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_HorizontalRightHandleCubeSource = vtkCubeSource::New();
-    m_HorizontalRightHandleCubeSource->SetXLength(6.0);
-    m_HorizontalRightHandleCubeSource->SetYLength(6.0);
-    m_HorizontalRightHandleCubeSource->SetZLength(6.0);
-    horizontalRightHandleMapper->SetInputConnection(m_HorizontalRightHandleCubeSource->GetOutputPort());
-    m_HorizontalRightHandleActor->SetMapper(horizontalRightHandleMapper);
-    m_HorizontalRightHandleActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+    CreateNewHandleActor(m_HorizontalRightHandleActor, m_HorizontalRightHandleSource, 0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalRightHandleActor);
 
-    m_VerticalTopHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> verticalTopHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_VerticalTopHandleCubeSource = vtkCubeSource::New();
-    m_VerticalTopHandleCubeSource->SetXLength(6.0);
-    m_VerticalTopHandleCubeSource->SetYLength(6.0);
-    m_VerticalTopHandleCubeSource->SetZLength(6.0);
-    verticalTopHandleMapper->SetInputConnection(m_VerticalTopHandleCubeSource->GetOutputPort());
-    m_VerticalTopHandleActor->SetMapper(verticalTopHandleMapper);
-    m_VerticalTopHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    CreateNewHandleActor(m_VerticalTopHandleActor, m_VerticalTopHandleSource, 0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalTopHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalTopHandleActor);
 
-    m_VerticalBottomHandleActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> verticalBottomHandleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_VerticalBottomHandleCubeSource = vtkCubeSource::New();
-    m_VerticalBottomHandleCubeSource->SetXLength(6.0);
-    m_VerticalBottomHandleCubeSource->SetYLength(6.0);
-    m_VerticalBottomHandleCubeSource->SetZLength(6.0);
-    verticalBottomHandleMapper->SetInputConnection(m_VerticalBottomHandleCubeSource->GetOutputPort());
-    m_VerticalBottomHandleActor->SetMapper(verticalBottomHandleMapper);
-    m_VerticalBottomHandleActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    CreateNewHandleActor(m_VerticalBottomHandleActor, m_VerticalBottomHandleSource, 0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalBottomHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalBottomHandleActor);
 
@@ -834,10 +800,10 @@ protected:
     double verticalBottomX = imageDimensions[0] / 2.0 - offsetXImage + referenceWidth / 2.0 + 10.0;
     double verticalBottomY = imageDimensions[1] / 2.0 - offsetYImage + referenceHeight / 2.0;
 
-    m_HorizontalLeftHandleCubeSource->SetCenter(horizontalLeftX, horizontalLeftY, -0.5);
-    m_HorizontalRightHandleCubeSource->SetCenter(horizontalRightX, horizontalRightY, -0.5);
-    m_VerticalTopHandleCubeSource->SetCenter(verticalTopX, verticalTopY, -0.5);
-    m_VerticalBottomHandleCubeSource->SetCenter(verticalBottomX, verticalBottomY, -0.5);
+    m_HorizontalLeftHandleSource->SetCenter(horizontalLeftX, horizontalLeftY, -0.5);
+    m_HorizontalRightHandleSource->SetCenter(horizontalRightX, horizontalRightY, -0.5);
+    m_VerticalTopHandleSource->SetCenter(verticalTopX, verticalTopY, -0.5);
+    m_VerticalBottomHandleSource->SetCenter(verticalBottomX, verticalBottomY, -0.5);
     m_HorizontalLineSource->SetPoint1(horizontalLeftX, horizontalLeftY, -0.5);
     m_HorizontalLineSource->SetPoint2(horizontalRightX, horizontalRightY, -0.5);
     m_VerticalLineSource->SetPoint1(verticalTopX, verticalTopY, -0.5);
@@ -884,16 +850,16 @@ private:
   vtkActor*                     m_VerticalBottomHandleActor;
 
   //! Cube source of the left handle of the horizontal line (direct access needed to move it around)
-  vtkCubeSource*                m_HorizontalLeftHandleCubeSource;
+  vtkSphereSource*                m_HorizontalLeftHandleSource;
 
   //! Cube source of the right handle of the horizontal line (direct access needed to move it around)
-  vtkCubeSource*                m_HorizontalRightHandleCubeSource;
+  vtkSphereSource*                m_HorizontalRightHandleSource;
 
   //! Cube source of the left handle of the vertical line (direct access needed to move it around)
-  vtkCubeSource*                m_VerticalTopHandleCubeSource;
+  vtkSphereSource*                m_VerticalTopHandleSource;
 
   //! Cube source of the right handle of the vertical line (direct access needed to move it around)
-  vtkCubeSource*                m_VerticalBottomHandleCubeSource;
+  vtkSphereSource*                m_VerticalBottomHandleSource;
 
   //! Line source of horizontal line
   vtkLineSource*                m_HorizontalLineSource;
