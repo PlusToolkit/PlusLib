@@ -174,7 +174,7 @@ int main (int argc, char* argv[])
 
   vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
   vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-  configRootElement->PrintXML(calibrationResultFileName.c_str());
+  PlusCommon::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
 
   // Compare to baseline
   if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetObjectPivotPointCoordinateFrame() ) !=0 )
