@@ -224,8 +224,7 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
 # BK ProFocus support
-IF (PLUS_USE_BKPROFOCUS_VIDEO)
-  ADD_SUBDIRECTORY(BkProFocus/GrabbieLib)
+IF (PLUS_USE_BKPROFOCUS_VIDEO)  
   SET (ImageAcquisition_SRCS
     ${ImageAcquisition_SRCS}
     BkProFocus/vtkBkProFocusVideoSource.cxx
@@ -239,7 +238,13 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
       )
   endif (WIN32)	
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
-    ${GrabbieLib_INCLUDE_DIRS}
+    ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
+    ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
+    ${GRABBIELIB_SOURCE_DIR}/cfuff
+    ${GRABBIELIB_SOURCE_DIR}/CommandAndControl
+    ${GRABBIELIB_SOURCE_DIR}/LogLibrary
+    ${GRABBIELIB_SOURCE_DIR}/OemParams
+    ${GRABBIELIB_SOURCE_DIR}/ParametersLibrary        
     ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus
     )
   SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
