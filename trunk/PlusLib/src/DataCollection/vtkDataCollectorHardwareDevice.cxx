@@ -280,7 +280,7 @@ PlusStatus vtkDataCollectorHardwareDevice::Start()
 
   if (this->Tracker == NULL && this->VideoSource == NULL)
   {
-    LOG_ERROR("Data collection cannot be started because devices have not been initialized properly!");
+    LOG_ERROR("Data collection cannot be started because neither tracker nor imaging device is available!");
     return PLUS_FAIL;
   }
 

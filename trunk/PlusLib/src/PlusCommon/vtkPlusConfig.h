@@ -105,14 +105,6 @@ public:
 	static std::string GetFirstFileFoundInConfigurationDirectory(const char* aFileName);
 
 	/*!
-	  Search recursively for a file in the parent of a specified directory
-	  \param aFileName Name of the file to be searched
-	  \param aDirectory Directory in whose parent the search is performed
-	  \return The first file that is found (with full path)
-	*/
-	static std::string GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory);
-
-	/*!
 	  Search recursively for a file in a specified directory
 	  \param aFileName Name of the file to be searched
 	  \param aDirectory Directory in which search is performed
@@ -137,6 +129,13 @@ public:
 	  \param aOutputAbsolutePath Absolute image path if found (output parameter)
 	*/
   static PlusStatus GetAbsoluteImagePath(const char* aImagePath, std::string &aFoundAbsolutePath);
+
+	/*!
+	  Get absolute model path from input image model path
+	  \param aModelPath Model path read from configuration file
+	  \param aOutputAbsolutePath Absolute model path if found (output parameter)
+	*/
+  static PlusStatus GetAbsoluteModelPath(const char* aModelPath, std::string &aFoundAbsolutePath);
 
 public:
 	/*! Get device set configuration directory path */
@@ -174,6 +173,11 @@ public:
 	vtkGetStringMacro(ImageDirectory);
 	/*! Set image directory path */
 	vtkSetStringMacro(ImageDirectory);
+
+	/*! Get model directory path */
+	vtkGetStringMacro(ModelDirectory);
+	/*! Set model directory path */
+	vtkSetStringMacro(ModelDirectory);
 
 	/*! Get gnuplot directory path */
 	vtkGetStringMacro(GnuplotDirectory);
@@ -250,8 +254,11 @@ protected:
   /*! Program path */
   char*               ProgramDirectory;
 
-  /*! Image directory path. It is used as home directory for images when the image path for a saved dataset is not an absolute path */
+  /*! Image directory path. It is used as home directory for images when the image path for a saved dataset is not an absolute path */  
   char*               ImageDirectory;
+
+  /*! Model directory path. It is used as home directory for models when the model path for a saved dataset is not an absolute path */
+  char*               ModelDirectory;
 
   /*! Gnuplot binary directory path */
   char*               GnuplotDirectory;

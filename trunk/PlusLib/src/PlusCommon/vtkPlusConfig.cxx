@@ -116,6 +116,7 @@ vtkPlusConfig::vtkPlusConfig()
   this->OutputDirectory = NULL;
   this->ProgramDirectory = NULL;
   this->ImageDirectory = NULL;
+  this->ModelDirectory = NULL;
   this->GnuplotDirectory = NULL;
   this->ScriptsDirectory = NULL;
   this->ApplicationStartTimestamp = NULL;
@@ -227,6 +228,9 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   // Save image directory path
   applicationConfigurationRoot->SetAttribute("ImageDirectory", this->ImageDirectory);
 
+  // Save model directory path
+  applicationConfigurationRoot->SetAttribute("ModelDirectory", this->ModelDirectory);
+
   // Save gnuplot directory path
   applicationConfigurationRoot->SetAttribute("GnuplotDirectory", this->GnuplotDirectory);
 
@@ -308,10 +312,8 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   }
   else
   {
-    LOG_INFO("Device set configuration directory is not set - default '../Config' will be used");
-    std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(this->ProgramDirectory);
-    std::string defaultDeviceSetConfigDirectory = vtksys::SystemTools::CollapseFullPath("./Config", parentDirectory.c_str()); 
-    this->SetDeviceSetConfigurationDirectory(defaultDeviceSetConfigDirectory.c_str());
+    LOG_INFO("Device set configuration directory is not set - default '../config' will be used");
+    this->SetDeviceSetConfigurationDirectory("../config");
     saveNeeded = true;
   }
 
@@ -344,8 +346,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   else
   {
     LOG_INFO("Output directory is not set - default './Output' will be used");
-  	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
-    this->SetOutputDirectory(defaultOutputDirectory.c_str());
+    this->SetOutputDirectory("./Output");
     saveNeeded = true;
   }
 
@@ -357,9 +358,21 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   }
   else
   {
-    LOG_INFO("Image directory is not set - default './' will be used");
-  	std::string defaultImageDirectory = vtksys::SystemTools::CollapseFullPath("./", this->ProgramDirectory); 
-    this->SetImageDirectory(defaultImageDirectory.c_str());
+    LOG_INFO("Image directory is not set - default '../data' will be used");
+    this->SetImageDirectory("../data");
+    saveNeeded = true;
+  }
+
+  // Read model directory
+  const char* modelDirectory = applicationConfigurationRoot->GetAttribute("ModelDirectory");
+  if ((modelDirectory != NULL) && (STRCASECMP(modelDirectory, "") != 0))
+  {
+	  this->SetModelDirectory(modelDirectory);
+  }
+  else
+  {
+    LOG_INFO("Model directory is not set - default '../config' will be used");
+    this->SetModelDirectory("../config");
     saveNeeded = true;
   }
 
@@ -372,8 +385,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   else
   {
     LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
-    std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
-    this->SetGnuplotDirectory(defaultGnuplotDirectory.c_str());
+    this->SetGnuplotDirectory("../gnuplot");
     saveNeeded = true;
   }
 
@@ -386,8 +398,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   else
   {
     LOG_INFO("Scripts directory is not set - default '../scripts' will be used");
-  	std::string defaultScriptsDirectory = vtksys::SystemTools::CollapseFullPath("../scripts", this->ProgramDirectory); 
-    this->SetScriptsDirectory(defaultScriptsDirectory.c_str());
+    this->SetScriptsDirectory("../scripts");
     saveNeeded = true;
   }
 
@@ -726,23 +737,12 @@ std::string vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(const char*
   if ((vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() == NULL) || (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0))
   {
 		std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
-		return vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(aFileName, configurationDirectory.c_str());
+		return vtkPlusConfig::GetFirstFileFoundInDirectory(aFileName, configurationDirectory.c_str());
   }
   else
   {
-  	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+  	return GetFirstFileFoundInDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
   }
-};
-
-//-----------------------------------------------------------------------------
-
-std::string vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
-{
-	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
-
-	std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(aDirectory);
-
-	return GetFirstFileFoundInDirectory(aFileName, parentDirectory.c_str());
 };
 
 //-----------------------------------------------------------------------------
@@ -883,6 +883,48 @@ PlusStatus vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath, std::stri
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
   aFoundAbsolutePath = "";
-  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory nor to device set configuration directory!");
+  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory ("<<absoluteImageDirectoryPath<<") nor to device set configuration directory ("<<absoluteDeviceSetConfigurationDirectoryPath<<")!");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::GetAbsoluteModelPath(const char* aModelPath, std::string &aFoundAbsolutePath)
+{
+	LOG_TRACE("vtkPlusConfig::GetAbsoluteModelPath(" << aModelPath << ")");
+
+  // Check if the file exists in the specified absolute path
+  if (vtksys::SystemTools::FileExists(aModelPath))
+  {
+    // found
+    aFoundAbsolutePath=aModelPath;
+    return PLUS_SUCCESS;
+  }
+  LOG_DEBUG("Absolute path not found at: " << aModelPath);
+
+  // Check recursively in the model directory
+  std::string absoluteModelDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetModelDirectory(), vtkPlusConfig::GetInstance()->GetProgramDirectory());
+  aFoundAbsolutePath = FindFileRecursivelyInDirectory(aModelPath, absoluteModelDirectoryPath.c_str());
+  if (!aFoundAbsolutePath.empty())
+  {
+    // found
+    LOG_DEBUG("Absolute path found at: " << aFoundAbsolutePath);
+		return PLUS_SUCCESS;
+	}
+  LOG_DEBUG("Absolute path not found in subdirectories: " << absoluteModelDirectoryPath);
+
+  // Check file relative to the device set configuration directory
+  std::string absoluteDeviceSetConfigurationDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+  aFoundAbsolutePath = vtksys::SystemTools::CollapseFullPath(aModelPath, absoluteDeviceSetConfigurationDirectoryPath.c_str());
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {
+    // found
+    LOG_DEBUG("Absolute path found at: " << aFoundAbsolutePath);
+    return PLUS_SUCCESS;
+  }
+  LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
+
+  aFoundAbsolutePath = "";
+  LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<") nor in device set configuration directory ("<<absoluteDeviceSetConfigurationDirectoryPath<<")!");
   return PLUS_FAIL;
 }
