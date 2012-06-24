@@ -380,7 +380,7 @@ void CapturingToolbox::Save()
 
     // Save config file next to the tracked frame list
     std::string configFileName = path + "/" + filename + "_config.xml";
-    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(configFileName.c_str());
+    PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
     m_RecordedFrames->Clear(); 
     SetState(ToolboxState_Idle);

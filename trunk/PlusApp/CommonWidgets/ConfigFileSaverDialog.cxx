@@ -156,7 +156,7 @@ void ConfigFileSaverDialog::SaveClicked()
 
 	if (! fileName.isNull() )
   {
-    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(fileName.toAscii().data());
+    PlusCommon::PrintXML(fileName.toAscii().data(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     LOG_INFO("Device set configuration saved as '" << fileName.toAscii().data() << "'");
 	}
 
