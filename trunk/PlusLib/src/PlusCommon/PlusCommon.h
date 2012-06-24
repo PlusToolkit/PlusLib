@@ -123,6 +123,8 @@ private:
   }\
 }
 
+class vtkXMLDataElement;
+
 namespace PlusCommon
 {
   typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
@@ -188,7 +190,22 @@ namespace PlusCommon
   VTK_EXPORT void Trim(std::string &str);
   
   VTK_EXPORT std::string Trim(const char* c);
-  
+
+  /*!
+    Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
+    there are no extra lines, if there are many attributes then each of them is printed on separate line, and
+    matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
+    are printed in 4 lines.
+  */
+  VTK_EXPORT PlusStatus PrintXML(const char* fname, vtkXMLDataElement* elem);
+  /*!
+    Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
+    there are no extra lines, if there are many attributes then each of them is printed on separate line, and
+    matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
+    are printed in 4 lines.
+  */
+  VTK_EXPORT PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
+
 };
 
 /*!

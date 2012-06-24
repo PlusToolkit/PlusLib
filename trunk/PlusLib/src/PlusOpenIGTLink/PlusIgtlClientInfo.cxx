@@ -195,6 +195,6 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   xmldata->AddNestedElement( imageTransformName ); 
 
   std::ostringstream os; 
-  xmldata->PrintXML( os, vtkIndent(0) ); 
+  PlusCommon::PrintXML(os, vtkIndent(0), xmldata); 
   strXmlData = os.str(); 
 }

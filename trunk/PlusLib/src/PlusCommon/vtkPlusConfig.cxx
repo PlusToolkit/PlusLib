@@ -459,7 +459,7 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
     return PLUS_FAIL; 
   }
 
-  this->ApplicationConfigurationData->PrintXML( this->ApplicationConfigurationFileName );
+  PlusCommon::PrintXML(this->ApplicationConfigurationFileName, this->ApplicationConfigurationData); 
 
   LOG_INFO("Application configuration file '" << this->ApplicationConfigurationFileName << "' saved");
 

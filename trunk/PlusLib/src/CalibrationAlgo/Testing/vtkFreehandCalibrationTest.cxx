@@ -152,7 +152,7 @@ int main (int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(resultConfigFileName.c_str());
+    PlusCommon::PrintXML(resultConfigFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()); 
   }
 
   // Compare results

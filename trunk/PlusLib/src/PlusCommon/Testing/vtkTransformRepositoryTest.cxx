@@ -229,7 +229,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to write persistent transforms to CoordinateDefinitions");
     return EXIT_FAILURE;
   }
-  xmlData->PrintXML("CoordinateDefinitions.xml"); 
+  PlusCommon::PrintXML("CoordinateDefinitions.xml", xmlData); 
 
   /////////////////////////////////////////////////////////////////////////////
   // Check read configuration 

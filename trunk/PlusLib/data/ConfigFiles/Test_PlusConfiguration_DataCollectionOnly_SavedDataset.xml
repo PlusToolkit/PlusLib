@@ -6,7 +6,7 @@
       Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
     />
 
-    <Tracker Type="SavedDataset" BufferSize="200" AcquisitionRate="10" LocalTimeOffsetSec="0.0" DefaultToolName="Probe" SequenceMetafile="" AveragedItemsForFiltering="20" >
+    <Tracker Type="SavedDataset" BufferSize="200" AcquisitionRate="10" LocalTimeOffsetSec="0.0" DefaultToolName="Probe" SequenceMetafile="NwirePhantomFreehand.mha" AveragedItemsForFiltering="20" >
       <Tool Name="Tool" PortName="0" />
     </Tracker>
 
@@ -16,6 +16,7 @@
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="0.0" 
       UsImageOrientation="MF"
+      SequenceMetafile="NwirePhantomFreehand.mha"
     />
   </DataCollection>
 

@@ -7,24 +7,46 @@
     />
 
     <Tracker Type="PhidgetSpatial" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="Accelerometer" PortName="Accelerometer" />
-      <Tool Name="Gyroscope" PortName="Gyroscope" />
-      <Tool Name="Magnetometer" PortName="Magnetometer" />
+      <xTool Name="Accelerometer" PortName="Accelerometer" />
+      <xTool Name="Gyroscope" PortName="Gyroscope" />
+      <xTool Name="Magnetometer" PortName="Magnetometer" />
+      <Tool Name="OrientationSensor" PortName="OrientationSensor" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
+    <xImageAcquisition Type="None" />
+    
+    <ImageAcquisition Type="Epiphan" 
+      BufferSize="100" 
+      AcquisitionRate="30" 
+      UsImageOrientation="UN"
+      AveragedItemsForFiltering="20"
+    />
 
   </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform From="Image" To="OrientationSensor"
+      Matrix="0    -0.1   0   32.0
+              -0.1   0    0    26.0
+              0    0   -1   0
+              0    0   0   1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
+
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 
     <DefaultClientInfo> 
       <MessageTypes> 
+        <Message Type="IMAGE" />
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="AccelerometerToTracker" /> 
-        <Transform Name="GyroscopeToTracker" /> 
-        <Transform Name="MagnetometerToTracker" /> 
+        <Transform Name="OrientationSensorToTracker" /> 
+        <Transform Name="ImageToTracker" /> 
+        <xTransform Name="AccelerometerToTracker" /> 
+        <xTransform Name="GyroscopeToTracker" /> 
+        <xTransform Name="MagnetometerToTracker" /> 
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
