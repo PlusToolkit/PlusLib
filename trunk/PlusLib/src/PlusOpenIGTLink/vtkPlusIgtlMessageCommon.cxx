@@ -219,7 +219,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
-
+  
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
 

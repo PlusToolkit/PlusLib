@@ -18,6 +18,7 @@
       <TransformNames> 
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" /> 
+		<Transform Name="ProbeToReference" />
       </TransformNames>
 	  <ImageNames>
 	    <Image Name="UsImage" CoordinateFrame="Reference" />

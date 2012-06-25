@@ -461,12 +461,12 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
     // Set image transform name
     PlusTransformName imageTransformName = this->DefaultImageTransformName; 
-    /*
+    
     if ( client.ImageTransformName.IsValid() )
     {
       imageTransformName = client.ImageTransformName; 
     }
-    */
+    
     
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
     if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageTransformName, this->TransformRepository ) != PLUS_SUCCESS )
@@ -489,7 +489,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
         retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize() ); 
         numOfTries++; 
       }
-
+      
       if ( retValue == 0 )
       {
         clientDisconnected = true; 
@@ -683,7 +683,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
       // Read image names
 
     vtkXMLDataElement* imageNames = defaultClientInfo->FindNestedElementWithName( "ImageNames" );
-    if ( imageNames != NULL )
+    if ( imageNames == NULL )
     {
       LOG_INFO( "No ImageNames specified for OpenIGTLink server." );
     }
