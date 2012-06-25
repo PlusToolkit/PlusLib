@@ -249,6 +249,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     )
   SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
     GrabbieLib
+    ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
