@@ -178,13 +178,13 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
     vtkDisplayableModel* phantomDisplayableModel = NULL;
     if(m_PhantomRegistration->GetPhantomCoordinateFrame() != NULL)
     {
-      std::vector<vtkDisplayableObject*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(m_PhantomRegistration->GetPhantomCoordinateFrame());
+      std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(m_PhantomRegistration->GetPhantomCoordinateFrame());
       if( objects.size() != 1 )
       {
         LOG_ERROR("Expected only one displayable model for the phantom. Got: " << objects.size());
         return PLUS_FAIL;
       }
-      phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(objects.at(0));
+      phantomDisplayableModel = objects.at(0);
     }
     else
     {

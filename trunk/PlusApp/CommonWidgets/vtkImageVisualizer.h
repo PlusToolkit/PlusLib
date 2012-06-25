@@ -84,6 +84,12 @@ public:
   */
   PlusStatus SetScreenRightDownAxesOrientation(US_IMAGE_ORIENTATION aOrientation = US_IMG_ORIENT_MF);
 
+  /*!
+  * Add an actor to the list of screen aligned actors
+  * \param aProp vtkProp3D to be managed
+  */
+  PlusStatus AddScreenAlignedProp(vtkSmartPointer<vtkProp3D> aProp);
+
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
@@ -133,7 +139,18 @@ protected:
   /*!
   * Calculate the correct orientation and position of the markers
   */
-  PlusStatus UpdateOrientationMarkerTransformPosition();
+  PlusStatus UpdateOrientationMarkerLabelling();
+
+  /*!
+  * Clear list of screen-aligned actors
+  * Also does memory cleanup
+  */
+  PlusStatus ClearScreenAlignedActorList();
+
+  /*!
+  * Update the position and orientation of actors to become screen aligned
+  */
+  PlusStatus UpdateScreenAlignedActors();
 
   /*! Data Collector link */
   vtkDataCollector* DataCollector;
@@ -166,13 +183,19 @@ protected:
   vtkTextActor3D* VerticalOrientationTextActor;
 
   /*! The current horizontal orientation of the orientation markers */
-  double OrientationMarkerCurrentXRotation;
+  double ScreenAlignedCurrentXRotation;
 
   /*! The current vertical orientation of the orientation markers */
-  double OrientationMarkerCurrentYRotation;
+  double ScreenAlignedCurrentYRotation;
 
   /*! Record the current state of the marker orientation */
   US_IMAGE_ORIENTATION CurrentMarkerOrientation;
+
+  /*! List of objects maintained by the visualizer to be screen aligned */
+  std::vector<vtkSmartPointer<vtkProp3D>> ScreenAlignedProps;
+
+  /*! List of original positions of screen-aligned objects */
+  std::vector<std::vector<int>> ScreenAlignedPropOriginalPosition;
 };
 
 #endif

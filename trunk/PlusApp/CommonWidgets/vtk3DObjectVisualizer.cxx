@@ -275,10 +275,10 @@ PlusStatus vtk3DObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame,
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
 
-  std::vector<vtkDisplayableObject*> objects = this->GetDisplayableObjects<vtkDisplayableModel>(aObjectCoordinateFrame);
+  std::vector<vtkDisplayableModel*> objects = this->GetDisplayableObjects<vtkDisplayableModel>(aObjectCoordinateFrame);
   if( objects.size() == 1 )
   {
-    vtkDisplayableModel* obj = dynamic_cast<vtkDisplayableModel*>(objects.at(0));
+    vtkDisplayableModel* obj = objects.at(0);
     obj->GetActor()->SetVisibility(aOn);
     this->CanvasRenderer->Modified();
     return PLUS_SUCCESS;

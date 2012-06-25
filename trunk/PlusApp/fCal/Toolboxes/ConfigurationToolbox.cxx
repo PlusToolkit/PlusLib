@@ -446,13 +446,13 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 
   // Get phantom displayable model object
   vtkDisplayableModel* phantomDisplayableModel = NULL;
-  std::vector<vtkDisplayableObject*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
+  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
   if( objects.size() != 1)
   {
     LOG_ERROR("Requested unique phantom displayable. Got: " << objects.size());
     return PLUS_FAIL;
   }
-  phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(objects.at(0));
+  phantomDisplayableModel = objects.at(0);
 
   // Get wire pattern
   FidPatternRecognition patternRecognition;

@@ -324,7 +324,7 @@ void StylusCalibrationToolbox::Start()
   m_PivotCalibration->Initialize();
 
   // Initialize stylus tool
-  std::vector<vtkDisplayableObject*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(m_PivotCalibration->GetObjectPivotPointCoordinateFrame());
+  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(m_PivotCalibration->GetObjectPivotPointCoordinateFrame());
   if (objects.size() == 0)
   {
     LOG_ERROR("No stylus tip displayable objects could be found!");

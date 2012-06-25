@@ -30,7 +30,7 @@ static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
 static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
 static double ORIENTATION_MARKER_COLOUR[3] = {0.0, 1.0, 0.0};
 static double ORIENTATION_MARKER_SIZE = 51.0;
-static double ORIENTATION_MARKER_ASSEMBLY_POSITION[3] = {5.0, 5.0, -1.0};
+static double ORIENTATION_MARKER_ASSEMBLY_POSITION[3] = {12.0, 12.0, -1.0};
 static const double ORIENTATION_MARKER_CONE_RADIUS = 5.0;
 static const double ORIENTATION_MARKER_CONE_HEIGHT = 15.0;
 
@@ -47,8 +47,8 @@ vtkImageVisualizer::vtkImageVisualizer()
 , OrientationMarkerAssembly(NULL)
 , HorizontalOrientationTextActor(NULL)
 , VerticalOrientationTextActor(NULL)
-, OrientationMarkerCurrentXRotation(0.0)
-, OrientationMarkerCurrentYRotation(0.0)
+, ScreenAlignedCurrentXRotation(0.0)
+, ScreenAlignedCurrentYRotation(0.0)
 , CurrentMarkerOrientation(US_IMG_ORIENT_MF)
 {
   // Set up canvas renderer
@@ -87,12 +87,13 @@ vtkImageVisualizer::vtkImageVisualizer()
 
 vtkImageVisualizer::~vtkImageVisualizer()
 {
+  ClearScreenAlignedActorList();
+
   this->SetResultActor(NULL);
   this->SetResultPolyData(NULL);
   this->SetCanvasRenderer(NULL);
   this->SetImageActor(NULL);
   this->SetImageCamera(NULL);
-  this->SetOrientationMarkerAssembly(NULL);
   this->SetHorizontalOrientationTextActor(NULL);
   this->SetVerticalOrientationTextActor(NULL);
 }
@@ -101,7 +102,9 @@ vtkImageVisualizer::~vtkImageVisualizer()
 
 PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 {
-  this->SetOrientationMarkerAssembly(vtkSmartPointer<vtkAssembly>::New());
+
+  vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
+  this->SetOrientationMarkerAssembly(assembly);
 
   // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
@@ -181,78 +184,37 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   verticalConeActor->SetMapper(verticalConeMapper);
   this->OrientationMarkerAssembly->AddPart(verticalConeActor);
 
-  this->GetCanvasRenderer()->AddActor(this->OrientationMarkerAssembly);
-
   this->OrientationMarkerAssembly->SetPosition(ORIENTATION_MARKER_ASSEMBLY_POSITION);
+
+  this->AddScreenAlignedProp(assembly);
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::UpdateOrientationMarkerTransformPosition()
+PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
 {
-  int dimensions[2];
-  if( this->DataCollector == NULL )
-  {
-    LOG_WARNING("Trying to modify vtkImageVisualizer orientation while not connected.");
-    return PLUS_FAIL;
-  }
-
-  this->DataCollector->GetFrameSize(dimensions);
-  double newPosition[3];
-
-  // Undo any existing rotations to the markers, so that all subsequent rotations are from a base orientation
-  // Base orientation is MF_SCREEN_RIGHT_DOWN
-  this->GetOrientationMarkerAssembly()->RotateX(-OrientationMarkerCurrentXRotation);
-  this->GetOrientationMarkerAssembly()->RotateY(-OrientationMarkerCurrentYRotation);
-
-  // Apply any necessary rotations and repositioning
-  // Also change the letters on the display to indicate the new orientation
+  // Change the letters on the display to indicate the new orientation
   switch(CurrentMarkerOrientation)
   {
   case US_IMG_ORIENT_MF:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("F");
-    OrientationMarkerCurrentXRotation = 0;
-    OrientationMarkerCurrentYRotation = 0;
-    newPosition[0] = ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
-    newPosition[1] = ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
-    newPosition[2] = ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_MN:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("N");
-    OrientationMarkerCurrentYRotation = 0;
-    this->GetOrientationMarkerAssembly()->RotateX(180);
-    OrientationMarkerCurrentXRotation = 180;
-    newPosition[0] = ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
-    newPosition[1] = dimensions[1] - ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
-    newPosition[2] = -ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_UN:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("N");
-    this->GetOrientationMarkerAssembly()->RotateX(180);
-    OrientationMarkerCurrentXRotation = 180.0;
-    this->GetOrientationMarkerAssembly()->RotateY(180);
-    OrientationMarkerCurrentYRotation = 180.0;
-    newPosition[0] = dimensions[0] - ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
-    newPosition[1] = dimensions[1] - ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
-    newPosition[2] = ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   case US_IMG_ORIENT_UF:
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("F");
-    this->GetOrientationMarkerAssembly()->RotateY(180);
-    OrientationMarkerCurrentYRotation = 180.0;
-    OrientationMarkerCurrentXRotation = 0;
-    newPosition[0] = dimensions[0] - ORIENTATION_MARKER_ASSEMBLY_POSITION[0];
-    newPosition[1] = ORIENTATION_MARKER_ASSEMBLY_POSITION[1];
-    newPosition[2] = -ORIENTATION_MARKER_ASSEMBLY_POSITION[2];
     break;
   }
-  this->GetOrientationMarkerAssembly()->SetPosition(newPosition[0], newPosition[1], newPosition[2]);
 
   return PLUS_SUCCESS;
 }
@@ -361,7 +323,13 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     break;
   }
 
-  return UpdateOrientationMarkerTransformPosition();
+  if( UpdateScreenAlignedActors() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Error during alignment of screen-aligned actors.");
+    return PLUS_FAIL;
+  }
+
+  return UpdateOrientationMarkerLabelling();
 }
 
 //-----------------------------------------------------------------------------
@@ -469,6 +437,120 @@ PlusStatus vtkImageVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPoly
     this->SetResultPolyData(aResultPolyData);
 
     this->ResultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::AddScreenAlignedProp( vtkSmartPointer<vtkProp3D> aProp )
+{
+  // Store the prop for later manipulation
+  ScreenAlignedProps.push_back(aProp);
+
+  // Store the original position of the prop
+  std::vector<int> pos;
+  pos.push_back(aProp->GetPosition()[0]);
+  pos.push_back(aProp->GetPosition()[1]);
+  pos.push_back(aProp->GetPosition()[2]);
+  ScreenAlignedPropOriginalPosition.push_back(pos);
+
+  // Add it to the canvas
+  this->GetCanvasRenderer()->AddActor(aProp);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
+{
+  for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it )
+  {
+    this->GetCanvasRenderer()->RemoveActor(*it);
+    (*it)->Delete();
+  }
+
+  ScreenAlignedPropOriginalPosition.clear();
+  ScreenAlignedProps.clear();
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
+{
+  int dimensions[2];
+  if( this->DataCollector == NULL )
+  {
+    LOG_WARNING("Trying to modify vtkImageVisualizer screen-aligned actors while not connected.");
+    return PLUS_FAIL;
+  }
+
+  this->DataCollector->GetFrameSize(dimensions);
+  double newPosition[3];
+  double originalPosition[3];
+
+  // Declare a local scope
+  {  
+    int i = 0;
+    for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it, ++i )
+    {
+      vtkSmartPointer<vtkProp3D> prop = *it;
+
+      // Undo any existing rotations to the prop, so that all subsequent rotations are from a base orientation
+      // Base orientation is MF_SCREEN_RIGHT_DOWN
+      prop->RotateX(-ScreenAlignedCurrentXRotation);
+      prop->RotateY(-ScreenAlignedCurrentYRotation);
+
+      // Future work: instead of saving the original position of a prop (which will prevent any clients from changing the position of the prop after adding it)
+      // determine a method to back calculate the original position
+      // Possible solution is to pass in the previous orientation, then reverse the following calculations
+      originalPosition[0] = ScreenAlignedPropOriginalPosition.at(i).at(0);
+      originalPosition[1] = ScreenAlignedPropOriginalPosition.at(i).at(1);
+      originalPosition[2] = ScreenAlignedPropOriginalPosition.at(i).at(2);
+
+      // Apply any necessary rotations and repositioning
+      switch(CurrentMarkerOrientation)
+      {
+      case US_IMG_ORIENT_MF:
+        ScreenAlignedCurrentXRotation = 0;
+        ScreenAlignedCurrentYRotation = 0;
+        newPosition[0] = originalPosition[0];
+        newPosition[1] = originalPosition[1];
+        newPosition[2] = originalPosition[2];
+        break;
+      case US_IMG_ORIENT_MN:
+        ScreenAlignedCurrentYRotation = 0;
+        prop->RotateX(180);
+        ScreenAlignedCurrentXRotation = 180;
+        newPosition[0] = originalPosition[0];
+        newPosition[1] = dimensions[1] - originalPosition[1];
+        newPosition[2] = -originalPosition[2];
+        break;
+      case US_IMG_ORIENT_UN:
+        prop->RotateX(180);
+        ScreenAlignedCurrentXRotation = 180.0;
+        prop->RotateY(180);
+        ScreenAlignedCurrentYRotation = 180.0;
+        newPosition[0] = dimensions[0] - originalPosition[0];
+        newPosition[1] = dimensions[1] - originalPosition[1];
+        newPosition[2] = originalPosition[2];
+        break;
+      case US_IMG_ORIENT_UF:
+        prop->RotateY(180);
+        ScreenAlignedCurrentYRotation = 180.0;
+        ScreenAlignedCurrentXRotation = 0;
+        newPosition[0] = dimensions[0] - originalPosition[0];
+        newPosition[1] = originalPosition[1];
+        newPosition[2] = -originalPosition[2];
+        break;
+      }
+
+      prop->SetPosition(newPosition[0], newPosition[1], newPosition[2]);
+    }
   }
 
   return PLUS_SUCCESS;

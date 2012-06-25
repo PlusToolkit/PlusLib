@@ -39,7 +39,7 @@ public:
   * \param aDisplayableTool Displayable object out parameter
   */
   template <class T>
-  std::vector<vtkDisplayableObject*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
+  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
@@ -174,11 +174,11 @@ protected:
 //-----------------------------------------------------------------------------
 
 template <class T>
-std::vector<vtkDisplayableObject*> vtk3DObjectVisualizer::GetDisplayableObjects(const char* aObjectCoordinateFrame)
+std::vector<T*> vtk3DObjectVisualizer::GetDisplayableObjects(const char* aObjectCoordinateFrame)
 {
   LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObjects");
 
-  std::vector<vtkDisplayableObject*> result;
+  std::vector<T*> result;
 
   if (aObjectCoordinateFrame == NULL)
   {
@@ -189,9 +189,10 @@ std::vector<vtkDisplayableObject*> vtk3DObjectVisualizer::GetDisplayableObjects(
   for( std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
     vtkDisplayableObject* pObj = *it;
-    if(STRCASECMP(pObj->GetObjectCoordinateFrame(), aObjectCoordinateFrame) == 0 && dynamic_cast<T*>(pObj) != NULL)
+    T* pCastedObj = dynamic_cast<T*>(pObj);
+    if(STRCASECMP(pObj->GetObjectCoordinateFrame(), aObjectCoordinateFrame) == 0 && pCastedObj != NULL)
     {
-      result.push_back(pObj);
+      result.push_back(pCastedObj);
     }
   }
 
