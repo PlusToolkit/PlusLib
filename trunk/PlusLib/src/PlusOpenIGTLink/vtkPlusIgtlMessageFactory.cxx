@@ -11,9 +11,11 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h" 
-#include "PlusVideoFrame.h" 
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusIgtlMessageCommon.h"
+
+#include "PlusCommon.h"
+#include "PlusVideoFrame.h" 
 
 //----------------------------------------------------------------------------
 // IGT message types
@@ -154,6 +156,8 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
       vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName); 
 
       igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()); 
+      imageMessage->SetDeviceName( std::string( "UsImage_" + imageTransformName.To() ).c_str() );
+      
       if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack image message"); 

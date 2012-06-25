@@ -57,6 +57,8 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   this->Mutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
   
   this->ServerSocket = igtl::ServerSocket::New();
+  
+  this->DefaultImageTransformName.SetTransformName( "ImageToImage" );
 }
 
 //----------------------------------------------------------------------------
@@ -459,11 +461,13 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
     // Set image transform name
     PlusTransformName imageTransformName = this->DefaultImageTransformName; 
+    /*
     if ( client.ImageTransformName.IsValid() )
     {
       imageTransformName = client.ImageTransformName; 
     }
-
+    */
+    
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
     if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageTransformName, this->TransformRepository ) != PLUS_SUCCESS )
     {
@@ -478,7 +482,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       {
         continue; 
       }
-
+      
       int retValue = 0, numOfTries = 0; 
       while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
       {
@@ -674,6 +678,55 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
         }
       } // transformNames
     }
+    
+
+      // Read image names
+
+    vtkXMLDataElement* imageNames = defaultClientInfo->FindNestedElementWithName( "ImageNames" );
+    if ( imageNames != NULL )
+    {
+      LOG_INFO( "No ImageNames specified for OpenIGTLink server." );
+    }
+    else
+    {
+      for ( int i = 0; i < imageNames->GetNumberOfNestedElements(); ++ i )
+      {
+        const char* image = imageNames->GetNestedElement( i )->GetName();
+        if ( image == NULL  ||  STRCASECMP( image, "Image" ) != 0 )
+        {
+          continue;
+        }
+        
+        const char* name = imageNames->GetNestedElement( i )->GetAttribute( "Name" );
+        if ( name == NULL )
+        {
+          continue;
+        }
+        this->ImageNames.push_back( std::string( name ) );
+        
+        const char* coordinateFrame = imageNames->GetNestedElement( i )->GetAttribute( "CoordinateFrame" );
+        if ( coordinateFrame == NULL )
+        {
+          continue;
+        }
+        PlusTransformName imageTransformName( "Image", std::string( coordinateFrame ) );
+        this->ImageTransformNames.push_back( imageTransformName );
+        
+        
+          // TODO: When multiple video streams will be supported, change this.
+          // Now, only the first image name is used for the single video stream.
+          
+        if ( this->ImageNames.size() == 1 )
+        {
+          if ( this->ImageTransformNames.size() == 1 )
+          {
+            this->DefaultImageTransformName = imageTransformName;
+          }
+        }
+        
+      }
+    }
+    
 
     // Get image transform name
     vtkXMLDataElement* imageTransform = defaultClientInfo->FindNestedElementWithName("ImageTransform"); 
