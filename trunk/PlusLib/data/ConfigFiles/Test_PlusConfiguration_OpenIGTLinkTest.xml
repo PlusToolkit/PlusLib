@@ -38,6 +38,13 @@
       Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
       Error="0.582721" Date="012712_152030"
     />
+	<Transform From="Image" To="Probe"
+      Matrix=" 0    0.08 0    11
+         	  -0.08 0    0    50
+		 	   0    0    0.08  0
+			   0    0    0     1"
+      Error="0.582721" Date="012712_152030"
+    />
   </CoordinateDefinitions> 
   
 
