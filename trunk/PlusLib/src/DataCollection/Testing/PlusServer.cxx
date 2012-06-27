@@ -134,9 +134,19 @@ int main( int argc, char** argv )
   // Run server until requested 
   while ( vtkAccurateTimer::GetSystemTime() < startTime + runTime )
   {
+#ifdef _WIN32
+    // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
+    MSG Msg;
+    while (PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+    {
+      TranslateMessage(&Msg);
+      DispatchMessage(&Msg);
+    }
+    Sleep(1); // give a chance to other threads to get CPU time now
+#else
     vtkAccurateTimer::Delay( 0.2 );
+#endif
   }
-
 
   // *************************** Testing **************************
   if ( testing ) 
