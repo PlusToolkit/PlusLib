@@ -28,6 +28,9 @@ public:
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
+  /*! Create stencil background image according to the already read configuration settings */
+  PlusStatus CreateStencilBackgroundImage();
+
 public:
   // Set model to image transformation matrix
   vtkSetObjectMacro(ModelToImageMatrix, vtkMatrix4x4); 

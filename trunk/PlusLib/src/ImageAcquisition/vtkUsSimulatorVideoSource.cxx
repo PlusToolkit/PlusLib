@@ -10,7 +10,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkVideoBuffer.h"
 #include "vtkTrackedFrameList.h"
-
+#include "vtkTrackerTool.h"
+#include "vtkTrackerBuffer.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
@@ -22,10 +23,12 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 
   this->Tracker = NULL;
 
+  // Create and set up US simulator
   this->UsSimulator = NULL;
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New();
   this->SetUsSimulator(usSimulator);
 
+  // Create transform repository
   this->TransformRepository = NULL;
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
@@ -39,6 +42,7 @@ vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
     this->Disconnect();
   }
 
+  this->SetTracker(NULL);
   this->SetUsSimulator(NULL);
   this->SetTransformRepository(NULL);
 }
@@ -60,8 +64,29 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
     return PLUS_FAIL;
   }
 
-  // Compute elapsed time since we restarted the timer and the current timestamp
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
+  // Get latest tracker timestamp
+  double latestTrackerTimestamp = 0;
+
+  vtkTrackerTool* firstActiveTool = NULL; 
+  if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
+  if ( uid > 1 )
+  {
+    // Always use the latestItemUid - 1 to be able to interpolate transforms
+    uid = uid - 1; 
+  }
+
+  if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestamp) != ITEM_OK )
+  {
+    LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+    return PLUS_FAIL;
+  }
 
   // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
   // For simplicity, we increase it always by 1.
@@ -69,9 +94,9 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
 
   // Get image to tracker transform from the tracker
   TrackedFrame trackedFrame;
-  if (this->Tracker->GetTrackedFrame(elapsedTime, &trackedFrame) != PLUS_SUCCESS)
+  if (this->Tracker->GetTrackedFrame(latestTrackerTimestamp, &trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame from the tracker with timestamp" << elapsedTime);
+    LOG_ERROR("Unable to get tracked frame from the tracker with timestamp" << latestTrackerTimestamp);
     return PLUS_FAIL;
   }
 
@@ -156,6 +181,8 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
     LOG_ERROR("Failed to read US simulator configuration!");
     return PLUS_FAIL;
   }
+
+  this->UsSimulator->CreateStencilBackgroundImage();
 
   // Read transform repository configuration
   if ( !this->TransformRepository
