@@ -319,7 +319,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(co
 	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec); 
 	
 	// Check the status again to make sure the writer didn't change it
-	return this->GetFrameStatus( uid );
+  return this->GetFrameStatus( uid );
 }
 
 //----------------------------------------------------------------------------

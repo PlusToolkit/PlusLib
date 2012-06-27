@@ -11,6 +11,7 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 // Video sources
 #include "vtkSavedDataVideoSource.h"
+#include "vtkUsSimulatorVideoSource.h"
 
 //#ifdef PLUS_USE_MATROX_IMAGING
 //#include "vtkMILVideoSource2.h"
@@ -57,6 +58,7 @@ vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 {	
   VideoSourceTypes["None"]=NULL; 
   VideoSourceTypes["SavedDataset"]=(PointerToVideoSource)&vtkSavedDataVideoSource::New; 
+  VideoSourceTypes["UsSimulator"]=(PointerToVideoSource)&vtkUsSimulatorVideoSource::New; 
   VideoSourceTypes["NoiseVideo"]=(PointerToVideoSource)&vtkPlusVideoSource::New; 
 #ifdef PLUS_USE_OpenIGTLink
   VideoSourceTypes["OpenIGTLinkVideo"]=(PointerToVideoSource)&vtkOpenIGTLinkVideoSource::New; 

@@ -1,0 +1,77 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST UsSimulator with Saved data tracker"
+      Description="Simulated ultrasound from STL model and corresponding saved tracking data" 
+    />
+
+    <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
+      SequenceMetafile="UsSimulatorAlgoTestTrackingData.mha"
+      ReplayEnabled="TRUE"
+    >
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" Model="Example" />
+    </Tracker>
+
+    <ImageAcquisition Type="UsSimulator"
+      BufferSize="200"
+      AcquisitionRate="10"
+      AveragedItemsForFiltering="20"
+      LocalTimeOffsetSec="0.0"
+      UsImageOrientation="MF"
+    />
+  </DataCollection>
+
+
+  <CoordinateDefinitions>
+    <Transform
+      From="Image" To="Probe"
+      Matrix="0.0       0.084     0.0        12.5
+              -0.087    0.0       0.0        51.0
+              0.0       0.0       0.087      -4.3    
+              0         0         0          1"
+      Error="1.0" Date="022412_120626" />
+      
+    <Transform
+      From="Phantom" To="Reference" 
+      Matrix="-0.0122295 0.0247489 -0.999619  10.661 
+              -0.0104145 0.999636  0.0248767  -37.1121 
+              0.999871   0.0107148 -0.0119673 -86.5167 
+              0          0         0          1" 
+      Error="0.965947" Date="022412_120626" />
+  </CoordinateDefinitions> 
+
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+  </Rendering>
+
+
+  <fCal
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
+
+
+  <vtkUsSimulatorAlgo
+    BackgroundValue="0"
+    ImageCoordinateFrame="Image"
+    ReferenceCoordinateFrame="Reference"
+    FrameSize="640 480"
+    SpacingMmPerPixel="0.2 0.3"
+
+    ModelFileName="../TestImages/UsSimulatorAlgoTestModel.stl"
+    ModelToReferenceTransform="
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1"
+  />
+
+</PlusConfiguration>
