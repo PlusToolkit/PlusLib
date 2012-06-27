@@ -208,26 +208,6 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
 	}
 
-  /*
-  // Create and set stencil background image
-  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-  stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
-  stencilBackgroundImage->SetOrigin(0,0,0);
-
-  //int* frameSize = frame->GetFrameSize();
-  stencilBackgroundImage->SetExtent(0, this->FrameSize[0]-1, 0, this->FrameSize[1]-1, 0, 0);
-
-  stencilBackgroundImage->SetScalarTypeToUnsignedChar();
-  stencilBackgroundImage->SetNumberOfScalarComponents(1);
-  stencilBackgroundImage->AllocateScalars(); 
-
-  int* extent = stencilBackgroundImage->GetExtent();
-  memset(stencilBackgroundImage->GetScalarPointer(), 0,
-    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
-
-  this->SetStencilBackgroundImage(stencilBackgroundImage);
-  */
-
   // Model file name
   const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
   if (modelFileName == NULL)
@@ -272,6 +252,29 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsSimulatorAlgo::CreateStencilBackgroundImage()
+{
+  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
+  stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
+  stencilBackgroundImage->SetOrigin(0,0,0);
+
+  //int* frameSize = frame->GetFrameSize();
+  stencilBackgroundImage->SetExtent(0, this->FrameSize[0]-1, 0, this->FrameSize[1]-1, 0, 0);
+
+  stencilBackgroundImage->SetScalarTypeToUnsignedChar();
+  stencilBackgroundImage->SetNumberOfScalarComponents(1);
+  stencilBackgroundImage->AllocateScalars(); 
+
+  int* extent = stencilBackgroundImage->GetExtent();
+  memset(stencilBackgroundImage->GetScalarPointer(), 0,
+    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
+
+  this->SetStencilBackgroundImage(stencilBackgroundImage);
 
   return PLUS_SUCCESS;
 }
