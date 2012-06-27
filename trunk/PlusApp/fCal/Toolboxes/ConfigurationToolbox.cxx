@@ -136,7 +136,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));
     if (configRootElement == NULL)
     {	
-      LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
+      LOG_ERROR("Unable to read configuration from file " << aConfigFile);
+
+      m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+      m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+      QApplication::restoreOverrideCursor();
+
       return;
     }
 
