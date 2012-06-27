@@ -1153,12 +1153,6 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
     return PLUS_FAIL; 
   }
 
-  if ( this->VideoSource )
-  {
-    this->VideoEnabled = true; 
-    return this->VideoSource->ReadConfiguration(aConfigurationData); 
-  }
- 
   // Set tracker to the UsSimulatorVideoSource
   //   TODO: Change this when dealing with the streams - #461
   vtkUsSimulatorVideoSource* usSimulatorVideoSource = dynamic_cast<vtkUsSimulatorVideoSource*>(this->VideoSource);
@@ -1175,6 +1169,12 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
     }
   }
 
+  if ( this->VideoSource )
+  {
+    this->VideoEnabled = true; 
+    return this->VideoSource->ReadConfiguration(aConfigurationData); 
+  }
+ 
   return PLUS_SUCCESS;
 }
 

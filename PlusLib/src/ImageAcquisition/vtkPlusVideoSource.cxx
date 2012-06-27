@@ -490,9 +490,9 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  imageAcquisitionConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
+  imageAcquisitionConfig->SetIntAttribute("BufferSize", this->Buffer->GetBufferSize());
 
-  imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffsetSec", this->GetBuffer()->GetLocalTimeOffsetSec() );
+  imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffsetSec", this->Buffer->GetLocalTimeOffsetSec() );
 
   return PLUS_SUCCESS;
 }
@@ -525,7 +525,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   int bufferSize = 0;
   if ( imageAcquisitionConfig->GetScalarAttribute("BufferSize", bufferSize) )
   {
-    if ( this->GetBuffer()->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+    if ( this->Buffer->SetBufferSize(bufferSize) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set video buffer size!");
     }
@@ -540,7 +540,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   int averagedItemsForFiltering = 0;
   if ( imageAcquisitionConfig->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
-    this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+    this->Buffer->SetAveragedItemsForFiltering(averagedItemsForFiltering);
   }
   else
   {
@@ -551,7 +551,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( imageAcquisitionConfig->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
     LOG_INFO("Image acqusition local time offset: " << 1000*localTimeOffsetSec << "ms" );
-    this->GetBuffer()->SetLocalTimeOffsetSec(localTimeOffsetSec);
+    this->Buffer->SetLocalTimeOffsetSec(localTimeOffsetSec);
   }
 
   const char* usImageOrientation = imageAcquisitionConfig->GetAttribute("UsImageOrientation");
@@ -586,7 +586,7 @@ PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenera
   }
 
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New();
-  if ( this->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  if ( this->Buffer->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get timestamp report table from video buffer!");
     return PLUS_FAIL;

@@ -52,7 +52,7 @@ void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataVideoSource::InternalGrab()
 {
-  /*LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");*/
+  //LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");
 
   // Compute elapsed time since we restarted the timer
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->Buffer->GetStartTime();

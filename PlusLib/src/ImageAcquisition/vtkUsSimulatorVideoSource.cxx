@@ -18,6 +18,10 @@ vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 {
+  this->SpawnThreadForRecording = true;
+
+  this->Tracker = NULL;
+
   this->UsSimulator = NULL;
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New();
   this->SetUsSimulator(usSimulator);
@@ -49,6 +53,12 @@ void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
 {
   //LOG_TRACE("vtkUsSimulatorVideoSource::InternalGrab");
+
+  if (!this->Tracker)
+  {
+    LOG_ERROR("Tracker not set to US simulator video source!");
+    return PLUS_FAIL;
+  }
 
   // Compute elapsed time since we restarted the timer and the current timestamp
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
@@ -97,7 +107,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
-  // Set to default MF internal image orientation (sequence metafile reader always converts it to MF)
+  // Set to default MF internal image orientation
   this->SetUsImageOrientation(US_IMG_ORIENT_MF); 
 
   this->Buffer->Clear();
