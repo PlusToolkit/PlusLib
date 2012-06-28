@@ -1,6 +1,5 @@
 #include "PlusCommon.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtksys/RegularExpression.hxx"
 #include "vtkXMLDataElement.h"
 
 //-------------------------------------------------------
@@ -51,17 +50,26 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
     return PLUS_FAIL; 
   }
 
+  std::string transformNameStr(aTransformName);
+  size_t posTo(std::string::npos);
+
   // Check if the string has only one valid 'To' phrase 
-  vtksys::RegularExpression isValid("To([A-Z].*)"); 
-  int numOfMatch(0); 
-  if ( isValid.find(aTransformName) )
+  int numOfMatch(0);
+  if ( ((posTo = transformNameStr.find("To")) != std::string::npos) && (transformNameStr.length() > posTo+2) )
   {
-    numOfMatch++; 
-    std::string subString = isValid.match(1); 
-    while ( isValid.find(subString) )
+    if (toupper(transformNameStr[posTo+2]) == transformNameStr[posTo+2])
     {
       numOfMatch++;
-      subString = isValid.match(1); 
+    }
+    std::string subString = transformNameStr.substr(posTo+2);
+
+    while ( ((posTo = subString.find("To")) != std::string::npos) && (subString.length() > posTo+2) )
+    {
+      if (toupper(subString[posTo+2]) == subString[posTo+2])
+      {
+        numOfMatch++;
+      }
+      subString = subString.substr(posTo+2);
     }
   }
 
@@ -73,16 +81,26 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   }
 
   // Find <FrameFrom>To<FrameTo> matches 
-  vtksys::RegularExpression regexp("(^[A-Z].*)To([A-Z].*)"); 
-  if ( !regexp.find(aTransformName) )
+  posTo = transformNameStr.find("To", 2);
+  if ( posTo == std::string::npos )
   {
-    LOG_ERROR("Failed to set transform name - unable to match '" << aTransformName << "' to '[FrameFrom]To[FrameTo]' expression!");
+    LOG_ERROR("Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!");
+    return PLUS_FAIL; 
+  }
+  else if ( posTo == 0 )
+  {
+    LOG_ERROR("Failed to set transform name - no coordinate frame name before 'To' in '" << aTransformName << "'!");
+    return PLUS_FAIL; 
+  }
+  else if ( posTo == transformNameStr.length()-2 )
+  {
+    LOG_ERROR("Failed to set transform name - no coordinate frame name after 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL; 
   }
 
   // Set coordinate frame names 
-  this->m_From = regexp.match(1); 
-  this->m_To = regexp.match(2); 
+  this->m_From = transformNameStr.substr(0, posTo);
+  this->m_To = transformNameStr.substr(posTo+2);
   this->Capitalize(this->m_From); 
   this->Capitalize(this->m_To); 
 
