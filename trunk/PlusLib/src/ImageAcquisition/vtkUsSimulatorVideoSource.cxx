@@ -66,7 +66,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
 
   // Get latest tracker timestamp
   double latestTrackerTimestamp = 0;
-
+  
   vtkTrackerTool* firstActiveTool = NULL; 
   if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
@@ -106,18 +106,18 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
     return PLUS_FAIL;
   }
 
-  PlusTransformName imageToReferenceTransformName(this->UsSimulator->GetImageCoordinateFrame(), this->UsSimulator->GetReferenceCoordinateFrame());
-  vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
-  if (this->TransformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix) != PLUS_SUCCESS)
+  PlusTransformName referenceToImageTransformName(this->UsSimulator->GetReferenceCoordinateFrame(), this->UsSimulator->GetImageCoordinateFrame());
+  vtkSmartPointer<vtkMatrix4x4> referenceToImageTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
+  if (this->TransformRepository->GetTransform(referenceToImageTransformName, referenceToImageTransformMatrix) != PLUS_SUCCESS)
   {
     std::string strTransformName; 
-    imageToReferenceTransformName.GetTransformName(strTransformName); 
+    referenceToImageTransformName.GetTransformName(strTransformName); 
     LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
     return PLUS_FAIL;
   }
 
   // Get the simulated US image
-  this->UsSimulator->SetModelToImageMatrix(imageToReferenceTransformMatrix);
+  this->UsSimulator->SetModelToImageMatrix(referenceToImageTransformMatrix);
   this->UsSimulator->Update();
 
   PlusStatus status = this->Buffer->AddItem(

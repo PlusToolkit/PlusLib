@@ -8,7 +8,6 @@ ADD_TEST(vtkUsSimulatorAlgoRunTest
 	--input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_UsSimulatorAlgoTest.xml
 	--input-transforms-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
 	--output-us-img-file=simulatorOutput.mha 
-	--input-transform-name=ImageToPhantom
 
 	)
 	SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

@@ -101,7 +101,6 @@ int main(int argc, char **argv)
   std::string inputConfigFile;
   std::string outputUsImageFile;
   std::string intersectionFile;
-  std::string inputTransformName; 
   std::string showModel; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -117,7 +116,6 @@ int main(int argc, char **argv)
   args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--output-model-frame-intersection-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of stl file containing the visualization of the intersection between the model and the frames");
-  args.AddArgument("--input-transform-name",vtksys::CommandLineArguments::EQUAL_ARGUMENT,&inputTransformName,"Desired transform");
   args.AddArgument("--show-model-frames-intersection-display",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &showModel,"If empty, does not display a visualization of the model and the frame"); 
 
 
@@ -168,17 +166,16 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 
-  PlusTransformName imageToReferenceTransformName; 
-
-  if ( imageToReferenceTransformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid transform name: " << inputTransformName ); 
-    exit(EXIT_FAILURE); 
-  }
-
   // Create simulator
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
-  usSimulator->ReadConfiguration(configRead);
+  if ( usSimulator->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read US simulator configuration!"); 
+    exit(EXIT_FAILURE); 
+  }
+  usSimulator->CreateStencilBackgroundImage();
+
+  PlusTransformName imageToReferenceTransformName(usSimulator->GetImageCoordinateFrame(), usSimulator->GetReferenceCoordinateFrame());
 
   // Setup Renderer to visualize surface model and ultrasound planes
   vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
@@ -247,8 +244,6 @@ int main(int argc, char **argv)
       LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
       return EXIT_FAILURE;
     }
-
-    usSimulator->CreateStencilBackgroundImage();
 
     // Prepare filter and filter input
     vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();

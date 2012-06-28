@@ -20,7 +20,7 @@
   <vtkUsSimulatorAlgo
     BackgroundValue="155"
     ImageCoordinateFrame="Image"
-    ReferenceCoordinateFrame="Reference"
+    ReferenceCoordinateFrame="Phantom"
     FrameSize="820 616"
     SpacingMmPerPixel="1.0 1.0"
 

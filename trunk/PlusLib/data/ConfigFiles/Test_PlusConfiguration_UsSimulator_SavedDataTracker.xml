@@ -60,11 +60,11 @@
 
 
   <vtkUsSimulatorAlgo
-    BackgroundValue="0"
+    BackgroundValue="155"
     ImageCoordinateFrame="Image"
-    ReferenceCoordinateFrame="Reference"
-    FrameSize="640 480"
-    SpacingMmPerPixel="0.2 0.3"
+    ReferenceCoordinateFrame="Phantom"
+    FrameSize="820 616"
+    SpacingMmPerPixel="1.0 1.0"
 
     ModelFileName="../TestImages/UsSimulatorAlgoTestModel.stl"
     ModelToReferenceTransform="
