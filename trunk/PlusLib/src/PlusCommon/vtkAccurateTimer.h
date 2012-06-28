@@ -72,6 +72,26 @@ public:
    */
   static double GetSystemTime(); 
   
+   /*!
+    Get the universal (UTC) time
+    \return UTC time in seconds
+   */
+  static double GetUniversalTime();
+
+  /*!
+    Get the universal (UTC) time from system time
+    \param systemTime system time in seconds
+    \return UTC time in seconds
+  */
+  static double GetUniversalTimeFromSystemTime(double systemTime);
+
+  /*!
+    Get the system time from universal (UTC) time
+    \param utcTime UTC time in seconds
+    \return system time in seconds
+  */
+  static double GetSystemTimeFromUniversalTime(double utcTime);
+  
 	/*!
     Get current date in string 
     \return Format: MMDDYY
@@ -110,8 +130,11 @@ private:
   /*! Equality operator - Not implemented */
   void operator=(const vtkAccurateTimer&);
 
-  /*! System start time in seconds */
+  /*! Internal system time at the time of class instantiation, in seconds */
   static double SystemStartTime; 
+
+  /*! Universal time (time elapsed since 00:00:00 January 1, 1970, UTC) at the time of class instantiation, in seconds */
+  static double UniversalStartTime; 
 
   /*! The singleton instance */
 	static vtkAccurateTimer* Instance;
@@ -121,13 +144,13 @@ private:
   
   enum CurrentDateTimeFormat
   {
-    CURRENT_DATE,
-    CURRENT_TIME,
-    CURRENT_DATE_TIME,
-    CURRENT_DATE_TIME_MSEC
+    DTF_DATE,
+    DTF_TIME,
+    DTF_DATE_TIME,
+    DTF_DATE_TIME_MSEC
   };
   
-  static std::string GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded); 
+  static std::string GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded, double currentTime); 
 }; 
 
 #endif

@@ -430,7 +430,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
   }
 
   // Convert relative timestamp to UTC
-  trackedFrame.SetTimestamp(trackedFrame.GetTimestamp() + this->DataCollector->GetAcquisitionStartTimeAbsoluteUTC() );
+  double timestampSystem = trackedFrame.GetTimestamp(); // save original timestamp, we'll restore it later
+  double timestampUniversal = vtkAccurateTimer::GetUniversalTimeFromSystemTime(timestampSystem);
+  trackedFrame.SetTimestamp(timestampUniversal);  
 
   // Lock before we send message to the clients 
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -465,8 +467,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     if ( client.ImageTransformName.IsValid() )
     {
       imageTransformName = client.ImageTransformName; 
-    }
-    
+    }  
     
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
     if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageTransformName, this->TransformRepository ) != PLUS_SUCCESS )
@@ -521,6 +522,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
   } // clientIterator
 
+  // restore original timestamp
+  trackedFrame.SetTimestamp(timestampSystem);
+  
   return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 

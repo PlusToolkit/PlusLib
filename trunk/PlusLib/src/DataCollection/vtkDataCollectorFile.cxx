@@ -29,6 +29,7 @@ vtkDataCollectorFile::vtkDataCollectorFile()
 {	
   this->TrackedFrameBuffer = NULL;
   this->SequenceMetafileName = NULL;
+  this->StartTime = 0.0;
   this->ReplayEnabled = false; 
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
@@ -126,7 +127,7 @@ PlusStatus vtkDataCollectorFile::Start()
     return PLUS_FAIL;
   }
 
-  this->SetAcquisitionStartTime(); 
+  this->StartTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -136,7 +137,7 @@ PlusStatus vtkDataCollectorFile::Stop()
 {
   LOG_TRACE("vtkDataCollectorFile::Stop"); 
 
-  this->ResetAcquisitionStartTime(); 
+  this->StartTime = 0.0;
   this->LastAccessedFrameIndex = 0;
 
   return PLUS_SUCCESS;
@@ -494,7 +495,7 @@ PlusStatus vtkDataCollectorFile::GetCurrentFrameTimestamp(double &aTimestamp)
 {
   //LOG_TRACE("vtkDataCollectorFile::GetCurrentFrameTimestamp");
 
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetAcquisitionStartTimeRelative();
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->StartTime;
 
   double nextFrameTimestamp = this->FirstTimestamp + elapsedTime; 
   if ( nextFrameTimestamp > this->LastTimestamp )
