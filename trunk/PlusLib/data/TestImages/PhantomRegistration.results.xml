@@ -1,29 +1,11 @@
 <PlusConfiguration version="1.2">
 
-	<!-- DATA COLLECTION -->
-	<USDataCollection version="2.0" StartupDelaySec="1.0">
-		<DeviceSet 
-			Name="No Video with Fake tracker in Record phantom landmarks mode" 
-			Description="vtkPhantomRegistrationTest uses this configuration" 
-			/>
-
-		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="20" LocalTimeOffset="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
-			
-			<Tool Name="Reference" PortName="0" />
-			<Tool Name="Stylus" PortName="1" />
-		</Tracker>
-
-		<ImageAcqusition Type="None" />
-		<Synchronization Type="None" />
-	</USDataCollection> 
-  
   <CoordinateDefinitions>
     <Transform From="Reference" To="Tracker" Matrix="0 -1 0 300.0  1 0 0 400.0  0 0 1 700.0  0 0 0 1" Date="2011.12.01 11:57:00"/>
     <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0  0 1 0 0  0 0 1 0  0 0 0 1" Date="2011.12.01 17:22:12"/>
     <Transform From="Phantom" To="Reference" Matrix="1 0 0 -75.0000  0 1 0 -50.0000  0 0 1 -150.0  0 0 0 1" Date="2011.11.30 13:42:01"/> 
   </CoordinateDefinitions>
 
-	<!-- PHANTOM -->
 	<PhantomDefinition version="1.0">
 		<!-- Supported types are: Double-N, U-Shaped-N -->
 		<Description
@@ -76,7 +58,7 @@
         Reference="Reference"
         Probe="Probe"
         Stylus="Stylus"
-        />
+    />
   </fCal>
   
 </PlusConfiguration>
