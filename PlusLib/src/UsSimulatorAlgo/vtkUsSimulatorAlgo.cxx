@@ -108,7 +108,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
     return 1; 
   }
-  
+
   // Get the model points in the image coordinate system
   vtkSmartPointer<vtkPolyData> modelImage;
   {
