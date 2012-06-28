@@ -215,8 +215,8 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     int imgSize[3]={0}; // image dimension
     imgMsg->GetDimensions(imgSize);
 
-    // Set unfiltered and filtered timestamp by converting UTC to relative timestamp
-    double unfilteredTimestamp = igtlTimestamp->GetTimeStamp() - this->StartTimeAbsoluteUTC;  
+    // Set unfiltered and filtered timestamp by converting UTC to system timestamp
+    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(igtlTimestamp->GetTimeStamp());
     double filteredTimestamp = unfilteredTimestamp;  
 
     // The timestamps are already defined, so we don't need to filter them, 
@@ -244,8 +244,8 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
       return PLUS_FAIL; 
     }
 
-    // Set unfiltered and filtered timestamp by converting UTC to relative timestamp
-    double unfilteredTimestamp = trackedFrame.GetTimestamp() - this->StartTimeAbsoluteUTC;  
+    // Set unfiltered and filtered timestamp by converting UTC to system timestamp
+    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(trackedFrame.GetTimestamp());  
     double filteredTimestamp = unfilteredTimestamp;  
 
     // The timestamps are already defined, so we don't need to filter them, 

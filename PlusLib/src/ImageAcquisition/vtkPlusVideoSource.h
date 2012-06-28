@@ -87,6 +87,9 @@ public:
   */
   virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
+  /*! Set recording start time */
+  virtual void SetStartTime( double startTime );  
+  
 public:
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
@@ -166,10 +169,6 @@ public:
     the input parameter shall not be NULL.
   */
   virtual PlusStatus SetBuffer(vtkVideoBuffer *newBuffer);
-
-  /*! Set acquisition start time in relative ( vtkAccurateTimer::GetSystemTime() )
-      and absolute ( vtkTimerLog::GetUniversalTime() ) format */ 
-  virtual void SetAcquisitionStartTime( double relative, double absolute ); 
 
   /*!
     The result of GetOutput() will be the frame closest to DesiredTimestamp
@@ -273,16 +272,6 @@ protected:
   VideoBufferItem *CurrentVideoBufferItem; 
 
   US_IMAGE_ORIENTATION UsImageOrientation; 
-
-  /*! Acquisition start time elapsed since AccurateTimer class instantiation (relative time) 
-      vtkAccurateTimer::GetSystemTime();
-  */
-  double StartTimeRelative;
-
-  /*! Acquisition start time elapsed since 00:00:00 January 1, 1970, UTC (absolute time) 
-      vtkTimerLog::GetUniversalTime()
-  */
-  double StartTimeAbsoluteUTC;
 
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.

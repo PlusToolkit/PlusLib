@@ -42,8 +42,6 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->NumberOfOutputFrames = 1;
   this->SpawnThreadForRecording = false;
   this->RecordingThreadAlive = false; 
-  this->StartTimeAbsoluteUTC = 0.0; 
-  this->StartTimeRelative = 0.0; 
 
   this->CurrentVideoBufferItem = new VideoBufferItem();
   this->Buffer = vtkVideoBuffer::New();
@@ -262,7 +260,6 @@ void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInf
 {
   vtkPlusVideoSource *self = (vtkPlusVideoSource *)(data->UserData);
 
-  double startTime = vtkAccurateTimer::GetSystemTime();
   double rate = self->GetAcquisitionRate();
   unsigned long frame = 0;
   self->RecordingThreadAlive = true; 
@@ -645,14 +642,6 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVideoSource::SetAcquisitionStartTime( double relative, double absolute )
-{
-  this->StartTimeRelative = relative; 
-  this->StartTimeAbsoluteUTC = absolute; 
-  this->Buffer->SetStartTime( this->StartTimeRelative ); 
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
 {
   if (newBuffer==this->Buffer)
@@ -729,4 +718,10 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
     currentVideoBufferItem.GetTimestamp(this->Buffer->GetLocalTimeOffsetSec()) );
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVideoSource::SetStartTime( double startTime )
+{
+  GetBuffer()->SetStartTime(startTime);
 }

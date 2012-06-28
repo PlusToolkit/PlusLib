@@ -220,7 +220,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   }
 
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  double unfilteredTimestamp = 0; 
+  double unfilteredTimestampUtc = 0; 
 
   igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
   igtl::Matrix4x4 igtlMatrix;
@@ -230,7 +230,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   headerMsg->Unpack();
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestamp) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive transform message from server!"); 
       return PLUS_FAIL;
@@ -239,7 +239,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
   {
     float position[3] = {0}; 
-    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestamp) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive position message from server!"); 
       return PLUS_FAIL;
@@ -265,8 +265,8 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     return PLUS_FAIL; 
   }
   
-  // Convert timestamp from UTC to relative  
-  unfilteredTimestamp -= this->StartTimeAbsoluteUTC; 
+  // Convert timestamp from UTC to system  
+  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
 
   double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
   if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )

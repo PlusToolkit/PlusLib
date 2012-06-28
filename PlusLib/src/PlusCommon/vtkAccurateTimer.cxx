@@ -17,6 +17,7 @@ WindowsAccurateTimer WindowsAccurateTimer::m_Instance;
 #endif
 
 double vtkAccurateTimer::SystemStartTime=0;
+double vtkAccurateTimer::UniversalStartTime=0;
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkAccurateTimer, "$Revision: 1.0 $");
@@ -47,7 +48,9 @@ vtkAccurateTimer* vtkAccurateTimer::GetInstance()
 		{
 			vtkAccurateTimer::Instance = new vtkAccurateTimer;
 		}
-    vtkAccurateTimer::Instance->SystemStartTime = vtkAccurateTimer::Instance->GetInternalSystemTime(); 
+    vtkAccurateTimer::Instance->SystemStartTime = vtkAccurateTimer::Instance->GetInternalSystemTime();
+    vtkAccurateTimer::Instance->UniversalStartTime = vtkTimerLog::GetUniversalTime(); 
+    LOG_DEBUG("AccurateTimer universal start time: "<<GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkAccurateTimer::UniversalStartTime));
 	}
 	return vtkAccurateTimer::Instance;
 }
@@ -129,9 +132,14 @@ double vtkAccurateTimer::GetSystemTime()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded)
+double vtkAccurateTimer::GetUniversalTime()
 {
-  double currentTime=vtkTimerLog::GetUniversalTime();
+  return vtkAccurateTimer::UniversalStartTime+(vtkAccurateTimer::GetInternalSystemTime() - vtkAccurateTimer::SystemStartTime); 
+}
+
+//----------------------------------------------------------------------------
+std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded, double currentTime)
+{
   time_t timeSec = floor(currentTime);   
   // Obtain the time of day, and convert it to a tm struct.
 #ifdef _WIN32    
@@ -146,20 +154,20 @@ std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat details
   char timeStrSec[80];
   switch (detailsNeeded)
   {
-    case CURRENT_DATE:
+    case DTF_DATE:
       strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y", ptm);
       break;
-    case CURRENT_TIME:
+    case DTF_TIME:
       strftime (timeStrSec, sizeof (timeStrSec), "%H%M%S", ptm);
       break;
-    case CURRENT_DATE_TIME:
-    case CURRENT_DATE_TIME_MSEC:
+    case DTF_DATE_TIME:
+    case DTF_DATE_TIME_MSEC:
       strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y_%H%M%S", ptm);
       break;
     default:
       return "";
   }
-  if (detailsNeeded!=CURRENT_DATE_TIME_MSEC)
+  if (detailsNeeded!=DTF_DATE_TIME_MSEC)
   {
     return timeStrSec;
   }
@@ -175,23 +183,35 @@ std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat details
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateString()
 {
-  return GetDateAndTimeString(CURRENT_DATE);
+  return GetDateAndTimeString(DTF_DATE, vtkAccurateTimer::GetUniversalTime());
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetTimeString()
 {
-  return GetDateAndTimeString(CURRENT_TIME);  
+  return GetDateAndTimeString(DTF_TIME, vtkAccurateTimer::GetUniversalTime());  
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateAndTimeString()
 {
-  return GetDateAndTimeString(CURRENT_DATE_TIME);
+  return GetDateAndTimeString(DTF_DATE_TIME, vtkAccurateTimer::GetUniversalTime());
 }
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateAndTimeMSecString()
 {
-  return GetDateAndTimeString(CURRENT_DATE_TIME_MSEC);
+  return GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkAccurateTimer::GetUniversalTime());
+}
+
+//----------------------------------------------------------------------------
+double vtkAccurateTimer::GetUniversalTimeFromSystemTime(double systemTime)
+{
+  return vtkAccurateTimer::UniversalStartTime+systemTime; 
+}
+
+//----------------------------------------------------------------------------
+double vtkAccurateTimer::GetSystemTimeFromUniversalTime(double utcTime)
+{
+  return utcTime-vtkAccurateTimer::UniversalStartTime; 
 }

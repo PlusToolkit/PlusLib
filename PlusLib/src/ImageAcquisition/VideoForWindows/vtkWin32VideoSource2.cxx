@@ -635,8 +635,8 @@ PlusStatus vtkWin32VideoSource2::InternalStartRecording()
     return PLUS_FAIL;
   }
   this->FrameIndex = 0;
-  double startTime = vtkAccurateTimer::GetSystemTime();
-  this->Buffer->SetStartTime(startTime);
+  //double startTime = vtkAccurateTimer::GetSystemTime();
+  //this->Buffer->SetStartTime(startTime);
   return PLUS_SUCCESS;
 }
 
