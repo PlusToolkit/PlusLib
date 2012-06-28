@@ -38,6 +38,8 @@ enum TrackedFrameFieldStatus
 class VTK_EXPORT TrackedFrame
 {
 public:
+  static const std::string TransformPostfix;
+  static const std::string TransformStatusPostfix;
   typedef std::map<std::string,std::string> FieldMapType; 
 
 public:
@@ -137,6 +139,12 @@ public:
 
   /*! Return all custom fields in a map */ 
   const FieldMapType& GetCustomFields() { return this->CustomFrameFields; }
+
+  /*! Returns true if the input string ends with "Transform", else false */
+  static bool IsTransform( std::string str );
+
+  /*! Returns true if the input string ends with "TransformStatus", else false */
+  static bool IsTransformStatus( std::string str );
 
 public:
   bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
