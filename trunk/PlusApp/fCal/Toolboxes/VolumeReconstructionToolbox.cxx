@@ -13,15 +13,11 @@
 #include <QFileDialog>
 
 #include "vtkVolumeReconstructor.h"
-#include "vtkImageExtractComponents.h"
-#include "vtkDataSetWriter.h"
 #include "vtkMarchingContourFilter.h"
-#include "vtkProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkImageData.h"
-#include "metaImage.h"
 
 //-----------------------------------------------------------------------------
 
@@ -42,7 +38,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
   connect( ui.pushButton_OpenVolumeReconstructionConfig, SIGNAL( clicked() ), this, SLOT( OpenVolumeReconstructionConfig() ) );
   connect( ui.pushButton_OpenInputImage, SIGNAL( clicked() ), this, SLOT( OpenInputImage() ) );
   connect( ui.comboBox_InputImage, SIGNAL( currentIndexChanged(int) ), this, SLOT( InputImageChanged(int) ) );
-  connect( ui.horizontalSlider_ContouringThreshold, SIGNAL( sliderMoved(int) ), this, SLOT( RecomputeContourFromReconstructedVolume(int) ) );
+  connect( ui.horizontalSlider_ContouringThreshold, SIGNAL( valueChanged(int) ), this, SLOT( RecomputeContourFromReconstructedVolume(int) ) );
   connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 }
@@ -286,7 +282,7 @@ void VolumeReconstructionToolbox::Save()
 {
   LOG_TRACE("VolumeReconstructionToolbox::Save"); 
 
-  QString filter = QString( tr( "VTK files ( *.vtk );;Sequence metafiles ( *.mha );;" ) );
+  QString filter = QString( tr( "Sequence metafiles ( *.mha );;VTK files ( *.vtk );;" ) );
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
 
   if (! fileName.isNull() )
@@ -388,7 +384,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   m_ParentMainWindow->SetStatusBarText(QString(" Filling holes in output volume..."));
   RefreshContent();
 
-  m_VolumeReconstructor->GetReconstructedVolume(m_ReconstructedVolume);
+  m_VolumeReconstructor->ExtractGrayLevels(m_ReconstructedVolume);
 
   // Display result
   DisplayReconstructedVolume();
@@ -429,25 +425,19 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
   // Write out to file
   if (aOutput.right(3).toLower() == QString("vtk"))
   {
-    vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
-    writer->SetFileTypeToBinary();
-    writer->SetInput(m_ReconstructedVolume);
-    writer->SetFileName(aOutput.toAscii().data());
-    writer->Update();
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to save reconstructed volume in VTK file!");
+      return PLUS_FAIL;
+    }
   }
   else if (aOutput.right(3).toLower() == QString("mha"))
   {
-    MetaImage* metaImage = new MetaImage(m_ReconstructedVolume->GetDimensions()[0], m_ReconstructedVolume->GetDimensions()[1], m_ReconstructedVolume->GetDimensions()[2],
-                                         m_ReconstructedVolume->GetSpacing()[0], m_ReconstructedVolume->GetSpacing()[1], m_ReconstructedVolume->GetSpacing()[2],
-                                         MET_UCHAR, 1, m_ReconstructedVolume->GetScalarPointer());
-
-    if (metaImage->Write(aOutput.toAscii().data(), aOutput.toAscii().data()) == false)
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
       return PLUS_FAIL;
     }
-
-    delete metaImage;
   }
   else
   {
