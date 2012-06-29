@@ -92,6 +92,20 @@ public:
   */
   virtual PlusStatus ExtractAlpha(vtkImageData* volume);
 
+  /*!
+    Save reconstructed volume to metafile
+    \param filename Path and filename of the output file
+    \alpha True if alpha channel needs to be saved, false if gray levels (default)
+  */
+  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false);
+
+  /*!
+    Save reconstructed volume to VTK file
+    \param filename Path and filename of the output file
+    \alpha True if alpha channel needs to be saved, false if gray levels (default)
+  */
+  PlusStatus SaveReconstructedVolumeToVtkFile(const char* filename, bool alpha=false);
+
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
