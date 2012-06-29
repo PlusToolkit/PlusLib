@@ -13,20 +13,19 @@
 #include "vtkImageViewer.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
-#include "vtkTimerLog.h"
-#include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
 #include "vtkTransform.h"
-#include "vtkVideoBuffer.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageExtractComponents.h"
+#include "vtkDataSetWriter.h"
 
 #include "vtkPasteSliceIntoVolume.h"
 #include "vtkFillHolesInVolume.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkTransformRepository.h"
+
+#include "metaImage.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructor);
@@ -705,6 +704,85 @@ PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolum
   extract->Update();
 
   reconstructedVolume->DeepCopy(extract->GetOutput());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/)
+{
+  vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
+
+  MET_ValueEnumType scalarType = MET_NONE;
+  if (this->Reconstructor->GetOutputScalarMode() == VTK_UNSIGNED_CHAR)
+  {
+    scalarType = MET_UCHAR;
+  }
+  else
+  {
+    LOG_ERROR("Scalar type is not supported!");
+    return PLUS_FAIL;
+  }
+
+  if (alpha)
+  {
+    if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Extracting alpha channel failed!");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    if (this->ExtractGrayLevels(volumeToSave) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Extracting alpha channel failed!");
+      return PLUS_FAIL;
+    }
+  }
+
+  MetaImage* metaImage = new MetaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
+                                       volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
+                                       scalarType, 1, volumeToSave->GetScalarPointer());
+  if (metaImage->Write(filename, filename) == false)
+  {
+    LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
+    delete metaImage;
+    return PLUS_FAIL;
+  }
+
+  delete metaImage;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToVtkFile(const char* filename, bool alpha/*=false*/)
+{
+  vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
+
+  if (alpha)
+  {
+    if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Extracting alpha channel failed!");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    if (this->ExtractGrayLevels(volumeToSave) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Extracting alpha channel failed!");
+      return PLUS_FAIL;
+    }
+  }
+
+  vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
+  writer->SetFileTypeToBinary();
+  writer->SetInput(volumeToSave);
+  writer->SetFileName(filename);
+  writer->Update();
 
   return PLUS_SUCCESS;
 }
