@@ -34,20 +34,25 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
-  reconstructedVolume = vtkSmartPointer<vtkImageData>::New();
+  this->ReconstructedVolume = vtkSmartPointer<vtkImageData>::New();
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->HoleFiller = vtkFillHolesInVolume::New();  
-  this->FillHoles=0;
-  this->SkipInterval=1;
+  this->FillHoles = 0;
+  this->SkipInterval = 1;
+  this->ReconstructionModifiedTime = 0;
 }
 
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::~vtkVolumeReconstructor()
 {
-  if (this->Reconstructor!=NULL)
+  if (this->Reconstructor)
   {
     this->Reconstructor->Delete();
     this->Reconstructor=NULL;
+  }
+
+  if (this->HoleFiller)
+  {
     this->HoleFiller->Delete();
     this->HoleFiller=NULL;
   }
@@ -123,7 +128,8 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 
   if (reconConfig->GetScalarAttribute("SkipInterval",SkipInterval))
   {
-    if (SkipInterval < 1) {
+    if (SkipInterval < 1)
+    {
       LOG_WARNING("SkipInterval in the config file must be greater or equal to 1. Resetting to 1");
       SkipInterval = 1;
     }
@@ -222,6 +228,7 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       LOG_ERROR("Couldn't locate hole filling parameters for hole filling!");
       return PLUS_FAIL;
     }
+
     // find the number of kernels
     int numHFElements(0);
     for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
@@ -234,11 +241,13 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       }
       numHFElements++;
     } 
+
     // read each kernel into memory
     HoleFiller->SetNumHFElements(numHFElements);
     HoleFiller->AllocateHFElements();
     int numberOfErrors(0);
     int currentElementIndex(0);
+
     for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
     {
       vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
@@ -247,7 +256,9 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         // Not a hole filling element, skip it
         continue; 
       }
+
       FillHolesInVolumeElement tempElement;
+
       if (nestedElement->GetAttribute("Type"))
       {
         if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN") == 0)
@@ -274,16 +285,21 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         {
           LOG_ERROR("Unknown hole filling element option: "<<nestedElement->GetAttribute("Type")<<". Valid options: GAUSSIAN, STICK.");
         }
-      } else {
+      }
+      else
+      {
         LOG_ERROR("Couldn't identify the hole filling element \"Type\"! Valid options: GAUSSIAN, STICK.");
         return PLUS_FAIL;
       }
+
       int size=0; 
       float stdev=0; 
       float minRatio = 0.; 
       int stickLengthLimit = 0;
       int numberOfSticksToUse = 1;
-      switch (tempElement.type) {
+
+      switch (tempElement.type)
+      {
       case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
       case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
         // read stdev
@@ -347,11 +363,18 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
         }
         break;
       }
+
       HoleFiller->SetHFElement(currentElementIndex,tempElement);
       currentElementIndex++;
     }
-    if (numberOfErrors != 0) return PLUS_FAIL;
+
+    if (numberOfErrors != 0)
+    {
+      return PLUS_FAIL;
+    }
   }
+
+  this->Modified();
 
   return PLUS_SUCCESS;
 }
@@ -416,6 +439,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   {
     reconConfig->RemoveAttribute("NumberOfThreads");
   }
+
   return PLUS_SUCCESS;
 }
 
@@ -518,7 +542,6 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
-
   int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
   double* outputSpacing = this->Reconstructor->GetOutputSpacing();
   outputExtent[ 1 ] = int( ( extent_Ref[1] - extent_Ref[0] ) / outputSpacing[ 0 ] );
@@ -542,6 +565,8 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     LOG_ERROR("StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output volume.");
     return PLUS_FAIL;
   }
+
+  this->Modified();
 
   return PLUS_SUCCESS;
 }
@@ -584,58 +609,102 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 
   vtkImageData* frameImage=frame->GetImageData()->GetVtkImage();
 
+  this->Modified();
+
   return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
 }
 
 //----------------------------------------------------------------------------
-
-PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume() {
+PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume()
+{
   if (this->FillHoles)
-    this->GenerateHoleFilledVolume();
+  {
+    if (this->GenerateHoleFilledVolume() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to generate hole filled volume!");
+      return PLUS_FAIL;
+    }
+  }
   else
-    this->reconstructedVolume->DeepCopy(this->Reconstructor->GetReconstructedVolume());
+  {
+    this->ReconstructedVolume->DeepCopy(this->Reconstructor->GetReconstructedVolume());
+  }
+
+  this->ReconstructionModifiedTime = this->GetMTime();
+
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* volume)
 {
-  volume->DeepCopy(this->reconstructedVolume);
+  // Load reconstructed volume if the algorithm configuration was modified since the last load
+  if (this->ReconstructionModifiedTime < this->GetMTime()
+    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to load reconstructed volume");
+    return PLUS_FAIL;
+  }
+
+  volume->DeepCopy(this->ReconstructedVolume);
+
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume()
+{
+  this->HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
+  this->HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
+  this->HoleFiller->Update();
 
-PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume() {
-  //vtkSmartPointer<vtkImageData> holeFilled = vtkSmartPonter<vtkImageData>::New();
-  HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
-  HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
-  HoleFiller->Update();
-  this->reconstructedVolume->DeepCopy(HoleFiller->GetOutput());
+  this->ReconstructedVolume->DeepCopy(HoleFiller->GetOutput());
+
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructedVolume)
 {  
+  // Load reconstructed volume if the algorithm configuration was modified since the last load
+  if (this->ReconstructionModifiedTime < this->GetMTime()
+    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to load reconstructed volume");
+    return PLUS_FAIL;
+  }
+
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
-  // keep only first component (the other component is the alpha channel)
+
+  // Keep only first component (the other component is the alpha channel)
   extract->SetComponents(0);
-  extract->SetInput(this->reconstructedVolume);
+  extract->SetInput(this->ReconstructedVolume);
   extract->Update();
+
   reconstructedVolume->DeepCopy(extract->GetOutput());
+
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolume)
 {
+  // Load reconstructed volume if the algorithm configuration was modified since the last load
+  if (this->ReconstructionModifiedTime < this->GetMTime()
+    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to load reconstructed volume");
+    return PLUS_FAIL;
+  }
+
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
-  // extract the second component (the alpha channel)
+
+  // Extract the second component (the alpha channel)
   extract->SetComponents(1);
-  extract->SetInput(this->reconstructedVolume);
+  extract->SetInput(this->ReconstructedVolume);
   extract->Update();
+
   reconstructedVolume->DeepCopy(extract->GetOutput());
+
   return PLUS_SUCCESS;
 }

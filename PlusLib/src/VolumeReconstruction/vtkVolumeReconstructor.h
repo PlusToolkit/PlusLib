@@ -102,13 +102,16 @@ protected:
   vtkPasteSliceIntoVolume* Reconstructor; 
   vtkFillHolesInVolume* HoleFiller; 
  
-  vtkSmartPointer<vtkImageData> reconstructedVolume;
+  vtkSmartPointer<vtkImageData> ReconstructedVolume;
 
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   int FillHoles;
 
   /*! only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) */
   int SkipInterval;
+
+  /*! Modified time when reconstructing. This is used to determine whether re-reconstruction is necessary */
+  unsigned long ReconstructionModifiedTime;
 
 private: 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.
