@@ -135,6 +135,12 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 {
   LOG_TRACE("vtkPivotCalibrationAlgo::DoPivotCalibration");
 
+  if (this->MarkerToReferenceTransformMatrixArray->GetNumberOfTuples()<1)
+  {
+    LOG_ERROR("No points are available for pivot calibration"); 
+    return PLUS_FAIL;
+  }
+
   // Set up minimizer and run the optimalization
 	this->Minimizer->SetFunction(vtkTrackerToolCalibrationFunction,this);
 	this->Minimizer->SetFunctionArgDelete(NULL);
@@ -214,7 +220,7 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 
   // Compute a tooltip position based on the first acquired position
 	double firstMarkerToReferenceTransformElements[16];
-  this->MarkerToReferenceTransformMatrixArray->GetTuple(0, firstMarkerToReferenceTransformElements);
+    this->MarkerToReferenceTransformMatrixArray->GetTuple(0, firstMarkerToReferenceTransformElements);
   vtkSmartPointer<vtkMatrix4x4> firstMarkerToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   firstMarkerToReferenceTransformMatrix->DeepCopy(firstMarkerToReferenceTransformElements);
 
