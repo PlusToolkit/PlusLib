@@ -144,6 +144,11 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
       return;
     }
+    
+    LOG_DEBUG("Device set configuration is read from file: "<<aConfigFile);
+    std::ostringstream xmlFileContents; 
+    PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+    LOG_DEBUG("Device set configuration file contents: "<<std::endl<<xmlFileContents.str());    
 
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
