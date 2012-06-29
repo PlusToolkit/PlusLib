@@ -154,6 +154,7 @@ int main (int argc, char* argv[])
   LOG_INFO("Reconstruct volume...");
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   int numberOfFramesAddedToVolume=0; 
+
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex+=reconstructor->GetSkipInterval() )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
@@ -216,14 +217,6 @@ int main (int argc, char* argv[])
   trackedFrameList->Clear(); 
 
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
-
-
-
-  LOG_INFO("Finalize reconstructed volume...");
-  vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
-  reconstructor->LoadReconstructedVolume();
-
-
 
   LOG_INFO("Saving volume to file...");
   vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();

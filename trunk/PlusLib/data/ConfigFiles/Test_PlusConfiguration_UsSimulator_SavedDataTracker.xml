@@ -74,4 +74,10 @@
       0 0 0 1"
   />
 
+  <VolumeReconstruction
+    OutputSpacing="1 1 1"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
 </PlusConfiguration>
