@@ -69,11 +69,6 @@ void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
 
-  //if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
-  //{
-  //  m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
-  //}
-
   // Try to load volume reconstruction configuration from the device set configuration
   if ( (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() != NULL)
     && (m_VolumeReconstructor->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS))
@@ -254,6 +249,8 @@ void VolumeReconstructionToolbox::OpenInputImage()
 
   ui.comboBox_InputImage->setCurrentIndex( ui.comboBox_InputImage->count() - 1 );
 
+  SetState(ToolboxState_Idle);
+
   LOG_INFO("Input image '" << fileName.toAscii().data() << "' opened");
 }
 
@@ -352,17 +349,17 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName);
 
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
+  for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex += m_VolumeReconstructor->GetSkipInterval() )
   {
 		// Set progress
-    m_ParentMainWindow->SetStatusBarProgress((int)((100.0 * imgNumber) / numberOfFrames + 0.49));
+    m_ParentMainWindow->SetStatusBarProgress((int)((100.0 * frameIndex) / numberOfFrames + 0.49));
     RefreshContent();
 
-    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(imgNumber);
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
     if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransforms(*frame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to update transform repository with frame #" << imgNumber ); 
+      LOG_ERROR("Failed to update transform repository with frame #" << frameIndex ); 
       continue; 
     }
 
@@ -370,7 +367,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     bool insertedIntoVolume=false;
     if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to add tracked frame to volume with frame #" << imgNumber); 
+      LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 
     }
 	}
