@@ -50,7 +50,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
   this->params.n_lines = lines;
   
   // TODO: check this, in CuteGrabbie it is simply: this->params.n_samples = samples / 2;
-  this->params.n_samples = samples / 2; // subtract 2 due to header
+  this->params.n_samples = (samples-2) / 2; // subtract 2 due to header
 
   // the number of the samples must be 16 byte aligned
   this->params.n_samples -= this->params.n_samples % 8; // each sample is 2 bytes, so mod 8
