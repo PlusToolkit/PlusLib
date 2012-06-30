@@ -270,7 +270,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     applicationConfigurationRoot->SetName("PlusConfig");
     saveNeeded = true;
 	}
-
+  
   this->SetApplicationConfigurationData(applicationConfigurationRoot); 
 
   // Verify root element name

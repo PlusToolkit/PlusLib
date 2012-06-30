@@ -12,6 +12,8 @@ With permission from the author: "You are allowed to include the source code on
 non-commercial terms in your toolbox and distribute it."
 */
 
+#include "PlusCommon.h"
+
 #include "vtkUsScanConvert.h"
 
 #include "vtkImageData.h"
@@ -206,15 +208,16 @@ void vtkUsScanConvert::ThreadedRequestData(
 
   if (this->InterpolationTableSize==0)
   {
-    int numberOfSamples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0];
-    int numberOfLines=inData->GetWholeExtent()[3]-inData->GetWholeExtent()[2];
+    int* inExtent=inData[0][0]->GetWholeExtent();
+    int numberOfSamples=inExtent[1]-inExtent[0];
+    int numberOfLines=inExtent[3]-inExtent[2];
     int outputImageSizeX=this->OutputImageExtent[1]-this->OutputImageExtent[0]+1;
     int outputImageSizeY=this->OutputImageExtent[3]-this->OutputImageExtent[2]+1;
     // interpolation table has not been computed yet
-    make_tables (this->StartDepthMm, this->ImageSizeMm,
+    make_tables (this->ImageStartDepthMm, this->ImageSizeMm,
       this->RadiusStartMm, this->RadiusDeltaMm, numberOfSamples,
       this->ThetaStartDeg, this->ThetaDeltaDeg, numberOfLines,
-      this->OutputIntensityScaling, outputImageSizeX, outputImageSizeY
+      this->OutputIntensityScaling, outputImageSizeX, outputImageSizeY,
       weight_coef, index_samp_line, image_index,
       this->InterpolationTableSize);
   }
@@ -249,12 +252,19 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "MagnificationFactors: ( "
-    << this->MagnificationFactors[0] << ", "
-    << this->MagnificationFactors[1] << ", "
-    << this->MagnificationFactors[2] << " )\n";
+  os << indent << "OutputImageExtent: ("
+    << this->OutputImageExtent[0] <<", "<< this->OutputImageExtent[1] <<", "
+    << this->OutputImageExtent[2] <<", "<< this->OutputImageExtent[3] <<")\n";
+  os << indent << "OutputImageSpacing: ("<< this->OutputImageSpacing[0] <<", "<< this->OutputImageSpacing[1] <<")\n";
+  os << indent << "ImageStartDepthMm: "<< this->ImageStartDepthMm << "\n";
+  os << indent << "ImageSizeMm: "<< this->ImageSizeMm << "\n";
+  os << indent << "RadiusStartMm: "<< this->RadiusStartMm << "\n";
+  os << indent << "RadiusDeltaMm: "<< this->RadiusDeltaMm << "\n";
+  os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
+  os << indent << "ThetaDeltaDeg: "<< this->ThetaDeltaDeg << "\n";
+  os << indent << "OutputIntensityScaling: "<< this->OutputIntensityScaling << "\n";
+  os << indent << "InterpolationTableSize: "<< this->InterpolationTableSize << "\n";
 
-  os << indent << "Interpolate: " << (this->Interpolate ? "On\n" : "Off\n");
 }
 
 //----------------------------------------------------------------------------
@@ -264,7 +274,7 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 // This method returns the number of pieces resulting from a successful split.
 // This can be from 1 to "total".  
 // If 1 is returned, the extent cannot be split.
-int vtkThreadedImageAlgorithm::SplitExtent(int splitExt[6], int startExt[6], int num, int total)
+int vtkUsScanConvert::SplitExtent(int splitExt[6], int startExt[6], int num, int total)
 {
   // startExt is not used, because we split the interpolation table
 

@@ -28,7 +28,9 @@ public:
     
 protected:
   vtkUsScanConvert();
-  ~vtkUsScanConvert() {};
+  virtual ~vtkUsScanConvert();
+
+  virtual int SplitExtent(int splitExt[6], int startExt[6], int num, int total);
   
   virtual int RequestInformation(vtkInformation *,
                                  vtkInformationVector **,
