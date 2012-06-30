@@ -11,8 +11,11 @@ PlusBkProFocusReceiver::PlusBkProFocusReceiver()
   this->ImagingMode=BMode;
 
   this->frame = NULL;
+
+  this->rfFrame = NULL;
   this->bmodeFrame = NULL;
-  this->decimation = 2; // ignore every second IQ sample in each line
+
+  this->decimation = 2; // ignore IQ samples in each line
 
   this->params.alg= BMODE_DRC_SQRT;
   this->params.n_lines = 0;
@@ -45,6 +48,11 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
     _aligned_free(bmodeFrame);
     bmodeFrame = NULL;
   }
+  if(this->rfFrame != NULL)
+  {
+    _aligned_free(rfFrame);
+    rfFrame = NULL;
+  }
 
   // initialize parameters
   this->params.n_lines = lines;
@@ -65,6 +73,10 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
   this->bmodeFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(this->params.len, 16u));
 
   // this->resize(this->params.n_samples/this->decimation, min(this->params.n_lines, this->MaxNumLines)); TODO: check if it's needed, it's in grabbie
+
+  // AF: prepare the buffer to copy the input entirely
+  //  rfFrame stores the non-decimated data
+  this->rfFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(this->params.n_lines*samples*2, 16u));
 
   return this->frame != NULL && this->bmodeFrame != NULL;
 }
@@ -103,18 +115,19 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   int numBmodeLines = 0; // number of bmode lines in this frame
   for(int i = 0; i < this->params.n_lines; ++i)
   {
+    // AF: each line has a header (1 32-bit sample) and gap after the data
+    //  pitch is the offset of header for the ith sample line 
     const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + i*pitch);
     header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
 
-
-    // only show bmode line
+    // only show bmode line --> AF: Should we copy RF data outside this if?
     if(header->ModelID == 0 && header->CFM == 0 && header->FFT == 0)
     {
       int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + numBmodeLines*this->params.n_samples*bytesPerSample);
-
-
-      // AF: skip the header element
-      ++currentInputPosition;
+	  // AF: each sample in rfFrame is twice as large as in bmode, and we do not decimate
+	  int32_t* currentRFOutputPosition = reinterpret_cast<int32_t*>(this->rfFrame + numBmodeLines*this->params.n_samples*bytesPerSample*2);
+	  
+	  ++currentInputPosition; // AF: skip the header
 
       // n_samples is 16 bit samples, but we need to iterate over 32 bit iq samples, 
       // so divide by 2 to get the right number
@@ -122,7 +135,12 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       {
         *currentOutputPosition = *currentInputPosition;
         currentInputPosition += this->decimation;
-        currentOutputPosition += 1;
+
+		*currentRFOutputPosition = *currentInputPosition;
+	    *(currentRFOutputPosition+1) = *(currentInputPosition+1);
+		currentRFOutputPosition += this->decimation;
+
+        currentOutputPosition += 1;		
       }
 
       ++numBmodeLines;
@@ -162,10 +180,9 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     {
       if (this->CallbackVideoSource!=NULL)
       {
-        // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-		int frameSizeInPix[2]={this->params.n_samples, numBmodeLines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie
-        const int numberOfBitsPerPixel=8;
-        this->CallbackVideoSource->NewFrameCallback(this->frame, frameSizeInPix, numberOfBitsPerPixel);
+        // AF: each sample in rfFrame is twice as large as in bmode, and we do not decimate
+		int frameSizeInPix[2]={this->params.n_samples*2, this->params.n_lines};
+	    this->CallbackVideoSource->NewFrameCallback(this->rfFrame, frameSizeInPix, 8);
       }
       break;
     }
