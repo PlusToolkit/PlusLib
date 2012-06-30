@@ -1,0 +1,7 @@
+<PlusConfiguration version="1.4">
+
+  <RfProcessing>
+    <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="80.0"/>
+  </RfProcessing> 
+
+</PlusConfiguration>
