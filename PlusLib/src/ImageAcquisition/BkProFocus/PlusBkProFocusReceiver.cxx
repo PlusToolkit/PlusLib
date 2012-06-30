@@ -12,7 +12,7 @@ PlusBkProFocusReceiver::PlusBkProFocusReceiver()
 
   this->frame = NULL;
   this->bmodeFrame = NULL;
-  this->decimation = 4; // ignore IQ samples in each line
+  this->decimation = 2; // ignore every second IQ sample in each line
 
   this->params.alg= BMODE_DRC_SQRT;
   this->params.n_lines = 0;
