@@ -106,10 +106,15 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + i*pitch);
     header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
 
+
     // only show bmode line
     if(header->ModelID == 0 && header->CFM == 0 && header->FFT == 0)
     {
       int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + numBmodeLines*this->params.n_samples*bytesPerSample);
+
+
+      // AF: skip the header element
+      ++currentInputPosition;
 
       // n_samples is 16 bit samples, but we need to iterate over 32 bit iq samples, 
       // so divide by 2 to get the right number
