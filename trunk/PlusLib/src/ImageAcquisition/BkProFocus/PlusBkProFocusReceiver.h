@@ -35,5 +35,6 @@ protected:
   TBModeParams params;
   unsigned char* frame;
   unsigned char* bmodeFrame;
+  unsigned char* rfFrame;
   int decimation;
 };
