@@ -718,6 +718,10 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
   {
     scalarType = MET_UCHAR;
   }
+  else if (this->Reconstructor->GetOutputScalarMode() == VTK_FLOAT)
+  {
+    scalarType = MET_FLOAT;
+  }
   else
   {
     LOG_ERROR("Scalar type is not supported!");
@@ -741,17 +745,16 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
     }
   }
 
-  MetaImage* metaImage = new MetaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
+  MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
                                        volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
                                        scalarType, 1, volumeToSave->GetScalarPointer());
-  if (metaImage->Write(filename, filename) == false)
+  //metaImage.CompressedData(true); // TODO: ImageJ cannot open if compression is set
+  metaImage.ElementDataFileName("LOCAL");
+  if (metaImage.Write(filename) == false)
   {
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
-    delete metaImage;
     return PLUS_FAIL;
   }
-
-  delete metaImage;
 
   return PLUS_SUCCESS;
 }
