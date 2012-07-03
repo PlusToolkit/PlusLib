@@ -96,8 +96,9 @@ public:
     Save reconstructed volume to metafile
     \param filename Path and filename of the output file
     \alpha True if alpha channel needs to be saved, false if gray levels (default)
+    \useCompression True if compression is turned on (default), false otherwise
   */
-  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false);
+  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false, bool useCompression=true);
 
   /*!
     Save reconstructed volume to VTK file
