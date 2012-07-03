@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Data collection uses sequence metafile in file mode" 
-      Description="The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
+      Name="Simulation mode for freehand spatial calibration with phantom containing 2 NWires" 
+      Description="Data collector in file mode providing sequence for freehand calibration" 
     />
 
     <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />

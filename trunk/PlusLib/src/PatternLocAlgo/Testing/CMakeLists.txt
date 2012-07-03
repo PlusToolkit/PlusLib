@@ -89,7 +89,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShort
 	--input-testcase-name=UsTestSeqBaselineThomasShortened
 	--input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -100,7 +100,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotio
 	--input-testcase-name=SegmentationTest_BKMedical_RandomStepperMotionData2
 	--input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -111,7 +111,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionDat
 	--input-testcase-name=SegmentationTest_VLCUS_RandomStepperMotionData2
 	--input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -122,7 +122,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotat
 	--input-testcase-name=USTC_FrameGrabber_ProbeRotationData
 	--input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -133,7 +133,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationD
 	--input-testcase-name=USTC_Ulterius_ProbeRotationData
 	--input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -144,7 +144,7 @@ ADD_TEST(PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1
 	--input-testcase-name=CIRS_TranslationData1
 	--input-baseline-file=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
+	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -161,7 +161,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 	# --input-testcase-name=UsTestSeqBaselineThomasShortened
 	# --input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
 	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
+	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -172,7 +172,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 	# --input-testcase-name=SegmentationTest_BKMedical_RandomStepperMotionData2
 	# --input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
 	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -183,7 +183,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 	# --input-testcase-name=SegmentationTest_VLCUS_RandomStepperMotionData2
 	# --input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
 	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -194,7 +194,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 	# --input-testcase-name=USTC_FrameGrabber_ProbeRotationData
 	# --input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
 	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -205,7 +205,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 	# --input-testcase-name=USTC_Ulterius_ProbeRotationData
 	# --input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
 	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
+	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

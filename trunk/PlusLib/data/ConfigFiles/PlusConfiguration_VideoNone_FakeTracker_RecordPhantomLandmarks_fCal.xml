@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="TEST Simulation mode for Phantom registration" 
+      Name="Simulation mode for Phantom registration" 
       Description="No Video with Fake tracker in Record phantom landmarks mode
 vtkPhantomRegistrationTest uses this configuration" 
     />

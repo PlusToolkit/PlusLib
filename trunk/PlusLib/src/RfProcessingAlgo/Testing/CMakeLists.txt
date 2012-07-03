@@ -5,7 +5,7 @@ ADD_EXECUTABLE(vtkRfToBrightnessConvertTest vtkRfToBrightnessConvertTest.cxx )
 TARGET_LINK_LIBRARIES(vtkRfToBrightnessConvertTest vtkRfProcessingAlgo vtkCommon )
 #ADD_TEST(vtkRfToBrightnessConvertRunTest
 #	${EXECUTABLE_OUTPUT_PATH}/vtkRfToBrightnessConvertTest
-#	--input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_RfProcessingAlgoTest.xml
+#	--input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoTest.xml
 #	--input-rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
 #	--output-brightness-file=outputUltrasonixLinearBrightnessData.mha 
 #	)

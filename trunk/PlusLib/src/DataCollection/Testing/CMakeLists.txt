@@ -20,7 +20,7 @@ ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
+  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
   --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --rendering-off
@@ -30,7 +30,7 @@ SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "
 IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_TEST(vtkDataCollectorTest1_SonixVideo
 	  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-	  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
+	  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
 	  --rendering-off
 	  )
 	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -43,7 +43,7 @@ ADD_TEST(vtkDataCollectorTest2
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
   --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
-  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
+  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
   --input-acq-time-length=5
   --verbose=3
   )
@@ -80,7 +80,7 @@ TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommo
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkBroadcasterTest.xml
+    --input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkBroadcasterTest.xml
     )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
@@ -92,7 +92,7 @@ IF (PLUS_USE_OpenIGTLink )
 
   ADD_TEST( PlusServer
     ${EXECUTABLE_OUTPUT_PATH}/PlusServer
-    --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTest.xml
     --running-time=5
     --testing
     )
@@ -107,7 +107,7 @@ ADD_EXECUTABLE( ReplayRecordedDataTest
 TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
-  --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTest.xml
   )
 SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 
@@ -116,7 +116,7 @@ ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorFileTest vtkDataCollection )
 ADD_TEST(vtkDataCollectorFileTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorFileTest
-  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_File.xml 
+  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_File.xml 
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

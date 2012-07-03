@@ -60,18 +60,19 @@ PlusStatus vtkDataCollector::VerifyDeviceSetConfigurationData(vtkXMLDataElement*
   }
   // Check plus configuration version. There were significant changes in the configuration file structure,
   // so reject processing older ones.
-  const double minimumRequiredPlusConfigurationVersion=1.4;
+  const double minimumRequiredPlusConfigurationVersion = 1.4;
   double plusConfigurationVersion = 0;
   if (!rootElement->GetScalarAttribute("version", plusConfigurationVersion))
   {
     LOG_ERROR("Version is not specified in the device set configuration. Minimum required version: " 
-      << std::fixed << minimumRequiredPlusConfigurationVersion << ".");
+      << std::fixed << std::setprecision(1) << minimumRequiredPlusConfigurationVersion << ".");
     return PLUS_FAIL;
   }
   if (plusConfigurationVersion < minimumRequiredPlusConfigurationVersion)
   {
-    LOG_ERROR("This version ("<< std::fixed << plusConfigurationVersion << ") of the device set configuration is no longer supported. Minimum required version: " 
-      << std::fixed << minimumRequiredPlusConfigurationVersion << ".");            
+    LOG_ERROR("This version ("<< std::fixed << std::setprecision(1) << plusConfigurationVersion
+      << ") of the device set configuration is no longer supported. Minimum required version: "
+      << minimumRequiredPlusConfigurationVersion << ".");            
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
