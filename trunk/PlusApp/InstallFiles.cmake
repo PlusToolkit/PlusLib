@@ -2,23 +2,23 @@
 # Install
 # 
 SET ( PLUSLIB_CONFIG_FILES
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_1.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_fCal_1.0.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_1.2.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NwirePhantomFreehandReconstructionOnly.xml 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_TemporalCalibration.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixRP_L14-5_NDICertus_fCal_1.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.1.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml  
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
   ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/EC9-5_10_Assembly.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.0.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.1.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.2.stl
   ${PLUSLIB_DATA_DIR}/CADModels/LinearProbe/L14-5_38_ProbeModel.stl
   ${PLUSLIB_DATA_DIR}/CADModels/Stylus/Stylus_Example.stl
-  ${PLUSLIB_DATA_DIR}/TestImages/NwirePhantomFreehandReconstructionOnly.xml 
 )
 
 SET ( NDI_TOOL_DEFINITIONS 
@@ -33,8 +33,9 @@ SET (BK_SETTINGS
 )
 
 SET ( PLUSLIB_DATA_FILES
-  ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration.mha
-  ${PLUSLIB_DATA_DIR}/TestImages/NwirePhantomFreehand.mha  
+  ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration_3NWires.mha
+  ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationTrackerBuffer.mha
+  ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationVideoBuffer.mha
 )
 
 # Install Qt libs 
