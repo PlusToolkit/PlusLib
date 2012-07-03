@@ -1,663 +1,166 @@
 <PlusConfiguration version="1.4" BufferSize="2500" LocalTimeOffsetSec="0" PlusRevision="1.5.3.1738">
   <DataCollection StartupDelaySec="1.0">
-    <DeviceSet Name="SonixTouch L14-5 + NDI Aurora 5cm depth" Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)">
-      
-      
-      
-      
-    
-    
-    
-    </DeviceSet>
-    <Tracker Type="AuroraTracker" SerialPort="7" BaudRate="115200" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0">
-      <Tool Name="Probe" PortName="0" Model="L14-5_38">
-        
-        
-        
-        
-      
-      
-      
-      </Tool>
-      <Tool Name="Reference" PortName="1">
-        
-        
-        
-        
-      
-      
-      
-      </Tool>
-      <Tool Name="Stylus" PortName="2" Model="Example">
-        
-        
-        
-        
-      
-      
-      
-      </Tool>
-      <Tool Name="Needle" PortName="3" Model="Example">
-        
-        
-        
-        
-      
-      
-      
-      </Tool>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-    
-    
-    
-    
+    <DeviceSet Name="SonixTouch L14-5 + NDI Aurora 5cm depth" Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"/>
+    <Tracker
+      Type="AuroraTracker"
+      SerialPort="7"
+      BaudRate="115200"
+      BufferSize="2500"
+      AcquisitionRate="50"
+      AveragedItemsForFiltering="20"
+      LocalTimeOffsetSec="0.0">
+      <Tool Name="Probe" PortName="0" Model="L14-5_38"/>
+      <Tool Name="Reference" PortName="1"/>
+      <Tool Name="Stylus" PortName="2" Model="Example"/>
+      <Tool Name="Needle" PortName="3" Model="Example"/>
     </Tracker>
-    <ImageAcquisition Type="SonixVideo" BufferSize="500" UsImageOrientation="UF" AcquisitionRate="30" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.008" IP="127.0.0.1" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="6" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" RfAcquisitionMode="RfOnly" ConnectionSetupDelayMs="3000">
-      
-      
-      
-      
-    
-    
-    
-    </ImageAcquisition>
+    <ImageAcquisition
+      Type="SonixVideo"
+      BufferSize="500"
+      UsImageOrientation="UF"
+      AcquisitionRate="30"
+      AveragedItemsForFiltering="20"
+      LocalTimeOffsetSec="0.008"
+      IP="127.0.0.1"
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost"
+      Depth="6"
+      Sector="-1"
+      Gain="-1"
+      DynRange="-1"
+      Zoom="-1"
+      Frequency="-1"
+      Timeout="-1"
+      CompressionStatus="0"
+      RfAcquisitionMode="RfOnly"
+      ConnectionSetupDelayMs="3000"/>
     <OpenIGTLink>
-      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111">
-        
-        
-        
-        
-      
-      
-      
-      </Transform>
-      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112">
-        
-        
-        
-        
-      
-      
-      
-      </Transform>
-      <Transform Name="NeedleToReference" SendTo="127.0.0.1:1112">
-        
-        
-        
-        
-      
-      
-      
-      </Transform>
-      <Image SendTo="127.0.0.1:1113">
-        
-        
-        
-        
-      
-      
-      
-      </Image>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-    
-    
-    
-    
+      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111"/>
+      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112"/>
+      <Transform Name="NeedleToReference" SendTo="127.0.0.1:1112"/>
+      <Image SendTo="127.0.0.1:1113"/>
     </OpenIGTLink>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-
-    
-
-    
-  
-  
-  
-  
   </DataCollection>
   <CoordinateDefinitions>
-    <Transform From="Image" To="Probe" Matrix="-0.0748865 -0.00460027 0.0428456 18.832 0.0438803 0.00316099 0.0730565 -26.8639 -0.00684301 0.0821348 -0.000411881 49.6737 0 0 0 1" Error="0.602219" Date="060612_161443">
-      
-    </Transform>
-    <Transform From="Image" To="TransducerOriginPixel" Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1" Date="2011.12.06 17:57:00">
-      
-    </Transform>
-    <Transform From="Phantom" To="Reference" Matrix="-0.386443 0.922266 0.00934541 -2.47449 0.921827 0.386548 -0.0285501 -95.1437 -0.0299433 -0.00241813 -0.999549 13.1831 0 0 0 1" Error="0.675891" Date="060612_161057">
-      
-    </Transform>
-    <Transform From="StylusTip" To="Stylus" Matrix="0.0393671 0.000520469 -0.999225 1.70719 -0.0132197 0.999913 0 -0.573285 0.999137 0.0132095 0.0393705 43.3284 0 0 0 1" Error="0.277173" Date="060612_161011">
-      
-    </Transform>
-    <Transform From="TransducerOriginPixel" To="TransducerOrigin" Matrix="0.0871089 0 0 0 0 0.0822776 0 0 0 0 0.0846945 0 0 0 0 1" Date="060612_161445">
-      
-    </Transform>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
-  
-  
-  
-  
+    <Transform From="Image" To="Probe"
+      Matrix="
+        -0.0748865	-0.00460027	0.0428456	18.832
+        0.0438803	0.00316099	0.0730565	-26.8639
+        -0.00684301	0.0821348	-0.000411881	49.6737
+        0	0	0	1"
+       Error="0.602219" Date="060612_161443"/>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="
+        -0.386443	0.922266	0.00934541	-2.47449
+        0.921827	0.386548	-0.0285501	-95.1437
+        -0.0299433	-0.00241813	-0.999549	13.1831
+        0	0	0	1"
+       Error="0.675891" Date="060612_161057"/>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.0393671	0.000520469	-0.999225	1.70719
+        -0.0132197	0.999913	0	-0.573285
+        0.999137	0.0132095	0.0393705	43.3284
+        0	0	0	1"
+       Error="0.277173" Date="060612_161011"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.0871089	0	0	0
+        0	0.0822776	0	0
+        0	0	0.0846945	0
+        0	0	0	1"
+       Date="060612_161445"/>
   </CoordinateDefinitions>
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl" ModelToObjectTransform="         1 0 0 -29.7         0 -1 0 1.5         0 0 -1 14         0 0 0 1">
-      
-      
-      
-      
-    
-    
-    
-    </DisplayableObject>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl" ModelToObjectTransform="         1 0 0 -210.0         0 1 0 0         0 0 1 0         0 0 0 1">
-      
-      
-      
-      
-    
-    
-    
-    </DisplayableObject>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl" ModelToObjectTransform="         1 0 0 -15.0         0 1 0 10.0         0 0 1 -5.0         0 0 0 1">
-      
-      
-      
-      
-    
-    
-    
-    </DisplayableObject>
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image">
-      
-      
-      
-      
-    
-    
-    
-    </DisplayableObject>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-  
-  
-  
-  
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        1	0	0	-29.7
+        0	-1	0	1.5
+        0	0	-1	14
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1	0	0	-210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
+      ModelToObjectTransform="
+        1	0	0	-15
+        0	1	0	10
+        0	0	1	-5
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image"/>
   </Rendering>
-  <Segmentation ApproximateSpacingMmPerPixel="0.0860445" MorphologicalOpeningCircleRadiusMm="0.37" MorphologicalOpeningBarSizeMm="1" RegionOfInterest="177 27 633 589" MaxLinePairDistanceErrorPercent="10" AngleToleranceDegrees="10" MaxAngleDifferenceDegrees="10" MinThetaDegrees="-70" MaxThetaDegrees="70" ThresholdImagePercent="10" CollinearPointsMaxDistanceFromLineMm="0.6" UseOriginalImageIntensityForDotIntensityScore="0">
-    
-    
-    
-    
-  
-  
-  
-  </Segmentation>
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.0860445"
+    MorphologicalOpeningCircleRadiusMm="0.37"
+    MorphologicalOpeningBarSizeMm="1"
+    RegionOfInterest="177 27 633 589"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"/>
   <PhantomDefinition>
-    <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab">
-      
-      
-      
-      
-    
-    
-    
-    </Description>
+    <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
       <Pattern Type="NWire">
-        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-      
-      
-      
-      
+        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0"/>
+        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0"/>
+        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0"/>
       </Pattern>
       <Pattern Type="NWire">
-        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Wire>
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-      
-      
-      
-      
+        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0"/>
+        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0"/>
+        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0"/>
       </Pattern>
       <Landmarks>
-        <Landmark Name="#1" Position="95.0 5.0 15.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#2" Position="95.0 40.0 15.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#3" Position="95.0 40.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#4" Position="95.0 0.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#5" Position="-25.0 40.0 15.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#6" Position="-25.0 0.0 10.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#7" Position="-25.0 0.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        <Landmark Name="#8" Position="-25.0 40.0 0.0">
-          
-          
-          
-          
-        
-        
-        
-        </Landmark>
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-        
-        
-        
-        
-      
-      
-      
-      
+        <Landmark Name="#1" Position="95.0 5.0 15.0"/>
+        <Landmark Name="#2" Position="95.0 40.0 15.0"/>
+        <Landmark Name="#3" Position="95.0 40.0 0.0"/>
+        <Landmark Name="#4" Position="95.0 0.0 0.0"/>
+        <Landmark Name="#5" Position="-25.0 40.0 15.0"/>
+        <Landmark Name="#6" Position="-25.0 0.0 10.0"/>
+        <Landmark Name="#7" Position="-25.0 0.0 0.0"/>
+        <Landmark Name="#8" Position="-25.0 40.0 0.0"/>
       </Landmarks>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-
-      
-    
-    
-    
-    
     </Geometry>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-  
-  
-  
-  
   </PhantomDefinition>
-  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off">
-    
-    
-    
-    
-  
-  
-  
-  </VolumeReconstruction>
-  <fCal NumberOfCalibrationImagesToAcquire="200" NumberOfValidationImagesToAcquire="100" NumberOfStylusCalibrationPointsToAcquire="200" RecordingIntervalMs="100" MaxTimeSpentWithProcessingMs="70" ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" ReferenceCoordinateFrame="Reference" TransducerOriginCoordinateFrame="TransducerOrigin" TransducerOriginPixelCoordinateFrame="TransducerOriginPixel" TemporalCalibrationDurationSec="10">
-    
-    
-    
-    
-  
-  
-  
-  </fCal>
-  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip">
-    
-    
-    
-    
-  
-  
-  
-  </vtkPivotCalibrationAlgo>
-  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip">
-    
-    
-    
-    
-  
-  
-  
-  </vtkPhantomRegistrationAlgo>
-  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference">
-    
-    
-    
-    
-  
-  
-  
-  </vtkProbeCalibrationAlgo>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-  
-
-
-   
-
-
-  
-
-
-  
-
-
-  
-
-
-  
-
-    
-  
-
-
-  
-
-
-  
-
-
-  
-
-
-
-
-
+  <VolumeReconstruction
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0"
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR"
+    Optimization="FULL"
+    Compounding="On"
+    FillHoles="Off"/>
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"/>
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
+  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
 </PlusConfiguration>
