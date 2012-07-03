@@ -217,13 +217,11 @@ int main (int argc, char* argv[])
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
 
   LOG_INFO("Saving volume to file...");
-  //reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName.c_str()); // TODO: change to metafile once saving to a single file is solved
-  reconstructor->SaveReconstructedVolumeToVtkFile(outputVolumeFileName.c_str());
+  reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName.c_str());
   
   if (!outputVolumeAlphaFileName.empty())
   {
-    //reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAlphaFileName.c_str(), true); // TODO: change to metafile once saving to a single file is solved
-    reconstructor->SaveReconstructedVolumeToVtkFile(outputVolumeAlphaFileName.c_str(), true);
+    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAlphaFileName.c_str(), true);
   }
 
   return EXIT_SUCCESS; 
