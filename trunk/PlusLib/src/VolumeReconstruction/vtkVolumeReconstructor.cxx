@@ -709,7 +709,7 @@ PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolum
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/)
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
 
@@ -748,7 +748,8 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
                                        volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
                                        scalarType, 1, volumeToSave->GetScalarPointer());
-  //metaImage.CompressedData(true); // TODO: ImageJ cannot open if compression is set
+  metaImage.BinaryData(true);
+  metaImage.CompressedData(useCompression);
   metaImage.ElementDataFileName("LOCAL");
   if (metaImage.Write(filename) == false)
   {
