@@ -1,4 +1,5 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #***************************  vtkMetaImageSequenceIOTest  ***************************
 ADD_EXECUTABLE(vtkMetaImageSequenceIOTest vtkMetaImageSequenceIOTest.cxx )
@@ -16,7 +17,7 @@ TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkImageAcquisition )
 ADD_TEST(MetaImageSequenceViewerTest
   ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
   --input-metafile=${TestDataDir}/SpinePhantomFreehand.mha
-  --input-configfile=${TestDataDir}/SpinePhantomFreehandReconstructionOnly.xml
+  --input-configfile=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
   --image-to-reference-transform-name=ImageToTracker
   --rendering-off
   )

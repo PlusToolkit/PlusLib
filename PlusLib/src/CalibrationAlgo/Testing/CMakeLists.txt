@@ -11,7 +11,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-calibration-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
             --input-validation-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
             --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
-            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
+            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_iCal.xml
             --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -21,7 +21,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-calibration-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
             --input-validation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
             --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
-            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
+            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
             --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -31,7 +31,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-calibration-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionCalibration.mha 
             --input-validation-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionValidation.mha 
             --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha
-            --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+            --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
             --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -44,7 +44,7 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkC
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
+		--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
 		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
 		)
 SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -55,7 +55,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
+		--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -66,7 +66,7 @@ TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkFreehandCalibration2NWiresTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
+		--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
 		--input-calibration-sequence-metafile=${TestDataDir}/fCal_Test_Calibration.mha 
 		--input-validation-sequence-metafile=${TestDataDir}/fCal_Test_Validation.mha 
 		--input-baseline-file-name=${TestDataDir}/FreehandCalibration2NWires.results.xml
@@ -88,7 +88,7 @@ TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrat
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+        --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
         --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
         --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
         )
@@ -96,7 +96,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGUL
 
 ADD_TEST(CenterOfRotationCalibration-FrameGrabber
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+        --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
         --input-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
         --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
         )
@@ -104,7 +104,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_R
 
 ADD_TEST(CenterOfRotationCalibration-3NWires
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
         --input-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
         --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
         )
@@ -116,7 +116,7 @@ TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo v
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
             --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
             )
@@ -124,7 +124,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPR
 
 ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
             --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
             )
@@ -132,7 +132,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_
 
 ADD_TEST(SpacingCalibAlgoTest-3NWires
         ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
         --input-sequence-metafiles ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
         --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
         )
