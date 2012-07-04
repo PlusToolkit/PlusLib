@@ -71,20 +71,6 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 	  # SET_TESTS_PROPERTIES( vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 # ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
-#***************************  vtkOpenIGTLinkBroadcasterTest1 ***************************
-ADD_EXECUTABLE( vtkOpenIGTLinkBroadcasterTest1
-  vtkOpenIGTLinkBroadcasterTest1.cxx
-  OpenIGTLinkReceiveServer.cxx  OpenIGTLinkReceiveServer.h
-  )
-TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommon )
-IF (PLUS_USE_OpenIGTLink )
-  ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
-    ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkBroadcasterTest.xml
-    )
-  SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
-ENDIF (PLUS_USE_OpenIGTLink )
-
 #***************************  PlusServer ***************************
 IF (PLUS_USE_OpenIGTLink )
   ADD_EXECUTABLE( PlusServer PlusServer.cxx )

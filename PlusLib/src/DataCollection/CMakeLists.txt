@@ -19,7 +19,6 @@ endif (WIN32)
 
 IF (PLUS_USE_OpenIGTLink)
 	SET (DataCollection_SRCS ${DataCollection_SRCS}
-		vtkOpenIGTLinkBroadcaster.cxx
 	  vtkPlusOpenIGTLinkServer.cxx
 	  vtkPlusOpenIGTLinkClient.cxx
 		OpenIGTLinkCommands/vtkPlusCommand.cxx
@@ -31,7 +30,6 @@ IF (PLUS_USE_OpenIGTLink)
 		
 	IF (WIN32)	
 		SET (DataCollection_HDRS ${DataCollection_HDRS}
-			vtkOpenIGTLinkBroadcaster.h
 			vtkPlusOpenIGTLinkServer.h
 			vtkPlusOpenIGTLinkClient.h
 			OpenIGTLinkCommands/vtkPlusCommand.h
