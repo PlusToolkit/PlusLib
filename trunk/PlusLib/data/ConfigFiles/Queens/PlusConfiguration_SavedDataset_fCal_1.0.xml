@@ -26,11 +26,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       ReplayEnabled="TRUE"
     />
 
-    <OpenIGTLink>
-      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111" />
-      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112" />
-      <Image SendTo="127.0.0.1:1113" />
-    </OpenIGTLink>
   </DataCollection>
 
 

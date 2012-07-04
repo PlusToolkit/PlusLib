@@ -7,7 +7,6 @@ See License.txt for details.
 /*!
   \file vtkDataCollectorTest1.cxx 
   \brief This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
-  It can also broadcast the acquired data through OpenIGTLink.
 */ 
 
 #include "PlusConfigure.h"
@@ -24,15 +23,11 @@ See License.txt for details.
 #include "vtkPlusVideoSource.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
-#include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
 #include "vtkTrackerTool.h"
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
-
-PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector); 
-PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster); 
 
 class vtkMyCallback : public vtkCommand
 {
@@ -83,8 +78,6 @@ public:
 
     this->Viewer->Render();
 
-    InvokeBroadcasterMessage(this->Broadcaster); 
-
     //update the timer so it will trigger again
     this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
@@ -93,7 +86,6 @@ public:
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
-  vtkOpenIGTLinkBroadcaster* Broadcaster;
   PlusTransformName TransformName; 
 };
 
@@ -106,7 +98,6 @@ int main(int argc, char **argv)
   std::string inputTrackerBufferMetafile;
   std::string inputTransformName; 
   bool inputReplay(false); 
-  bool inputEnableBroadcasting(false); 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -120,7 +111,6 @@ int main(int argc, char **argv)
   
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
-  args.AddArgument("--enable-broadcasting", vtksys::CommandLineArguments::NO_ARGUMENT, &inputEnableBroadcasting, "Enable OpenIGTLink broadcasting." );
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -191,17 +181,6 @@ int main(int argc, char **argv)
     exit( EXIT_FAILURE );
   }
 
-  vtkSmartPointer<vtkOpenIGTLinkBroadcaster> broadcaster;
-  if ( inputEnableBroadcasting && InitBroadcaster(broadcaster, dataCollector) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to initialize OpenIGTLink bradcaster!"); 
-    if ( broadcaster != NULL )
-    {
-      broadcaster->Delete(); 
-      broadcaster = NULL; 
-    }
-  }
-
   if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start data collection!" ); 
@@ -247,7 +226,6 @@ int main(int argc, char **argv)
     call->Viewer=viewer;
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor; 
-    call->Broadcaster=broadcaster;
     
     if ( !inputTransformName.empty() )
     {
@@ -271,37 +249,4 @@ int main(int argc, char **argv)
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
 
-}
-
-PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector)
-{
-  broadcaster = vtkSmartPointer<vtkOpenIGTLinkBroadcaster>::New();
-  broadcaster->SetDataCollector( dataCollector );
-
-  if (broadcaster->Initialize() != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to initialize OpenIGTLink broadcaster!");
-    return PLUS_FAIL; 
-  }
-
-  return PLUS_SUCCESS; 
-}
-
-PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster)
-{
-  if ( broadcaster == NULL )
-  {
-    LOG_DEBUG("Unable invoke broadcaster message - broadcaster is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string errorMessage;
-
-  if (broadcaster->SendMessages() != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to send message!");
-    return PLUS_FAIL; 
-  }
-
-  return PLUS_SUCCESS; 
 }

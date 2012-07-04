@@ -31,11 +31,6 @@
       Timeout="-1" 
       CompressionStatus="0" 
     />
-
-    <OpenIGTLink>
-      <Transform Name="ProbeToReference" SendTo="localhost:18944" />
-      <Image SendTo="localhost:18944" />
-    </OpenIGTLink>
   </DataCollection>
 
 

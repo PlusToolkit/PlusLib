@@ -8,11 +8,6 @@
 
     <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
     
-    <OpenIGTLink Mode="Server|Client" >
-      <Transform Name="ProbeToReference" SendTo="localhost:18944" ListeningPort="18944" />
-      <Transform Name="StylusTipToStylus" SendTo="localhost:18944" />
-      <Image SendTo="localhost:18945" />
-    </OpenIGTLink>
   </DataCollection>
 
 

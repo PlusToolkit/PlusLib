@@ -34,12 +34,6 @@
       CompressionStatus="0"
       RfAcquisitionMode="RfOnly"
       ConnectionSetupDelayMs="3000"/>
-    <OpenIGTLink>
-      <Transform Name="ProbeToReference" SendTo="127.0.0.1:1111"/>
-      <Transform Name="StylusToReference" SendTo="127.0.0.1:1112"/>
-      <Transform Name="NeedleToReference" SendTo="127.0.0.1:1112"/>
-      <Image SendTo="127.0.0.1:1113"/>
-    </OpenIGTLink>
   </DataCollection>
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
