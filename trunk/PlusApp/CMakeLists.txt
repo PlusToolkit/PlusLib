@@ -80,9 +80,7 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Install )
 SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
 
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
-OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
-OPTION (PLUSAPP_BUILD_PlusBroadcasterDaemon "Build the PlusBroadcasterDaemon application (Qt + OpenIGTLink)" ON)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
@@ -112,26 +110,6 @@ IF (PLUSAPP_BUILD_fCal)
 	ADD_SUBDIRECTORY(fCal)
     ADD_DEPENDENCIES( fCal ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_fCal)
-
-IF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
-    IF (PLUS_USE_OpenIGTLink)
-        ADD_SUBDIRECTORY(OpenIGTLinkBroadcaster)
-        ADD_DEPENDENCIES( OpenIGTLinkBroadcaster ${PLUSLIB_DEPENDENCIES} )
-    ELSE (PLUS_USE_OpenIGTLink)
-        MESSAGE(SEND_ERROR "OpenIGTLinkBroadcaster: PLUS has to be configured with PLUS_USE_OpenIGTLink flag ON")
-    ENDIF (PLUS_USE_OpenIGTLink)
-ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
-
-# --------------------------------------------------------------------------
-# Build the PlusBroadcasterDaemon application
-IF(PLUSAPP_BUILD_PlusBroadcasterDaemon)
-   IF (PLUS_USE_OpenIGTLink)
-        ADD_SUBDIRECTORY(PlusBroadcasterDaemon)
-        ADD_DEPENDENCIES(PlusBroadcasterDaemon ${PLUSLIB_DEPENDENCIES} )
-    ELSE (PLUS_USE_OpenIGTLink)
-        MESSAGE(SEND_ERROR "PlusBroadcasterDaemon: PLUS has to be configured with PLUS_USE_OpenIGTLink flag ON")
-    ENDIF (PLUS_USE_OpenIGTLink)
-ENDIF(PLUSAPP_BUILD_PlusBroadcasterDaemon)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
