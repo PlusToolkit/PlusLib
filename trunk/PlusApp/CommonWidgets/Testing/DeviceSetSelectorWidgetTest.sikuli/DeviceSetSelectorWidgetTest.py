@@ -15,7 +15,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
+    exe = '"' + plusDir + '/bin/Release/SegmentationParameterDialogTest.exe " "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
 
   return exe
 

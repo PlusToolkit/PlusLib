@@ -27,10 +27,10 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   this->setMaximumSize(480, 320);
 
   // Create device set selector widget
-	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->setMinimumWidth(472);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
   // Create status icon
   StatusIcon* statusIcon = new StatusIcon(this);
@@ -39,7 +39,7 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   m_SaveButton = new QPushButton(tr("Save configuration..."), this);
   m_SaveButton->setMinimumWidth(120);
   m_SaveButton->setEnabled(false);
-	connect( m_SaveButton, SIGNAL( clicked() ), this, SLOT( SaveConfigurationClicked() ) );
+  connect( m_SaveButton, SIGNAL( clicked() ), this, SLOT( SaveConfigurationClicked() ) );
 
   // Insert widgets into placeholders
   QGridLayout* mainGrid = new QGridLayout(this, 2, 2, 4, 4, "");
@@ -54,8 +54,9 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
 
 SegmentationParameterDialogTest::~SegmentationParameterDialogTest()
 {
-  if (m_DataCollector != NULL) {
-	  m_DataCollector->Stop();
+  if (m_DataCollector != NULL)
+  {
+    m_DataCollector->Stop();
   }
   m_DataCollector = NULL;
 }
@@ -64,16 +65,18 @@ SegmentationParameterDialogTest::~SegmentationParameterDialogTest()
 
 void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
-	LOG_TRACE("SegmentationParameterDialogTest::ConnectToDevicesByConfigFile");
+  LOG_TRACE("SegmentationParameterDialogTest::ConnectToDevicesByConfigFile");
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // If not empty, then try to connect; empty parameter string means disconnect
-  if (STRCASECMP(aConfigFile.c_str(), "") != 0) {
+  if (STRCASECMP(aConfigFile.c_str(), "") != 0)
+  {
     // Read configuration
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
       vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));  
-    if (configRootElement == NULL) {	
+    if (configRootElement == NULL)
+    {  
       LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
       return;
     }
@@ -81,40 +84,41 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
     // If connection has been successfully created then this action should disconnect
-    if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
-	    LOG_INFO("Connect to devices"); 
+    if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful())
+    {
+      LOG_INFO("Connect to devices"); 
 
       // Disable main window
-   	  this->setEnabled(false);
+       this->setEnabled(false);
 
-	    // Create dialog
-	    QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-	    connectDialog->setMinimumSize(QSize(360,80));
-	    connectDialog->setCaption(tr("fCal"));
-	    connectDialog->setBackgroundColor(QColor(224, 224, 224));
+      // Create dialog
+      QDialog* connectDialog = new QDialog(this, Qt::Dialog);
+      connectDialog->setMinimumSize(QSize(360,80));
+      connectDialog->setCaption(tr("fCal"));
+      connectDialog->setBackgroundColor(QColor(224, 224, 224));
 
-	    QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-	    connectLabel->setFont(QFont("SansSerif", 16));
+      QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
+      connectLabel->setFont(QFont("SansSerif", 16));
 
-	    QHBoxLayout* layout = new QHBoxLayout();
-	    layout->addWidget(connectLabel);
+      QHBoxLayout* layout = new QHBoxLayout();
+      layout->addWidget(connectLabel);
 
-	    connectDialog->setLayout(layout);
-	    connectDialog->show();
+      connectDialog->setLayout(layout);
+      connectDialog->show();
 
-	    QApplication::processEvents();
+      QApplication::processEvents();
 
-	    // Connect to devices
-	    if (this->StartDataCollection() != PLUS_SUCCESS)
+      // Connect to devices
+      if (this->StartDataCollection() != PLUS_SUCCESS)
       {
-		    LOG_ERROR("Unable to start collecting data!");
-		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+        LOG_ERROR("Unable to start collecting data!");
+        m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
         m_SaveButton->setEnabled(false);
-	    }
+      }
       else
       {
         // Successful connection
-		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+        m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
@@ -127,21 +131,21 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
         delete segmentationParamDialog;
 
         // Disconnect after closing the segmentation parameter dialog (else the user would have to disconnect manually anyway)
-		    m_DataCollector->Stop();
-		    m_DataCollector->Disconnect();
+        m_DataCollector->Stop();
+        m_DataCollector->Disconnect();
 
-		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+        m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 
         m_SaveButton->setEnabled(true);
-	    }
+      }
 
-	    // Close dialog
-	    connectDialog->done(0);
+      // Close dialog
+      connectDialog->done(0);
       connectDialog->hide();
       delete connectDialog;
 
       // Re-enable main window
-   	  this->setEnabled(true);
+       this->setEnabled(true);
     }
   }
 
@@ -154,36 +158,35 @@ PlusStatus SegmentationParameterDialogTest::StartDataCollection()
 {
   LOG_TRACE("SegmentationParameterDialogTest::StartDataCollection"); 
 
-  // Stop data collection if already started
+  // Delete data collection if already exists
   if (m_DataCollector != NULL)
   {
-	  m_DataCollector->Stop();
+    m_DataCollector->Stop();
+    m_DataCollector = NULL;
   }
-  else
-  {
-	  m_DataCollector = vtkDataCollector::New();
-  }
+
+  m_DataCollector = vtkDataCollector::New();
 
   // Initialize data collector and read configuration
   if (m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-	  return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   if (m_DataCollector->Connect() != PLUS_SUCCESS)
   {
-	  return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   if (m_DataCollector->Start() != PLUS_SUCCESS)
   {
-	  return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   if (! m_DataCollector->GetConnected())
   {
-	  LOG_ERROR("Unable to initialize DataCollector!"); 
-	  return PLUS_FAIL;
+    LOG_ERROR("Unable to initialize DataCollector!"); 
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -193,7 +196,7 @@ PlusStatus SegmentationParameterDialogTest::StartDataCollection()
 
 void SegmentationParameterDialogTest::SaveConfigurationClicked()
 {
-	LOG_TRACE("SegmentationParameterDialogTest::SaveConfigurationClicked"); 
+  LOG_TRACE("SegmentationParameterDialogTest::SaveConfigurationClicked"); 
 
   ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
@@ -214,7 +217,7 @@ void SegmentationParameterDialogTest::SaveConfigurationClicked()
 
 void SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(std::string aBaseLineFileName)
 {
-	LOG_TRACE("SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(" << aBaseLineFileName << ")");
+  LOG_TRACE("SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(" << aBaseLineFileName << ")");
 
   m_VerificationBaselineFileName = aBaseLineFileName;
 }
@@ -223,39 +226,44 @@ void SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(std:
 
 PlusStatus SegmentationParameterDialogTest::VerifySavedConfigurationFile()
 {
-	LOG_TRACE("SegmentationParameterDialogTest::VerifySavedConfigurationFile"); 
+  LOG_TRACE("SegmentationParameterDialogTest::VerifySavedConfigurationFile"); 
 
-	// Load result configuration file
+  // Load result configuration file
   vtkSmartPointer<vtkXMLDataElement> resultRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(m_VerificationBaselineFileName.c_str())); 
 
-	if (resultRootElement == NULL) {	
-		LOG_ERROR("Unable to read the result configuration file: " << m_VerificationBaselineFileName); 
-		return PLUS_FAIL;
-	}
+  if (resultRootElement == NULL)
+  {  
+    LOG_ERROR("Unable to read the result configuration file: " << m_VerificationBaselineFileName); 
+    return PLUS_FAIL;
+  }
 
   // Find Device set element
-	vtkXMLDataElement* dataCollection = resultRootElement->FindNestedElementWithName("DataCollection");
-	if (dataCollection == NULL) {
-		LOG_ERROR("No DataCollection element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  vtkXMLDataElement* dataCollection = resultRootElement->FindNestedElementWithName("DataCollection");
+  if (dataCollection == NULL)
+  {
+    LOG_ERROR("No DataCollection element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
-	vtkXMLDataElement* deviceSet = dataCollection->FindNestedElementWithName("DeviceSet");
-	if (deviceSet == NULL) {
-		LOG_ERROR("No DeviceSet element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  vtkXMLDataElement* deviceSet = dataCollection->FindNestedElementWithName("DeviceSet");
+  if (deviceSet == NULL)
+  {
+    LOG_ERROR("No DeviceSet element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
   // Get name and description
   const char* name = deviceSet->GetAttribute("Name");
-  if ((name == NULL) || (STRCASECMP(name, "") == 0)) {
+  if ((name == NULL) || (STRCASECMP(name, "") == 0))
+  {
     LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
 
   const char* description = deviceSet->GetAttribute("Description");
-  if ((description == NULL) || (STRCASECMP(description, "") == 0)) {
+  if ((description == NULL) || (STRCASECMP(description, "") == 0))
+  {
     LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
@@ -275,22 +283,25 @@ PlusStatus SegmentationParameterDialogTest::VerifySavedConfigurationFile()
 
   // Check segmentation parameter calue change
   vtkXMLDataElement* segmentationParameters = resultRootElement->FindNestedElementWithName("Segmentation");
-	if (segmentationParameters == NULL) {
-		LOG_ERROR("No Segmentation element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  if (segmentationParameters == NULL)
+  {
+    LOG_ERROR("No Segmentation element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
-	double maxLinePairDistanceErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-	{
-		if (maxLinePairDistanceErrorPercent != 11.0)
+  double maxLinePairDistanceErrorPercent(0.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+  {
+    if (maxLinePairDistanceErrorPercent != 11.0)
     {
       LOG_ERROR("Line pair distance tolerance does not match the expected value!");
       return PLUS_FAIL;
     }
-	} else {
+  }
+  else
+  {
     LOG_ERROR("Could not read MaxLinePairDistanceErrorPercent from configuration");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

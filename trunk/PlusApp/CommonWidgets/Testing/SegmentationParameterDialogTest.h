@@ -22,20 +22,20 @@ class DeviceSetSelectorWidget;
  */
 class SegmentationParameterDialogTest : public QDialog
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	/*!
-	* Constructor
-	* \param aParent parent
-	* \param aFlags widget flag
-	*/
-	SegmentationParameterDialogTest(QWidget *parent = 0, Qt::WFlags flags = 0);
+  /*!
+  * Constructor
+  * \param aParent parent
+  * \param aFlags widget flag
+  */
+  SegmentationParameterDialogTest(QWidget *parent = 0, Qt::WFlags flags = 0);
 
-	/*!
-	* Destructor
-	*/
-	~SegmentationParameterDialogTest();
+  /*!
+  * Destructor
+  */
+  ~SegmentationParameterDialogTest();
 
   /*!
     Set verification of the saved configuration file
@@ -44,22 +44,22 @@ public:
   void SetSavedConfigurationFileVerification(std::string aBaseLineFileName);
 
 protected slots:
-	/*!
-	* Connect to devices described in the argument configuration file in response by clicking on the Connect button
-	* \param aConfigFile DeviceSet configuration file path and name
-	*/
-	void ConnectToDevicesByConfigFile(std::string aConfigFile);
+  /*!
+  * Connect to devices described in the argument configuration file in response by clicking on the Connect button
+  * \param aConfigFile DeviceSet configuration file path and name
+  */
+  void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
-	/*!
-	* Shows configuration file saver dialog that enables saving the new segmentation parameters
-	*/
+  /*!
+  * Shows configuration file saver dialog that enables saving the new segmentation parameters
+  */
   void SaveConfigurationClicked();
 
 protected:
-	/*!
-	 * Read configuration file and start data collection
-	 * \return Success flag
-	 */
+  /*!
+   * Read configuration file and start data collection
+   * \return Success flag
+   */
   PlusStatus StartDataCollection();
 
   /*! Verify saved configuration file by comparing it to a baseline */
@@ -67,10 +67,10 @@ protected:
 
 protected:
   /*! Device set selector widget */
-	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+  DeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
 
-	/*! Data collector object */
-	vtkDataCollector*	        m_DataCollector;
+  /*! Data collector object */
+  vtkDataCollector*          m_DataCollector;
 
   /*! Save configuration button */
   QPushButton*              m_SaveButton;
