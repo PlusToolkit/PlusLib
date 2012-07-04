@@ -22,7 +22,6 @@ ExternalProject_Add(PlusApp
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
-                -DPLUSAPP_BUILD_OpenIGTLinkBroadcaster:BOOL=${PLUSBUILD_USE_OpenIGTLink}
                 -DPLUSAPP_BUILD_fCal:BOOL=ON
                 -DPLUSAPP_TEST_GUI:BOOL=${PLUSAPP_TEST_GUI}
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
