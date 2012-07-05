@@ -45,8 +45,15 @@ enum SIGNAL_ALIGNMENT_METRIC_TYPES
   CORRELATION,
   SAD
 };
-
 const int SIGNAL_ALIGNMENT_METRIC = SSD;
+
+enum METRIC_NORMALIZATION_TYPES
+{
+	STD,
+	AMPLITUDE
+};
+const int METRIC_NORMALIZATION = AMPLITUDE;
+
 
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
@@ -899,7 +906,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     return PLUS_FAIL;
   }
 
-  //  Calculate the metric mean
+	 //  Calculate the metric mean
   double mu = 0;
   for(int i = 0; i < metric.size(); ++i)
   {
@@ -908,30 +915,51 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 
   mu /= metric.size();
 
+	// Initialize standard deviation
+	double s = 0;
+
+	switch (METRIC_NORMALIZATION)
+	{
+		case AMPLITUDE:
+		{
+			// Do nothing
+		}
+		case STD:
+		{
+			// Calculate standard deviation
+			for(int i = 0; i < metric.size(); ++i)
+			{
+			s += (metric.at(i) - mu)*(metric.at(i) - mu);
+			}
+
+			s = std::sqrt(s);
+			s /= std::sqrt( static_cast<double>(metric.size()) - 1);
+		} // End "case: STD"
+	}
+
   //  Subtract the metric mean from each metric value as: s' = s - mu
   for(int i = 0; i < metric.size(); ++i)
   {
     metric.at(i) -= mu;
   }
 
-  //  Calculate maximum and minimum metric values
-  double maxMetricValue = metric.at(0);
-  double minMetricValue = metric.at(0);
+	//  Calculate maximum and minimum metric values
+	double maxMetricValue = metric.at(0);
+	double minMetricValue = metric.at(0);
 
-  for(int i = 1; i < metric.size(); ++i)
-  {
-    if(metric.at(i) > maxMetricValue)
-    {
-      maxMetricValue = metric.at(i);
-    }
-    else if(metric.at(i) < minMetricValue)
-    {
-       minMetricValue = metric.at(i);
-    }
-  }
+	for(int i = 1; i < metric.size(); ++i)
+	{
+		if(metric.at(i) > maxMetricValue)
+		{
+			maxMetricValue = metric.at(i);
+		}
+		else if(metric.at(i) < minMetricValue)
+		{
+			minMetricValue = metric.at(i);
+		}
+	} // End for()
 
-
-  // Normalize the signal by dividing by max peak-to-peak
+  // Compute the max peak-to-peak
   double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
 
   // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
@@ -942,12 +970,29 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     return PLUS_FAIL;
   }
 
-  normalizationFactor=1.0/maxPeakToPeak;
+	switch (METRIC_NORMALIZATION)
+	{
+		case AMPLITUDE:
+		{
+			// Divide by the maximum signal amplitude
+			normalizationFactor = 1.0/maxPeakToPeak;
+			for(int i = 0; i < metric.size(); ++i)
+			{
+				metric.at(i) *= normalizationFactor; 
+			}
 
-  for(int i = 0; i < metric.size(); ++i)
-  {
-    metric.at(i) *= normalizationFactor; 
-  }
+		} // End "case: AMPLITUDE" 
+		case STD:
+		{
+			// Divide by the standard deviation
+			normalizationFactor = 1.0/s;
+			for(int i = 0; i < metric.size(); ++i)
+			{
+				metric.at(i) *= normalizationFactor; 
+			} 
+
+		} // End "case STD"
+	}
 
   return PLUS_SUCCESS;
 
@@ -972,6 +1017,16 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
 
   mu /= stationaryMetricSize;
 
+  // Calculate standard deviation
+  double s = 0;
+  for(int i = 0; i < stationaryMetricSize; ++i)
+  {
+	s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
+  }
+
+  s = std::sqrt(s);
+  s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
+
   //  Subtract the metric mean from each metric value as: s' = s - mu
   for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
   {
@@ -994,22 +1049,31 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
     }
   }
 
-  // Normalize the signal by dividing by max peak-to-peak
-  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
+
 
   // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
   // not work for our purposes
+  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
+
   if(maxPeakToPeak < MINIMUM_SIGNAL_PEAK_TO_PEAK)
   {
     LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant");
     return PLUS_FAIL;
   }
 
+  // Normalize the signal by dividing by max peak-to-peak
+
+/*
   for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
   {
     normalizedSlidingMetric.at(i) /= maxPeakToPeak;
   }
-
+*/
+  // Normalize the signal by diving by the standard deviation
+  for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
+  {
+    normalizedSlidingMetric.at(i) /= s; 
+  } 
   return PLUS_SUCCESS;
 
 }// End NormalizeMetricWindow()
@@ -1653,9 +1717,32 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
   //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
   RANSACType::Pointer ransacEstimator = RANSACType::New();
-  ransacEstimator->SetData( data );
-  ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
-  ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+  
+  
+	try{
+		ransacEstimator->SetData( data );
+	}
+	catch( std::exception& e) {
+		LOG_ERROR(e.what());
+		return PLUS_FAIL;
+	}
+
+	try{
+		ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
+	}
+	catch( std::exception& e) {
+		LOG_ERROR(e.what());
+		return PLUS_FAIL;
+	}
+
+  
+  try{
+		ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+	}
+	catch( std::exception& e) {
+		LOG_ERROR(e.what());
+		return PLUS_FAIL;
+	}
   
   if( planeParameters.empty() )
   {
