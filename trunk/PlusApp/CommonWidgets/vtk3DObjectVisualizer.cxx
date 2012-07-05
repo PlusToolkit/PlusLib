@@ -33,7 +33,6 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 , ResultActor(NULL)
 , ResultGlyph(NULL)
 , VolumeActor(NULL)
-, Camera(NULL)
 , WorldCoordinateFrame(NULL)
 , TransformRepository(NULL)
 {
@@ -100,7 +99,6 @@ vtk3DObjectVisualizer::~vtk3DObjectVisualizer()
   this->SetInputPolyData(NULL);
   this->SetInputActor(NULL);
   this->SetVolumeActor(NULL);
-  this->SetCamera(NULL);
   this->SetWorldCoordinateFrame(NULL);
   this->SetTransformRepository(NULL);
 }

@@ -8,7 +8,7 @@
 
 #include "vtkActor.h"
 #include "vtkImageActor.h"
-#include "vtkAxesActor.h"
+#include "vtkToolAxesActor.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkSTLReader.h"
@@ -174,13 +174,8 @@ vtkStandardNewMacro(vtkDisplayableAxes);
 vtkDisplayableAxes::vtkDisplayableAxes()
   : vtkDisplayableObject()
 {
-  vtkSmartPointer<vtkAxesActor> axesActor = vtkSmartPointer<vtkAxesActor>::New();
-  axesActor->SetShaftTypeToCylinder();
-  axesActor->SetXAxisLabelText("X");
-  axesActor->SetYAxisLabelText("Y");
-  axesActor->SetZAxisLabelText("Z");
-  axesActor->SetAxisLabels(0);
-  axesActor->SetTotalLength(50, 50, 50);
+  vtkSmartPointer<vtkToolAxesActor> axesActor = vtkSmartPointer<vtkToolAxesActor>::New();
+  //axesActor->SetShaftLength(50);
   this->SetActor(axesActor);
 }
 
@@ -210,7 +205,7 @@ void vtkDisplayableAxes::SetOpacity(double aOpacity)
 
 double vtkDisplayableAxes::GetOpacity()
 {
-  vtkAxesActor* axesActor = dynamic_cast<vtkAxesActor*>(this->Actor);
+  vtkToolAxesActor* axesActor = dynamic_cast<vtkToolAxesActor*>(this->Actor);
   if (axesActor)
   {
     return axesActor->GetVisibility() ? 1.0 : 0.0;

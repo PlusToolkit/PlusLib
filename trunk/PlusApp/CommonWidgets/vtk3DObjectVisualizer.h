@@ -102,7 +102,6 @@ public:
   PlusStatus InitializeTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository);
 
 protected:
-  vtkSetObjectMacro(Camera, vtkCamera);
   vtkSetObjectMacro(ImageActor, vtkImageActor);
   vtkSetObjectMacro(InputActor, vtkActor);
   vtkSetObjectMacro(ResultActor, vtkActor);
@@ -160,9 +159,6 @@ protected:
 
   /*! Actor for displaying a volume */
   vtkActor* VolumeActor;
-
-  /*! Camera of the scene */
-  vtkCamera* Camera;
 
   /*! Name of the rendering world coordinate frame */
   char* WorldCoordinateFrame;
