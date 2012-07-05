@@ -50,8 +50,8 @@ ADD_TEST(vtkDataCollectorTest2
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
 #***************************  vtkDataCollectorTrackingTest ***************************
-ADD_EXECUTABLE(vtkDataCollectorTrackingTest vtkDataCollectorTrackingTest.cxx vtkToolAxesActor.cxx )
-TARGET_LINK_LIBRARIES(vtkDataCollectorTrackingTest vtkDataCollection )
+ADD_EXECUTABLE(vtkDataCollectorTrackingTest vtkDataCollectorTrackingTest.cxx )
+TARGET_LINK_LIBRARIES(vtkDataCollectorTrackingTest vtkDataCollection vtkPlusCommon )
 # ADD_TEST(vtkDataCollectorTrackingTest 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTrackingTest
   # --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_VideoNone.xml 

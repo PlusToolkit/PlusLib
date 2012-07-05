@@ -15,7 +15,8 @@ SET (PlusCommon_SRCS
   TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
   vtkPlusDevice.cxx
-  vtkRecursiveCriticalSection.cxx 
+  vtkRecursiveCriticalSection.cxx
+  vtkToolAxesActor.cxx
   )
 
 SET (PlusCommon_HDRS)
@@ -37,7 +38,8 @@ if (WIN32)
     PlusVideoFrame.h
     vtkMetaImageSequenceIO.h
     vtkPlusDevice.h
-    vtkRecursiveCriticalSection.h 
+    vtkRecursiveCriticalSection.h
+    vtkToolAxesActor.h
     )
 endif (WIN32)	
 
