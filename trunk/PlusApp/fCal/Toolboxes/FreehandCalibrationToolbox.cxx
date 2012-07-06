@@ -334,6 +334,9 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     }
   }
 
+  // Update calibration state
+  ui.label_SpatialCalibrationState->setText(GetSpatialCalibrationStateMessage());
+
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
@@ -500,7 +503,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
-    ui.label_InstructionsTemporal->setText(tr("Error occured!"));
+    ui.label_InstructionsTemporal->setText(tr("Error occurred!"));
     ui.pushButton_StartTemporal->setEnabled(false);
     ui.pushButton_CancelTemporal->setEnabled(false);
     ui.pushButton_ShowPlots->setEnabled(false);
@@ -1317,4 +1320,45 @@ bool FreehandCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 	}
 
 	return true;
+}
+
+//-----------------------------------------------------------------------------
+
+QString FreehandCalibrationToolbox::GetSpatialCalibrationStateMessage()
+{
+  QString message;
+
+  std::string imageToProbeTransformNameStr;
+  PlusTransformName imageToProbeTransformName(
+    m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame());
+  imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
+
+  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+    m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame(), false) == PLUS_SUCCESS)
+  {
+    std::string date, errorStr;
+    double error;
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+    {
+      date = "N/A";
+    }
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+    {
+      char imageToProbeTransformErrorChars[32];
+      sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+      errorStr = imageToProbeTransformErrorChars;
+    }
+    else
+    {
+      errorStr = "N/A";
+    }
+
+    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
+  }
+  else
+  {
+    message = QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str());
+  }
+
+  return message;
 }

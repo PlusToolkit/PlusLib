@@ -328,7 +328,7 @@
        </widget>
       </item>
       <item row="2" column="0" colspan="2">
-       <widget class="QLabel" name="label_CalibrationState">
+       <widget class="QLabel" name="label_SpatialCalibrationState">
         <property name="font">
          <font>
           <weight>75</weight>
@@ -347,6 +347,9 @@
        <spacer name="verticalSpacer_4">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
