@@ -83,7 +83,7 @@ public:
 
   //Accessors and mutators
   /*! Get the vector of dots found by FidSegmentation */
-  std::vector<Dot> GetDotsVector() {return m_DotsVector; };	
+  std::vector<Dot> GetDotsVector() {return m_DotsVector; };  
 
   /*! Set the vector of dots found by FidSegmentation */
   void SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
@@ -110,10 +110,10 @@ public:
   bool GetDotsFound() { return m_DotsFound; };
 
   /*! Get the coordinates of the found dots */
-  std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+  std::vector< std::vector<double> >  GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
   /*! Get the vector of lines found by FidLineFinder */
-  std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
+  std::vector<std::vector<Line> >  GetLinesVector() { return m_LinesVector; };
 
   /*! Set the approximate spacing in Mm per pixel */
   void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
@@ -134,26 +134,26 @@ public:
   void SetAngleToleranceDeg(double value);
 
 protected:
-  int			m_FrameSize[2];
+  int      m_FrameSize[2];
 
-  double	m_ApproximateSpacingMmPerPixel;
-  double 	m_MaxAngleDiff; // not used
-  double 	m_MinLinePairDistMm; 	// minimum distance between any two lines
-  double 	m_MaxLinePairDistMm;  // maximum distance between any two lines
-  double  m_MinLinePairAngleRad; // minimum angle between any two lines
-  double  m_MaxLinePairAngleRad; // maximum angle between any two lines
-  double 	m_MaxLineShiftMm; // maximum in-plane shift of the midpoint of the N fiducials
-  double 	m_MaxLinePairDistanceErrorPercent;
-  double 	m_MinThetaRad;
-  double 	m_MaxThetaRad;
+  double   m_ApproximateSpacingMmPerPixel;
+  double   m_MaxAngleDiff; // not used
+  double   m_MinLinePairDistMm;   // minimum distance between any two lines
+  double   m_MaxLinePairDistMm;  // maximum distance between any two lines
+  double   m_MinLinePairAngleRad; // minimum angle between any two lines
+  double   m_MaxLinePairAngleRad; // maximum angle between any two lines
+  double   m_MaxLineShiftMm; // maximum in-plane shift of the midpoint of the N fiducials
+  double   m_MaxLinePairDistanceErrorPercent;
+  double   m_MinThetaRad;
+  double   m_MaxThetaRad;
 
-  bool		m_DotsFound;
+  bool     m_DotsFound;
 
   double   m_AngleToleranceRad;
   double   m_InclinedLineAngleRad;
-  double		m_PatternIntensity;
+  double   m_PatternIntensity;
 
-  std::vector<Dot>		  m_DotsVector;
+  std::vector<Dot>      m_DotsVector;
   std::vector<Line>     m_FoundLines;
   std::vector<Pattern*> m_Patterns;
   std::vector<LabelingResults> m_Results;

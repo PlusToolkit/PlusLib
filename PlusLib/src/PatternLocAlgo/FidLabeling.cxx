@@ -23,9 +23,9 @@ FidLabeling::FidLabeling()
 
   m_ApproximateSpacingMmPerPixel = -1.0;
   m_MaxAngleDiff = -1.0;
-  m_MinLinePairDistMm = -1.0; 	
+  m_MinLinePairDistMm = -1.0;
   m_MaxLinePairDistMm = -1.0;
-  m_MinLinePairAngleRad = -1.0; 	
+  m_MinLinePairAngleRad = -1.0;
   m_MaxLinePairAngleRad = -1.0;
   m_MaxLineShiftMm = 10; // TODO: make it adjustable (https://www.assembla.com/spaces/plus/tickets/449)
   m_MaxLinePairDistanceErrorPercent = -1.0;
@@ -79,7 +79,7 @@ void FidLabeling::UpdateParameters()
   // Compute distances between each NWire pairs and determine the smallest and the largest distance
   double maxNPlaneDistance = -1.0;
   double minNPlaneDistance = FLT_MAX;
-  m_MinLinePairAngleRad = vtkMath::Pi()/2.0; 	
+  m_MinLinePairAngleRad = vtkMath::Pi()/2.0;   
   m_MaxLinePairAngleRad = 0;
   for (int i=numOfPatterns-1; i>0; --i) 
   {

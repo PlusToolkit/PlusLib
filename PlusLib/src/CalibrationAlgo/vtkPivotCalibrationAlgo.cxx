@@ -251,7 +251,7 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 
 //-----------------------------------------------------------------------------
 
-std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString()
+std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString( double aPrecision/*=3*/ )
 {
 	//LOG_TRACE("vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString");
 
@@ -261,7 +261,8 @@ std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString()
   }
 
   std::ostrstream s;
-  s << this->PivotPointToMarkerTransformMatrix->GetElement(0,3) 
+  s << std::fixed << std::setprecision(aPrecision)
+    << this->PivotPointToMarkerTransformMatrix->GetElement(0,3) 
     << " x " << this->PivotPointToMarkerTransformMatrix->GetElement(1,3)
     << " x " << this->PivotPointToMarkerTransformMatrix->GetElement(2,3)
     << std::ends;	

@@ -51,13 +51,13 @@ public:
   void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
 
   /*! Read the configuration file from a vtk XML data element */
-  PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
+  PlusStatus  ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
   /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
   void FindLines();
 
   /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
-  std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
+  std::vector<std::vector<Line> >  GetLinesVector() { return m_LinesVector; };
 
   /*! Get the maximum angle allowed for a line, in radians */
   double GetMaxThetaRad() { return m_MaxThetaRad; };
@@ -114,21 +114,21 @@ protected:
   double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
 protected:
-  int					m_FrameSize[2];
-  double			m_ApproximateSpacingMmPerPixel;
-  double			m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
-  double			m_ImageToPhantomTransform[16];
+  int          m_FrameSize[2];
+  double      m_ApproximateSpacingMmPerPixel;
+  double      m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
+  double      m_ImageToPhantomTransform[16];
 
   // line length and line pair distance errors in percent - read from phantom definition
-  double 			m_MaxLinePairDistanceErrorPercent;
-  double 			m_CollinearPointsMaxDistanceFromLineMm; 
-  double 			m_MinThetaRad; 
-  double 			m_MaxThetaRad;
+  double       m_MaxLinePairDistanceErrorPercent;
+  double       m_CollinearPointsMaxDistanceFromLineMm; 
+  double       m_MinThetaRad; 
+  double       m_MaxThetaRad;
 
-  std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+  std::vector<Dot>  m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 
-  std::vector<Dot>	m_DotsVector;
-  std::vector<std::vector<Line> >	m_LinesVector;
+  std::vector<Dot>  m_DotsVector;
+  std::vector<std::vector<Line> >  m_LinesVector;
 
   std::vector<Pattern*> m_Patterns;
 };
