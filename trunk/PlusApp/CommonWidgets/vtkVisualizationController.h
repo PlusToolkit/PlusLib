@@ -9,11 +9,8 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "PlusVideoFrame.h"
-#include "vtkActor.h"
-#include "vtkAssembly.h"
 #include "vtkCamera.h"
 #include "vtkDataCollector.h"
-#include "vtkDisplayableObject.h"
 #include "vtkImageActor.h"
 #include "vtkImageVisualizer.h"
 #include "vtkObject.h"
@@ -22,8 +19,8 @@ See License.txt for details.
 #include "vtkPolyDataMapper.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkTextActor3D.h"
 #include "vtkTransformRepository.h"
+
 #include <QObject>
 
 class vtkMatrix4x4;
@@ -61,19 +58,13 @@ public:
     DISPLAY_MODE_NONE
   };
 
-  /*!
-  * New
-  */
+  /*! New */
   static vtkVisualizationController *New();
 
-  /*!
-  * Start data collection
-  */
+  /*! Start data collection */
   PlusStatus StartDataCollection();
 
-  /*
-  * Stop data collection and disconnect collector
-  */
+  /* Stop data collection and disconnect collector */
   PlusStatus StopAndDisconnectDataCollector();
 
   /*!
@@ -81,9 +72,7 @@ public:
   */
   PlusStatus HideAll();
 
-  /*!
-  * Hide the renderer 
-  */
+  /*! Hide the renderer */
   PlusStatus HideRenderer();
 
   /*!
@@ -167,9 +156,7 @@ public:
   */
   PlusStatus IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame = true);
 
-  /*!
-  Function to handle resize events
-  */
+  /*! Function to handle resize events */
   void resizeEvent( QResizeEvent* aEvent );
 
   /*!
@@ -212,26 +199,20 @@ public:
   template <class T>
   std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
-  /*!
-  * Disconnect the image input
-  */
+  /*! Disconnect the image input */
   PlusStatus DisconnectInput();
 
-  /*!
-  * Connect the image input to the DataCollector output
-  */
+  /*! Connect the image input to the DataCollector output */
   PlusStatus ConnectInput();
 
-  /*!
-  * Clear the transform repository
-  */
+  /*! Clear the transform repository */
   PlusStatus ClearTransformRepository();
 
 protected slots:
-    /*!
-    * Forward any updates to members that require it
-    */
-    PlusStatus Update();
+  /*!
+  * Forward any updates to members that require it
+  */
+  PlusStatus Update();
 
 public:
   // Set/Get macros for member variables

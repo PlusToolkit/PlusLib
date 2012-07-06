@@ -35,29 +35,26 @@ public:
   */
   StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
-  /*!
-  * Destructor
-  */
+  /*! Destructor */
   ~StylusCalibrationToolbox();
 
-  /*!
-  * Initialize - implementation of a pure virtual function
-  */
+  /*! Initialize - implementation of a pure virtual function */
   void Initialize();
 
   /*!
-  * Read stylus calibration configuration for fCal
-  * \param aConfig Root element of the input device set configuration XML data
+    Read stylus calibration configuration for fCal
+    \param aConfig Root element of the input device set configuration XML data
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
-  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
+    Refresh contents (e.g. GUI elements) of toolbox according to the state
+    in the toolbox controller - implementation of a pure virtual function
   */
   void RefreshContent();
 
   /*!
-  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+    Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
   */
   void SetDisplayAccordingToState();
 
@@ -67,15 +64,14 @@ public:
   */
   vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
+  /*! Get message telling the state of the calibration */
+  QString GetCalibrationStateMessage();
+
 protected slots:
-  /*!
-  * Start calibration
-  */
+  /*! Start calibration */
   void Start();
 
-  /*!
-  * Stop calibration
-  */
+  /*! Stop calibration */
   void Stop();
 
   /*!
@@ -94,13 +90,13 @@ protected:
   vtkPivotCalibrationAlgo*  m_PivotCalibration;
 
   /*! Number of points to acquire */
-  int									      m_NumberOfPoints;
+  int                        m_NumberOfPoints;
 
   /*! Number of points acquired so far */
-  int									      m_CurrentPointNumber;
+  int                        m_CurrentPointNumber;
 
   /*! Stylus or stylus tip position (depending on the state) as string */
-  std::string							  m_StylusPositionString;
+  QString                    m_StylusPositionString;
 
   /*! Previous stylus to reference transform matrix to determine the difference at each point acquisition */
   vtkMatrix4x4*             m_PreviousStylusToReferenceTransformMatrix;

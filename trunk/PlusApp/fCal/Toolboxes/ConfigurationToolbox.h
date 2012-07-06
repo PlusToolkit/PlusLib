@@ -71,12 +71,12 @@ protected:
   PlusStatus ReadAndAddPhantomWiresToVisualization();
 
   /*!
-	* \brief Filters events if this object has been installed as an event filter for the watched object
-	* \param obj object
-	* \param ev event
-	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
-	*/
-	bool eventFilter(QObject *obj, QEvent *ev);
+  * \brief Filters events if this object has been installed as an event filter for the watched object
+  * \param obj object
+  * \param ev event
+  * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+  */
+  bool eventFilter(QObject *obj, QEvent *ev);
 
 signals:
   /*!

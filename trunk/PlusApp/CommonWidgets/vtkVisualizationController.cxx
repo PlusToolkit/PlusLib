@@ -720,16 +720,20 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLD
 
 PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 {
-  if( this->DataCollector != NULL )
+  if( this->DataCollector == NULL )
   {
-    this->DataCollector->Stop();
-    this->DataCollector->Disconnect();
-    this->SetDataCollector(NULL);
-    return PLUS_SUCCESS;
+    LOG_WARNING("Trying to disconnect from non-connected data collector.");
+    return PLUS_FAIL;
   }
 
-  LOG_WARNING("Trying to disconnect from non-connected data collector.");
-  return PLUS_FAIL;
+  this->DisconnectInput();
+  this->PerspectiveVisualizer->ClearDisplayableObjects();
+
+  this->DataCollector->Stop();
+  this->DataCollector->Disconnect();
+  this->SetDataCollector(NULL);
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

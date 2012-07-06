@@ -309,6 +309,9 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->Is2DMode());
 
+  // Update calibration state
+  ui.label_CalibrationState->setText(GetCalibrationStateMessage());
+
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_StylusPosition->setText(tr("N/A"));
@@ -689,4 +692,45 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   LOG_INFO("Reset phantom registration");
+}
+
+//-----------------------------------------------------------------------------
+
+QString PhantomRegistrationToolbox::GetCalibrationStateMessage()
+{
+  QString message;
+
+  std::string phantomToReferenceTransformNameStr;
+  PlusTransformName phantomToReferenceTransformName(
+    m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame());
+  phantomToReferenceTransformName.GetTransformName(phantomToReferenceTransformNameStr);
+
+  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+    m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), false) == PLUS_SUCCESS)
+  {
+    std::string date, errorStr;
+    double error;
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(phantomToReferenceTransformName, date) != PLUS_SUCCESS)
+    {
+      date = "N/A";
+    }
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(phantomToReferenceTransformName, error) == PLUS_SUCCESS)
+    {
+      char phantomToReferenceTransformErrorChars[32];
+      sprintf_s(phantomToReferenceTransformErrorChars, 32, "%.3lf", error);
+      errorStr = phantomToReferenceTransformErrorChars;
+    }
+    else
+    {
+      errorStr = "N/A";
+    }
+
+    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(phantomToReferenceTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
+  }
+  else
+  {
+    message = QString("%1 transform is absent, calibration needs to be performed.").arg(phantomToReferenceTransformNameStr.c_str());
+  }
+
+  return message;
 }

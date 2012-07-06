@@ -53,12 +53,14 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
 
 StylusCalibrationToolbox::~StylusCalibrationToolbox()
 {
-  if (m_PivotCalibration != NULL) {
+  if (m_PivotCalibration != NULL)
+  {
     m_PivotCalibration->Delete();
     m_PivotCalibration = NULL;
   } 
 
-  if (m_PreviousStylusToReferenceTransformMatrix != NULL) {
+  if (m_PreviousStylusToReferenceTransformMatrix != NULL)
+  {
     m_PreviousStylusToReferenceTransformMatrix->Delete();
     m_PreviousStylusToReferenceTransformMatrix = NULL;
   } 
@@ -142,7 +144,7 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL;     
   }
 
-  // Number of stylus calibraiton points to acquire
+  // Number of stylus calibration points to acquire
   int numberOfStylusCalibrationPointsToAcquire = 0; 
   if ( fCalElement->GetScalarAttribute("NumberOfStylusCalibrationPointsToAcquire", numberOfStylusCalibrationPointsToAcquire ) )
   {
@@ -166,12 +168,12 @@ void StylusCalibrationToolbox::RefreshContent()
   if (m_State == ToolboxState_Idle)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
-    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_CurrentPosition->setText(m_StylusPositionString);
   }
   else if (m_State == ToolboxState_InProgress)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
-    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_CurrentPosition->setText(m_StylusPositionString);
     m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentPointNumber / (double)m_NumberOfPoints) + 0.5));
   }
   else if (m_State == ToolboxState_Done)
@@ -213,6 +215,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
 
+  // Update calibration state
+  ui.label_CalibrationState->setText(GetCalibrationStateMessage());
+
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
@@ -248,7 +253,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(tr("N/A"));
     ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
-    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_CurrentPosition->setText(m_StylusPositionString);
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
 
@@ -271,7 +276,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
     ui.label_CurrentPositionText->setText(tr("Current stylus tip position (mm):"));
-    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_CurrentPosition->setText(m_StylusPositionString);
     ui.label_StylusTipTransform->setText(m_PivotCalibration->GetPivotPointToMarkerTranslationString().c_str());
 
     m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
@@ -414,7 +419,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     char stylusPositionChars[32];
 
     sprintf_s(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
-    m_StylusPositionString = std::string(stylusPositionChars);
+    m_StylusPositionString = QString(stylusPositionChars);
 
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetObjectVisualizer()->GetInputPolyData()->GetPoints();
@@ -476,4 +481,45 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+QString StylusCalibrationToolbox::GetCalibrationStateMessage()
+{
+  QString message;
+
+  std::string stylusTipToStylusTransformNameStr;
+  PlusTransformName stylusTipToStylusTransformName(
+    m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame());
+  stylusTipToStylusTransformName.GetTransformName(stylusTipToStylusTransformNameStr);
+
+  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+    m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame(), false) == PLUS_SUCCESS)
+  {
+    std::string date, errorStr;
+    double error;
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(stylusTipToStylusTransformName, date) != PLUS_SUCCESS)
+    {
+      date = "N/A";
+    }
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
+    {
+      char stylusTipToStylusTransformErrorChars[32];
+      sprintf_s(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
+      errorStr = stylusTipToStylusTransformErrorChars;
+    }
+    else
+    {
+      errorStr = "N/A";
+    }
+
+    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(stylusTipToStylusTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
+  }
+  else
+  {
+    message = QString("%1 transform is absent, calibration needs to be performed.").arg(stylusTipToStylusTransformNameStr.c_str());
+  }
+
+  return message;
 }

@@ -27,25 +27,21 @@ class vtkRenderer;
  */
 class PhantomRegistrationToolbox : public QWidget, public AbstractToolbox
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	/*!
-	* Constructor
-	* \param aParentMainWindow Parent main window
-	* \param aFlags widget flag
-	*/
-	PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
+  /*!
+  * Constructor
+  * \param aParentMainWindow Parent main window
+  * \param aFlags widget flag
+  */
+  PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
-	/*!
-	* Destructor
-	*/
-	~PhantomRegistrationToolbox();
+  /*! Destructor */
+  ~PhantomRegistrationToolbox();
 
-	/*!
-	* Initialize toolbox (load session data) - implementation of a pure virtual function
-	*/
-	void Initialize();
+  /*! Initialize toolbox (load session data) - implementation of a pure virtual function */
+  void Initialize();
 
   /*!
   * Read stylus calibration configuration for fCal
@@ -54,73 +50,76 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
-	* Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshContent();
+  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
+  */
+  void RefreshContent();
 
-	/*!
-	* Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
-	*/
-	void SetDisplayAccordingToState();
+  /*!
+  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+  */
+  void SetDisplayAccordingToState();
 
-	/*!
-	* Return phantom registration algorithm object
+  /*!
+  * Return phantom registration algorithm object
   * \return Phantom registration algo
-	*/
+  */
   vtkPhantomRegistrationAlgo* GetPhantomRegistrationAlgo() { return m_PhantomRegistration; };
 
-protected:
-	/*!
-	* Initialize 3D visualization
-	* \return Success flag
-	*/
-	PlusStatus InitializeVisualization();
+  /*! Get message telling the state of the calibration */
+  QString GetCalibrationStateMessage();
 
-	/*!
-	* Put state into in progress if all prerequisites are done
-	* \return Success flag
-	*/
-	PlusStatus Start();
+protected:
+  /*!
+  * Initialize 3D visualization
+  * \return Success flag
+  */
+  PlusStatus InitializeVisualization();
+
+  /*!
+  * Put state into in progress if all prerequisites are done
+  * \return Success flag
+  */
+  PlusStatus Start();
 
 protected slots:
-	/*!
-	* Slot handling open stylus calibration button click
-	*/
-	void OpenStylusCalibration();
+  /*!
+  * Slot handling open stylus calibration button click
+  */
+  void OpenStylusCalibration();
 
-	/*!
-	* Slot handling record button click
-	*/
-	void RecordPoint();
+  /*!
+  * Slot handling record button click
+  */
+  void RecordPoint();
 
-	/*!
-	* Slot handling undo button click
-	*/
-	void Undo();
+  /*!
+  * Slot handling undo button click
+  */
+  void Undo();
 
-	/*!
-	* Slot handling reset button click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
-	*/
-	void Reset();
+  /*!
+  * Slot handling reset button click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
+  */
+  void Reset();
 
 protected:
   /*! Phantom registration algorithm */
   vtkPhantomRegistrationAlgo* m_PhantomRegistration;
 
-	/*! Renderer for the canvas */
-	vtkRenderer*							  m_PhantomRenderer;
+  /*! Renderer for the canvas */
+  vtkRenderer*                m_PhantomRenderer;
 
-	/*! Actor for displaying the phantom geometry in phantom canvas */
-	vtkActor*								    m_PhantomActor;
+  /*! Actor for displaying the phantom geometry in phantom canvas */
+  vtkActor*                    m_PhantomActor;
 
-	/*! Actor for displaying the defined landmark from the configuration file */
-	vtkActor*								    m_RequestedLandmarkActor;
+  /*! Actor for displaying the defined landmark from the configuration file */
+  vtkActor*                    m_RequestedLandmarkActor;
 
-	/*! Polydata holding the requested landmark for highlighting in phantom canvas */
-	vtkPolyData*							  m_RequestedLandmarkPolyData;
+  /*! Polydata holding the requested landmark for highlighting in phantom canvas */
+  vtkPolyData*                m_RequestedLandmarkPolyData;
 
   /*! Index of current landmark */
-	int										      m_CurrentLandmarkIndex;
+  int                          m_CurrentLandmarkIndex;
 
 protected:
   Ui::PhantomRegistrationToolbox ui;

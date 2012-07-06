@@ -194,7 +194,7 @@ std::vector<T*> vtk3DObjectVisualizer::GetDisplayableObjects(const char* aObject
 
   if( result.size() == 0 )
   {
-    LOG_ERROR("Requested displayable objects for identifier '" << aObjectCoordinateFrame << "' is/are missing!");
+    LOG_DEBUG("Requested displayable objects for identifier '" << aObjectCoordinateFrame << "' is/are missing!");
   }
 
   return result;
