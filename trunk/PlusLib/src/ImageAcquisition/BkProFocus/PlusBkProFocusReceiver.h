@@ -37,4 +37,5 @@ protected:
   unsigned char* bmodeFrame;
   unsigned char* rfFrame;
   int decimation;
+  int numRfSamples;
 };
