@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkActor.h"
 #include "vtkCaptionActor2D.h"
 #include "vtkConeSource.h"
-#include "vtkLineSource.h"
+#include "vtkCylinderSource.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 #include "vtkPolyData.h"
@@ -30,38 +30,50 @@ vtkStandardNewMacro(vtkToolAxesActor);
 //----------------------------------------------------------------------------
 vtkToolAxesActor::AxisInfo::AxisInfo()
 {
-  ArrowShaftActor=vtkActor::New();
-  ArrowShaftLine=vtkLineSource::New();
+  this->ArrowShaftActor=vtkActor::New();
+  this->ArrowShaftSource=vtkCylinderSource::New();
+  this->ArrowShaftSource->SetResolution(16);
   vtkSmartPointer<vtkPolyDataMapper> mapper=vtkSmartPointer<vtkPolyDataMapper>::New();
-  ArrowShaftActor->SetMapper(mapper);
-  mapper->SetInputConnection(ArrowShaftLine->GetOutputPort());
+  this->ArrowShaftActor->SetMapper(mapper);
+  mapper->SetInputConnection(this->ArrowShaftSource->GetOutputPort());
 
-  LabelActor=vtkCaptionActor2D::New();
-  LabelActor->SetHeight(0.03);
-  LabelActor->LeaderOff();
-  LabelActor->SetPadding(0);
-  vtkTextProperty* textprop = LabelActor->GetTextActor()->GetTextProperty();
+  this->LabelActor=vtkCaptionActor2D::New();
+  this->LabelActor->SetHeight(0.03);
+  this->LabelActor->LeaderOff();
+  this->LabelActor->SetPadding(0);
+  vtkTextProperty* textprop = this->LabelActor->GetTextActor()->GetTextProperty();
   textprop->ItalicOff();
   textprop->SetJustificationToLeft();
-  textprop->SetVerticalJustificationToCentered(); 
+  textprop->SetVerticalJustificationToCentered();
 }
 
 //----------------------------------------------------------------------------
 vtkToolAxesActor::AxisInfo::~AxisInfo()
 {
-  ArrowShaftActor->Delete();
-  ArrowShaftActor=NULL;
-  ArrowShaftLine->Delete();
-  ArrowShaftLine=NULL;
-  LabelActor->Delete();
-  LabelActor=NULL;
+  if (this->ArrowShaftActor)
+  {
+    this->ArrowShaftActor->Delete();
+    this->ArrowShaftActor=NULL;
+  }
+
+  if (this->ArrowShaftSource)
+  {
+    this->ArrowShaftSource->Delete();
+    this->ArrowShaftSource=NULL;
+  }
+  
+  if (this->LabelActor)
+  {
+    this->LabelActor->Delete();
+    this->LabelActor=NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkToolAxesActor::AxisInfo::ReleaseGraphicsResources(vtkWindow *win)
 {
-  ArrowShaftActor->ReleaseGraphicsResources( win );
-  LabelActor->ReleaseGraphicsResources( win );
+  this->ArrowShaftActor->ReleaseGraphicsResources( win );
+  this->LabelActor->ReleaseGraphicsResources( win );
 }
 
 
@@ -103,8 +115,8 @@ void vtkToolAxesActor::GetActors(vtkPropCollection *ac)
   ac->AddItem(this->Axes[1].LabelActor);
   ac->AddItem(this->Axes[2].ArrowShaftActor);
   ac->AddItem(this->Axes[2].LabelActor);
-  
-  ac->AddItem(this->NameLabelActor);  
+
+  ac->AddItem(this->NameLabelActor);
 }
 
 //----------------------------------------------------------------------------
@@ -269,33 +281,53 @@ void vtkToolAxesActor::UpdateProps()
   }
 
   // Set the shaft origins
-  double origin_Tool[4]={0,0,0,1}; // Tool coordinate system origin position (in the Tool cordinate system)
-  double origin_World[4]={0,0,0,1}; // Tool coordinate system origin position (in the World cordinate system)
+  double origin_Tool[4]={0,0,0,1}; // Tool coordinate system origin position (in the Tool coordinate system)
+  double origin_World[4]={0,0,0,1}; // Tool coordinate system origin position (in the World coordinate system)
   toolToWorldTransform->MultiplyPoint(origin_Tool,origin_World);
-  this->Axes[0].ArrowShaftLine->SetPoint1(origin_World);
-  this->Axes[1].ArrowShaftLine->SetPoint1(origin_World);
-  this->Axes[2].ArrowShaftLine->SetPoint1(origin_World);
+  this->Axes[0].ArrowShaftSource->SetHeight(this->ShaftLength);
+  this->Axes[0].ArrowShaftSource->SetRadius(this->ShaftLength / 30.0);
+  this->Axes[1].ArrowShaftSource->SetHeight(this->ShaftLength);
+  this->Axes[1].ArrowShaftSource->SetRadius(this->ShaftLength / 30.0);
+  this->Axes[2].ArrowShaftSource->SetHeight(this->ShaftLength);
+  this->Axes[2].ArrowShaftSource->SetRadius(this->ShaftLength / 30.0);
 
-  // Set shaft tips
+  // Set up the X axis
+  vtkSmartPointer<vtkTransform> xAxisTransform = vtkSmartPointer<vtkTransform>::New();
+  xAxisTransform->Identity();
+  xAxisTransform->Concatenate(toolToWorldTransform);
+  xAxisTransform->Translate(this->ShaftLength/2.0, 0.0, 0.0);
+  xAxisTransform->RotateZ(90.0);
+  this->Axes[0].ArrowShaftActor->SetUserTransform(xAxisTransform);
 
-  double shaftTip0_Tool[4]={this->ShaftLength,0,0,1};  // tip of the X shaft (in the Tool cordinate system)
-  double shaftTip0_World[4]={0,0,0,1}; // tip of the X shaft (in the World cordinate system)
-  toolToWorldTransform->MultiplyPoint(shaftTip0_Tool,shaftTip0_World);
-  this->Axes[0].ArrowShaftLine->SetPoint2(shaftTip0_World);
-  
-  double shaftTip1_Tool[4]={0,this->ShaftLength,0,1};  // tip of the Y shaft (in the Tool cordinate system)
-  double shaftTip1_World[4]={0,0,0,1}; // tip of the Y shaft (in the World cordinate system)
-  toolToWorldTransform->MultiplyPoint(shaftTip1_Tool,shaftTip1_World);
-  this->Axes[1].ArrowShaftLine->SetPoint2(shaftTip1_World);
+  // Set up the Y axis
+  vtkSmartPointer<vtkTransform> yAxisTransform = vtkSmartPointer<vtkTransform>::New();
+  yAxisTransform->Identity();
+  yAxisTransform->Concatenate(toolToWorldTransform);
+  yAxisTransform->Translate(0.0, this->ShaftLength/2.0, 0.0);
+  this->Axes[1].ArrowShaftActor->SetUserTransform(yAxisTransform);
 
-  double shaftTip2_Tool[4]={0,0,this->ShaftLength,1};  // tip of the Z shaft (in the Tool cordinate system)
-  double shaftTip2_World[4]={0,0,0,1}; // tip of the Z shaft (in the World cordinate system)
-  toolToWorldTransform->MultiplyPoint(shaftTip2_Tool,shaftTip2_World);
-  this->Axes[2].ArrowShaftLine->SetPoint2(shaftTip2_World);  
-  
+  // Set up the Z axis
+  vtkSmartPointer<vtkTransform> zAxisTransform = vtkSmartPointer<vtkTransform>::New();
+  zAxisTransform->Identity();
+  zAxisTransform->Concatenate(toolToWorldTransform);
+  zAxisTransform->Translate(0.0, 0.0, this->ShaftLength/2.0);
+  zAxisTransform->RotateX(90.0);
+  this->Axes[2].ArrowShaftActor->SetUserTransform(zAxisTransform);
+
   // Draw axis labels
+  double shaftTip0_Tool[4]={this->ShaftLength,0,0,1};  // tip of the X shaft (in the Tool coordinate system)
+  double shaftTip0_World[4]={0,0,0,1}; // tip of the X shaft (in the World coordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip0_Tool,shaftTip0_World);
   this->Axes[0].LabelActor->SetAttachmentPoint(shaftTip0_World);
+
+  double shaftTip1_Tool[4]={0,this->ShaftLength,0,1};  // tip of the Y shaft (in the Tool coordinate system)
+  double shaftTip1_World[4]={0,0,0,1}; // tip of the Y shaft (in the World coordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip1_Tool,shaftTip1_World);
   this->Axes[1].LabelActor->SetAttachmentPoint(shaftTip1_World);
+
+  double shaftTip2_Tool[4]={0,0,this->ShaftLength,1};  // tip of the Z shaft (in the Tool coordinate system)
+  double shaftTip2_World[4]={0,0,0,1}; // tip of the Z shaft (in the World coordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip2_Tool,shaftTip2_World);
   this->Axes[2].LabelActor->SetAttachmentPoint(shaftTip2_World);
 
   this->NameLabelActor->SetAttachmentPoint(origin_World);

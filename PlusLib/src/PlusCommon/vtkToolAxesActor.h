@@ -19,6 +19,7 @@ class vtkPropCollection;
 class vtkProperty;
 class vtkRenderer;
 class vtkSphereSource;
+
 /*!
   \class vtkToolAxesActor
   \brief Actor for displaying coordinate system axes
@@ -85,8 +86,12 @@ public:
   */
   void SetName(const std::string& name);
 
-protected:
+  /*! Set shaft length */
+  vtkSetMacro(ShaftLength, double);
+  /*! Get shaft length */
+  vtkGetMacro(ShaftLength, double);
 
+protected:
   /*!
     \class AxisInfo
     \brief Stores rendering objects for each axis
@@ -99,10 +104,16 @@ protected:
     void ReleaseGraphicsResources(vtkWindow *win);
 
     vtkActor* ArrowShaftActor;
-    vtkLineSource* ArrowShaftLine;
+    vtkCylinderSource* ArrowShaftSource;
     vtkCaptionActor2D* LabelActor;
+
+    double AxisShaftStart[3];
+    double AxisShaftEnd[3];
+
+    void UpdateActor();
   };
 
+protected:
   vtkToolAxesActor();
   ~vtkToolAxesActor();
 
@@ -110,6 +121,7 @@ protected:
 
   void ExtendMaxBounds(vtkActor *actor, double* bounds);
 
+protected:
   AxisInfo Axes[3];  
 
   double ShaftLength;
