@@ -709,7 +709,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestam
       }
       else
       {
-        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
+        LOG_DEBUG("Number of frames in the buffer is less than maxNumberOfFramesToAdd ("<<aMaxNumberOfFramesToAdd<<")" ); 
       }
 
       if ( trackerBuffer->GetTimeStamp(mostRecentTrackerUid, aTimestamp ) != ITEM_OK )

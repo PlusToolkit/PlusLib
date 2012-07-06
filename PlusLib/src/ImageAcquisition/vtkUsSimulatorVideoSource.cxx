@@ -121,7 +121,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   this->UsSimulator->Update();
 
   PlusStatus status = this->Buffer->AddItem(
-    this->UsSimulator->GetOutput(), this->GetUsImageOrientation(), this->FrameNumber);
+    this->UsSimulator->GetOutput(), this->GetUsImageOrientation(), this->FrameNumber, trackedFrame.GetTimestamp());
 
   this->Modified();
   return status;
