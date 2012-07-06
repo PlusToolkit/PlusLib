@@ -26,6 +26,8 @@ PlusBkProFocusReceiver::PlusBkProFocusReceiver()
   this->params.scale = 0;
   this->params.dyn_range = 50;
   this->params.offset = 10;
+
+  this->numRfSamples = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -59,6 +61,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
   
   // TODO: check this, in CuteGrabbie it is simply: this->params.n_samples = samples / 2;
   this->params.n_samples = (samples-2) / 2; // subtract 2 due to header
+  this->numRfSamples = samples-2;
 
   // the number of the samples must be 16 byte aligned
   this->params.n_samples -= this->params.n_samples % 8; // each sample is 2 bytes, so mod 8
@@ -76,7 +79,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 
   // AF: prepare the buffer to copy the input entirely
   //  rfFrame stores the non-decimated data
-  this->rfFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(this->params.n_lines*samples*2, 16u));
+  this->rfFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(this->params.n_lines*this->numRfSamples*2, 32u));
 
   return this->frame != NULL && this->bmodeFrame != NULL;
 }
@@ -111,6 +114,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 
   // decimate received data into frame
   const int bytesPerSample = 2;
+
   
   int numBmodeLines = 0; // number of bmode lines in this frame
   for(int i = 0; i < this->params.n_lines; ++i)
@@ -125,7 +129,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     {
       int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(this->frame + numBmodeLines*this->params.n_samples*bytesPerSample);
 	  // AF: each sample in rfFrame is twice as large as in bmode, and we do not decimate
-	  int32_t* currentRFOutputPosition = reinterpret_cast<int32_t*>(this->rfFrame + numBmodeLines*this->params.n_samples*bytesPerSample*2);
+	  int32_t* currentRFOutputPosition = reinterpret_cast<int32_t*>(this->rfFrame + numBmodeLines*this->numRfSamples*bytesPerSample);
 	  
 	  ++currentInputPosition; // AF: skip the header
 
@@ -134,13 +138,13 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       for(int j = 0; j < this->params.n_samples /this->decimation; ++j)
       {
         *currentOutputPosition = *currentInputPosition;
-        currentInputPosition += this->decimation;
+		currentOutputPosition += 1;		
 
 		*currentRFOutputPosition = *currentInputPosition;
 	    *(currentRFOutputPosition+1) = *(currentInputPosition+1);
-		currentRFOutputPosition += this->decimation;
+		currentRFOutputPosition += 2;
 
-        currentOutputPosition += 1;		
+		currentInputPosition += this->decimation;
       }
 
       ++numBmodeLines;
@@ -181,7 +185,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       if (this->CallbackVideoSource!=NULL)
       {
         // AF: each sample in rfFrame is twice as large as in bmode, and we do not decimate
-		int frameSizeInPix[2]={this->params.n_samples*2, this->params.n_lines};
+		int frameSizeInPix[2]={this->numRfSamples*2, this->params.n_lines};
 	    this->CallbackVideoSource->NewFrameCallback(this->rfFrame, frameSizeInPix, 8);
       }
       break;
