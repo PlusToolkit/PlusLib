@@ -135,6 +135,9 @@ public:
   /*! Returns displayable status (true if displayable flag is on) */
   bool IsDisplayable();
 
+  /*! Overridden set function for object coordinate frame that sets the axes name */
+  virtual void SetObjectCoordinateFrame(const char* objectCoordinateFrame);
+
 public:
   /*! Set opacity */
   void SetOpacity(double aOpacity);

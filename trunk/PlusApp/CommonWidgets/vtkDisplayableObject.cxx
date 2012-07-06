@@ -218,6 +218,23 @@ double vtkDisplayableAxes::GetOpacity()
   return -1.0;
 }
 
+//-----------------------------------------------------------------------------
+
+void vtkDisplayableAxes::SetObjectCoordinateFrame(const char* objectCoordinateFrame)
+{
+  Superclass::SetObjectCoordinateFrame(objectCoordinateFrame);
+
+  vtkToolAxesActor* axesActor = dynamic_cast<vtkToolAxesActor*>(this->Actor);
+  if (axesActor)
+  {
+    axesActor->SetName(this->ObjectCoordinateFrame);
+    axesActor->SetShowName(true);
+  }
+  else
+  {
+    LOG_WARNING("Invalid actor - cannot get opacity!");
+  }
+}
 
 
 //-----------------------------------------------------------------------------
