@@ -12,13 +12,9 @@ See License.txt for details.
 class vtkActor;
 class vtkCaptionActor2D;
 class vtkConeSource;
-class vtkCylinderSource;
 class vtkLineSource;
-class vtkPolyData;
 class vtkPropCollection;
-class vtkProperty;
-class vtkRenderer;
-class vtkSphereSource;
+class vtkTubeFilter;
 
 /*!
   \class vtkToolAxesActor
@@ -87,9 +83,21 @@ public:
   void SetName(const std::string& name);
 
   /*! Set shaft length */
-  vtkSetMacro(ShaftLength, double);
+  void SetShaftLength(double shaftLength);
   /*! Get shaft length */
   vtkGetMacro(ShaftLength, double);
+
+  /*! Set show labels flag */
+  vtkSetMacro(ShowLabels, bool);
+  vtkBooleanMacro(ShowLabels, bool);
+  /*! Get show labels flag */
+  vtkGetMacro(ShowLabels, bool);
+
+  /*! Set show name flag */
+  vtkSetMacro(ShowName, bool);
+  vtkBooleanMacro(ShowName, bool);
+  /*! Get show name flag */
+  vtkGetMacro(ShowName, bool);
 
 protected:
   /*!
@@ -104,9 +112,10 @@ protected:
     void ReleaseGraphicsResources(vtkWindow *win);
 
     vtkActor* ArrowShaftActor;
-    vtkCylinderSource* ArrowShaftSource;
+    vtkLineSource* ArrowShaftLineSource;
+    vtkTubeFilter* TubeFilter;
+    vtkConeSource* ArrowTipConeSource;
     vtkCaptionActor2D* LabelActor;
-
     double AxisShaftStart[3];
     double AxisShaftEnd[3];
 
@@ -124,9 +133,12 @@ protected:
 protected:
   AxisInfo Axes[3];  
 
-  double ShaftLength;
   vtkCaptionActor2D* NameLabelActor;
   
+  double ShaftLength;
+  bool ShowLabels;
+  bool ShowName;
+
 private:
   vtkToolAxesActor(const vtkToolAxesActor&);  // Not implemented.
   void operator=(const vtkToolAxesActor&);  // Not implemented.
