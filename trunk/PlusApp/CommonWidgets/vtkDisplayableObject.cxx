@@ -175,7 +175,7 @@ vtkDisplayableAxes::vtkDisplayableAxes()
   : vtkDisplayableObject()
 {
   vtkSmartPointer<vtkToolAxesActor> axesActor = vtkSmartPointer<vtkToolAxesActor>::New();
-  //axesActor->SetShaftLength(50);
+  axesActor->SetShaftLength(50);
   this->SetActor(axesActor);
 }
 
