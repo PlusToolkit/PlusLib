@@ -17,7 +17,12 @@ vtkPhantomRegistrationTest uses this configuration"
 
 
   <CoordinateDefinitions>
-    <Transform From="Phantom" To="Reference" Matrix="1 0 0 0    0 1 0 0    0 0 1 0    0 0 0 1" Date="2011.12.07 17:22:12" />
+    <Transform From="Phantom" To="Reference"
+      Matrix="1 0 0 0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.07 17:22:12" />
     <Transform From="Reference" To="Tracker"
       Matrix="0 -1 0 300.0
               1 0 0 400.0

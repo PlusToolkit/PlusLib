@@ -61,9 +61,10 @@ public:
 
 	/*!
     Get calibration result string to display
-	  \return Calibration result (eg. stylus tip to stylus translation) string
+    \param aPrecision Number of decimals shown
+	  \return Calibration result (e.g. stylus tip to stylus translation) string
 	*/
-	std::string GetPivotPointToMarkerTranslationString();
+  std::string GetPivotPointToMarkerTranslationString(double aPrecision=3);
 
 public:
 
