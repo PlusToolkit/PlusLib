@@ -122,6 +122,8 @@ public:
 
 private:
 
+	PlusStatus filterFrames();
+
   double m_MaxCalibrationError;
 
   std::vector<double> m_CalibrationErrorVector;
@@ -163,6 +165,9 @@ private:
  
   /*! Resampled video time stamps used for correlation */
   std::vector<double> m_ResampledVideoTimestamps;
+
+	double m_CommonRangeMin; 
+	double m_CommonRangeMax;
   
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
   
