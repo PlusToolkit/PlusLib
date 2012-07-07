@@ -10,6 +10,9 @@
 #include "RANSAC.h"
 #include "PlaneParametersEstimator.h"
 
+#include <iostream>
+#include <fstream>
+
 
 
 // Default algorithm parameters
@@ -311,23 +314,18 @@ PlusStatus TemporalCalibration::GetCorrelationSignal(vtkTable* correlationSignal
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
+PlusStatus TemporalCalibration::filterFrames()
 {
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   PlusTransformName transformName;
-  
-  if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
+
+	if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
     return PLUS_FAIL;
   }
 
-  //  Find the mean tracker position
-  itk::Point<double, 3> trackerPositionSum;
-  trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
-  std::vector<itk::Point<double, 3> > trackerPositions;
-  int numberOfValidFrames = 0;
-  for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+	for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
@@ -338,25 +336,112 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
     {
       // There is no available transform for this frame; skip that frame
       continue;
-    }  
-  
-    //  Store current tracker position 
-    itk::Point<double, 3> currTrackerPosition;
-    currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
-    currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
-    currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
-    trackerPositions.push_back(currTrackerPosition);
+		}
+		else
+		{
+			m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
+		}
 
-    // Add current tracker position to the running total
-    trackerPositionSum[0] = trackerPositionSum[0] + probeToReferenceTransform->GetElement(0, 3);
-    trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
-    trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
-    ++numberOfValidFrames;
+	}
+	//  Find the time-range that is common to both tracker and image signals
+  double translationTimestampMin = m_TrackerTimestamps.at(0);
+  double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
+
+  double imageTimestampMin = m_VideoTimestamps.at(0);
+  double imageTimestampMax = m_VideoTimestamps.at(m_VideoTimestamps.size() - 1);
+
+  m_CommonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
+  m_CommonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
+
+	//std::cout << m_CommonRangeMin << std::endl;
+	//std::cout << m_CommonRangeMax << std::endl;
+
+	if (m_CommonRangeMin + m_MaxTrackerLagSec >= m_CommonRangeMax - m_MaxTrackerLagSec)
+  {
+    LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
+    return PLUS_FAIL;
   }
+
+	return PLUS_SUCCESS;
+
+}
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
+{
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  PlusTransformName transformName;
+
+  if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
+    return PLUS_FAIL;
+  }
+
+	// Clear the old tracker timestamps, preparing for an update
+	m_TrackerTimestamps.clear();
+
+  // Find the mean tracker position
+  itk::Point<double, 3> trackerPositionSum;
+  trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
+  std::vector<itk::Point<double, 3> > trackerPositions;
+  int numberOfValidFrames = 0;
+  for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+  {
+    TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
+    transformRepository->SetTransforms(*trackedFrame);
+		//std::cout << "Timestamp: " << trackedFrame->GetTimestamp() << std::endl;
+		//std::cout << "Common range min: " <<  m_CommonRangeMin << std::endl;
+		//std::cout << "Common range max: " <<  m_CommonRangeMax << std::endl;
+		//std::cout << "Max tracker lag: " << m_MaxTrackerLagSec << std::endl;
+		
+		if(trackedFrame->GetTimestamp() > (m_CommonRangeMin + m_MaxTrackerLagSec) && trackedFrame->GetTimestamp() < m_CommonRangeMax - m_MaxTrackerLagSec)
+		{
+
+			  //std::cout << "Tracked frame in desired time range" << std::endl;
+			  m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
+				vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+				bool valid = false;
+				transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
+				if (!valid)
+				{
+					// There is no available transform for this frame; skip that frame
+					continue;
+				}  
+		  
+				//  Store current tracker position 
+				itk::Point<double, 3> currTrackerPosition;
+				currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
+				currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
+				currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
+				trackerPositions.push_back(currTrackerPosition);
+
+				// Add current tracker position to the running total
+				trackerPositionSum[0] = trackerPositionSum[0] + probeToReferenceTransform->GetElement(0, 3);
+				trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
+				trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
+				++numberOfValidFrames;
+		}
+  }
+
+	// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
+	ofstream trackerPositionsFile;
+  trackerPositionsFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\trackerPositions.txt");
+	for(long int i = 0; i < trackerPositions.size(); ++i)
+	{
+		trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
+			<< ", " << trackerPositions.at(i).GetElement(2) << std::endl;
+	}
+  trackerPositionsFile.close();
 
   // Calculate the principal axis of motion (using PCA)
   itk::Point<double,3> principalAxisOfMotion;
   ComputePrincipalAxis(trackerPositions, principalAxisOfMotion, numberOfValidFrames);
+
+	// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
+	ofstream eigenvectorFile;
+  eigenvectorFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\eigenvector.txt");
+	eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
+  eigenvectorFile.close();
 
   // Compute the mean tracker poisition
   itk::Point<double, 3> meanTrackerPosition;
@@ -371,23 +456,12 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
 
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
-  for ( int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+  for ( int frame = 0; frame < m_TrackerTimestamps.size(); ++frame )
   {
-    TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
-    transformRepository->SetTransforms(*trackedFrame);
-    vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-    bool valid = false;
-    transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
-    if (!valid)
-    {
-      // There is no available transform for this frame; skip that frame
-      continue;
-    }  
-
     // Project the current tracker position onto the principal axis of motion
-    double currTrackerPositionProjection = probeToReferenceTransform->GetElement(0, 3) * principalAxisOfMotion[0]
-                                         + probeToReferenceTransform->GetElement(1, 3) * principalAxisOfMotion[1]
-                                         + probeToReferenceTransform->GetElement(2, 3) * principalAxisOfMotion[2];
+    double currTrackerPositionProjection = trackerPositions.at(frame).GetElement(0) * principalAxisOfMotion[0]
+                                         + trackerPositions.at(frame).GetElement(1) * principalAxisOfMotion[1]
+                                         + trackerPositions.at(frame).GetElement(2) * principalAxisOfMotion[2];
 
     // Find the translation between the projection of the current tracker position and the projection of the 
     // the mean tracker position
@@ -395,8 +469,9 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
     //  Store this translation and corresponding timestamp
     m_TrackerPositionMetric.push_back(trackerTranslationDistance);
-    m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
   }
+
+	std::cout << m_TrackerPositionMetric.size() << std::endl;
 
   return PLUS_SUCCESS;
 }
@@ -923,6 +998,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 		case AMPLITUDE:
 		{
 			// Do nothing
+			break;
 		}
 		case STD:
 		{
@@ -934,6 +1010,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 
 			s = std::sqrt(s);
 			s /= std::sqrt( static_cast<double>(metric.size()) - 1);
+			break;
 		} // End "case: STD"
 	}
 
@@ -980,7 +1057,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 			{
 				metric.at(i) *= normalizationFactor; 
 			}
-
+			break;
 		} // End "case: AMPLITUDE" 
 		case STD:
 		{
@@ -990,7 +1067,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 			{
 				metric.at(i) *= normalizationFactor; 
 			} 
-
+			break;
 		} // End "case STD"
 	}
 
@@ -1017,15 +1094,31 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
 
   mu /= stationaryMetricSize;
 
-  // Calculate standard deviation
-  double s = 0;
-  for(int i = 0; i < stationaryMetricSize; ++i)
-  {
-	s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
-  }
+	// Initialize standard deviation
+	double s = 0;
 
-  s = std::sqrt(s);
-  s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
+	switch (METRIC_NORMALIZATION)
+	{
+		case AMPLITUDE:
+		{
+			// Do nothing
+			break;
+		}
+		case STD:
+		{
+			// Calculate standard deviation
+			for(int i = 0; i < stationaryMetricSize; ++i)
+			{
+				s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
+			}
+
+			s = std::sqrt(s);
+			s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
+			break;
+		} // End "case: STD"
+	}
+
+
 
   //  Subtract the metric mean from each metric value as: s' = s - mu
   for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
@@ -1050,7 +1143,6 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
   }
 
 
-
   // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
   // not work for our purposes
   double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
@@ -1061,21 +1153,32 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
     return PLUS_FAIL;
   }
 
-  // Normalize the signal by dividing by max peak-to-peak
+	switch (METRIC_NORMALIZATION)
+	{
+		case AMPLITUDE:
+		{
+			// Divide by the maximum signal amplitude
+			double normalizationFactor = 1.0/maxPeakToPeak;
+			for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
+			{
+				normalizedSlidingMetric.at(i) *= normalizationFactor; 
+			}
+			break;
+		} // End "case: AMPLITUDE" 
+		case STD:
+		{
+			// Divide by the standard deviation
+			double normalizationFactor = 1.0/s;
+			for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
+			{
+				normalizedSlidingMetric.at(i) *= normalizationFactor; 
+			} 
+			break;
+		} // End "case STD"
+	}
 
-/*
-  for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-  {
-    normalizedSlidingMetric.at(i) /= maxPeakToPeak;
-  }
-*/
-  // Normalize the signal by diving by the standard deviation
-  for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-  {
-    normalizedSlidingMetric.at(i) /= s; 
-  } 
+
   return PLUS_SUCCESS;
-
 }// End NormalizeMetricWindow()
 
 //-----------------------------------------------------------------------------
@@ -1086,7 +1189,7 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics()
     LOG_ERROR("ResamplePositionMetrics failed, the TrackerTimestamps vector is empty");
     return PLUS_FAIL;
   }
-
+/*
   //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = m_TrackerTimestamps.at(0);
   double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
@@ -1097,25 +1200,21 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics()
   double commonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
   double commonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
 
-  if (commonRangeMin + m_MaxTrackerLagSec >= commonRangeMax - m_MaxTrackerLagSec)
-  {
-    LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
-    return PLUS_FAIL;
-  }
+*/
 
   //  Get resampled timestamps for the video sequence
-  long int n = 0;  
-  while(commonRangeMin + n * m_SamplingResolutionSec < commonRangeMax)
+  long int n = 1;  
+  while(m_CommonRangeMin + n * m_SamplingResolutionSec < m_CommonRangeMax)
   {
-    m_ResampledVideoTimestamps.push_back(commonRangeMin + n * m_SamplingResolutionSec);
+    m_ResampledVideoTimestamps.push_back(m_CommonRangeMin + n * m_SamplingResolutionSec);
     ++n;
   }
 
   //  Get resampled timestamps for the tracker sequence
   n = 0;
-  while((commonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec < commonRangeMax - m_MaxTrackerLagSec)
+  while(m_TrackerTimestamps.at(0) + n * m_SamplingResolutionSec <= m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1))
   {
-    m_ResampledTrackerTimestamps.push_back( (commonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
+    m_ResampledTrackerTimestamps.push_back( (m_CommonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
     ++n;
   }
   
@@ -1253,8 +1352,14 @@ int TemporalCalibration::FindFirstUpperStraddleIndex(const std::vector<double> &
 //-----------------------------------------------------------------------------
 int TemporalCalibration::FindSubsequentLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
                                                        int currLowerStraddleIndex)
-{  
-  int currIndex = currLowerStraddleIndex;
+{ 
+	int currIndex = currLowerStraddleIndex;
+
+	if(originalTimestamps.at(currIndex) > resampledTimestamp)
+	{
+		return currIndex;
+	}
+  
   while(currIndex < originalTimestamps.size() && originalTimestamps.at(currIndex) <= resampledTimestamp)
   {
     ++currIndex;
@@ -1379,17 +1484,23 @@ double TemporalCalibration::ComputeSadForGivenLagIndex(const std::vector<double>
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeTrackerLagSec()
 {
+
+	// Calculate the (normalized) metric for the video data
+  if(ComputeVideoPositionMetric() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+	
+	// Get the time-range for the tracker signal
+	filterFrames();
+
   // Calculate the (normalized) metric for the tracker data
   if(ComputeTrackerPositionMetric() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  // Calculate the (normalized) metric for the video data
-  if(ComputeVideoPositionMetric() != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
+
   
   /*
   std::cout << "TrackerPositionMetric=[";
