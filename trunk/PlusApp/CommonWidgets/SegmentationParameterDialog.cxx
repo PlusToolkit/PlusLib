@@ -1367,9 +1367,10 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   // Segment image
   PatternRecognitionResult segResults;
-  if( m_PatternRecognition->RecognizePattern(trackedFrame, segResults) != PLUS_SUCCESS )
+  FidPatternRecognition::PatternRecognitionError error;
+  if( m_PatternRecognition->RecognizePattern(trackedFrame, segResults, error) != PLUS_SUCCESS )
   {
-    if( m_PatternRecognition->HandleLastError() == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+    if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
       ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
       ui.label_Feedback->setStyleSheet("QLabel { color : red; }");

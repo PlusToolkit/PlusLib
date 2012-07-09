@@ -77,7 +77,8 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-	FidPatternRecognition patternRecognition; 
+	FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
 	patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read center of rotation data from metafile...");
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing image data segmentation...");
   int numberOfSuccessfullySegmentedImages = 0; 
-  patternRecognition.RecognizePattern(trackedFrameList, &numberOfSuccessfullySegmentedImages);
+  patternRecognition.RecognizePattern(trackedFrameList, error, &numberOfSuccessfullySegmentedImages);
   LOG_INFO("Segmentation success rate: " << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%"); 
 
   LOG_INFO("Testing spacing computation...");

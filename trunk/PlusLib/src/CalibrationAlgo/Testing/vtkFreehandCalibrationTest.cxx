@@ -100,6 +100,7 @@ int main (int argc, char* argv[])
   freehandCalibration->ReadConfiguration(configRootElement);
 
   FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   // Load and segment calibration image
@@ -111,7 +112,7 @@ int main (int argc, char* argv[])
   }
 
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
-  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error occured during segmentation of calibration images!"); 
     return EXIT_FAILURE;
@@ -128,7 +129,7 @@ int main (int argc, char* argv[])
   }
 
   int numberOfSuccessfullySegmentedValidationImages = 0;
-  if (patternRecognition.RecognizePattern(validationTrackedFrameList, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error occured during segmentation of validation images!"); 
     return EXIT_FAILURE;

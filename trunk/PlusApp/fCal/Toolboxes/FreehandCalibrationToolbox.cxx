@@ -999,7 +999,8 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
   // Segment last recorded images
   int numberOfNewlySegmentedImages = 0;
-  if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
+  FidPatternRecognition::PatternRecognitionError error;
+  if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to segment tracked frame list!"); 
     CancelCalibration();
