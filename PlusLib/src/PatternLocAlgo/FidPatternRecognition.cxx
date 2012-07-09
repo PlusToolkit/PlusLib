@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "FidPatternRecognition.h"
@@ -14,12 +14,15 @@
 
 static const double DOT_STEPS  = 4.0;
 static const double DOT_RADIUS = 6.0;
+static const int MAX_SEGMENTATION_CANDIDATES = 80;
 
 //-----------------------------------------------------------------------------
 
 FidPatternRecognition::FidPatternRecognition()
+: m_CurrentFrame(0)
+, m_LastError(PATTERN_RECOGNITION_ERROR_NO_ERROR)
 {
-  m_CurrentFrame = 0;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -79,7 +82,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidSegmentation.Clear();
   m_FidLineFinder.Clear();
   m_FidLabeling.Clear();
-  
+
   m_CurrentFrame++;
 
   m_FidSegmentation.SetFrameSize(trackedFrame->GetFrameSize());
@@ -96,10 +99,19 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidSegmentation.MorphologicalOperations();
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
   m_FidSegmentation.Cluster();
-  //End of the semgmentation
+  //End of the segmentation
 
-  m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());   
+  m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
   //m_FidSegmentation.SetDebugOutput(true);//for testing purpose only
+
+  // If the number of candidates is arbitrarily high, return with an error code that will tell the system
+  // to warn the user that the number of candidates is too high
+  if( m_FidSegmentation.GetDotsVector().size() > MAX_SEGMENTATION_CANDIDATES )
+  {
+    LOG_WARNING("Too many candidate values for sementation algorithm. Consider reducing the number of candidates via ROI selection.");
+    m_LastError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
+    return PLUS_FAIL;
+  }
 
   m_FidLineFinder.SetCandidateFidValues(m_FidSegmentation.GetCandidateFidValues());
   m_FidLineFinder.SetDotsVector(m_FidSegmentation.GetDotsVector());
@@ -115,7 +127,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
   if(m_FidSegmentation.GetDebugOutput()) 
   {
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);//Displays the result dots
+    //Displays the result dots
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);
     //m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);//Display all candidates dots
   }
 
@@ -160,8 +173,15 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
 
     if (RecognizePattern(trackedFrame) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
-      status = PLUS_FAIL;
+      if( GetLastError() != PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+      {
+        LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
+        status = PLUS_FAIL;
+      }
+      else
+      {
+        HandleLastError();
+      }
     }
 
     if ( numberOfSuccessfullySegmentedImages )
@@ -258,7 +278,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
   if ( config == NULL )
   {
-    LOG_ERROR("Configuration XML data element is NULL"); 
+    LOG_ERROR("Configuration XML data element is NULL");
+    m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
     return PLUS_FAIL;
   }
 
@@ -268,6 +289,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
   if (phantomDefinition == NULL)
   {
     LOG_ERROR("No phantom definition is found in the XML tree!");
+    m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
     return PLUS_FAIL;
   }
   else
@@ -279,6 +301,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
     if (geometry == NULL) 
     {
       LOG_ERROR("Phantom geometry information not found!");
+      m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
       return PLUS_FAIL;
     } 
     else 
@@ -332,7 +355,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
             LOG_WARNING("Wrong wire end point detected - skipped");
             continue;
           }
-          
+
           if(STRCASECMP("CoplanarParallelWires", patternElement->GetAttribute("Type")) == 0)
           {
             coplanarParallelWires->Wires.push_back(wire);
@@ -383,12 +406,12 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
 
           double originToMiddle[3] = {(tempPatterns[i]->Wires[1].EndPointBack[0]+tempPatterns[i]->Wires[1].EndPointFront[0])/2-tempPatterns[i]->Wires[0].EndPointFront[0],
-                                      (tempPatterns[i]->Wires[1].EndPointBack[1]+tempPatterns[i]->Wires[1].EndPointFront[1])/2-tempPatterns[i]->Wires[0].EndPointFront[1],
-                                      (tempPatterns[i]->Wires[1].EndPointBack[2]+tempPatterns[i]->Wires[1].EndPointFront[2])/2-tempPatterns[i]->Wires[0].EndPointFront[2]};
+            (tempPatterns[i]->Wires[1].EndPointBack[1]+tempPatterns[i]->Wires[1].EndPointFront[1])/2-tempPatterns[i]->Wires[0].EndPointFront[1],
+            (tempPatterns[i]->Wires[1].EndPointBack[2]+tempPatterns[i]->Wires[1].EndPointFront[2])/2-tempPatterns[i]->Wires[0].EndPointFront[2]};
 
           double originToEnd[3] = {tempPatterns[i]->Wires[2].EndPointFront[0]-tempPatterns[i]->Wires[0].EndPointFront[0],
-                                    tempPatterns[i]->Wires[2].EndPointFront[1]-tempPatterns[i]->Wires[0].EndPointFront[1],
-                                    tempPatterns[i]->Wires[2].EndPointFront[2]-tempPatterns[i]->Wires[0].EndPointFront[2]};
+            tempPatterns[i]->Wires[2].EndPointFront[1]-tempPatterns[i]->Wires[0].EndPointFront[1],
+            tempPatterns[i]->Wires[2].EndPointFront[2]-tempPatterns[i]->Wires[0].EndPointFront[2]};
 
           vtkMath::Normalize(originToEnd);
 
@@ -427,7 +450,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         {
           vnl_vector<double> endPointFront(3);
           vnl_vector<double> endPointBack(3);
-        
+
           for (int j=0; j<3; ++j) 
           {
             endPointFront[j] = tempPatterns[k]->Wires[i].EndPointFront[j];
@@ -440,8 +463,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
         /*if (sumLayer != layer * 9 + 6) 
         {
-          LOG_ERROR("Invalid NWire IDs (" << tempPatterns[k]->Wires[0].id << ", " << tempPatterns[k]->Wires[1].id << ", " << tempPatterns[k]->Wires[2].id << ")!");
-          return PLUS_FAIL;
+        LOG_ERROR("Invalid NWire IDs (" << tempPatterns[k]->Wires[0].id << ", " << tempPatterns[k]->Wires[1].id << ", " << tempPatterns[k]->Wires[2].id << ")!");
+        return PLUS_FAIL;
         }*/
 
         // Check if the middle wire is the diagonal (the other two are parallel to each other and the first and the second, and the second and the third intersect)
@@ -455,6 +478,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         if (vtkMath::Norm(cross) > 0.001) 
         {
           LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
+          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
         double closestTemp[3];
@@ -465,11 +489,13 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         if (vtkLine::DistanceBetweenLines(tempNWire->Wires[0].EndPointFront, tempNWire->Wires[0].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
+          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
         if (vtkLine::DistanceBetweenLines(tempNWire->Wires[2].EndPointFront, tempNWire->Wires[2].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
+          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
       }
@@ -478,8 +504,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
       int layer;
       for (int i=0, layer = 0; i<tempPatterns.size(); ++i, ++layer) 
       {
-        LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->IntersectPosW12[0] << ", " << it->IntersectPosW12[1] << ", " << it->IntersectPosW12[2] << ")");
-        LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->IntersectPosW32[0] << ", " << it->IntersectPosW32[1] << ", " << it->IntersectPosW32[2] << ")");
+      LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->IntersectPosW12[0] << ", " << it->IntersectPosW12[1] << ", " << it->IntersectPosW12[2] << ")");
+      LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->IntersectPosW32[0] << ", " << it->IntersectPosW32[1] << ", " << it->IntersectPosW32[2] << ")");
       }*/
     }
 

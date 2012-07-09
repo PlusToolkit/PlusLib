@@ -223,9 +223,9 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   const int n = this->DataPositionsInImageFrame.begin()->size();
 
   // If we attempt to run least square with not enough points then vnl_lsqr crashes. Return with an error if there are very few frames to avoid crashing.
-  if (m/3<MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES)
+  if ( m/this->NWires.size() < MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES)
   {
-    LOG_ERROR("Unable to perform calibration - there are "<<n<<" frames with segmented points and minimum "<<MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES<<" frames are needed"); 
+    LOG_ERROR("Unable to perform calibration - there are " << m/this->NWires.size() << " frames with segmented points and minimum " << MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES << " frames are needed"); 
     return PLUS_FAIL; 
   }
 
