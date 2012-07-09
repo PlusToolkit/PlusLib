@@ -1374,8 +1374,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
     {
       ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
       ui.label_Feedback->setStyleSheet("QLabel { color : red; }");
-      return PLUS_FAIL;
     }
+    return PLUS_FAIL;
   }
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
