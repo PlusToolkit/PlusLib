@@ -20,7 +20,6 @@ static const int MAX_SEGMENTATION_CANDIDATES = 80;
 
 FidPatternRecognition::FidPatternRecognition()
 : m_CurrentFrame(0)
-, m_LastError(PATTERN_RECOGNITION_ERROR_NO_ERROR)
 {
 
 }
@@ -53,11 +52,11 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult)
+PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError& patternRecognitionError)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
-  if (RecognizePattern(trackedFrame) != PLUS_SUCCESS)
+  if (RecognizePattern(trackedFrame, patternRecognitionError) != PLUS_SUCCESS)
   {
     LOG_ERROR("Recognizing pattern failed!");
     return PLUS_FAIL;
@@ -75,7 +74,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
+PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
@@ -109,7 +108,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   if( m_FidSegmentation.GetDotsVector().size() > MAX_SEGMENTATION_CANDIDATES )
   {
     LOG_WARNING("Too many candidate values for sementation algorithm. Consider reducing the number of candidates via ROI selection.");
-    m_LastError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
     return PLUS_FAIL;
   }
 
@@ -146,15 +145,17 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
   trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
 
+  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
+PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
+  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
   PlusStatus status = PLUS_SUCCESS;
   if ( numberOfSuccessfullySegmentedImages )
   {
@@ -171,16 +172,12 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
       continue;
     }
 
-    if (RecognizePattern(trackedFrame) != PLUS_SUCCESS)
+    if (RecognizePattern(trackedFrame, patternRecognitionError) != PLUS_SUCCESS)
     {
-      if( GetLastError() != PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+      if( patternRecognitionError != PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
       {
         LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
         status = PLUS_FAIL;
-      }
-      else
-      {
-        HandleLastError();
       }
     }
 
@@ -279,7 +276,6 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
   if ( config == NULL )
   {
     LOG_ERROR("Configuration XML data element is NULL");
-    m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
     return PLUS_FAIL;
   }
 
@@ -289,7 +285,6 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
   if (phantomDefinition == NULL)
   {
     LOG_ERROR("No phantom definition is found in the XML tree!");
-    m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
     return PLUS_FAIL;
   }
   else
@@ -301,7 +296,6 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
     if (geometry == NULL) 
     {
       LOG_ERROR("Phantom geometry information not found!");
-      m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
       return PLUS_FAIL;
     } 
     else 
@@ -478,7 +472,6 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         if (vtkMath::Norm(cross) > 0.001) 
         {
           LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
-          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
         double closestTemp[3];
@@ -489,13 +482,11 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         if (vtkLine::DistanceBetweenLines(tempNWire->Wires[0].EndPointFront, tempNWire->Wires[0].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
-          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
         if (vtkLine::DistanceBetweenLines(tempNWire->Wires[2].EndPointFront, tempNWire->Wires[2].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
-          m_LastError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
           return PLUS_FAIL;
         }
       }

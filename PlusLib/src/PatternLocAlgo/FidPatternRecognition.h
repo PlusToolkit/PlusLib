@@ -48,20 +48,20 @@ public:
   \param trackedFrameList Tracked frame list to segment
   \param numberOfSuccessfullySegmentedImages Out parameter holding the number of segmented images in this call (it is only equals the number of all segmented images in the tracked frame if it was not segmented at all)
   */
-  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, int* numberOfSuccessfullySegmentedImages = NULL);
+  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError &patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL );
 
   /*! 
   Run pattern recognition on a tracked frame list.
   \param trackedFrame image to segment
   */
-  PlusStatus RecognizePattern(TrackedFrame* trackedFrame);
+  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError &patternRecognitionError);
 
   /*! 
   Run pattern recognition on a tracked frame list.
   \param trackedFrame image to segment
   \param patternRecognitionResult object to store the pattern recognition result
   */
-  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
+  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError &patternRecognitionError);
 
   /*! Draw dots for debug purpose */
   void DrawDots(PixelType* image);
@@ -81,12 +81,6 @@ public:
   /*! Set the maximum tolerance on the line length in Mm */
   void SetMaxLineLengthToleranceMm(double value); 
 
-  /*! Return the last error experienced by the system */
-  PatternRecognitionError GetLastError() { return m_LastError; }
-
-  /*! Return and reset the last error */
-  PatternRecognitionError HandleLastError() { return m_LastError; m_LastError = PATTERN_RECOGNITION_ERROR_NO_ERROR; }
-
   /*! Reads the phantom definition and computes the NWires intersection if needed */
   PlusStatus        ReadPhantomDefinition(vtkXMLDataElement* rootConfigElement);
 
@@ -99,8 +93,6 @@ protected:
   double                  m_MaxLineLengthToleranceMm;
 
   int                     m_CurrentFrame;
-
-  PatternRecognitionError m_LastError;
 };
 
 //-----------------------------------------------------------------------------

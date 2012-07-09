@@ -101,8 +101,9 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing image data segmentation...");
-  int numberOfSuccessfullySegmentedImages = 0; 
-  patternRecognition.RecognizePattern(trackedFrameList, &numberOfSuccessfullySegmentedImages);
+  int numberOfSuccessfullySegmentedImages = 0;
+  FidPatternRecognition::PatternRecognitionError error;
+  patternRecognition.RecognizePattern(trackedFrameList, error, &numberOfSuccessfullySegmentedImages);
   LOG_INFO("Segmentation success rate: " << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%"); 
 
   LOG_INFO("Testing spacing computation...");

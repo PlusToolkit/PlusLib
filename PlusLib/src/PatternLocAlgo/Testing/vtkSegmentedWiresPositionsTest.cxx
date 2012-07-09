@@ -113,6 +113,7 @@ int main (int argc, char* argv[])
 
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
+    FidPatternRecognition::PatternRecognitionError error;
 
 		try
 		{
@@ -123,7 +124,7 @@ int main (int argc, char* argv[])
       }
       else
       {
-        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults );
+        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults, error );
       }
   	}
 		catch(...)

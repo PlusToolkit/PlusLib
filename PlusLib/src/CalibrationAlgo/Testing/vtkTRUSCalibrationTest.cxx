@@ -82,7 +82,8 @@ int main (int argc, char* argv[])
  
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  FidPatternRecognition patternRecognition; 
+  FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
 	patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
@@ -94,7 +95,7 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO("Segmenting probe rotation data...");
-  if (patternRecognition.RecognizePattern(probeRotationTrackedFrameList) != PLUS_SUCCESS)
+  if (patternRecognition.RecognizePattern(probeRotationTrackedFrameList, error) != PLUS_SUCCESS)
   {
 		LOG_ERROR("Error occured during segmentation of calibration images!"); 
 		return EXIT_FAILURE;
@@ -171,7 +172,7 @@ int main (int argc, char* argv[])
   }
 
   int numberOfSuccessfullySegmentedValidationImages = 0;
-  if (patternRecognition.RecognizePattern(validationTrackedFrameList, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
   {
 		LOG_ERROR("Error occured during segmentation of validation images!"); 
 		return EXIT_FAILURE;
@@ -186,7 +187,7 @@ int main (int argc, char* argv[])
   }
 
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
-  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
   {
 		LOG_ERROR("Error occured during segmentation of calibration images!"); 
 		return EXIT_FAILURE;
