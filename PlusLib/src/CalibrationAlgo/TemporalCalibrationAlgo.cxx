@@ -1303,14 +1303,14 @@ int TemporalCalibration::FindFirstLowerStraddleIndex(const std::vector<double> &
 {
   if(originalTimestamps.size()==0)
   {
-    LOG_WARNING("FindFirstLowerStraddleIndex failed, timestamps vector is empty");
+    LOG_DEBUG("FindFirstLowerStraddleIndex failed, timestamps vector is empty");
     return 0;
   }
 
   //  No original timestamps lie below the desired resampled timestamp--cannot interpolate
   if(originalTimestamps.at(0) > resampledTimestamp)
   {
-    LOG_WARNING("FindFirstLowerStraddleIndex failed to find a value within the valid time range, cannot interpolate");
+    LOG_DEBUG("FindFirstLowerStraddleIndex failed to find a value within the valid time range, cannot interpolate");
     return 0;
   }
 
