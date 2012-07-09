@@ -1367,7 +1367,15 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   // Segment image
   PatternRecognitionResult segResults;
-  m_PatternRecognition->RecognizePattern(trackedFrame, segResults);
+  if( m_PatternRecognition->RecognizePattern(trackedFrame, segResults) != PLUS_SUCCESS )
+  {
+    if( m_PatternRecognition->HandleLastError() == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+    {
+      ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
+      ui.label_Feedback->setStyleSheet("QLabel { color : red; }");
+      return PLUS_FAIL;
+    }
+  }
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
   if (segResults.GetFoundDotsCoordinateValue().size() > 0)
@@ -1408,6 +1416,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
 
   delete trackedFrame;
+
+  ui.label_Feedback->setText("");
 
   return PLUS_SUCCESS;
 }
