@@ -24,11 +24,13 @@ PlusStatus TestValidTransformName( std::string from, std::string to)
   if ( STRCASECMP(transformName.From().c_str(), from.c_str()) != 0 ) 
   { 
     LOG_ERROR("Expected From coordinate frame name '" << from << "' differ from matched coordinate frame name '" << transformName.From() << "'."); 
+    return PLUS_FAIL;
   } 
 
   if ( STRCASECMP(transformName.To().c_str(), to.c_str()) != 0 ) 
   { 
     LOG_ERROR("Expected To coordinate frame name '" << to << "' differ from matched coordinate frame name '" << transformName.To() << "'."); 
+    return PLUS_FAIL;
   } 
 
   std::string outTransformName; 
@@ -41,6 +43,7 @@ PlusStatus TestValidTransformName( std::string from, std::string to)
   if ( STRCASECMP(strName.c_str(), outTransformName.c_str()) != 0 ) 
   { 
     LOG_ERROR("Expected transform name '" << strName << "' differ from generated transform name '" << outTransformName << "'."); 
+    return PLUS_FAIL;
   } 
 
   LOG_INFO("Input: " << strName << "  <From> coordinate frame: " << transformName.From() << "  <To> coordinate frame: " << transformName.To() << "  Output: " << outTransformName); 
@@ -150,6 +153,8 @@ int main(int argc, char **argv)
 
   if ( TestValidTransformName("Image","Probe") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestValidTransformName("Tool","Tool") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
+  if ( TestValidTransformName("TestTool","OtherTool") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
+
   
   if ( TestInvalidTransformName("To","To") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestInvalidTransformName("ToTol","TolTo") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }

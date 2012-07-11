@@ -51,26 +51,24 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   }
 
   std::string transformNameStr(aTransformName);
-  size_t posTo(std::string::npos);
+  size_t posTo=std::string::npos;
 
   // Check if the string has only one valid 'To' phrase 
-  int numOfMatch(0);
-  if ( ((posTo = transformNameStr.find("To")) != std::string::npos) && (transformNameStr.length() > posTo+2) )
+  int numOfMatch=0;
+  std::string subString = transformNameStr;
+  size_t posToTested=std::string::npos;
+  size_t numberOfRemovedChars=0;
+  while ( ((posToTested = subString.find("To")) != std::string::npos) && (subString.length() > posToTested+2) )
   {
-    if (toupper(transformNameStr[posTo+2]) == transformNameStr[posTo+2])
+    if (toupper(subString[posToTested+2]) == subString[posToTested+2])
     {
+      // there is a "To", and after that the next letter is uppercase, so it's really a match (e.g., the first To in TestToolToTracker would not be a real match)
       numOfMatch++;
+      posTo=numberOfRemovedChars+posToTested;
     }
-    std::string subString = transformNameStr.substr(posTo+2);
-
-    while ( ((posTo = subString.find("To")) != std::string::npos) && (subString.length() > posTo+2) )
-    {
-      if (toupper(subString[posTo+2]) == subString[posTo+2])
-      {
-        numOfMatch++;
-      }
-      subString = subString.substr(posTo+2);
-    }
+    // search in the rest of the string
+    subString = subString.substr(posToTested+2);
+    numberOfRemovedChars+=posToTested+2;
   }
 
   if ( numOfMatch != 1 )
@@ -81,7 +79,6 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   }
 
   // Find <FrameFrom>To<FrameTo> matches 
-  posTo = transformNameStr.find("To", 2);
   if ( posTo == std::string::npos )
   {
     LOG_ERROR("Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!");
