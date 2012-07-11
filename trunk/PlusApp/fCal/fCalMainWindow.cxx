@@ -381,7 +381,9 @@ void fCalMainWindow::UpdateGUI()
   // Update canvas
   if ((m_ObjectVisualizer->GetDataCollector() != NULL) && (m_ObjectVisualizer->GetDataCollector()->GetConnected()))
   {
-    m_ObjectVisualizer->GetDataCollector()->Modified();
+    // Force update of the brightness image in the DataCollector,
+    // because it is the image that the image actors show
+    m_ObjectVisualizer->GetDataCollector()->GetBrightnessOutput();
     ui.canvas->update();
   }
 }
