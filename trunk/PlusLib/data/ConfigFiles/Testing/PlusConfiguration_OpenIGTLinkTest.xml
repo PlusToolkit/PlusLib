@@ -21,7 +21,7 @@
 		<Transform Name="ProbeToReference" />
       </TransformNames>
 	  <ImageNames>
-	    <Image Name="UsImage" CoordinateFrame="Reference" />
+	    <Image Name="Image" CoordinateFrame="Reference" />
 	  </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

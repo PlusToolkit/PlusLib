@@ -41,7 +41,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 
   this->MaxTimeSpentWithProcessingMs = 50; 
   this->LastProcessingTimePerFrameMs = -1;
-  
+
   this->ConnectionReceiverThreadId = -1;
   this->DataSenderThreadId = -1; 
   this->DataReceiverThreadId = -1; 
@@ -49,16 +49,14 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   this->ConnectionActive = std::make_pair(false,false); 
   this->DataSenderActive = std::make_pair(false,false);
   this->DataReceiverActive = std::make_pair(false,false);
-  
+
   this->DataCollector = NULL;
   this->TransformRepository = NULL; 
-  
+
   this->Threader = vtkSmartPointer<vtkMultiThreader>::New();
   this->Mutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
-  
+
   this->ServerSocket = igtl::ServerSocket::New();
-  
-  this->DefaultImageTransformName.SetTransformName( "ImageToImage" );
 }
 
 //----------------------------------------------------------------------------
@@ -70,7 +68,7 @@ vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkServer::PrintSelf( ostream& os, vtkIndent indent )
 {
-	this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +79,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     LOG_WARNING( "Tried to start OpenIGTLink server without a vtkDataCollector" );
     return PLUS_FAIL;
   }
-  
+
   if ( this->ConnectionReceiverThreadId < 0 )
   {
     this->ConnectionActive.first = true;
@@ -123,11 +121,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     LOG_INFO("Server default transform names to send: " << transformNames.str() ); 
   }
 
-  if ( this->DefaultImageTransformName.IsValid() )
+  if ( !this->DefaultImageStreams.empty() )
   {
-    std::string tn; 
-    this->DefaultImageTransformName.GetTransformName(tn);
-    LOG_INFO("Server default image transform name to send: " << tn ); 
+    std::ostringstream imageNames;
+    for ( int i = 0; i < this->DefaultImageStreams.size(); ++i )
+    {
+      imageNames << this->DefaultImageStreams[i].Name << " (CoordinateFrame: " << this->DefaultImageStreams[i].CoordinateFrame << ") "; 
+    }
+    LOG_INFO("Server default images to send: " << imageNames.str() ); 
   }
 
   return PLUS_SUCCESS;
@@ -159,7 +160,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
     } 
     this->DataSenderThreadId = -1;
   }
-  
+
   // Stop connection receiver thread
   if ( this->ConnectionReceiverThreadId >= 0 )
   {
@@ -172,7 +173,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
     this->ConnectionReceiverThreadId = -1;
     LOG_INFO( "Plus OpenIGTLink server stopped."); 
   }
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -180,9 +181,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::ThreadInfo* data )
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
-  
+
   int r = self->ServerSocket->CreateServer( self->ListeningPort );
-  
+
   if ( r < 0 )
   {
     LOG_ERROR( "Cannot create a server socket." );
@@ -192,7 +193,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
   {
     self->ConnectionActive.second = true; 
   }
-  
+
   // Wait for connections until we want to stop the thread
   while ( self->ConnectionActive.first )
   {
@@ -246,7 +247,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
   self->DataSenderActive.second = true; 
-  
+
   self->DataCollector->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
   std::list<std::string>::iterator messageTypeIterator; 
@@ -262,7 +263,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
-    
+
     // Acquire tracked frames since last acquisition (minimum 1 frame)
     if (self->LastProcessingTimePerFrameMs < 1)
     {
@@ -272,7 +273,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     int numberOfFramesToGet = std::max(self->MaxTimeSpentWithProcessingMs / self->LastProcessingTimePerFrameMs, 1); 
     // Maximize the number of frames to send
     numberOfFramesToGet = std::min(numberOfFramesToGet, self->MaxNumberOfIgtlMessagesToSend); 
-    
+
     if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
@@ -287,17 +288,17 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     {
       vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC); 
       elapsedTimeSinceLastPacketSentSec += vtkAccurateTimer::GetSystemTime() - startTimeSec; 
-      
+
       // Send keep alive packet to clients 
       if ( 1000* elapsedTimeSinceLastPacketSentSec > ( CLIENT_SOCKET_TIMEOUT_MSEC / 2.0 ) )
       {
         self->KeepAlive(); 
         elapsedTimeSinceLastPacketSentSec = 0; 
       }
-      
+
       continue;
     }
-   
+
     for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
     {
       // Send tracked frame
@@ -405,7 +406,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
       }
 
     } // clientIterator
-  
+
   } // ConnectionActive
 
   // Close thread
@@ -461,16 +462,15 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       transformNames = client.TransformNames; 
     }
 
-    // Set image transform name
-    PlusTransformName imageTransformName = this->DefaultImageTransformName; 
-    
-    if ( client.ImageTransformName.IsValid() )
+    // Set image transform names
+    std::vector<PlusIgtlClientInfo::ImageStream> imageStreams = this->DefaultImageStreams; 
+    if ( !client.ImageStreams.empty() )
     {
-      imageTransformName = client.ImageTransformName; 
-    }  
-    
+      imageStreams = client.ImageStreams; 
+    }
+
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
-    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageTransformName, this->TransformRepository ) != PLUS_SUCCESS )
+    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to pack all IGT messages!"); 
     }
@@ -483,14 +483,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       {
         continue; 
       }
-      
+
       int retValue = 0, numOfTries = 0; 
       while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
       {
         retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize() ); 
         numOfTries++; 
       }
-      
+
       if ( retValue == 0 )
       {
         clientDisconnected = true; 
@@ -524,7 +524,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 
   // restore original timestamp
   trackedFrame.SetTimestamp(timestampSystem);
-  
+
   return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 
@@ -682,16 +682,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
         }
       } // transformNames
     }
-    
 
-      // Read image names
-
+    // Get image names
     vtkXMLDataElement* imageNames = defaultClientInfo->FindNestedElementWithName( "ImageNames" );
-    if ( imageNames == NULL )
-    {
-      LOG_INFO( "No ImageNames specified for OpenIGTLink server." );
-    }
-    else
+    if ( imageNames != NULL )
     {
       for ( int i = 0; i < imageNames->GetNumberOfNestedElements(); ++ i )
       {
@@ -700,57 +694,22 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
         {
           continue;
         }
-        
         const char* name = imageNames->GetNestedElement( i )->GetAttribute( "Name" );
         if ( name == NULL )
         {
           continue;
         }
-        this->ImageNames.push_back( std::string( name ) );
-        
         const char* coordinateFrame = imageNames->GetNestedElement( i )->GetAttribute( "CoordinateFrame" );
         if ( coordinateFrame == NULL )
         {
           continue;
         }
-        PlusTransformName imageTransformName( "Image", std::string( coordinateFrame ) );
-        this->ImageTransformNames.push_back( imageTransformName );
-        
-        
-          // TODO: When multiple video streams will be supported, change this.
-          // Now, only the first image name is used for the single video stream.
-          
-        if ( this->ImageNames.size() == 1 )
-        {
-          if ( this->ImageTransformNames.size() == 1 )
-          {
-            this->DefaultImageTransformName = imageTransformName;
-          }
-        }
-        
+        PlusIgtlClientInfo::ImageStream imageStream; 
+        imageStream.Name = name;
+        imageStream.CoordinateFrame = coordinateFrame; 
+        this->DefaultImageStreams.push_back(imageStream);
       }
     }
-    
-
-    // Get image transform name
-    vtkXMLDataElement* imageTransform = defaultClientInfo->FindNestedElementWithName("ImageTransform"); 
-    if ( imageTransform != NULL )
-    {
-      const char* name = imageTransform->GetAttribute("Name"); 
-      if ( name != NULL )
-      {
-        PlusTransformName tName; 
-        if ( tName.SetTransformName(name) != PLUS_SUCCESS )
-        {
-          LOG_WARNING( "Invalid transform name: " << name ); 
-        }
-        else
-        {
-          this->DefaultImageTransformName = tName; 
-        }
-      }
-    }
-
   }
 
   return PLUS_SUCCESS;

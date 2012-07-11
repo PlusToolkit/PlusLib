@@ -48,7 +48,7 @@ PlusIgtlClientInfo& PlusIgtlClientInfo::operator=(PlusIgtlClientInfo const& clie
 void PlusIgtlClientInfo::ShallowCopy(const PlusIgtlClientInfo& clientInfo)
 {
   this->IgtlMessageTypes = clientInfo.IgtlMessageTypes; 
-  this->ImageTransformName = clientInfo.ImageTransformName; 
+  this->ImageStreams = clientInfo.ImageStreams; 
   this->TransformNames = clientInfo.TransformNames; 
 }
 
@@ -115,22 +115,32 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
     } // transformNames
   }
 
-  // Get image transform name
-  vtkXMLDataElement* imageTransform = xmldata->FindNestedElementWithName("ImageTransform"); 
-  if ( imageTransform != NULL )
+  // Get image streams
+  vtkXMLDataElement* imageNames = xmldata->FindNestedElementWithName("ImageNames"); 
+  if ( imageNames != NULL )
   {
-    const char* name = imageTransform->GetAttribute("Name"); 
-    if ( name != NULL )
+    for ( int i = 0; i < imageNames->GetNumberOfNestedElements(); ++i )
     {
-      PlusTransformName tName; 
-      if ( tName.SetTransformName(name) != PLUS_SUCCESS )
+      const char* image = imageNames->GetNestedElement(i)->GetName(); 
+      if ( image == NULL || STRCASECMP( image, "Image") != 0 )
       {
-        LOG_WARNING( "Invalid transform name: " << name ); 
+        continue; 
       }
-      else
+      const char* coordinateFrame = imageNames->GetNestedElement(i)->GetAttribute("CoordinateFrame"); 
+      if ( coordinateFrame == NULL)
       {
-        clientInfo.ImageTransformName = tName; 
+        continue; 
       }
+      const char* name = imageNames->GetNestedElement(i)->GetAttribute("Name"); 
+      if ( name == NULL )
+      {
+        continue; 
+      }
+
+      ImageStream stream; 
+      stream.CoordinateFrame = coordinateFrame; 
+      stream.Name = name; 
+      clientInfo.ImageStreams.push_back(stream); 
     }
   }
 
@@ -177,22 +187,17 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   }
   xmldata->AddNestedElement( transformNames ); 
 
-  vtkSmartPointer<vtkXMLDataElement> imageTransformName = vtkSmartPointer<vtkXMLDataElement>::New(); 
-  imageTransformName->SetName("ImageTransform"); 
-  if ( ImageTransformName.IsValid() )
+  vtkSmartPointer<vtkXMLDataElement> imageNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  imageNames->SetName("ImageNames"); 
+  for ( int i = 0; i < ImageStreams.size(); ++i )
   {
-    std::string tname; 
-    ImageTransformName.GetTransformName(tname); 
-    imageTransformName->SetAttribute("Name", tname.c_str() ); 
+    vtkSmartPointer<vtkXMLDataElement> image = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    image->SetName("Image"); 
+    image->SetAttribute("Name", ImageStreams[i].Name.c_str()); 
+    image->SetAttribute("CoordinateFrame", ImageStreams[i].CoordinateFrame.c_str()); 
+    imageNames->AddNestedElement(image); 
   }
-  // Report error if the transform name is not empty (empty image transform name means no image transform needed)
-  else if ( !ImageTransformName.From().empty() && !ImageTransformName.To().empty() )
-  {
-    std::string transformName; 
-    ImageTransformName.GetTransformName(transformName); 
-    LOG_ERROR("Failed to add image transform name to client info - transform name is invalid (" << transformName << ")." ); 
-  }
-  xmldata->AddNestedElement( imageTransformName ); 
+  xmldata->AddNestedElement( imageNames ); 
 
   std::ostringstream os; 
   PlusCommon::PrintXML(os, vtkIndent(0), xmldata); 
