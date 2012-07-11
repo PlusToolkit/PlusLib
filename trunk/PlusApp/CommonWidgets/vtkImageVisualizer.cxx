@@ -241,7 +241,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   double imageCenterX = 0;
   double imageCenterY = 0;
   int dimensions[2];
-  this->DataCollector->GetFrameSize(dimensions);
+  this->DataCollector->GetBrightnessFrameSize(dimensions);
   imageCenterX = dimensions[0] / 2.0;
   imageCenterY = dimensions[1] / 2.0;
 
@@ -421,7 +421,7 @@ PlusStatus vtkImageVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataC
       return PLUS_FAIL;
     }
 
-    this->ImageActor->SetInput(this->DataCollector->GetOutput());
+    this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
   }
 
   return PLUS_SUCCESS;
@@ -489,7 +489,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     return PLUS_FAIL;
   }
 
-  this->DataCollector->GetFrameSize(dimensions);
+  this->DataCollector->GetBrightnessFrameSize(dimensions);
   double newPosition[3];
   double originalPosition[3];
 

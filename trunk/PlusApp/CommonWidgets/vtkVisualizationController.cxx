@@ -614,7 +614,7 @@ PlusStatus vtkVisualizationController::ConnectInput()
 {
   if( this->GetImageActor() != NULL )
   {
-    this->GetImageActor()->SetInput(this->DataCollector->GetOutput());
+    this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;
   }
 

@@ -1522,7 +1522,7 @@ PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
-  m_DataCollector->GetFrameSize(aImageDimensions);
+  m_DataCollector->GetBrightnessFrameSize(aImageDimensions);
 
   return PLUS_SUCCESS;
 }

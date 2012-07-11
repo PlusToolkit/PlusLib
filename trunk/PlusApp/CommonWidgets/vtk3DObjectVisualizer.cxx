@@ -410,7 +410,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDa
     if (this->DataCollector->GetVideoEnabled())
     {
       this->ImageActor->VisibilityOn();
-      this->ImageActor->SetInput(this->DataCollector->GetOutput());
+      this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
     }
     else
     {
