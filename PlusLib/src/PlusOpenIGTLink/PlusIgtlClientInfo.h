@@ -25,6 +25,15 @@ class VTK_EXPORT PlusIgtlClientInfo
 {
 public:
 
+  /*! Helper struct for storing image stream and coordinate frame names */ 
+  struct ImageStream
+  {
+    /*! Name of the image stream */ 
+    std::string Name; 
+    /*! Name of the coordinate frame */ 
+    std::string CoordinateFrame; 
+  }; 
+
   /*! Deserialize client info data from string xml data */ 
   PlusStatus SetClientInfoFromXmlData( const char* strXmlData ); 
   
@@ -44,7 +53,7 @@ public:
   std::vector<PlusTransformName> TransformNames;
 
   /*! Transform names to send with igt image message */ 
-  PlusTransformName ImageTransformName; 
+  std::vector<ImageStream> ImageStreams; 
 
   /*! Assignment operator */
   PlusIgtlClientInfo& operator=(PlusIgtlClientInfo const&clientInfo); 

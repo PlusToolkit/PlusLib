@@ -11,6 +11,7 @@
 #include "vtkObject.h" 
 #include "igtlMessageBase.h"
 #include "igtlSocket.h"
+#include "PlusIgtlClientInfo.h" 
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
@@ -65,7 +66,7 @@ public:
   \param transformRepository Transform repository used for computing the selected transforms 
   */ 
   PlusStatus PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, PlusTransformName& imageTransformName, vtkTransformRepository* transformRepository=NULL); 
+    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, vtkTransformRepository* transformRepository=NULL); 
 
 protected:
   vtkPlusIgtlMessageFactory();

@@ -141,18 +141,10 @@ private:
   */ 
   std::vector<PlusTransformName> DefaultTransformNames;
   
-  
-  /*!  Names used for sending igt image messages. */
-  std::vector< std::string > ImageNames;
-  
-  /*!  Names used for computing image message transforms. */
-  std::vector< PlusTransformName > ImageTransformNames;
-  
-  
-  /*! Default transform name used for sending igt image message. 
+  /*! Default transform names used for sending igt image message. 
   Used only if the client didn't set image transform name (can be set from config file)
   */
-  PlusTransformName DefaultImageTransformName; 
+  std::vector<PlusIgtlClientInfo::ImageStream> DefaultImageStreams; 
 
 };
 

@@ -13,8 +13,6 @@ See License.txt for details.
 #include "vtkImageData.h" 
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusIgtlMessageCommon.h"
-
-#include "PlusCommon.h"
 #include "PlusVideoFrame.h" 
 
 //----------------------------------------------------------------------------
@@ -128,7 +126,7 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, PlusTransformName& imageTransformName, vtkTransformRepository* transformRepository/*=NULL*/)
+    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
   igtlMessages.clear(); 
@@ -152,19 +150,28 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Image message 
     if ( STRCASECMP(messageType.c_str(), "IMAGE") == 0 )
     {
-      igtl::Matrix4x4 igtlMatrix; 
-      vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName); 
-
-      igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()); 
-      imageMessage->SetDeviceName( std::string( "UsImage_" + imageTransformName.To() ).c_str() );
-      
-      if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
+      for ( std::vector<PlusIgtlClientInfo::ImageStream>::iterator imageStreamIterator = imageStreams.begin(); imageStreamIterator != imageStreams.end(); ++imageStreamIterator)
       {
-        LOG_ERROR("Failed to pack IGT messages - unable to pack image message"); 
-        numberOfErrors++; 
-        continue;
+        PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
+        
+        //Set transform name to [Name]To[CoordinateFrame]
+        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.CoordinateFrame); 
+
+        igtl::Matrix4x4 igtlMatrix; 
+        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName); 
+
+        igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New(); 
+        imageMessage->Copy( dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()) );
+        std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To(); 
+        imageMessage->SetDeviceName(deviceName.c_str()); 
+        if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Failed to pack IGT messages - unable to pack image message"); 
+          numberOfErrors++; 
+          continue;
+        }
+        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(imageMessage.GetPointer()) ); 
       }
-      igtlMessages.push_back(igtlMessage); 
     }
     // Transform message 
     else if (STRCASECMP(messageType.c_str(), "TRANSFORM") == 0 )
