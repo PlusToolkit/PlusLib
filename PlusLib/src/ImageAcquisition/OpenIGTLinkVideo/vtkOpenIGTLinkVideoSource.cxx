@@ -189,7 +189,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
   igtl::IdentityMatrix(igtlMatrix);
   std::string igtlTransformName; 
   
-  headerMsg->Unpack();
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
   if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
   {
     // Message body handler for IMAGE
@@ -200,7 +200,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     this->ClientSocket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
 
     //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-    int c = imgMsg->Unpack(1);
+    int c = imgMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
     if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
     {
       LOG_ERROR("Couldn't receive image message from server!"); 
