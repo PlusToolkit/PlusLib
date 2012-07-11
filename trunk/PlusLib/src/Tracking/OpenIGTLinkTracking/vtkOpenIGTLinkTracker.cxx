@@ -228,7 +228,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   igtl::IdentityMatrix(igtlMatrix);
   std::string igtlTransformName; 
   
-  headerMsg->Unpack();
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
   {
     if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )

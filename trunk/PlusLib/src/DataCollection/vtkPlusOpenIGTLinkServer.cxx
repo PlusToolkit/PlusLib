@@ -46,6 +46,8 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   this->DataSenderThreadId = -1; 
   this->DataReceiverThreadId = -1; 
 
+  this->IgtlMessageCrcCheckEnabled = 0; 
+
   this->ConnectionActive = std::make_pair(false,false); 
   this->DataSenderActive = std::make_pair(false,false);
   this->DataReceiverActive = std::make_pair(false,false);
@@ -360,7 +362,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         continue; 
       }
 
-      headerMsg->Unpack();
+      headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (strcmp(headerMsg->GetDeviceType(), "CLIENTINFO") == 0)
       {
         igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
@@ -369,7 +371,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
 
         client.ClientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() ); 
         //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-        int c = clientInfoMsg->Unpack(1);
+        int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {
           int port = -1; 
@@ -632,6 +634,19 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     LOG_ERROR("Unable to find listening port for PlusOpenIGTLinkServer"); 
     return PLUS_FAIL; 
+  }
+
+  const char* igtlMessageCrcCheckEnabled = plusOpenIGTLinkServerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
+  if ( igtlMessageCrcCheckEnabled != NULL )
+  {
+    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
+    {
+      this->SetIgtlMessageCrcCheckEnabled(1);
+    }
+    else
+    {
+      this->SetIgtlMessageCrcCheckEnabled(0);
+    }
   }
 
   vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 

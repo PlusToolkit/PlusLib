@@ -78,6 +78,11 @@ protected:
   /*! Send status message to clients to keep alive the connection */ 
   virtual PlusStatus KeepAlive(); 
 
+  /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
+  /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
+
 private:
 	
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
@@ -145,6 +150,9 @@ private:
   Used only if the client didn't set image transform name (can be set from config file)
   */
   std::vector<PlusIgtlClientInfo::ImageStream> DefaultImageStreams; 
+
+  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
+  int IgtlMessageCrcCheckEnabled; 
 
 };
 
