@@ -188,22 +188,32 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config
 void vtkRfToBrightnessConvert::PrepareHilbertTransform()
 {
   this->HilbertTransformCoeffs.resize(this->NumberOfHilberFilterCoeffs+1);
-  std::cout << "hc = [ ";
+  
+  const bool debugOutput=false; // print Hilbert transform coefficients?  
+  if (debugOutput)
+  {
+    std::cout << "hc = [ ";
+  }
   for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
   {
     this->HilbertTransformCoeffs[i]=1/((i-this->NumberOfHilberFilterCoeffs/2)-0.5)/vtkMath::Pi();
-
-    std::cout << this->HilbertTransformCoeffs[i];
-    if (i<this->NumberOfHilberFilterCoeffs)
+    if (debugOutput)
     {
-      std::cout << ";";
-    }
-    if (i%6==0)
-    {
-      std::cout << "\n";
+      std::cout << this->HilbertTransformCoeffs[i];
+      if (i<this->NumberOfHilberFilterCoeffs)
+      {
+        std::cout << ";";
+      }
+      if (i%6==0)
+      {
+        std::cout << "\n";
+      }
     }
   }
-  std::cout << "]\n";
+  if (debugOutput)
+  {
+    std::cout << "]\n";
+  }
 }
 
 // time, x: input vectors
