@@ -47,7 +47,6 @@ public:
   /*! Set OpenIGTLink server port */ 
   vtkSetMacro(ServerPort, int); 
   /*! Get OpenIGTLink server port */ 
-<<<<<<< .mine
   vtkGetMacro(ServerPort, int); 
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
@@ -67,22 +66,6 @@ protected:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-=======
-  vtkGetMacro(ServerPort, int); 
-
-protected:
-  /*! Constructor */
-  vtkOpenIGTLinkVideoSource();
-  /*! Destructor */
-  virtual ~vtkOpenIGTLinkVideoSource();
-
-  /*! Connect to device */
-  virtual PlusStatus InternalConnect();
-
-  /*! Disconnect from device */
-  virtual PlusStatus InternalDisconnect();
-
->>>>>>> .r1900
   /*!
     Called at the end of StartRecording to allow hardware-specific
     actions for starting the recording
