@@ -47,6 +47,27 @@ public:
   /*! Set OpenIGTLink server port */ 
   vtkSetMacro(ServerPort, int); 
   /*! Get OpenIGTLink server port */ 
+<<<<<<< .mine
+  vtkGetMacro(ServerPort, int); 
+
+  /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
+  /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, int);
+
+protected:
+  /*! Constructor */
+  vtkOpenIGTLinkVideoSource();
+  /*! Destructor */
+  virtual ~vtkOpenIGTLinkVideoSource();
+
+  /*! Connect to device */
+  virtual PlusStatus InternalConnect();
+
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
+
+=======
   vtkGetMacro(ServerPort, int); 
 
 protected:
@@ -61,6 +82,7 @@ protected:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
+>>>>>>> .r1900
   /*!
     Called at the end of StartRecording to allow hardware-specific
     actions for starting the recording
@@ -78,6 +100,9 @@ protected:
 
   /*! OpenIGTLink server port */ 
   int ServerPort; 
+
+  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
+  int IgtlMessageCrcCheckEnabled; 
 
   /*! Number of retry attempts for message sending to and receiving from the server */ 
   int NumberOfRetryAttempts; 

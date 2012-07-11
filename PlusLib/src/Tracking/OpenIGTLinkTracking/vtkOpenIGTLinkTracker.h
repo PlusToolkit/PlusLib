@@ -57,6 +57,11 @@ public:
   vtkSetMacro(ServerPort, int); 
   /*! Get OpenIGTLink server port */ 
   vtkGetMacro(ServerPort, int); 
+
+  /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
+  /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
    
 protected:
   
@@ -83,6 +88,9 @@ protected:
 
   /*! Number of retry attempts for message sending to and receiving from the server */ 
   int NumberOfRetryAttempts; 
+
+  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
+  int IgtlMessageCrcCheckEnabled; 
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;

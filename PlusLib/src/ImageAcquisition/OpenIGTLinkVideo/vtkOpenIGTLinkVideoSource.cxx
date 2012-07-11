@@ -29,6 +29,7 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->MessageType = NULL; 
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
+  this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
   this->SpawnThreadForRecording = true;
   this->NumberOfRetryAttempts = 3; 
@@ -238,7 +239,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
   else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
   {
     TrackedFrame trackedFrame; 
-    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame ) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
       return PLUS_FAIL; 
@@ -280,7 +281,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   LOG_TRACE("vtkOpenIGTLinkVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
-    LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure OpenIGTLink video source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
@@ -327,6 +328,19 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
     LOG_ERROR("Unable to find ServerPort attribute!"); 
     return PLUS_FAIL; 
   } 
+
+  const char* igtlMessageCrcCheckEnabled = imageAcquisitionConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
+  if ( igtlMessageCrcCheckEnabled != NULL )
+  {
+    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
+    {
+      this->SetIgtlMessageCrcCheckEnabled(1);
+    }
+    else
+    {
+      this->SetIgtlMessageCrcCheckEnabled(0);
+    }
+  }
 
   return PLUS_SUCCESS;
 }

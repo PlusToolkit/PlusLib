@@ -36,6 +36,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
   this->NumberOfRetryAttempts = 3; 
+  this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
 }
 
@@ -230,7 +231,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   headerMsg->Unpack();
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive transform message from server!"); 
       return PLUS_FAIL;
@@ -239,7 +240,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
   {
     float position[3] = {0}; 
-    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive position message from server!"); 
       return PLUS_FAIL;
@@ -333,6 +334,18 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   } 
 
-
+  const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
+  if ( igtlMessageCrcCheckEnabled != NULL )
+  {
+    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
+    {
+      this->SetIgtlMessageCrcCheckEnabled(1);
+    }
+    else
+    {
+      this->SetIgtlMessageCrcCheckEnabled(0);
+    }
+  }
+  
   return PLUS_SUCCESS;
 }
