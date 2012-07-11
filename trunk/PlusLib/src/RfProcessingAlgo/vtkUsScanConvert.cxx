@@ -16,6 +16,9 @@ non-commercial terms in your toolbox and distribute it."
 
 #include "vtkUsScanConvert.h"
 
+#include "vtkXMLDataElement.h"
+
+#include "vtkMath.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -51,20 +54,21 @@ int     image_index[Nz_max * Nx_max];             /*  Index for the image matrix
 /*------------------------------------------------------------------------------*/
 
 void  make_tables (double  start_depth,     /*  Depth for start of image in mm        */
-                   double  image_size,      /*  Size of image in mm                   */
 
                    double  start_of_data,   /*  Depth for start of data in mm         */
                    double  delta_r,         /*  Sampling interval for data in mm      */
                    int     N_samples,       /*  Number of data samples                */
 
-                   double  theta_start,     /*  Angle for first line in image         */
-                   double  delta_theta,     /*  Angle between individual lines        */
+                   double  theta_start,     /*  Angle for first line in image, in rad */
+                   double  delta_theta,     /*  Angle between individual lines, in rad*/
                    int     N_lines,         /*  Number of acquired lines              */
 
                    double  scaling,         /*  Scaling factor form envelope to image */
-                   int     Nz,              /*  Size of image in pixels               */
-                   int     Nx,              /*  Size of image in pixels               */
 
+                   int     Nx,              /*  Size of image in pixels               */
+                   int     Nz,              /*  Size of image in pixels               */
+                   double  image_size_x,      /*  Size x of image in mm                   */
+                   double  image_size_z,      /*  Size z of image in mm                   */
 
                    float   *weight_coef,    /*  The weight table                      */
                    int     *index_samp_line,/*  Index for the data sample number      */
@@ -72,9 +76,9 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
                    int     &N_values)       /*  Number of values to calculate in the image      */
 {
 
-  // Increments in image coordinates in meters
-  double dz = image_size/Nz;
-  double dx = image_size/Nx;
+  // Increments in image coordinates in mm
+  double dx = image_size_x/Nx;
+  double dz = image_size_z/Nz;  
 
   // Image coordinate in meters
   double z = start_depth;
@@ -84,7 +88,7 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
 
   for (int i=0; i<Nz; i++)
   {
-    double x=-(Nx-1)/2.0*dx; // image coordinate, in meters
+    double x=-(Nx-1)/2.0*dx; // image coordinate, in mm
     double z2 = z*z;
 
     for (int j=0; j<Nx; j++)
@@ -113,7 +117,8 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
         weight_coef[ij_index_coef + 3] =    samp_val * line_val   *scaling;
 
         index_samp_line[ij_index] = index_samp + index_line*N_samples;
-        image_index[ij_index] = (Nx-j-1)*Nz + i;
+        //image_index[ij_index] = (Nx-j-1)*Nz + i;
+        image_index[ij_index] = (Nx-1-j)+ Nx*i;
         ij_index++;
         ij_index_coef += 4;
       }
@@ -130,21 +135,20 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
 vtkUsScanConvert::vtkUsScanConvert()
 {
   this->OutputImageExtent[0]=0;
-  this->OutputImageExtent[1]=399;
+  this->OutputImageExtent[1]=599;
   this->OutputImageExtent[2]=0;
-  this->OutputImageExtent[3]=599;
+  this->OutputImageExtent[3]=799;
   this->OutputImageExtent[4]=0; // not used
   this->OutputImageExtent[5]=1; // not used
   this->OutputImageSpacing[0]=0.2;
   this->OutputImageSpacing[1]=0.2;
-  this->OutputImageSpacing[2]=1; // not used
+  this->OutputImageSpacing[2]=1.0; // not used
+  this->OutputImageStartDepthMm=10;
 
-  this->ImageStartDepthMm=10;
-  this->ImageSizeMm=40;
-  this->RadiusStartMm=15;
-  this->RadiusDeltaMm=0.2;
+  this->RadiusStartMm=15.0;
+  this->RadiusStopMm=70.0;
   this->ThetaStartDeg=-30.0;
-  this->ThetaDeltaDeg=1.0;
+  this->ThetaStopDeg=30.0;
   this->OutputIntensityScaling=1.0;
   
   this->InterpolationTableSize=0; // N_values
@@ -162,12 +166,96 @@ int vtkUsScanConvert::RequestInformation (vtkInformation * vtkNotUsed(request), 
   // get the info objects
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-
+  
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),this->OutputImageExtent,6);
-  outInfo->Set(vtkDataObject::SPACING(),this->OutputImageSpacing,3);
+
+  // In Plus the convention is that the image coordinate system has always unit spacing and zero origin
+  double spacing[3]={1.0, 1.0, 1.0};
+  outInfo->Set(vtkDataObject::SPACING(),spacing,3);
+  double origin[3]={0, 0, 0};
+  outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
+
+  int inExtent[6]={0};
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),inExtent);
+  //inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),inExtent, 6);
+
+  // Create the interpolation table
+  // TODO: make sure it's updated when needed
+  if (this->InterpolationTableSize==0)
+  {
+    //int* inExtent=inData[0][0]->GetWholeExtent();
+    int numberOfSamples=inExtent[1]-inExtent[0]+1;
+    int numberOfLines=inExtent[3]-inExtent[2]+1;
+    int outputImageSizeX=this->OutputImageExtent[1]-this->OutputImageExtent[0]+1;
+    int outputImageSizeY=this->OutputImageExtent[3]-this->OutputImageExtent[2]+1;
+    // interpolation table has not been computed yet
+    double radiusDeltaMm=(this->RadiusStopMm-this->RadiusStartMm)/numberOfSamples;
+    double thetaDeltaDeg=(this->ThetaStopDeg-this->ThetaStartDeg)/numberOfLines;
+    double outputImageSizeXmm=outputImageSizeX*this->OutputImageSpacing[0];
+    double outputImageSizeYmm=outputImageSizeY*this->OutputImageSpacing[1];
+
+    make_tables (this->OutputImageStartDepthMm,
+      this->RadiusStartMm, radiusDeltaMm, numberOfSamples,
+      vtkMath::RadiansFromDegrees(this->ThetaStartDeg), vtkMath::RadiansFromDegrees(thetaDeltaDeg), numberOfLines,
+      this->OutputIntensityScaling,
+      outputImageSizeX, outputImageSizeY, outputImageSizeXmm, outputImageSizeYmm,
+      weight_coef, index_samp_line, image_index,
+      this->InterpolationTableSize);
+  }
 
   return 1;
 }
+
+//----------------------------------------------------------------------------
+int vtkUsScanConvert::RequestUpdateExtent (vtkInformation* vtkNotUsed(request),  vtkInformationVector** inputVector, vtkInformationVector* vtkNotUsed( outputVector ))
+{
+  // Use the whole extent as the update extent (by default it would use the output extent, which would not be correct)
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+  int extent[6] = {0,-1,0,-1,0,-1};
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent);
+  inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent, 6);
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkUsScanConvert::AllocateOutputData(vtkImageData *output, int *uExtent)
+{ 
+  // The multithreaded algorithm sets only the non-zero voxels.
+  // We need to initialize the rest of the voxels to zero.
+
+  // Make sure the output is allocated
+  Superclass::AllocateOutputData(output, uExtent);
+  
+  // Initialize voxels to zero now.
+
+  unsigned char *outPtrZ = static_cast<unsigned char *>(output->GetScalarPointerForExtent(uExtent));
+
+  // Get increments to march through data
+  vtkIdType outIncX, outIncY, outIncZ;
+  output->GetIncrements(outIncX, outIncY, outIncZ);
+  int typeSize = output->GetScalarSize();
+  outIncX *= typeSize;
+  outIncY *= typeSize;
+  outIncZ *= typeSize;
+
+  // Find the region to loop over
+  int rowLength = (uExtent[1] - uExtent[0]+1)*output->GetNumberOfScalarComponents();
+  rowLength *= typeSize;
+  int maxY = uExtent[3] - uExtent[2];
+  int maxZ = uExtent[5] - uExtent[4];
+
+  // Loop through input pixels
+  for (int idxZ = 0; idxZ <= maxZ; idxZ++)
+    {
+    unsigned char *outPtrY = outPtrZ;
+    for (int idxY = 0; idxY <= maxY; idxY++)
+      {
+      memset(outPtrY, 0, rowLength);
+      outPtrY += outIncY;
+      }
+    outPtrZ += outIncZ;
+    } 
+} 
 
 //----------------------------------------------------------------------------
 // The templated execute function handles all the data types.
@@ -181,12 +269,14 @@ void vtkUsScanConvertExecute(vtkUsScanConvert *self,
   T *envelope_data=inPtr; // The envelope detected and log-compressed data
   int N_samples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
   T *image=outPtr; // The resulting image
+  
+  vtkIdType* outInc=outData->GetIncrements();
 
   int ij_index_coef = interpolationTableExt[0]*4; //Index into coefficient array
   for (int i=interpolationTableExt[0]; i<=interpolationTableExt[1]; i++)
   {
     float *weight_pointer = &(weight_coef[ij_index_coef]); // Pointer to the weight coefficients
-    unsigned int *env_pointer = (unsigned int*) &(envelope_data[index_samp_line[i]]); // Pointer to the envelope data
+    T *env_pointer = (T*) &(envelope_data[index_samp_line[i]]); // Pointer to the envelope data
     image[image_index[i]] =
       weight_pointer[0] * env_pointer[0] // (+0, +0)
     + weight_pointer[1] * env_pointer[1] // (+1, +0)
@@ -205,22 +295,6 @@ void vtkUsScanConvert::ThreadedRequestData(
   vtkImageData **outData,
   int outExt[6], int id)
 {
-
-  if (this->InterpolationTableSize==0)
-  {
-    int* inExtent=inData[0][0]->GetWholeExtent();
-    int numberOfSamples=inExtent[1]-inExtent[0];
-    int numberOfLines=inExtent[3]-inExtent[2];
-    int outputImageSizeX=this->OutputImageExtent[1]-this->OutputImageExtent[0]+1;
-    int outputImageSizeY=this->OutputImageExtent[3]-this->OutputImageExtent[2]+1;
-    // interpolation table has not been computed yet
-    make_tables (this->ImageStartDepthMm, this->ImageSizeMm,
-      this->RadiusStartMm, this->RadiusDeltaMm, numberOfSamples,
-      this->ThetaStartDeg, this->ThetaDeltaDeg, numberOfLines,
-      this->OutputIntensityScaling, outputImageSizeX, outputImageSizeY,
-      weight_coef, index_samp_line, image_index,
-      this->InterpolationTableSize);
-  }
 
   void *inPtr = inData[0][0]->GetScalarPointer();
   void *outPtr = outData[0]->GetScalarPointer();
@@ -256,12 +330,11 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
     << this->OutputImageExtent[0] <<", "<< this->OutputImageExtent[1] <<", "
     << this->OutputImageExtent[2] <<", "<< this->OutputImageExtent[3] <<")\n";
   os << indent << "OutputImageSpacing: ("<< this->OutputImageSpacing[0] <<", "<< this->OutputImageSpacing[1] <<")\n";
-  os << indent << "ImageStartDepthMm: "<< this->ImageStartDepthMm << "\n";
-  os << indent << "ImageSizeMm: "<< this->ImageSizeMm << "\n";
+  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
   os << indent << "RadiusStartMm: "<< this->RadiusStartMm << "\n";
-  os << indent << "RadiusDeltaMm: "<< this->RadiusDeltaMm << "\n";
+  os << indent << "RadiusStopMm: "<< this->RadiusStopMm << "\n";
   os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
-  os << indent << "ThetaDeltaDeg: "<< this->ThetaDeltaDeg << "\n";
+  os << indent << "ThetaStopDeg: "<< this->ThetaStopDeg << "\n";
   os << indent << "OutputIntensityScaling: "<< this->OutputIntensityScaling << "\n";
   os << indent << "InterpolationTableSize: "<< this->InterpolationTableSize << "\n";
 
@@ -315,3 +388,75 @@ int vtkUsScanConvert::SplitExtent(int splitExt[6], int startExt[6], int num, int
 
   return maxThreadIdUsed + 1;
 } 
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* config)
+{
+  LOG_TRACE("vtkUsScanConvert::ReadConfiguration"); 
+  if ( config == NULL )
+  {
+    LOG_DEBUG("Unable to configure vtkUsScanConvert! (XML data element is NULL)"); 
+    return PLUS_SUCCESS; 
+  }
+  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
+  if (rfProcessingElement == NULL)
+  {
+    LOG_DEBUG("Unable to find RfProcessing element in XML tree!"); 
+    return PLUS_SUCCESS;
+  }
+  vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
+  if (scanConversionElement == NULL)
+  {
+    LOG_DEBUG("Unable to find RfProcessing/ScanConversion element in XML tree!"); 
+    return PLUS_SUCCESS;
+  }  
+
+  int OutputImageStartDepthMm=0;
+  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
+  {
+    this->OutputImageStartDepthMm=OutputImageStartDepthMm; 
+  }
+  
+  double outputImageSpacing[2];
+  if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 
+  {
+    this->OutputImageSpacing[0]=outputImageSpacing[0]; 
+    this->OutputImageSpacing[1]=outputImageSpacing[1]; 
+    this->OutputImageSpacing[2]=1; 
+  }
+
+  double outputImageSize[2];
+  if ( scanConversionElement->GetVectorAttribute("OutputImageSizePixel", 2, outputImageSize)) 
+  {
+    this->OutputImageExtent[0]=0;
+    this->OutputImageExtent[1]=outputImageSize[0]-1;
+    this->OutputImageExtent[2]=0;
+    this->OutputImageExtent[3]=outputImageSize[1]-1;
+    this->OutputImageExtent[4]=0;
+    this->OutputImageExtent[5]=1;
+  }
+
+  int radiusStartMm=0;
+  if ( scanConversionElement->GetScalarAttribute("RadiusStartMm", radiusStartMm)) 
+  {
+    this->RadiusStartMm=radiusStartMm; 
+  }
+  int radiusStopMm=0;
+  if ( scanConversionElement->GetScalarAttribute("RadiusStopMm", radiusStopMm)) 
+  {
+    this->RadiusStopMm=radiusStopMm; 
+  }
+
+  int thetaStartDeg=0;
+  if ( scanConversionElement->GetScalarAttribute("ThetaStartDeg", thetaStartDeg)) 
+  {
+    this->ThetaStartDeg=thetaStartDeg; 
+  }
+  int thetaStopDeg=0;
+  if ( scanConversionElement->GetScalarAttribute("ThetaStopDeg", thetaStopDeg)) 
+  {
+    this->ThetaStopDeg=thetaStopDeg; 
+  }
+
+  return PLUS_SUCCESS;
+}

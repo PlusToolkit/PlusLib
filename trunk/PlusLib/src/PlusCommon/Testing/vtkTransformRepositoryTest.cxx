@@ -306,7 +306,6 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-
   LOG_INFO("Test successfully completed");
 	return EXIT_SUCCESS; 
  }

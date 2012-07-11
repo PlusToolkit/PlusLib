@@ -25,18 +25,23 @@ public:
   vtkSetVector3Macro(OutputImageSpacing,double);
   /*! Get the output image spacing (mm/pixel) */
   vtkGetVector3Macro(OutputImageSpacing,double);
-    
+
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+   
 protected:
   vtkUsScanConvert();
   virtual ~vtkUsScanConvert();
 
   virtual int SplitExtent(int splitExt[6], int startExt[6], int num, int total);
   
-  virtual int RequestInformation(vtkInformation *,
-                                 vtkInformationVector **,
-                                 vtkInformationVector *);
+  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
+  virtual int RequestUpdateExtent (vtkInformation*, vtkInformationVector**, vtkInformationVector*);
   
-  void ThreadedRequestData(vtkInformation *request,
+  virtual void AllocateOutputData(vtkImageData *output, int *uExtent);
+
+  virtual void ThreadedRequestData(vtkInformation *request,
                            vtkInformationVector **inputVector,
                            vtkInformationVector *outputVector,
                            vtkImageData ***inData,
@@ -44,24 +49,24 @@ protected:
                            int outExt[6],
                            int id);
 
-
+  /*! Extent of the output image, in pixels. Only the first four values are used. */
   int OutputImageExtent[6];
+
+  /*! Spacing of the output image, in mm/pixel. Only the first two values are used. */
   double OutputImageSpacing[3];
 
   /*! Depth for start of output image, in mm */
-  double ImageStartDepthMm;
-  /*! Size of output image, in mm */
-  double ImageSizeMm;
+  double OutputImageStartDepthMm;
 
   /*! Depth for start of scanline, in mm */
   double RadiusStartMm;
-  /*! Sampling interval within a scanline, in mm */
-  double RadiusDeltaMm;
+  /*! Depth for end of scanline, in mm */
+  double RadiusStopMm;
 
   /*! Angle for first scanline in image, in degrees */
   double ThetaStartDeg;
-  /*! Angle between scanlines in image, in degrees */
-  double ThetaDeltaDeg;
+  /*! Angle for last scanline in image, in degrees */
+  double ThetaStopDeg;
 
   /*! Intensity scaling factor from envelope to image */
   double OutputIntensityScaling;

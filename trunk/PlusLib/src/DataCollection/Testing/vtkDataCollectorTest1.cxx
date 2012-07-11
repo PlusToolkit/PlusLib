@@ -28,6 +28,7 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
+#include "vtkRfProcessor.h"
 
 class vtkMyCallback : public vtkCommand
 {
@@ -48,33 +49,45 @@ public:
     if ( trackedFrame.GetImageData()->IsImageValid() )
     {
       // Display image if it's valid
-      this->Viewer->SetInput(trackedFrame.GetImageData()->GetVtkImage()); 
+      if (trackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
+      {
+        // B mode
+        this->ImageData->DeepCopy(trackedFrame.GetImageData()->GetVtkImage());        
+      }
+      else
+      {
+        // RF mode        
+        RfProcessor->SetRfFrame(trackedFrame.GetImageData()->GetVtkImage(), trackedFrame.GetImageData()->GetImageType());
+        this->ImageData->ShallowCopy(RfProcessor->GetBrightessScanConvertedImage());
+      }
+      this->Viewer->SetInput(this->ImageData); 
       this->Viewer->Modified(); 
     }
 
-    std::ostringstream ss;
-    ss.precision( 2 ); 
-    TrackedFrameFieldStatus status; 
-    if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
-      && status == FIELD_OK )
+    if (TransformName.IsValid())
     {
-      trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
-      ss	<< std::fixed 
-        << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
-        << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
-        << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
-        << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
+      std::ostringstream ss;
+      ss.precision( 2 ); 
+      TrackedFrameFieldStatus status;     
+      if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS 
+        && status == FIELD_OK )
+      {
+        trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
+        ss	<< std::fixed 
+          << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
+          << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
+          << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
+          << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
+      }
+      else
+      {
+        std::string strTransformName; 
+        TransformName.GetTransformName(strTransformName); 
+        ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
+      }
+      this->StepperTextActor->SetInput(ss.str().c_str());
+      this->StepperTextActor->Modified(); 
     }
-    else
-    {
-      std::string strTransformName; 
-      TransformName.GetTransformName(strTransformName); 
-      ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
-    }
-
-
-    this->StepperTextActor->SetInput(ss.str().c_str());
-    this->StepperTextActor->Modified(); 
 
     this->Viewer->Render();
 
@@ -87,6 +100,8 @@ public:
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
   PlusTransformName TransformName; 
+  vtkImageData *ImageData;
+  vtkRfProcessor *RfProcessor;
 };
 
 int main(int argc, char **argv)
@@ -192,8 +207,8 @@ int main(int argc, char **argv)
     LOG_DEBUG("Rendering is disabled");
   }
   else
-  {
-
+  {    
+    
     vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
@@ -220,13 +235,20 @@ int main(int argc, char **argv)
     viewer->Render();	//must be called after iren and viewer are linked
     //or there will be problems
 
+    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+
+    vtkSmartPointer<vtkRfProcessor> rfProc=vtkSmartPointer<vtkRfProcessor>::New();
+    rfProc->ReadConfiguration(configRootElement);
+
     //establish timer event and create timer
     vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
     call->DataCollector=dataCollectorHardwareDevice; 
     call->Viewer=viewer;
     call->Iren=iren;
-    call->StepperTextActor=stepperTextActor; 
-    
+    call->StepperTextActor=stepperTextActor;
+    call->ImageData=imageData;
+    call->RfProcessor=rfProc;
+
     if ( !inputTransformName.empty() )
     {
       if (call->TransformName.SetTransformName( inputTransformName.c_str() ) != PLUS_SUCCESS )

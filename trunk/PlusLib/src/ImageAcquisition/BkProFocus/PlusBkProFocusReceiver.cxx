@@ -175,9 +175,9 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       this->params.n_lines = tempLines;
       bmode_set_params_sqrt(&params);
       // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-	  int frameSizeInPix[2]={this->params.n_samples/2, this->params.n_lines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie; or try to change this->params.n_lines to numBmodeLines
+      int frameSizeInPix[2]={this->params.n_samples/2, this->params.n_lines};      // TODO: check this, it may need to be {this->params.n_samples/2, this->params.n_lines} - from CuteGrabbie; or try to change this->params.n_lines to numBmodeLines
       const int numberOfBitsPerPixel=8;
-      this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, numberOfBitsPerPixel);
+      this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS);
       break;
     }
   case RfMode:
@@ -185,8 +185,8 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       if (this->CallbackVideoSource!=NULL)
       {
         // AF: each sample in rfFrame is twice as large as in bmode, and we do not decimate
-		int frameSizeInPix[2]={this->numRfSamples*2, this->params.n_lines};
-	    this->CallbackVideoSource->NewFrameCallback(this->rfFrame, frameSizeInPix, 8);
+        int frameSizeInPix[2]={this->numRfSamples, this->params.n_lines}; // each I and Q value is a sample (there are numRfSamples/2 IQ pairs in one line)
+        this->CallbackVideoSource->NewFrameCallback(this->rfFrame, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
       }
       break;
     }

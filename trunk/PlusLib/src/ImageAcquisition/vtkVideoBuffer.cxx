@@ -75,6 +75,9 @@ vtkVideoBuffer::vtkVideoBuffer()
   this->FrameSize[0]=0; 
   this->FrameSize[1]=0;
   this->PixelType=itk::ImageIOBase::UCHAR; 
+  this->ImageType=US_IMG_BRIGHTNESS; 
+  this->ImageOrientation=US_IMG_ORIENT_MF; 
+
   this->VideoBuffer = vtkTimestampedCircularBuffer<VideoBufferItem>::New(); 
   AllocateMemoryForFrames();
 }
@@ -94,7 +97,9 @@ void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
-  os << indent << "ITK scalar pixel type: " << this->GetPixelType() << std::endl; 
+  os << indent << "Scalar pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(this->GetPixelType())) << std::endl; 
+  os << indent << "Image type: " << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) << std::endl; 
+  os << indent << "Image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl; 
 }
 
 //----------------------------------------------------------------------------
@@ -160,7 +165,7 @@ PlusStatus vtkVideoBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType)
+bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
@@ -172,8 +177,15 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::I
   }
 
   if ( pixelType != this->GetPixelType() )
+  {    
+    LOG_WARNING("Frame pixel type ("<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+      <<") and buffer pixel type (" << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(this->GetPixelType())) <<") mismatch"); 
+    return false; 
+  }
+
+  if ( imgType != this->GetImageType() )
   {
-    LOG_WARNING("Frame pixel type ("<<pixelType<<") and buffer pixel type (" << this->GetPixelType() <<") mismatch"); 
+    LOG_WARNING("Frame image type ("<<PlusVideoFrame::GetStringFromUsImageType(imgType)<<") and buffer image type (" << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) <<") mismatch"); 
     return false; 
   }
 
@@ -182,7 +194,7 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::I
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-  const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long frameNumber,  
+  const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int	numberOfBytesToSkip, long frameNumber,  
   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
   TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
@@ -212,7 +224,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
     return PLUS_FAIL; 
   }
 
-  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType) )
+  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType, imageType) )
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 
@@ -251,9 +263,9 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetMFOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, this->ImageOrientation, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert input US image to MF orientation!"); 
+    LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
   }
 
@@ -261,6 +273,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
   newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
+  newObjectInBuffer->GetFrame().SetImageType(imageType);
   
   // Add custom fields
   if ( customFields != NULL )
@@ -275,7 +288,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
                                    double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
@@ -305,20 +318,20 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
   }
 
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
-  if ( PlusVideoFrame::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, this->ImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
+    LOG_ERROR("Failed to add video item to buffer: couldn't get requested reoriented frame!"); 
     return PLUS_FAIL; 
   }
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
   PlusCommon::ITKScalarPixelType pixelType=PlusVideoFrame::GetITKScalarPixelType(frame->GetScalarType());
-  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, pixelType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, pixelType, this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
                                    double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
@@ -351,7 +364,7 @@ PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTA
   int frameSize[2]={0,0};
   frame->GetFrameSize(frameSize);    
 
-  return this->AddItem(pixelBufferPointer, usImageOrientation, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
+  return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetITKScalarPixelType(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
 }
 
 //----------------------------------------------------------------------------
@@ -473,6 +486,8 @@ void vtkVideoBuffer::DeepCopy(vtkVideoBuffer* buffer)
   this->VideoBuffer->DeepCopy( buffer->VideoBuffer ); 
   this->SetFrameSize( buffer->GetFrameSize() ); 
   this->SetPixelType(buffer->GetPixelType());
+  this->SetImageType(buffer->GetImageType());
+  this->SetImageOrientation(buffer->GetImageOrientation());
   this->SetBufferSize(buffer->GetBufferSize()); 
 }
 
@@ -516,6 +531,30 @@ PlusStatus vtkVideoBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType
   }
   this->PixelType=pixelType;
   return AllocateMemoryForFrames();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::SetImageType(US_IMAGE_TYPE imgType) 
+{
+  if (imgType<US_IMG_TYPE_XX || imgType>=US_IMG_TYPE_LAST)
+  {
+    LOG_ERROR("Invalid image type attempted to set in the video buffer: "<<imgType);
+    return PLUS_FAIL;
+  }
+  this->ImageType=imgType;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation) 
+{
+  if (imgOrientation<US_IMG_ORIENT_XX || imgOrientation>=US_IMG_ORIENT_LAST)
+  {
+    LOG_ERROR("Invalid image orientation attempted to set in the video buffer: "<<imgOrientation);
+    return PLUS_FAIL;
+  }
+  this->ImageOrientation=imgOrientation;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -624,24 +663,22 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
       continue; 
     }
     
-    // AddItem is called with US_IMG_ORIENT_MF orientation always
-    // because images in the tracked frame list always stored in MF orientation 
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, timestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, timestamp, timestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }

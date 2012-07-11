@@ -14,6 +14,9 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
+#include "vtkImageData.h"
+
+#include "vtkRfProcessor.h"
 
 // Needed for getting the value of VTK_DEBUG_LEAKS
 #include "vtkToolkits.h"
@@ -37,11 +40,30 @@ vtkDataCollector::vtkDataCollector()
 
   this->TrackingEnabled = true;
   this->VideoEnabled = true;
+  
+  this->RfProcessor=vtkRfProcessor::New();
+
+  // Default size for brightness frame
+  this->BrightnessFrameSize[0]=640;
+  this->BrightnessFrameSize[1]=480;
+
+  // Create a blank image, it will be used as output if frames are not available
+  this->BlankImage=vtkImageData::New();
+  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
+  this->BlankImage->SetScalarTypeToUnsignedChar();
+  this->BlankImage->SetNumberOfScalarComponents(1); 
+  this->BlankImage->AllocateScalars(); 
+  unsigned long memorysize = this->BrightnessFrameSize[0]*this->BrightnessFrameSize[1]*this->BlankImage->GetScalarSize(); 
+  memset(this->BlankImage->GetScalarPointer(), 0, memorysize);   
 }
 
 //----------------------------------------------------------------------------
 vtkDataCollector::~vtkDataCollector()
 {
+  this->RfProcessor->Delete();
+  this->RfProcessor=NULL;
+  this->BlankImage->Delete();
+  this->BlankImage=NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -143,4 +165,40 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
 
   LOG_ERROR("Data collector cannot be instantiated: Unable to identify the data collection type from device set configuration XML data!");
   return NULL;
+}
+
+vtkImageData* vtkDataCollector::GetBrightnessOutput()
+{
+  // Get tracked frame by computed timestamp  
+  double currentFrameTimestamp = 0.0;
+  if (GetMostRecentTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get current timestamp!");
+    return this->BlankImage;
+  }
+  if (GetTrackedFrameByTime(currentFrameTimestamp, &this->BrightnessOutputTrackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame by timestamp: " << currentFrameTimestamp);
+    return this->BlankImage;
+  }
+
+  if (this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
+  {
+    // B-mode image already, just return as is
+    return this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage();
+  }
+
+  // RF frame, convert to B-mode frame
+  this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage(), this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType());
+  vtkImageData* bModeFrame=this->RfProcessor->GetBrightessScanConvertedImage();
+  
+  //bModeFrame->SetSpacing(1.0, 1.0, 1.0); 
+
+  return bModeFrame;
+}
+
+void vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
+{
+  aDim[0]=this->BrightnessFrameSize[0];
+  aDim[1]=this->BrightnessFrameSize[1];
 }

@@ -300,7 +300,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str(); 
 
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
   return status;
 }

@@ -165,6 +165,18 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     validationStartFrame = 0;
   }
 
+  // Check if TrackedFrameLists are MF oriented BRIGHTNESS images
+  if (vtkTrackedFrameList::VerifyProperties(validationTrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to perform calibration - validation tracked frame list is invalid"); 
+    return PLUS_FAIL; 
+  }
+  if (vtkTrackedFrameList::VerifyProperties(calibrationTrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to perform calibration - calibration tracked frame list is invalid"); 
+    return PLUS_FAIL; 
+  }
+  
 	int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
   if (validationEndFrame < 0 || validationEndFrame >= numberOfValidationFrames)
   {

@@ -8,6 +8,7 @@
 #define __VTKTRACKEDFRAMELIST_H
 
 #include "PlusConfigure.h"
+#include "PlusVideoFrame.h"
 #include "vtkObject.h"
 #include <deque>
 
@@ -73,7 +74,7 @@ public:
   PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   /*! Read the tracked data from sequence metafile */
-  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
+  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName, US_IMAGE_ORIENTATION requestedOrientation=US_IMG_ORIENT_MF); 
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
@@ -150,6 +151,12 @@ public:
   /*! Get tracked frame pixel type */
   PlusCommon::ITKScalarPixelType GetPixelType(); 
 
+  /*! Get tracked frame image orientation */
+  US_IMAGE_ORIENTATION GetImageOrientation(); 
+
+  /*! Get tracked frame image type */
+  US_IMAGE_TYPE GetImageType(); 
+
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 
 
@@ -182,6 +189,13 @@ public:
 
   /*! Set global transform (stored in the Offset and TransformMatrix fields) */
   PlusStatus SetGlobalTransform(vtkMatrix4x4* globalTransform);
+
+  /*!
+    Verify properties of a tracked frame list. If the tracked frame list pointer is invalid or the expected properties
+    (image orientation, type) are different from the actual values then the method returns with failure.
+    It is a static method so that the validity of the pointer can be easily checked as well.
+  */
+  static PlusStatus VerifyProperties(vtkTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType);
 
 protected:
   vtkTrackedFrameList();

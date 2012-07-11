@@ -22,6 +22,7 @@ vtkStandardNewMacro(vtkRfToBrightnessConvert);
 //----------------------------------------------------------------------------
 vtkRfToBrightnessConvert::vtkRfToBrightnessConvert()
 {
+  this->ImageType=US_IMG_TYPE_XX;
   this->BrightnessScale=10.0;
   this->NumberOfHilberFilterCoeffs=64; // 128;
   PrepareHilbertTransform();
@@ -76,12 +77,12 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
   hilbertTransformBuffer.resize(numberOfSamplesInScanline);
   */
 
+  bool imageTypeValid=true;
   unsigned long count = 0;
   // loop over all the pixels (keeping track of normalized distance to origin.
   for (int idx2 = ext[4]; idx2 <= ext[5]; ++idx2)
   {
-    //for (int idx1 = ext[2]; !this->AbortExecute && idx1 <= ext[3]; ++idx1)
-    for (int idx1 = ext[2]; !this->AbortExecute && idx1 <= ext[3]; idx1+=2)
+    for (int idx1 = ext[2]; !this->AbortExecute && idx1 <= ext[3]; ++idx1)    
     {
       if (id==0)
       {
@@ -94,19 +95,45 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
       }
 
       // Modes: IQIQIQ....., IQIQIQIQ..... / IIIIIII..., QQQQQQ.... / IIIII..., IIIII...
-      ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfSamplesInScanline);
-      //ComputeAmplitude(outPtr, inPtr, hilbertTransformBuffer, numberOfSamplesInScanline);
-      //short *phaseShiftedSignal=inPtr+numberOfSamplesInScanline+inInc1;
-      short *phaseShiftedSignal=hilbertTransformBuffer;
-      ComputeAmplitude(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
-      outPtr += numberOfSamplesInScanline+outInc1;
-      ComputeAmplitude(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
-
-      inPtr += 2*(numberOfSamplesInScanline+inInc1);
-      outPtr += numberOfSamplesInScanline+outInc1;
+      switch (this->ImageType)
+      {
+      case US_IMG_RF_I_LINE_Q_LINE:
+        {
+          ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfSamplesInScanline);
+          short *phaseShiftedSignal=hilbertTransformBuffer;
+          ComputeAmplitudeILineQLine(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
+          outPtr += numberOfSamplesInScanline+outInc1;
+          ComputeAmplitudeILineQLine(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
+          inPtr += 2*(numberOfSamplesInScanline+inInc1);
+          outPtr += numberOfSamplesInScanline+outInc1;
+          idx1++; // processed two lines
+        }
+        break;
+      case US_IMG_RF_REAL:
+        {
+          ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfSamplesInScanline);
+          ComputeAmplitudeILineQLine(outPtr, inPtr, hilbertTransformBuffer, numberOfSamplesInScanline);
+          inPtr += numberOfSamplesInScanline+inInc1;
+          outPtr += numberOfSamplesInScanline+outInc1;
+        }
+        break;
+      case US_IMG_RF_IQ_LINE:
+        {
+          ComputeAmplitudeIqLine(outPtr, inPtr, numberOfSamplesInScanline);
+          inPtr += numberOfSamplesInScanline+inInc1;
+          outPtr += numberOfSamplesInScanline+outInc1;
+        }
+        break;
+      default:
+        imageTypeValid=false;
+      }
     }
     inPtr += inInc2;
     outPtr += outInc2;    
+  }
+  if (!imageTypeValid)
+  {
+    LOG_ERROR("Unsupported image type for brightness conversion: "<<PlusVideoFrame::GetStringFromUsImageType(this->ImageType));
   }
 
   delete[] hilbertTransformBuffer;
@@ -124,20 +151,20 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config
   LOG_TRACE("vtkRfToBrightnessConvert::ReadConfiguration"); 
   if ( config == NULL )
   {
-    LOG_ERROR("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
+    LOG_DEBUG("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
+    return PLUS_SUCCESS; 
   }
   vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
   if (rfProcessingElement == NULL)
   {
-    LOG_ERROR("Unable to find RfProcessing element in XML tree!"); 
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to find RfProcessing element in XML tree!"); 
+    return PLUS_SUCCESS;
   }
   vtkXMLDataElement* rfToBrightnessElement = rfProcessingElement->FindNestedElementWithName("RfToBrightnessConversion"); 
   if (rfToBrightnessElement == NULL)
   {
-    LOG_ERROR("Unable to find RfProcessing/RfToBrightnessConversion element in XML tree!"); 
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to find RfProcessing/RfToBrightnessConversion element in XML tree!"); 
+    return PLUS_SUCCESS;
   }  
 
   int numberOfHilberFilterCoeffs=0;
@@ -156,11 +183,8 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config
 }
 
 
-
-
 // From http://www.vbforums.com/archive/index.php/t-639223.html
 
- 
 void vtkRfToBrightnessConvert::PrepareHilbertTransform()
 {
   this->HilbertTransformCoeffs.resize(this->NumberOfHilberFilterCoeffs+1);
@@ -182,9 +206,9 @@ void vtkRfToBrightnessConvert::PrepareHilbertTransform()
   std::cout << "]\n";
 }
 
-  // time, x: input vectors
-  // npt: number of input points
-  // xh, ampl, phase, omega: output vectors
+// time, x: input vectors
+// npt: number of input points
+// xh, ampl, phase, omega: output vectors
 PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt)
 {
   double pi=vtkMath::Pi();
@@ -227,7 +251,7 @@ PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTrans
   return PLUS_SUCCESS;
 }
 
-void vtkRfToBrightnessConvert::ComputeAmplitude(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
+void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
 {
   for (int i=0; i<this->NumberOfHilberFilterCoeffs/2+1; i++)
   {
@@ -245,11 +269,11 @@ void vtkRfToBrightnessConvert::ComputeAmplitude(short *ampl, short *inputSignal,
     phase[i] = atan2(xht ,xt);
     if (phase[i] < phase[i-1])
     {
-      omega[i] = phase[i]-phase[i-1]+pi2;
+    omega[i] = phase[i]-phase[i-1]+pi2;
     }
     else
     {
-      omega[i] = phase[i]-phase[i-1];
+    omega[i] = phase[i]-phase[i-1];
     }
     */
   }
@@ -259,3 +283,18 @@ void vtkRfToBrightnessConvert::ComputeAmplitude(short *ampl, short *inputSignal,
   }
 }
 
+void vtkRfToBrightnessConvert::ComputeAmplitudeIqLine(short *ampl, short *inputSignal, const int npt)
+{
+  int inputIndex=0;
+  int outputIndex=0;
+  for (; inputIndex+1<npt; inputIndex++, outputIndex++) 
+  {
+    double xt = inputSignal[inputIndex++];
+    double xht = inputSignal[inputIndex];
+    short outputValue=sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
+    if (outputValue>255.0) outputValue=255.0;
+    if (outputValue<0.0) outputValue=0.0;
+    ampl[outputIndex++] = outputValue;
+    ampl[outputIndex] = outputValue;
+  }
+}

@@ -10,7 +10,7 @@ See License.txt for details.
 #include <iomanip>
 #include <iostream>
 
-#include "vtkRfToBrightnessConvert.h"
+#include "vtkRfProcessor.h"
 #include "vtkXMLUtilities.h"
 #include "vtkSmartPointer.h"
 #include "vtkMetaImageSequenceIO.h"
@@ -25,7 +25,8 @@ int main(int argc, char **argv)
 {
   std::string inputRfFile;
   std::string inputConfigFile;
-  std::string outputBrightnessFile;
+  std::string outputImgFile;
+  std::string operation="BRIGHTNESS_SCAN_CONVERT";
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -36,7 +37,8 @@ int main(int argc, char **argv)
 
   args.AddArgument("--input-rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
   args.AddArgument("--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing processing parameters");
-  args.AddArgument("--output-brightness-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputBrightnessFile, "File name of the generated output brightness image");
+  args.AddArgument("--output-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the generated output brightness image");
+  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &operation, "Processing operation to be applied on the input file (BRIGHTNESS_CONVERT, BRIGHTNESS_SCAN_CONVERT, default: BRIGHTNESS_SCAN_CONVERT");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
 
@@ -60,9 +62,9 @@ int main(int argc, char **argv)
     std::cerr << "--input-rf-file required" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if (outputBrightnessFile.empty())
+  if (outputImgFile.empty())
   {
-    std::cerr << "--output-brightness-file" << std::endl;
+    std::cerr << "Missing --output-img-file parameter. Specification of the output image file name is required." << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -70,8 +72,8 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input meta file..."); 
   // frameList it will contain initially the RF data and the image data will be replaced by the processed output
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  frameList->ReadFromSequenceMetafile( inputRfFile.c_str() );
-  LOG_DEBUG("Reading input meta file completed"); 
+  frameList->ReadFromSequenceMetafile( inputRfFile.c_str(), US_IMG_ORIENT_XX);
+  LOG_DEBUG("Reading input RF file completed"); 
 
   // Read config file
   LOG_DEBUG("Reading config file...")
@@ -79,9 +81,8 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading config file finished.");
 
   // Create converter
-  vtkSmartPointer<vtkRfToBrightnessConvert> rfToBrightnessConverter = vtkSmartPointer<vtkRfToBrightnessConvert>::New(); 
-  rfToBrightnessConverter->SetNumberOfThreads(1); // just for test
-  if ( rfToBrightnessConverter->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
+  if ( rfProcessor->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
     exit(EXIT_FAILURE); 
@@ -93,18 +94,52 @@ int main(int argc, char **argv)
     TrackedFrame* rfFrame = frameList->GetTrackedFrame(i);
 
     // Do the conversion
-    rfToBrightnessConverter->SetInput(rfFrame->GetImageData()->GetVtkImage());
-    rfToBrightnessConverter->Update();
-    vtkImageData* brightnessImage=rfToBrightnessConverter->GetOutput();
+    rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetVtkImage(), rfFrame->GetImageData()->GetImageType());
 
-    // Update the pixel data in the frame
-    rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
+    if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
+    {
+      // do brightness conversion only
+      vtkImageData* brightnessImage=rfProcessor->GetBrightessConvertedImage();
+      // Update the pixel data in the frame
+      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
+    }
+    else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
+    {
+      // do brightness and scan conversion
+      vtkImageData* brightnessImage=rfProcessor->GetBrightessScanConvertedImage();
+      // Update the pixel data in the frame
+      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
+      rfFrame->GetImageData()->SetImageOrientation(US_IMG_ORIENT_MF); 
+    }
+    else
+    {
+      LOG_ERROR("Unknown operation: "<<operation);
+      exit(EXIT_FAILURE);
+    }
+
   }
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> brightnessSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
-  brightnessSequenceFileWriter->SetFileName(outputBrightnessFile.c_str()); 
-  brightnessSequenceFileWriter->SetTrackedFrameList(frameList); 
-  brightnessSequenceFileWriter->Write(); 
+  vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
+  outputImgSeqFileWriter->SetFileName(outputImgFile.c_str()); 
+  outputImgSeqFileWriter->SetTrackedFrameList(frameList); 
+  outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
+  /*if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
+  {
+    // the image orientation has not changed
+    outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
+  }
+  else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
+  {
+    // the image orientation has changed to MF
+    frameList->SetIma
+    outputImgSeqFileWriter->SetImageOrientationInFile(US_IMG_ORIENT_MF);
+  }
+  else
+  {
+    LOG_ERROR("Unknown operation: "<<operation);
+    exit(EXIT_FAILURE);
+  }*/
+  outputImgSeqFileWriter->Write(); 
 
 	return EXIT_SUCCESS; 
 }

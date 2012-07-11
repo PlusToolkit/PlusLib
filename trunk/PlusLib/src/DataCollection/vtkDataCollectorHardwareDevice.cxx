@@ -14,6 +14,7 @@ See License.txt for details.
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+#include "vtkRfProcessor.h"
 
 #include "vtkTrackerFactory.h"
 #include "vtkTracker.h"
@@ -1165,6 +1166,8 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
       return PLUS_FAIL; 
     }
   }
+
+  this->RfProcessor->ReadConfiguration(aConfigurationData);
 
   if ( this->VideoSource )
   {

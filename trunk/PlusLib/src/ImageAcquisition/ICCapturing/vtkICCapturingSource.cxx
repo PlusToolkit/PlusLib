@@ -179,7 +179,7 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
     return PLUS_FAIL;
   }
 
-  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, 0, this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   this->Modified();
 
 	return status;

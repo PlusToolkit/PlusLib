@@ -52,7 +52,7 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
   this->SetNumberOfInputPorts(0);
 
-  this->UsImageOrientation = US_IMG_ORIENT_XX; 
+  this->DeviceImageOrientation = US_IMG_ORIENT_XX; 
 }
 
 //----------------------------------------------------------------------------
@@ -160,6 +160,18 @@ PlusCommon::ITKScalarPixelType vtkPlusVideoSource::GetPixelType()
   LOG_TRACE("vtkPlusVideoSource::GetPixelType");
 
   return this->Buffer->GetPixelType();
+}
+
+//----------------------------------------------------------------------------
+US_IMAGE_TYPE vtkPlusVideoSource::GetImageType()
+{
+  return this->Buffer->GetImageType();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusVideoSource::SetImageType(US_IMAGE_TYPE imageType)
+{
+  return this->Buffer->SetImageType(imageType);
 }
 
 //----------------------------------------------------------------------------
@@ -555,16 +567,16 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( usImageOrientation != NULL )
   {
     LOG_INFO("Selected US image orientation: " << usImageOrientation );
-    this->SetUsImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
-    if ( this->GetUsImageOrientation() == US_IMG_ORIENT_XX )
+    this->SetDeviceImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
+    if ( this->GetDeviceImageOrientation() == US_IMG_ORIENT_XX )
     {
-      LOG_ERROR("Ultrasound image orientation is undefined - please set a proper image orientation!");
+      LOG_ERROR("Ultrasound image orientation is undefined - please set UsImageOrientation in the video source configuration");
     }
   }
   else
   {
-    LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!");
-    this->SetUsImageOrientation(US_IMG_ORIENT_XX);
+    LOG_WARNING("Ultrasound image orientation is not defined in the configuration file - please set UsImageOrientation in the video source configuration");
+    this->SetDeviceImageOrientation(US_IMG_ORIENT_XX);
   }
 
   return PLUS_SUCCESS;

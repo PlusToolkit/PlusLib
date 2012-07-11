@@ -402,10 +402,11 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
+PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName, US_IMAGE_ORIENTATION requestedOrientation/*=US_IMG_ORIENT_MF*/)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   reader->SetFileName(trackedSequenceDataFileName);
+  reader->SetImageOrientationInMemory(requestedOrientation);
   reader->SetTrackedFrameList(this);
   if (reader->Read()!=PLUS_SUCCESS)
   {		
@@ -460,6 +461,48 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
 
   LOG_DEBUG("There are no valid images in the tracked frame list."); 
   return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+}
+
+//-----------------------------------------------------------------------------
+US_IMAGE_ORIENTATION vtkTrackedFrameList::GetImageOrientation()
+{
+  if ( this->GetNumberOfTrackedFrames() < 1 )
+  {
+    LOG_ERROR("Unable to get image orientation: there is no frame in the tracked frame list!"); 
+    return US_IMG_ORIENT_XX;
+  }
+  
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      return this->GetTrackedFrame(i)->GetImageData()->GetImageOrientation();
+    }
+  }
+
+  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  return US_IMG_ORIENT_XX;
+}
+
+//-----------------------------------------------------------------------------
+US_IMAGE_TYPE vtkTrackedFrameList::GetImageType()
+{
+  if ( this->GetNumberOfTrackedFrames() < 1 )
+  {
+    LOG_ERROR("Unable to get image type: there is no frame in the tracked frame list!"); 
+    return US_IMG_TYPE_XX;
+  }
+  
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      return this->GetTrackedFrame(i)->GetImageData()->GetImageType();
+    }
+  }
+
+  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  return US_IMG_TYPE_XX;
 }
 
 //----------------------------------------------------------------------------
@@ -644,5 +687,32 @@ PlusStatus vtkTrackedFrameList::SetGlobalTransform(vtkMatrix4x4* globalTransform
   strTransform << globalTransform->GetElement(2,0) << " " << globalTransform->GetElement(2,1) << " " << globalTransform->GetElement(2,2);  
   SetCustomString("TransformMatrix", strTransform.str().c_str());
 
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkTrackedFrameList::VerifyProperties(vtkTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType)
+{
+  if (trackedFrameList == NULL)
+  {
+    LOG_ERROR("vtkTrackedFrameList::VerifyProperties failed: tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+  if (trackedFrameList->GetImageOrientation()!=expectedOrientation)
+  {
+    LOG_ERROR("vtkTrackedFrameList::VerifyProperties failed: expected image orientation is "
+      <<PlusVideoFrame::GetStringFromUsImageOrientation(expectedOrientation)
+      << ", actual orientation is "
+      <<PlusVideoFrame::GetStringFromUsImageOrientation(trackedFrameList->GetImageOrientation())  );
+    return PLUS_FAIL;
+  }
+  if (trackedFrameList->GetImageType()!=expectedType)
+  {
+    LOG_ERROR("vtkTrackedFrameList::VerifyProperties failed: expected image type is "
+      <<PlusVideoFrame::GetStringFromUsImageType(expectedType)
+      << ", actual type is "
+      <<PlusVideoFrame::GetStringFromUsImageType(trackedFrameList->GetImageType())  );
+    return PLUS_FAIL;
+  }
+  
   return PLUS_SUCCESS;
 }

@@ -8,6 +8,7 @@
 #define __vtkRfToBrightnessConvert_h
 
 #include "vtkThreadedImageAlgorithm.h"
+#include "PlusVideoFrame.h"
 
 /*!
 \class vtkRfToBrightnessConvert
@@ -23,7 +24,11 @@ public:
   
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-  
+
+  /*! Specify image type (RF data encoding type) */
+  vtkSetMacro(ImageType, US_IMAGE_TYPE);
+  vtkGetMacro(ImageType, US_IMAGE_TYPE);
+
 protected:
   vtkRfToBrightnessConvert();
   ~vtkRfToBrightnessConvert() {};
@@ -36,7 +41,9 @@ protected:
 
   virtual void PrepareHilbertTransform();
   virtual PlusStatus ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt);
-  virtual void ComputeAmplitude(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt);
+  virtual void ComputeAmplitudeILineQLine(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt);
+  /*! Compute amplitude from IQ encoded RF data. npt is the number of IQ pairs * 2. */
+  virtual void ComputeAmplitudeIqLine(short *ampl, short *inputSignal, const int npt);
 
   /*! Scaling of the brightness output. Higher value means brighter image. */
   double BrightnessScale;
@@ -46,6 +53,9 @@ protected:
 
   /*! Coefficients of the Hilbert transform, computed from the NumberOfHilberFilterCoeffs */
   std::vector<double> HilbertTransformCoeffs;
+
+  /*! Image type (RF_IQ_LINE, RF_I_LINE_Q_LINE, ...) */
+  US_IMAGE_TYPE ImageType;
 
 private:
   vtkRfToBrightnessConvert(const vtkRfToBrightnessConvert&);  // Not implemented.

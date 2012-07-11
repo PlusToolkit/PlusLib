@@ -230,7 +230,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
       this->GetBuffer()->SetFrameSize( imgSize[0], imgSize[1] );
     }
 
-    PlusStatus status = this->Buffer->AddItem( imgMsg->GetScalarPointer() , this->GetUsImageOrientation(), imgSize, pixelType, 0, this->FrameNumber, unfilteredTimestamp, filteredTimestamp); 
+    PlusStatus status = this->Buffer->AddItem( imgMsg->GetScalarPointer() , this->GetDeviceImageOrientation(), imgSize, pixelType, US_IMG_BRIGHTNESS, 0, this->FrameNumber, unfilteredTimestamp, filteredTimestamp); 
     this->Modified();
     return status;
 
@@ -259,7 +259,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
       this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
     }
     TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
-    PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->GetUsImageOrientation(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
+    PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
     this->Modified();
     return status;
   }
