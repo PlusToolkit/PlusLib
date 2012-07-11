@@ -100,11 +100,18 @@ PlusStatus vtkSpacingCalibAlgo::GetError(double &mean, double &stdev)
 PlusStatus vtkSpacingCalibAlgo::Update()
 {
   LOG_TRACE("vtkSpacingCalibAlgo::Update"); 
-
+  
   if ( this->GetMTime() < this->UpdateTime.GetMTime() )
   {
     LOG_DEBUG("Spacing calibration result is up-to-date!"); 
     return PLUS_SUCCESS; 
+  }
+  
+  // Check if TrackedFrameList is MF oriented BRIGHTNESS image
+  if (vtkTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to perform calibration - tracked frame list is invalid"); 
+    return PLUS_FAIL; 
   }
 
   // Construct linear equations Ax = b, where A is a matrix with m rows and 

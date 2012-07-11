@@ -105,6 +105,8 @@ vtkImageData * PlusVideoFrame::GetVtkImage()
 PlusVideoFrame::PlusVideoFrame()
 {
   this->Importer = vtkImageImport::New();
+  this->ImageType = US_IMG_BRIGHTNESS;
+  this->ImageOrientation = US_IMG_ORIENT_MF;
 }
 
 //----------------------------------------------------------------------------
@@ -135,6 +137,9 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
   {
     return *this;
   }
+
+  this->ImageType = videoItem.ImageType;
+  this->ImageOrientation = videoItem.ImageOrientation;
 
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
   if ( videoItem.GetFrameSizeInBytes()>0)
@@ -356,6 +361,30 @@ int PlusVideoFrame::GetNumberOfBytesPerPixel() const
 }
 
 //----------------------------------------------------------------------------
+US_IMAGE_ORIENTATION PlusVideoFrame::GetImageOrientation() const
+{
+  return this->ImageOrientation;
+}
+
+//----------------------------------------------------------------------------
+void PlusVideoFrame::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
+{
+  this->ImageOrientation=imgOrientation;
+}
+
+//----------------------------------------------------------------------------
+US_IMAGE_TYPE PlusVideoFrame::GetImageType() const
+{
+  return this->ImageType;
+}
+
+//----------------------------------------------------------------------------
+void PlusVideoFrame::SetImageType(US_IMAGE_TYPE imgType)
+{
+  this->ImageType=imgType;
+}
+
+//----------------------------------------------------------------------------
 // Helper method, performs the operation if the specified pixel type matches the actual pixel type 
 template <class TPixel >
 bool GetBufferPointerGeneric(PlusVideoFrame::ImageBaseType* inputImage, void* &bufferPointer)
@@ -448,7 +477,7 @@ PlusStatus PlusVideoFrame::GetFrameSize(int frameSize[2]) const
 }
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetVTKScalarPixelType()
+int PlusVideoFrame::GetVTKScalarPixelType() const
 {
   return PlusVideoFrame::GetVTKScalarPixelType(GetITKScalarPixelType());
 }
@@ -504,75 +533,204 @@ PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType(ImageBaseTy
   return pixelType;
 }
 
-
-
 //----------------------------------------------------------------------------
-US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char* usImgOrientation )
+US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char* imgOrientationStr )
 {
-  US_IMAGE_ORIENTATION imageorientation = US_IMG_ORIENT_XX; 
-  if ( usImgOrientation == NULL )
+  US_IMAGE_ORIENTATION imgOrientation = US_IMG_ORIENT_XX; 
+  if ( imgOrientationStr == NULL )
   {
-    return imageorientation; 
+    return imgOrientation; 
   }
-  else if ( STRCASECMP(usImgOrientation, "UF" ) == 0 )
+  else if ( STRCASECMP(imgOrientationStr, "UF" ) == 0 )
   {
-    imageorientation = US_IMG_ORIENT_UF; 
+    imgOrientation = US_IMG_ORIENT_UF; 
   }
-  else if ( STRCASECMP(usImgOrientation, "UN" ) == 0 )
+  else if ( STRCASECMP(imgOrientationStr, "UN" ) == 0 )
   {
-    imageorientation = US_IMG_ORIENT_UN; 
+    imgOrientation = US_IMG_ORIENT_UN; 
   }
-  else if ( STRCASECMP(usImgOrientation, "MF" ) == 0 )
+  else if ( STRCASECMP(imgOrientationStr, "MF" ) == 0 )
   {
-    imageorientation = US_IMG_ORIENT_MF; 
+    imgOrientation = US_IMG_ORIENT_MF; 
   }
-  else if ( STRCASECMP(usImgOrientation, "MN" ) == 0 )
+  else if ( STRCASECMP(imgOrientationStr, "MN" ) == 0 )
   {
-    imageorientation = US_IMG_ORIENT_MN; 
+    imgOrientation = US_IMG_ORIENT_MN; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "FU" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_FU; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "NU" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_NU; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "FM" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_FM; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "NM" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_NM; 
   }
 
-  return imageorientation; 
+  return imgOrientation; 
 }
 
 //----------------------------------------------------------------------------
-const char* PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION orientation)
+const char* PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
 {
-  switch (orientation)
+  switch (imgOrientation)
   {
   case US_IMG_ORIENT_MF: return "MF";
   case US_IMG_ORIENT_MN: return "MN";
   case US_IMG_ORIENT_UF: return "UF";
   case US_IMG_ORIENT_UN: return "UN";
+  case US_IMG_ORIENT_FM: return "FM";
+  case US_IMG_ORIENT_NM: return "NM";
+  case US_IMG_ORIENT_FU: return "FU";
+  case US_IMG_ORIENT_NU: return "NU";
   default:
     return "XX";
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, vtkImageData* outUsOrintedImage )
+US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString( const char* imgTypeStr )
+{
+  US_IMAGE_TYPE imgType = US_IMG_TYPE_XX; 
+  if ( imgTypeStr == NULL )
+  {
+    return imgType; 
+  }
+  else if ( STRCASECMP(imgTypeStr, "BRIGHTNESS" ) == 0 )
+  {
+    imgType = US_IMG_BRIGHTNESS; 
+  }
+  else if ( STRCASECMP(imgTypeStr, "RF_REAL" ) == 0 )
+  {
+    imgType = US_IMG_RF_REAL; 
+  }
+  else if ( STRCASECMP(imgTypeStr, "RF_IQ_LINE" ) == 0 )
+  {
+    imgType = US_IMG_RF_IQ_LINE; 
+  }
+  else if ( STRCASECMP(imgTypeStr, "RF_I_LINE_Q_LINE" ) == 0 )
+  {
+    imgType = US_IMG_RF_I_LINE_Q_LINE; 
+  }
+  return imgType; 
+}
+
+//----------------------------------------------------------------------------
+const char* PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
+{
+  switch (imgType)
+  {
+  case US_IMG_BRIGHTNESS: return "BRIGHTNESS";
+  case US_IMG_RF_REAL: return "RF_REAL";
+  case US_IMG_RF_IQ_LINE: return "RF_IQ_LINE";
+  case US_IMG_RF_I_LINE_Q_LINE: return "RF_I_LINE_Q_LINE";
+  default:
+    return "XX";
+  }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_ORIENTATION usImageOrientation2, itk::FixedArray<bool, 2> &flipAxes)
+{
+  flipAxes[0]=false;
+  flipAxes[1]=false;
+  if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
+  {
+    LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( usImageOrientation2 == US_IMG_ORIENT_XX ) 
+  {
+    LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 2"); 
+    return PLUS_SUCCESS; 
+  }
+  if (usImageOrientation1==usImageOrientation2)
+  {
+    // no flip
+    return PLUS_SUCCESS;
+  }
+  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MF)||
+    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UF)||
+    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MN)||
+    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UN)||
+    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NU)||
+    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FU)||
+    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NM)||
+    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FM))
+  {
+    // flip x
+    flipAxes[0]=true;
+    flipAxes[1]=false;
+    return PLUS_SUCCESS;
+  }
+  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_UN)||
+    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_MN)||
+    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_UF)||
+    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_MF)||
+    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_FM)||
+    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_NM)||
+    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_FU)||
+    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_NU))
+  {
+    // flip y
+    flipAxes[0]=false;
+    flipAxes[1]=true;
+    return PLUS_SUCCESS;
+  }
+  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MN)||
+    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UN)||
+    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MF)||
+    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UF)||
+    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NM)||
+    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FM)||
+    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NU)||
+    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FU))
+  {
+    // flip xy
+    flipAxes[0]=true;
+    flipAxes[1]=true;
+    return PLUS_SUCCESS;
+  }
+  LOG_ERROR("Image orientation conversion between orientations "<<GetStringFromUsImageOrientation(usImageOrientation1)
+    <<" and "<<GetStringFromUsImageOrientation(usImageOrientation2)
+    <<" is not supported (image transpose is not allowed, only reordering of rows and/or columns");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, vtkImageData* outUsOrientedImage )
 {
   if ( inUsImage == NULL )
   {
-    LOG_ERROR("Failed to convert image data to MF orientation - input image is null!"); 
+    LOG_ERROR("Failed to convert image data to the requested orientation - input image is null!"); 
     return PLUS_FAIL; 
   }
 
-  if ( outUsOrintedImage == NULL )
+  if ( outUsOrientedImage == NULL )
   {
-    LOG_ERROR("Failed to convert image data to MF orientation - output image is null!"); 
+    LOG_ERROR("Failed to convert image data to the requested orientation - output image is null!"); 
     return PLUS_FAIL; 
   }
 
-  if ( inUsImageOrientation == US_IMG_ORIENT_XX ) 
+  itk::FixedArray<bool, 2> flipAxes;
+  if (GetFlipAxes(inUsImageOrientation, outUsImageOrientation, flipAxes)!=PLUS_SUCCESS)
   {
-    LOG_WARNING("Failed to convert image data to MF orientation - unknown input image orientation, return identical copy!"); 
-    outUsOrintedImage->ShallowCopy( inUsImage ); 
-    return PLUS_SUCCESS; 
+    LOG_ERROR("Failed to convert image data to the requested orientation, from "<<GetStringFromUsImageOrientation(inUsImageOrientation)<<" to "<<GetStringFromUsImageOrientation(outUsImageOrientation));
+    return PLUS_FAIL;
   }
 
-  if ( inUsImageOrientation == US_IMG_ORIENT_MF )
+  if ( !flipAxes[0] && !flipAxes[1] )
   {
-    outUsOrintedImage->ShallowCopy( inUsImage ); 
+    // no flip
+    outUsOrientedImage->ShallowCopy( inUsImage ); 
     return PLUS_SUCCESS; 
   }
 
@@ -584,42 +742,41 @@ PlusStatus PlusVideoFrame::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE
   imageFlipY->FlipAboutOriginOff();
   imageFlipY->SetFilteredAxis(1); 
 
-  switch( inUsImageOrientation )
+  if ( flipAxes[0] && !flipAxes[1] )
   {
-  case US_IMG_ORIENT_UF: 
-    {
-      imageFlipX->SetInput(inUsImage); 
-      imageFlipX->Update(); 
-      outUsOrintedImage->ShallowCopy(imageFlipX->GetOutput());
-    }
-    break; 
-  case US_IMG_ORIENT_UN: 
-    {
-      imageFlipX->SetInput(inUsImage); 
-      imageFlipX->Update(); 
+    // flip x
+    imageFlipX->SetInput(inUsImage); 
+    imageFlipX->Update(); 
+    outUsOrientedImage->ShallowCopy(imageFlipX->GetOutput());
+    return PLUS_SUCCESS;
+  }
+  if ( !flipAxes[0] && flipAxes[1] )
+  {
+    // flip y
+    imageFlipX->SetInput(inUsImage); 
+    imageFlipX->Update(); 
+    outUsOrientedImage->ShallowCopy(imageFlipX->GetOutput());
+    return PLUS_SUCCESS;
+  }
+  if ( flipAxes[0] && flipAxes[1] )
+  {
+    // flip xy
+    imageFlipX->SetInput(inUsImage); 
+    imageFlipX->Update(); 
 
-      imageFlipY->SetInput(imageFlipX->GetOutput()); 
-      imageFlipY->Update(); 
+    imageFlipY->SetInput(imageFlipX->GetOutput()); 
+    imageFlipY->Update(); 
 
-      outUsOrintedImage->ShallowCopy(imageFlipY->GetOutput());
-    }
-    break; 
-  case US_IMG_ORIENT_MN: 
-    {
-      imageFlipY->SetInput(inUsImage); 
-      imageFlipY->Update(); 
-      outUsOrintedImage->ShallowCopy(imageFlipY->GetOutput());
-    }
-    break; 
-  default:
-    break;
+    outUsOrientedImage->ShallowCopy(imageFlipY->GetOutput());
+    return PLUS_SUCCESS;
   }
 
-  return PLUS_SUCCESS; 
+  LOG_ERROR("Invalid flip configuration"); // this should never happen, as we covered all 4 possible configurations above
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image< unsigned char, 2 >::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image< unsigned char, 2 >::Pointer outUsOrientedImage )
 {
   itk::Image< unsigned char, 2 >::Pointer itkimage = itk::Image< unsigned char, 2 >::New(); 
   if ( PlusVideoFrame::ConvertVtkImageToItkImage(inUsImage, itkimage) != PLUS_SUCCESS )
@@ -628,58 +785,59 @@ PlusStatus PlusVideoFrame::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE
     return PLUS_FAIL;
   }
 
-  return PlusVideoFrame::GetMFOrientedImage(itkimage, inUsImageOrientation, outUsOrintedImage); 
+  return PlusVideoFrame::GetOrientedImage(itkimage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned char, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<unsigned char, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<unsigned char, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<char, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<char, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<char, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned short, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<unsigned short, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<unsigned short, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<short, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<short, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<short, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned int, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<unsigned int, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<unsigned int, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<int, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<int, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<int, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned long, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<unsigned long, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<unsigned long, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<long, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<long, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<long, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<float, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<float, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<float, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<double, 2>::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage)
 {
-  return GetMFOrientedImageGeneric<itk::Image<double, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+  return GetOrientedImageGeneric<itk::Image<double, 2> >(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsImageOrientation, outUsOrientedImage);
 }
 
 //----------------------------------------------------------------------------
 template<class OutputImageType>
-PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( unsigned char* imageDataPtr,                               
+PlusStatus PlusVideoFrame::GetOrientedImageGeneric( unsigned char* imageDataPtr,                               
                                                       US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                                       const int    frameSizeInPx[2],
                                                       int    numberOfBitsPerPixel, 
-                                                      typename OutputImageType::Pointer outUsOrintedImage
+                                                      US_IMAGE_ORIENTATION  outUsImageOrientation, 
+                                                      typename OutputImageType::Pointer outUsOrientedImage
                                                       )
 {
 
@@ -689,7 +847,7 @@ PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( unsigned char* imageDataPt
     return PLUS_FAIL; 
   }
 
-  if ( outUsOrintedImage.IsNull() )
+  if ( outUsOrientedImage.IsNull() )
   {
     LOG_ERROR("Failed to convert image data to MF orientation - output image is null!"); 
     return PLUS_FAIL; 
@@ -716,23 +874,23 @@ PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( unsigned char* imageDataPt
   pixelContainer->SetImportPointer(reinterpret_cast<typename OutputImageType::PixelType*>(imageDataPtr), frameSizeInPx[0]*frameSizeInPx[1], false); 
   inUsImage->SetPixelContainer(pixelContainer); 
 
-  return PlusVideoFrame::GetMFOrientedImage(inUsImage, inUsImageOrientation, outUsOrintedImage); 
+  return PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage); 
 }
 
 //----------------------------------------------------------------------------
 template<class OutputImageType>
-PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, typename OutputImageType::Pointer outUsOrintedImage)
+PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, typename OutputImageType::Pointer outUsOrientedImage)
 {
-  outUsOrintedImage->SetOrigin(inUsImage->GetOrigin());
-  outUsOrintedImage->SetSpacing(inUsImage->GetSpacing());
-  outUsOrintedImage->SetDirection(inUsImage->GetDirection());
-  outUsOrintedImage->SetLargestPossibleRegion(inUsImage->GetLargestPossibleRegion());
-  outUsOrintedImage->SetRequestedRegion(inUsImage->GetRequestedRegion());
-  outUsOrintedImage->SetBufferedRegion(inUsImage->GetBufferedRegion());
+  outUsOrientedImage->SetOrigin(inUsImage->GetOrigin());
+  outUsOrientedImage->SetSpacing(inUsImage->GetSpacing());
+  outUsOrientedImage->SetDirection(inUsImage->GetDirection());
+  outUsOrientedImage->SetLargestPossibleRegion(inUsImage->GetLargestPossibleRegion());
+  outUsOrientedImage->SetRequestedRegion(inUsImage->GetRequestedRegion());
+  outUsOrientedImage->SetBufferedRegion(inUsImage->GetBufferedRegion());
 
   try 
   {
-    outUsOrintedImage->Allocate(); 
+    outUsOrientedImage->Allocate(); 
   }
   catch(itk::ExceptionObject & err)
   {
@@ -749,7 +907,7 @@ PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inU
     // flip Y    
     typename OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the first pixel of the last row
-    typename OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width*(height-1);
+    typename OutputImageType::PixelType *outputPixel=outUsOrientedImage->GetBufferPointer()+width*(height-1);
     // Copy the image row-by-row, reversing the row order
     for (int y=height; y>0; y--)
     {
@@ -763,7 +921,7 @@ PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inU
     // flip X    
     typename OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the last pixel of the first row
-    typename OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width-1;
+    typename OutputImageType::PixelType *outputPixel=outUsOrientedImage->GetBufferPointer()+width-1;
     // Copy the image row-by-row, reversing the pixel order in each row
     for (int y=height; y>0; y--)
     {
@@ -781,7 +939,7 @@ PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inU
     // flip X and Y
     typename OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the last pixel
-    typename OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+height*width-1;
+    typename OutputImageType::PixelType *outputPixel=outUsOrientedImage->GetBufferPointer()+height*width-1;
     // Copy the image pixel-by-pixel, reversing the pixel order
     for (int p=width*height; p>0; p--)
     {
@@ -894,50 +1052,50 @@ PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char*
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<unsigned char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<unsigned char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<unsigned char, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<unsigned char, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<char, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<char, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<unsigned short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<unsigned short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<unsigned short, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<unsigned short, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<short, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<short, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<unsigned int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<unsigned int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<unsigned int, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<unsigned int, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<int, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<int, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<unsigned long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<unsigned long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<unsigned long, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<unsigned long, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<long, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<long, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<float, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<float, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<float, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<float, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
-PlusStatus PlusVideoFrame::GetMFOrientedImage( const itk::Image<double, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( const itk::Image<double, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage )
 {
-  return PlusVideoFrame::GetMFOrientedImageGeneric<itk::Image<double, 2> >(inUsImage, inUsImageOrientation, outUsOrintedImage );
+  return PlusVideoFrame::GetOrientedImageGeneric<itk::Image<double, 2> >(inUsImage, inUsImageOrientation, outUsImageOrientation, outUsOrientedImage );
 }
 
 //----------------------------------------------------------------------------
 template<class OutputImageType>
-PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( const typename OutputImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, typename OutputImageType::Pointer outUsOrintedImage )
+PlusStatus PlusVideoFrame::GetOrientedImageGeneric( const typename OutputImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION  outUsImageOrientation, typename OutputImageType::Pointer outUsOrientedImage )
 {
   if ( inUsImage.IsNull() )
   {
@@ -945,22 +1103,22 @@ PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( const typename OutputImage
     return PLUS_FAIL; 
   }
 
-  if ( outUsOrintedImage.IsNull() )
+  if ( outUsOrientedImage.IsNull() )
   {
     LOG_ERROR("Failed to convert image data MF orientation - output image is null!"); 
     return PLUS_FAIL; 
   }
 
-  outUsOrintedImage->SetOrigin(inUsImage->GetOrigin());
-  outUsOrintedImage->SetSpacing(inUsImage->GetSpacing());
-  outUsOrintedImage->SetDirection(inUsImage->GetDirection());
-  outUsOrintedImage->SetLargestPossibleRegion(inUsImage->GetLargestPossibleRegion());
-  outUsOrintedImage->SetRequestedRegion(inUsImage->GetRequestedRegion());
-  outUsOrintedImage->SetBufferedRegion(inUsImage->GetBufferedRegion());
+  outUsOrientedImage->SetOrigin(inUsImage->GetOrigin());
+  outUsOrientedImage->SetSpacing(inUsImage->GetSpacing());
+  outUsOrientedImage->SetDirection(inUsImage->GetDirection());
+  outUsOrientedImage->SetLargestPossibleRegion(inUsImage->GetLargestPossibleRegion());
+  outUsOrientedImage->SetRequestedRegion(inUsImage->GetRequestedRegion());
+  outUsOrientedImage->SetBufferedRegion(inUsImage->GetBufferedRegion());
 
   try 
   {
-    outUsOrintedImage->Allocate(); 
+    outUsOrientedImage->Allocate(); 
   }
   catch(itk::ExceptionObject & err)
   {
@@ -968,47 +1126,19 @@ PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( const typename OutputImage
     return PLUS_FAIL; 
   }
 
-
-  if ( inUsImageOrientation == US_IMG_ORIENT_XX ) 
-  {
-    LOG_WARNING("Failed to convert image data MF orientation - unknown input image orientation, return identical copy!"); 
-    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
-    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(typename OutputImageType::PixelType); 
-    memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
-    return PLUS_SUCCESS; 
-  }
-
-  if ( inUsImageOrientation == US_IMG_ORIENT_MF )
-  {
-    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
-    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(typename OutputImageType::PixelType); 
-    memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
-    return PLUS_SUCCESS; 
-  }
-
   itk::FixedArray<bool, 2> flipAxes;
-  switch( inUsImageOrientation )
+  if (GetFlipAxes(inUsImageOrientation, outUsImageOrientation, flipAxes)!=PLUS_SUCCESS)
   {
-  case US_IMG_ORIENT_UF: 
-    {
-      flipAxes[0] = true;
-      flipAxes[1] = false;
-    }
-    break; 
-  case US_IMG_ORIENT_UN: 
-    {
-      flipAxes[0] = true;
-      flipAxes[1] = true;
-    }
-    break; 
-  case US_IMG_ORIENT_MN: 
-    {
-      flipAxes[0] = false;
-      flipAxes[1] = true;
-    }
-    break; 
-  default:
-    break;
+    LOG_ERROR("Failed to convert image data to the requested orientation, from "<<GetStringFromUsImageOrientation(inUsImageOrientation)<<" to "<<GetStringFromUsImageOrientation(outUsImageOrientation));
+    return PLUS_FAIL;
+  }
+
+  if (!flipAxes[0] && !flipAxes[1])
+  {
+    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
+    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(typename OutputImageType::PixelType); 
+    memcpy(outUsOrientedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
+    return PLUS_SUCCESS; 
   }
 
   // Performance profiling showed that flip image filter is very slow,
@@ -1027,12 +1157,12 @@ PlusStatus PlusVideoFrame::GetMFOrientedImageGeneric( const typename OutputImage
     flipFilter->Update();
     // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
     long bufferSize = flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[0]*flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[1]*sizeof(typename OutputImageType::PixelType); 
-    memcpy(outUsOrintedImage->GetBufferPointer(), flipFilter->GetOutput()->GetBufferPointer(), bufferSize); 
+    memcpy(outUsOrientedImage->GetBufferPointer(), flipFilter->GetOutput()->GetBufferPointer(), bufferSize); 
     return PLUS_SUCCESS; 
   }
   else
   {
-    return FlipImage<OutputImageType>(inUsImage, flipAxes, outUsOrintedImage);
+    return FlipImage<OutputImageType>(inUsImage, flipAxes, outUsOrientedImage);
   }   
 }
 
@@ -1089,41 +1219,41 @@ PlusStatus PlusVideoFrame::ConvertVtkImageToItkImage(vtkImageData* inFrame, itk:
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, PlusVideoFrame &outBufferItem)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem)
 {
   PlusStatus status=PLUS_FAIL;
   int bitsPerPixel=PlusVideoFrame::GetNumberOfBytesPerPixel(pixelType)*8;
   switch (pixelType)
   {
   case itk::ImageIOBase::UCHAR:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned char>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<unsigned char>());
     break;
   case itk::ImageIOBase::CHAR:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<char>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<char>());
     break;
   case itk::ImageIOBase::USHORT:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned short>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<unsigned short>());
     break;
   case itk::ImageIOBase::SHORT:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<short>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<short>());
     break;
   case itk::ImageIOBase::UINT:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned int>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<unsigned int>());
     break;
   case itk::ImageIOBase::INT:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<int>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<int>());
     break;
   case itk::ImageIOBase::ULONG:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned long>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<unsigned long>());
     break;
   case itk::ImageIOBase::LONG:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<long>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<long>());
     break;
   case itk::ImageIOBase::FLOAT:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<float>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<float>());
     break;
   case itk::ImageIOBase::DOUBLE:
-    status=PlusVideoFrame::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<double>());
+    status=PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outUsImageOrientation, outBufferItem.GetImage<double>());
     break;
   default:
     {
@@ -1131,6 +1261,7 @@ PlusStatus PlusVideoFrame::GetMFOrientedImage( unsigned char* imageDataPtr, US_I
       return PLUS_FAIL; 
     }
   }
+  outBufferItem.SetImageOrientation(outUsImageOrientation);
   return status;
 }
 

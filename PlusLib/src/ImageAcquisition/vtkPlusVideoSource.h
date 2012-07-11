@@ -117,11 +117,15 @@ public:
   /*! Get the full-frame size */
   virtual void GetFrameSize(int dim[2]);
 
-  /*! Set the image pixel type */
+  /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType);
-  /*! Get the image pixel type */
+  /*! Get the pixel type (char, unsigned short, ...) */
   virtual PlusCommon::ITKScalarPixelType GetPixelType();
-  //virtual unsigned int GetNumberOfBitsPerPixel();
+
+  /*! Set the image type (B-mode, RF, ...) provided by the video source. */
+  virtual PlusStatus SetImageType(US_IMAGE_TYPE imageType);
+  /*! Get the image pixel type (B-mode, RF, ...) */
+  virtual US_IMAGE_TYPE GetImageType();
 
   /*! Set the requested frame rate. Actual frame rate may be different. (default 30 frames per second). */
   virtual PlusStatus SetAcquisitionRate(double rate);
@@ -197,10 +201,10 @@ public:
   /*! Get the timestamp for the video frame returned with desired timestamping */
   vtkGetMacro(TimestampClosestToDesired, double);
 
-  /*! Set ultrasound image orientation of the device set */
-  vtkSetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
-  /*! Get ultrasound image orientation of the device set */
-  vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION);
+  /*! Set the native ultrasound image orientation that the device acquires */
+  vtkSetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION); 
+  /*! Get the native ultrasound image orientation that the device acquires */
+  vtkGetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION);
 
 protected:
   vtkPlusVideoSource();
@@ -271,7 +275,7 @@ protected:
   vtkVideoBuffer *Buffer;
   VideoBufferItem *CurrentVideoBufferItem; 
 
-  US_IMAGE_ORIENTATION UsImageOrientation; 
+  US_IMAGE_ORIENTATION DeviceImageOrientation; 
 
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.

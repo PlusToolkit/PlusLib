@@ -57,6 +57,7 @@ static const int MAX_LINE_LENGTH=1000;
 
 
 static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation";  
+static const char* SEQMETA_FIELD_US_IMG_TYPE = "UltrasoundImageType";  
 static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile"; 
 static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL"; 
 
@@ -83,7 +84,9 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
     this->Dimensions[1]=
     this->Dimensions[2]=0;
 
-  this->ImageOrientationInFile=US_IMG_ORIENT_MF; 
+  this->ImageOrientationInFile=US_IMG_ORIENT_XX; 
+  this->ImageOrientationInMemory=US_IMG_ORIENT_XX;
+  this->ImageType=US_IMG_TYPE_XX;
 } 
 
 //----------------------------------------------------------------------------
@@ -309,6 +312,22 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   this->NumberOfDimensions=nDims;  
 
   this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
+  if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
+  {
+    // if no specific orientation is defined then just use the orientation that is used in the file
+    this->ImageOrientationInMemory = this->ImageOrientationInFile;
+  }
+
+  const char* imgTypeStr=GetCustomString(SEQMETA_FIELD_US_IMG_TYPE);
+  if (imgTypeStr==NULL)
+  {
+    // if the image type is not defined then assume that it is B-mode image
+    this->ImageType=US_IMG_BRIGHTNESS;
+  }
+  else
+  {
+    this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(GetCustomString(SEQMETA_FIELD_US_IMG_TYPE)); 
+  }
 
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
   for(int i=0; i<3; i++)
@@ -380,8 +399,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   pixelBuffer.resize(frameSizeInBytes);
   for (int frameNumber=0; frameNumber<frameCount; frameNumber++)
   {
-    CreateTrackedFrameIfNonExisting(frameNumber);
-    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    CreateTrackedFrameIfNonExisting(frameNumber);    
+    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);    
     
     // Allocate frame only if it is valid 
     const char* imgStatus = trackedFrame->GetCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str()); 
@@ -401,6 +420,9 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       }
     }
 
+    trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
+    trackedFrame->GetImageData()->SetImageType(this->ImageType);
+
     if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
@@ -416,18 +438,18 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if ( PlusVideoFrame::GetMFOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
+        LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
         continue; 
       }
     }
     else
     {
-      if ( PlusVideoFrame::GetMFOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->Dimensions, this->PixelType, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
+        LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
         continue; 
       }
@@ -447,6 +469,31 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::Write() 
 {
+  if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+  {
+    // No specific orientation is requested, so just use the same as in the memory
+    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+  }  
+  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  {
+    // Reordering of the frames is not implemented, so just save the images as they are in the memory
+    LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
+    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+  }
+
+  if (this->ImageType==US_IMG_TYPE_XX)
+  {
+    // No specific type is requested, so just use the same as in the memory
+    this->ImageType=this->TrackedFrameList->GetImageType();
+  }
+  if (this->ImageType!=this->TrackedFrameList->GetImageType())
+  {
+    // Reordering of the frames is not implemented, so just save the images as they are in the memory
+    LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
+    this->ImageType=this->TrackedFrameList->GetImageType();
+  }
+
+
   if (WriteImageHeader()!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -609,9 +656,13 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
 
-  // Orientation
+  // Image orientation
   std::string orientationStr=PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
-  SetCustomString("UltrasoundImageOrientation", orientationStr.c_str());
+  SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, orientationStr.c_str());
+
+  // Image type
+  std::string typeStr=PlusVideoFrame::GetStringFromUsImageType(this->ImageType);
+  SetCustomString(SEQMETA_FIELD_US_IMG_TYPE, typeStr.c_str());
 
   // Add fields with default values if they are not present already
   if (GetCustomString("TransformMatrix")==NULL) { SetCustomString("TransformMatrix", "1 0 0 0 1 0 0 0 1"); }
@@ -729,9 +780,10 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
 PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
 {
 
-  if (this->ImageOrientationInFile!=US_IMG_ORIENT_MF)
+  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
   {
-    LOG_ERROR("Saving of images is supported only in the MF orientation");
+    // Reordering of the frames is not implemented, so return with an error
+    LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
     return PLUS_FAIL;
   }
 

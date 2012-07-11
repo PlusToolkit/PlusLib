@@ -2,6 +2,7 @@
 SET (RfProcessingAlgo_SRCS
     vtkRfToBrightnessConvert.cxx
     vtkUsScanConvert.cxx 
+    vtkRfProcessor.cxx
     )
 
 SET (RfProcessingAlgo_HDRS)
@@ -9,6 +10,7 @@ if (WIN32)
   SET (RfProcessingAlgo_HDRS
     vtkRfToBrightnessConvert.h 
     vtkUsScanConvert.h 
+    vtkRfProcessor.h
   )
 endif (WIN32)
 

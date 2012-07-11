@@ -154,8 +154,16 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
-
   patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
+
+  // Check if TrackedFrameList is MF oriented BRIGHTNESS image
+  if (vtkTrackedFrameList::VerifyProperties(trackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to perform calibration - tracked frame list is invalid"); 
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
+    return PLUS_FAIL; 
+  }
+
   PlusStatus status = PLUS_SUCCESS;
   if ( numberOfSuccessfullySegmentedImages )
   {

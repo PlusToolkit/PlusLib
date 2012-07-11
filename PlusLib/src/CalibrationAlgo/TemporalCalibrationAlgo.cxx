@@ -85,11 +85,11 @@ PlusStatus TemporalCalibration::Update()
     return PLUS_FAIL;
   }
 
-  // Check if tracker frames have been assigned
-  if(m_TrackerFrames == NULL)
+  // Check if TrackedFrameList is MF oriented BRIGHTNESS image
+  if (vtkTrackedFrameList::VerifyProperties(this->m_TrackerFrames, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("US video data is not assigned");
-    return PLUS_FAIL;
+    LOG_ERROR("Failed to perform calibration - video data is invalid"); 
+    return PLUS_FAIL; 
   }
 
   // Make sure video frame list is not empty

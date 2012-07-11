@@ -1,27 +1,45 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-ADD_EXECUTABLE(vtkRfToBrightnessConvertTest vtkRfToBrightnessConvertTest.cxx )
-TARGET_LINK_LIBRARIES(vtkRfToBrightnessConvertTest vtkRfProcessingAlgo vtkCommon )
-#ADD_TEST(vtkRfToBrightnessConvertRunTest
-#	${EXECUTABLE_OUTPUT_PATH}/vtkRfToBrightnessConvertTest
-#	--input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoTest.xml
-#	--input-rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
-#	--output-brightness-file=outputUltrasonixLinearBrightnessData.mha 
-#	)
-#SET_TESTS_PROPERTIES( vtkRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
+TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo vtkCommon )
 
-#ADD_TEST(vtkRfToBrightnessConvertCompareToBaselineTest
-#  ${CMAKE_COMMAND} -E compare_files 
-#   outputUltrasonixLinearBrightnessData.mha
-#   ${TestDataDir}/UltrasonixLinearBrightnessData.mha
-#  )
-#SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkRfToBrightnessConvertRunTest)
+ADD_TEST(vtkRfToBrightnessConvertRunTest
+	${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+	--input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoTest.xml
+	--input-rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
+	--output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
+  --operation=BRIGHTNESS_CONVERT
+	)
+SET_TESTS_PROPERTIES( vtkRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-#It is a test only, no need to include in the release package
-#INSTALL(TARGETS vtkRfToBrightnessConvertTest
-#  RUNTIME
-#  DESTINATION bin
-#  CONFIGURATIONS Release
-#  COMPONENT RuntimeExecutables
-#  )
+ADD_TEST(vtkRfToBrightnessConvertCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   outputUltrasonixCurvilinearBrightnessData.mha
+   ${TestDataDir}/UltrasonixCurvilinearBrightnessData.mha
+  )
+SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkRfToBrightnessConvertRunTest)
+
+
+ADD_TEST(vtkUsScanConvertRunTest
+	${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+	--input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoTest.xml
+	--input-rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
+	--output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
+  --operation=BRIGHTNESS_SCAN_CONVERT
+	)
+SET_TESTS_PROPERTIES( vtkUsScanConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkUsScanConvertCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   outputUltrasonixCurvilinearScanConvertedData.mha
+   ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+  )
+SET_TESTS_PROPERTIES(vtkUsScanConvertCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertRunTest)
+
+INSTALL(TARGETS RfProcessor
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeExecutables
+  )

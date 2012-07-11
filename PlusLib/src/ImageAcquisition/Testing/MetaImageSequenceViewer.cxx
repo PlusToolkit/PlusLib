@@ -194,7 +194,8 @@ int main(int argc, char **argv)
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
-  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
+  // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
+  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str(), US_IMG_ORIENT_XX);
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 

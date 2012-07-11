@@ -283,13 +283,16 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 #endif
 
   PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+  US_IMAGE_TYPE imgType=US_IMG_TYPE_XX;    
   switch (type)
   {
   case udtBPost:
     pixelType=itk::ImageIOBase::UCHAR;
+    imgType=US_IMG_BRIGHTNESS;
     break;
   case udtRF:
     pixelType=itk::ImageIOBase::SHORT;
+    imgType=US_IMG_RF_I_LINE_Q_LINE;
     break;
   default:
     LOG_ERROR("Uknown pixel type");
@@ -304,7 +307,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -413,9 +416,14 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
     case 8:
       this->SetPixelType( itk::ImageIOBase::UCHAR );
+      this->SetImageType( US_IMG_BRIGHTNESS );
+      this->Buffer->SetImageOrientation(US_IMG_ORIENT_MF);
       break;
     case 16:
       this->SetPixelType( itk::ImageIOBase::SHORT );
+      this->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
+      // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
+      this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
       // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
       {
         int tmp=this->DataDescriptor.h;

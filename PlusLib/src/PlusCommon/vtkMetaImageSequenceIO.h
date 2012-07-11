@@ -40,21 +40,23 @@ public:
   /*! Get the TrackedFrameList where the images are stored */
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
-
   /*!
-    Set/get the ultrasound image orientation for file storage.
-    Note that the image data is always stored in MF orientation in the TrackedFrameList object in memory.
+    Set/get the ultrasound image orientation for file storage (as the result of writing).
+    Note that the B-mode image data shall be always stored in MF orientation in the TrackedFrameList object in memory.
     The ultrasound image axes are defined as follows:
     * x axis: points towards the x coordinate increase direction
     * y axis: points towards the y coordinate increase direction
-  
-  The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
-    There are four possible orientations:
-    * UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
-    * UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
-    * MF: image x axis = marked transducer axis, image y axis = far transducer axis
-    * MN: image x axis = marked transducer axis, image y axis = near transducer axis
-  */  vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
+  */  
+  vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
+
+  /*!
+    Set/get the ultrasound image orientation for memory storage (as the result of reading).
+    B-mode image data shall be always stored in MF orientation in the TrackedFrameList object in memory.
+    The ultrasound image axes are defined as follows:
+    * x axis: points towards the x coordinate increase direction
+    * y axis: points towards the y coordinate increase direction
+  */  
+  vtkSetMacro(ImageOrientationInMemory, US_IMAGE_ORIENTATION);
 
   /*! Write object contents into file */
   virtual PlusStatus Write();
@@ -173,10 +175,20 @@ private:
   int Dimensions[3];
 
   /*! 
-    Image orientation in memory is always MF, but when reading/writing a file then
+    Image orientation in memory is always MF for B-mode, but when reading/writing a file then
     any orientation can be used.
   */
   US_IMAGE_ORIENTATION ImageOrientationInFile;
+
+  /*! 
+    Image orientation for reading into memory.
+  */
+  US_IMAGE_ORIENTATION ImageOrientationInMemory;
+
+  /*! 
+    Image type (B-mode, RF, ...)
+  */
+  US_IMAGE_TYPE ImageType;
 
   /*! Position of the first pixel of the image data within the pixel data file */
   FilePositionOffsetType PixelDataFileOffset;

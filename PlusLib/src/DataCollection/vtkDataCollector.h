@@ -9,11 +9,13 @@
 
 #include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h" 
+#include "TrackedFrame.h"
 
 class vtkXMLDataElement; 
 class vtkTrackedFrameList; 
 class TrackedFrame; 
 class vtkMatrix4x4;
+class vtkRfProcessor;
 
 /*!
   \class vtkDataCollector 
@@ -84,9 +86,15 @@ public:
   /*! Get frame rate */
   virtual PlusStatus GetFrameRate(double &aFrameRate) = 0;
 
+  /*! Returns a brightness image as output. If RF data is collected then it is converted. */
+  vtkImageData* GetBrightnessOutput();
+
 public:
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]) = 0;
+
+  /*! Get frame size */
+  virtual void GetBrightnessFrameSize(int aDim[2]);
 
   /*! Set the Tracking only flag */
   virtual void SetTrackingOnly(bool) = 0;
@@ -137,6 +145,12 @@ protected:
 
   /*! Collecting image data is enabled */
   bool                          VideoEnabled;
+
+  /*! RF to brightness conversion */
+  vtkRfProcessor* RfProcessor;
+  vtkImageData* BlankImage;
+  TrackedFrame BrightnessOutputTrackedFrame;
+  int BrightnessFrameSize[2];
 
 private:
   vtkDataCollector(const vtkDataCollector&);

@@ -121,7 +121,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   this->UsSimulator->Update();
 
   PlusStatus status = this->Buffer->AddItem(
-    this->UsSimulator->GetOutput(), this->GetUsImageOrientation(), this->FrameNumber, trackedFrame.GetTimestamp());
+    this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, trackedFrame.GetTimestamp());
 
   this->Modified();
   return status;
@@ -133,7 +133,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
   // Set to default MF internal image orientation
-  this->SetUsImageOrientation(US_IMG_ORIENT_MF); 
+  this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
   this->Buffer->Clear();
   this->Buffer->SetFrameSize( this->UsSimulator->GetFrameSize() ); 

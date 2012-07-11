@@ -62,6 +62,10 @@ private:
   vtkVideoBuffer is a structure for storing the last N number of
   timestamped video frames that are captured using a video source.
 
+  When a frame is added to the buffer the image size, image type, and pixel type shall match the buffer type.
+  The image orientation is automatically updated to match the buffer image orientation (the image lines and
+  columns are reordered as needed).
+
   \sa vtkPlusVideoSource vtkWin32VideoSource2 vtkMILVideoSource2
 
   \ingroup PlusLibImageAcquisition
@@ -95,7 +99,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -103,7 +107,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -113,7 +117,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, 
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
     int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     TrackedFrame::FieldMapType* customFields = NULL); 
 
@@ -195,6 +199,16 @@ public:
   /*! Get the pixel type */
   vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
 
+  /*! Set the image type. Does not convert the pixel values. */
+  PlusStatus SetImageType(US_IMAGE_TYPE imageType); 
+  /*! Get the image type (B-mode, RF, ...) */
+  vtkGetMacro(ImageType, US_IMAGE_TYPE); 
+
+  /*! Set the image orientation (MF, MN, ...). Does not reorder the pixels. */
+  PlusStatus SetImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
+  /*! Get the image orientation (MF, MN, ...) */
+  vtkGetMacro(ImageOrientation, US_IMAGE_ORIENTATION); 
+
   /*! Get the number of bytes per pixel */
   int GetNumberOfBytesPerPixel();
 
@@ -215,13 +229,19 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType ); 
+  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType ); 
 
   /*! Image frame size in pixel */
   int FrameSize[2]; 
   
   /*! Image pixel type */
   PlusCommon::ITKScalarPixelType PixelType; 
+
+  /*! Image type (B-Mode, RF, ...) */
+  US_IMAGE_TYPE ImageType; 
+
+  /*! Image orientation (MF, MN, ...) */
+  US_IMAGE_ORIENTATION ImageOrientation; 
 
   typedef vtkTimestampedCircularBuffer<VideoBufferItem> VideoBufferType;
   /*! Timestamped circular buffer that stores the last N frames */

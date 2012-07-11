@@ -1,3 +1,4 @@
+#include "PlusConfigure.h"
 #include "vtkBkProFocusVideoSource.h"
 #include "vtkVideoBuffer.h"
 
@@ -214,28 +215,37 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], int numberOfBitsPerPixel)
+void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
 {      
-  LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]<<", "<<numberOfBitsPerPixel<<" bits, pixel data: "<<pixelDataPtr);
+  LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
+    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType));
+
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR;
-  switch (numberOfBitsPerPixel)
-  {
-    case 8: pixelType=itk::ImageIOBase::UCHAR; break;
-    case 16: pixelType=itk::ImageIOBase::SHORT; break;
-    default:
-      LOG_ERROR("Unsupported bits per pixel: "<<numberOfBitsPerPixel<<", skip this frame");
-      return;
-  }
   if ( this->GetBuffer()->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
     this->GetBuffer()->SetPixelType(pixelType);      
+    this->GetBuffer()->SetImageType(imageType);
     this->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
-    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]<<", "<<numberOfBitsPerPixel<<" bits");
+    if (imageType==US_IMG_BRIGHTNESS)
+    {
+      // Store B-mode images in MF orientation
+      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    }
+    else
+    {
+      // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
+      this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+    }
+    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
+    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
+    <<", image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetUsImageOrientation()));
+
   } 
 
-  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, pixelType, 0, this->FrameNumber);
+  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
   

@@ -16,6 +16,8 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 
+#include "vtkRfProcessor.h"
+
 //----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkDataCollectorFile, "$Revision: 1.0 $");
@@ -34,6 +36,7 @@ vtkDataCollectorFile::vtkDataCollectorFile()
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
   this->LastAccessedFrameIndex = 0;
+  this->UsImageOrientation = US_IMG_ORIENT_XX;
 
   this->SetNumberOfInputPorts(0);
 }
@@ -64,7 +67,7 @@ PlusStatus vtkDataCollectorFile::Connect()
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  if ( trackedFrameBuffer->ReadFromSequenceMetafile(this->SequenceMetafileName) != PLUS_SUCCESS )
+  if ( trackedFrameBuffer->ReadFromSequenceMetafile(this->SequenceMetafileName, GetUsImageOrientation()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile!"); 
     return PLUS_FAIL; 
@@ -579,6 +582,20 @@ PlusStatus vtkDataCollectorFile::ReadConfiguration(vtkXMLDataElement* aConfigura
       this->ReplayEnabled = false; 
     }
   }
+
+  const char* usImageOrientation = fileConfig->GetAttribute("UsImageOrientation");
+  if ( usImageOrientation != NULL )
+  {
+    LOG_INFO("Selected US image orientation: " << usImageOrientation );
+    this->SetUsImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
+  }
+  else
+  {
+    // use the same orientation as in the file
+    this->SetUsImageOrientation(US_IMG_ORIENT_XX);
+  } 
+
+  this->RfProcessor->ReadConfiguration(aConfigurationData);
 
   return PLUS_SUCCESS;
 }

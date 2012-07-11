@@ -94,6 +94,11 @@ public:
   /*! Get sequence metafile name */
 	vtkGetStringMacro(SequenceMetafileName);
 
+  /*! Set ultrasound image orientation of the device set */
+  vtkSetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
+  /*! Get ultrasound image orientation of the device set */
+  vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
+
 protected:
   /*! Compute next timestamp from start time and elapsed time */
   PlusStatus GetCurrentFrameTimestamp(double &aTimestamp);
@@ -143,6 +148,9 @@ protected:
 
   /*! Index of last accessed (returned) tracked frame */
   int                   LastAccessedFrameIndex;
+
+  /*! Requested image orientation. If undefined then it uses the orientation of data in the file. */
+  US_IMAGE_ORIENTATION UsImageOrientation; 
 
 private:
   vtkDataCollectorFile(const vtkDataCollectorFile&);

@@ -119,9 +119,10 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
     return PLUS_SUCCESS; 
   }
 
-  if ( this->TrackedFrameList == NULL )
+  // Check if TrackedFrameList is MF oriented BRIGHTNESS image
+  if (vtkTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to construct linear equation for rotation encoder calibration - tracked frame list is NULL!"); 
+    LOG_ERROR("Failed to perform calibration - tracked frame list is invalid"); 
     return PLUS_FAIL; 
   }
   

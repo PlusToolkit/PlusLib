@@ -102,7 +102,7 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->UsImageOrientation, this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->FrameNumber); 
   this->Modified();
   return status;
 }
@@ -126,9 +126,11 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile) != PLUS_SUCCESS )
+  // The images in the local buffer will match the device image orientation (this way when grabbing the images
+  // we'll get images with the device orientation that is specified in the config file)
+  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile, GetDeviceImageOrientation()) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to read video buffer from sequence metafile!"); 
+    LOG_ERROR("Failed to read video buffer from sequence metafile: "<<this->SequenceMetafile); 
     return PLUS_FAIL; 
   }
 
@@ -138,13 +140,30 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     return PLUS_FAIL; 
   }
 
-  // Set to default MF internal image orientation (sequence metafile reader always converts it to MF)
-  this->SetUsImageOrientation(US_IMG_ORIENT_MF); 
-
   // Set buffer size 
   if ( this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to set video buffer size!"); 
+    LOG_ERROR("Failed to set video buffer size"); 
+    return PLUS_FAIL; 
+  }
+  if ( this->Buffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set video buffer image type"); 
+    return PLUS_FAIL; 
+  }
+  if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS)
+  {
+    // Brightness images will be imported into MF orientation
+    this->Buffer->SetImageOrientation(US_IMG_ORIENT_MF);
+  }
+  else
+  {
+    // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
+    this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+  }
+  if ( this->Buffer->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set video iamge orientation"); 
     return PLUS_FAIL; 
   }
 

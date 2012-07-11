@@ -219,8 +219,8 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
     this->GetBuffer()->SetFrameSize( FrameSize );
   }
 
-  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetUsImageOrientation(), FrameSize, 
-	  itk::ImageIOBase::UCHAR,0,this->FrameNumber);
+  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
+	  itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
   this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
   return status;
