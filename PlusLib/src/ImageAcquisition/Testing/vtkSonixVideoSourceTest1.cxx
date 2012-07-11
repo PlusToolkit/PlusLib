@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
 
   sonixGrabber->SetSonixIP(inputSonixIP.c_str());
-  sonixGrabber->SetUsImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)
+  sonixGrabber->SetDeviceImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)
 
   DisplayMode displayMode=SHOW_IMAGE;
   

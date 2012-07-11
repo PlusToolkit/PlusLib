@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
   portaGrabber->SetPortaFirmwarePath(PortaFirmwarePath.c_str());
   portaGrabber->SetPortaLicensePath(LicensePath.c_str());
   portaGrabber->SetPortaSettingPath(PortaSettingPath.c_str());
-  portaGrabber->SetUsImageOrientation( US_IMG_ORIENT_UF );
+  portaGrabber->SetDeviceImageOrientation( US_IMG_ORIENT_UF );
 
   DisplayMode displayMode=SHOW_IMAGE;
   
