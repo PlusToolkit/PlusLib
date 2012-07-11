@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     frameGrabber->SetClipRectangleSize(clipRectSize[0],clipRectSize[1]);
   }
  
-  frameGrabber->SetUsImageOrientation(US_IMG_ORIENT_MN);
+  frameGrabber->SetDeviceImageOrientation(US_IMG_ORIENT_MN);
 
 	// Add an observer to warning and error events for redirecting it to the stdout 
 	vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();

@@ -607,8 +607,8 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   
   this->FrameIndex++;
   double indexTime = this->Buffer->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
-  //PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetUsImageOrientation(), this->FrameIndex, indexTime, indexTime); 
-  PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetUsImageOrientation(), this->FrameIndex); 
+  //PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex, indexTime, indexTime); 
+  PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex); 
 
   this->Modified();
   return status;

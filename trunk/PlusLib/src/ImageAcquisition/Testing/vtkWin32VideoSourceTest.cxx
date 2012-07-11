@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
 	vtkSmartPointer<vtkWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkWin32VideoSource2>::New();
 
-  frameGrabber->SetUsImageOrientation(US_IMG_ORIENT_MN);
+  frameGrabber->SetDeviceImageOrientation(US_IMG_ORIENT_MN);
 
 	// Add an observer to warning and error events for redirecting it to the stdout 
 	vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
