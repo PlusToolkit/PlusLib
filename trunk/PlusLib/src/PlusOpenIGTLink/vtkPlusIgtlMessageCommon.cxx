@@ -90,7 +90,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFr
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -111,7 +111,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
   socket->Receive(trackedFrameMsg->GetPackBodyPointer(), trackedFrameMsg->GetPackBodySize());
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = trackedFrameMsg->Unpack(1);
+  int c = trackedFrameMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
     LOG_ERROR("Couldn't receive tracked frame message from server!"); 
@@ -142,7 +142,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer 
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -163,7 +163,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Point
   socket->Receive(usMsg->GetPackBodyPointer(), usMsg->GetPackBodySize());
 
   // If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = usMsg->Unpack(0);
+  int c = usMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
     LOG_ERROR("Couldn't receive US message from server!"); 
@@ -231,7 +231,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -253,7 +253,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = imgMsg->Unpack(1);
+  int c = imgMsg->Unpack(crccheck);
   if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
   {
     LOG_ERROR("Couldn't receive image message from server!"); 
@@ -313,7 +313,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
 //----------------------------------------------------------------------------
 // static 
 PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
-                                                           vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp )
+                                                           vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck )
 {
   if ( headerMsg.IsNull() )
   {
@@ -340,7 +340,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
   socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = transMsg->Unpack(1);
+  int c = transMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
     LOG_ERROR("Couldn't receive transform message from server!"); 
@@ -399,7 +399,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
 //----------------------------------------------------------------------------
 // static 
 PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
-                                                            float position[3], std::string& positionName, double& timestamp )
+                                                            float position[3], std::string& positionName, double& timestamp, int crccheck )
 {
   if ( headerMsg.IsNull() )
   {
@@ -426,7 +426,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   socket->Receive(posMsg->GetPackBodyPointer(), posMsg->GetPackBodySize());
 
   //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-  int c = posMsg->Unpack(1);
+  int c = posMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
     LOG_ERROR("Couldn't receive position message from server!"); 

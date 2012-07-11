@@ -11,6 +11,7 @@
       MessageType="TRACKEDFRAME"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
+      IgtlMessageCrcCheckEnabled="false"
       BufferSize="500"
       UsImageOrientation="MF"
       AcquisitionRate="30"
