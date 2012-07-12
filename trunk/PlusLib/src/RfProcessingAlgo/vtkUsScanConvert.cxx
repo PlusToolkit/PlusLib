@@ -45,7 +45,7 @@ vtkStandardNewMacro(vtkUsScanConvert);
 /*    Define the global variables used by the program          */
 /*-------------------------------------------------------------*/
 
-float   weight_coef[Nz_max * Nx_max * Ncoef_max]; /*  Coefficients for the weighting of the image data          */
+double   weight_coef[Nz_max * Nx_max * Ncoef_max]; /*  Coefficients for the weighting of the image data          */
 int     index_samp_line[Nz_max * Nx_max];         /*  Index for the data sample number                          */
 int     image_index[Nz_max * Nx_max];             /*  Index for the image matrix                                */
 
@@ -70,7 +70,7 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
                    double  image_size_x,      /*  Size x of image in mm                   */
                    double  image_size_z,      /*  Size z of image in mm                   */
 
-                   float   *weight_coef,    /*  The weight table                      */
+                   double   *weight_coef,    /*  The weight table                      */
                    int     *index_samp_line,/*  Index for the data sample number      */
                    int     *image_index,    /*  Index for the image matrix            */
                    int     &N_values)       /*  Number of values to calculate in the image      */
@@ -275,7 +275,7 @@ void vtkUsScanConvertExecute(vtkUsScanConvert *self,
   int ij_index_coef = interpolationTableExt[0]*4; //Index into coefficient array
   for (int i=interpolationTableExt[0]; i<=interpolationTableExt[1]; i++)
   {
-    float *weight_pointer = &(weight_coef[ij_index_coef]); // Pointer to the weight coefficients
+    double *weight_pointer = &(weight_coef[ij_index_coef]); // Pointer to the weight coefficients
     T *env_pointer = (T*) &(envelope_data[index_samp_line[i]]); // Pointer to the envelope data
     image[image_index[i]] =
       weight_pointer[0] * env_pointer[0] // (+0, +0)
