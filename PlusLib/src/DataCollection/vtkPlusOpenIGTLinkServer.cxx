@@ -467,7 +467,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     }
 
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
-    if ( igtlMessageFactory->PackMessages( this->SendValidTransformsOnly, messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
+    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->SendValidTransformsOnly, this->TransformRepository ) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to pack all IGT messages!"); 
     }
