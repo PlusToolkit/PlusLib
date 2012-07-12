@@ -241,11 +241,12 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int fr
     LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
     <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
     <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
-    <<", image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetUsImageOrientation()));
+    <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
+    <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->Buffer->GetImageOrientation()));
 
   } 
 
-  this->Buffer->AddItem(pixelDataPtr, this->GetUsImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  this->Buffer->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
   
@@ -291,12 +292,12 @@ PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config
     if (STRCASECMP(imagingMode, "BMode")==0)
     {
       LOG_DEBUG("Imaging mode set: BMode"); 
-      this->Internal->PlusReceiver.SetImagingMode(PlusBkProFocusReceiver::BMode); 
+      SetImagingMode(BMode); 
     }
     else if (STRCASECMP(imagingMode, "RfMode")==0)
     {
       LOG_DEBUG("Imaging mode set: RfMode"); 
-      this->Internal->PlusReceiver.SetImagingMode(PlusBkProFocusReceiver::RfMode); 
+      SetImagingMode(RfMode); 
     }
     else
     {
@@ -349,4 +350,10 @@ PlusStatus vtkBkProFocusVideoSource::GetFullIniFilePath(std::string &fullPath)
   }
   fullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFileName;
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkBkProFocusVideoSource::SetImagingMode(ImagingModeType imagingMode)
+{
+  this->Internal->PlusReceiver.SetImagingMode(imagingMode);
 }
