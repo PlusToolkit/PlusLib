@@ -474,7 +474,7 @@ private:
   //! Flag indicating if bottom right corner handle is picked
   bool                          m_BottomRightHandlePicked;
 
-  /*! Pair to store the offset of the click from the center of the desired actor */
+  /*! Pair to store the offset of the click from the center of the desired source */
   std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
 };
 
@@ -910,7 +910,7 @@ private:
   //! Summed line length in pixel value
   double                        m_LineLengthSumImagePixel;
 
-  /*! Pair to store the offset of the click from the center of the desired actor */
+  /*! Pair to store the offset of the click from the center of the desired source */
   std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
 };
 
