@@ -193,15 +193,8 @@ void FreehandCalibrationToolbox::Initialize()
       return;
     }
 
-    // Check if probe to reference transform is available
-    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("No transform found between probe and reference!");
-      return;
-    }
-
     // Set initialized if it was uninitialized
-    if (m_State == ToolboxState_Uninitialized)
+    if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
     {
       SetState(ToolboxState_Idle);
     }
@@ -306,37 +299,97 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("FreehandCalibrationToolbox::SetDisplayAccordingToState");
 
-  // If the force show devices isn't enabled, set it to 2D
-  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
-  {
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
-    // 2D mode auto-turns back on the image
-    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
-  }
-
-  // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
-
-  // Hide or show the orientation markers based on the value of the checkbox
-  m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
-
   double videoTimeOffset = 0.0;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+
+  // If connected
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()) )
   {
-    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-    if ( dataCollectorHardwareDevice )
+    // If the force show devices isn't enabled, set it to 2D
+    if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
     {
-      if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
-        && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+      m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+      // 2D mode auto-turns back on the image
+      m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
+    }
+
+    // Enable or disable the image manipulation menu
+    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+
+    // Hide or show the orientation markers based on the value of the checkbox
+    m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
+
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    {
+      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
+      if ( dataCollectorHardwareDevice )
       {
-        videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
+        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        {
+          videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
+        }
       }
     }
+
+    // Update state message according to available transforms
+    if (m_Calibration->GetImageCoordinateFrame() && m_Calibration->GetProbeCoordinateFrame())
+    {
+      if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+      {
+        std::string imageToProbeTransformNameStr;
+        PlusTransformName imageToProbeTransformName(
+          m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame());
+        imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
+
+        if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+          m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame(), false) == PLUS_SUCCESS)
+        {
+          std::string date, errorStr;
+          double error;
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+          {
+            date = "N/A";
+          }
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+          {
+            char imageToProbeTransformErrorChars[32];
+            sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+            errorStr = imageToProbeTransformErrorChars;
+          }
+          else
+          {
+            errorStr = "N/A";
+          }
+
+          ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
+          ui.frame_SpatialCalibration->setEnabled(true);
+        }
+        else
+        {
+          ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str()) );
+          ui.frame_SpatialCalibration->setEnabled(false);
+        }
+      }
+      else
+      {
+        ui.label_State->setText( tr("Phantom registration is missing. It needs to be performed or imported") );
+        m_State = ToolboxState_Error;
+      }
+    }
+    else
+    {
+      ui.label_State->setText( QString("Probe calibration configuration is missing!") );
+      m_State = ToolboxState_Error;
+    }
+  }
+  else
+  {
+    ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
+    ui.frame_SpatialCalibration->setEnabled(false);
   }
 
-  // Update calibration state
-  ui.label_SpatialCalibrationState->setText(GetSpatialCalibrationStateMessage());
-
+  // Set widget states according to state
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.pushButton_OpenPhantomRegistration->setEnabled(false);
@@ -1321,45 +1374,4 @@ bool FreehandCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 	}
 
 	return true;
-}
-
-//-----------------------------------------------------------------------------
-
-QString FreehandCalibrationToolbox::GetSpatialCalibrationStateMessage()
-{
-  QString message;
-
-  std::string imageToProbeTransformNameStr;
-  PlusTransformName imageToProbeTransformName(
-    m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame());
-  imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
-
-  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
-    m_Calibration->GetImageCoordinateFrame(), m_Calibration->GetProbeCoordinateFrame(), false) == PLUS_SUCCESS)
-  {
-    std::string date, errorStr;
-    double error;
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
-    {
-      date = "N/A";
-    }
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
-    {
-      char imageToProbeTransformErrorChars[32];
-      sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-      errorStr = imageToProbeTransformErrorChars;
-    }
-    else
-    {
-      errorStr = "N/A";
-    }
-
-    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
-  }
-  else
-  {
-    message = QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str());
-  }
-
-  return message;
 }

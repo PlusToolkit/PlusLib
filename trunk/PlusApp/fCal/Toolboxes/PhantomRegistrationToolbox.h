@@ -65,9 +65,6 @@ public:
   */
   vtkPhantomRegistrationAlgo* GetPhantomRegistrationAlgo() { return m_PhantomRegistration; };
 
-  /*! Get message telling the state of the calibration */
-  QString GetCalibrationStateMessage();
-
 protected:
   /*!
   * Initialize 3D visualization
@@ -80,6 +77,9 @@ protected:
   * \return Success flag
   */
   PlusStatus Start();
+
+  /*! Get message telling the state of the calibration */
+  QString GetCalibrationStateMessage();
 
 protected slots:
   /*!

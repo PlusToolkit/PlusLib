@@ -77,42 +77,42 @@ protected:
   */
   double GetMaximumFrameRate();
 
-  protected slots:
-    /*!
-    * Take snapshot (record the current frame only)
-    */
-    void TakeSnapshot();
+protected slots:
+  /*!
+  * Take snapshot (record the current frame only)
+  */
+  void TakeSnapshot();
 
-    /*!
-    * Slot handling record button click
-    */
-    void Record();
+  /*!
+  * Slot handling record button click
+  */
+  void Record();
 
-    /*!
-    * Slot handling stop button click (Record button becomes Stop after clicking)
-    */
-    void Stop();
+  /*!
+  * Slot handling stop button click (Record button becomes Stop after clicking)
+  */
+  void Stop();
 
-    /*!
-    * Slot handling clear recorded frames button click
-    */
-    void ClearRecordedFrames();
+  /*!
+  * Slot handling clear recorded frames button click
+  */
+  void ClearRecordedFrames();
 
-    /*!
-    * Slot handling open save button click
-    */
-    void Save();
+  /*!
+  * Slot handling open save button click
+  */
+  void Save();
 
-    /*!
-    * Slot handling value change of sampling rate slider
-    * \param aValue Tick index (rightmost means record every frame, and each one to the left halves it)
-    */
-    void SamplingRateChanged(int aValue);
+  /*!
+  * Slot handling value change of sampling rate slider
+  * \param aValue Tick index (rightmost means record every frame, and each one to the left halves it)
+  */
+  void SamplingRateChanged(int aValue);
 
-    /*!
-    * Record tracked frames (the recording timer calls it)
-    */
-    void Capture();
+  /*!
+  * Record tracked frames (the recording timer calls it)
+  */
+  void Capture();
 
 protected:
   /*! Recorded tracked frame list */

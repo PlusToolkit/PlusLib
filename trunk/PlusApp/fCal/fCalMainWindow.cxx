@@ -313,7 +313,7 @@ void fCalMainWindow::SetTabsEnabled(bool aEnabled)
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::SetImageManipulationEnabled( bool aEnabled )
+void fCalMainWindow::SetImageManipulationMenuEnabled( bool aEnabled )
 {
   LOG_TRACE("fCalMainWindow::SetImageManipulationEnabled(" << (aEnabled?"true":"false") << ")");
 
@@ -574,7 +574,7 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
     m_ObjectVisualizer->ShowInput(m_ShowPoints);
     m_ObjectVisualizer->ShowResult(m_ShowPoints);
 
-    SetImageManipulationEnabled(!aOn);
+    SetImageManipulationMenuEnabled(!aOn);
   }
   else
   {

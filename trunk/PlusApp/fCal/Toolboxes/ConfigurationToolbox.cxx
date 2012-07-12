@@ -118,7 +118,7 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
   m_ParentMainWindow->GetObjectVisualizer()->HideRenderer();
 
   // Disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(false);
+  m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 }
 
 //-----------------------------------------------------------------------------

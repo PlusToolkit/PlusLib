@@ -89,7 +89,7 @@ public:
   * Enable/disable image manipulation
   * \param Enable/Disable flag
   */
-  void SetImageManipulationEnabled(bool);
+  void SetImageManipulationMenuEnabled(bool);
 
   /*! 
   * Accessor to query the state of the check box 

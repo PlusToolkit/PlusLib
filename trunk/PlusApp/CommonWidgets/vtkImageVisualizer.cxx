@@ -227,7 +227,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
 
   if( this->DataCollector == NULL )
   {
-    LOG_WARNING("Trying to update vtkImageVisualizer camera pose while not connected.");
+    LOG_DEBUG("Trying to update vtkImageVisualizer camera pose while not connected.");
     return PLUS_FAIL;
   }
 

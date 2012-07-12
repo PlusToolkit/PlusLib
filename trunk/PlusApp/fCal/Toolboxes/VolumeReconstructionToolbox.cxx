@@ -83,7 +83,7 @@ void VolumeReconstructionToolbox::Initialize()
   PopulateImageComboBox();
 
   // Set initialized if it was uninitialized
-  if (m_State == ToolboxState_Uninitialized)
+  if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
   {
     SetState(ToolboxState_Idle);
   }
@@ -123,8 +123,51 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+  m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
 
+  // Update state message according to available transforms
+  if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
+  {
+    std::string imageToProbeTransformNameStr;
+    PlusTransformName imageToProbeTransformName(
+      m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetProbeCoordinateFrame());
+    imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
+
+    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+      m_ParentMainWindow->GetImageCoordinateFrame().c_str(), m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), false) == PLUS_SUCCESS)
+    {
+      std::string date, errorStr;
+      double error;
+      if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+      {
+        date = "N/A";
+      }
+      if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+      {
+        char imageToProbeTransformErrorChars[32];
+        sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+        errorStr = imageToProbeTransformErrorChars;
+      }
+      else
+      {
+        errorStr = "N/A";
+      }
+
+      ui.label_State->setText( QString("%1 transform present, ready for volume reconstruction. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
+    }
+    else
+    {
+      ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
+      m_State = ToolboxState_Uninitialized;
+    }
+  }
+  else
+  {
+    ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
+    m_State = ToolboxState_Uninitialized;
+  }
+
+  // Set widget states according to state
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_Instructions->setText("N/A");

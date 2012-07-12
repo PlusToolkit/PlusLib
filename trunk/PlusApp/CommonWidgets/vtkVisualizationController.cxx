@@ -200,7 +200,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (this->DataCollector == NULL)
   {
-    LOG_ERROR("Data collector has not been initialized when visualization was requested.");
+    LOG_DEBUG("Data collector has not been initialized when visualization mode was changed.");
     return PLUS_FAIL;
   }
 

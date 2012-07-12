@@ -109,7 +109,7 @@ void StylusCalibrationToolbox::Initialize()
     }
 
     // Set initialized if it was uninitialized
-    if (m_State == ToolboxState_Uninitialized)
+    if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
     {
       SetState(ToolboxState_Idle);
     }
@@ -204,20 +204,69 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("StylusCalibrationToolbox::SetDisplayAccordingToState"); 
 
-  // If the force show devices isn't enabled, set it to 3D and hide all the devices
-  // Later, we will re-enable only those that we wish shown for this toolbox
-  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
+  // If connected
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()) )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    // If the force show devices isn't enabled, set it to 3D and hide all the devices
+    // Later, we will re-enable only those that we wish shown for this toolbox
+    if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
+    {
+      m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+      m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    }
+
+    // Enable or disable the image manipulation menu
+    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+
+    // Update state message according to available transforms
+    if (m_PivotCalibration->GetObjectPivotPointCoordinateFrame() && m_PivotCalibration->GetObjectMarkerCoordinateFrame())
+    {
+      std::string stylusTipToStylusTransformNameStr;
+      PlusTransformName stylusTipToStylusTransformName(
+        m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame());
+      stylusTipToStylusTransformName.GetTransformName(stylusTipToStylusTransformNameStr);
+
+      if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+        m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame(), false) == PLUS_SUCCESS)
+      {
+        std::string date, errorStr;
+        double error;
+        if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(stylusTipToStylusTransformName, date) != PLUS_SUCCESS)
+        {
+          date = "N/A";
+        }
+        if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
+        {
+          char stylusTipToStylusTransformErrorChars[32];
+          sprintf_s(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
+          errorStr = stylusTipToStylusTransformErrorChars;
+        }
+        else
+        {
+          errorStr = "N/A";
+        }
+
+        ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(stylusTipToStylusTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
+      }
+      else
+      {
+        ui.label_State->setText( QString("%1 transform is absent, calibration needs to be performed.").arg(stylusTipToStylusTransformNameStr.c_str()) );
+      }
+    }
+    else
+    {
+      ui.label_State->setText( QString("Stylus calibration configuration is missing!") );
+      m_State = ToolboxState_Error;
+    }
+  }
+  else
+  {
+    ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
+    m_State = ToolboxState_Error;
   }
 
-  // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
-
-  // Update calibration state
-  ui.label_CalibrationState->setText(GetCalibrationStateMessage());
-
+  // Set widget states according to state
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
@@ -228,6 +277,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(false);
     ui.pushButton_Stop->setEnabled(false);
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -242,6 +292,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
 
     ui.pushButton_Start->setFocus();
 
@@ -259,6 +310,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(false);
     ui.pushButton_Stop->setEnabled(true);
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
     m_ParentMainWindow->SetStatusBarProgress(0);
@@ -269,9 +321,11 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Done)
   {
+    ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
+
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
-    ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
@@ -291,9 +345,11 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Error)
   {
-    ui.pushButton_Start->setEnabled(true);
-    ui.pushButton_Stop->setEnabled(false);
     ui.label_Instructions->setText(tr(""));
+
+    ui.pushButton_Start->setEnabled(false);
+    ui.pushButton_Stop->setEnabled(false);
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     ui.label_NumberOfPoints->setText(tr("N/A"));
     ui.label_CalibrationError->setText(tr("N/A"));
@@ -481,45 +537,4 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       }
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-
-QString StylusCalibrationToolbox::GetCalibrationStateMessage()
-{
-  QString message;
-
-  std::string stylusTipToStylusTransformNameStr;
-  PlusTransformName stylusTipToStylusTransformName(
-    m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame());
-  stylusTipToStylusTransformName.GetTransformName(stylusTipToStylusTransformNameStr);
-
-  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
-    m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), m_PivotCalibration->GetObjectMarkerCoordinateFrame(), false) == PLUS_SUCCESS)
-  {
-    std::string date, errorStr;
-    double error;
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(stylusTipToStylusTransformName, date) != PLUS_SUCCESS)
-    {
-      date = "N/A";
-    }
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
-    {
-      char stylusTipToStylusTransformErrorChars[32];
-      sprintf_s(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
-      errorStr = stylusTipToStylusTransformErrorChars;
-    }
-    else
-    {
-      errorStr = "N/A";
-    }
-
-    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(stylusTipToStylusTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
-  }
-  else
-  {
-    message = QString("%1 transform is absent, calibration needs to be performed.").arg(stylusTipToStylusTransformNameStr.c_str());
-  }
-
-  return message;
 }

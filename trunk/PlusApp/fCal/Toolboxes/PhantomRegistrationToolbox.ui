@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>226</width>
-    <height>603</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,7 +39,7 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QLabel" name="label_CalibrationState">
+    <widget class="QLabel" name="label_State">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -47,7 +47,7 @@
       </font>
      </property>
      <property name="text">
-      <string>PhantomToReference transform is absent, registration needed.</string>
+      <string>PhantomToReference transform is absent, registration needs to be performed.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

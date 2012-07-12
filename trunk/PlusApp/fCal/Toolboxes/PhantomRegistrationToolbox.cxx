@@ -67,29 +67,34 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
 
 PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 {
-  if (m_PhantomRegistration != NULL) {
+  if (m_PhantomRegistration != NULL)
+  {
     m_PhantomRegistration->Delete();
     m_PhantomRegistration = NULL;
   } 
 
-   if (m_PhantomActor != NULL) {
+   if (m_PhantomActor != NULL)
+   {
     m_PhantomRenderer->RemoveActor(m_PhantomActor);
     m_PhantomActor->Delete();
     m_PhantomActor = NULL;
   }
 
-  if (m_RequestedLandmarkActor != NULL) {
+  if (m_RequestedLandmarkActor != NULL)
+  {
     m_PhantomRenderer->RemoveActor(m_RequestedLandmarkActor);
     m_RequestedLandmarkActor->Delete();
     m_RequestedLandmarkActor = NULL;
   }
 
-  if (m_RequestedLandmarkPolyData != NULL) {
+  if (m_RequestedLandmarkPolyData != NULL)
+  {
     m_RequestedLandmarkPolyData->Delete();
     m_RequestedLandmarkPolyData = NULL;
   }
 
-  if (m_PhantomRenderer != NULL) {
+  if (m_PhantomRenderer != NULL)
+  {
     ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(m_PhantomRenderer);
     m_PhantomRenderer->Delete();
     m_PhantomRenderer = NULL;
@@ -131,13 +136,9 @@ void PhantomRegistrationToolbox::Initialize()
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
     }
-    else
-    {
-      ui.label_Instructions->setText(tr("Stylus calibration needs to be imported"));
-    }
 
     // Set state to idle
-    if (m_State == ToolboxState_Uninitialized)
+    if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
     {
       SetState(ToolboxState_Idle);
     }
@@ -298,20 +299,77 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("PhantomRegistrationToolbox::SetDisplayAccordingToState");
 
-  // If the force show devices isn't enabled, set it to 3D and hide all the devices
-  // Later, we will re-enable only those that we wish shown for this toolbox
-  if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
+  // If connected
+  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()) )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    // If the force show devices isn't enabled, set it to 3D and hide all the devices
+    // Later, we will re-enable only those that we wish shown for this toolbox
+    if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
+    {
+      m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+      m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    }
+
+    // Enable or disable the image manipulation menu
+    m_ParentMainWindow->SetImageManipulationMenuEnabled(m_ParentMainWindow->GetObjectVisualizer()->Is2DMode());
+
+    // Update state message according to available transforms
+    if (m_PhantomRegistration->GetPhantomCoordinateFrame() && m_PhantomRegistration->GetReferenceCoordinateFrame())
+    {
+      if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+      {
+        std::string phantomToReferenceTransformNameStr;
+        PlusTransformName phantomToReferenceTransformName(
+          m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame());
+        phantomToReferenceTransformName.GetTransformName(phantomToReferenceTransformNameStr);
+
+        if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+          m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), false) == PLUS_SUCCESS)
+        {
+          std::string date, errorStr;
+          double error;
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(phantomToReferenceTransformName, date) != PLUS_SUCCESS)
+          {
+            date = "N/A";
+          }
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(phantomToReferenceTransformName, error) == PLUS_SUCCESS)
+          {
+            char phantomToReferenceTransformErrorChars[32];
+            sprintf_s(phantomToReferenceTransformErrorChars, 32, "%.3lf", error);
+            errorStr = phantomToReferenceTransformErrorChars;
+          }
+          else
+          {
+            errorStr = "N/A";
+          }
+
+          ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(phantomToReferenceTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
+        }
+        else
+        {
+          ui.label_State->setText( QString("%1 transform is absent, registration needs to be performed.").arg(phantomToReferenceTransformNameStr.c_str()) );
+        }
+      }
+      else
+      {
+        ui.label_State->setText( tr("Stylus calibration is missing. It needs to be performed or imported") );
+        m_State = ToolboxState_Error;
+      }
+    }
+    else
+    {
+      ui.label_State->setText( QString("Phantom registration configuration is missing!") );
+      m_State = ToolboxState_Error;
+    }
+  }
+  else
+  {
+    ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
+    m_State = ToolboxState_Error;
   }
 
-  // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationEnabled(m_ParentMainWindow->GetObjectVisualizer()->Is2DMode());
-
-  // Update calibration state
-  ui.label_CalibrationState->setText(GetCalibrationStateMessage());
-
+  // Set widget states according to state
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_StylusPosition->setText(tr("N/A"));
@@ -678,7 +736,10 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   // Hide phantom from main canvas
-  m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+  if (m_PhantomRegistration->GetReferenceCoordinateFrame())
+  {
+    m_ParentMainWindow->GetObjectVisualizer()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+  }
 
   // If tracker is FakeTracker then reset counter
   vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
@@ -692,45 +753,4 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   LOG_INFO("Reset phantom registration");
-}
-
-//-----------------------------------------------------------------------------
-
-QString PhantomRegistrationToolbox::GetCalibrationStateMessage()
-{
-  QString message;
-
-  std::string phantomToReferenceTransformNameStr;
-  PlusTransformName phantomToReferenceTransformName(
-    m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame());
-  phantomToReferenceTransformName.GetTransformName(phantomToReferenceTransformNameStr);
-
-  if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
-    m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), false) == PLUS_SUCCESS)
-  {
-    std::string date, errorStr;
-    double error;
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(phantomToReferenceTransformName, date) != PLUS_SUCCESS)
-    {
-      date = "N/A";
-    }
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(phantomToReferenceTransformName, error) == PLUS_SUCCESS)
-    {
-      char phantomToReferenceTransformErrorChars[32];
-      sprintf_s(phantomToReferenceTransformErrorChars, 32, "%.3lf", error);
-      errorStr = phantomToReferenceTransformErrorChars;
-    }
-    else
-    {
-      errorStr = "N/A";
-    }
-
-    message = QString("%1 transform present.\nDate: %2, Error: %3").arg(phantomToReferenceTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str());
-  }
-  else
-  {
-    message = QString("%1 transform is absent, calibration needs to be performed.").arg(phantomToReferenceTransformNameStr.c_str());
-  }
-
-  return message;
 }

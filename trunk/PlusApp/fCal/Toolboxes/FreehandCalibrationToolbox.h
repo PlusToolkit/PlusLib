@@ -58,9 +58,6 @@ public:
   /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();
 
-  /*! Get message telling the state of the spatial calibration */
-  QString GetSpatialCalibrationStateMessage();
-
 protected:
   /*!
   * Determines if everything is OK to run spatial calibration

@@ -64,9 +64,6 @@ public:
   */
   vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
-  /*! Get message telling the state of the calibration */
-  QString GetCalibrationStateMessage();
-
 protected slots:
   /*! Start calibration */
   void Start();
