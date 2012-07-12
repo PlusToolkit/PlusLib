@@ -27,7 +27,7 @@ int main( int argc, char** argv )
   // Check command line arguments.
   std::string inputConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
-  double runTime = 60; 
+  double runTime = 60;
   bool testing = false; 
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
@@ -37,7 +37,7 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
   args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds (Default 60sec)" );
-  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );
+  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--testing", vtksys::CommandLineArguments::NO_ARGUMENT, &testing, "Enable testing mode (testing PlusServer functionality)" );
 
   if ( !args.Parse() )

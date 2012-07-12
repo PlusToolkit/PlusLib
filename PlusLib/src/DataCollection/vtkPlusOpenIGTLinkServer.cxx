@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
@@ -33,32 +33,27 @@ vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
+: ListeningPort(-1)
+, LastSentTrackedFrameTimestamp(0)
+, NumberOfRetryAttempts(3)
+, MaxNumberOfIgtlMessagesToSend(100)
+, MaxTimeSpentWithProcessingMs(50)
+, LastProcessingTimePerFrameMs(-1)
+, ConnectionReceiverThreadId(-1)
+, DataSenderThreadId(-1)
+, DataReceiverThreadId(-1)
+, ConnectionActive(std::make_pair(false,false))
+, DataSenderActive(std::make_pair(false,false))
+, DataReceiverActive(std::make_pair(false,false))
+, DataCollector(NULL)
+, TransformRepository(NULL)
+, Threader(vtkSmartPointer<vtkMultiThreader>::New())
+, Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+, ServerSocket(igtl::ServerSocket::New())
+, SendInvalidTransforms(true)
+, IgtlMessageCrcCheckEnabled(0)
 {
-  this->ListeningPort = -1;
-  this->LastSentTrackedFrameTimestamp = 0; 
-  this->NumberOfRetryAttempts = 3; 
-  this->MaxNumberOfIgtlMessagesToSend = 100; 
 
-  this->MaxTimeSpentWithProcessingMs = 50; 
-  this->LastProcessingTimePerFrameMs = -1;
-
-  this->ConnectionReceiverThreadId = -1;
-  this->DataSenderThreadId = -1; 
-  this->DataReceiverThreadId = -1; 
-
-  this->IgtlMessageCrcCheckEnabled = 0; 
-
-  this->ConnectionActive = std::make_pair(false,false); 
-  this->DataSenderActive = std::make_pair(false,false);
-  this->DataReceiverActive = std::make_pair(false,false);
-
-  this->DataCollector = NULL;
-  this->TransformRepository = NULL; 
-
-  this->Threader = vtkSmartPointer<vtkMultiThreader>::New();
-  this->Mutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
-
-  this->ServerSocket = igtl::ServerSocket::New();
 }
 
 //----------------------------------------------------------------------------
@@ -472,13 +467,13 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     }
 
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
-    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
+    if ( igtlMessageFactory->PackMessages( this->SendInvalidTransforms, messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to pack all IGT messages!"); 
     }
 
     // Send all messages to a client 
-    for (  igtlMessageIterator = igtlMessages.begin(); igtlMessageIterator != igtlMessages.end(); ++igtlMessageIterator )
+    for ( igtlMessageIterator = igtlMessages.begin(); igtlMessageIterator != igtlMessages.end(); ++igtlMessageIterator )
     {
       igtl::MessageBase::Pointer igtlMessage = (*igtlMessageIterator); 
       if ( igtlMessage.IsNull() )
@@ -636,6 +631,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL; 
   }
 
+  // Query configuration to determine transform sending behaviour
+  // Default to true, only setting the field to "false" in the XML will override it.
+  this->SendInvalidTransforms = !(STRCASECMP(plusOpenIGTLinkServerConfig->GetAttribute("SendInvalidTransform"), "false") == 0);
+
   const char* igtlMessageCrcCheckEnabled = plusOpenIGTLinkServerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
   if ( igtlMessageCrcCheckEnabled != NULL )
   {
@@ -653,7 +652,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
 
   if ( defaultClientInfo != NULL )
   {
-
     // Get message types
     vtkXMLDataElement* messageTypes = defaultClientInfo->FindNestedElementWithName("MessageTypes"); 
     if ( messageTypes != NULL )
@@ -709,20 +707,24 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
         {
           continue;
         }
+
         const char* name = imageNames->GetNestedElement( i )->GetAttribute( "Name" );
         if ( name == NULL )
         {
           continue;
         }
+
         const char* coordinateFrame = imageNames->GetNestedElement( i )->GetAttribute( "CoordinateFrame" );
         if ( coordinateFrame == NULL )
         {
           continue;
         }
+
         PlusIgtlClientInfo::ImageStream imageStream; 
         imageStream.Name = name;
         imageStream.CoordinateFrame = coordinateFrame; 
         this->DefaultImageStreams.push_back(imageStream);
+
       }
     }
   }
