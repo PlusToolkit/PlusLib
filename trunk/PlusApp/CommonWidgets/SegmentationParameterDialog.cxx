@@ -217,8 +217,17 @@ public:
         if (picker && picker->Pick(x, y, 0.0, renderer) > 0) {
           if (picker->GetActor() == m_TopLeftHandleActor) {
             m_TopLeftHandlePicked = true;
+            m_ClickOffsetFromCenterOfSource.first = m_TopLeftHandleSource->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_TopLeftHandleSource->GetCenter()[1] - yWorld;
           } else if (picker->GetActor() == m_BottomRightHandleActor) {
             m_BottomRightHandlePicked = true;
+            m_ClickOffsetFromCenterOfSource.first = m_BottomRightHandleActor->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_BottomRightHandleActor->GetCenter()[1] - yWorld;
+          }
+          else
+          {
+            m_ClickOffsetFromCenterOfSource.first = 0.0;
+            m_ClickOffsetFromCenterOfSource.second = 0.0;
           }
         }
       }
@@ -232,19 +241,11 @@ public:
         int newYMax = -1;
 
         if (m_TopLeftHandlePicked) {
-          double bottomRightPosition[3];
-          m_BottomRightHandleSource->GetCenter(bottomRightPosition);
-
-          newXMin = (int)(xWorld + 0.5);
-          newYMin = (int)(yWorld + 0.5);
-
+          newXMin = (int)(xWorld + 0.5 + m_ClickOffsetFromCenterOfSource.first);
+          newYMin = (int)(yWorld + 0.5 + m_ClickOffsetFromCenterOfSource.second);
         } else if (m_BottomRightHandlePicked) {
-          double topLeftPosition[3];
-          m_TopLeftHandleSource->GetCenter(topLeftPosition);
-
-          newXMax = (int)(xWorld + 0.5);
-          newYMax = (int)(yWorld + 0.5);
-
+          newXMax = (int)(xWorld + 0.5 + m_ClickOffsetFromCenterOfSource.first);
+          newYMax = (int)(yWorld + 0.5 + m_ClickOffsetFromCenterOfSource.second);
         }
 
         m_ParentDialog->SetROI(newXMin, newYMin, newXMax, newYMax);
@@ -255,6 +256,9 @@ public:
 
         m_TopLeftHandlePicked = false;
         m_BottomRightHandlePicked = false;
+
+        m_ClickOffsetFromCenterOfSource.first = 0.0;
+        m_ClickOffsetFromCenterOfSource.second = 0.0;
       }
     }
   }
@@ -469,6 +473,9 @@ private:
 
   //! Flag indicating if bottom right corner handle is picked
   bool                          m_BottomRightHandlePicked;
+
+  /*! Pair to store the offset of the click from the center of the desired actor */
+  std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
 };
 
 //----------------------------------------------------------------------
@@ -540,12 +547,28 @@ public:
         if (picker && picker->Pick(x, y, 0.0, renderer) > 0) {
           if (picker->GetActor() == m_HorizontalLeftHandleActor) {
             m_HorizontalLeftHandlePicked = true;
-          } else if (picker->GetActor() == m_HorizontalRightHandleActor) {
+            m_ClickOffsetFromCenterOfSource.first = m_HorizontalLeftHandleSource->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_HorizontalLeftHandleSource->GetCenter()[1] - yWorld;
+          } 
+          else if (picker->GetActor() == m_HorizontalRightHandleActor) {
             m_HorizontalRightHandlePicked = true;
-          } else if (picker->GetActor() == m_VerticalTopHandleActor) {
+            m_ClickOffsetFromCenterOfSource.first = m_HorizontalRightHandleSource->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_HorizontalRightHandleSource->GetCenter()[1] - yWorld;
+          } 
+          else if (picker->GetActor() == m_VerticalTopHandleActor) {
             m_VerticalTopHandlePicked = true;
-          } else if (picker->GetActor() == m_VerticalBottomHandleActor) {
+            m_ClickOffsetFromCenterOfSource.first = m_VerticalTopHandleSource->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_VerticalTopHandleSource->GetCenter()[1] - yWorld;
+          } 
+          else if (picker->GetActor() == m_VerticalBottomHandleActor) {
             m_VerticalBottomHandlePicked = true;
+            m_ClickOffsetFromCenterOfSource.first = m_VerticalBottomHandleSource->GetCenter()[0] - xWorld;
+            m_ClickOffsetFromCenterOfSource.second = m_VerticalBottomHandleSource->GetCenter()[1] - yWorld;
+          }
+          else
+          {
+            m_ClickOffsetFromCenterOfSource.first = 0.0;
+            m_ClickOffsetFromCenterOfSource.second = 0.0;
           }
         }
       }
@@ -563,35 +586,37 @@ public:
         double verticalBottomPosition[3];
         m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
 
+        double xWorldWithOffset = xWorld + m_ClickOffsetFromCenterOfSource.first;
+        double yWorldWithOffset = yWorld + m_ClickOffsetFromCenterOfSource.second;
+
         // Change position of the picked handle
         if (m_HorizontalLeftHandlePicked) {
           if (xWorld < horizontalRightPosition[0] - 10.0) {
-            m_HorizontalLeftHandleSource->SetCenter(xWorld, yWorld, -0.5);
-            m_HorizontalLineSource->SetPoint1(xWorld, yWorld, -0.5);
+            m_HorizontalLeftHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+            m_HorizontalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
-
-        } else if (m_HorizontalRightHandlePicked) {
+        } 
+        else if (m_HorizontalRightHandlePicked) {
           if (xWorld > horizontalLeftPosition[0] + 10.0) {
-            m_HorizontalRightHandleSource->SetCenter(xWorld, yWorld, -0.5);
-            m_HorizontalLineSource->SetPoint2(xWorld, yWorld, -0.5);
+            m_HorizontalRightHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+            m_HorizontalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
-
-        } else if (m_VerticalTopHandlePicked) {
+        } 
+        else if (m_VerticalTopHandlePicked) {
           if (yWorld < verticalBottomPosition[1] - 10.0) {
-            m_VerticalTopHandleSource->SetCenter(xWorld, yWorld, -0.5);
-            m_VerticalLineSource->SetPoint1(xWorld, yWorld, -0.5);
+            m_VerticalTopHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+            m_VerticalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
-
-        } else if (m_VerticalBottomHandlePicked) {
+        } 
+        else if (m_VerticalBottomHandlePicked) {
           if (yWorld > verticalTopPosition[1] + 10.0) {
-            m_VerticalBottomHandleSource->SetCenter(xWorld, yWorld, -0.5);
-            m_VerticalLineSource->SetPoint2(xWorld, yWorld, -0.5);
+            m_VerticalBottomHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+            m_VerticalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
-
         }
 
         // Compute and set spacing
@@ -613,6 +638,9 @@ public:
         m_HorizontalRightHandlePicked = false;
         m_VerticalTopHandlePicked = false;
         m_VerticalBottomHandlePicked = false;
+
+        m_ClickOffsetFromCenterOfSource.first = 0.0;
+        m_ClickOffsetFromCenterOfSource.second = 0.0;
       }
     }
   }
@@ -881,6 +909,9 @@ private:
 
   //! Summed line length in pixel value
   double                        m_LineLengthSumImagePixel;
+
+  /*! Pair to store the offset of the click from the center of the desired actor */
+  std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
 };
 
 //-----------------------------------------------------------------------------
