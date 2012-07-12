@@ -50,7 +50,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , Threader(vtkSmartPointer<vtkMultiThreader>::New())
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , ServerSocket(igtl::ServerSocket::New())
-, SendInvalidTransforms(true)
+, SendValidTransformsOnly(true)
 , IgtlMessageCrcCheckEnabled(0)
 {
 
@@ -467,7 +467,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     }
 
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
-    if ( igtlMessageFactory->PackMessages( this->SendInvalidTransforms, messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
+    if ( igtlMessageFactory->PackMessages( this->SendValidTransformsOnly, messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->TransformRepository ) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to pack all IGT messages!"); 
     }
@@ -632,8 +632,11 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   }
 
   // Query configuration to determine transform sending behaviour
-  // Default to true, only setting the field to "false" in the XML will override it.
-  this->SendInvalidTransforms = !(STRCASECMP(plusOpenIGTLinkServerConfig->GetAttribute("SendInvalidTransform"), "false") == 0);
+  const char * sendAttribute = plusOpenIGTLinkServerConfig->GetAttribute("SendValidTransformsOnly");
+  if( sendAttribute != NULL )
+  {
+    this->SendValidTransformsOnly = STRCASECMP(sendAttribute, "true") == 0;
+  }
 
   const char* igtlMessageCrcCheckEnabled = plusOpenIGTLinkServerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
   if ( igtlMessageCrcCheckEnabled != NULL )

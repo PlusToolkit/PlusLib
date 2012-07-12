@@ -125,7 +125,7 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(bool sendInvalidTransforms, const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(bool packValidTransformsOnly, const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
     std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
@@ -182,21 +182,19 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(bool sendInvalidTransforms, c
         bool isValid = false;
         transformRepository->GetTransformValid(transformName, isValid);
 
-        // Send it if we send everything or if it's a valid transform
-        if( sendInvalidTransforms || (!sendInvalidTransforms && isValid) )
+        if( !isValid && packValidTransformsOnly )
         {
-          igtl::Matrix4x4 igtlMatrix; 
-          vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+          LOG_DEBUG("Attempted to send invalid transform over IGT Link when server has prevented sending.");
+          continue;
+        }
 
-          igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New(); 
-          transformMessage->Copy( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) );
-          vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
-          igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
-        }
-        else
-        {
-          //LOG_WARNING("Attempted to send invalid transform over IGT Link when server has prevented sending.");
-        }
+        igtl::Matrix4x4 igtlMatrix; 
+        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+
+        igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New(); 
+        transformMessage->Copy( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) );
+        vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
+        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
       }
     }
     // Position message 
