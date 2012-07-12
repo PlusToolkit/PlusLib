@@ -132,7 +132,10 @@ private:
   int MaxTimeSpentWithProcessingMs; 
 
   /*! Time needed to process one frame in the latest recording round (in milliseconds) */
-  int LastProcessingTimePerFrameMs; 
+  int LastProcessingTimePerFrameMs;
+
+  /*! Whether or not the server should send invalid transforms through the IGT Link */
+  bool SendInvalidTransforms;
 
   /*! 
   Default IGT message types used for sending data to clients. 

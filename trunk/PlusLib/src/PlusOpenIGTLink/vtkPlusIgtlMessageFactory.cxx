@@ -125,7 +125,7 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(bool sendInvalidTransforms, const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
     std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
@@ -179,13 +179,24 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
       for ( std::vector<PlusTransformName>::iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
       {
         PlusTransformName transformName = (*transformNameIterator);
-        igtl::Matrix4x4 igtlMatrix; 
-        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+        bool isValid = false;
+        transformRepository->GetTransformValid(transformName, isValid);
 
-        igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New(); 
-        transformMessage->Copy( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) );
-        vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
+        // Send it if we send everything or if it's a valid transform
+        if( sendInvalidTransforms || (!sendInvalidTransforms && isValid) )
+        {
+          igtl::Matrix4x4 igtlMatrix; 
+          vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+
+          igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New(); 
+          transformMessage->Copy( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) );
+          vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
+          igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
+        }
+        else
+        {
+          //LOG_WARNING("Attempted to send invalid transform over IGT Link when server has prevented sending.");
+        }
       }
     }
     // Position message 
