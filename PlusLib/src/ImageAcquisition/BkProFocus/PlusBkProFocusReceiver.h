@@ -2,23 +2,18 @@
 #include "IAcquisitionDataReceiver.h"
 #include "libbmode.h"
 
-class vtkBkProFocusVideoSource;
+#include "vtkBkProFocusVideoSource.h"
 
 class PlusBkProFocusReceiver : public IAcquisitionDataReceiver
 {
 public:
-  enum ImagingModeType
-  {
-    BMode,
-    RfMode
-  };
 
   PlusBkProFocusReceiver();
   virtual ~PlusBkProFocusReceiver();
 
   virtual void SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource);
 
-  virtual void SetImagingMode(ImagingModeType imagingMode);
+  virtual void SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode);
 
   virtual bool Prepare(int samples, int lines, int pitch);
   virtual bool DataAvailable(int lines, int pitch, void const* frameData);
@@ -30,7 +25,7 @@ protected:
   static const int MaxNumLines  = 256;
   static const int MaxNumSamples = 512;
 
-  ImagingModeType ImagingMode;
+  vtkBkProFocusVideoSource::ImagingModeType ImagingMode;
 
   TBModeParams params;
   unsigned char* frame;

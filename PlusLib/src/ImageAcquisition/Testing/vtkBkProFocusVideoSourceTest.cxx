@@ -82,7 +82,8 @@ int main(int argc, char **argv)
   frameGrabber->SetShowBModeWindow(showBmode);
   frameGrabber->SetShowSaperaWindow(showSapera);
 
-  frameGrabber->SetUsImageOrientation(US_IMG_ORIENT_MN);
+  frameGrabber->SetImagingMode(vtkBkProFocusVideoSource::RfMode);
+  frameGrabber->SetDeviceImageOrientation(US_IMG_ORIENT_FM);
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 

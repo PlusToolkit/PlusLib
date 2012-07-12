@@ -21,6 +21,12 @@ class PlusBkProFocusReceiver;
 class VTK_EXPORT vtkBkProFocusVideoSource : public vtkPlusVideoSource
 {
 public:  
+  enum ImagingModeType
+  {
+    BMode,
+    RfMode
+  };
+
   vtkTypeRevisionMacro(vtkBkProFocusVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
@@ -36,6 +42,8 @@ public:
   vtkSetMacro(ShowBModeWindow, bool);
 
   PlusStatus GetFullIniFilePath(std::string &fullPath);
+
+  void SetImagingMode(ImagingModeType imagingMode);
   
 protected:
   /*! Constructor */

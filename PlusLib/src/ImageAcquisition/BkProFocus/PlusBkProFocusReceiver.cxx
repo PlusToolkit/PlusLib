@@ -8,7 +8,7 @@
 //----------------------------------------------------------------------------
 PlusBkProFocusReceiver::PlusBkProFocusReceiver()
 {
-  this->ImagingMode=BMode;
+  this->ImagingMode=vtkBkProFocusVideoSource::RfMode;
 
   this->frame = NULL;
 
@@ -166,7 +166,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 
   switch (this->ImagingMode)
   {
-  case BMode:
+  case vtkBkProFocusVideoSource::BMode:
     {
       int tempLines = this->params.n_lines;
       this->params.n_lines = numBmodeLines;
@@ -180,7 +180,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       this->CallbackVideoSource->NewFrameCallback(bmodeFrame, frameSizeInPix, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS);
       break;
     }
-  case RfMode:
+  case vtkBkProFocusVideoSource::RfMode:
     {
       if (this->CallbackVideoSource!=NULL)
       {
@@ -205,7 +205,7 @@ void PlusBkProFocusReceiver::SetPlusVideoSource(vtkBkProFocusVideoSource *videoS
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusReceiver::SetImagingMode(ImagingModeType imagingMode)
+void PlusBkProFocusReceiver::SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode)
 {
   this->ImagingMode = imagingMode;
 }
