@@ -125,8 +125,8 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(bool packValidTransformsOnly, const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, vtkTransformRepository* transformRepository/*=NULL*/)
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
+    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, bool packValidTransformsOnly, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
   igtlMessages.clear(); 
