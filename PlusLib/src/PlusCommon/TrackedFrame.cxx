@@ -3,7 +3,6 @@
 #include "PlusMath.h"
 
 #include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
 #include "vtkPoints.h"
 #include "vtkXMLUtilities.h"
 
@@ -782,11 +781,11 @@ bool TrackedFrameTransformFinder::operator()( TrackedFrame *newFrame )
     return false;
   }
 
-  vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> baseTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double baseTransMatrix[16]={0}; 
   if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName, baseTransMatrix) )
   {
-    baseTransform->SetMatrix(baseTransMatrix); 
+    baseTransformMatrix->DeepCopy(baseTransMatrix); 
   }
   else
   {
@@ -794,11 +793,11 @@ bool TrackedFrameTransformFinder::operator()( TrackedFrame *newFrame )
     return false; 
   }
 
-  vtkSmartPointer<vtkTransform> newTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> newTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double newTransMatrix[16]={0}; 
   if ( newFrame->GetCustomFrameTransform(mFrameTransformName, newTransMatrix) )
   {
-    newTransform->SetMatrix(newTransMatrix); 
+    newTransformMatrix->DeepCopy(newTransMatrix); 
   }
   else
   {
@@ -806,8 +805,8 @@ bool TrackedFrameTransformFinder::operator()( TrackedFrame *newFrame )
     return false; 
   }
 
-  double positionDifference = PlusMath::GetPositionDifference( baseTransform->GetMatrix(), newTransform->GetMatrix()); 
-  double angleDifference = PlusMath::GetOrientationDifference(baseTransform->GetMatrix(), newTransform->GetMatrix()); 
+  double positionDifference = PlusMath::GetPositionDifference(baseTransformMatrix, newTransformMatrix); 
+  double angleDifference = PlusMath::GetOrientationDifference(baseTransformMatrix, newTransformMatrix); 
 
   if ( abs(positionDifference) < this->mMinRequiredTranslationDifferenceMm && abs(angleDifference) < this->mMinRequiredAngleDifferenceDeg )
   {

@@ -332,11 +332,11 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
     return false;
   }
 
-  vtkSmartPointer<vtkTransform> inputTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> inputTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double inputTransformVector[16]={0}; 
   if ( trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector) )
   {
-    inputTransform->SetMatrix(inputTransformVector); 
+    inputTransformMatrix->DeepCopy(inputTransformVector); 
   }
   else
   {
@@ -346,11 +346,11 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
     return false;
   }
 
-  vtkSmartPointer<vtkTransform> latestTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> latestTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double latestTransformVector[16]={0}; 
   if ( (*latestFrameInList)->GetCustomFrameTransform(this->FrameTransformNameForValidation, latestTransformVector) )
   {
-    latestTransform->SetMatrix(latestTransformVector); 
+    latestTransformMatrix->DeepCopy(latestTransformVector); 
   }
   else
   {
@@ -361,7 +361,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   if ( this->MaxAllowedTranslationSpeedMmPerSec>0)
   {
     // Compute difference between the last two positions
-    double diffPosition = PlusMath::GetPositionDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
+    double diffPosition = PlusMath::GetPositionDifference( inputTransformMatrix, latestTransformMatrix );
     double velocityPositionMmPerSec = fabs( diffPosition / diffTimeSec );
     if (velocityPositionMmPerSec > this->MaxAllowedTranslationSpeedMmPerSec)
     {
@@ -373,7 +373,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   if ( this->MaxAllowedRotationSpeedDegPerSec>0)
   {
     // Compute difference between the last two orientations
-    double diffOrientationDeg = PlusMath::GetOrientationDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
+    double diffOrientationDeg = PlusMath::GetOrientationDifference( inputTransformMatrix, latestTransformMatrix );
     double velocityOrientationDegPerSec = fabs( diffOrientationDeg / diffTimeSec );
     if (velocityOrientationDegPerSec > this->MaxAllowedRotationSpeedDegPerSec )
     {

@@ -24,7 +24,6 @@
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
 #include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
 #include "vtkTransformRepository.h"
 #include "vtkMath.h"
 #include "vtkPlusConfig.h"
@@ -156,8 +155,8 @@ int main (int argc, char* argv[])
   }
   phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
-  vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
-  if ( phantomRegistrationAlgo->GetPhantomToReferenceTransform( tPhantomToReference ) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkMatrix4x4> tPhantomToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( phantomRegistrationAlgo->GetPhantomToReferenceTransformMatrix( tPhantomToReferenceMatrix ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to register phantom frame to reference frame!"); 
     return EXIT_FAILURE; 
