@@ -15,7 +15,7 @@
 
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
-class vtkTransform;
+class vtkMatrix4x4;
 class vtkTransformRepository;
 
 /*!
@@ -54,7 +54,7 @@ public:
 	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get phantom to reference transform */
-  virtual PlusStatus GetPhantomToReferenceTransform( vtkTransform* phantomToReferenceTransform);
+  virtual PlusStatus GetPhantomToReferenceTransformMatrix( vtkMatrix4x4* phantomToReferenceTransform);
 
   /*! Get phantom coordinate frame */
   vtkGetStringMacro(PhantomCoordinateFrame);
@@ -104,7 +104,7 @@ protected:
   std::vector<NWire> NWires; 
 
   /*! Phantom to Reference transform */
-  vtkTransform* PhantomToReferenceTransform; 
+  vtkMatrix4x4* PhantomToReferenceTransformMatrix;
   
   /*! When the results were computed. The result is recomputed only if the inputs changed more recently than UpdateTime. */
   vtkTimeStamp UpdateTime;  

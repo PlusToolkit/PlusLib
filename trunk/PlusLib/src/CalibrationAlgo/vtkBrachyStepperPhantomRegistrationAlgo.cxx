@@ -31,7 +31,7 @@ vtkCxxSetObjectMacro(vtkBrachyStepperPhantomRegistrationAlgo, TransformRepositor
 vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo()
 {
   this->TrackedFrameList = NULL; 
-  this->PhantomToReferenceTransform = NULL; 
+  this->PhantomToReferenceTransformMatrix = NULL; 
   this->TransformRepository = NULL;
   this->SetSpacing(0,0); 
   this->SetCenterOfRotationPx(0, 0);
@@ -39,7 +39,7 @@ vtkBrachyStepperPhantomRegistrationAlgo::vtkBrachyStepperPhantomRegistrationAlgo
   this->PhantomCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
 
-  this->PhantomToReferenceTransform = vtkTransform::New(); 
+  this->PhantomToReferenceTransformMatrix = vtkMatrix4x4::New(); 
 }
 
 //----------------------------------------------------------------------------
@@ -49,10 +49,10 @@ vtkBrachyStepperPhantomRegistrationAlgo::~vtkBrachyStepperPhantomRegistrationAlg
   this->SetTrackedFrameList(NULL);
   this->SetTransformRepository(NULL);
   // delete member variables
-  if ( this->PhantomToReferenceTransform != NULL )
+  if ( this->PhantomToReferenceTransformMatrix != NULL )
   {
-    this->PhantomToReferenceTransform->Delete(); 
-    this->PhantomToReferenceTransform = NULL; 
+    this->PhantomToReferenceTransformMatrix->Delete(); 
+    this->PhantomToReferenceTransformMatrix = NULL; 
   }
 }
 
@@ -65,10 +65,10 @@ void vtkBrachyStepperPhantomRegistrationAlgo::PrintSelf(ostream& os, vtkIndent i
   os << indent << "Spacing: " << this->Spacing[0] << "  " << this->Spacing[1] << std::endl;
   os << indent << "Center of rotation (px): " << this->CenterOfRotationPx[0] << "  " << this->CenterOfRotationPx[1] << std::endl;
 
-  if ( this->PhantomToReferenceTransform != NULL )
+  if ( this->PhantomToReferenceTransformMatrix != NULL )
   {
     os << indent << "Phantom to reference transform: " << std::endl; 
-    this->PhantomToReferenceTransform->PrintSelf(os, indent); 
+    this->PhantomToReferenceTransformMatrix->PrintSelf(os, indent); 
   }
 
   if ( this->TrackedFrameList != NULL )
@@ -93,18 +93,18 @@ void vtkBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkTrackedFrameList* tra
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::GetPhantomToReferenceTransform( vtkTransform* phantomToReferenceTransform)
+PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::GetPhantomToReferenceTransformMatrix(vtkMatrix4x4* phantomToReferenceTransformMatrix)
 {
   LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::GetRotationEncoderScale"); 
   // Update result 
   PlusStatus status = this->Update(); 
 
-  if ( this->PhantomToReferenceTransform == NULL )
+  if ( this->PhantomToReferenceTransformMatrix == NULL )
   {
-    this->PhantomToReferenceTransform = vtkTransform::New(); 
+    this->PhantomToReferenceTransformMatrix = vtkMatrix4x4::New(); 
   }
 
-  phantomToReferenceTransform->DeepCopy( this->PhantomToReferenceTransform ); 
+  phantomToReferenceTransformMatrix->DeepCopy( this->PhantomToReferenceTransformMatrix ); 
   return status; 
 }
 
@@ -227,15 +227,18 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
 
   LOG_INFO("Phantom to probe distance (mm): " << phantomToReferenceDistanceInMm[0] << "   " << phantomToReferenceDistanceInMm[1] ); 
 
-  this->PhantomToReferenceTransform->Identity(); 
-  this->PhantomToReferenceTransform->Translate(phantomToReferenceDistanceInMm); 
-  this->PhantomToReferenceTransform->Inverse(); 
+  vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+  phantomToReferenceTransform->Identity(); 
+  phantomToReferenceTransform->Translate(phantomToReferenceDistanceInMm); 
+  phantomToReferenceTransform->Inverse();
+
+  this->PhantomToReferenceTransformMatrix->DeepCopy( phantomToReferenceTransform->GetMatrix() );
 
   // Save result
   if (this->TransformRepository)
   {
     PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
-    this->TransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransform->GetMatrix());
+    this->TransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix);
     this->TransformRepository->SetTransformPersistent(phantomToReferenceTransformName, true);
     this->TransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
     this->TransformRepository->SetTransformError(phantomToReferenceTransformName, -1); //TODO
