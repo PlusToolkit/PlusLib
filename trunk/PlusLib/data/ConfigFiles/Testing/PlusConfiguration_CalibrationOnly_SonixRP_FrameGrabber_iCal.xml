@@ -9,6 +9,7 @@
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
+    MaxLineShiftMM="10.0"
     AngleToleranceDegrees="5"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.38"

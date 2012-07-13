@@ -264,6 +264,12 @@ protected slots:
 	*/
   void ImageThresholdChanged(double aValue);
 
+  /*!
+	* Slot handling max line shift value change
+  * \param aValue New value
+	*/
+  void MaxLineShiftChanged(double aValue);
+
 	/*!
 	* Slot handling original intensity for dots chechbox toggle
   * \param aOn New state

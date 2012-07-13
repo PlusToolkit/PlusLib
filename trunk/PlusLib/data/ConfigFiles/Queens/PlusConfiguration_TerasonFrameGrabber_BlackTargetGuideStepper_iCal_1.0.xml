@@ -92,6 +92,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
+    MaxLineShiftMM="10.0"
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.75"

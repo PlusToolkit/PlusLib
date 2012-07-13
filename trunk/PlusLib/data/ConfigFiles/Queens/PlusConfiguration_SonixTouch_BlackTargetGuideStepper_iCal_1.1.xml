@@ -40,6 +40,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
+    MaxLineShiftMM="10.0"
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.8"
