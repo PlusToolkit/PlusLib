@@ -32,7 +32,7 @@
 
   <RfProcessing>
     <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-    <ScanConversion TransducerName="BK_8808-axial"
+    <ScanConversion TransducerName="BK_8848-axial"
       TransducerGeometry="CURVILINEAR"
       RadiusStartMm="10.0"
       RadiusStopMm="60.0"
@@ -42,11 +42,11 @@
       OutputImageSizePixel="600 400"
       OutputImageSpacingMmPerPixel="0.15 0.15"        
       /> 
-    <xScanConversion TransducerName="BK_8808-sagittal"
+    <xScanConversion TransducerName="BK_8848-sagittal"
       TransducerGeometry="LINEAR"
-      ImagingDepthMm="55.0"
-      TransducerWidthMm="40.0"
-      OutputImageSizePixel="440 600"
+      ImagingDepthMm="56.0"
+      TransducerWidthMm="60.0"
+      OutputImageSizePixel="560 600"
       OutputImageSpacingMmPerPixel="0.1 0.1"        
       />
   </RfProcessing>  
