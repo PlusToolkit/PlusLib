@@ -188,13 +188,13 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
   }
 
   double maxLineShiftMm(10.0);
-  if( segmentationParameters->GetScalarAttribute("MaxLineShiftMM", maxLineShiftMm) )
+  if( segmentationParameters->GetScalarAttribute("MaxLineShiftMm", maxLineShiftMm) )
   {
     m_MaxLineShiftMm = maxLineShiftMm;
   }
   else
   {
-    LOG_WARNING("Could not read MaxLineShiftMM from configuration file.");
+    LOG_WARNING("Could not read MaxLineShiftMm from configuration file.");
   }
 
   double inclinedLineAngleDegrees(0.0); 
@@ -741,14 +741,14 @@ void FidLabeling::SetMaxThetaDeg(double value)
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::SetMaxLineShift( double aValue )
+void FidLabeling::SetMaxLineShiftMm( double aValue )
 {
   m_MaxLineShiftMm = aValue;
 }
 
 //-----------------------------------------------------------------------------
 
-double FidLabeling::GetMaxLineShift()
+double FidLabeling::GetMaxLineShiftMm()
 {
   return m_MaxLineShiftMm;
 }

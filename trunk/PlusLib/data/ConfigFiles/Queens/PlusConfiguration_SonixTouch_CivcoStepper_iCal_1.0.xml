@@ -41,7 +41,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    MaxLineShiftMM="10.0"
+    MaxLineShiftMm="10.0"
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.77"

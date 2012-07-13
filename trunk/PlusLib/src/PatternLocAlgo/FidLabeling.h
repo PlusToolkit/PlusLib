@@ -134,10 +134,10 @@ public:
   void SetAngleToleranceDeg(double value);
 
   /*! Set the maximum line shift, in mm */
-  void SetMaxLineShift( double aValue );
+  void SetMaxLineShiftMm( double aValue );
 
   /*! Get the maximum line shift, in mm */
-  double GetMaxLineShift();
+  double GetMaxLineShiftMm();
 
 protected:
   int      m_FrameSize[2];

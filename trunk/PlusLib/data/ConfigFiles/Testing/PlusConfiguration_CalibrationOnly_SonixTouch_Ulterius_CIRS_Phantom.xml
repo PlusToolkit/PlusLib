@@ -9,7 +9,7 @@
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="20"
     MaxThetaDegrees="160"
-    MaxLineShiftMM="10.0"
+    MaxLineShiftMm="10.0"
     InclinedLineAngleDegrees="45"
     AngleToleranceDegrees="10"
     LinePairDistMm="40"

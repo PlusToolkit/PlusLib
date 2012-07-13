@@ -96,7 +96,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     MaxAngleDifferenceDegrees="11"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    MaxLineShiftMM="10.0"
+    MaxLineShiftMm="10.0"
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.52"

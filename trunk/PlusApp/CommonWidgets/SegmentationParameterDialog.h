@@ -268,7 +268,7 @@ protected slots:
 	* Slot handling max line shift value change
   * \param aValue New value
 	*/
-  void MaxLineShiftChanged(double aValue);
+  void MaxLineShiftMmChanged(double aValue);
 
 	/*!
 	* Slot handling original intensity for dots chechbox toggle

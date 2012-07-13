@@ -951,7 +951,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.doubleSpinBox_AngleTolerance, SIGNAL( valueChanged(double) ), this, SLOT( AngleToleranceChanged(double) ) );
   connect( ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL( valueChanged(double) ), this, SLOT( CollinearPointsMaxDistanceFromLineChanged(double) ) );
   connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
-  connect( ui.doubleSpinBox_MaxLineShift, SIGNAL( valueChanged(double) ), this, SLOT( MaxLineShiftChanged(double) ) );
+  connect( ui.doubleSpinBox_MaxLineShiftMm, SIGNAL( valueChanged(double) ), this, SLOT( MaxLineShiftMmChanged(double) ) );
   connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
 
   // Set up timer for refreshing UI
@@ -962,7 +962,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   m_PatternRecognition = new FidPatternRecognition();
   m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-  ui.doubleSpinBox_MaxLineShift->setValue(m_PatternRecognition->GetFidLabeling()->GetMaxLineShift());
+  ui.doubleSpinBox_MaxLineShiftMm->setValue(m_PatternRecognition->GetFidLabeling()->GetMaxLineShiftMm());
 
   // Fill form with configuration data
   if (ReadConfiguration() != PLUS_SUCCESS) {
@@ -1799,11 +1799,11 @@ void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::MaxLineShiftChanged(double aValue)
+void SegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::MaxLineShiftChanged(" << aValue << ")");
+  LOG_TRACE("SegmentationParameterDialog::MaxLineShiftMmChanged(" << aValue << ")");
 
-  m_PatternRecognition->GetFidLabeling()->SetMaxLineShift(aValue);
+  m_PatternRecognition->GetFidLabeling()->SetMaxLineShiftMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
