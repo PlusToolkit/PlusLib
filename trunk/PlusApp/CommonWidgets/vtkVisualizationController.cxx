@@ -115,6 +115,14 @@ vtkVisualizationController::~vtkVisualizationController()
 
 //-----------------------------------------------------------------------------
 
+void vtkVisualizationController::SetCanvas(QVTKWidget* aCanvas)
+{
+  this->Canvas = aCanvas;
+  this->Canvas->setFocusPolicy(Qt::ClickFocus);
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkVisualizationController::SetAcquisitionFrameRate(int aFrameRate)
 {
   LOG_TRACE("vtkVisualizationController::SetAcquisitionFrameRate(" << aFrameRate << ")");

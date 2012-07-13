@@ -230,7 +230,7 @@ public:
   bool Is2DMode();
   bool Is3DMode();
 
-  void SetCanvas( QVTKWidget * aCanvas ){this->Canvas = aCanvas;}
+  void SetCanvas(QVTKWidget* aCanvas);
 
 protected:
   vtkGetObjectMacro(ImageVisualizer, vtkImageVisualizer);

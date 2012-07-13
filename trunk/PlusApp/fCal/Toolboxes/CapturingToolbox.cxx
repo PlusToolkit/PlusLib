@@ -212,6 +212,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
   {
     ui.pushButton_Record->setText("Record");
     ui.pushButton_Record->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
+    ui.pushButton_Record->setFocus();
 
     ui.pushButton_Snapshot->setEnabled(true);
     ui.pushButton_Record->setEnabled(true);
@@ -421,7 +422,8 @@ void CapturingToolbox::Save()
   LOG_TRACE("CapturingToolbox::Save"); 
 
   QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
+    QString("%1/TrackedImageSequence_%2").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
 
   if (! fileName.isNull() )
   {
