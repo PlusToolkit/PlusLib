@@ -32,7 +32,7 @@
 
   <RfProcessing>
     <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-    <ScanConversion TransducerName="BK8808"
+    <ScanConversion TransducerName="BK_8808-axial"
       RadiusStartMm="10.0"
       RadiusStopMm="60.0"
       ThetaStartDeg="-70.0"
