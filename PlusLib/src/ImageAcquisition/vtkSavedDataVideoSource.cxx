@@ -126,9 +126,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  // The images in the local buffer will match the device image orientation (this way when grabbing the images
-  // we'll get images with the device orientation that is specified in the config file)
-  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile, GetDeviceImageOrientation()) != PLUS_SUCCESS )
+  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read video buffer from sequence metafile: "<<this->SequenceMetafile); 
     return PLUS_FAIL; 

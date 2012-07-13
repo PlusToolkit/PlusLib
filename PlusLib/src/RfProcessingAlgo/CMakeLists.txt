@@ -1,7 +1,8 @@
 # Sources
 SET (RfProcessingAlgo_SRCS
     vtkRfToBrightnessConvert.cxx
-    vtkUsScanConvert.cxx 
+    vtkUsScanConvertLinear.cxx 
+    vtkUsScanConvertCurvilinear.cxx 
     vtkRfProcessor.cxx
     )
 
@@ -9,7 +10,8 @@ SET (RfProcessingAlgo_HDRS)
 if (WIN32)    
   SET (RfProcessingAlgo_HDRS
     vtkRfToBrightnessConvert.h 
-    vtkUsScanConvert.h 
+    vtkUsScanConvertLinear.h 
+    vtkUsScanConvertCurvilinear.h 
     vtkRfProcessor.h
   )
 endif (WIN32)

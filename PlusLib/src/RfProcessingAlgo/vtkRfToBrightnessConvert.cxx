@@ -152,7 +152,7 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config
   if ( config == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
-    return PLUS_SUCCESS; 
+    return PLUS_FAIL; 
   }
   vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
   if (rfProcessingElement == NULL)

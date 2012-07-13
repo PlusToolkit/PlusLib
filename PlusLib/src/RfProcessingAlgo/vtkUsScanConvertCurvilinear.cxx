@@ -14,7 +14,7 @@ non-commercial terms in your toolbox and distribute it."
 
 #include "PlusCommon.h"
 
-#include "vtkUsScanConvert.h"
+#include "vtkUsScanConvertCurvilinear.h"
 
 #include "vtkXMLDataElement.h"
 
@@ -31,7 +31,7 @@ non-commercial terms in your toolbox and distribute it."
 #include <string.h>
 #include <ctype.h>
 
-vtkStandardNewMacro(vtkUsScanConvert);
+vtkStandardNewMacro(vtkUsScanConvertCurvilinear);
 
 /*-----------------------------------------------------------*/
 /*    Define the global constants used by the program        */
@@ -132,7 +132,7 @@ void  make_tables (double  start_depth,     /*  Depth for start of image in mm  
 }
 
 //----------------------------------------------------------------------------
-vtkUsScanConvert::vtkUsScanConvert()
+vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
 {
   this->OutputImageExtent[0]=0;
   this->OutputImageExtent[1]=599;
@@ -155,13 +155,13 @@ vtkUsScanConvert::vtkUsScanConvert()
 }
 
 //----------------------------------------------------------------------------
-vtkUsScanConvert::~vtkUsScanConvert()
+vtkUsScanConvertCurvilinear::~vtkUsScanConvertCurvilinear()
 {
 }
 
 //----------------------------------------------------------------------------
 // Computes any global image information associated with regions.
-int vtkUsScanConvert::RequestInformation (vtkInformation * vtkNotUsed(request), vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+int vtkUsScanConvertCurvilinear::RequestInformation (vtkInformation * vtkNotUsed(request), vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   // get the info objects
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
@@ -207,7 +207,7 @@ int vtkUsScanConvert::RequestInformation (vtkInformation * vtkNotUsed(request), 
 }
 
 //----------------------------------------------------------------------------
-int vtkUsScanConvert::RequestUpdateExtent (vtkInformation* vtkNotUsed(request),  vtkInformationVector** inputVector, vtkInformationVector* vtkNotUsed( outputVector ))
+int vtkUsScanConvertCurvilinear::RequestUpdateExtent (vtkInformation* vtkNotUsed(request),  vtkInformationVector** inputVector, vtkInformationVector* vtkNotUsed( outputVector ))
 {
   // Use the whole extent as the update extent (by default it would use the output extent, which would not be correct)
   vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
@@ -218,7 +218,7 @@ int vtkUsScanConvert::RequestUpdateExtent (vtkInformation* vtkNotUsed(request), 
 }
 
 //----------------------------------------------------------------------------
-void vtkUsScanConvert::AllocateOutputData(vtkImageData *output, int *uExtent)
+void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, int *uExtent)
 { 
   // The multithreaded algorithm sets only the non-zero voxels.
   // We need to initialize the rest of the voxels to zero.
@@ -261,7 +261,7 @@ void vtkUsScanConvert::AllocateOutputData(vtkImageData *output, int *uExtent)
 // The templated execute function handles all the data types.
 // T: originally developed for unsigned int 
 template <class T>
-void vtkUsScanConvertExecute(vtkUsScanConvert *self,
+void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
                              vtkImageData *inData, T *inPtr,
                              vtkImageData *outData, T *outPtr,
                              int interpolationTableExt[6], int id)
@@ -287,7 +287,7 @@ void vtkUsScanConvertExecute(vtkUsScanConvert *self,
   }
 }
 
-void vtkUsScanConvert::ThreadedRequestData(
+void vtkUsScanConvertCurvilinear::ThreadedRequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *vtkNotUsed(outputVector),
@@ -322,7 +322,7 @@ void vtkUsScanConvert::ThreadedRequestData(
   }
 }
 
-void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
+void vtkUsScanConvertCurvilinear::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -347,7 +347,7 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 // This method returns the number of pieces resulting from a successful split.
 // This can be from 1 to "total".  
 // If 1 is returned, the extent cannot be split.
-int vtkUsScanConvert::SplitExtent(int splitExt[6], int startExt[6], int num, int total)
+int vtkUsScanConvertCurvilinear::SplitExtent(int splitExt[6], int startExt[6], int num, int total)
 {
   // startExt is not used, because we split the interpolation table
 
@@ -390,34 +390,34 @@ int vtkUsScanConvert::SplitExtent(int splitExt[6], int startExt[6], int num, int
 } 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* config)
 {
-  LOG_TRACE("vtkUsScanConvert::ReadConfiguration"); 
+  LOG_TRACE("vtkUsScanConvertCurvilinear::ReadConfiguration"); 
   if ( config == NULL )
   {
-    LOG_DEBUG("Unable to configure vtkUsScanConvert! (XML data element is NULL)"); 
-    return PLUS_SUCCESS; 
+    LOG_DEBUG("Unable to configure vtkUsScanConvertCurvilinear! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
   }
   vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
   if (rfProcessingElement == NULL)
   {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree!"); 
+    LOG_DEBUG("Unable to find RfProcessing element in XML tree, use default values"); 
     return PLUS_SUCCESS;
   }
   vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
   if (scanConversionElement == NULL)
   {
-    LOG_DEBUG("Unable to find RfProcessing/ScanConversion element in XML tree!"); 
+    LOG_DEBUG("Unable to find RfProcessing/ScanConversion element in XML tree, use default values"); 
     return PLUS_SUCCESS;
   }  
 
-  int OutputImageStartDepthMm=0;
+  double OutputImageStartDepthMm=0;
   if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
   {
     this->OutputImageStartDepthMm=OutputImageStartDepthMm; 
   }
   
-  double outputImageSpacing[2];
+  double outputImageSpacing[2]={0};
   if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 
   {
     this->OutputImageSpacing[0]=outputImageSpacing[0]; 
@@ -425,7 +425,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* config)
     this->OutputImageSpacing[2]=1; 
   }
 
-  double outputImageSize[2];
+  int outputImageSize[2]={0};
   if ( scanConversionElement->GetVectorAttribute("OutputImageSizePixel", 2, outputImageSize)) 
   {
     this->OutputImageExtent[0]=0;
@@ -436,23 +436,23 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* config)
     this->OutputImageExtent[5]=1;
   }
 
-  int radiusStartMm=0;
+  double radiusStartMm=0;
   if ( scanConversionElement->GetScalarAttribute("RadiusStartMm", radiusStartMm)) 
   {
     this->RadiusStartMm=radiusStartMm; 
   }
-  int radiusStopMm=0;
+  double radiusStopMm=0;
   if ( scanConversionElement->GetScalarAttribute("RadiusStopMm", radiusStopMm)) 
   {
     this->RadiusStopMm=radiusStopMm; 
   }
 
-  int thetaStartDeg=0;
+  double thetaStartDeg=0;
   if ( scanConversionElement->GetScalarAttribute("ThetaStartDeg", thetaStartDeg)) 
   {
     this->ThetaStartDeg=thetaStartDeg; 
   }
-  int thetaStopDeg=0;
+  double thetaStopDeg=0;
   if ( scanConversionElement->GetScalarAttribute("ThetaStopDeg", thetaStopDeg)) 
   {
     this->ThetaStopDeg=thetaStopDeg; 

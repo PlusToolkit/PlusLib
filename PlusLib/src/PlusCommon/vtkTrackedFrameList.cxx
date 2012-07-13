@@ -402,11 +402,10 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName, US_IMAGE_ORIENTATION requestedOrientation/*=US_IMG_ORIENT_MF*/)
+PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   reader->SetFileName(trackedSequenceDataFileName);
-  reader->SetImageOrientationInMemory(requestedOrientation);
   reader->SetTrackedFrameList(this);
   if (reader->Read()!=PLUS_SUCCESS)
   {		
