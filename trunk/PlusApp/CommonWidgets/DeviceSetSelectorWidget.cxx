@@ -244,7 +244,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   ui.comboBox_DeviceSet->clear();
 
 	QStringListIterator filesIterator(fileList);
-	while (filesIterator.hasNext()) {
+	while (filesIterator.hasNext())
+  {
 		QString fileName(configDir.absoluteFilePath(filesIterator.next()));
 		QFile file(fileName);
 		QDomDocument doc;
@@ -320,6 +321,10 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
         lastSelectedDeviceSetIndex = currentIndex; 
       }
 		}
+    else
+    {
+      LOG_WARNING("Unable to parse file '" << fileName.toLatin1().constData() << "' as an XML. It will not appear in the device set configuration file list!");
+    }
 	}
 
   // If no valid configuration files have been parsed then warn user
