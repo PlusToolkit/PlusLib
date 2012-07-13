@@ -1064,6 +1064,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
+  m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
   m_ImageVisualizer->InitializeResultPolyData(m_CandidatesPolyData);
   m_ImageVisualizer->InitializeDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
@@ -1285,6 +1286,8 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   segmentationParameters->SetDoubleAttribute("MinThetaDegrees", ui.doubleSpinBox_MinTheta->value());
 
   segmentationParameters->SetDoubleAttribute("MaxThetaDegrees", ui.doubleSpinBox_MaxTheta->value());
+
+  segmentationParameters->SetDoubleAttribute("MaxLineShiftMm", ui.doubleSpinBox_MaxLineShiftMm->value());
 
   segmentationParameters->SetDoubleAttribute("AngleToleranceDegrees", ui.doubleSpinBox_AngleTolerance->value());
 

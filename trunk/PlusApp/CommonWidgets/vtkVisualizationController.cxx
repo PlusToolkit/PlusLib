@@ -235,7 +235,6 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
       this->GetCanvas()->GetRenderWindow()->AddRenderer(this->ImageVisualizer->GetCanvasRenderer());
       this->ImageVisualizer->GetImageActor()->VisibilityOn();
       this->ImageVisualizer->UpdateCameraPose();
-      this->ImageVisualizer->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
     }
 
     // Disable camera movements
@@ -701,7 +700,7 @@ PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
 PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement)
 {
   // Fill up transform repository
-  if( this->TransformRepository->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+  if( this->TransformRepository->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to initialize transform repository!"); 
   }
@@ -710,10 +709,23 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLD
   if( this->PerspectiveVisualizer != NULL )
   {
     this->PerspectiveVisualizer->InitializeTransformRepository(this->TransformRepository);
-    return this->PerspectiveVisualizer->ReadConfiguration(aXMLElement);
+    if( this->PerspectiveVisualizer->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to configure perspective visualizer.");
+      return PLUS_FAIL;
+    }
   }
 
-  return PLUS_FAIL;
+  if( this->ImageVisualizer != NULL )
+  {
+    if( this->ImageVisualizer->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to configure image visualizer.");
+      return PLUS_FAIL;
+    }
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

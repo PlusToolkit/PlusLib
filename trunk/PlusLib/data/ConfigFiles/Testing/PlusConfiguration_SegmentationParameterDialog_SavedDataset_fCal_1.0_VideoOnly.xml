@@ -38,6 +38,7 @@
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
   
+  <Rendering DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN"/>
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->

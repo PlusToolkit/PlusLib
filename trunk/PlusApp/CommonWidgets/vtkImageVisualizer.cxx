@@ -340,6 +340,30 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
 
   CurrentMarkerOrientation = aOrientation;
 
+  vtkXMLDataElement* renderingParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Rendering");
+  if (renderingParameters == NULL) {
+    LOG_ERROR("No Rendering element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
+
+  const char * orientationValue = "MARKED_RIGHT_FAR_DOWN";
+  switch(CurrentMarkerOrientation)
+  {
+  case US_IMG_ORIENT_MN:
+    orientationValue = "MARKED_RIGHT_FAR_UP";
+    break;
+  case US_IMG_ORIENT_MF:
+    orientationValue = "MARKED_RIGHT_FAR_DOWN";
+    break;
+  case US_IMG_ORIENT_UF:
+    orientationValue = "MARKED_LEFT_FAR_DOWN";
+    break;
+  case US_IMG_ORIENT_UN:
+    orientationValue = "MARKED_LEFT_FAR_UP";
+    break;
+  }
+  renderingParameters->SetAttribute("DisplayedImageOrientation", orientationValue);
+
   return UpdateCameraPose();
 }
 
@@ -552,6 +576,50 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
       prop->SetPosition(newPosition[0], newPosition[1], newPosition[2]);
     }
   }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
+{
+  // Rendering section
+  vtkXMLDataElement* xmlElement = aConfig->FindNestedElementWithName("Rendering"); 
+
+  if (xmlElement == NULL)
+  {
+    LOG_ERROR("Unable to find Rendering element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Displayed image orientation
+  const char* orientation = xmlElement->GetAttribute("DisplayedImageOrientation");
+  US_IMAGE_ORIENTATION orientationValue = US_IMG_ORIENT_MF;
+  if (orientation != NULL)
+  {
+    if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_UP") == 0 )
+    {
+      orientationValue = US_IMG_ORIENT_MN;
+    }
+    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_UP") == 0 )
+    {
+      orientationValue = US_IMG_ORIENT_UN;
+    }
+    else if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_DOWN") == 0 )
+    {
+      // Nothing to do, but don't want to hit else case below
+    }
+    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_DOWN") == 0 )
+    {
+      orientationValue = US_IMG_ORIENT_UF;
+    }
+    else
+    {
+      LOG_WARNING("Field in DisplayedImageOrientation does not match any of MARKED_RIGHT_FAR_UP, MARKED_LEFT_FAR_UP, MARKED_RIGHT_FAR_DOWN, MARKED_LEFT_FAR_DOWN.");
+    }
+  }
+  this->CurrentMarkerOrientation = orientationValue;
 
   return PLUS_SUCCESS;
 }
