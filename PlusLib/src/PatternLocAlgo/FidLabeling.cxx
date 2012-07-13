@@ -17,26 +17,22 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 FidLabeling::FidLabeling()
+: m_ApproximateSpacingMmPerPixel(-1.0)
+, m_MaxAngleDiff(-1.0)
+, m_MinLinePairDistMm(-1.0)
+, m_MaxLinePairDistMm(-1.0)
+, m_MinLinePairAngleRad(-1.0)
+, m_MaxLinePairAngleRad(-1.0)
+, m_MaxLineShiftMm(10.0)
+, m_MaxLinePairDistanceErrorPercent(-1.0)
+, m_MinThetaRad(-1.0)
+, m_MaxThetaRad(-1.0)
+, m_AngleToleranceRad(-1.0)
+, m_InclinedLineAngleRad(-1.0)
+, m_DotsFound(false)
+, m_PatternIntensity(-1.0)
 {
-  m_FrameSize[0]=0;
-  m_FrameSize[1]=0;
-
-  m_ApproximateSpacingMmPerPixel = -1.0;
-  m_MaxAngleDiff = -1.0;
-  m_MinLinePairDistMm = -1.0;
-  m_MaxLinePairDistMm = -1.0;
-  m_MinLinePairAngleRad = -1.0;
-  m_MaxLinePairAngleRad = -1.0;
-  m_MaxLineShiftMm = 10; // TODO: make it adjustable (https://www.assembla.com/spaces/plus/tickets/449)
-  m_MaxLinePairDistanceErrorPercent = -1.0;
-  m_MinThetaRad = -1.0;
-  m_MaxThetaRad = -1.0;
-  m_AngleToleranceRad = -1.0;
-  m_InclinedLineAngleRad = 0.0;
-
-  m_DotsFound = false;
-
-  m_PatternIntensity = -1.0;
+  memset(m_FrameSize, 0, sizeof(int[2]));
 }
 
 //-----------------------------------------------------------------------------
@@ -189,6 +185,16 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
   else
   {
     LOG_WARNING("Could not read AngleToleranceDegrees from configuration file.");
+  }
+
+  double maxLineShiftMm(10.0);
+  if( segmentationParameters->GetScalarAttribute("MaxLineShiftMM", maxLineShiftMm) )
+  {
+    m_MaxLineShiftMm = maxLineShiftMm;
+  }
+  else
+  {
+    LOG_WARNING("Could not read MaxLineShiftMM from configuration file.");
   }
 
   double inclinedLineAngleDegrees(0.0); 
@@ -731,4 +737,18 @@ void FidLabeling::SetMinThetaDeg(double value)
 void FidLabeling::SetMaxThetaDeg(double value) 
 { 
   m_MaxThetaRad = vtkMath::RadiansFromDegrees(value); 
+}
+
+//-----------------------------------------------------------------------------
+
+void FidLabeling::SetMaxLineShift( double aValue )
+{
+  m_MaxLineShiftMm = aValue;
+}
+
+//-----------------------------------------------------------------------------
+
+double FidLabeling::GetMaxLineShift()
+{
+  return m_MaxLineShiftMm;
 }
