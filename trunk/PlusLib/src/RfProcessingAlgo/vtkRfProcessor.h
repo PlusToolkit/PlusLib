@@ -11,7 +11,8 @@
 #include "PlusVideoFrame.h"
 
 class vtkRfToBrightnessConvert;
-class vtkUsScanConvert;
+class vtkUsScanConvertLinear;
+class vtkUsScanConvertCurvilinear;
 class vtkImageCast;
 
 /*!
@@ -25,6 +26,14 @@ public:
   static vtkRfProcessor *New();
   vtkTypeRevisionMacro(vtkRfProcessor , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
+
+  enum TransducerGeometryType
+  {
+    TRANSDUCER_UNKNOWN,
+    TRANSDUCER_LINEAR,
+    TRANSDUCER_CURVILINEAR
+  };
+
 
   /*! Set the input RF data
     \param rfFrame frame containing RF data 
@@ -40,13 +49,21 @@ public:
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
+  /*! Set the transducer geometry (linear or curvilinear) */
+  vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
+
 protected:
   vtkRfProcessor();
   virtual ~vtkRfProcessor(); 
 
   vtkRfToBrightnessConvert* RfToBrightnessConverter;
-  vtkUsScanConvert* ScanConverter;
+  vtkUsScanConvertLinear* ScanConverterLinear;  
+  vtkUsScanConvertCurvilinear* ScanConverterCurvilinear;  
   vtkImageCast* ImageCaster;
+
+  /*! Type of the transducer (linear or curvilinear) */
+  TransducerGeometryType TransducerGeometry;
+
 }; 
 
 #endif

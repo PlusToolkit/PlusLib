@@ -74,7 +74,7 @@ public:
   PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   /*! Read the tracked data from sequence metafile */
-  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName, US_IMAGE_ORIENTATION requestedOrientation=US_IMG_ORIENT_MF); 
+  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }

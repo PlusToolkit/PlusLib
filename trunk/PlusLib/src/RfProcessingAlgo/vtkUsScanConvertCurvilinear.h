@@ -4,21 +4,21 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkUsScanConvert_h
-#define __vtkUsScanConvert_h
+#ifndef __vtkUsScanConvertCurvilinear_h
+#define __vtkUsScanConvertCurvilinear_h
 
 #include "vtkThreadedImageAlgorithm.h"
 
 /*!
-\class vtkUsScanConvert
+\class vtkUsScanConvertCurvilinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
 \ingroup RfProcessingAlgo
 */ 
-class VTK_EXPORT vtkUsScanConvert : public vtkThreadedImageAlgorithm
+class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkThreadedImageAlgorithm
 {
 public:
-  static vtkUsScanConvert *New();
-  vtkTypeMacro(vtkUsScanConvert,vtkThreadedImageAlgorithm);
+  static vtkUsScanConvertCurvilinear *New();
+  vtkTypeMacro(vtkUsScanConvertCurvilinear,vtkThreadedImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   /*! Set the output image spacing (mm/pixel) */
@@ -27,11 +27,11 @@ public:
   vtkGetVector3Macro(OutputImageSpacing,double);
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);   
    
 protected:
-  vtkUsScanConvert();
-  virtual ~vtkUsScanConvert();
+  vtkUsScanConvertCurvilinear();
+  virtual ~vtkUsScanConvertCurvilinear();
 
   virtual int SplitExtent(int splitExt[6], int startExt[6], int num, int total);
   
@@ -74,8 +74,8 @@ protected:
   int InterpolationTableSize;
 
 private:
-  vtkUsScanConvert(const vtkUsScanConvert&);  // Not implemented.
-  void operator=(const vtkUsScanConvert&);  // Not implemented.
+  vtkUsScanConvertCurvilinear(const vtkUsScanConvertCurvilinear&);  // Not implemented.
+  void operator=(const vtkUsScanConvertCurvilinear&);  // Not implemented.
 };
 
 #endif

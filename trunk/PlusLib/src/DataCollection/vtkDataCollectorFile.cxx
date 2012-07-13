@@ -67,7 +67,7 @@ PlusStatus vtkDataCollectorFile::Connect()
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  if ( trackedFrameBuffer->ReadFromSequenceMetafile(this->SequenceMetafileName, GetUsImageOrientation()) != PLUS_SUCCESS )
+  if ( trackedFrameBuffer->ReadFromSequenceMetafile(this->SequenceMetafileName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile!"); 
     return PLUS_FAIL; 

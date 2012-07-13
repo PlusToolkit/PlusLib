@@ -72,7 +72,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input meta file..."); 
   // frameList it will contain initially the RF data and the image data will be replaced by the processed output
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  frameList->ReadFromSequenceMetafile( inputRfFile.c_str(), US_IMG_ORIENT_XX);
+  frameList->ReadFromSequenceMetafile( inputRfFile.c_str() );
   LOG_DEBUG("Reading input RF file completed"); 
 
   // Read config file
@@ -123,22 +123,6 @@ int main(int argc, char **argv)
   outputImgSeqFileWriter->SetFileName(outputImgFile.c_str()); 
   outputImgSeqFileWriter->SetTrackedFrameList(frameList); 
   outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
-  /*if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
-  {
-    // the image orientation has not changed
-    outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
-  }
-  else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
-  {
-    // the image orientation has changed to MF
-    frameList->SetIma
-    outputImgSeqFileWriter->SetImageOrientationInFile(US_IMG_ORIENT_MF);
-  }
-  else
-  {
-    LOG_ERROR("Unknown operation: "<<operation);
-    exit(EXIT_FAILURE);
-  }*/
   outputImgSeqFileWriter->Write(); 
 
 	return EXIT_SUCCESS; 

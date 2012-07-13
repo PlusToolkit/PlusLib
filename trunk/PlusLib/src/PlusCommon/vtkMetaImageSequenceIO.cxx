@@ -312,11 +312,6 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   this->NumberOfDimensions=nDims;  
 
   this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
-  if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
-  {
-    // if no specific orientation is defined then just use the orientation that is used in the file
-    this->ImageOrientationInMemory = this->ImageOrientationInFile;
-  }
 
   const char* imgTypeStr=GetCustomString(SEQMETA_FIELD_US_IMG_TYPE);
   if (imgTypeStr==NULL)
@@ -327,6 +322,27 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   else
   {
     this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(GetCustomString(SEQMETA_FIELD_US_IMG_TYPE)); 
+  }
+
+  // If no specific image orientation is requested then determine it automatically from the image type
+  // B-mode: MF
+  // RF-mode: FM
+  if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
+  {
+    switch (this->ImageType)
+    {
+    case US_IMG_BRIGHTNESS:
+      SetImageOrientationInMemory(US_IMG_ORIENT_MF);
+      break;
+    case US_IMG_RF_I_LINE_Q_LINE:
+    case US_IMG_RF_IQ_LINE:
+    case US_IMG_RF_REAL:
+      SetImageOrientationInMemory(US_IMG_ORIENT_FM);
+      break;
+    default:
+      LOG_WARNING("Cannot determine image orientation automatically, unknown image type "<<this->ImageType<<", use the same orientation in memory as in the file");
+      SetImageOrientationInMemory(this->ImageOrientationInFile);
+    }
   }
 
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
