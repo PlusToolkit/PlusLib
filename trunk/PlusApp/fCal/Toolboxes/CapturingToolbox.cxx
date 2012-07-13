@@ -126,51 +126,76 @@ void CapturingToolbox::SetDisplayAccordingToState()
     // Hide or show the orientation markers based on the value of the checkbox
     m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
-    // Update state message according to available transforms
-    if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
+    // If tracking
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackingEnabled())
     {
-      std::string imageToProbeTransformNameStr;
-      PlusTransformName imageToProbeTransformName(
-        m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetProbeCoordinateFrame());
-      imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
-
-      if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
-        m_ParentMainWindow->GetImageCoordinateFrame().c_str(), m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), false) == PLUS_SUCCESS)
+      // Update state message according to available transforms
+      if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
       {
-        std::string date, errorStr;
-        double error;
-        if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+        std::string imageToProbeTransformNameStr;
+        PlusTransformName imageToProbeTransformName(
+          m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetProbeCoordinateFrame());
+        imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
+
+        if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+          m_ParentMainWindow->GetImageCoordinateFrame().c_str(), m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), false) == PLUS_SUCCESS)
         {
-          date = "N/A";
-        }
-        if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
-        {
-          char imageToProbeTransformErrorChars[32];
-          sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-          errorStr = imageToProbeTransformErrorChars;
+          std::string date, errorStr;
+          double error;
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+          {
+            date = "N/A";
+          }
+          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+          {
+            char imageToProbeTransformErrorChars[32];
+            sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+            errorStr = imageToProbeTransformErrorChars;
+          }
+          else
+          {
+            errorStr = "N/A";
+          }
+
+          QPalette palette;
+          palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
+          ui.label_State->setPalette(palette);
+          ui.label_State->setText( QString("%1 transform present, ready for capturing. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
-          errorStr = "N/A";
+          QPalette palette;
+          palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+          ui.label_State->setPalette(palette);
+          ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
+          LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed or imported.");
         }
-
-        ui.label_State->setText( QString("%1 transform present, ready for capturing. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
       }
       else
       {
-        ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
-        m_State = ToolboxState_Error;
+        QPalette palette;
+        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+        ui.label_State->setPalette(palette);
+        ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
+        LOG_INFO("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes");
       }
     }
     else
     {
-      ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
-      m_State = ToolboxState_Error;
+      QPalette palette;
+      palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
+      ui.label_State->setPalette(palette);
+      ui.label_State->setText( QString("Tracking is not enabled.") );
+      LOG_INFO("Tracking is not enabled.");
     }
   }
   else
   {
+    QPalette palette;
+    palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
+    LOG_INFO("fCal is not connected to devices");
     m_State = ToolboxState_Error;
   }
 

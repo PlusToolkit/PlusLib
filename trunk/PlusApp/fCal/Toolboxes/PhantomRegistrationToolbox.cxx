@@ -344,28 +344,47 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
             errorStr = "N/A";
           }
 
+          QPalette palette;
+          palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(phantomToReferenceTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
+          QPalette palette;
+          palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform is absent, registration needs to be performed.").arg(phantomToReferenceTransformNameStr.c_str()) );
+          LOG_INFO(phantomToReferenceTransformNameStr << " transform is absent, registration needs to be performed");
         }
       }
       else
       {
-        ui.label_State->setText( tr("Stylus calibration is missing. It needs to be performed or imported") );
+        QPalette palette;
+        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+        ui.label_State->setPalette(palette);
+        ui.label_State->setText( tr("Stylus calibration is missing. It needs to be performed or imported.") );
+        LOG_INFO("Stylus calibration is missing. It needs to be performed or imported");
         m_State = ToolboxState_Error;
       }
     }
     else
     {
+      QPalette palette;
+      palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("Phantom registration configuration is missing!") );
+      LOG_INFO("Phantom registration configuration is missing");
       m_State = ToolboxState_Error;
     }
   }
   else
   {
+    QPalette palette;
+    palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
+    LOG_INFO("fCal is not connected to devices. Switch to Configuration toolbox to connect.");
     m_State = ToolboxState_Error;
   }
 

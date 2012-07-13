@@ -153,17 +153,28 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
         errorStr = "N/A";
       }
 
+      QPalette palette;
+      palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("%1 transform present, ready for volume reconstruction. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
     }
     else
     {
+      QPalette palette;
+      palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
+      LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed or imported.");
       m_State = ToolboxState_Uninitialized;
     }
   }
   else
   {
+    QPalette palette;
+    palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
+    LOG_INFO("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes");
     m_State = ToolboxState_Uninitialized;
   }
 
