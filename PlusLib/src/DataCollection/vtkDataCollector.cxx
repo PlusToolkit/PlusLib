@@ -172,31 +172,33 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
 vtkImageData* vtkDataCollector::GetBrightnessOutput()
 {
   // Get tracked frame by computed timestamp  
+  vtkImageData *resultImage=this->BlankImage;
   double currentFrameTimestamp = 0.0;
   if (GetMostRecentTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get current timestamp!");
-    return this->BlankImage;
   }
-  if (GetTrackedFrameByTime(currentFrameTimestamp, &this->BrightnessOutputTrackedFrame) != PLUS_SUCCESS)
+  else if (GetTrackedFrameByTime(currentFrameTimestamp, &this->BrightnessOutputTrackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get tracked frame by timestamp: " << currentFrameTimestamp);
-    return this->BlankImage;
   }
-
-  if (this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
+  else if (this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
   {
     // B-mode image already, just return as is
-    return this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage();
+    resultImage=this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage();
   }
-
-  // RF frame, convert to B-mode frame
-  this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage(), this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType());
-  vtkImageData* bModeFrame=this->RfProcessor->GetBrightessScanConvertedImage();
+  else
+  {
+    // RF frame, convert to B-mode frame
+    this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage(), this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType());
+    resultImage=this->RfProcessor->GetBrightessScanConvertedImage();
+  }
   
-  //bModeFrame->SetSpacing(1.0, 1.0, 1.0); 
-
-  return bModeFrame;
+  int *resultExtent=resultImage->GetExtent();
+  this->BrightnessFrameSize[0]=resultExtent[1]-resultExtent[0]+1;
+  this->BrightnessFrameSize[1]=resultExtent[3]-resultExtent[2]+1;
+  
+  return resultImage;
 }
 
 //----------------------------------------------------------------------------
