@@ -706,6 +706,13 @@ void FreehandCalibrationToolbox::EditSegmentationParameters()
 
   delete segmentationParamDialog;
 
+  int regionOfInterest[4] = {0}; 
+  vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
+  if ( segmentationParameters != NULL && segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  {
+    m_ParentMainWindow->GetObjectVisualizer()->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
+  }
+
   // Re-connect realtime image to canvas
   if( m_ParentMainWindow->GetObjectVisualizer()->ConnectInput() != PLUS_SUCCESS )
   {

@@ -23,6 +23,7 @@ See License.txt for details.
 #include "vtkTextActor3D.h"
 
 class vtkXMLDataElement;
+class vtkLineSource;
 
 //-----------------------------------------------------------------------------
 
@@ -37,6 +38,9 @@ public:
   * New
   */
   static vtkImageVisualizer *New();
+
+  /*! Publicly available colour for ROI */
+  static double ROI_COLOUR[3];
 
   /*!
   * Read rendering configuration
@@ -90,6 +94,21 @@ public:
   */
   PlusStatus AddScreenAlignedProp(vtkSmartPointer<vtkProp3D> aProp);
 
+  /*!
+  * Set the ROI region
+  * \param xMin min x bounds of ROI
+  * \param xMax max x bounds of ROI
+  * \param yMin min y bounds of ROI
+  * \param yMax max y bounds of ROI
+  */
+  PlusStatus SetROIBounds(int xMin, int xMax, int yMin, int yMax);
+
+  /*!
+  * Enable/disable ROI visualization
+  * \param aEnable enable/disable flag
+  */
+  PlusStatus EnableROI(bool aEnable);
+
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
@@ -125,6 +144,7 @@ protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);
   vtkSetObjectMacro(ImageCamera, vtkCamera);
   vtkSetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
+  vtkSetObjectMacro(ROIActorAssembly, vtkAssembly);
   vtkSetObjectMacro(ResultActor, vtkActor);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
@@ -151,6 +171,11 @@ protected:
   * Update the position and orientation of actors to become screen aligned
   */
   PlusStatus UpdateScreenAlignedActors();
+
+  /*!
+  * Initialize the ROI sources/actors
+  */
+  PlusStatus InitializeROIVisualization();
 
   /*! Data Collector link */
   vtkDataCollector* DataCollector;
@@ -196,6 +221,27 @@ protected:
 
   /*! List of original positions of screen-aligned objects */
   std::vector<std::vector<int>> ScreenAlignedPropOriginalPosition;
+
+  /*! Flag to hold value of show/hide ROI */
+  bool ShowROI;
+
+  /*! Assembly to hold all of the actors of the ROI for easy hide/show */
+  vtkAssembly*                  ROIActorAssembly;
+
+  /*! Line source of left line (one side of the ROI rectangle) */
+  vtkLineSource*                LeftLineSource;
+
+  /*! Line source of top line (one side of the ROI rectangle) */
+  vtkLineSource*                TopLineSource;
+
+  /*! Line source of right line (one side of the ROI rectangle) */
+  vtkLineSource*                RightLineSource;
+
+  /*! Line source of bottom line (one side of the ROI rectangle) */
+  vtkLineSource*                BottomLineSource;
+
+  /*! Array holding the bounds of the ROI */
+  double                        RegionOfInterest[4];
 };
 
 #endif

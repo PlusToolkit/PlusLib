@@ -1,10 +1,11 @@
 <RCC>
   <qresource prefix="icons">
-    <file>Resources/icon_horizontalFlip.png</file>
-    <file>Resources/icon_objectMode.png</file>
+    <file>Resources/icon_HorizontalFlip.png</file>
+    <file>Resources/icon_ObjectMode.png</file>
     <file>Resources/icon_fCal.png</file>
     <file>Resources/icon_Import.png</file>
     <file>Resources/icon_Tools.png</file>
+    <file>Resources/icon_ImageControl.png</file>
     <file>Resources/icon_Save.png</file>
     <file>Resources/icon_Snapshot.png</file>
     <file>Resources/icon_Record.png</file>

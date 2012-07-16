@@ -25,6 +25,7 @@ See License.txt for details.
 vtkStandardNewMacro(vtkImageVisualizer);
 //-----------------------------------------------------------------------------
 
+double vtkImageVisualizer::ROI_COLOUR[3] = {1.0, 0.0, 0.5};
 static const double MAX_WIDGET_THICKNESS = 10.0;  // maximum thickness of any object in the scene (camera is positioned at -MAX_WIDGET_THICKNESS - 1
 static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
 static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
@@ -50,7 +51,14 @@ vtkImageVisualizer::vtkImageVisualizer()
 , ScreenAlignedCurrentXRotation(0.0)
 , ScreenAlignedCurrentYRotation(0.0)
 , CurrentMarkerOrientation(US_IMG_ORIENT_MF)
+, LeftLineSource(NULL)
+, TopLineSource(NULL)
+, RightLineSource(NULL)
+, BottomLineSource(NULL)
+, ROIActorAssembly(NULL)
 {
+  memset(RegionOfInterest, 0, sizeof(double[4]));
+
   // Set up canvas renderer
   vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
   canvasRenderer->SetBackground(0.1, 0.1, 0.1);
@@ -81,6 +89,8 @@ vtkImageVisualizer::vtkImageVisualizer()
   this->CanvasRenderer->AddActor(this->ImageActor);
 
   this->InitializeOrientationMarkers();
+
+  this->InitializeROIVisualization();
 }
 
 //-----------------------------------------------------------------------------
@@ -96,13 +106,33 @@ vtkImageVisualizer::~vtkImageVisualizer()
   this->SetImageCamera(NULL);
   this->SetHorizontalOrientationTextActor(NULL);
   this->SetVerticalOrientationTextActor(NULL);
+  this->SetROIActorAssembly(NULL);
+
+  if (LeftLineSource != NULL) {
+    LeftLineSource->Delete();
+    LeftLineSource = NULL;
+  }
+
+  if (TopLineSource != NULL) {
+    TopLineSource->Delete();
+    TopLineSource = NULL;
+  }
+
+  if (RightLineSource != NULL) {
+    RightLineSource->Delete();
+    RightLineSource = NULL;
+  }
+
+  if (BottomLineSource != NULL) {
+    BottomLineSource->Delete();
+    BottomLineSource = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 {
-
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetOrientationMarkerAssembly(assembly);
 
@@ -328,6 +358,8 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     LOG_ERROR("Error during alignment of screen-aligned actors.");
     return PLUS_FAIL;
   }
+
+  this->SetROIBounds(RegionOfInterest[0], RegionOfInterest[1], RegionOfInterest[2], RegionOfInterest[3]);
 
   return UpdateOrientationMarkerLabelling();
 }
@@ -620,6 +652,118 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
     }
   }
   this->CurrentMarkerOrientation = orientationValue;
+
+  //Find segmentation parameters element
+  vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
+  if (segmentationParameters == NULL) {
+    LOG_ERROR("No Segmentation element is found in the XML tree!");
+    return PLUS_FAIL;
+  }
+
+  int regionOfInterest[4] = {0}; 
+  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  {
+    this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
+  } 
+  else {
+    LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
+{
+  if (xMin > 0) {
+    RegionOfInterest[0] = xMin;
+  }
+  if (xMax > 0) {
+    RegionOfInterest[1] = xMax;
+  }
+  if (yMin > 0) {
+    RegionOfInterest[2] = yMin;
+  }
+  if (yMax > 0) {
+    RegionOfInterest[3] = yMax;
+  }
+
+  double zPos = -1.0;
+  if( CurrentMarkerOrientation == US_IMG_ORIENT_MN || CurrentMarkerOrientation == US_IMG_ORIENT_UF )
+  {
+    zPos = 1.0;
+  }
+
+  // Set line positions
+  LeftLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
+  LeftLineSource->SetPoint2(RegionOfInterest[0], RegionOfInterest[3],  zPos);
+  TopLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
+  TopLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint1(RegionOfInterest[1], RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::InitializeROIVisualization()
+{
+  vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
+  this->SetROIActorAssembly(assembly);
+
+  vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
+  vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  LeftLineSource = vtkLineSource::New();
+  leftLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  leftLineMapper->SetInputConnection(LeftLineSource->GetOutputPort());
+  leftLineActor->SetMapper(leftLineMapper);
+  this->ROIActorAssembly->AddPart(leftLineActor);
+
+  vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
+  vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  TopLineSource = vtkLineSource::New();
+  topLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  topLineMapper->SetInputConnection(TopLineSource->GetOutputPort());
+  topLineActor->SetMapper(topLineMapper);
+  this->ROIActorAssembly->AddPart(topLineActor);
+
+  vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
+  vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  RightLineSource = vtkLineSource::New();
+  rightLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  rightLineMapper->SetInputConnection(RightLineSource->GetOutputPort());
+  rightLineActor->SetMapper(rightLineMapper);
+  this->ROIActorAssembly->AddPart(rightLineActor);
+
+  vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
+  vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  BottomLineSource = vtkLineSource::New();
+  bottomLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  bottomLineMapper->SetInputConnection(BottomLineSource->GetOutputPort());
+  bottomLineActor->SetMapper(bottomLineMapper);
+  this->ROIActorAssembly->AddPart(bottomLineActor);
+
+  this->ROIActorAssembly->SetPosition(0.0, 0.0, -1.0);
+
+  this->CanvasRenderer->AddActor(this->ROIActorAssembly);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
+{
+  if (aEnable) {
+    ROIActorAssembly->VisibilityOn();
+  } 
+  else {
+    ROIActorAssembly->VisibilityOff();
+  }
 
   return PLUS_SUCCESS;
 }

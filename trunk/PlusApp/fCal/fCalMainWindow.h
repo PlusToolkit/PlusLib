@@ -200,6 +200,20 @@ protected:
     void SetOrientationMRightFDown();
     void SetOrientationMLeftFDown();
     void EnableOrientationMarkers();
+    void EnableROI();
+
+private:
+  class QCustomAction : public QAction
+  {
+  public:
+    QCustomAction(const QString &text, QObject* parent, bool aIsSeparator = false)
+      : QAction(text, parent)
+      , isSeparator(aIsSeparator)
+    {
+    };
+
+    bool isSeparator;
+  };
 
 protected:
   /*! Object visualizer */
@@ -248,11 +262,16 @@ protected:
   bool m_ForceShowAllDevicesIn3D;
 
   /*! Keep a reference to this action because we'll need to reference its state */
-  QAction* m_ShowOrientationMarkerAction;
+  QCustomAction* m_ShowOrientationMarkerAction;
+
+  /*! Keep a reference to this action because we'll need to reference its state */
+  QCustomAction* m_ShowROIAction;
+
+  /*! Reference to all actions that will show up in ROI list */
+  std::vector<QCustomAction*> m_ShowROIActionList;
 
 private:
   Ui::fCalMainWindow	ui;
-
 };
 
 #endif // FREEHANDMAINWINDOW_H

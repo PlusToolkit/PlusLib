@@ -103,22 +103,28 @@ void fCalMainWindow::Initialize()
   ui.pushButton_Tools->installEventFilter(this);
 
   // Set up menu items for image manipulation button
-  QAction* mfRightUpAction = new QAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
+  QCustomAction* mfRightUpAction = new QCustomAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
   connect(mfRightUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFUp()));
-  ui.pushButton_ImageOrientation->addAction(mfRightUpAction);
-  QAction* mfLeftUpAction = new QAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
+  m_ShowROIActionList.push_back(mfRightUpAction);
+  QCustomAction* mfLeftUpAction = new QCustomAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
   connect(mfLeftUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFUp()));
-  ui.pushButton_ImageOrientation->addAction(mfLeftUpAction);
-  QAction* mfRightDownAction = new QAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
+  m_ShowROIActionList.push_back(mfLeftUpAction);
+  QCustomAction* mfRightDownAction = new QCustomAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
   connect(mfRightDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFDown()));
-  ui.pushButton_ImageOrientation->addAction(mfRightDownAction);
-  QAction* mfLeftDownAction = new QAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
+  m_ShowROIActionList.push_back(mfRightDownAction);
+  QCustomAction* mfLeftDownAction = new QCustomAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
   connect(mfLeftDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFDown()));
-  ui.pushButton_ImageOrientation->addAction(mfLeftDownAction);
-  m_ShowOrientationMarkerAction = new QAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
+  m_ShowROIActionList.push_back(mfLeftDownAction);
+  m_ShowOrientationMarkerAction = new QCustomAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
   connect(m_ShowOrientationMarkerAction, SIGNAL(triggered()), this, SLOT(EnableOrientationMarkers()));
   m_ShowOrientationMarkerAction->setCheckable(true);
-  ui.pushButton_ImageOrientation->addAction(m_ShowOrientationMarkerAction);
+  m_ShowROIActionList.push_back(m_ShowOrientationMarkerAction);
+  QCustomAction* separator = new QCustomAction("", NULL, true);
+  m_ShowROIActionList.push_back(separator);
+  m_ShowROIAction = new QCustomAction("Show Region of Interest", ui.pushButton_ImageOrientation);
+  connect(m_ShowROIAction, SIGNAL(triggered()), this, SLOT(EnableROI()));
+  m_ShowROIAction->setCheckable(true);
+  m_ShowROIActionList.push_back(m_ShowROIAction);
 
   // Declare this class as the event handler
   ui.pushButton_ImageOrientation->installEventFilter(this);
@@ -422,43 +428,43 @@ void fCalMainWindow::ResetAllToolboxes()
 bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
   //LOG_TRACE("fCalMainWindow::eventFilter"); 
-
-  if (obj == ui.pushButton_Tools)
+  if (ev->type() == QEvent::MouseButtonRelease)
   {
-    if (ev->type() == QEvent::MouseButtonRelease)
+    QPushButton *button = static_cast<QPushButton*>(obj);
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
+    if ( mouseEvent->button() == Qt::LeftButton )
     {
-      QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
-      if ( mouseEvent->button() == Qt::LeftButton )
+      QMenu* menu = NULL;
+      if (obj == ui.pushButton_Tools)
       {
-        QMenu* menu = new QMenu(tr("Options"), ui.pushButton_Tools);
+        menu = new QMenu(tr("Options"), ui.pushButton_Tools);
         menu->addActions(ui.pushButton_Tools->actions());
         menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
-        menu->exec();
-        delete menu;
-
-        ui.pushButton_Tools->setDown(false);
-
-        return true;
-      }	
-    }
-  }
-  else if( obj == ui.pushButton_ImageOrientation)
-  {
-    if (ev->type() == QEvent::MouseButtonRelease && ui.pushButton_ImageOrientation->isEnabled())
-    {
-      QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
-      if ( mouseEvent->button() == Qt::LeftButton )
+      }
+      else
       {
-        QMenu* menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
-        menu->addActions(ui.pushButton_ImageOrientation->actions());
+        menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
+        for( std::vector<QCustomAction*>::iterator it = m_ShowROIActionList.begin(); it != m_ShowROIActionList.end(); ++it )
+        {
+          QCustomAction* action = (*it);
+          if( action->isSeparator )
+          {
+            menu->addSeparator();
+          }
+          else
+          {
+            menu->addAction(action);
+          }
+        }
         menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
-        menu->exec();
-        delete menu;
+      }
 
-        ui.pushButton_ImageOrientation->setDown(false);
+      menu->exec();
+      delete menu;
 
-        return true;
-      }	
+      button->setDown(false);
+
+      return true;
     }
   }
 
@@ -536,6 +542,27 @@ void fCalMainWindow::EnableOrientationMarkers()
     if( this->GetObjectVisualizer()->ShowOrientationMarkers(false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disable orientation markers in vtkObjectVisualiser.");
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::EnableROI()
+{
+  LOG_TRACE("fCalMainWindow::EnableROI()");
+  if( m_ShowROIAction->isChecked() )
+  {
+    if( this->GetObjectVisualizer()->EnableROI(true) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to enable region of interest in vtkObjectVisualiser.");
+    }
+  }
+  else
+  {
+    if( this->GetObjectVisualizer()->EnableROI(false) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to disable region of interest in vtkObjectVisualiser.");
     }
   }
 }

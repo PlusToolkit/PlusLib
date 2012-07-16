@@ -135,14 +135,14 @@
             <enum>Qt::DefaultContextMenu</enum>
            </property>
            <property name="toolTip">
-            <string>Flip Image</string>
+            <string>Image (2D) Controls</string>
            </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
             <iconset resource="fCal.qrc">
-             <normaloff>:/icons/Resources/icon_horizontalFlip.png</normaloff>:/icons/Resources/icon_horizontalFlip.png</iconset>
+             <normaloff>:/icons/Resources/icon_ImageControl.png</normaloff>:/icons/Resources/icon_ImageControl.png</iconset>
            </property>
           </widget>
          </item>
@@ -171,7 +171,7 @@
            </property>
            <property name="icon">
             <iconset resource="fCal.qrc">
-             <normaloff>:/icons/Resources/icon_objectMode.png</normaloff>:/icons/Resources/icon_objectMode.png</iconset>
+             <normaloff>:/icons/Resources/icon_ObjectMode.png</normaloff>:/icons/Resources/icon_ObjectMode.png</iconset>
            </property>
            <property name="checkable">
             <bool>true</bool>

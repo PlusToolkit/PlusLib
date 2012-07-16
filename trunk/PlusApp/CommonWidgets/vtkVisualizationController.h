@@ -170,6 +170,21 @@ public:
   */
   PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement);
 
+  /*!
+  * Set the image visualizer ROI region
+  * \param xMin min x bounds of ROI
+  * \param xMax max x bounds of ROI
+  * \param yMin min y bounds of ROI
+  * \param yMax max y bounds of ROI
+  */
+  PlusStatus SetROIBounds(int xMin, int xMax, int yMin, int yMax);
+
+  /*!
+  * Enable/disable the image visualizer ROI visualization
+  * \param aEnable enable/disable flag
+  */
+  PlusStatus EnableROI(bool aEnable);
+
 public:
 
   /*!

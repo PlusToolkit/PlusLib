@@ -38,7 +38,7 @@ See License.txt for details.
 #include <QTimer>
 #include "vtkSphereSource.h"
 
-static const int HANDLE_SIZE=8;
+static const int HANDLE_SIZE = 8;
 
 void CreateNewHandleActor(vtkActor* &actor, vtkSphereSource* &source, double r, double g, double b)
 {
@@ -279,16 +279,6 @@ public:
 
     m_ParentDialog->GetROI(xMin, yMin, xMax, yMax);
 
-    // Set line positions
-    m_LeftLineSource->SetPoint1(xMin, yMin, -0.5);
-    m_LeftLineSource->SetPoint2(xMin, yMax, -0.5);
-    m_TopLineSource->SetPoint1(xMin, yMin, -0.5);
-    m_TopLineSource->SetPoint2(xMax, yMin, -0.5);
-    m_RightLineSource->SetPoint1(xMax, yMin, -0.5);
-    m_RightLineSource->SetPoint2(xMax, yMax, -0.5);
-    m_BottomLineSource->SetPoint1(xMin, yMax, -0.5);
-    m_BottomLineSource->SetPoint2(xMax, yMax, -0.5);
-
     // Set handle positions
     m_TopLeftHandleSource->SetCenter(xMin, yMin, -0.5);
     m_BottomRightHandleSource->SetCenter(xMax, yMax, -0.5);
@@ -310,10 +300,6 @@ private:
     m_BottomRightHandleSource = NULL;
     m_TopLeftHandlePicked = false;
     m_BottomRightHandlePicked = false;
-    m_LeftLineSource = NULL;
-    m_TopLineSource = NULL;
-    m_RightLineSource = NULL;
-    m_BottomLineSource = NULL;
   }
 
   //----------------------------------------------------------------------
@@ -341,26 +327,6 @@ private:
       m_BottomRightHandleSource->Delete();
       m_BottomRightHandleSource = NULL;
     }
-
-    if (m_LeftLineSource != NULL) {
-      m_LeftLineSource->Delete();
-      m_LeftLineSource = NULL;
-    }
-
-    if (m_TopLineSource != NULL) {
-      m_TopLineSource->Delete();
-      m_TopLineSource = NULL;
-    }
-
-    if (m_RightLineSource != NULL) {
-      m_RightLineSource->Delete();
-      m_RightLineSource = NULL;
-    }
-
-    if (m_BottomLineSource != NULL) {
-      m_BottomLineSource->Delete();
-      m_BottomLineSource = NULL;
-    }
   }
 
 protected:
@@ -376,47 +342,11 @@ protected:
     // Create actors
     m_ActorCollection = vtkActorCollection::New();
 
-    vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
-    vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_LeftLineSource = vtkLineSource::New();
-    leftLineMapper->SetInputConnection(m_LeftLineSource->GetOutputPort());
-    leftLineActor->SetMapper(leftLineMapper);
-    leftLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-    m_ActorCollection->AddItem(leftLineActor);
-    m_ParentDialog->GetCanvasRenderer()->AddActor(leftLineActor);
-
-    vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
-    vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_TopLineSource = vtkLineSource::New();
-    topLineMapper->SetInputConnection(m_TopLineSource->GetOutputPort());
-    topLineActor->SetMapper(topLineMapper);
-    topLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-    m_ActorCollection->AddItem(topLineActor);
-    m_ParentDialog->GetCanvasRenderer()->AddActor(topLineActor);
-
-    vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
-    vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_RightLineSource = vtkLineSource::New();
-    rightLineMapper->SetInputConnection(m_RightLineSource->GetOutputPort());
-    rightLineActor->SetMapper(rightLineMapper);
-    rightLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-    m_ActorCollection->AddItem(rightLineActor);
-    m_ParentDialog->GetCanvasRenderer()->AddActor(rightLineActor);
-
-    vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
-    vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_BottomLineSource = vtkLineSource::New();
-    bottomLineMapper->SetInputConnection(m_BottomLineSource->GetOutputPort());
-    bottomLineActor->SetMapper(bottomLineMapper);
-    bottomLineActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-    m_ActorCollection->AddItem(bottomLineActor);
-    m_ParentDialog->GetCanvasRenderer()->AddActor(bottomLineActor);
-
-    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, 1.0, 0.0, 0.5);
+    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1], vtkImageVisualizer:: ROI_COLOUR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, 1.0, 0.0, 0.5);
+    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1],  vtkImageVisualizer::ROI_COLOUR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -450,23 +380,11 @@ private:
   //! Actor of bottom right corner handle
   vtkActor*                     m_BottomRightHandleActor;
 
-  //! Cube source of the top left corner handle (direct access needed to move it around)
-  vtkSphereSource*                m_TopLeftHandleSource;
+  //! Sphere source of the top left corner handle (direct access needed to move it around)
+  vtkSphereSource*              m_TopLeftHandleSource;
 
-  //! Cube source of the bottom right corner handle (direct access needed to move it around)
-  vtkSphereSource*                m_BottomRightHandleSource;
-
-  //! Line source of left line (one side of the ROI rectangle)
-  vtkLineSource*                m_LeftLineSource;
-
-  //! Line source of top line (one side of the ROI rectangle)
-  vtkLineSource*                m_TopLineSource;
-
-  //! Line source of right line (one side of the ROI rectangle)
-  vtkLineSource*                m_RightLineSource;
-
-  //! Line source of bottom line (one side of the ROI rectangle)
-  vtkLineSource*                m_BottomLineSource;
+  //! Sphere source of the bottom right corner handle (direct access needed to move it around)
+  vtkSphereSource*              m_BottomRightHandleSource;
 
   //! Flag indicating if top left corner handle is picked
   bool                          m_TopLeftHandlePicked;
@@ -1064,7 +982,12 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
-  m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  if( m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to initialize the image visualizer.");
+  }
+  m_ImageVisualizer->SetROIBounds(ui.spinBox_XMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMin->value(), ui.spinBox_YMax->value());
+  m_ImageVisualizer->EnableROI(true);
   m_ImageVisualizer->InitializeResultPolyData(m_CandidatesPolyData);
   m_ImageVisualizer->InitializeDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
@@ -1485,6 +1408,7 @@ PlusStatus SegmentationParameterDialog::SwitchToROIMode()
   }
 
   m_ROIModeHandler->SetEnabled(true);
+  m_ImageVisualizer->EnableROI(true);
 
   ui.canvas->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
   ui.canvas->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, m_ROIModeHandler);
@@ -1509,6 +1433,7 @@ PlusStatus SegmentationParameterDialog::SwitchToSpacingMode()
     m_ROIModeHandler->SetEnabled(false);
   }
 
+  m_ImageVisualizer->EnableROI(false);
   m_SpacingModeHandler->SetEnabled(true);
 
   ui.canvas->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
@@ -1584,6 +1509,7 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
   }
 
   m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
+  m_ImageVisualizer->SetROIBounds(aXMin, aXMax, aYMin, aYMax);
 
   return PLUS_SUCCESS;
 }
@@ -1617,6 +1543,7 @@ void SegmentationParameterDialog::ROIXMinChanged(int aValue)
 
     if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] > 0) {
       m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
+      m_ImageVisualizer->SetROIBounds(aValue, -1, -1, -1);
     }
   } else {
     ui.spinBox_XMin->blockSignals(true);
@@ -1640,6 +1567,7 @@ void SegmentationParameterDialog::ROIYMinChanged(int aValue)
 
     if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] > 0) {
       m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
+      m_ImageVisualizer->SetROIBounds(-1, -1, aValue, -1);
     }
   } else {
     ui.spinBox_YMin->blockSignals(true);
@@ -1666,6 +1594,7 @@ void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
     }
 
     m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
+    m_ImageVisualizer->SetROIBounds(-1, aValue, -1, -1);
   } else {
     ui.spinBox_XMax->blockSignals(true);
     ui.spinBox_XMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);
@@ -1691,6 +1620,7 @@ void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
     }
 
     m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
+    m_ImageVisualizer->SetROIBounds(-1, -1, -1, aValue);
   } else {
     ui.spinBox_YMax->blockSignals(true);
     ui.spinBox_YMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);

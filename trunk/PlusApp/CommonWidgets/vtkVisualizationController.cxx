@@ -72,6 +72,8 @@ vtkVisualizationController::vtkVisualizationController()
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
   imageVisualizer->InitializeResultPolyData(this->ResultPolyData);
+  // TODO : find a mechanism to determine when this should be shown
+  imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
   // Create 3D visualizer
@@ -289,7 +291,16 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 PlusStatus vtkVisualizationController::ShowOrientationMarkers( bool aShow )
 {
   LOG_TRACE("vtkVisualizationController::ShowOrientationMarkers(" << (aShow?"true":"false") << ")");
-  // TODO : if in 2D mode, fire this toggle
+
+  if( this->ImageVisualizer != NULL && this->Is2DMode() )
+  {
+    this->ImageVisualizer->ShowOrientationMarkers(aShow);
+  }
+  else
+  {
+    LOG_ERROR("Image visualizer not created or controller is not in 2D mode.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -764,4 +775,32 @@ PlusStatus vtkVisualizationController::ClearTransformRepository()
   this->SetTransformRepository(transformRepository);
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->ImageVisualizer->SetROIBounds(xMin, xMax, yMin, yMax);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("Image visualizer not created when attempting to set ROI bounds.");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::EnableROI( bool aEnable )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->ImageVisualizer->EnableROI(aEnable);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("Image visualizer not created when attempting to enable the ROI.");
+  return PLUS_FAIL;
 }
