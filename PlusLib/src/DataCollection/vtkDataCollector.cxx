@@ -167,6 +167,8 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+
 vtkImageData* vtkDataCollector::GetBrightnessOutput()
 {
   // Get tracked frame by computed timestamp  
@@ -196,6 +198,8 @@ vtkImageData* vtkDataCollector::GetBrightnessOutput()
 
   return bModeFrame;
 }
+
+//----------------------------------------------------------------------------
 
 void vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
 {
