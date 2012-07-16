@@ -271,7 +271,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   double imageCenterX = 0;
   double imageCenterY = 0;
   int dimensions[2];
-  this->DataCollector->GetFrameSize(dimensions);
+  this->DataCollector->GetBrightnessFrameSize(dimensions);
   imageCenterX = dimensions[0] / 2.0;
   imageCenterY = dimensions[1] / 2.0;
 
