@@ -185,6 +185,18 @@ public:
   */
   PlusStatus EnableROI(bool aEnable);
 
+  /*!
+  * Pass the request to the image visualizer
+  * \param aPointList x/y location for labels
+  */
+  PlusStatus SetWireLabelPositions(vtkPoints* aPointList);
+
+  /*!
+  * Enable/disable wire label visualization
+  * \param aEnable enable/disable flag
+  */
+  PlusStatus EnableWireLabels(bool aEnable);
+
 public:
 
   /*!

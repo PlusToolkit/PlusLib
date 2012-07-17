@@ -33,6 +33,7 @@ class vtkLineSource;
 */
 class vtkImageVisualizer : public vtkObject
 {
+
 public:
   /*!
   * New
@@ -109,6 +110,18 @@ public:
   */
   PlusStatus EnableROI(bool aEnable);
 
+  /*!
+  * Accept fiducial point information for displaying wire labels
+  * \param aPointList x/y location for labels
+  */
+  PlusStatus SetWireLabelPositions(vtkPoints* aPointList);
+
+  /*!
+  * Enable/disable wire label visualization
+  * \param aEnable enable/disable flag
+  */
+  PlusStatus EnableWireLabels(bool aEnable);
+
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
@@ -177,6 +190,11 @@ protected:
   */
   PlusStatus InitializeROIVisualization();
 
+  /*!
+  * Initialize the wire actors
+  */
+  PlusStatus InitializeWireLabelVisualization(vtkXMLDataElement* aConfig);
+
   /*! Data Collector link */
   vtkDataCollector* DataCollector;
 
@@ -220,7 +238,7 @@ protected:
   std::vector<vtkSmartPointer<vtkProp3D>> ScreenAlignedProps;
 
   /*! List of original positions of screen-aligned objects */
-  std::vector<std::vector<int>> ScreenAlignedPropOriginalPosition;
+  std::vector<std::vector<double>> ScreenAlignedPropOriginalPosition;
 
   /*! Flag to hold value of show/hide ROI */
   bool ShowROI;
@@ -242,6 +260,9 @@ protected:
 
   /*! Array holding the bounds of the ROI */
   double                        RegionOfInterest[4];
+
+  /*! Vector to hold the actors for each wire */
+  std::vector<vtkTextActor3D*>  WireActors;
 };
 
 #endif

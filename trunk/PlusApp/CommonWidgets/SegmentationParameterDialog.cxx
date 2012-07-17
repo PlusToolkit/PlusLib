@@ -1373,6 +1373,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   }
   segmentedPoints->Modified();
 
+  m_ImageVisualizer->SetWireLabelPositions(segmentedPoints);
+
   m_SegmentedPointsPolyData->Initialize();
   m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
 

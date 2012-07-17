@@ -804,3 +804,33 @@ PlusStatus vtkVisualizationController::EnableROI( bool aEnable )
   LOG_ERROR("Image visualizer not created when attempting to enable the ROI.");
   return PLUS_FAIL;
 }
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::EnableWireLabels( bool aEnable )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->ImageVisualizer->EnableWireLabels(aEnable);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("Image visualizer not created when attempting to enable the wire visualization.");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::SetWireLabelPositions( vtkPoints* aPointList )
+{
+  LOG_TRACE("vtkVisualizationController::SetWireLabelPositions");
+
+  if( this->ImageVisualizer != NULL )
+  {
+    this->ImageVisualizer->SetWireLabelPositions(aPointList);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("Image visualizer not created when attempting to set wire label positions.");
+  return PLUS_FAIL;
+}

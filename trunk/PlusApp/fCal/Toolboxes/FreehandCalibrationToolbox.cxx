@@ -1002,7 +1002,10 @@ void FreehandCalibrationToolbox::StartSpatial()
 
 void FreehandCalibrationToolbox::DoSpatialCalibration()
 {
-  //LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
+  LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
+
+  // Enable wire label visualization
+  m_ParentMainWindow->GetObjectVisualizer()->EnableWireLabels(true);
 
   // Get current time
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
@@ -1034,6 +1037,8 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     m_SpatialCalibrationInProgress = false;
 
     m_ParentMainWindow->SetTabsEnabled(true);
+
+    m_ParentMainWindow->GetObjectVisualizer()->EnableWireLabels(false);
 
     return;
   }
@@ -1279,6 +1284,7 @@ void FreehandCalibrationToolbox::DisplaySegmentedPoints()
     if (segmentedPoints)
     {
       m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
+      m_ParentMainWindow->GetObjectVisualizer()->SetWireLabelPositions(segmentedPoints);
       m_ParentMainWindow->GetObjectVisualizer()->ShowResult(true);
       break;
     }

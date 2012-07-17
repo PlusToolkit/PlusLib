@@ -26,6 +26,7 @@ vtkStandardNewMacro(vtkImageVisualizer);
 //-----------------------------------------------------------------------------
 
 double vtkImageVisualizer::ROI_COLOUR[3] = {1.0, 0.0, 0.5};
+static double RESULT_SPHERE_COLOUR[3] = {0.0, 0.8, 0.0};
 static const double MAX_WIDGET_THICKNESS = 10.0;  // maximum thickness of any object in the scene (camera is positioned at -MAX_WIDGET_THICKNESS - 1
 static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
 static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
@@ -78,7 +79,7 @@ vtkImageVisualizer::vtkImageVisualizer()
   this->ResultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
   resultMapper->SetInputConnection(this->ResultGlyph->GetOutputPort());
   this->ResultActor->SetMapper(resultMapper);
-  this->ResultActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+  this->ResultActor->GetProperty()->SetColor(RESULT_SPHERE_COLOUR);
 
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -459,6 +460,8 @@ PlusStatus vtkImageVisualizer::SetResultOpacity(double aOpacity)
 
 void vtkImageVisualizer::SetInput( vtkSmartPointer<vtkImageData> aImage )
 {
+  LOG_TRACE("vtkImageVisualizer::SetInput");
+
   this->GetImageActor()->SetInput(aImage);
 }
 
@@ -466,6 +469,8 @@ void vtkImageVisualizer::SetInput( vtkSmartPointer<vtkImageData> aImage )
 
 PlusStatus vtkImageVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataCollector> aCollector )
 {
+  LOG_TRACE("vtkImageVisualizer::InitializeDataCollector");
+
   if( aCollector != NULL )
   {
     // Store a reference to the data collector
@@ -487,6 +492,8 @@ PlusStatus vtkImageVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataC
 
 PlusStatus vtkImageVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPolyData> aResultPolyData )
 {
+  LOG_TRACE("vtkImageVisualizer::InitializeResultPolyData");
+
   if( aResultPolyData != NULL )
   {
     // Result points poly data
@@ -502,11 +509,13 @@ PlusStatus vtkImageVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPoly
 
 PlusStatus vtkImageVisualizer::AddScreenAlignedProp( vtkSmartPointer<vtkProp3D> aProp )
 {
+  LOG_TRACE("vtkImageVisualizer::AddScreenAlignedProp");
+
   // Store the prop for later manipulation
   ScreenAlignedProps.push_back(aProp);
 
   // Store the original position of the prop
-  std::vector<int> pos;
+  std::vector<double> pos;
   pos.push_back(aProp->GetPosition()[0]);
   pos.push_back(aProp->GetPosition()[1]);
   pos.push_back(aProp->GetPosition()[2]);
@@ -522,10 +531,11 @@ PlusStatus vtkImageVisualizer::AddScreenAlignedProp( vtkSmartPointer<vtkProp3D> 
 
 PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
 {
+  LOG_TRACE("vtkImageVisualizer::ClearScreenAlignedActorList");
+
   for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it )
   {
     this->GetCanvasRenderer()->RemoveActor(*it);
-    (*it)->Delete();
   }
 
   ScreenAlignedPropOriginalPosition.clear();
@@ -538,6 +548,8 @@ PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
 
 PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
 {
+  LOG_TRACE("vtkImageVisualizer::UpdateScreenAlignedActors");
+
   int dimensions[2];
   if( this->DataCollector == NULL )
   {
@@ -572,33 +584,25 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
       switch(CurrentMarkerOrientation)
       {
       case US_IMG_ORIENT_MF:
-        ScreenAlignedCurrentXRotation = 0;
-        ScreenAlignedCurrentYRotation = 0;
         newPosition[0] = originalPosition[0];
         newPosition[1] = originalPosition[1];
         newPosition[2] = originalPosition[2];
         break;
       case US_IMG_ORIENT_MN:
-        ScreenAlignedCurrentYRotation = 0;
         prop->RotateX(180);
-        ScreenAlignedCurrentXRotation = 180;
         newPosition[0] = originalPosition[0];
         newPosition[1] = dimensions[1] - originalPosition[1];
         newPosition[2] = -originalPosition[2];
         break;
       case US_IMG_ORIENT_UN:
         prop->RotateX(180);
-        ScreenAlignedCurrentXRotation = 180.0;
         prop->RotateY(180);
-        ScreenAlignedCurrentYRotation = 180.0;
         newPosition[0] = dimensions[0] - originalPosition[0];
         newPosition[1] = dimensions[1] - originalPosition[1];
         newPosition[2] = originalPosition[2];
         break;
       case US_IMG_ORIENT_UF:
         prop->RotateY(180);
-        ScreenAlignedCurrentYRotation = 180.0;
-        ScreenAlignedCurrentXRotation = 0;
         newPosition[0] = dimensions[0] - originalPosition[0];
         newPosition[1] = originalPosition[1];
         newPosition[2] = -originalPosition[2];
@@ -609,6 +613,27 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     }
   }
 
+  // Now update the member variables so that future rotations correctly undo the current rotations
+  switch(CurrentMarkerOrientation)
+  {
+  case US_IMG_ORIENT_MF:
+    ScreenAlignedCurrentXRotation = 0;
+    ScreenAlignedCurrentYRotation = 0;
+    break;
+  case US_IMG_ORIENT_MN:
+    ScreenAlignedCurrentYRotation = 0;
+    ScreenAlignedCurrentXRotation = 180;
+    break;
+  case US_IMG_ORIENT_UN:
+    ScreenAlignedCurrentXRotation = 180.0;
+    ScreenAlignedCurrentYRotation = 180.0;
+    break;
+  case US_IMG_ORIENT_UF:
+    ScreenAlignedCurrentYRotation = 180.0;
+    ScreenAlignedCurrentXRotation = 0;
+    break;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -616,6 +641,8 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
 
 PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
+  LOG_TRACE("vtkImageVisualizer::ReadConfiguration");
+
   // Rendering section
   vtkXMLDataElement* xmlElement = aConfig->FindNestedElementWithName("Rendering"); 
 
@@ -669,6 +696,14 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
     LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
   }
 
+  if( InitializeWireLabelVisualization(aConfig) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to initialize wire label visualization.");
+    return PLUS_FAIL;
+  }
+
+  this->EnableWireLabels(false);
+
   return PLUS_SUCCESS;
 }
 
@@ -676,6 +711,8 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 
 PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
 {
+  LOG_TRACE("vtkImageVisualizer::SetROIBounds");
+
   if (xMin > 0) {
     RegionOfInterest[0] = xMin;
   }
@@ -712,6 +749,8 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
 
 PlusStatus vtkImageVisualizer::InitializeROIVisualization()
 {
+  LOG_TRACE("vtkImageVisualizer::InitializeROIVisualization");
+
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetROIActorAssembly(assembly);
 
@@ -758,12 +797,167 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
 
 PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 {
+  LOG_TRACE("vtkImageVisualizer::EnableROI");
+
   if (aEnable) {
     ROIActorAssembly->VisibilityOn();
   } 
   else {
     ROIActorAssembly->VisibilityOff();
   }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::EnableWireLabels( bool aEnable )
+{
+  LOG_TRACE("vtkImageVisualizer::EnableWireLabels");
+
+  for( std::vector<vtkTextActor3D*>::iterator it = WireActors.begin(); it != WireActors.end(); ++it )
+  {
+    if (aEnable) 
+    {
+      (*it)->VisibilityOn();
+    } 
+    else 
+    {
+      (*it)->VisibilityOff();
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("vtkImageVisualizer::InitializeWireLabelVisualization");
+
+  // Load phantom definition
+  vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
+  if (phantomDefinition == NULL)
+  {
+    LOG_ERROR("No phantom definition is found in the XML tree!");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    // Load geometry
+    vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+    if (geometry == NULL) 
+    {
+      LOG_ERROR("Phantom geometry information not found!");
+      return PLUS_FAIL;
+    } 
+    else 
+    {
+      // Finding of Patterns and extracting the endpoints
+      int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
+      for (int i=0; i<numberOfGeometryChildren; ++i) 
+      {
+        vtkXMLDataElement* patternElement = geometry->GetNestedElement(i);
+
+        if ((patternElement == NULL) || (STRCASECMP("Pattern", patternElement->GetName()))) 
+        {
+          continue;
+        }
+
+        int numberOfWires = patternElement->GetNumberOfNestedElements();
+
+        if ((numberOfWires != 3) && !(STRCASECMP("NWire", patternElement->GetAttribute("Type")))) 
+        {
+          LOG_WARNING("NWire contains unexpected number of wires - skipped");
+          return PLUS_FAIL;
+        }
+
+        for (int j=0; j<numberOfWires; ++j) 
+        {
+          vtkXMLDataElement* wireElement = patternElement->GetNestedElement(j);
+
+          if (wireElement == NULL) 
+          {
+            LOG_WARNING("Invalid Wire description in Pattern - skipped");
+            return PLUS_FAIL;
+          }
+
+          const char* wireName =  wireElement->GetAttribute("Name"); 
+          if ( wireName == NULL )
+          {
+            LOG_ERROR("Wire with no name in definition.");
+            return PLUS_FAIL;
+          }
+
+          // Since the internal orientation is always MF, display the indicators for MF in all cases
+          vtkSmartPointer<vtkTextActor3D> textActor = vtkSmartPointer<vtkTextActor3D>::New();
+          textActor->GetTextProperty()->SetColor(RESULT_SPHERE_COLOUR);
+          textActor->GetTextProperty()->SetFontFamilyToArial();
+          textActor->GetTextProperty()->SetFontSize(16);
+          textActor->GetTextProperty()->SetJustificationToLeft();
+          textActor->GetTextProperty()->SetVerticalJustificationToTop();
+          textActor->GetTextProperty()->BoldOn(); 
+          textActor->SetInput(wireName);
+          textActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0);
+          WireActors.push_back(textActor);
+          textActor->SetPosition(0.0, 0.0, -1.0);
+          this->AddScreenAlignedProp(textActor);
+        }
+      }
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
+{
+  LOG_TRACE("vtkImageViewer::SetWireLabelPositions");
+
+  if( aPointList == NULL )
+  {
+    this->EnableWireLabels(false);
+    LOG_ERROR("Null point list sent to wire label visualization.");
+    return PLUS_FAIL;
+  }
+
+  if( aPointList->GetNumberOfPoints() != WireActors.size() )
+  {
+    this->EnableWireLabels(false);
+    LOG_ERROR("Number of candidates does not match the number of wire labels.");
+    return PLUS_FAIL;
+  }
+
+  for( int i = 0; i < aPointList->GetNumberOfPoints(); ++i )
+  {
+    double* coords = aPointList->GetPoint(i);
+    vtkTextActor3D* actor = WireActors.at(i);
+    actor->SetPosition(coords[0] - 10.0, coords[1] - 10.0, actor->GetPosition()[2]);
+
+    // Since we would like the screen aligned prop system to manage the orientation of these for us,
+    // We must update the "original position" of the prop so that the system can use the latest position of the
+    // wire labels
+    int j = 0;
+    for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it )
+    {
+      vtkSmartPointer<vtkProp3D> propsmrtptr = (*it);
+      vtkProp3D * propptr = propsmrtptr;
+      vtkTextActor3D* ptr = dynamic_cast<vtkTextActor3D*>(propptr);
+      if( ptr != NULL && ptr == actor )
+      {
+        std::vector<double> origCoords = ScreenAlignedPropOriginalPosition[j];
+        origCoords[0] = coords[0];
+        origCoords[1] = coords[1];
+        ScreenAlignedPropOriginalPosition[j] = origCoords;
+        break;
+      }
+      ++j;
+    }
+  }
+  this->EnableWireLabels(true);
 
   return PLUS_SUCCESS;
 }
