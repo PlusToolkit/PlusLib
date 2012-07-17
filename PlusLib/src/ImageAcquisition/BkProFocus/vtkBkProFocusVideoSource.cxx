@@ -171,6 +171,11 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 {
+
+  
+
+  this->Internal->BKAcqSapera.Destroy();
+
   this->Internal->BKAcqInjector.RemoveDataReceiver(&this->Internal->PlusReceiver);
 
   if (this->ShowBModeWindow)
@@ -182,8 +187,6 @@ PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
   {
     this->Internal->BKAcqInjector.RemoveDataReceiver(this->Internal->pBKSaperaView);
   }
-
-  this->Internal->BKAcqSapera.Destroy();
 
   delete this->Internal->pBKSaperaView;
   this->Internal->pBKSaperaView=NULL;
@@ -206,11 +209,14 @@ PlusStatus vtkBkProFocusVideoSource::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 {
+  /*
+  Sleep(500);
   if (!this->Internal->BKAcqSapera.StopGrabbing())
   {
     LOG_ERROR("Failed to start grabbing");
     return PLUS_FAIL;
   }
+  */
   return PLUS_SUCCESS;
 }
 
