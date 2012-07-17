@@ -1,0 +1,194 @@
+<PlusConfiguration version="1.4">
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet Name="2N Wire Phantom Distance(15mm)_SPIE" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus.">
+      
+    </DeviceSet>
+    <Tracker Type="Ascension3DG" BufferSize="500" Frequency="50" LocalTimeOffset="0.0" AveragedItemsForFiltering="20">
+      <Tool Name="Probe" PortName="0"></Tool>
+      <Tool Name="Reference" PortName="1"></Tool>
+      <Tool Name="Stylus" PortName="2"></Tool>
+      
+    </Tracker>
+    <ImageAcquisition Type="SonixVideo" BufferSize="50" FrameSize="820 616" UsImageOrientation="UF" FrameRate="10" AveragedItemsForFiltering="20" LocalTimeOffset="-0.05" IP="127.0.0.1" ImagingMode="BMode" AcquisitionDataType="BPost" Depth="-1" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0">
+    </ImageAcquisition>
+    
+	<Synchronization Type="ChangeDetection" SynchronizationTimeLength="30" MinNumOfSyncSteps="5" ThresholdMultiplier="5" NumberOfAveragedTransforms="20" MinTransformThreshold="2.0" MaxTransformDifference="2.0" NumberOfAveragedFrames="6" MinFrameThreshold="200.0" MaxFrameDifference="10.0">
+    </Synchronization>
+    
+  </DataCollection>
+  
+  
+  <PlusOpenIGTLinkServer ListeningPort="18944" > 
+    <DefaultClientInfo> 
+	  <MessageTypes> 
+	    <Message Type="IMAGE" />
+		<Message Type="TRANSFORM" />
+	  </MessageTypes>
+	  <TransformNames> 
+	    <Transform Name="StylusTipToReference" /> 
+		<Transform Name="ProbeToReference" /> 
+	  </TransformNames>
+	</DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe" Matrix="0 0.084 0 12.5 -0.087 0 0 51 0 0 0.087 -4.3 0 0 0 1" Error="1" Date="022412_110829">
+    </Transform>
+    
+	<Transform From="Image" To="TransducerOriginPixel" Matrix="1 0 0 410 0 1 0 5 0 0 1 0 0 0 0 1" Date="2011.12.06 17:57:00">
+    </Transform>
+    
+	<Transform From="Phantom" To="Reference" Matrix="-0.0122295 0.0247489 -0.999619 10.661 -0.0104145 0.999636 0.0248767 -37.1121 0.999871 0.0107148 -0.0119673 -86.5167 0 0 0 1" Error="0.965947" Date="022412_105333">
+    </Transform>
+    
+	<Transform
+	  From="StylusTip"
+	  To="Stylus"
+	  Matrix="0.991434	-0.0941975	0.0904737	4.13992
+        0.0945854	0.995517	0	0.681167
+        -0.0900681	0.00855749	0.995899	-0.648635
+        0	0	0	1"
+	  Error="0.198428"
+	  Date="032012_153511">
+      
+    </Transform>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin" Matrix="0.0846002 0 0 0 0 0.0786853 0 0 0 0 0.0816826 0 0 0 0 1" Date="022412_110832">
+      
+    </Transform>
+
+  </CoordinateDefinitions>
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl" ModelToObjectTransform="         1 0 0 34.5         0 -1 0 1.5         0 0 -1 14         0 0 0 1">
+
+    
+    </DisplayableObject>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl" ModelToObjectTransform="         1 0 0 -210.0         0 1 0 0         0 0 1 0         0 0 0 1">
+
+    </DisplayableObject>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl" ModelToObjectTransform="         1 0 0 -15.0         0 1 0 10.0         0 0 1 -5.0         0 0 0 1">
+
+    
+    </DisplayableObject>
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image">
+
+    </DisplayableObject>
+
+
+  </Rendering>
+  <Segmentation ApproximateSpacingMmPerPixel="0.078" MorphologicalOpeningCircleRadiusMm="0.27" MorphologicalOpeningBarSizeMm="1" RegionOfInterest="27 27 793 589" MaxLinePairDistanceErrorPercent="10" AngleToleranceDegrees="10" MaxAngleDifferenceDegrees="10" MinThetaDegrees="-70" MaxThetaDegrees="70" ThresholdImagePercent="10" CollinearPointsMaxDistanceFromLineMm="0.6" UseOriginalImageIntensityForDotIntensityScore="0">
+
+  </Segmentation>
+  <PhantomDefinition>
+    <Description Name="fCAL" Type="Double-N" Version="1.2" WiringVersion="1.1" Institution="Queen&apos;s University PerkLab">   
+    
+    </Description>
+    <Geometry>
+     			<Pattern Type="NWire">
+				<Wire Name="1:E1_e1" EndPointFront="20.0 0.0 15.0" EndPointBack="20.0 40.0 15.0" />
+				<Wire Name="2:F1_j1" EndPointFront="25.0 0.0 15.0" EndPointBack="45.0 40.0 15.0" />
+				<Wire Name="3:K1_k1" EndPointFront="50.0 0.0 15.0" EndPointBack="50.0 40.0 15.0" />
+			</Pattern>
+			<Pattern Type="NWire">
+				<Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+				<Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+				<Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+			</Pattern>
+			
+      <Landmarks>
+        <Landmark Name="#1" Position="95.0 5.0 15.0">
+        </Landmark>
+        <Landmark Name="#2" Position="95.0 40.0 15.0">
+        </Landmark>
+        <Landmark Name="#3" Position="95.0 40.0 0.0">
+        </Landmark>
+        <Landmark Name="#4" Position="95.0 0.0 0.0">
+        </Landmark>
+        <Landmark Name="#5" Position="-25.0 40.0 15.0">
+        </Landmark>
+        <Landmark Name="#6" Position="-25.0 0.0 10.0">
+        </Landmark>
+        <Landmark Name="#7" Position="-25.0 0.0 0.0">
+        </Landmark>
+        <Landmark Name="#8" Position="-25.0 40.0 0.0">
+        </Landmark>
+ 
+      </Landmarks>
+
+    </Geometry>
+
+  </PhantomDefinition>
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off">
+
+  </VolumeReconstruction>
+  <fCal NumberOfCalibrationImagesToAcquire="200" NumberOfValidationImagesToAcquire="100" NumberOfStylusCalibrationPointsToAcquire="200" RecordingIntervalMs="100" MaxTimeSpentWithProcessingMs="70" ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" ReferenceCoordinateFrame="Reference" TransducerOriginCoordinateFrame="TransducerOrigin" TransducerOriginPixelCoordinateFrame="TransducerOriginPixel">
+
+  </fCal>
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip">
+
+  </vtkPivotCalibrationAlgo>
+  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip">
+
+  </vtkPhantomRegistrationAlgo>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference">
+
+  </vtkProbeCalibrationAlgo>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+
+
+   
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+</PlusConfiguration>
