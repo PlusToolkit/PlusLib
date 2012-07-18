@@ -570,7 +570,7 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
   if (aUseLatestTrackedFrame)
   {
-    if (this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false)
+    if (this->DataCollector == NULL || this->DataCollector->GetTrackingDataAvailable() == false)
     {
       LOG_ERROR("Data collector object is invalid or not tracking!");
       return PLUS_FAIL;

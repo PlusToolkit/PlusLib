@@ -127,7 +127,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
     // If tracking
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackingEnabled())
+    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackingDataAvailable())
     {
       // Update state message according to available transforms
       if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())

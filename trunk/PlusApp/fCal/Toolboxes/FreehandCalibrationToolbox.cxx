@@ -758,7 +758,11 @@ void FreehandCalibrationToolbox::StartTemporal()
     vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
     if (dataCollectorHardwareDevice)
     {
-      if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+      if (dataCollectorHardwareDevice->GetTracker()==NULL)
+      {
+        LOG_ERROR("No tracker device is available");
+      }
+      else if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
         && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
       {
         m_PreviousTrackerOffset = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 

@@ -378,7 +378,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository( vtkSmartPointer
       return PLUS_FAIL;
     }
 
-    if (this->DataCollector->GetTrackingEnabled() == false)
+    if (this->DataCollector->GetTrackingDataAvailable() == false)
     {
       LOG_ERROR("No tracking data is available");
       return PLUS_FAIL;

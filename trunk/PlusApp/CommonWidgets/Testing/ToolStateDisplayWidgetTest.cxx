@@ -181,7 +181,7 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 	  return PLUS_FAIL;
   }
 
-  if (m_DataCollector->GetTrackingEnabled() == false) {
+  if (m_DataCollector->GetTrackingDataAvailable() == false) {
 	  LOG_INFO("Tracking is not initialized"); 
   }
 
