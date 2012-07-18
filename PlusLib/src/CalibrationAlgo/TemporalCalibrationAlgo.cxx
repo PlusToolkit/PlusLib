@@ -423,25 +423,25 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 		}
   }
 
-	// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
-	ofstream trackerPositionsFile;
-  trackerPositionsFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\trackerPositions.txt");
-	for(long int i = 0; i < trackerPositions.size(); ++i)
-	{
-		trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
-			<< ", " << trackerPositions.at(i).GetElement(2) << std::endl;
-	}
-  trackerPositionsFile.close();
+	//// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
+	//ofstream trackerPositionsFile;
+ // trackerPositionsFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\trackerPositions.txt");
+	//for(long int i = 0; i < trackerPositions.size(); ++i)
+	//{
+	//	trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
+	//		<< ", " << trackerPositions.at(i).GetElement(2) << std::endl;
+	//}
+ // trackerPositionsFile.close();
 
   // Calculate the principal axis of motion (using PCA)
   itk::Point<double,3> principalAxisOfMotion;
   ComputePrincipalAxis(trackerPositions, principalAxisOfMotion, numberOfValidFrames);
 
-	// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
-	ofstream eigenvectorFile;
-  eigenvectorFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\eigenvector.txt");
-	eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
-  eigenvectorFile.close();
+	//// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
+	//ofstream eigenvectorFile;
+ // eigenvectorFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\eigenvector.txt");
+	//eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
+ // eigenvectorFile.close();
 
   // Compute the mean tracker poisition
   itk::Point<double, 3> meanTrackerPosition;
