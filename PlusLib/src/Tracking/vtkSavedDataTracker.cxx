@@ -25,7 +25,7 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 {
   this->SequenceMetafile = NULL; 
   this->Initialized = false;
-  this->ReplayEnabled = false; 
+  this->RepeatEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
 }
@@ -213,7 +213,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   double nextFrameTimestamp = this->LoopStartTime + elapsedTime; 
   if ( nextFrameTimestamp > latestFrameTimestamp )
   {
-    if ( this->ReplayEnabled )
+    if ( this->RepeatEnabled )
     {
       nextFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
     }
@@ -318,21 +318,21 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  const char* replayEnabled = trackerConfig->GetAttribute("ReplayEnabled"); 
-  if ( replayEnabled != NULL ) 
+  const char* repeatEnabled = trackerConfig->GetAttribute("RepeatEnabled"); 
+  if ( repeatEnabled != NULL ) 
   {
-    if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
+    if ( STRCASECMP("TRUE", repeatEnabled ) == 0 )
     {
-      this->ReplayEnabled = true; 
+      this->RepeatEnabled = true; 
     }
-    else if ( STRCASECMP("FALSE", replayEnabled ) == 0 )
+    else if ( STRCASECMP("FALSE", repeatEnabled ) == 0 )
     {
-      this->ReplayEnabled = false; 
+      this->RepeatEnabled = false; 
     }
     else
     {
-      LOG_WARNING("Unable to recognize ReplayEnabled attribute: " << replayEnabled << " - changed to false by default!"); 
-      this->ReplayEnabled = false; 
+      LOG_WARNING("Unable to recognize RepeatEnabled attribute: " << repeatEnabled << " - changed to false by default!"); 
+      this->RepeatEnabled = false; 
     }
   }
 
@@ -369,13 +369,13 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
 
   trackerConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
 
-  if (this->ReplayEnabled)
+  if (this->RepeatEnabled)
   {
-    trackerConfig->SetAttribute("ReplayEnabled", "TRUE");
+    trackerConfig->SetAttribute("RepeatEnabled", "TRUE");
   }
   else
   {
-    trackerConfig->SetAttribute("ReplayEnabled", "FALSE");
+    trackerConfig->SetAttribute("RepeatEnabled", "FALSE");
   }
 
   return PLUS_SUCCESS;

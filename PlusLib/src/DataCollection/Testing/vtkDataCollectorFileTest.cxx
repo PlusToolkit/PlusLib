@@ -90,13 +90,6 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
-  vtkDataCollectorFile* dataCollectorFile = dynamic_cast<vtkDataCollectorFile*>(dataCollector.GetPointer());
-  if ( dataCollectorFile == NULL )
-  {
-    LOG_ERROR("Failed to create the propertype of proper data collector type!");
-    return 1;
-  }
-
   dataCollector->ReadConfiguration( configRootElement );
 
   LOG_DEBUG( "Initializing data collector... " );
@@ -119,6 +112,8 @@ int main( int argc, char** argv )
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
 
   PlusStatus compareStatus=PLUS_SUCCESS;
+
+  Sleep(5000); // wait for 5s until the frames are acquired into the buffer
 
   // Check some transforms to ensure that the correct data is returned by the data collector
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
@@ -154,7 +149,7 @@ int main( int argc, char** argv )
   }
 
   // Frame 0013
-  dataCollector->GetTrackedFrameByTime(222.3, &trackedFrame);
+  dataCollector->GetTrackedFrameByTime(222.619279, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)

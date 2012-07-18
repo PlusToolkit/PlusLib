@@ -46,12 +46,15 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->CurrentVideoBufferItem = new VideoBufferItem();
   this->Buffer = vtkVideoBuffer::New();
 
+  SetFrameBufferSize(50);
+
   this->UpdateWithDesiredTimestamp = 0;
   this->DesiredTimestamp = -1;
   this->TimestampClosestToDesired = -1;
 
   this->SetNumberOfInputPorts(0);
 
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
   this->DeviceImageOrientation = US_IMG_ORIENT_XX; 
 }
 
@@ -553,7 +556,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    LOG_WARNING("Unable to find ImageAcquisition AveragedItemsForFiltering attribute in configuration file!");
+    LOG_DEBUG("Unable to find ImageAcquisition AveragedItemsForFiltering attribute in configuration file. Using default value.");
   }
 
   double localTimeOffsetSec = 0;
@@ -575,8 +578,10 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    LOG_WARNING("Ultrasound image orientation is not defined in the configuration file - please set UsImageOrientation in the video source configuration");
-    this->SetDeviceImageOrientation(US_IMG_ORIENT_XX);
+    if (this->RequireDeviceImageOrientationInDeviceSetConfiguration)
+    {
+      LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - please set UsImageOrientation in the video source configuration");
+    }
   }
 
   return PLUS_SUCCESS;

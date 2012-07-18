@@ -392,6 +392,18 @@ ItemStatus vtkVideoBuffer::GetIndex( BufferItemUidType uid, unsigned long& index
 }
 
 //----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid )
+{
+  return this->VideoBuffer->GetItemUidFromBufferIndex(bufferIndex, uid); 
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex )
+{
+  return this->VideoBuffer->GetBufferIndexFromTime(time, bufferIndex);
+}
+
+//----------------------------------------------------------------------------
 void vtkVideoBuffer::SetAveragedItemsForFiltering( int averagedItemsForFiltering)
 {
   this->VideoBuffer->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
@@ -564,7 +576,7 @@ int vtkVideoBuffer::GetNumberOfBytesPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering)
+PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
 {
   int numberOfErrors=0;
 
@@ -606,6 +618,23 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
   LOG_INFO("Copy buffer to video buffer..."); 
   for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
   {
+    VideoBufferItem::FieldMapType customFields;
+    if (copyCustomFrameFields)
+    {
+      // Copy all custom fields
+      VideoBufferItem::FieldMapType sourceCustomFields = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFields();
+      VideoBufferItem::FieldMapType::iterator fieldIterator;
+      for (fieldIterator = sourceCustomFields.begin(); fieldIterator != sourceCustomFields.end(); fieldIterator++)
+      {
+        // skip special fields
+        if (fieldIterator->first.compare("TimeStamp")==0) { continue; }
+        if (fieldIterator->first.compare("UnfilteredTimestamp")==0) { continue; }
+        if (fieldIterator->first.compare("FrameNumber")==0) { continue; }
+        // add custom field       
+        customFields[fieldIterator->first]=fieldIterator->second;
+      } 
+    }
+
     // read filtered timestamp
     double timestamp(0); 
     const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
@@ -661,24 +690,24 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
       LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
-    }
-    
+    }   
+
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, timestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, timestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
@@ -686,7 +715,6 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
     default:
       break;
     }
-
   }
 
   return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );

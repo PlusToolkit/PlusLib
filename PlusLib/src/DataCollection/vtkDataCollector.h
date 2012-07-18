@@ -111,6 +111,12 @@ public:
   /*! Get the Video only flag */
   vtkGetMacro(VideoEnabled,bool);
 
+  /*!
+    Check if tracking data is available. It may come from any device, therefore tracking data may be
+    available even when a dedicated tracking device is not available.
+  */
+  bool GetTrackingDataAvailable();
+
 protected:
   /*! Set the Connected flag  */
   vtkSetMacro(Connected,bool);  

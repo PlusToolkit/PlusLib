@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   std::string inputTransformName; 
-  bool inputReplay(false); 
+  bool inputRepeat(false); 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Name of the transform displayed.");
   
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
+  args.AddArgument("--repeat", vtksys::CommandLineArguments::NO_ARGUMENT, &inputRepeat, "Repeat tracked frames after reached the latest one." );
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
       exit( EXIT_FAILURE );
     }
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
-    videoSource->SetReplayEnabled(inputReplay); 
+    videoSource->SetRepeatEnabled(inputRepeat); 
   }
 
   if ( ! inputTrackerBufferMetafile.empty() )
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
       exit( EXIT_FAILURE );
     }
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
-    tracker->SetReplayEnabled(inputReplay); 
+    tracker->SetRepeatEnabled(inputRepeat); 
   }
 
   if ( dataCollectorHardwareDevice->Connect() != PLUS_SUCCESS )

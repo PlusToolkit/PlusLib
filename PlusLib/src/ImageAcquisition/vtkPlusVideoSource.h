@@ -277,6 +277,12 @@ protected:
 
   US_IMAGE_ORIENTATION DeviceImageOrientation; 
 
+  /*! 
+    For most of the devices it is mandatory to define the device image orientation.
+    Use this flag to allow video sources to make the device image orientation definition optional.
+  */
+  bool RequireDeviceImageOrientationInDeviceSetConfiguration;
+
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.
   void operator=(const vtkPlusVideoSource&);  // Not implemented.

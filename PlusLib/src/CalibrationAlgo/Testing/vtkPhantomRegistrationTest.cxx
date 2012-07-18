@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to start data collection!");
     exit(EXIT_FAILURE);
   }
-  if (dataCollector->GetTrackingEnabled() == false) {
+  if (dataCollector->GetTrackingDataAvailable() == false) {
     LOG_ERROR("Data collector is not tracking!");
     exit(EXIT_FAILURE);
   }

@@ -135,6 +135,14 @@ protected:
   */
   virtual PlusStatus SetLoopTimes(); 
 
+  /*!
+    Helper function to find out the Tracker system reference frame name from the transform names
+    stored in the latest tracked frame. Actually the method looks for a common "To" reference frame name,
+    as normally the transform names are ImageToTracker, ReferenceToTracker, etc. and returns
+    that common reference frame name ("Tracker").
+  */
+  PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);
+
 protected:
   vtkDataCollectorHardwareDevice();
   virtual ~vtkDataCollectorHardwareDevice();
