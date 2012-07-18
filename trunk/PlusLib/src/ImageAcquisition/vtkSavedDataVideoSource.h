@@ -45,11 +45,11 @@ public:
   /*! Get loop time /sa LoopTime */
 	vtkGetMacro(LoopTime, double); 
 
-	/*! Set flag to to enable saved dataset reply /sa ReplayEnabled */
-	vtkGetMacro(ReplayEnabled, bool);
-	/*! Get flag to to enable saved dataset reply /sa ReplayEnabled */
-	vtkSetMacro(ReplayEnabled, bool);
-	vtkBooleanMacro(ReplayEnabled, bool);
+	/*! Set flag to to enable saved dataset reply /sa RepeatEnabled */
+	vtkGetMacro(RepeatEnabled, bool);
+	/*! Get flag to to enable saved dataset reply /sa RepeatEnabled */
+	vtkSetMacro(RepeatEnabled, bool);
+	vtkBooleanMacro(RepeatEnabled, bool);
 
   /*! Get local video buffer */
   vtkGetObjectMacro(LocalVideoBuffer, vtkVideoBuffer); 
@@ -76,8 +76,8 @@ protected:
   /*! Name of input sequence metafile */
 	char* SequenceMetafile;
 
-	/*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
-	bool ReplayEnabled; 
+	/*! Flag to to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). */
+	bool RepeatEnabled; 
 
   /*! Loop start time
       ItemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
@@ -89,8 +89,20 @@ protected:
   */
   double LoopTime; 
 
-  /*! Local viceo buffer */
+  /*! Local video buffer */
 	vtkVideoBuffer* LocalVideoBuffer; 
+
+  /*! Read all the frame fields from the file and provide them in the output */
+  bool UseAllFrameFields;
+  
+  /*! Read the timestamps from the file and use provide them in the output (instead of the current time) */
+  bool UseOriginalTimestamps;
+
+  /*! Time of the last added frame (in the local buffer time coordinate frame) */
+  double LastAddedFrameTimestamp;
+
+  /*! Index of the loop when the last frame was added. Used for making sure we add each frame only once in one loop period. */
+  int LastAddedFrameLoopIndex;
 
 private:
 	static vtkSavedDataVideoSource* Instance;

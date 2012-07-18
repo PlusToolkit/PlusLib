@@ -208,3 +208,24 @@ void vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
   aDim[0]=this->BrightnessFrameSize[0];
   aDim[1]=this->BrightnessFrameSize[1];
 }
+
+bool vtkDataCollector::GetTrackingDataAvailable()
+{
+  TrackedFrame trackedFrame;
+  if (this->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine if tracking data is available, because failed to get tracked frame");
+    return false;
+  }
+
+  std::vector<PlusTransformName> transformNames;
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  if (transformNames.size() == 0)
+  {
+    LOG_DEBUG("No transforms found in tracked frame");
+    return false;
+  }
+
+  // there are transforms in the tracked frame
+  return true;
+}

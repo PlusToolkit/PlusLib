@@ -15,7 +15,7 @@
       LocalTimeOffsetSec="0.12" 
       SequenceMetafile="AllSegmentablefCal.mha"
       UsImageOrientation="MF"
-      ReplayEnabled="TRUE"
+      LoopEnabled="TRUE"
       SpeedThresholdPositionMm="10.0"
       SpeedThresholdOrientationAngle="15.0"
     />

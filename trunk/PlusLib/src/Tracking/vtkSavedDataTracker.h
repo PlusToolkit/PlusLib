@@ -63,14 +63,14 @@ public:
   /*! Get loop time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
 	vtkGetMacro(LoopTime, double); 
 
-	/*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
-	vtkGetMacro(ReplayEnabled, bool);
+	/*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
+	vtkGetMacro(RepeatEnabled, bool);
   
-  /*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
-	vtkSetMacro(ReplayEnabled, bool);
+  /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
+	vtkSetMacro(RepeatEnabled, bool);
 
-  /*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
-	vtkBooleanMacro(ReplayEnabled, bool);
+  /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
+	vtkBooleanMacro(RepeatEnabled, bool);
 
   /*! Get local tracker buffer */
   vtkTrackerBuffer* GetLocalTrackerBuffer(); 
@@ -90,8 +90,8 @@ protected:
   /*! Sequence metafile name */
 	char* SequenceMetafile; 
 
-  /*! Flag to enable saved dataset replay */
-	bool ReplayEnabled; 
+  /*! Flag to enable saved dataset repeat */
+	bool RepeatEnabled; 
 
   /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
   std::map<std::string, vtkTrackerBuffer*> LocalTrackerBuffers; 

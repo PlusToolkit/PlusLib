@@ -6,7 +6,14 @@
       Description="Data collector in file mode providing sequence for freehand calibration" 
     />
 
-    <File SequenceMetafile="fCal_Test_Calibration_3NWires.mha" ReplayEnabled="TRUE" />
+    <ImageAcquisition
+      Type="SavedDataset"
+      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+      UseAllFrameFields="TRUE"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      />
+      
   </DataCollection>
 
 

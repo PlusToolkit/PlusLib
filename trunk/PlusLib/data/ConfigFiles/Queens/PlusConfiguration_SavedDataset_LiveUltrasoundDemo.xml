@@ -9,7 +9,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 
     <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
         SequenceMetafile=""
-        ReplayEnabled="TRUE"
+        LoopEnabled="TRUE"
     >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" />
       <Tool Name="Reference" PortName="1" />
@@ -23,7 +23,7 @@ The desired file name with path needs to be added to this XML file as values Seq
       LocalTimeOffsetSec="-0.1908" 
       SequenceMetafile=""
       UsImageOrientation="MF"
-      ReplayEnabled="TRUE"
+      LoopEnabled="TRUE"
     />
     
   </DataCollection>

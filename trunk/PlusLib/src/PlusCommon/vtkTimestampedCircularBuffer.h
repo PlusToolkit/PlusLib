@@ -87,7 +87,7 @@ public:
     }
     return NULL; 
   }
-  /*! Gete custom frame field map */
+  /*! Get custom frame field map */
   FieldMapType& GetCustomFrameFieldMap()
   {
     return this->CustomFrameFields;

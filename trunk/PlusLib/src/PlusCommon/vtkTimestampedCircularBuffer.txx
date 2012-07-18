@@ -104,7 +104,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
 	newFrameUid = ++this->LatestItemUid; 
 	bufferIndex = this->WritePointer; 
 	this->CurrentTimeStamp = timestamp; 
-	
+
 	this->NumberOfItems++;
 	if (this->NumberOfItems > this->GetBufferSize())
 	{

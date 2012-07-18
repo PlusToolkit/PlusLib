@@ -22,10 +22,15 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->FrameBufferRowAlignment = 1;
   this->LocalVideoBuffer = NULL;
   this->SequenceMetafile = NULL; 
-  this->ReplayEnabled = false; 
+  this->RepeatEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
   this->SpawnThreadForRecording = true;
+  this->UseAllFrameFields = false;
+  this->UseOriginalTimestamps = false;
+  this->LastAddedFrameTimestamp=0;
+  this->LastAddedFrameLoopIndex=0;
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
 }
 
 //----------------------------------------------------------------------------
@@ -65,44 +70,115 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   }
 
   // Compute the next timestamp 
-  double nextFrameTimestamp = this->LoopStartTime + elapsedTime; 
-  if ( nextFrameTimestamp > latestFrameTimestamp )
+  double currentFrameTimestamp = this->LoopStartTime + elapsedTime; 
+  int currentFrameLoopIndex=0;
+  if ( currentFrameTimestamp > latestFrameTimestamp )
   {
-    if ( this->ReplayEnabled )
+    if ( this->RepeatEnabled )
     {
-      nextFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
+      currentFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
+      currentFrameLoopIndex=floor(elapsedTime/this->LoopTime); // how many loops have we completed so far?
     }
     else
     {
       // Use the latest frame always
-      nextFrameTimestamp = latestFrameTimestamp; 
+      currentFrameTimestamp = latestFrameTimestamp; 
     }
   }
 
-  VideoBufferItem nextVideoBufferItem; 
-  ItemStatus nextItemStatus = this->LocalVideoBuffer->GetVideoBufferItemFromTime( nextFrameTimestamp, &nextVideoBufferItem); 
-  if ( nextItemStatus != ITEM_OK )
+  BufferItemUidType currentFrameUid=0;
+  this->LocalVideoBuffer->GetItemUidFromTime(currentFrameTimestamp,currentFrameUid);
+  if (currentFrameTimestamp<=this->LastAddedFrameTimestamp && currentFrameLoopIndex<=this->LastAddedFrameLoopIndex)
   {
-    if ( nextItemStatus == ITEM_NOT_AVAILABLE_YET )
-    {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time - frame not available yet !");
-    }
-    else if ( nextItemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
-    {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time - frame not available anymore !");
-    }
-    else
-    {
-      LOG_ERROR("vtkSavedDataVideoSource: Unable to get next item from local buffer from time!");
-    }
-    return PLUS_FAIL; 
+    // this frame has been already added in this period, so nothing new to grab now
+    return PLUS_SUCCESS;
   }
 
-  // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
-  // For simplicity, we increase it always by 1.
-  this->FrameNumber++;
+  // Get first and last frame index to be added
+  unsigned long bufferIndexOfFirstFrameToBeAdded=0;
+  if (this->Buffer->GetNumberOfItems()>0)
+  {
+    // frames have been added already
+    int bufferIndexOfLastAddedFrame = 0;  
+    if (this->LocalVideoBuffer->GetBufferIndexFromTime(this->LastAddedFrameTimestamp, bufferIndexOfLastAddedFrame) != ITEM_OK)
+    {
+      LOG_ERROR("Unable to find the latest added frame, the local buffer is corrupted " << this->LastAddedFrameTimestamp);
+      return PLUS_FAIL;
+    }
+    bufferIndexOfFirstFrameToBeAdded=bufferIndexOfLastAddedFrame+1;
+    if (bufferIndexOfFirstFrameToBeAdded>=this->LocalVideoBuffer->GetNumberOfItems())
+    {
+      bufferIndexOfFirstFrameToBeAdded=0;
+    }
+  }
+  int bufferIndexOfLastFrameToBeAdded=0;
+  if (this->LocalVideoBuffer->GetBufferIndexFromTime(currentFrameTimestamp, bufferIndexOfLastFrameToBeAdded) != ITEM_OK)
+  {
+    LOG_ERROR("Unable to find the latest added frame, the local buffer is corrupted " << currentFrameUid);
+    return PLUS_FAIL;
+  }
 
-  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->FrameNumber); 
+  int numberOfFramesToBeAdded=(bufferIndexOfLastFrameToBeAdded-bufferIndexOfFirstFrameToBeAdded+1)+
+    (currentFrameLoopIndex-this->LastAddedFrameLoopIndex)*this->LocalVideoBuffer->GetNumberOfItems();
+ 
+  PlusStatus status=PLUS_SUCCESS;
+
+  // add at least one frame
+  int bufferIndexOfFrameToBeAdded=bufferIndexOfFirstFrameToBeAdded;
+  int loopIndexOfFrameToBeAdded=this->LastAddedFrameLoopIndex;
+  for (int addedFrames=0; addedFrames<numberOfFramesToBeAdded; addedFrames++)
+  {
+
+    // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
+    // For simplicity, we increase it always by 1.
+    this->FrameNumber++;
+       
+    BufferItemUidType uidOfFrameToBeAdded=-1;
+    if (this->LocalVideoBuffer->GetItemUidFromBufferIndex(bufferIndexOfFrameToBeAdded, uidOfFrameToBeAdded)!=ITEM_OK)
+    {
+      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
+      status=PLUS_FAIL;
+      continue;
+    }
+    VideoBufferItem videoBufferItemToBeAdded; 
+    if (this->LocalVideoBuffer->GetVideoBufferItem( uidOfFrameToBeAdded, &videoBufferItemToBeAdded) != ITEM_OK )
+    {
+      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
+      status=PLUS_FAIL;
+      continue;
+    }
+
+    double filteredTimestamp=UNDEFINED_TIMESTAMP;
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP;
+    if (this->UseOriginalTimestamps)
+    {    
+      // Read the timestamp without any local time offset. Offset will be applied when it is copied to the video buffer.
+      filteredTimestamp=videoBufferItemToBeAdded.GetFilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;
+      unfilteredTimestamp=videoBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;    
+    }
+
+    VideoBufferItem::FieldMapType fieldMap;
+    if (this->UseAllFrameFields)
+    {
+      fieldMap = videoBufferItemToBeAdded.GetCustomFrameFieldMap();    
+    }
+
+    if (this->Buffer->AddItem(&(videoBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+    {
+      status=PLUS_FAIL;
+    }  
+
+    bufferIndexOfFrameToBeAdded++;
+    if (bufferIndexOfFrameToBeAdded>=this->LocalVideoBuffer->GetNumberOfItems())
+    {
+      bufferIndexOfFrameToBeAdded=0;
+      loopIndexOfFrameToBeAdded++;
+    }
+  }
+
+  this->LastAddedFrameTimestamp=currentFrameTimestamp;
+  this->LastAddedFrameLoopIndex=currentFrameLoopIndex;
+
   this->Modified();
   return status;
 }
@@ -138,12 +214,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     return PLUS_FAIL; 
   }
 
-  // Set buffer size 
-  if ( this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size"); 
-    return PLUS_FAIL; 
-  }
+  // Set buffer parameters based on the input tracked frame list
   if ( this->Buffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer image type"); 
@@ -176,8 +247,11 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   this->LocalVideoBuffer->DeepCopy( this->Buffer );
 
   // Fill local video buffer
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS); 
+
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
+
+  this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);
 
   this->Buffer->Clear();
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
@@ -189,6 +263,11 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataVideoSource::InternalDisconnect()
 {
+  if ( this->LocalVideoBuffer != NULL )
+  {
+    this->LocalVideoBuffer->Delete(); 
+    this->LocalVideoBuffer = NULL; 
+  }
   return PLUS_SUCCESS;
 }
 
@@ -234,21 +313,57 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  const char* replayEnabled = imageAcquisitionConfig->GetAttribute("ReplayEnabled"); 
-  if ( replayEnabled != NULL ) 
+  const char* repeatEnabled = imageAcquisitionConfig->GetAttribute("RepeatEnabled"); 
+  if ( repeatEnabled != NULL ) 
   {
-    if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
+    if ( STRCASECMP("TRUE", repeatEnabled ) == 0 )
     {
-      this->ReplayEnabled = true; 
+      this->RepeatEnabled = true; 
     }
-    else if ( STRCASECMP("FALSE", replayEnabled ) == 0 )
+    else if ( STRCASECMP("FALSE", repeatEnabled ) == 0 )
     {
-      this->ReplayEnabled = false; 
+      this->RepeatEnabled = false; 
     }
     else
     {
-      LOG_WARNING("Unable to recognize ReplayEnabled attribute: " << replayEnabled << " - changed to false by default!"); 
-      this->ReplayEnabled = false; 
+      LOG_WARNING("Unable to recognize RepeatEnabled attribute: " << repeatEnabled << " - changed to false by default!"); 
+      this->RepeatEnabled = false; 
+    }
+  }
+
+  const char* useAllFrameFields = imageAcquisitionConfig->GetAttribute("UseAllFrameFields"); 
+  if ( useAllFrameFields != NULL ) 
+  {
+    if ( STRCASECMP("TRUE", useAllFrameFields ) == 0 )
+    {
+      this->UseAllFrameFields = true; 
+    }
+    else if ( STRCASECMP("FALSE", useAllFrameFields ) == 0 )
+    {
+      this->UseAllFrameFields = false; 
+    }
+    else
+    {
+      LOG_WARNING("Unable to recognize UseAllFrameFields attribute: " << useAllFrameFields << " - changed to false by default!"); 
+      this->UseAllFrameFields = false; 
+    }
+  }
+
+  const char* useOriginalTimestamps = imageAcquisitionConfig->GetAttribute("UseOriginalTimestamps"); 
+  if ( useOriginalTimestamps != NULL ) 
+  {
+    if ( STRCASECMP("TRUE", useOriginalTimestamps ) == 0 )
+    {
+      this->UseOriginalTimestamps = true; 
+    }
+    else if ( STRCASECMP("FALSE", useOriginalTimestamps ) == 0 )
+    {
+      this->UseOriginalTimestamps = false; 
+    }
+    else
+    {
+      LOG_WARNING("Unable to recognize UseOriginalTimestamps attribute: " << useOriginalTimestamps << " - changed to false by default!"); 
+      this->UseOriginalTimestamps = false; 
     }
   }
 
@@ -285,15 +400,91 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
 
   imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
 
-  if (this->ReplayEnabled)
+  if (this->RepeatEnabled)
   {
-    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "TRUE");
+    imageAcquisitionConfig->SetAttribute("RepeatEnabled", "TRUE");
   }
   else
   {
-    imageAcquisitionConfig->SetAttribute("ReplayEnabled", "FALSE");
+    imageAcquisitionConfig->SetAttribute("RepeatEnabled", "FALSE");
+  }
+
+  if (this->UseAllFrameFields)
+  {
+    imageAcquisitionConfig->SetAttribute("UseAllFrameFields", "TRUE");
+  }
+  else
+  {
+    imageAcquisitionConfig->SetAttribute("UseAllFrameFields", "FALSE");
+  }
+
+  if (this->UseOriginalTimestamps)
+  {
+    imageAcquisitionConfig->SetAttribute("UseOriginalTimestamps", "TRUE");
+  }
+  else
+  {
+    imageAcquisitionConfig->SetAttribute("UseOriginalTimestamps", "FALSE");
   }
 
   return PLUS_SUCCESS;
 }
 
+
+
+
+
+
+/*
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollectorFile::GetFrameRate(double &aFrameRate)
+{
+  LOG_TRACE("vtkDataCollectorFile::GetFrameRate");
+
+  if (this->Connected == false)
+  {
+    LOG_ERROR("Data collector is not connected!");
+    return PLUS_FAIL;
+  }
+
+  double loopTime = this->LastTimestamp - this->FirstTimestamp;
+
+  aFrameRate = (double)this->TrackedFrameBuffer->GetNumberOfTrackedFrames() / loopTime;
+
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollectorFile::GetCurrentFrameTimestamp(double &aTimestamp)
+{
+  //LOG_TRACE("vtkDataCollectorFile::GetCurrentFrameTimestamp");
+
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->StartTime;
+
+  double nextFrameTimestamp = this->FirstTimestamp + elapsedTime; 
+  if ( nextFrameTimestamp > this->LastTimestamp )
+  {
+    if ( this->ReplayEnabled )
+    {
+      double loopTime = this->LastTimestamp - this->FirstTimestamp;
+      if (loopTime < 0.001)
+      {
+        return PLUS_FAIL;
+      }
+      nextFrameTimestamp = this->FirstTimestamp + fmod(elapsedTime, loopTime); 
+    }
+    else
+    {
+      nextFrameTimestamp = this->LastTimestamp; 
+    }
+  }
+
+  aTimestamp = nextFrameTimestamp;
+
+  return PLUS_SUCCESS;
+}
+*/

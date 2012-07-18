@@ -142,6 +142,15 @@ public:
   /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
 
+  /*! Get frame UID from buffer index */
+  virtual ItemStatus GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid );  
+
+  /*!
+    Given a timestamp, compute the nearest buffer index 
+    This assumes that the times motonically increase
+  */
+  ItemStatus GetBufferIndexFromTime(const double time, int& bufferIndex );
+
   /*! Get buffer item unique ID */
   virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
   virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
@@ -213,7 +222,7 @@ public:
   int GetNumberOfBytesPerPixel();
 
   /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkVideoBuffer. */
-  PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering);
+  PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
 
   /*! Dump the current state of the video buffer to metafile */
   virtual PlusStatus WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression = false ); 

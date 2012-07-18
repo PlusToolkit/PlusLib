@@ -5,8 +5,15 @@
       Name="TEST Data collection in file mode 3 NWires + OpenIGTLink broadcasting through OpenIGTLinkServer (IMAGE and TRANSFORM messages)" 
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
     />
+      
+    <ImageAcquisition
+      Type="SavedDataset"
+      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+      UseAllFrameFields="TRUE"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      />
 
-    <File SequenceMetafile="fCal_Test_Calibration_3NWires.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 

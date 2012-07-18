@@ -5,8 +5,15 @@
       Name="TEST Data collection uses sequence metafile in file mode." 
       Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
     />
+      
+    <ImageAcquisition
+      Type="SavedDataset"
+      SequenceMetafile="fCal_Test_Calibration.mha"
+      UseAllFrameFields="TRUE"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      />
 
-    <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
 </PlusConfiguration>

@@ -9,7 +9,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
       SequenceMetafile="WaterTankBottomTranslationTrackerBuffer.mha"
-      ReplayEnabled="TRUE"
+      LoopEnabled="TRUE"
     >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" />
       <Tool Name="Reference" PortName="1" />
@@ -23,7 +23,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
       UsImageOrientation="MF"
-      ReplayEnabled="TRUE"
+      LoopEnabled="TRUE"
     />
   </DataCollection>
 
