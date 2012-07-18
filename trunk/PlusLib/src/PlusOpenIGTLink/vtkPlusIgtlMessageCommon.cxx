@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkTrackedFrameList.h" 
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
 #include "vtkImageData.h" 
 #include "PlusVideoFrame.h" 
 
@@ -219,6 +220,30 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
+  
+  
+    // Convert VTK transform to IGTL transform.
+  
+  vtkSmartPointer< vtkMatrix4x4 > vtkMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  for ( int row = 0; row < 4; ++ row )
+  {
+    for ( int col = 0; col < 4; ++ col )
+    {
+      vtkMatrix->SetElement( row, col, igtlMatrix[ row ][ col ] );
+    }
+  }
+  vtkSmartPointer< vtkTransform > vtkToIgtTransform = vtkSmartPointer< vtkTransform >::New();
+  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, 0.0 );
+  vtkSmartPointer< vtkMatrix4x4 > convertedMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Multiply4x4( vtkMatrix, vtkToIgtTransform->GetMatrix(), convertedMatrix );
+  for ( int row = 0; row < 4; ++ row )
+  {
+    for ( int col = 0; col < 4; ++ col )
+    {
+      igtlMatrix[ row ][ col ] = convertedMatrix->GetElement( row, col );
+    }
+  }
+  
   
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
