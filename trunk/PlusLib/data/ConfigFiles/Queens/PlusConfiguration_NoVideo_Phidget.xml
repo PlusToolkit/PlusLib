@@ -13,8 +13,6 @@
       <Tool Name="OrientationSensor" PortName="OrientationSensor" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
-
   </DataCollection>
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 

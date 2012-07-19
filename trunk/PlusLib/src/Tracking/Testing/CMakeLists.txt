@@ -25,7 +25,7 @@ TARGET_LINK_LIBRARIES(vtkTrackerFactoryTest vtkTracking vtkPlusCommon)
 ADD_TEST(vtkTrackerFactoryTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkTrackerFactoryTest
   )
-SET_TESTS_PROPERTIES( vtkTrackerFactoryTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+# output is not checked for errors and warnings, as some error logs are expected
   
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)

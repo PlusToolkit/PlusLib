@@ -13,7 +13,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusConfig.h"
 #include "vtkPhantomRegistrationAlgo.h"
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkFakeTracker.h"
@@ -73,7 +73,7 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
   // Initialize data collection
-  vtkSmartPointer<vtkDataCollectorHardwareDevice> dataCollector = vtkSmartPointer<vtkDataCollectorHardwareDevice>::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
     LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
     exit(EXIT_FAILURE);

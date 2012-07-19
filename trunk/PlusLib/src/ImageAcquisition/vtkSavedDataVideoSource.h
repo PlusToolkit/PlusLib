@@ -45,12 +45,27 @@ public:
   /*! Get loop time /sa LoopTime */
 	vtkGetMacro(LoopTime, double); 
 
-	/*! Set flag to to enable saved dataset reply /sa RepeatEnabled */
+	/*! Set flag to to enable saved dataset looping /sa RepeatEnabled */
 	vtkGetMacro(RepeatEnabled, bool);
-	/*! Get flag to to enable saved dataset reply /sa RepeatEnabled */
+	/*! Get flag to to enable saved dataset looping /sa RepeatEnabled */
 	vtkSetMacro(RepeatEnabled, bool);
+	/*! Get flag to to enable saved dataset looping /sa RepeatEnabled */
 	vtkBooleanMacro(RepeatEnabled, bool);
 
+  /*! Read all the frame fields from the file and provide them in the output */
+	vtkGetMacro(UseAllFrameFields, bool);
+	/*! Read all the frame fields from the file and provide them in the output */
+	vtkSetMacro(UseAllFrameFields, bool);
+	/*! Read all the frame fields from the file and provide them in the output */
+	vtkBooleanMacro(UseAllFrameFields, bool);
+
+  /*! Read the timestamps from the file and use provide them in the output (instead of the current time) */
+	vtkGetMacro(UseOriginalTimestamps, bool);
+	/*! Read the timestamps from the file and use provide them in the output (instead of the current time) */
+	vtkSetMacro(UseOriginalTimestamps, bool);
+	/*! Read the timestamps from the file and use provide them in the output (instead of the current time) */
+	vtkBooleanMacro(UseOriginalTimestamps, bool);
+  
   /*! Get local video buffer */
   vtkGetObjectMacro(LocalVideoBuffer, vtkVideoBuffer); 
 	

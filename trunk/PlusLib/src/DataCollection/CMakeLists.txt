@@ -3,8 +3,6 @@
 SET (DataCollection_SRCS
   vtkDataCollector.cxx 
   vtkDataCollectorSynchronizer.cxx 
-  vtkDataCollectorHardwareDevice.cxx
-  vtkDataCollectorFile.cxx
 	)
 
 SET (DataCollection_HDRS)
@@ -12,8 +10,6 @@ if (WIN32)
 	SET (DataCollection_HDRS
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
-		vtkDataCollectorHardwareDevice.h
-		vtkDataCollectorFile.h
 		)
 endif (WIN32)	
 

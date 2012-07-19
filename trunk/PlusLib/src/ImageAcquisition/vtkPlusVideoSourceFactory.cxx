@@ -56,7 +56,6 @@ vtkStandardNewMacro(vtkPlusVideoSourceFactory);
 //----------------------------------------------------------------------------
 vtkPlusVideoSourceFactory::vtkPlusVideoSourceFactory()
 {	
-  VideoSourceTypes["None"]=NULL; 
   VideoSourceTypes["SavedDataset"]=(PointerToVideoSource)&vtkSavedDataVideoSource::New; 
   VideoSourceTypes["UsSimulator"]=(PointerToVideoSource)&vtkUsSimulatorVideoSource::New; 
   VideoSourceTypes["NoiseVideo"]=(PointerToVideoSource)&vtkPlusVideoSource::New; 
@@ -126,27 +125,29 @@ PlusStatus vtkPlusVideoSourceFactory::CreateInstance(const char* aVideoSourceTyp
     aVideoSource = NULL; 
   }
 
-  std::string videoSourceType; 
   if ( aVideoSourceType == NULL ) 
   {
-    LOG_WARNING("Video source type is NULL, set to default: None"); 
-    videoSourceType = "None"; 
-  }
-  else
-  {
-    videoSourceType = aVideoSourceType; 
+    LOG_ERROR("Video source type is undefined"); 
+    return PLUS_FAIL;
   }
 
-  if ( VideoSourceTypes.find(videoSourceType) != VideoSourceTypes.end() )
+  if ( VideoSourceTypes.find(aVideoSourceType) == VideoSourceTypes.end() )
   {
-    if ( VideoSourceTypes[videoSourceType] != NULL )
-    { // Call tracker New() function if tracker not NULL
-      aVideoSource = (*VideoSourceTypes[videoSourceType])(); 
-    }
+    LOG_ERROR("Unknown video source type: " << aVideoSourceType);
+    return PLUS_FAIL; 
   }
-  else
+ 
+  if ( VideoSourceTypes[aVideoSourceType] == NULL )
+  { 
+    LOG_ERROR("Invalid factory method for video source type: " << aVideoSourceType);
+    return PLUS_FAIL; 
+  }
+    
+  // Call tracker New() function
+  aVideoSource = (*VideoSourceTypes[aVideoSourceType])(); 
+  if (aVideoSource==NULL)
   {
-    LOG_ERROR("Unknown video source type: " << videoSourceType);
+    LOG_ERROR("Invalid video source created for video source type: " << aVideoSourceType);
     return PLUS_FAIL; 
   }
 

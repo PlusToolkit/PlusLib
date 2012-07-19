@@ -10,7 +10,6 @@
       <Tool Name="Test" PortName="0"></Tool>
     </Tracker>
 
-    <ImageAcquisition Type="None" />
   </DataCollection> 
 
 </PlusConfiguration>

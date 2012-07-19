@@ -9,7 +9,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
       SequenceMetafile="fCal_Test_Calibration.mha"
-      LoopEnabled="TRUE"
+      RepeatEnabled="TRUE"
     >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" />
       <Tool Name="Reference" PortName="1" />
@@ -23,7 +23,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="fCal_Test_Calibration.mha"
       UsImageOrientation="MF"
-      LoopEnabled="TRUE"
+      RepeatEnabled="TRUE"
     />
 
   </DataCollection>

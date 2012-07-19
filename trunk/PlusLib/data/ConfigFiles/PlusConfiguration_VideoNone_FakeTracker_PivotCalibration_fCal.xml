@@ -12,7 +12,6 @@ vtkStylusCalibrationTest uses this configuration"
       <Tool Name="Stylus" PortName="1" Model="Example" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
   </DataCollection>
 
 

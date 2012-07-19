@@ -19,8 +19,6 @@
       AveragedItemsForFiltering="20"
     />
 
-    <Synchronization Type="None" />
-
   </DataCollection>
 
  <CoordinateDefinitions>

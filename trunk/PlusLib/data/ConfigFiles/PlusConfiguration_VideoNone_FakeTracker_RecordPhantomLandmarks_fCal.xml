@@ -12,7 +12,6 @@ vtkPhantomRegistrationTest uses this configuration"
 			<Tool Name="Stylus" PortName="1" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
   </DataCollection> 
 
 

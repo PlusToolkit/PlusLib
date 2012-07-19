@@ -10,6 +10,7 @@
 
 #include "itkImage.h"
 #include "itkImageIOBase.h"
+#include "PlusCommon.h"
 
 class vtkImageData;
 class vtkImageImport;

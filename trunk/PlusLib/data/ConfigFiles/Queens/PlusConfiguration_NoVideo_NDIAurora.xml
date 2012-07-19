@@ -11,8 +11,6 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
       <Tool Name="Needle" PortName="0" />
     </Tracker>
 
-    <ImageAcquisition Type="None" />
-
   </DataCollection>
 
   <Rendering WorldCoordinateFrame="Tracker">

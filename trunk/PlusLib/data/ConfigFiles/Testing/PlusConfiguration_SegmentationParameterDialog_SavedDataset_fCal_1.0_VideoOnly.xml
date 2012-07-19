@@ -6,8 +6,6 @@
       Description="Saved dataset for video only" 
     />
 
-    <Tracker Type="None"/>
-
     <ImageAcquisition Type="SavedDataset" 
       BufferSize="200" 
       AcquisitionRate="10" 
@@ -15,9 +13,7 @@
       LocalTimeOffsetSec="0.12" 
       SequenceMetafile="AllSegmentablefCal.mha"
       UsImageOrientation="MF"
-      LoopEnabled="TRUE"
-      SpeedThresholdPositionMm="10.0"
-      SpeedThresholdOrientationAngle="15.0"
+      RepeatEnabled="TRUE"
     />
   </DataCollection>
 
