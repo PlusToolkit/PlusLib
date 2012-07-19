@@ -12,7 +12,6 @@ See License.txt for details.
 #include "TemporalCalibrationAlgo.h"
 #include "TrackedFrame.h"
 #include "fCalMainWindow.h"
-#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkPlusVideoSource.h" // Only for getting the local time offset in device mode
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
@@ -321,13 +320,13 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
     {
-      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-      if ( dataCollectorHardwareDevice )
+      vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+      if ( dataCollector )
       {
-        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
-          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        if ( (dataCollector->GetVideoSource() != NULL)
+          && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
         {
-          videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
+          videoTimeOffset = dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
         }
       }
     }
@@ -755,19 +754,19 @@ void FreehandCalibrationToolbox::StartTemporal()
   bool offsetsSuccessfullyRetrieved = false;
   if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
   {
-    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-    if (dataCollectorHardwareDevice)
+    vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+    if (dataCollector)
     {
-      if (dataCollectorHardwareDevice->GetTracker()==NULL)
+      if (dataCollector->GetTracker()==NULL)
       {
         LOG_ERROR("No tracker device is available");
       }
-      else if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
-        && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+      else if ( (dataCollector->GetVideoSource() != NULL)
+        && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
       {
-        m_PreviousTrackerOffset = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
-        dataCollectorHardwareDevice->SetLocalTimeOffsetSec(0.0, 0.0); 
+        m_PreviousTrackerOffset = dataCollector->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
+        dataCollector->SetLocalTimeOffsetSec(0.0, 0.0); 
         offsetsSuccessfullyRetrieved = true;
       }
     }
@@ -871,13 +870,13 @@ void FreehandCalibrationToolbox::DoTemporalCalibration()
     bool offsetsSuccessfullySet = false;
     if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
     {
-      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-      if (dataCollectorHardwareDevice)
+      vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+      if (dataCollector)
       {
-        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
-          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        if ( (dataCollector->GetVideoSource() != NULL)
+          && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
         {
-          dataCollectorHardwareDevice->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
+          dataCollector->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
           offsetsSuccessfullySet = true;
         }
       }
@@ -1210,13 +1209,13 @@ void FreehandCalibrationToolbox::CancelCalibration()
     bool offsetsSuccessfullySet = false;
     if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
     {
-      vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-      if (dataCollectorHardwareDevice)
+      vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+      if (dataCollector)
       {
-        if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
-          && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+        if ( (dataCollector->GetVideoSource() != NULL)
+          && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
         {
-          dataCollectorHardwareDevice->SetLocalTimeOffsetSec(m_PreviousTrackerOffset, m_PreviousVideoOffset); 
+          dataCollector->SetLocalTimeOffsetSec(m_PreviousTrackerOffset, m_PreviousVideoOffset); 
           offsetsSuccessfullySet = true;
         }
       }

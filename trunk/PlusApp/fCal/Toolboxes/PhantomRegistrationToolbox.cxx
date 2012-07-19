@@ -8,7 +8,6 @@
 
 #include "fCalMainWindow.h"
 #include "vtkVisualizationController.h"
-#include "vtkDataCollectorHardwareDevice.h"
 
 #include "ConfigFileSaverDialog.h"
 
@@ -597,10 +596,10 @@ void PhantomRegistrationToolbox::RecordPoint()
   LOG_TRACE("PhantomRegistrationToolbox::RecordPoint"); 
 
   // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-  if (dataCollectorHardwareDevice)
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+  if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
     if (fakeTracker != NULL)
     {
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
@@ -712,10 +711,10 @@ void PhantomRegistrationToolbox::Undo()
   }
 
   // If tracker is FakeTracker then set counter
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-  if (dataCollectorHardwareDevice)
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+  if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
     if (fakeTracker != NULL)
     {
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);
@@ -761,10 +760,10 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   // If tracker is FakeTracker then reset counter
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector());
-  if (dataCollectorHardwareDevice)
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector();
+  if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
     if (fakeTracker != NULL)
     {
       fakeTracker->SetCounter(m_CurrentLandmarkIndex);

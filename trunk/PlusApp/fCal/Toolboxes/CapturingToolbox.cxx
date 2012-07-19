@@ -10,8 +10,6 @@ See License.txt for details.
 #include "vtkVisualizationController.h"
 #include "VolumeReconstructionToolbox.h"
 
-#include "vtkDataCollectorFile.h" // Only to get maximum frame rate in file mode
-#include "vtkDataCollectorHardwareDevice.h" // Only to get maximum frame rate in device mode
 #include "vtkPlusVideoSource.h" // Only to get maximum frame rate in device mode
 #include "vtkTracker.h" // Only to get maximum frequency in device mode
 

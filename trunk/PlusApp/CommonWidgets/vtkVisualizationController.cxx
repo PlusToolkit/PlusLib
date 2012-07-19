@@ -7,7 +7,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
 
-#include "vtkDataCollectorHardwareDevice.h" // Only for dumping buffers
 #include "vtkDirectory.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
@@ -369,13 +368,6 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
     return PLUS_FAIL;
   }
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-    LOG_INFO("Data collector is not the type that uses hardware devices, there are no buffers to save");
-    return PLUS_FAIL;
-  }
-
   // Assemble file names
   std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
   std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
@@ -384,16 +376,16 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
   outputTrackerBufferSequenceFileName.append(dateAndTime);
 
   // Dump buffers to file 
-  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL )
+  if ( this->DataCollector->GetVideoSource() != NULL )
   {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
+    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
   }
 
-  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
+  if ( this->DataCollector->GetTracker() != NULL )
   {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    dataCollectorHardwareDevice->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
+    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
   }
 
   return PLUS_SUCCESS;
