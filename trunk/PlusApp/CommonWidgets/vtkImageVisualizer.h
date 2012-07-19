@@ -24,6 +24,7 @@ See License.txt for details.
 
 class vtkXMLDataElement;
 class vtkLineSource;
+class vtkProp3DCollection;
 
 //-----------------------------------------------------------------------------
 
@@ -70,7 +71,7 @@ public:
   * Set the input source
   * \param aImage pointer to the image data to show
   */
-  void SetInput( vtkSmartPointer<vtkImageData> aImage );
+  void SetInput( vtkImageData* aImage );
 
   /*!
   * Show or hide result points
@@ -93,7 +94,7 @@ public:
   * Add an actor to the list of screen aligned actors
   * \param aProp vtkProp3D to be managed
   */
-  PlusStatus AddScreenAlignedProp(vtkSmartPointer<vtkProp3D> aProp);
+  PlusStatus AddScreenAlignedProp(vtkProp3D* aProp);
 
   /*!
   * Set the ROI region
@@ -134,8 +135,8 @@ public:
   vtkGetObjectMacro(DataCollector, vtkDataCollector);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus InitializeDataCollector(vtkSmartPointer<vtkDataCollector> aCollector);
-  PlusStatus InitializeResultPolyData(vtkSmartPointer<vtkPolyData> aResultPolyData);
+  PlusStatus InitializeDataCollector(vtkDataCollector* aCollector);
+  PlusStatus InitializeResultPolyData(vtkPolyData* aResultPolyData);
 
   // Utility functions
   PlusStatus SetResultColor(double r, double g, double b);
@@ -235,7 +236,7 @@ protected:
   US_IMAGE_ORIENTATION CurrentMarkerOrientation;
 
   /*! List of objects maintained by the visualizer to be screen aligned */
-  std::vector<vtkSmartPointer<vtkProp3D>> ScreenAlignedProps;
+  vtkProp3DCollection* ScreenAlignedProps;
 
   /*! List of original positions of screen-aligned objects */
   std::vector<std::vector<double>> ScreenAlignedPropOriginalPosition;

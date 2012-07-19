@@ -18,7 +18,6 @@ See License.txt for details.
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkRenderer.h"
-#include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
 
 #include <QObject>
@@ -142,13 +141,13 @@ public:
   /param aOutputMatrix Out parameter for the transform matrix
   /param aValid True if the transform is valid, false otherwise (optional parameter)
   */
-  PlusStatus GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid = NULL);
+  PlusStatus GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkMatrix4x4* aOutputMatrix, bool* aValid = NULL);
   /*!
   Acquire transform matrix from tracking
   /param aOutputMatrix Out parameter for the transform matrix
   /param aValid True if the transform is valid, false otherwise (optional parameter)
   */
-  PlusStatus GetTransformMatrix(PlusTransformName aTransform, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid = NULL);
+  PlusStatus GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid = NULL);
 
   /*!
   Check if a transform exists in transform repository
@@ -168,7 +167,7 @@ public:
   /*!
   * Read from the active configuration to initialize any config based data dependency
   */
-  PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
 
   /*!
   * Set the image visualizer ROI region
@@ -209,7 +208,7 @@ public:
   * Set the volume actor mapper
   * \param aContourMapper new mapper to use
   */
-  PlusStatus SetVolumeMapper( vtkSmartPointer<vtkPolyDataMapper> aContourMapper );
+  PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
   /*!
   * Set the volume actor colour

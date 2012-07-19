@@ -77,7 +77,7 @@ public:
   /*!
   * Read the active configuration file to create displayable objects
   */
-  PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
 
 public:
   /*!
@@ -96,10 +96,10 @@ public:
   vtkSetStringMacro(WorldCoordinateFrame);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus InitializeDataCollector(vtkSmartPointer<vtkDataCollector> aCollector);
-  PlusStatus InitializeInputPolyData(vtkSmartPointer<vtkPolyData> aInputPolyData);
-  PlusStatus InitializeResultPolyData(vtkSmartPointer<vtkPolyData> aResultPolyData);
-  PlusStatus InitializeTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository);
+  PlusStatus InitializeDataCollector(vtkDataCollector* aCollector);
+  PlusStatus InitializeInputPolyData(vtkPolyData* aInputPolyData);
+  PlusStatus InitializeResultPolyData(vtkPolyData* aResultPolyData);
+  PlusStatus InitializeTransformRepository(vtkTransformRepository* aTransformRepository);
 
 protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);

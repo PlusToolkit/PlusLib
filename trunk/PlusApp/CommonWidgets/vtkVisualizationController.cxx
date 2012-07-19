@@ -497,7 +497,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -506,7 +506,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   TrackedFrame trackedFrame;
   if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
@@ -533,7 +533,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTra
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetVolumeMapper( vtkSmartPointer<vtkPolyDataMapper> aContourMapper )
+PlusStatus vtkVisualizationController::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
 {
   if( this->PerspectiveVisualizer != NULL )
   {
@@ -708,7 +708,7 @@ PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement)
+PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXMLElement)
 {
   // Fill up transform repository
   if( this->TransformRepository->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )

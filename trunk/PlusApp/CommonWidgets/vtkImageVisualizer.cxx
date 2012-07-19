@@ -20,6 +20,7 @@ See License.txt for details.
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
+#include "vtkProp3DCollection.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -59,6 +60,8 @@ vtkImageVisualizer::vtkImageVisualizer()
 , ROIActorAssembly(NULL)
 {
   memset(RegionOfInterest, 0, sizeof(double[4]));
+
+  this->ScreenAlignedProps=vtkProp3DCollection::New();
 
   // Set up canvas renderer
   vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -100,6 +103,11 @@ vtkImageVisualizer::~vtkImageVisualizer()
 {
   ClearScreenAlignedActorList();
 
+  if (this->ScreenAlignedProps!= NULL) {
+    this->ScreenAlignedProps->Delete();
+    this->ScreenAlignedProps=NULL;
+  }
+
   this->SetResultActor(NULL);
   this->SetResultPolyData(NULL);
   this->SetCanvasRenderer(NULL);
@@ -109,24 +117,24 @@ vtkImageVisualizer::~vtkImageVisualizer()
   this->SetVerticalOrientationTextActor(NULL);
   this->SetROIActorAssembly(NULL);
 
-  if (LeftLineSource != NULL) {
-    LeftLineSource->Delete();
-    LeftLineSource = NULL;
+  if (this->LeftLineSource != NULL) {
+    this->LeftLineSource->Delete();
+    this->LeftLineSource = NULL;
   }
 
-  if (TopLineSource != NULL) {
-    TopLineSource->Delete();
-    TopLineSource = NULL;
+  if (this->TopLineSource != NULL) {
+    this->TopLineSource->Delete();
+    this->TopLineSource = NULL;
   }
 
-  if (RightLineSource != NULL) {
-    RightLineSource->Delete();
-    RightLineSource = NULL;
+  if (this->RightLineSource != NULL) {
+    this->RightLineSource->Delete();
+    this->RightLineSource = NULL;
   }
 
-  if (BottomLineSource != NULL) {
-    BottomLineSource->Delete();
-    BottomLineSource = NULL;
+  if (this->BottomLineSource != NULL) {
+    this->BottomLineSource->Delete();
+    this->BottomLineSource = NULL;
   }
 }
 
@@ -458,7 +466,7 @@ PlusStatus vtkImageVisualizer::SetResultOpacity(double aOpacity)
 
 //-----------------------------------------------------------------------------
 
-void vtkImageVisualizer::SetInput( vtkSmartPointer<vtkImageData> aImage )
+void vtkImageVisualizer::SetInput(vtkImageData* aImage )
 {
   LOG_TRACE("vtkImageVisualizer::SetInput");
 
@@ -467,7 +475,7 @@ void vtkImageVisualizer::SetInput( vtkSmartPointer<vtkImageData> aImage )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataCollector> aCollector )
+PlusStatus vtkImageVisualizer::InitializeDataCollector(vtkDataCollector* aCollector )
 {
   LOG_TRACE("vtkImageVisualizer::InitializeDataCollector");
 
@@ -490,7 +498,7 @@ PlusStatus vtkImageVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataC
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPolyData> aResultPolyData )
+PlusStatus vtkImageVisualizer::InitializeResultPolyData(vtkPolyData* aResultPolyData )
 {
   LOG_TRACE("vtkImageVisualizer::InitializeResultPolyData");
 
@@ -507,19 +515,19 @@ PlusStatus vtkImageVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPoly
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::AddScreenAlignedProp( vtkSmartPointer<vtkProp3D> aProp )
+PlusStatus vtkImageVisualizer::AddScreenAlignedProp(vtkProp3D* aProp )
 {
   LOG_TRACE("vtkImageVisualizer::AddScreenAlignedProp");
 
   // Store the prop for later manipulation
-  ScreenAlignedProps.push_back(aProp);
+  this->ScreenAlignedProps->AddItem(aProp);
 
   // Store the original position of the prop
   std::vector<double> pos;
   pos.push_back(aProp->GetPosition()[0]);
   pos.push_back(aProp->GetPosition()[1]);
   pos.push_back(aProp->GetPosition()[2]);
-  ScreenAlignedPropOriginalPosition.push_back(pos);
+  this->ScreenAlignedPropOriginalPosition.push_back(pos);
 
   // Add it to the canvas
   this->GetCanvasRenderer()->AddActor(aProp);
@@ -533,13 +541,15 @@ PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
 {
   LOG_TRACE("vtkImageVisualizer::ClearScreenAlignedActorList");
 
-  for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it )
+  vtkProp3D *prop=NULL;
+  vtkCollectionSimpleIterator pit;
+  for ( this->ScreenAlignedProps->InitTraversal(pit);  prop = this->ScreenAlignedProps->GetNextProp3D(pit); )
   {
-    this->GetCanvasRenderer()->RemoveActor(*it);
+    this->GetCanvasRenderer()->RemoveActor(prop);
   }
 
-  ScreenAlignedPropOriginalPosition.clear();
-  ScreenAlignedProps.clear();
+  this->ScreenAlignedPropOriginalPosition.clear();
+  this->ScreenAlignedProps->RemoveAllItems();
 
   return PLUS_SUCCESS;
 }
@@ -562,12 +572,12 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
   double originalPosition[3];
 
   // Declare a local scope
-  {  
+  {      
+    vtkCollectionSimpleIterator pit;
+    vtkProp3D *prop=NULL;
     int i = 0;
-    for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it, ++i )
+    for ( this->ScreenAlignedProps->InitTraversal(pit); prop = this->ScreenAlignedProps->GetNextProp3D(pit); ++i)
     {
-      vtkSmartPointer<vtkProp3D> prop = *it;
-
       // Undo any existing rotations to the prop, so that all subsequent rotations are from a base orientation
       // Base orientation is MF_SCREEN_RIGHT_DOWN
       prop->RotateX(-ScreenAlignedCurrentXRotation);
@@ -941,11 +951,11 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
     // We must update the "original position" of the prop so that the system can use the latest position of the
     // wire labels
     int j = 0;
-    for( std::vector<vtkSmartPointer<vtkProp3D>>::iterator it = ScreenAlignedProps.begin(); it != ScreenAlignedProps.end(); ++it )
+    vtkProp3D *prop=NULL;
+    vtkCollectionSimpleIterator pit;
+    for ( this->ScreenAlignedProps->InitTraversal(pit);  prop = this->ScreenAlignedProps->GetNextProp3D(pit); ++j)
     {
-      vtkSmartPointer<vtkProp3D> propsmrtptr = (*it);
-      vtkProp3D * propptr = propsmrtptr;
-      vtkTextActor3D* ptr = dynamic_cast<vtkTextActor3D*>(propptr);
+      vtkTextActor3D* ptr = dynamic_cast<vtkTextActor3D*>(prop);
       if( ptr != NULL && ptr == actor )
       {
         std::vector<double> origCoords = ScreenAlignedPropOriginalPosition[j];
@@ -954,7 +964,6 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
         ScreenAlignedPropOriginalPosition[j] = origCoords;
         break;
       }
-      ++j;
     }
   }
   this->EnableWireLabels(true);

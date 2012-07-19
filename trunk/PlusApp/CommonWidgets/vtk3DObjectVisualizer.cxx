@@ -325,7 +325,7 @@ PlusStatus vtk3DObjectVisualizer::HideAll()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData( vtkSmartPointer<vtkPolyData> aInputPolyData )
+PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData(vtkPolyData* aInputPolyData )
 {
   if( aInputPolyData != NULL )
   {
@@ -339,7 +339,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData( vtkSmartPointer<vtkPo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkPolyData> aResultPolyData )
+PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData(vtkPolyData* aResultPolyData )
 {
   if( aResultPolyData != NULL )
   {
@@ -353,7 +353,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData( vtkSmartPointer<vtkP
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository( vtkSmartPointer<vtkTransformRepository> aTransformRepository )
+PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository(vtkTransformRepository* aTransformRepository )
 {
   LOG_TRACE("vtk3DObjectVisualizer::SetTransformRepository");
 
@@ -393,7 +393,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository( vtkSmartPointer
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDataCollector> aCollector )
+PlusStatus vtk3DObjectVisualizer::InitializeDataCollector(vtkDataCollector* aCollector )
 {
   if( aCollector != NULL )
   {
@@ -423,7 +423,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeDataCollector( vtkSmartPointer<vtkDa
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> aXMLElement)
+PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLElement)
 {
   // Rendering section
   vtkXMLDataElement* renderingElement = aXMLElement->FindNestedElementWithName("Rendering"); 
