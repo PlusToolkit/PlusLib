@@ -909,9 +909,10 @@ PlusStatus PlusVideoFrame::FlipImage(const typename OutputImageType::Pointer inU
     // Set the target position pointer to the first pixel of the last row
     typename OutputImageType::PixelType *outputPixel=outUsOrientedImage->GetBufferPointer()+width*(height-1);
     // Copy the image row-by-row, reversing the row order
+    int numberOfBytesPerPixel=sizeof(OutputImageType::PixelType);
     for (int y=height; y>0; y--)
     {
-      memcpy(outputPixel, inputPixel, width);
+      memcpy(outputPixel, inputPixel, width*numberOfBytesPerPixel);
       inputPixel+=width;
       outputPixel-=width;
     }
