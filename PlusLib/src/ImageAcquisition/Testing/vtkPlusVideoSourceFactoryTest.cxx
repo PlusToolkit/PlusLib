@@ -48,9 +48,9 @@ int main (int argc, char* argv[])
   // Video source type: NULL 
 
   LOG_INFO("Testing video source factory create instance function with NULL video source type..."); 
-  if ( videoSourceFactory->CreateInstance(NULL, videoSource) != PLUS_SUCCESS )
+  if ( videoSourceFactory->CreateInstance(NULL, videoSource) == PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to create None video source instance!"); 
+    LOG_ERROR("Expected failure in creating video source instance, but method call returned with success"); 
     return EXIT_FAILURE; 
   }
   if ( videoSource != NULL )
@@ -60,12 +60,12 @@ int main (int argc, char* argv[])
   }
 
   ////////////////////////////////////////////////////////
-  // Video source type: None
+  // Video source type: not existing device type
 
-  LOG_INFO("Testing video source factory create instance function with None video source type..."); 
-  if ( videoSourceFactory->CreateInstance("None", videoSource) != PLUS_SUCCESS )
+  LOG_INFO("Testing video source factory create instance function with not existing video source type..."); 
+  if ( videoSourceFactory->CreateInstance("NotExistingAbc", videoSource) == PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to create None video source instance!"); 
+    LOG_ERROR("Expected failure in creating not existing video source instance, but the operation was successful"); 
     return EXIT_FAILURE; 
   }
   if ( videoSource != NULL )

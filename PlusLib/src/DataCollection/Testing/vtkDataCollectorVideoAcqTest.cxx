@@ -12,7 +12,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkVideoBuffer.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkXMLUtilities.h"
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 
-	vtkSmartPointer<vtkDataCollectorHardwareDevice> dataCollector = vtkSmartPointer<vtkDataCollectorHardwareDevice>::New(); 
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
 	dataCollector->Connect(); 
 	dataCollector->Start();

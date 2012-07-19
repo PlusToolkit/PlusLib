@@ -50,9 +50,9 @@ int main (int argc, char* argv[])
   // Tracker type: NULL 
 
   LOG_INFO("Testing tracker factory create instance function with NULL tracker type..."); 
-  if ( trackerFactory->CreateInstance(NULL, tracker) != PLUS_SUCCESS )
+  if ( trackerFactory->CreateInstance(NULL, tracker) == PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to create None tracker instance!"); 
+    LOG_ERROR("Expected failure in creating tracker instance, but method call returned with success"); 
     return EXIT_FAILURE; 
   }
   if ( tracker != NULL )
@@ -62,12 +62,12 @@ int main (int argc, char* argv[])
   }
 
   ////////////////////////////////////////////////////////
-  // Tracker type: None
+  // Tracker type: not existing device type
 
-  LOG_INFO("Testing tracker factory create instance function with None tracker type..."); 
-  if ( trackerFactory->CreateInstance("None", tracker) != PLUS_SUCCESS )
+  LOG_INFO("Testing tracker factory create instance function with a not existing tracker type..."); 
+  if ( trackerFactory->CreateInstance("NotExistingAbc", tracker) == PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to create None tracker instance!"); 
+    LOG_ERROR("Expected failure in creating not existing tracker instance, but the operation was successful"); 
     return EXIT_FAILURE; 
   }
   if ( tracker != NULL )

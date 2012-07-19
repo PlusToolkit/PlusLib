@@ -128,7 +128,7 @@ TARGET_LINK_LIBRARIES(vtkPlusVideoSourceFactoryTest vtkImageAcquisition vtkPlusC
 ADD_TEST(vtkPlusVideoSourceFactoryTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkPlusVideoSourceFactoryTest
   )
-SET_TESTS_PROPERTIES( vtkPlusVideoSourceFactoryTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+# output is not checked for errors and warnings, as some error logs are expected
 
 # --------------------------------------------------------------------------
 # Install

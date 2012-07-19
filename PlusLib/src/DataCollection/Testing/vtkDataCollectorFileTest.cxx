@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 
 #include "PlusConfigure.h"
-#include "vtkDataCollectorFile.h"
+#include "vtkDataCollector.h"
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
 

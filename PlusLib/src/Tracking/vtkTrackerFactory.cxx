@@ -48,7 +48,6 @@ vtkStandardNewMacro(vtkTrackerFactory);
 //----------------------------------------------------------------------------
 vtkTrackerFactory::vtkTrackerFactory()
 {	
-  TrackerTypes["None"]=NULL; 
   TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
   TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
 #ifdef PLUS_USE_OpenIGTLink
@@ -120,27 +119,29 @@ PlusStatus vtkTrackerFactory::CreateInstance(const char* aTrackerType, vtkTracke
     aTracker = NULL; 
   }
   
-  std::string trackerType; 
   if ( aTrackerType == NULL ) 
   {
-    LOG_WARNING("Tracker type is NULL, set to default: None"); 
-    trackerType = "None"; 
-  }
-  else
-  {
-    trackerType = aTrackerType; 
+    LOG_ERROR("Tracker type is undefined"); 
+    return PLUS_FAIL;
   }
 
-  if ( TrackerTypes.find(trackerType) != TrackerTypes.end() )
+  if ( TrackerTypes.find(aTrackerType) == TrackerTypes.end() )
   {
-    if ( TrackerTypes[trackerType] != NULL )
-    { // Call tracker New() function if tracker not NULL
-      aTracker = (*TrackerTypes[trackerType])(); 
-    }
+    LOG_ERROR("Unknown tracker type: " << aTrackerType);
+    return PLUS_FAIL; 
   }
-  else
+ 
+  if ( TrackerTypes[aTrackerType] == NULL )
+  { 
+    LOG_ERROR("Invalid factory method for tracker type: " << aTrackerType);
+    return PLUS_FAIL; 
+  }
+    
+  // Call tracker New() function
+  aTracker = (*TrackerTypes[aTrackerType])(); 
+  if (aTracker==NULL)
   {
-    LOG_ERROR("Unknown tracker type: " << trackerType);
+    LOG_ERROR("Invalid video source created for tracker type: " << aTrackerType);
     return PLUS_FAIL; 
   }
 

@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
 #include "vtkPlusVideoSource.h"
@@ -95,7 +95,7 @@ public:
     this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
 
-  vtkDataCollectorHardwareDevice* DataCollector; 
+  vtkDataCollector* DataCollector; 
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
@@ -157,18 +157,11 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-    LOG_ERROR("Failed to create the propertype of data collector!");
-    exit( EXIT_FAILURE );
-  }
-
-  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
+  dataCollector->ReadConfiguration( configRootElement );
 
   if ( ! inputVideoBufferMetafile.empty() )
   {
-    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
+    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
@@ -180,7 +173,7 @@ int main(int argc, char **argv)
 
   if ( ! inputTrackerBufferMetafile.empty() )
   {
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
     if ( tracker == NULL )
     {
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
@@ -190,13 +183,13 @@ int main(int argc, char **argv)
     tracker->SetRepeatEnabled(inputRepeat); 
   }
 
-  if ( dataCollectorHardwareDevice->Connect() != PLUS_SUCCESS )
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to connect to devices!" ); 
     exit( EXIT_FAILURE );
   }
 
-  if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
+  if ( dataCollector->Start() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start data collection!" ); 
     exit( EXIT_FAILURE );
@@ -242,7 +235,7 @@ int main(int argc, char **argv)
 
     //establish timer event and create timer
     vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-    call->DataCollector=dataCollectorHardwareDevice; 
+    call->DataCollector=dataCollector; 
     call->Viewer=viewer;
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor;
@@ -266,7 +259,7 @@ int main(int argc, char **argv)
     iren->Start();
   }
 
-  dataCollectorHardwareDevice->Disconnect();
+  dataCollector->Disconnect();
 
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
