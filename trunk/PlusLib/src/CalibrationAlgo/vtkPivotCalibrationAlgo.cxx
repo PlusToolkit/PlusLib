@@ -66,7 +66,7 @@ PlusStatus vtkPivotCalibrationAlgo::Initialize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkPivotCalibrationAlgo::InsertNextCalibrationPoint(vtkSmartPointer<vtkMatrix4x4> aMarkerToReferenceTransformMatrix)
+PlusStatus vtkPivotCalibrationAlgo::InsertNextCalibrationPoint(vtkMatrix4x4* aMarkerToReferenceTransformMatrix)
 {
 	//LOG_TRACE("vtkPivotCalibrationAlgo::InsertNextCalibrationPoint");
 

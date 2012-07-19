@@ -51,7 +51,7 @@ public:
     Insert acquired point to calibration point list
     \param aMarkerToReferenceTransformMatrix New calibration point (tool to reference transform)
 	*/
-  PlusStatus InsertNextCalibrationPoint(vtkSmartPointer<vtkMatrix4x4> aMarkerToReferenceTransformMatrix);
+  PlusStatus InsertNextCalibrationPoint(vtkMatrix4x4* aMarkerToReferenceTransformMatrix);
 
   /*!
     Calibrate (call the minimizer and set the result)
