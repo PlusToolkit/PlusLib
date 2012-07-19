@@ -155,7 +155,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
         PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
         
         //Set transform name to [Name]To[CoordinateFrame]
-        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.CoordinateFrame); 
+        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame); 
 
         igtl::Matrix4x4 igtlMatrix; 
         vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName); 
