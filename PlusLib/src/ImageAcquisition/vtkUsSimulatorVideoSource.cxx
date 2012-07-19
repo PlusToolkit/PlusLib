@@ -75,6 +75,12 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   }
 
   vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  if (trackerBuffer->GetNumberOfItems()==0)
+  {
+    LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");
+    return PLUS_SUCCESS;
+  }
+
   BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
   if ( uid > 1 )
   {
@@ -121,7 +127,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   this->UsSimulator->Update();
 
   PlusStatus status = this->Buffer->AddItem(
-    this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, trackedFrame.GetTimestamp());
+    this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
