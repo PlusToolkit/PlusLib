@@ -25,13 +25,15 @@ class VTK_EXPORT PlusIgtlClientInfo
 {
 public:
 
-  /*! Helper struct for storing image stream and coordinate frame names */ 
+  /*! Helper struct for storing image stream and embedded transform frame names 
+  IGTL image message device name: [Name]_[EmbeddedTransformToFrame]
+  */ 
   struct ImageStream
   {
-    /*! Name of the image stream */ 
+    /*! Name of the image stream and the IGTL image message embedded transform "From" frame */ 
     std::string Name; 
-    /*! Name of the coordinate frame */ 
-    std::string CoordinateFrame; 
+    /*! Name of the IGTL image message embedded transform "To" frame */ 
+    std::string EmbeddedTransformToFrame; 
   }; 
 
   /*! Deserialize client info data from string xml data */ 

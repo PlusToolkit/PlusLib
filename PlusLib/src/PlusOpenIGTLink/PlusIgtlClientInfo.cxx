@@ -126,8 +126,8 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
       {
         continue; 
       }
-      const char* coordinateFrame = imageNames->GetNestedElement(i)->GetAttribute("CoordinateFrame"); 
-      if ( coordinateFrame == NULL)
+      const char* embeddedTransformToFrame = imageNames->GetNestedElement(i)->GetAttribute("EmbeddedTransformToFrame"); 
+      if ( embeddedTransformToFrame == NULL)
       {
         continue; 
       }
@@ -138,7 +138,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
       }
 
       ImageStream stream; 
-      stream.CoordinateFrame = coordinateFrame; 
+      stream.EmbeddedTransformToFrame = embeddedTransformToFrame; 
       stream.Name = name; 
       clientInfo.ImageStreams.push_back(stream); 
     }
@@ -194,7 +194,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
     vtkSmartPointer<vtkXMLDataElement> image = vtkSmartPointer<vtkXMLDataElement>::New(); 
     image->SetName("Image"); 
     image->SetAttribute("Name", ImageStreams[i].Name.c_str()); 
-    image->SetAttribute("CoordinateFrame", ImageStreams[i].CoordinateFrame.c_str()); 
+    image->SetAttribute("EmbeddedTransformToFrame", ImageStreams[i].EmbeddedTransformToFrame.c_str()); 
     imageNames->AddNestedElement(image); 
   }
   xmldata->AddNestedElement( imageNames ); 
