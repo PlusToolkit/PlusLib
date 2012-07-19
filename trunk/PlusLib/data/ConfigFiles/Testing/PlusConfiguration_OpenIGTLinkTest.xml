@@ -9,7 +9,7 @@
     <ImageAcquisition
       Type="SavedDataset"
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
-      UseAllFrameFields="TRUE"
+      UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       />

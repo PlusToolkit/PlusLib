@@ -6,16 +6,16 @@
       Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC"
     />
 
-    <Tracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
+    <xTracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
       <Tool Name="Reference" PortName="0"></Tool> 
       <Tool Name="Stylus" PortName="1" ></Tool>
-    </Tracker>
+    </xTracker>
 
     <ImageAcquisition Type="SonixVideo" 
-      BufferSize="400" 
+      BufferSize="100" 
       UsImageOrientation="MF"
       AveragedItemsForFiltering="20" 
-      IP="137.82.56.185" 
+      IP="130.15.7.20" 
       ImagingMode="BMode"
       AcquisitionDataType="BPost" 
       Depth="-1" 
@@ -29,6 +29,59 @@
     />
 
   </DataCollection>
+
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+  />
+
+  <xCoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        -0.0683412	-0.0064516	0.0417947	16.3721
+        0.0434727	0.00290642	0.0658372	-27.4971
+        -0.00553304	0.0744595	0.00105147	48.8042
+        0	0	0	1"
+       Error="0.475259" Date="060612_154721"/>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="
+        -0.339698	0.940469	0.0110627	-6.53095
+        0.939399	0.339842	-0.0451359	-94.2699
+        -0.0462085	-0.0049403	-0.99892	14.0551
+        0	0	0	1"
+       Error="0.600242" Date="060612_154610"/>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.035089	0.000562193	-0.999384	1.52424
+        -0.0160199	0.999872	0	-0.695891
+        0.999256	0.01601	0.0350935	43.4069
+        0	0	0	1"
+       Error="0.202318" Date="060612_154516"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.0813304	0	0	0
+        0	0.0746369	0	0
+        0	0	0.07799	0
+        0	0	0	1"
+       Date="060612_154723"/>
+  </xCoordinateDefinitions>
+
   
   <ProstateBiopsy AcquisitionTime="3" />
 

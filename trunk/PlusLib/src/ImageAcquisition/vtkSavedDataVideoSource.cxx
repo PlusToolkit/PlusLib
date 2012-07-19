@@ -331,20 +331,20 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  const char* useAllFrameFields = imageAcquisitionConfig->GetAttribute("UseAllFrameFields"); 
-  if ( useAllFrameFields != NULL ) 
+  const char* useData = imageAcquisitionConfig->GetAttribute("UseData"); 
+  if ( useData != NULL ) 
   {
-    if ( STRCASECMP("TRUE", useAllFrameFields ) == 0 )
-    {
-      this->UseAllFrameFields = true; 
-    }
-    else if ( STRCASECMP("FALSE", useAllFrameFields ) == 0 )
+    if ( STRCASECMP("IMAGE", useData ) == 0 )
     {
       this->UseAllFrameFields = false; 
     }
+    else if ( STRCASECMP("IMAGE_AND_TRANSFORM", useData ) == 0 )
+    {
+      this->UseAllFrameFields = true; 
+    }
     else
     {
-      LOG_WARNING("Unable to recognize UseAllFrameFields attribute: " << useAllFrameFields << " - changed to false by default!"); 
+      LOG_WARNING("Unable to recognize UseData attribute: " << useData << " - changed to IMAGE by default!"); 
       this->UseAllFrameFields = false; 
     }
   }
@@ -411,11 +411,11 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
 
   if (this->UseAllFrameFields)
   {
-    imageAcquisitionConfig->SetAttribute("UseAllFrameFields", "TRUE");
+    imageAcquisitionConfig->SetAttribute("UseData", "IMAGE_AND_TRANSFORM");
   }
   else
   {
-    imageAcquisitionConfig->SetAttribute("UseAllFrameFields", "FALSE");
+    imageAcquisitionConfig->SetAttribute("UseData", "IMAGE");
   }
 
   if (this->UseOriginalTimestamps)

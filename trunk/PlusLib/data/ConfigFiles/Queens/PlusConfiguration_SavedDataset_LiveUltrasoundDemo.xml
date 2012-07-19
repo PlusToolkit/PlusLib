@@ -17,6 +17,7 @@ The desired file name with path needs to be added to this XML file as values Seq
     </Tracker>
 
     <ImageAcquisition Type="SavedDataset" 
+      UseData="IMAGE"
       BufferSize="200" 
       AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 

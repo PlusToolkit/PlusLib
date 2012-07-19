@@ -66,10 +66,15 @@ void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 {
+  if (config==NULL)
+  {
+    LOG_ERROR("vtkVolumeReconstructor::ReadConfiguration failed: config root element is NULL");
+    return PLUS_FAIL;
+  }
   vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
   if (reconConfig == NULL)
   {
-    LOG_ERROR("No volume reconstruction is found in the XML tree!");
+    LOG_ERROR("vtkVolumeReconstructor::ReadConfiguration failed: No volume reconstruction is found in the XML tree!");
     return PLUS_FAIL;
   }
 

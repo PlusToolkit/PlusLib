@@ -11,6 +11,7 @@
     </Tracker>
 
     <ImageAcquisition Type="SavedDataset" 
+      UseData="IMAGE"
       BufferSize="200" 
       AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 

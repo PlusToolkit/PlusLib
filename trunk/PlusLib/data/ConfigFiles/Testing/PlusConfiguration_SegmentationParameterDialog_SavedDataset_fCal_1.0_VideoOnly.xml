@@ -6,7 +6,8 @@
       Description="Saved dataset for video only" 
     />
 
-    <ImageAcquisition Type="SavedDataset" 
+    <ImageAcquisition Type="SavedDataset"
+      UseData="IMAGE"    
       BufferSize="200" 
       AcquisitionRate="10" 
       AveragedItemsForFiltering="20" 
