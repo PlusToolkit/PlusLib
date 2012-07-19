@@ -123,7 +123,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     std::ostringstream imageNames;
     for ( int i = 0; i < this->DefaultImageStreams.size(); ++i )
     {
-      imageNames << this->DefaultImageStreams[i].Name << " (CoordinateFrame: " << this->DefaultImageStreams[i].CoordinateFrame << ") "; 
+      imageNames << this->DefaultImageStreams[i].Name << " (EmbeddedTransformToFrame: " << this->DefaultImageStreams[i].EmbeddedTransformToFrame << ") "; 
     }
     LOG_INFO("Server default images to send: " << imageNames.str() ); 
   }
@@ -717,15 +717,15 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
           continue;
         }
 
-        const char* coordinateFrame = imageNames->GetNestedElement( i )->GetAttribute( "CoordinateFrame" );
-        if ( coordinateFrame == NULL )
+        const char* embeddedTransformToFrame = imageNames->GetNestedElement( i )->GetAttribute( "EmbeddedTransformToFrame" );
+        if ( embeddedTransformToFrame == NULL )
         {
           continue;
         }
 
         PlusIgtlClientInfo::ImageStream imageStream; 
         imageStream.Name = name;
-        imageStream.CoordinateFrame = coordinateFrame; 
+        imageStream.EmbeddedTransformToFrame = embeddedTransformToFrame; 
         this->DefaultImageStreams.push_back(imageStream);
 
       }
