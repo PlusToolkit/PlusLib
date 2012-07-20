@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusMath.h"
+#include "PlusXmlUtils.h"
 #include "vtkRfProcessor.h"
 #include "vtkObjectFactory.h"
 #include "vtkRfToBrightnessConvert.h"
@@ -95,50 +96,117 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
   vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement != NULL)
+  if (rfProcessingElement == NULL)
   {
-    vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
-    if (scanConversionElement != NULL)
-    {
-      const char* transducerGeometryStr = scanConversionElement->GetAttribute("TransducerGeometry"); 
-      if ( transducerGeometryStr != NULL) 
-      {
-        if (STRCASECMP(transducerGeometryStr, "LINEAR")==0)
-        {
-          LOG_DEBUG("Transducer geometry set: Linear"); 
-          SetTransducerGeometry(TRANSDUCER_LINEAR); 
-        }
-        else if (STRCASECMP(transducerGeometryStr, "CURVILINEAR")==0)
-        {
-          LOG_DEBUG("Transducer geometry set: Curvilinear"); 
-          SetTransducerGeometry(TRANSDUCER_CURVILINEAR); 
-        }
-        else
-        {
-          LOG_ERROR("Unsupported transducer geometry requested: "<<transducerGeometryStr);
-          SetTransducerGeometry(TRANSDUCER_UNKNOWN); 
-        }
-      }
-    }  
-  }
-  else
-  {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree, will use default values!");     
+    LOG_DEBUG("Unable to find RfProcessing element in XML tree, will use default values!");    
+    return PLUS_FAIL;
   }
 
   PlusStatus status=PLUS_SUCCESS;
-  if (this->RfToBrightnessConverter->ReadConfiguration(config)!=PLUS_SUCCESS)
+
+  vtkXMLDataElement* brightnessConversionElement = rfProcessingElement->FindNestedElementWithName("RfToBrightnessConversion"); 
+  if (brightnessConversionElement)
   {
-    status=PLUS_FAIL;
+    if (this->RfToBrightnessConverter->ReadConfiguration(brightnessConversionElement)!=PLUS_SUCCESS)
+    {
+      status=PLUS_FAIL;
+    }
   }
-  if (this->ScanConverterLinear->ReadConfiguration(config)!=PLUS_SUCCESS)
+
+  vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
+  if (scanConversionElement != NULL)
   {
-    status=PLUS_FAIL;
-  }
-  if (this->ScanConverterCurvilinear->ReadConfiguration(config)!=PLUS_SUCCESS)
-  {
-    status=PLUS_FAIL;
-  }
+    const char* transducerGeometryStr = scanConversionElement->GetAttribute("TransducerGeometry"); 
+    if ( transducerGeometryStr != NULL) 
+    {
+      if (STRCASECMP(transducerGeometryStr, "LINEAR")==0)
+      {
+        LOG_DEBUG("Transducer geometry set: Linear"); 
+        SetTransducerGeometry(TRANSDUCER_LINEAR); 
+        if (this->ScanConverterLinear->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+        {
+          status=PLUS_FAIL;
+        }
+      }
+      else if (STRCASECMP(transducerGeometryStr, "CURVILINEAR")==0)
+      {
+        LOG_DEBUG("Transducer geometry set: Curvilinear"); 
+        SetTransducerGeometry(TRANSDUCER_CURVILINEAR); 
+        if (this->ScanConverterCurvilinear->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+        {
+          status=PLUS_FAIL;
+        }
+      }
+      else
+      {
+        LOG_ERROR("Unsupported transducer geometry requested: "<<transducerGeometryStr);
+        SetTransducerGeometry(TRANSDUCER_UNKNOWN); 
+      }
+    }
+  }  
   
+  return status;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
+{
+  if ( config == NULL )
+  {
+    LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  // RfProcessing
+  //  - BrightnessConversion
+  //  - ScanConversion
+  vtkXMLDataElement* rfProcessingElement = PlusXmlUtils::GetNestedElementWithName(config, "RfProcessing"); 
+  if (rfProcessingElement == NULL) 
+  {  
+    return PLUS_FAIL;
+  }
+  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "RfToBrightnessConversion"); 
+  if (brightnessConversionElement == NULL) 
+  {  
+    return PLUS_FAIL;
+  }  
+  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "ScanConversion"); 
+  if (scanConversionElement == NULL) 
+  {  
+    return PLUS_FAIL;
+  }  
+
+  PlusStatus status=PLUS_SUCCESS;
+
+  if (this->RfToBrightnessConverter->WriteConfiguration(brightnessConversionElement)!=PLUS_SUCCESS)
+  {
+    status=PLUS_FAIL;
+  }  
+  
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+    scanConversionElement->SetAttribute("TransducerGeometry", "LINEAR"); 
+    if (this->ScanConverterLinear->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+    {
+      status=PLUS_FAIL;
+    }
+    break;
+  case TRANSDUCER_CURVILINEAR:
+    scanConversionElement->SetAttribute("TransducerGeometry", "CURVILINEAR"); 
+    if (this->ScanConverterCurvilinear->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+    {
+      status=PLUS_FAIL;
+    }
+    break;
+  case TRANSDUCER_UNKNOWN:
+    scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
+    break;
+  default:
+    scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
+    status=PLUS_FAIL;
+  }
+ 
   return status;
 }

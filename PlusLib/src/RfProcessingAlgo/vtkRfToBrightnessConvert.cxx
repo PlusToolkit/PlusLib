@@ -146,25 +146,18 @@ void vtkRfToBrightnessConvert::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBrightnessElement)
 {
   LOG_TRACE("vtkRfToBrightnessConvert::ReadConfiguration"); 
-  if ( config == NULL )
+  if ( rfToBrightnessElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
+  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion")!=NULL)
   {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree!"); 
-    return PLUS_SUCCESS;
-  }
-  vtkXMLDataElement* rfToBrightnessElement = rfProcessingElement->FindNestedElementWithName("RfToBrightnessConversion"); 
-  if (rfToBrightnessElement == NULL)
-  {
-    LOG_DEBUG("Unable to find RfProcessing/RfToBrightnessConversion element in XML tree!"); 
-    return PLUS_SUCCESS;
+    LOG_ERROR("Cannot read vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
+    return PLUS_FAIL;
   }  
 
   int numberOfHilberFilterCoeffs=0;
@@ -178,6 +171,27 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* config
   {
     this->BrightnessScale=brightnessScale; 
   }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToBrightnessElement)
+{
+  LOG_TRACE("vtkRfToBrightnessConvert::WriteConfiguration"); 
+  if ( rfToBrightnessElement == NULL )
+  {
+    LOG_DEBUG("Unable to write vtkRfToBrightnessConvert: XML data element is NULL"); 
+    return PLUS_FAIL; 
+  }
+  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion")!=NULL)
+  {
+    LOG_ERROR("Cannot write vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
+    return PLUS_FAIL;
+  }  
+
+  rfToBrightnessElement->SetDoubleAttribute("NumberOfHilberFilterCoeffs", this->NumberOfHilberFilterCoeffs);
+  rfToBrightnessElement->SetDoubleAttribute("BrightnessScale", this->BrightnessScale);
 
   return PLUS_SUCCESS;
 }

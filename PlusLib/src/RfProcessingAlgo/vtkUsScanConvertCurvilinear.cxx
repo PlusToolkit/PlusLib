@@ -390,26 +390,19 @@ int vtkUsScanConvertCurvilinear::SplitExtent(int splitExt[6], int startExt[6], i
 } 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertCurvilinear::ReadConfiguration"); 
-  if ( config == NULL )
+  if ( scanConversionElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkUsScanConvertCurvilinear! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
+  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
   {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree, use default values"); 
-    return PLUS_SUCCESS;
+    LOG_ERROR("Cannot read vtkUsScanConvertCurvilinear configuration: ScanConversion element is expected"); 
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
-  if (scanConversionElement == NULL)
-  {
-    LOG_DEBUG("Unable to find RfProcessing/ScanConversion element in XML tree, use default values"); 
-    return PLUS_SUCCESS;
-  }  
 
   double OutputImageStartDepthMm=0;
   if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
@@ -457,6 +450,41 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* con
   {
     this->ThetaStopDeg=thetaStopDeg; 
   }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
+{
+  LOG_TRACE("vtkUsScanConvertCurvilinear::WriteConfiguration"); 
+  if ( scanConversionElement == NULL )
+  {
+    LOG_DEBUG("Unable to write vtkUsScanConvertCurvilinear: XML data element is NULL"); 
+    return PLUS_FAIL; 
+  }
+  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
+  {
+    LOG_ERROR("Cannot write vtkUsScanConvertCurvilinear configuration: ScanConversion element is expected"); 
+    return PLUS_FAIL;
+  }  
+
+  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
+
+  scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
+
+  double outputImageSize[2]=
+  {
+    this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
+    this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
+  };
+  scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
+
+  scanConversionElement->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
+  scanConversionElement->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
+
+  scanConversionElement->SetDoubleAttribute("ThetaStartDeg", this->ThetaStartDeg);
+  scanConversionElement->SetDoubleAttribute("ThetaStopDeg", this->ThetaStopDeg);
 
   return PLUS_SUCCESS;
 }

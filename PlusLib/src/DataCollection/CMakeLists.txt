@@ -52,7 +52,6 @@ SET (DataCollection_LIBS
   vtkPlusCommon 
   vtkTracking 
   vtkSignaling
-  vtkRfProcessingAlgo
   )
     
 IF (PLUS_USE_OpenIGTLink)

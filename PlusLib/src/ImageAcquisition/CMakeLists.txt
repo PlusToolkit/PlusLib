@@ -365,6 +365,7 @@ SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
   ITKBasicFilters
   vtkTracking
   vtkUsSimulatorAlgo
+  vtkRfProcessingAlgo
   )
 
 SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 

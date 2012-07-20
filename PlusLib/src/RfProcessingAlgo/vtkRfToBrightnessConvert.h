@@ -22,8 +22,11 @@ public:
   vtkTypeMacro(vtkRfToBrightnessConvert,vtkThreadedImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data. The rfToBrightnessElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfToBrightnessElement); 
+
+  /*! Write configuration to xml data. The rfToBrightnessElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rfToBrightnessElement); 
 
   /*! Specify image type (RF data encoding type) */
   vtkSetMacro(ImageType, US_IMAGE_TYPE);

@@ -16,7 +16,6 @@ See License.txt for details.
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-#include "vtkRfProcessor.h"
 
 #include "vtkTrackerFactory.h"
 #include "vtkTracker.h"
@@ -59,23 +58,18 @@ vtkDataCollector::vtkDataCollector()
   this->TrackingEnabled = true;
   this->VideoEnabled = true;
   
-  this->RfProcessor=vtkRfProcessor::New();
-
-  // Default size for brightness frame
-  this->BrightnessFrameSize[0]=640;
-  this->BrightnessFrameSize[1]=480;
+  this->VideoSource = NULL;
+  this->Tracker = NULL; 
 
   // Create a blank image, it will be used as output if frames are not available
+  int blankImageSize[2]={10,10};
   this->BlankImage=vtkImageData::New();
-  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
+  this->BlankImage->SetExtent( 0, blankImageSize[0]-1, 0, blankImageSize[1]-1, 0, 0);
   this->BlankImage->SetScalarTypeToUnsignedChar();
   this->BlankImage->SetNumberOfScalarComponents(1); 
   this->BlankImage->AllocateScalars(); 
-  unsigned long memorysize = this->BrightnessFrameSize[0]*this->BrightnessFrameSize[1]*this->BlankImage->GetScalarSize(); 
+  unsigned long memorysize = blankImageSize[0]*blankImageSize[1]*this->BlankImage->GetScalarSize(); 
   memset(this->BlankImage->GetScalarPointer(), 0, memorysize);   
-
-  this->VideoSource = NULL;
-  this->Tracker = NULL; 
 }
 
 //----------------------------------------------------------------------------
@@ -84,9 +78,6 @@ vtkDataCollector::~vtkDataCollector()
   this->Disconnect();
   this->SetTracker(NULL); 
   this->SetVideoSource(NULL);
-
-  this->RfProcessor->Delete();
-  this->RfProcessor=NULL;
   this->BlankImage->Delete();
   this->BlankImage=NULL;
 }
@@ -1002,9 +993,16 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
   vtkImageData *outData = vtkImageData::SafeDownCast( outInfo->Get(vtkDataObject::DATA_OBJECT()) );
 
-  if ( this->GetVideoSource()->GetBuffer()->GetNumberOfItems() < 1 ) 
+  if (this->GetVideoSource()==NULL || this->GetVideoSource()->GetBuffer()->GetNumberOfItems() < 1 ) 
   {
-    int* size = this->GetVideoSource()->GetFrameSize();
+    // The video buffer does not exist or empty
+    
+    // Create a dummy black frame and return that
+    int size[2]={10,10};
+    if (this->GetVideoSource()!=NULL)
+    {
+      this->GetVideoSource()->GetFrameSize(size);
+    }
     outData->SetExtent( 0, size[0] -1, 0, size[1] - 1, 0, 0);
     outData->SetScalarTypeToUnsignedChar();
     outData->SetNumberOfScalarComponents(1); 
@@ -1012,7 +1010,6 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
     unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize();
     memset(outData->GetScalarPointer(), 0, memorysize);
 
-    // If the video buffer is empty, we can return immediately 
     LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
     return 1;
   }
@@ -1026,37 +1023,19 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
 
   outData->DeepCopy(currentVideoBufferItem.GetFrame().GetVtkImage());
 
-  const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec() ); 
-
-  if( this->GetTracker() != NULL && this->TrackingEnabled )
-  {
-    for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
-    {
-      if ( it->second->GetBuffer()->GetNumberOfItems() < 1 )
-      {
-        // If the tracker tool buffer is empty, we can return immediately 
-        LOG_DEBUG("Cannot request data from tracker, the tracker tool buffer is empty!"); 
-        return 1;
-      }
-
-      TrackerBufferItem bufferItem; 
-      if ( it->second->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem) != ITEM_OK )
-      {
-        LOG_ERROR("Failed to get latest tracker buffer item!"); 
-        return 1; 
-      }
-
-      vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-      if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to get toolTransMatrix"); 
-        return 1; 
-      }
-    }
-  }
-
   return 1;
 } 
+
+//----------------------------------------------------------------------------
+vtkImageData* vtkDataCollector::GetBrightnessOutput()
+{
+  if (this->VideoSource == NULL)
+  {
+    LOG_ERROR("Video source is invalid!");
+    return this->BlankImage;
+  }
+  return this->VideoSource->GetBrightnessOutput();
+}
 
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aConfigurationData)
@@ -1289,8 +1268,6 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
     }
   }
 
-  this->RfProcessor->ReadConfiguration(aConfigurationData);
-
   if ( this->VideoSource )
   {
     this->VideoEnabled = true; 
@@ -1358,17 +1335,33 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
 }
 
 //------------------------------------------------------------------------------
-void vtkDataCollector::GetFrameSize(int aDim[2])
+PlusStatus vtkDataCollector::GetFrameSize(int aDim[2])
 {
   LOG_TRACE("vtkDataCollector::GetFrameSize");
 
   if (this->VideoSource == NULL)
   {
     LOG_ERROR("Video source is invalid!");
-    return;
+    return PLUS_FAIL;
   }
 
   this->VideoSource->GetFrameSize(aDim);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
+{
+  if (this->VideoSource == NULL)
+  {
+    LOG_ERROR("Video source is invalid!");
+    aDim[0]=this->BlankImage->GetExtent()[1]-this->BlankImage->GetExtent()[0];
+    aDim[1]=this->BlankImage->GetExtent()[3]-this->BlankImage->GetExtent()[2];
+    return PLUS_FAIL;
+  }
+  
+  this->VideoSource->GetBrightnessFrameSize(aDim);
+  return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
@@ -1476,46 +1469,6 @@ PlusStatus vtkDataCollector::VerifyDeviceSetConfigurationData(vtkXMLDataElement*
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-vtkImageData* vtkDataCollector::GetBrightnessOutput()
-{
-  // Get tracked frame by computed timestamp  
-  vtkImageData *resultImage=this->BlankImage;
-  double currentFrameTimestamp = 0.0;
-  if (GetMostRecentTimestamp(currentFrameTimestamp) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get current timestamp!");
-  }
-  else if (GetTrackedFrameByTime(currentFrameTimestamp, &this->BrightnessOutputTrackedFrame) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get tracked frame by timestamp: " << currentFrameTimestamp);
-  }
-  else if (this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
-  {
-    // B-mode image already, just return as is
-    resultImage=this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage();
-  }
-  else
-  {
-    // RF frame, convert to B-mode frame
-    this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetImageData()->GetVtkImage(), this->BrightnessOutputTrackedFrame.GetImageData()->GetImageType());
-    resultImage=this->RfProcessor->GetBrightessScanConvertedImage();
-  }
-  
-  int *resultExtent=resultImage->GetExtent();
-  this->BrightnessFrameSize[0]=resultExtent[1]-resultExtent[0]+1;
-  this->BrightnessFrameSize[1]=resultExtent[3]-resultExtent[2]+1;
-  
-  return resultImage;
-}
-
-//----------------------------------------------------------------------------
-void vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
-{
-  aDim[0]=this->BrightnessFrameSize[0];
-  aDim[1]=this->BrightnessFrameSize[1];
 }
 
 //----------------------------------------------------------------------------
