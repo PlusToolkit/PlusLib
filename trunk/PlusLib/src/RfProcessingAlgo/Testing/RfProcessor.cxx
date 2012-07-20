@@ -80,9 +80,22 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
   LOG_DEBUG("Reading config file finished.");
 
+  vtkXMLDataElement* dataCollectionConfig = configRead->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition");
+  if (imageAcquisitionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection/ImageAcquisition element in XML tree!");
+    return PLUS_FAIL;
+  }  
+
   // Create converter
   vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
-  if ( rfProcessor->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  if ( rfProcessor->ReadConfiguration(imageAcquisitionConfig) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
     exit(EXIT_FAILURE); 

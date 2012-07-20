@@ -22,11 +22,13 @@ Authors include: Danielle Pace
 #include "vtkXMLDataElement.h"
 #include "vtkMultiThreader.h"
 #include "PlusVideoFrame.h"
+#include "vtkVideoBuffer.h"
 
 class vtkVideoBuffer;
 class vtkHTMLGenerator;
 class vtkGnuplotExecuter;
 class VideoBufferItem;
+class vtkRfProcessor;
 
 /*!
 \class vtkPlusVideoSource
@@ -90,6 +92,9 @@ public:
   /*! Set recording start time */
   virtual void SetStartTime( double startTime );  
   
+  vtkImageData* GetBrightnessOutput();
+  void GetBrightnessFrameSize(int aDim[2]);
+
 public:
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
@@ -282,6 +287,15 @@ protected:
     Use this flag to allow video sources to make the device image orientation definition optional.
   */
   bool RequireDeviceImageOrientationInDeviceSetConfiguration;
+
+  /*! RF to brightness conversion */
+  vtkRfProcessor* RfProcessor;
+  vtkImageData* BlankImage;
+  VideoBufferItem BrightnessOutputTrackedFrame;
+  int BrightnessFrameSize[2];
+  
+  /*! If true then RF processing parameters will be saved into the config file */
+  bool SaveRfProcessingParameters;
 
 private:
   vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.

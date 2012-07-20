@@ -26,8 +26,11 @@ public:
   /*! Get the output image spacing (mm/pixel) */
   vtkGetVector3Macro(OutputImageSpacing,double);
 
-  /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);   
+  /*! Read configuration from xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* scanConversionElement);   
+
+  /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
    
 protected:
   vtkUsScanConvertCurvilinear();

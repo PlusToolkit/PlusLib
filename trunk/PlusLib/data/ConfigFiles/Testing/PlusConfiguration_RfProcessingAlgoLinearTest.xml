@@ -1,17 +1,16 @@
 <PlusConfiguration version="1.4">
-
-  <RfProcessing>
-
-    <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-
-    <ScanConversion TransducerName="Ultrasonix_L9-4/38"
-      TransducerGeometry="LINEAR"
-      ImagingDepthMm="55.0"
-      TransducerWidthMm="38.0"
-      OutputImageSizePixel="220 300"
-      OutputImageSpacingMmPerPixel="0.2 0.2"        
-      />
-
-  </RfProcessing> 
-
+  <DataCollection>  
+    <ImageAcquisition>
+      <RfProcessing>
+        <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+        <ScanConversion TransducerName="Ultrasonix_L9-4/38"
+          TransducerGeometry="LINEAR"
+          ImagingDepthMm="55.0"
+          TransducerWidthMm="38.0"
+          OutputImageSizePixel="220 300"
+          OutputImageSpacingMmPerPixel="0.2 0.2"        
+          />
+      </RfProcessing> 
+    </ImageAcquisition>
+  </DataCollection>        
 </PlusConfiguration>

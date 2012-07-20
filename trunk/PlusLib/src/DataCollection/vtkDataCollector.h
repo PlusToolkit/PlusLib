@@ -14,7 +14,6 @@ class vtkXMLDataElement;
 class vtkTrackedFrameList; 
 class TrackedFrame; 
 class vtkMatrix4x4;
-class vtkRfProcessor;
 
 class vtkImageData; 
 class vtkTracker;
@@ -100,10 +99,10 @@ public:
   vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
 
   /*! Get frame size */
-  virtual void GetFrameSize(int aDim[2]);
+  virtual PlusStatus GetFrameSize(int aDim[2]);
 
   /*! Get frame size */
-  virtual void GetBrightnessFrameSize(int aDim[2]);
+  virtual PlusStatus GetBrightnessFrameSize(int aDim[2]);
 
   /*! Set tracker  */
   virtual void SetTracker(vtkTracker* tracker); 
@@ -197,16 +196,16 @@ protected:
   /*! Collecting image data is enabled */
   bool VideoEnabled;
 
-  /*! RF to brightness conversion */
-  vtkRfProcessor* RfProcessor;
-  vtkImageData* BlankImage;
-  TrackedFrame BrightnessOutputTrackedFrame;
-  int BrightnessFrameSize[2];
-
   /*! Ultrasound image data source */
   vtkPlusVideoSource* VideoSource; 
   /*! Tracking data source */
   vtkTracker* Tracker; 
+
+  /*!
+    A blank image, to be returned when video data is requested but not available, to avoid potential crashes due to 
+    NULL pointers.
+  */
+  vtkImageData* BlankImage;
 
 private:
   vtkDataCollector(const vtkDataCollector&);

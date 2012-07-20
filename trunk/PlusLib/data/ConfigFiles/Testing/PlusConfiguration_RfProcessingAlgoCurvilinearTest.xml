@@ -1,20 +1,19 @@
 <PlusConfiguration version="1.4">
-
-  <RfProcessing>
-
-    <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-
-    <ScanConversion TransducerName="Ultrasonix_BPC8-4/10"
-      TransducerGeometry="CURVILINEAR"
-      RadiusStartMm="10.0"
-      RadiusStopMm="82.0"
-      ThetaStartDeg="-75.0"
-      ThetaStopDeg="75.0"
-      OutputImageStartDepthMm="-3.0"
-      OutputImageSizePixel="820 616"
-      OutputImageSpacingMmPerPixel="0.15 0.15"        
-      />
-
-  </RfProcessing> 
-
+  <DataCollection>  
+    <ImageAcquisition>
+      <RfProcessing>
+        <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+        <ScanConversion TransducerName="Ultrasonix_BPC8-4/10"
+          TransducerGeometry="CURVILINEAR"
+          RadiusStartMm="10.0"
+          RadiusStopMm="82.0"
+          ThetaStartDeg="-75.0"
+          ThetaStopDeg="75.0"
+          OutputImageStartDepthMm="-3.0"
+          OutputImageSizePixel="820 616"
+          OutputImageSpacingMmPerPixel="0.15 0.15"        
+          />
+      </RfProcessing> 
+    </ImageAcquisition>
+  </DataCollection>        
 </PlusConfiguration>

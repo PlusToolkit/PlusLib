@@ -49,6 +49,9 @@ public:
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+
   /*! Set the transducer geometry (linear or curvilinear) */
   vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
 

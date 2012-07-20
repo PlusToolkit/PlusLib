@@ -21,6 +21,8 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkTrackedFrameList.h"
 
+#include "vtkRfProcessor.h"
+
 #include <ctype.h>
 #include <time.h>
 
@@ -56,6 +58,23 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
   this->DeviceImageOrientation = US_IMG_ORIENT_XX; 
+
+  this->RfProcessor=vtkRfProcessor::New();
+  this->SaveRfProcessingParameters=false;
+
+  // Default size for brightness frame
+  this->BrightnessFrameSize[0]=640;
+  this->BrightnessFrameSize[1]=480;
+
+  // Create a blank image, it will be used as output if frames are not available
+  this->BlankImage=vtkImageData::New();
+  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
+  this->BlankImage->SetScalarTypeToUnsignedChar();
+  this->BlankImage->SetNumberOfScalarComponents(1); 
+  this->BlankImage->AllocateScalars(); 
+  unsigned long memorysize = this->BrightnessFrameSize[0]*this->BrightnessFrameSize[1]*this->BlankImage->GetScalarSize(); 
+  memset(this->BlankImage->GetScalarPointer(), 0, memorysize);   
+
 }
 
 //----------------------------------------------------------------------------
@@ -81,6 +100,10 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
     this->Buffer=NULL;
   }
 
+  this->RfProcessor->Delete();
+  this->RfProcessor=NULL;
+  this->BlankImage->Delete();
+  this->BlankImage=NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -506,6 +529,11 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 
   imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffsetSec", this->Buffer->GetLocalTimeOffsetSec() );
 
+  if (this->SaveRfProcessingParameters)
+  {
+    this->RfProcessor->WriteConfiguration(imageAcquisitionConfig);
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -582,6 +610,12 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     {
       LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - please set UsImageOrientation in the video source configuration");
     }
+  }
+
+  if (imageAcquisitionConfig->FindNestedElementWithName("RfProcessing"))
+  {
+    this->RfProcessor->ReadConfiguration(imageAcquisitionConfig);
+    this->SaveRfProcessingParameters=true;
   }
 
   return PLUS_SUCCESS;
@@ -741,4 +775,41 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
 void vtkPlusVideoSource::SetStartTime( double startTime )
 {
   GetBuffer()->SetStartTime(startTime);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVideoSource::GetBrightnessFrameSize(int aDim[2])
+{
+  aDim[0]=this->BrightnessFrameSize[0];
+  aDim[1]=this->BrightnessFrameSize[1];
+}
+
+//----------------------------------------------------------------------------
+vtkImageData* vtkPlusVideoSource::GetBrightnessOutput()
+{  
+  vtkImageData* resultImage=this->BlankImage;
+  if ( GetBuffer()->GetLatestVideoBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
+  {
+    LOG_DEBUG("No video data available yet, return blank frame");
+  }
+  else if (this->BrightnessOutputTrackedFrame.GetFrame().GetImageType()==US_IMG_BRIGHTNESS)
+  {
+    // B-mode image already, just return as is
+    resultImage=this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage();
+  }
+  else
+  {
+    // RF frame, convert to B-mode frame
+    this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage(), this->BrightnessOutputTrackedFrame.GetFrame().GetImageType());
+    resultImage=this->RfProcessor->GetBrightessScanConvertedImage();
+    
+    // RF processing parameters were used, so save them into the config file
+    this->SaveRfProcessingParameters=true;
+  }
+  
+  int *resultExtent=resultImage->GetExtent();
+  this->BrightnessFrameSize[0]=resultExtent[1]-resultExtent[0]+1;
+  this->BrightnessFrameSize[1]=resultExtent[3]-resultExtent[2]+1;
+  
+  return resultImage;
 }

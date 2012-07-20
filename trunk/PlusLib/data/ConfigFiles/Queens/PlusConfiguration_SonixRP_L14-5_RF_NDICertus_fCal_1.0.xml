@@ -15,9 +15,9 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
-      IP="130.15.7.212" 
+      IP="130.15.7.20" 
       BufferSize="500" 
-      UsImageOrientation="UF"
+      UsImageOrientation="FM"
       AcquisitionRate="30" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2126"
@@ -31,20 +31,20 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" 
-    />
+      >
+      <RfProcessing>
+        <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+        <ScanConversion TransducerName="Ultrasonix_L9-4/38"
+          TransducerGeometry="LINEAR"
+          ImagingDepthMm="55.0"
+          TransducerWidthMm="38.0"
+          OutputImageSizePixel="440 600"
+          OutputImageSpacingMmPerPixel="0.1 0.1"        
+          />
+      </RfProcessing>  
+    </ImageAcquisition>      
 
   </DataCollection>
-
-  <RfProcessing>
-    <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-    <ScanConversion TransducerName="Ultrasonix_L9-4/38"
-      TransducerGeometry="LINEAR"
-      ImagingDepthMm="55.0"
-      TransducerWidthMm="38.0"
-      OutputImageSizePixel="440 600"
-      OutputImageSpacingMmPerPixel="0.1 0.1"        
-      />
-  </RfProcessing>  
 
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"

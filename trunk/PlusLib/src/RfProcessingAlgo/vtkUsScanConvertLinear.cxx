@@ -102,26 +102,19 @@ vtkImageData* vtkUsScanConvertLinear::GetOutput()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertLinear::ReadConfiguration"); 
-  if ( config == NULL )
+  if ( scanConversionElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkUsScanConvertLinear! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
+  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
   {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree, use default values"); 
-    return PLUS_SUCCESS;
+    LOG_ERROR("Cannot read vtkUsScanConvertLinear configuration: ScanConversion element is expected"); 
+    return PLUS_FAIL;
   }
-  vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
-  if (scanConversionElement == NULL)
-  {
-    LOG_DEBUG("Unable to find RfProcessing/ScanConversion element in XML tree, use default values"); 
-    return PLUS_SUCCESS;
-  }  
 
   int OutputImageStartDepthMm=0;
   if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
@@ -162,3 +155,36 @@ PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* config)
  
   return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsScanConvertLinear::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
+{
+  LOG_TRACE("vtkUsScanConvertLinear::WriteConfiguration"); 
+  if ( scanConversionElement == NULL )
+  {
+    LOG_DEBUG("Unable to write vtkUsScanConvertLinear: XML data element is NULL"); 
+    return PLUS_FAIL; 
+  }
+  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
+  {
+    LOG_ERROR("Cannot write vtkUsScanConvertLinear configuration: ScanConversion element is expected"); 
+    return PLUS_FAIL;
+  }  
+  
+  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
+
+  scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
+
+  double outputImageSize[2]=
+  {
+    this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
+    this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
+  };
+  scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
+
+  scanConversionElement->SetDoubleAttribute("ImagingDepthMm", this->ImagingDepthMm);
+  scanConversionElement->SetDoubleAttribute("TransducerWidthMm", this->TransducerWidthMm);
+
+  return PLUS_SUCCESS;
+}
+
