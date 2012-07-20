@@ -882,15 +882,15 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 
   ui.doubleSpinBox_MaxLineShiftMm->setValue(m_PatternRecognition->GetFidLabeling()->GetMaxLineShiftMm());
 
-  // Fill form with configuration data
-  if (ReadConfiguration() != PLUS_SUCCESS) {
-    LOG_ERROR("Fill form with configuration data failed!");
-    return;
-  }
-
   // Initialize visualization
   if (InitializeVisualization() != PLUS_SUCCESS) {
     LOG_ERROR("Initialize visualization failed!");
+    return;
+  }
+
+  // Fill form with configuration data
+  if (ReadConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Fill form with configuration data failed!");
     return;
   }
 }
@@ -1285,7 +1285,10 @@ void SegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("SegmentationParameterDialog::resizeEvent");
 
-  m_ImageVisualizer->UpdateCameraPose();
+  if( m_ImageVisualizer != NULL )
+  {
+    m_ImageVisualizer->UpdateCameraPose();
+  }
 }
 
 //-----------------------------------------------------------------------------
