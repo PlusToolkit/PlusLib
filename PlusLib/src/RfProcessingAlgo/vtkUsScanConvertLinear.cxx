@@ -69,7 +69,8 @@ void vtkUsScanConvertLinear::Update()
   this->ImageReslice->SetOutputSpacing(1.0, 1.0, 1.0);
 
   // The direction cosines give the x, y, and z axes for the output volume.
-  this->ImageReslice->GetInputConnection(0,0)->GetProducer()->Update();
+  // Updating whole extent is needed when the requested extent is smaller than the producer's whole extent
+  this->ImageReslice->GetInputConnection(0,0)->GetProducer()->UpdateWholeExtent();
   vtkImageData* inputImage=this->ImageReslice->GetImageDataInput(0);  
   if (inputImage==NULL)
   {
