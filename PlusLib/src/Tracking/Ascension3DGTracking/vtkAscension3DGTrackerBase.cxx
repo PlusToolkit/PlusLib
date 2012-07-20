@@ -216,6 +216,13 @@ PlusStatus vtkAscension3DGTrackerBase::InternalStopTracking()
     return PLUS_FAIL;
   }
 
+  if (this->CheckReturnStatus( CloseBIRDSystem() )
+    != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to close BIRD system");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
