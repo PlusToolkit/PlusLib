@@ -135,8 +135,8 @@ public:
   vtkGetObjectMacro(DataCollector, vtkDataCollector);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus InitializeDataCollector(vtkDataCollector* aCollector);
-  PlusStatus InitializeResultPolyData(vtkPolyData* aResultPolyData);
+  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
+  PlusStatus AssignResultPolyData(vtkPolyData* aResultPolyData);
 
   // Utility functions
   PlusStatus SetResultColor(double r, double g, double b);

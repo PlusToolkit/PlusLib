@@ -70,15 +70,15 @@ vtkVisualizationController::vtkVisualizationController()
 
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
-  imageVisualizer->InitializeResultPolyData(this->ResultPolyData);
+  imageVisualizer->AssignResultPolyData(this->ResultPolyData);
   // TODO : find a mechanism to determine when this should be shown
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
   // Create 3D visualizer
   vtkSmartPointer<vtk3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtk3DObjectVisualizer>::New();
-  perspectiveVisualizer->InitializeResultPolyData(this->ResultPolyData);
-  perspectiveVisualizer->InitializeInputPolyData(this->InputPolyData);
+  perspectiveVisualizer->AssignResultPolyData(this->ResultPolyData);
+  perspectiveVisualizer->AssignInputPolyData(this->InputPolyData);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
@@ -350,8 +350,8 @@ PlusStatus vtkVisualizationController::StartDataCollection()
     return PLUS_FAIL;
   }
 
-  this->ImageVisualizer->InitializeDataCollector(this->DataCollector);
-  this->PerspectiveVisualizer->InitializeDataCollector(this->DataCollector);
+  this->ImageVisualizer->AssignDataCollector(this->DataCollector);
+  this->PerspectiveVisualizer->AssignDataCollector(this->DataCollector);
 
   return PLUS_SUCCESS;
 }
@@ -719,7 +719,7 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXML
   // Pass on any configuration steps to children
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->PerspectiveVisualizer->InitializeTransformRepository(this->TransformRepository);
+    this->PerspectiveVisualizer->AssignTransformRepository(this->TransformRepository);
     if( this->PerspectiveVisualizer->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to configure perspective visualizer.");
@@ -750,7 +750,16 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
   }
 
   this->DisconnectInput();
-  this->PerspectiveVisualizer->ClearDisplayableObjects();
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->PerspectiveVisualizer->ClearDisplayableObjects();
+    this->PerspectiveVisualizer->AssignDataCollector(NULL);
+  }
+
+  if( this->ImageVisualizer != NULL )
+  {
+    this->ImageVisualizer->AssignDataCollector(NULL);
+  }
 
   this->DataCollector->Stop();
   this->DataCollector->Disconnect();

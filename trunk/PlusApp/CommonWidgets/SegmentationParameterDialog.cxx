@@ -988,8 +988,8 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   }
   m_ImageVisualizer->SetROIBounds(ui.spinBox_XMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMin->value(), ui.spinBox_YMax->value());
   m_ImageVisualizer->EnableROI(true);
-  m_ImageVisualizer->InitializeResultPolyData(m_CandidatesPolyData);
-  m_ImageVisualizer->InitializeDataCollector(m_DataCollector);
+  m_ImageVisualizer->AssignResultPolyData(m_CandidatesPolyData);
+  m_ImageVisualizer->AssignDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
   m_ImageVisualizer->GetCanvasRenderer()->SetBackground(0.1, 0.1, 0.1);
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);

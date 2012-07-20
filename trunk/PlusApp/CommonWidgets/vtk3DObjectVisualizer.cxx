@@ -325,7 +325,7 @@ PlusStatus vtk3DObjectVisualizer::HideAll()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData(vtkPolyData* aInputPolyData )
+PlusStatus vtk3DObjectVisualizer::AssignInputPolyData(vtkPolyData* aInputPolyData )
 {
   if( aInputPolyData != NULL )
   {
@@ -339,7 +339,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeInputPolyData(vtkPolyData* aInputPol
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData(vtkPolyData* aResultPolyData )
+PlusStatus vtk3DObjectVisualizer::AssignResultPolyData(vtkPolyData* aResultPolyData )
 {
   if( aResultPolyData != NULL )
   {
@@ -353,7 +353,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeResultPolyData(vtkPolyData* aResultP
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository(vtkTransformRepository* aTransformRepository )
+PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkTransformRepository* aTransformRepository )
 {
   LOG_TRACE("vtk3DObjectVisualizer::SetTransformRepository");
 
@@ -378,7 +378,7 @@ PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository(vtkTransformRepo
       return PLUS_FAIL;
     }
 
-    if (this->DataCollector->GetTrackingDataAvailable() == false)
+    if (this->DataCollector->GetTrackingEnabled() == false)
     {
       LOG_ERROR("No tracking data is available");
       return PLUS_FAIL;
@@ -393,13 +393,14 @@ PlusStatus vtk3DObjectVisualizer::InitializeTransformRepository(vtkTransformRepo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::InitializeDataCollector(vtkDataCollector* aCollector )
+PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollector )
 {
+  LOG_TRACE("vtk3DObjectVisualizer::AssignDataCollector");
+
+  this->SetDataCollector(aCollector);
+
   if( aCollector != NULL )
   {
-    // Store a reference to the data collector
-    this->DataCollector = aCollector;
-
     if (this->DataCollector->GetConnected() == false)
     {
       LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");

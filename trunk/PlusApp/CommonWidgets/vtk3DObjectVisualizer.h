@@ -79,7 +79,6 @@ public:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
 
-public:
   /*!
   * Update the displayable objects
   */
@@ -96,10 +95,10 @@ public:
   vtkSetStringMacro(WorldCoordinateFrame);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus InitializeDataCollector(vtkDataCollector* aCollector);
-  PlusStatus InitializeInputPolyData(vtkPolyData* aInputPolyData);
-  PlusStatus InitializeResultPolyData(vtkPolyData* aResultPolyData);
-  PlusStatus InitializeTransformRepository(vtkTransformRepository* aTransformRepository);
+  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
+  PlusStatus AssignInputPolyData(vtkPolyData* aInputPolyData);
+  PlusStatus AssignResultPolyData(vtkPolyData* aResultPolyData);
+  PlusStatus AssignTransformRepository(vtkTransformRepository* aTransformRepository);
 
 protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);

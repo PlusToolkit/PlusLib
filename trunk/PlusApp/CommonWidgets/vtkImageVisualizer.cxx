@@ -475,9 +475,11 @@ void vtkImageVisualizer::SetInput(vtkImageData* aImage )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeDataCollector(vtkDataCollector* aCollector )
+PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector )
 {
-  LOG_TRACE("vtkImageVisualizer::InitializeDataCollector");
+  LOG_TRACE("vtkImageVisualizer::AssignDataCollector");
+
+  this->SetDataCollector(aCollector);
 
   if( aCollector != NULL )
   {
@@ -498,9 +500,9 @@ PlusStatus vtkImageVisualizer::InitializeDataCollector(vtkDataCollector* aCollec
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeResultPolyData(vtkPolyData* aResultPolyData )
+PlusStatus vtkImageVisualizer::AssignResultPolyData(vtkPolyData* aResultPolyData )
 {
-  LOG_TRACE("vtkImageVisualizer::InitializeResultPolyData");
+  LOG_TRACE("vtkImageVisualizer::AssignResultPolyData");
 
   if( aResultPolyData != NULL )
   {
@@ -925,7 +927,7 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
 
 PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
 {
-  LOG_TRACE("vtkImageViewer::SetWireLabelPositions");
+  LOG_TRACE("vtkImageVisualizer::SetWireLabelPositions");
 
   if( aPointList == NULL )
   {
