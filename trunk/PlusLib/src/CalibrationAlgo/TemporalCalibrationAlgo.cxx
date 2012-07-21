@@ -353,9 +353,6 @@ PlusStatus TemporalCalibration::filterFrames()
   m_CommonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
   m_CommonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
 
-	//std::cout << m_CommonRangeMin << std::endl;
-	//std::cout << m_CommonRangeMax << std::endl;
-
 	if (m_CommonRangeMin + m_MaxTrackerLagSec >= m_CommonRangeMax - m_MaxTrackerLagSec)
   {
     LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
@@ -389,10 +386,6 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
-		//std::cout << "Timestamp: " << trackedFrame->GetTimestamp() << std::endl;
-		//std::cout << "Common range min: " <<  m_CommonRangeMin << std::endl;
-		//std::cout << "Common range max: " <<  m_CommonRangeMax << std::endl;
-		//std::cout << "Max tracker lag: " << m_MaxTrackerLagSec << std::endl;
 		
 		if(trackedFrame->GetTimestamp() > (m_CommonRangeMin + m_MaxTrackerLagSec) && trackedFrame->GetTimestamp() < m_CommonRangeMax - m_MaxTrackerLagSec)
 		{
@@ -425,7 +418,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
 	//// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
 	//ofstream trackerPositionsFile;
- // trackerPositionsFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\trackerPositions.txt");
+ // trackerPositionsFile.open ("\\trackerPositions.txt");
 	//for(long int i = 0; i < trackerPositions.size(); ++i)
 	//{
 	//	trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
@@ -439,7 +432,7 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
 
 	//// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
 	//ofstream eigenvectorFile;
- // eigenvectorFile.open ("C:\\Users\\moult\\Documents\\Summer2012\\TemporalCalibration\\Results\\TemporalCalibrationTests\\July_04_2012\\TrackerCoordinates\\eigenvector.txt");
+ // eigenvectorFile.open ("\\eigenvector.txt");
 	//eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
  // eigenvectorFile.close();
 
@@ -463,15 +456,9 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric()
                                          + trackerPositions.at(frame).GetElement(1) * principalAxisOfMotion[1]
                                          + trackerPositions.at(frame).GetElement(2) * principalAxisOfMotion[2];
 
-    // Find the translation between the projection of the current tracker position and the projection of the 
-    // the mean tracker position
-    double trackerTranslationDistance = currTrackerPositionProjection - meanTrackerPositionProjection;
-
     //  Store this translation and corresponding timestamp
-    m_TrackerPositionMetric.push_back(trackerTranslationDistance);
+    m_TrackerPositionMetric.push_back(currTrackerPositionProjection);
   }
-
-	std::cout << m_TrackerPositionMetric.size() << std::endl;
 
   return PLUS_SUCCESS;
 }
