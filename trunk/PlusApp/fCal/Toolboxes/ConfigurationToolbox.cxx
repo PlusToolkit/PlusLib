@@ -69,6 +69,9 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
 
   ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
   ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory())) );
+
+  m_LastEditorLocation = QString("C:");
+  m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
 }
 
 //-----------------------------------------------------------------------------
@@ -327,10 +330,12 @@ void ConfigurationToolbox::SelectEditorApplicationExecutable()
 
   // File open dialog for selecting phantom definition xml
   QString filter = QString( tr( "Executables ( *.exe );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), "C:", filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), m_LastEditorLocation, filter);
   if (fileName.isNull()) {
     return;
   }
+
+  m_LastEditorLocation = fileName.mid(0, fileName.lastIndexOf('/'));
 
   vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toAscii().data());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
@@ -345,10 +350,12 @@ void ConfigurationToolbox::SelectImageDirectory()
   LOG_TRACE("ConfigurationToolbox::SelectImageDirectory"); 
 
   // Directory open dialog for selecting configuration directory 
-  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Select image directory" ) ), QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory()));
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Select image directory" ) ), m_LastImageDirectoryLocation);
   if (dirName.isNull()) {
     return;
   }
+
+  m_LastImageDirectoryLocation = dirName;
 
   // Save the selected directory to config object
   vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toAscii().data());

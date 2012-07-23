@@ -41,6 +41,8 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
   connect( ui.horizontalSlider_ContouringThreshold, SIGNAL( valueChanged(int) ), this, SLOT( RecomputeContourFromReconstructedVolume(int) ) );
   connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
+
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
 }
 
 //-----------------------------------------------------------------------------
@@ -337,7 +339,7 @@ void VolumeReconstructionToolbox::Save()
   LOG_TRACE("VolumeReconstructionToolbox::Save"); 
 
   QString filter = QString( tr( "Sequence metafiles ( *.mha );;VTK files ( *.vtk );;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), m_LastSaveLocation, filter);
 
   if (! fileName.isNull() )
   {
@@ -498,6 +500,8 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
     LOG_ERROR("Invalid file extension (.vtk or .mha expected)!");
     return PLUS_FAIL;
   }
+
+  m_LastSaveLocation = aOutput.mid(0, aOutput.lastIndexOf('/'));
 
   return PLUS_SUCCESS;
 }

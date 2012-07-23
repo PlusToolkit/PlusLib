@@ -114,6 +114,9 @@ protected:
   /*! String list containing the file names of the loaded images and the images that have been saved by Capturing toolbox */
   QStringList             m_ImageFileNames;
 
+  /*! String to hold the last location of data saved */
+  QString                 m_LastSaveLocation;
+
 protected:
   Ui::VolumeReconstructionToolbox ui;
 };
