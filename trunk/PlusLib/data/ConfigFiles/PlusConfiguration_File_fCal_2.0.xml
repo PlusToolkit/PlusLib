@@ -1,0 +1,162 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="Simulation mode for freehand spatial calibration with phantom 2.0 containing 3 NWires" 
+      Description="Data collector in file mode providing sequence for freehand calibration" 
+    />
+
+    <ImageAcquisition
+      Type="SavedDataset"
+      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      />
+      
+  </DataCollection>
+
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
+      Date="2011.12.06 17:57:00"
+    />
+    <Transform From="Phantom" To="Reference"
+      Matrix="0.00898765 -0.0136951 -0.999866 9.59137 0.0246163 -0.9996 0.0139127 36.0012 -0.999657 -0.024738 -0.00864693 87.8909 0 0 0 1"
+      Error="0.404711" Date="012712_152104"
+    />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
+      Error="0.582721" Date="012712_152030"
+    />
+  </CoordinateDefinitions> 
+  
+
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        1 0 0 -29.7
+        0 -1 0 1.5
+        0 0 -1 14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_1.2.stl"
+      ModelToObjectTransform="
+        1 0 0 -25.0
+        0 0 -1 45.0
+        0 1 0 -5.0
+        0 0 0 1"
+      />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+  </Rendering>
+
+
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="1.0"
+    RegionOfInterest="27 27 793 589"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+	MaxLineShiftMm="10.0"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
+  
+
+  <PhantomDefinition>
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+      Name="fCAL"
+      Type="Double-N"
+      Version="2.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+    />
+    
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="1:E5_e5" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+        <Wire Name="2:J5_f5" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+        <Wire Name="3:K5_k5" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:E1_e1" EndPointFront="20.0 0.0 20.0" EndPointBack="20.0 40.0 20.0" />
+        <Wire Name="5:F1_j1" EndPointFront="25.0 0.0 20.0" EndPointBack="45.0 40.0 20.0" />
+        <Wire Name="6:K1_k1" EndPointFront="50.0 0.0 20.0" EndPointBack="50.0 40.0 20.0" />
+      </Pattern>
+
+      <Landmarks>
+        <Landmark Name="#1" Position="104.0 15.0 25.0" />
+        <Landmark Name="#2" Position="104.0 55.0 25.0" />
+        <Landmark Name="#3" Position="104.0 55.0 5.0" />
+        <Landmark Name="#4" Position="104.0 5.0 5.0" />
+        
+        <Landmark Name="#5" Position="-34.0 55.0 20.0" />
+        <Landmark Name="#6" Position="-34.0 5.0 25.0" />
+        <Landmark Name="#7" Position="-34.0 5.0 5.0" />
+        <Landmark Name="#8" Position="-34.0 55.0 5.0" />
+      </Landmarks>
+      
+    </Geometry>
+  </PhantomDefinition>
+
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
+
+  <fCal
+    NumberOfCalibrationImagesToAcquire="140"
+    NumberOfValidationImagesToAcquire="70"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+</PlusConfiguration>
