@@ -47,6 +47,8 @@ PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory
 		ui.lineEdit_ConfigurationDirectory->setText(aDirectory);
 		ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
 
+    m_ConfigurationDirectory = aDirectory;
+
     return PLUS_SUCCESS;
 	}
   else

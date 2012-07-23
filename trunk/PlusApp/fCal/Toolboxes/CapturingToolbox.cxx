@@ -424,9 +424,9 @@ void CapturingToolbox::Save()
   QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
   QString fileName;
 
-    fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
-      QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
-    m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
+  fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
+    QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
+  m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
 
   if (! fileName.isNull() )
   {
