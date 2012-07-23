@@ -51,6 +51,8 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   // Create and connect recording timer
   m_RecordingTimer = new QTimer(this); 
   connect(m_RecordingTimer, SIGNAL(timeout()), this, SLOT(Capture()) );
+
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
 }
 
 //-----------------------------------------------------------------------------
@@ -420,8 +422,11 @@ void CapturingToolbox::Save()
   LOG_TRACE("CapturingToolbox::Save"); 
 
   QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
-    QString("%1/TrackedImageSequence_%2").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
+  QString fileName;
+
+    fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
+      QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
+    m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
 
   if (! fileName.isNull() )
   {

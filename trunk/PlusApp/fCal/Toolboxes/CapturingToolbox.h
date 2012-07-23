@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkTimestampedCircularBuffer.h"
 
 #include <QWidget>
+#include <QString>
 
 #include <deque>
 
@@ -135,6 +136,9 @@ protected:
 
   /*! Queue storing the number of recorded frames in each round in the last two seconds */
   std::deque<int> m_RecordedFrameNumberQueue;
+
+  /*! String to hold the last location of data saved */
+  QString m_LastSaveLocation;
 
 protected:
   Ui::CapturingToolbox ui;
