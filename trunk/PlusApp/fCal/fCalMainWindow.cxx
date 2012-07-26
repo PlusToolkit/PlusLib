@@ -175,7 +175,6 @@ void fCalMainWindow::CreateToolboxes()
     QGridLayout* grid = new QGridLayout(ui.toolbox_Configuration, 1, 1, 0, 0, "");
     grid->addWidget(configurationToolbox);
     ui.toolbox_Configuration->setLayout(grid);
-    //ui.toolbox->widget(0)->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_Configuration] = configurationToolbox;
 
@@ -185,7 +184,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing, 1, 1, 0, 0, "");
     grid->addWidget(capturingToolbox);
-    ui.toolbox->widget(1)->setLayout(grid);
+    ui.toolbox_Capturing->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
 
@@ -195,7 +194,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_StylusCalibration);
     grid->addWidget(stylusCalibrationToolbox);
-    ui.toolbox->widget(2)->setLayout(grid);
+    ui.toolbox_StylusCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_StylusCalibration] = stylusCalibrationToolbox;
 
@@ -205,7 +204,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_PhantomRegistration, 1, 1, 0, 0, "");
     grid->addWidget(phantomRegistrationToolbox);
-    ui.toolbox->widget(3)->setLayout(grid);
+    ui.toolbox_PhantomRegistration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_PhantomRegistration] = phantomRegistrationToolbox;
 
@@ -215,7 +214,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_TemporalCalibration, 1, 1, 0, 0, "");
     grid->addWidget(temporalCalibrationToolbox);
-    ui.toolbox->widget(4)->setLayout(grid);
+    ui.toolbox_TemporalCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_TemporalCalibration] = temporalCalibrationToolbox;
 
@@ -225,7 +224,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_SpatialCalibration, 1, 1, 0, 0, "");
     grid->addWidget(spatialCalibrationToolbox);
-    ui.toolbox->widget(5)->setLayout(grid);
+    ui.toolbox_SpatialCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_SpatialCalibration] = spatialCalibrationToolbox;
 
@@ -235,7 +234,7 @@ void fCalMainWindow::CreateToolboxes()
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_VolumeReconstruction, 1, 1, 0, 0, "");
     grid->addWidget(volumeReconstructionToolbox);
-    ui.toolbox->widget(6)->setLayout(grid);
+    ui.toolbox_VolumeReconstruction->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
 }

@@ -276,7 +276,6 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
           palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
           ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
-          ui.frame_SpatialCalibration->setEnabled(true);
         }
         else
         {
@@ -285,7 +284,6 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
           ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str()) );
           LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed");
-          ui.frame_SpatialCalibration->setEnabled(false);
         }
       }
       else
@@ -315,7 +313,6 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices");
-    ui.frame_SpatialCalibration->setEnabled(false);
   }
 
   // Set widget states according to state
@@ -351,7 +348,6 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_Warning->setVisible(false);
     ui.label_Results->setText(QString(""));
 
-    ui.frame_SpatialCalibration->setEnabled(true);
     ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_CancelSpatial->setEnabled(false);
     ui.pushButton_StartSpatial->setEnabled(isReadyToStartSpatialCalibration);
@@ -375,7 +371,6 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible until the progress bar is filled.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
-    ui.frame_SpatialCalibration->setEnabled(true);
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(true);
     ui.pushButton_CancelSpatial->setFocus();
