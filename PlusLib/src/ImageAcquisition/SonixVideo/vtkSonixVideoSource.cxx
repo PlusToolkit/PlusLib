@@ -447,11 +447,12 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if (this->Zoom>=0 && SetZoom(this->Zoom)!=PLUS_SUCCESS) { continue; }
     if (this->CompressionStatus>=0 && SetCompressionStatus(this->CompressionStatus)!=PLUS_SUCCESS) { continue; }    
 
+    Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
+
     // Set callback and timeout for receiving new frames
     this->Ult.setCallback(vtkSonixVideoSourceNewFrameCallback);
     if (this->Timeout>=0 && SetTimeout(this->Timeout)!=PLUS_SUCCESS) { continue; }
 
-	Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
     initializationCompleted=true;
   } 
 
