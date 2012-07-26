@@ -172,7 +172,10 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
   while ( numOfBytesReceived == 0 && numOfTries < this->NumberOfRetryAttempts )
   {
     numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-    numOfTries++; 
+    if( numOfBytesReceived != 0 )
+      break;
+    numOfTries++;
+    Sleep(100);
   }
 
   // No message received - server disconnected 
