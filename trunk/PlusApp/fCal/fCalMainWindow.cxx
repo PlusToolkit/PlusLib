@@ -32,7 +32,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_StatusBarProgress(NULL)
 , m_LockedTabIndex(-1)
 , m_ActiveToolbox(ToolboxType_Undefined)
-, m_ObjectVisualizer(NULL)
+, m_VisualizationController(NULL)
 , m_StatusIcon(NULL)
 , m_ImageCoordinateFrame("")
 , m_ProbeCoordinateFrame("")
@@ -54,10 +54,10 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
 fCalMainWindow::~fCalMainWindow()
 {
-  if (m_ObjectVisualizer != NULL)
+  if (m_VisualizationController != NULL)
   {
-    m_ObjectVisualizer->Delete();
-    m_ObjectVisualizer = NULL;
+    m_VisualizationController->Delete();
+    m_VisualizationController = NULL;
   }
 
   if (m_StatusIcon != NULL)
@@ -130,8 +130,8 @@ void fCalMainWindow::Initialize()
   ui.pushButton_ImageOrientation->installEventFilter(this);
 
   // Create visualizer
-  m_ObjectVisualizer = vtkVisualizationController::New();
-  m_ObjectVisualizer->SetCanvas(ui.canvas);
+  m_VisualizationController = vtkVisualizationController::New();
+  m_VisualizationController->SetCanvas(ui.canvas);
 
   // Hide it until we have something to show
   ui.canvas->setVisible(false);
@@ -384,14 +384,7 @@ void fCalMainWindow::UpdateGUI()
     }
   }
 
-  // Update canvas
-  if ((m_ObjectVisualizer->GetDataCollector() != NULL) && (m_ObjectVisualizer->GetDataCollector()->GetConnected()))
-  {
-    // Force update of the brightness image in the DataCollector,
-    // because it is the image that the image actors show
-    m_ObjectVisualizer->GetDataCollector()->GetBrightnessOutput();
-    ui.canvas->update();
-  }
+  ui.canvas->update();
 }
 
 //-----------------------------------------------------------------------------
@@ -400,9 +393,9 @@ void fCalMainWindow::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("fCalMainWindow::resizeEvent");
 
-  if( m_ObjectVisualizer != NULL )
+  if( m_VisualizationController != NULL )
   {
-    m_ObjectVisualizer->resizeEvent(aEvent);
+    m_VisualizationController->resizeEvent(aEvent);
   }
 }
 
@@ -412,7 +405,7 @@ void fCalMainWindow::ResetAllToolboxes()
 {
   LOG_TRACE("fCalMainWindow::ResetAllToolboxes");
 
-  m_ObjectVisualizer->HideAll();
+  m_VisualizationController->HideAll();
 
   for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
   {
@@ -481,7 +474,7 @@ void fCalMainWindow::DumpBuffers()
   // Directory open dialog for selecting directory to save the buffers into 
   QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
 
-  if ( (dirName.isNull()) || (m_ObjectVisualizer->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
+  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
   {
     LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
   }
@@ -495,7 +488,7 @@ void fCalMainWindow::SetOrientationMRightFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightUp");
 
-  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MN);
+  this->GetVisualizationController()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MN);
 }
 
 //-----------------------------------------------------------------------------
@@ -504,7 +497,7 @@ void fCalMainWindow::SetOrientationMLeftFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftUp");
 
-  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UN);
+  this->GetVisualizationController()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UN);
 }
 
 //-----------------------------------------------------------------------------
@@ -513,7 +506,7 @@ void fCalMainWindow::SetOrientationMRightFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightDown");
 
-  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
+  this->GetVisualizationController()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
 }
 
 //-----------------------------------------------------------------------------
@@ -522,7 +515,7 @@ void fCalMainWindow::SetOrientationMLeftFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftDown");
 
-  this->GetObjectVisualizer()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UF);
+  this->GetVisualizationController()->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_UF);
 }
 
 //-----------------------------------------------------------------------------
@@ -532,14 +525,14 @@ void fCalMainWindow::EnableOrientationMarkers()
   LOG_TRACE("fCalMainWindow::EnableOrientationMarkers");
   if( m_ShowOrientationMarkerAction->isChecked() )
   {
-    if( this->GetObjectVisualizer()->ShowOrientationMarkers(true) != PLUS_SUCCESS )
+    if( this->GetVisualizationController()->ShowOrientationMarkers(true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to enable orientation markers in vtkObjectVisualiser.");
     }
   }
   else
   {
-    if( this->GetObjectVisualizer()->ShowOrientationMarkers(false) != PLUS_SUCCESS )
+    if( this->GetVisualizationController()->ShowOrientationMarkers(false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disable orientation markers in vtkObjectVisualiser.");
     }
@@ -553,14 +546,14 @@ void fCalMainWindow::EnableROI()
   LOG_TRACE("fCalMainWindow::EnableROI()");
   if( m_ShowROIAction->isChecked() )
   {
-    if( this->GetObjectVisualizer()->EnableROI(true) != PLUS_SUCCESS )
+    if( this->GetVisualizationController()->EnableROI(true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to enable region of interest in vtkObjectVisualiser.");
     }
   }
   else
   {
-    if( this->GetObjectVisualizer()->EnableROI(false) != PLUS_SUCCESS )
+    if( this->GetVisualizationController()->EnableROI(false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disable region of interest in vtkObjectVisualiser.");
     }
@@ -596,10 +589,10 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
   if( aOn )
   {
     // Force override, show 3D and ALLLLLL devices
-    m_ObjectVisualizer->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
-    m_ObjectVisualizer->ShowAllObjects(true);
-    m_ObjectVisualizer->ShowInput(m_ShowPoints);
-    m_ObjectVisualizer->ShowResult(m_ShowPoints);
+    m_VisualizationController->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+    m_VisualizationController->ShowAllObjects(true);
+    m_VisualizationController->ShowInput(m_ShowPoints);
+    m_VisualizationController->ShowResult(m_ShowPoints);
 
     SetImageManipulationMenuEnabled(!aOn);
   }

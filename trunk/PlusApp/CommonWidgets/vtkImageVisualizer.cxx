@@ -492,7 +492,15 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
+    if( this->DataCollector->GetVideoSource() != NULL )
+    {
+      this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
+    }
+    else
+    {
+      LOG_WARNING("No video output defined. Hiding image visualization.");
+      this->ImageActor->VisibilityOff();
+    }
   }
 
   return PLUS_SUCCESS;
@@ -695,17 +703,21 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
   if (segmentationParameters == NULL) {
-    LOG_ERROR("No Segmentation element is found in the XML tree!");
-    return PLUS_FAIL;
+    LOG_WARNING("No Segmentation element is found in the XML tree!");
+    RegionOfInterest[0] = RegionOfInterest[1] = RegionOfInterest[2] = RegionOfInterest[4] = -1;
+    this->EnableROI(false);
   }
-
-  int regionOfInterest[4] = {0}; 
-  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  else
   {
-    this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
-  } 
-  else {
-    LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+    int regionOfInterest[4] = {0}; 
+    if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+    {
+      this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
+    } 
+    else {
+      LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+      this->EnableROI(false);
+    }
   }
 
   if( InitializeWireLabelVisualization(aConfig) != PLUS_SUCCESS )
@@ -713,8 +725,6 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
     LOG_ERROR("Unable to initialize wire label visualization.");
     return PLUS_FAIL;
   }
-
-  this->EnableWireLabels(false);
 
   return PLUS_SUCCESS;
 }
@@ -811,6 +821,12 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 {
   LOG_TRACE("vtkImageVisualizer::EnableROI");
 
+  if( RegionOfInterest[0] == -1  || RegionOfInterest[1] == -1  || RegionOfInterest[2] == -1  || RegionOfInterest[3] == -1)
+  {
+    LOG_WARNING("Invalid ROI defined. Check configuration or define valid ROI.");
+    return PLUS_FAIL;
+  }
+
   if (aEnable) {
     ROIActorAssembly->VisibilityOn();
   } 
@@ -852,8 +868,7 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
   vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
   if (phantomDefinition == NULL)
   {
-    LOG_ERROR("No phantom definition is found in the XML tree!");
-    return PLUS_FAIL;
+    LOG_WARNING("No phantom definition is found in the XML tree!");
   }
   else
   {
@@ -920,6 +935,8 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
     }
   }
 
+  this->EnableWireLabels(false);
+
   return PLUS_SUCCESS;
 }
 
@@ -934,6 +951,12 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
     this->EnableWireLabels(false);
     LOG_ERROR("Null point list sent to wire label visualization.");
     return PLUS_FAIL;
+  }
+
+  if( aPointList->GetNumberOfPoints() == 0 )
+  {
+    this->EnableWireLabels(false);
+    return PLUS_SUCCESS;
   }
 
   if( aPointList->GetNumberOfPoints() != WireActors.size() )

@@ -118,7 +118,7 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
   LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
   // No state handling in this toolbox, hide all visualization
-  m_ParentMainWindow->GetObjectVisualizer()->HideRenderer();
+  m_ParentMainWindow->GetVisualizationController()->HideRenderer();
 
   // Disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
@@ -181,7 +181,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       QApplication::processEvents();
 
       // Connect to devices
-      if (m_ParentMainWindow->GetObjectVisualizer()->StartDataCollection() != PLUS_SUCCESS)
+      if (m_ParentMainWindow->GetVisualizationController()->StartDataCollection() != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to start collecting data!");
         m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -196,14 +196,14 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
         }
 
         // Allow object visualizer to load anything it needs
-        m_ParentMainWindow->GetObjectVisualizer()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+        m_ParentMainWindow->GetVisualizationController()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
         // Successful connection
         m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector(), true))
+        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), true))
         {
           ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
           ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -228,8 +228,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   {
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
-    m_ParentMainWindow->GetObjectVisualizer()->StopAndDisconnectDataCollector();
-    m_ParentMainWindow->GetObjectVisualizer()->ClearTransformRepository();
+    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
+    m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);
   }
@@ -462,7 +462,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 
   // Get phantom displayable model object
   vtkDisplayableModel* phantomDisplayableModel = NULL;
-  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetObjectVisualizer()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
+  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
   if( objects.size() != 1)
   {
     LOG_ERROR("Requested unique phantom displayable. Got: " << objects.size());
@@ -506,4 +506,15 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::Enable( bool aEnable )
+{
+  LOG_TRACE("ConfigurationToolbox::Enable(" << (aEnable?"true":"false") << ")");
+
+  ui.pushButton_PopOut->setEnabled(aEnable);
+  ui.pushButton_SelectEditorApplicationExecutable->setEnabled(aEnable);
+  ui.pushButton_SelectImageDirectory->setEnabled(aEnable);
 }

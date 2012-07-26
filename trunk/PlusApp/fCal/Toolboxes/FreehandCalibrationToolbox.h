@@ -47,6 +47,11 @@ public:
   void Initialize();
 
   /*!
+  * \brief Enable/Disable the toolbox
+  */
+  virtual void Enable(bool aEnable);
+
+  /*!
   * Read freehand calibration configuration for fCal
   * \param aConfig Root element of the input device set configuration XML data
   */

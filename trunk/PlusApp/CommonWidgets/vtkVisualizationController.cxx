@@ -225,7 +225,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
   {
     if (this->DataCollector->GetVideoEnabled() == false)
     {
-      LOG_DEBUG("Cannot switch to image mode without enabled video in data collector!");
+      LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
     }
 
@@ -426,6 +426,13 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
+  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL )
+  {
+    // Force update of the brightness image in the DataCollector,
+    // because it is the image that the image actors show
+    this->GetDataCollector()->GetBrightnessOutput();
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -622,7 +629,7 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 PlusStatus vtkVisualizationController::ConnectInput()
 {
-  if( this->GetImageActor() != NULL )
+  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetVideoSource() != NULL )
   {
     this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;

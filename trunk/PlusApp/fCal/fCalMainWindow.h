@@ -65,7 +65,7 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkVisualizationController* GetObjectVisualizer() { return m_ObjectVisualizer; };
+  vtkVisualizationController* GetVisualizationController() { return m_VisualizationController; };
 
   /*!
   * Set status bar text
@@ -217,7 +217,7 @@ private:
 
 protected:
   /*! Object visualizer */
-  vtkVisualizationController*  m_ObjectVisualizer;
+  vtkVisualizationController*  m_VisualizationController;
 
   /*! Label on the left of the statusbar */
   QLabel*					    m_StatusBarLabel;

@@ -893,6 +893,12 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
     LOG_ERROR("Fill form with configuration data failed!");
     return;
   }
+
+  // Force a single redraw of the ROI to correct the position of the ROI handles
+  if( this->m_ROIModeHandler != NULL )
+  {
+     this->m_ROIModeHandler->DrawROI();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -986,8 +992,6 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   {
     LOG_ERROR("Unable to initialize the image visualizer.");
   }
-  m_ImageVisualizer->SetROIBounds(ui.spinBox_XMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMin->value(), ui.spinBox_YMax->value());
-  m_ImageVisualizer->EnableROI(true);
   m_ImageVisualizer->AssignResultPolyData(m_CandidatesPolyData);
   m_ImageVisualizer->AssignDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();

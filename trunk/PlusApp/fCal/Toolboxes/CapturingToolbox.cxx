@@ -71,9 +71,9 @@ void CapturingToolbox::Initialize()
 {
   LOG_TRACE("CapturingToolbox::Initialize"); 
 
-  if ((m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()))
+  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+    //m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->SetTrackingOnly(false);
 
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
@@ -111,23 +111,37 @@ void CapturingToolbox::SetDisplayAccordingToState()
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
 
   // If connected
-  if ( (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetConnected()) )
+  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
   {
     // If the force show devices isn't enabled, set it to 2D
     if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
     {
-      m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
+      if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
+      {
+        QPalette palette;
+        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
+        ui.label_State->setPalette(palette);
+        ui.label_State->setText("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
+        LOG_WARNING("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
+        m_ParentMainWindow->GetVisualizationController()->HideRenderer();
+        this->Enable(false);
+        return;
+      }
+      else
+      {
+        this->Enable(true);
+      }
     }
 
     // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
 
     // Hide or show the orientation markers based on the value of the checkbox
-    m_ParentMainWindow->GetObjectVisualizer()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
+    m_ParentMainWindow->GetVisualizationController()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
     // If tracking
-    if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackingDataAvailable())
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingDataAvailable())
     {
       // Update state message according to available transforms
       if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
@@ -137,16 +151,16 @@ void CapturingToolbox::SetDisplayAccordingToState()
           m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetProbeCoordinateFrame());
         imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
 
-        if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+        if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
           m_ParentMainWindow->GetImageCoordinateFrame().c_str(), m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), false) == PLUS_SUCCESS)
         {
           std::string date, errorStr;
           double error;
-          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+          if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
           {
             date = "N/A";
           }
-          if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+          if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
           {
             char imageToProbeTransformErrorChars[32];
             sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
@@ -280,7 +294,7 @@ void CapturingToolbox::TakeSnapshot()
 
   TrackedFrame trackedFrame;
 
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
@@ -340,7 +354,7 @@ void CapturingToolbox::Record()
   m_RecordedFrameNumberQueue.clear();
 
   vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetObjectVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()) == NULL) )
+  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
@@ -362,7 +376,7 @@ void CapturingToolbox::Capture()
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetObjectVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()) == NULL) )
+  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
@@ -515,17 +529,29 @@ double CapturingToolbox::GetMaximumFrameRate()
 {
   LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
-  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetObjectVisualizer() == NULL || m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetVisualizationController() == NULL || m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return 0.0;
   }
 
   double frameRate = 0.0;
-  if (m_ParentMainWindow->GetObjectVisualizer()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get frame rate from data collector!");
   }
 
   return frameRate;
+}
+
+//-----------------------------------------------------------------------------
+
+void CapturingToolbox::Enable( bool aEnable )
+{
+  LOG_TRACE("CapturingToolbox::Enable(" << (aEnable?"true":"false") << ")");
+
+  ui.pushButton_Snapshot->setEnabled(aEnable);
+  ui.pushButton_Save->setEnabled(aEnable);
+  ui.pushButton_Record->setEnabled(aEnable);
+  ui.pushButton_ClearRecordedFrames->setEnabled(aEnable);
 }

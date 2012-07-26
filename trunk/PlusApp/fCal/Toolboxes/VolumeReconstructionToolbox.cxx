@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "VolumeReconstructionToolbox.h"
@@ -22,12 +22,12 @@
 //-----------------------------------------------------------------------------
 
 VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
-  , QWidget(aParentMainWindow, aFlags)
-  , m_VolumeReconstructor(NULL)
-  , m_ReconstructedVolume(NULL)
-  , m_VolumeReconstructionConfigFileLoaded(false)
-  , m_ContouringThreshold(64.0)
+: AbstractToolbox(aParentMainWindow)
+, QWidget(aParentMainWindow, aFlags)
+, m_VolumeReconstructor(NULL)
+, m_ReconstructedVolume(NULL)
+, m_VolumeReconstructionConfigFileLoaded(false)
+, m_ContouringThreshold(64.0)
 {
   ui.setupUi(this);
 
@@ -76,9 +76,9 @@ void VolumeReconstructionToolbox::Initialize()
   }
 
   // Clear results poly data
-  if (m_State != ToolboxState_Done && m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData() != NULL)
+  if (m_State != ToolboxState_Done && m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL)
   {
-    m_ParentMainWindow->GetObjectVisualizer()->GetResultPolyData()->Initialize();
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
   }
 
   // Check for new images
@@ -120,12 +120,12 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   // Later, we will re-enable only those that we wish shown for this toolbox
   if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetObjectVisualizer()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
-    m_ParentMainWindow->GetObjectVisualizer()->HideAll();
+    m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+    m_ParentMainWindow->GetVisualizationController()->HideAll();
   }
 
   // Enable or disable the image manipulation menu
-  m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetObjectVisualizer()->Is2DMode() );
+  m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
 
   // Update state message according to available transforms
   if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
@@ -135,16 +135,16 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
       m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetProbeCoordinateFrame());
     imageToProbeTransformName.GetTransformName(imageToProbeTransformNameStr);
 
-    if (m_ParentMainWindow->GetObjectVisualizer()->IsExistingTransform(
+    if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
       m_ParentMainWindow->GetImageCoordinateFrame().c_str(), m_ParentMainWindow->GetProbeCoordinateFrame().c_str(), false) == PLUS_SUCCESS)
     {
       std::string date, errorStr;
       double error;
-      if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
+      if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformDate(imageToProbeTransformName, date) != PLUS_SUCCESS)
       {
         date = "N/A";
       }
-      if (m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
+      if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
       {
         char imageToProbeTransformErrorChars[32];
         sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
@@ -235,9 +235,9 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Reconstruction done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetObjectVisualizer()->EnableVolumeActor(true);
-    m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->Modified();
-    m_ParentMainWindow->GetObjectVisualizer()->GetCanvasRenderer()->ResetCamera();
+    m_ParentMainWindow->GetVisualizationController()->EnableVolumeActor(true);
+    m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->Modified();
+    m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
   }
   else if (m_State == ToolboxState_Error)
   {
@@ -399,13 +399,13 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
       return PLUS_FAIL;
     }
   }
-  
+
   m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();
 
   PlusTransformName imageToReferenceTransformName( m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame() );
-  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName);
+  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), imageToReferenceTransformName);
 
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex += m_VolumeReconstructor->GetSkipInterval() )
@@ -416,7 +416,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
-    if ( m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository()->SetTransforms(*frame) != PLUS_SUCCESS )
+    if ( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransforms(*frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to update transform repository with frame #" << frameIndex ); 
       continue; 
@@ -424,18 +424,18 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
     // Add this tracked frame to the reconstructor
     bool insertedIntoVolume=false;
-    if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetObjectVisualizer()->GetTransformRepository(), imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
+    if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 
     }
   }
-  
+
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();
 
   trackedFrameList->Clear(); 
-    
+
   m_ParentMainWindow->SetStatusBarProgress(0);
   m_ParentMainWindow->SetStatusBarText(QString(" Filling holes in output volume..."));
   RefreshContent();
@@ -468,8 +468,8 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
   vtkSmartPointer<vtkPolyDataMapper> contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   contourMapper->SetInputConnection(contourFilter->GetOutputPort());
 
-  m_ParentMainWindow->GetObjectVisualizer()->SetVolumeMapper(contourMapper);
-  m_ParentMainWindow->GetObjectVisualizer()->SetVolumeColor(0.0, 0.0, 1.0);
+  m_ParentMainWindow->GetVisualizationController()->SetVolumeMapper(contourMapper);
+  m_ParentMainWindow->GetVisualizationController()->SetVolumeColor(0.0, 0.0, 1.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -588,4 +588,16 @@ void VolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aV
   LOG_INFO("Recomputing controur from reconstructed volume using threshold " << m_ContouringThreshold);
 
   DisplayReconstructedVolume();
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::Enable( bool aEnable )
+{
+  LOG_TRACE("VolumeReconstructionToolbox::Enable(" << (aEnable?"true":"false") << ")");
+
+  ui.pushButton_OpenInputImage->setEnabled(aEnable);
+  ui.pushButton_OpenVolumeReconstructionConfig->setEnabled(aEnable);
+  ui.pushButton_Reconstruct->setEnabled(aEnable);
+  ui.pushButton_Save->setEnabled(aEnable);
 }
