@@ -248,7 +248,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   //error check for data type, size
   if ((uData)type!= (uData)this->AcquisitionDataType)
   {
-    LOG_ERROR( "Received data type is different than expected");
+    LOG_ERROR( "Received data type is different than expected: expected="<<this->AcquisitionDataType<<", actual: "<<type);
     return PLUS_FAIL;
   }
 
