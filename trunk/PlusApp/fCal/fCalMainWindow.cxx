@@ -10,7 +10,8 @@ See License.txt for details.
 #include "ConfigurationToolbox.h"
 #include "StylusCalibrationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
-#include "FreehandCalibrationToolbox.h"
+#include "TemporalCalibrationToolbox.h"
+#include "SpatialCalibrationToolbox.h"
 #include "CapturingToolbox.h"
 #include "VolumeReconstructionToolbox.h"
 #include "StatusIcon.h"
@@ -143,7 +144,7 @@ void fCalMainWindow::Initialize()
   SetupStatusBar();
 
   // Make connections
-  connect( ui.tabWidgetToolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentTabChanged(int) ) );
+  connect( ui.toolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentToolboxChanged(int) ) );
   connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
   connect( ui.pushButton_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
@@ -151,8 +152,8 @@ void fCalMainWindow::Initialize()
   // Tell the object visualizer to show orientation markers
   m_ShowOrientationMarkerAction->setChecked(true);
 
-  // Initialize default tab widget
-  CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
+  // Initialize default toolbox widget
+  CurrentToolboxChanged(ui.toolbox->currentIndex());
 
   // Start timer
   m_UiRefreshTimer->start(50);
@@ -165,72 +166,77 @@ void fCalMainWindow::CreateToolboxes()
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
   // Resize toolbox list to the number of toolboxes
-  m_ToolboxList.resize(6);
+  m_ToolboxList.resize(7);
 
   // Configuration widget
   ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
   if (configurationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_Configuration, 1, 1, 0, 0, "");
     grid->addWidget(configurationToolbox);
-    ui.tab_Configuration->setLayout(grid);
+    ui.toolbox_Configuration->setLayout(grid);
+    //ui.toolbox->widget(0)->setLayout(grid);
   }
-
   m_ToolboxList[ToolboxType_Configuration] = configurationToolbox;
+
+  // Capturing widget
+  CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
+  if (capturingToolbox != NULL)
+  {
+    QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing, 1, 1, 0, 0, "");
+    grid->addWidget(capturingToolbox);
+    ui.toolbox->widget(1)->setLayout(grid);
+  }
+  m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
 
   // Stylus calibration widget
   StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(this);
   if (stylusCalibrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_StylusCalibration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_StylusCalibration);
     grid->addWidget(stylusCalibrationToolbox);
-    ui.tab_StylusCalibration->setLayout(grid);
+    ui.toolbox->widget(2)->setLayout(grid);
   }
-
   m_ToolboxList[ToolboxType_StylusCalibration] = stylusCalibrationToolbox;
 
   // Phantom registration widget
   PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
   if (phantomRegistrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_PhantomRegistration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_PhantomRegistration, 1, 1, 0, 0, "");
     grid->addWidget(phantomRegistrationToolbox);
-    ui.tab_PhantomRegistration->setLayout(grid);
+    ui.toolbox->widget(3)->setLayout(grid);
   }
-
   m_ToolboxList[ToolboxType_PhantomRegistration] = phantomRegistrationToolbox;
 
-  // Freehand calibration widget
-  FreehandCalibrationToolbox* freehandCalibrationToolbox = new FreehandCalibrationToolbox(this);
-  if (freehandCalibrationToolbox != NULL)
+  // Temporal calibration widget
+  TemporalCalibrationToolbox* temporalCalibrationToolbox = new TemporalCalibrationToolbox(this);
+  if (temporalCalibrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_FreehandCalibration, 1, 1, 0, 0, "");
-    grid->addWidget(freehandCalibrationToolbox);
-    ui.tab_FreehandCalibration->setLayout(grid);
+    QGridLayout* grid = new QGridLayout(ui.toolbox_TemporalCalibration, 1, 1, 0, 0, "");
+    grid->addWidget(temporalCalibrationToolbox);
+    ui.toolbox->widget(4)->setLayout(grid);
   }
+  m_ToolboxList[ToolboxType_TemporalCalibration] = temporalCalibrationToolbox;
 
-  m_ToolboxList[ToolboxType_FreehandCalibration] = freehandCalibrationToolbox;
-
-  // Capturing widget
-  CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
-  if (capturingToolbox != NULL)
+  // Spatial calibration widget
+  SpatialCalibrationToolbox* spatialCalibrationToolbox = new SpatialCalibrationToolbox(this);
+  if (spatialCalibrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_Capturing, 1, 1, 0, 0, "");
-    grid->addWidget(capturingToolbox);
-    ui.tab_Capturing->setLayout(grid);
+    QGridLayout* grid = new QGridLayout(ui.toolbox_SpatialCalibration, 1, 1, 0, 0, "");
+    grid->addWidget(spatialCalibrationToolbox);
+    ui.toolbox->widget(5)->setLayout(grid);
   }
-
-  m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
+  m_ToolboxList[ToolboxType_SpatialCalibration] = spatialCalibrationToolbox;
 
   // Volume reconstruction widget
   VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
   if (volumeReconstructionToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_VolumeReconstruction, 1, 1, 0, 0, "");
     grid->addWidget(volumeReconstructionToolbox);
-    ui.tab_VolumeReconstruction->setLayout(grid);
+    ui.toolbox->widget(6)->setLayout(grid);
   }
-
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
 }
 
@@ -259,61 +265,66 @@ void fCalMainWindow::SetupStatusBar()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::CurrentTabChanged(int aTabIndex)
+void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
 {
-  LOG_TRACE("fCalMainWindow::CurrentTabChanged(" << aTabIndex << ")");
+  LOG_TRACE("fCalMainWindow::CurrentToolboxChanged(" << aToolboxIndex << ")");
 
-  // Initialize new tab
-  if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration")
+  // Initialize new toolbox
+  QString currentToolboxText = ui.toolbox->itemText( aToolboxIndex );
+  if (currentToolboxText == QString("Configuration"))
   {
     m_ActiveToolbox = ToolboxType_Configuration;
   }
-  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration")
+  else if (currentToolboxText == QString("Stylus calibration"))
   {
     m_ActiveToolbox = ToolboxType_StylusCalibration;
   }
-  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Phantom Registration")
+  else if (currentToolboxText == QString("Phantom registration"))
   {
     m_ActiveToolbox = ToolboxType_PhantomRegistration;
   }
-  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration")
+  else if (currentToolboxText == QString("Temporal calibration"))
   {
-    m_ActiveToolbox = ToolboxType_FreehandCalibration;
+    m_ActiveToolbox = ToolboxType_TemporalCalibration;
   }
-  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Capturing")
+  else if (currentToolboxText == QString("Spatial calibration"))
+  {
+    m_ActiveToolbox = ToolboxType_SpatialCalibration;
+  }
+  else if (currentToolboxText == QString("Capturing"))
   {
     m_ActiveToolbox = ToolboxType_Capturing;
   }
-  else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction")
+  else if (currentToolboxText == QString("Volume reconstruction"))
   {
     m_ActiveToolbox = ToolboxType_VolumeReconstruction;
   }
   else
   {
-    LOG_ERROR("No tab with this title found!");
+    LOG_ERROR("No toolbox with this title found!");
     return;
   }
 
   m_ToolboxList[m_ActiveToolbox]->Initialize();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 
-  LOG_INFO("Tab changed to " << ui.tabWidgetToolbox->tabText(aTabIndex).toAscii().data());
+  LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().data());
 }
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::SetTabsEnabled(bool aEnabled)
+void fCalMainWindow::SetToolboxesEnabled(bool aEnabled)
 {
-  LOG_TRACE("fCalMainWindow::SetTabsEnabled(" << (aEnabled?"true":"false") << ")");
+  LOG_TRACE("fCalMainWindow::SetToolboxesEnabled(" << (aEnabled?"true":"false") << ")");
 
   if (aEnabled) {
     m_LockedTabIndex = -1;
-    disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
-    connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
+    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)) );
+    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)) );
   } else {
-    m_LockedTabIndex = ui.tabWidgetToolbox->currentIndex();
-    disconnect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
-    connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackTab(int)) );
+    m_LockedTabIndex = ui.toolbox->currentIndex();
+    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)) );
+    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)) );
   }
 }
 
@@ -328,13 +339,13 @@ void fCalMainWindow::SetImageManipulationMenuEnabled( bool aEnabled )
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::ChangeBackTab(int aTabIndex)
+void fCalMainWindow::ChangeBackToolbox(int aTabIndex)
 {
-  LOG_TRACE("fCalMainWindow::ChangeBackTab(" << aTabIndex << ")");
+  LOG_TRACE("fCalMainWindow::ChangeBackToolbox(" << aTabIndex << ")");
 
-  ui.tabWidgetToolbox->blockSignals(true);
-  ui.tabWidgetToolbox->setCurrentIndex(m_LockedTabIndex);
-  ui.tabWidgetToolbox->blockSignals(false);
+  ui.toolbox->blockSignals(true);
+  ui.toolbox->setCurrentIndex(m_LockedTabIndex);
+  ui.toolbox->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------

@@ -384,7 +384,7 @@ void StylusCalibrationToolbox::Start()
 {
   LOG_TRACE("StylusCalibrationToolbox::Start"); 
 
-  m_ParentMainWindow->SetTabsEnabled(false);
+  m_ParentMainWindow->SetToolboxesEnabled(false);
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   m_CurrentPointNumber = 0;
@@ -457,7 +457,7 @@ void StylusCalibrationToolbox::Stop()
     SetState(ToolboxState_Error);
   }
 
-  m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetToolboxesEnabled(true);
 }
 
 //-----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>VolumeReconstructionToolbox</class>
- <widget class="QWidget" name="VolumeReconstructionToolbox">
+ <class>SpatialCalibrationToolbox</class>
+ <widget class="QWidget" name="SpatialCalibrationToolbox">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,32 +29,76 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Volume reconstruction</string>
+   <string>Spatial calibration</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <property name="margin">
-    <number>4</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="2" column="0">
+   <property name="margin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frame_SpatialCalibration">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_State">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ImageToProge transform is absent, spatial calibration needs to be performed.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>2</number>
      </property>
      <item>
-      <widget class="QLabel" name="label_VolumeReconstructionConfig">
-       <property name="toolTip">
-        <string>Also overwrites probe calibration</string>
-       </property>
+      <widget class="QLabel" name="label_PhantomRegistration">
        <property name="text">
-        <string>Import volume reconstruction settings:</string>
+        <string>Import phantom registration result:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_OpenVolumeReconstructionConfig">
+      <widget class="QPushButton" name="pushButton_OpenPhantomRegistration">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -93,23 +137,20 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_InputImage">
-     <property name="text">
-      <string>Input image sequence file:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
      <property name="spacing">
-      <number>2</number>
+      <number>6</number>
      </property>
      <item>
-      <widget class="QComboBox" name="comboBox_InputImage"/>
+      <widget class="QLabel" name="label_SegmentationParameters">
+       <property name="text">
+        <string>Pattern recognition parameters:</string>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_OpenInputImage">
+      <widget class="QPushButton" name="pushButton_OpenSegmentationParameters">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -128,12 +169,18 @@
          <height>23</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Import segmentation parameters</string>
+       </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
         <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+         <normaloff>:/icons/Resources/icon_Import.png</normaloff>:/icons/Resources/icon_Import.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -143,45 +190,38 @@
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item row="11" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QPushButton" name="pushButton_Reconstruct">
+      <widget class="QPushButton" name="pushButton_EditSegmentationParameters">
        <property name="minimumSize">
         <size>
-         <width>120</width>
-         <height>0</height>
+         <width>23</width>
+         <height>23</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>120</width>
-         <height>16777215</height>
+         <width>23</width>
+         <height>23</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Show segmentation parameter editing dialog, in which segmentation parameters can be tested and changed</string>
+       </property>
        <property name="text">
-        <string>Reconstruct</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../fCal.qrc">
+         <normaloff>:/icons/CommonWidgets/Resources/icon_Edit.png</normaloff>:/icons/CommonWidgets/Resources/icon_Edit.png</iconset>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="13" column="0">
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>177</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="8" column="0">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -191,14 +231,14 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>20</width>
-       <height>8</height>
+       <width>158</width>
+       <height>12</height>
       </size>
      </property>
     </spacer>
    </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_Instructions">
+   <item>
+    <widget class="QLabel" name="label_InstructionsSpatial">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -213,8 +253,45 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="0">
-    <spacer name="verticalSpacer_3">
+   <item>
+    <spacer name="verticalSpacer_7">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>158</width>
+       <height>12</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="pushButton_StartSpatial">
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_CancelSpatial">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_4">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -224,86 +301,13 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>8</height>
+       <height>4</height>
       </size>
      </property>
     </spacer>
    </item>
-   <item row="12" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QPushButton" name="pushButton_Save">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>120</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>120</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Save volume...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="7" column="0">
-    <widget class="QSlider" name="horizontalSlider_ContouringThreshold">
-     <property name="toolTip">
-      <string>Voxel value based on which the displayed surface is created</string>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="value">
-      <number>64</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="tickPosition">
-      <enum>QSlider::NoTicks</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="label_ContouringThresholdText">
-       <property name="toolTip">
-        <string>Voxel value based on which the displayed surface is created</string>
-       </property>
-       <property name="text">
-        <string>Contouring threshold:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_ContouringThreshold">
-       <property name="text">
-        <string>64</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_State">
+   <item>
+    <widget class="QLabel" name="label_Warning">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -311,22 +315,36 @@
       </font>
      </property>
      <property name="text">
-      <string>ImageToProge transform is absent, spatial calibration needs to be performed.</string>
+      <string/>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item>
+    <widget class="QLabel" name="label_Results">
+     <property name="text">
+      <string>Results</string>
      </property>
     </widget>
    </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>158</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
+ <layoutdefault spacing="4" margin="4"/>
  <resources>
   <include location="../fCal.qrc"/>
  </resources>

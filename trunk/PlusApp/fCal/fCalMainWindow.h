@@ -28,7 +28,8 @@ enum ToolboxType
   ToolboxType_Configuration,
   ToolboxType_StylusCalibration,
   ToolboxType_PhantomRegistration,
-  ToolboxType_FreehandCalibration,
+  ToolboxType_TemporalCalibration,
+  ToolboxType_SpatialCalibration,
   ToolboxType_Capturing,
   ToolboxType_VolumeReconstruction
 };
@@ -80,10 +81,10 @@ public:
   void SetStatusBarProgress(int aPercent);
 
   /*!
-  * Enable/disable tab changing
+  * Enable/disable toolbox changing
   * \param Enable/Disable flag
   */
-  void SetTabsEnabled(bool);
+  void SetToolboxesEnabled(bool);
 
   /*!
   * Enable/disable image manipulation
@@ -161,15 +162,15 @@ protected:
   protected slots:
     /*!
     * Handle tab change
-    * \param aTabIndex Index of the currently active tab
+    * \param aToolboxIndex Index of the currently active toolbox
     */
-    void CurrentTabChanged(int aTabIndex);
+    void CurrentToolboxChanged(int aToolboxIndex);
 
     /*!
     * Changes tab back to the locked one if tabbing is disabled
     * \param Mandatory but unused argument to match the signal
     */
-    void ChangeBackTab(int);
+    void ChangeBackToolbox(int);
 
     /*!
     * Updates every part of the GUI (called by ui refresh timer)
@@ -274,4 +275,4 @@ private:
   Ui::fCalMainWindow	ui;
 };
 
-#endif // FREEHANDMAINWINDOW_H
+#endif // FCALMAINWINDOW_H

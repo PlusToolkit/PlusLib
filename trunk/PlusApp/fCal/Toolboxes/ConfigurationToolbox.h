@@ -83,7 +83,7 @@ signals:
   * Executes operations needed after stopping the process
   * \param Enable/disable flag
   */
-  void SetTabsEnabled(bool);
+  void SetToolboxesEnabled(bool);
 
   protected slots:
     /*!

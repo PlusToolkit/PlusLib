@@ -12,7 +12,8 @@ SET (fCal_SRCS
 	fCalMainWindow.cxx
 	Toolboxes/ConfigurationToolbox.cxx
 	Toolboxes/CapturingToolbox.cxx
-	Toolboxes/FreehandCalibrationToolbox.cxx
+	Toolboxes/SpatialCalibrationToolbox.cxx
+  Toolboxes/TemporalCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
 	Toolboxes/VolumeReconstructionToolbox.cxx
@@ -29,7 +30,8 @@ SET (fCal_UI_HDRS
     Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
     Toolboxes/CapturingToolbox.h
-		Toolboxes/FreehandCalibrationToolbox.h
+    Toolboxes/SpatialCalibrationToolbox.h
+    Toolboxes/TemporalCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h
 		Toolboxes/VolumeReconstructionToolbox.h
@@ -39,7 +41,8 @@ SET (fCal_UI_SRCS
 	fCalMainWindow.ui 
 	Toolboxes/ConfigurationToolbox.ui
 	Toolboxes/CapturingToolbox.ui
-	Toolboxes/FreehandCalibrationToolbox.ui
+	Toolboxes/SpatialCalibrationToolbox.ui
+  Toolboxes/TemporalCalibrationToolbox.ui
 	Toolboxes/StylusCalibrationToolbox.ui
 	Toolboxes/PhantomRegistrationToolbox.ui
 	Toolboxes/VolumeReconstructionToolbox.ui

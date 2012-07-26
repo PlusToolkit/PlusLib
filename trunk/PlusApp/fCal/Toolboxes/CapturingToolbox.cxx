@@ -341,7 +341,7 @@ void CapturingToolbox::Record()
 {
   LOG_INFO("Capturing started");
 
-  m_ParentMainWindow->SetTabsEnabled(false);
+  m_ParentMainWindow->SetToolboxesEnabled(false);
 
   // Reset accessory members
   m_RecordedFrameNumberQueue.clear();
@@ -419,7 +419,7 @@ void CapturingToolbox::Stop()
   m_RecordingTimer->stop();
   SetState(ToolboxState_Done);
 
-  m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetToolboxesEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
