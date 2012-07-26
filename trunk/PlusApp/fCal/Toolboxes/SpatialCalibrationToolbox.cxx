@@ -657,8 +657,8 @@ void SpatialCalibrationToolbox::DoCalibration()
     SetState(ToolboxState_Done);
 
     m_ParentMainWindow->SetToolboxesEnabled(true);
-
     m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
+    m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
 
     return;
   }
@@ -821,6 +821,8 @@ void SpatialCalibrationToolbox::CancelCalibration()
   m_CancelRequest = true;
 
   m_ParentMainWindow->SetToolboxesEnabled(true);
+  m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
+  m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
 
   SetState(ToolboxState_Idle);
 }

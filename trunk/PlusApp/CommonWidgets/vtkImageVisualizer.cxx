@@ -715,7 +715,7 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
       this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
     } 
     else {
-      LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+      LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration. ROI will not be displayed until valid values are updated.");
       this->EnableROI(false);
     }
   }
