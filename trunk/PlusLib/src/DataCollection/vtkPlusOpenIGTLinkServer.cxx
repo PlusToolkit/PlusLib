@@ -714,12 +714,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
         const char* name = imageNames->GetNestedElement( i )->GetAttribute( "Name" );
         if ( name == NULL )
         {
+          LOG_WARNING("Image element defined without a name. Check config file.");
           continue;
         }
 
         const char* embeddedTransformToFrame = imageNames->GetNestedElement( i )->GetAttribute( "EmbeddedTransformToFrame" );
         if ( embeddedTransformToFrame == NULL )
         {
+          LOG_WARNING("EmbeddedTransformToFrame not defined in image element. Check config file.");
           continue;
         }
 
