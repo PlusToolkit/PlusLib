@@ -42,11 +42,6 @@ public:
   void Initialize();
 
   /*!
-  * \brief Enable/Disable the toolbox
-  */
-  virtual void Enable(bool aEnable);
-
-  /*!
   * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
   */
   void RefreshContent();

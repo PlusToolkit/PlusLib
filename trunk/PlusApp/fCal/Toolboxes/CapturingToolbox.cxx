@@ -119,26 +119,19 @@ void CapturingToolbox::SetDisplayAccordingToState()
     {
       if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
-        QPalette palette;
-        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-        ui.label_State->setPalette(palette);
-        ui.label_State->setText("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
         LOG_WARNING("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();
-        this->Enable(false);
-        return;
+        this->m_State = ToolboxState_Error;
       }
       else
       {
-        this->Enable(true);
+        // Enable or disable the image manipulation menu
+        m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
+
+        // Hide or show the orientation markers based on the value of the checkbox
+        m_ParentMainWindow->GetVisualizationController()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
       }
     }
-
-    // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
-
-    // Hide or show the orientation markers based on the value of the checkbox
-    m_ParentMainWindow->GetVisualizationController()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
     // If tracking
     if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingDataAvailable())
@@ -542,16 +535,4 @@ double CapturingToolbox::GetMaximumFrameRate()
   }
 
   return frameRate;
-}
-
-//-----------------------------------------------------------------------------
-
-void CapturingToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("CapturingToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_Snapshot->setEnabled(aEnable);
-  ui.pushButton_Save->setEnabled(aEnable);
-  ui.pushButton_Record->setEnabled(aEnable);
-  ui.pushButton_ClearRecordedFrames->setEnabled(aEnable);
 }

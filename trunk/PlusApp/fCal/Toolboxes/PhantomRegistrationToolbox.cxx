@@ -772,15 +772,3 @@ void PhantomRegistrationToolbox::Reset()
 
   LOG_INFO("Reset phantom registration");
 }
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("PhantomRegistrationToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_OpenStylusCalibration->setEnabled(aEnable);
-  ui.pushButton_RecordPoint->setEnabled(aEnable);
-  ui.pushButton_Reset->setEnabled(aEnable);
-  ui.pushButton_Undo->setEnabled(aEnable);
-}

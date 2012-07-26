@@ -310,26 +310,19 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
       // 2D mode auto-turns back on the image
       if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
-        QPalette palette;
-        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-        ui.label_State->setPalette(palette);
-        ui.label_State->setText("Unable to switch to 2D visualization. Unable to use freehand calibration toolbox.");
         LOG_WARNING("Unable to switch to 2D visualization. Unable to use freehand calibration toolbox.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();
-        this->Enable(false);
-        return;
+        this->m_State = ToolboxState_Error;
       }
       else
       {
-        this->Enable(true);
+        // Enable or disable the image manipulation menu
+        m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
+
+        // Hide or show the orientation markers based on the value of the checkbox
+        m_ParentMainWindow->GetVisualizationController()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
       }
     }
-
-    // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
-
-    // Hide or show the orientation markers based on the value of the checkbox
-    m_ParentMainWindow->GetVisualizationController()->ShowOrientationMarkers(m_ParentMainWindow->IsOrientationMarkersEnabled());
 
     if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     {
@@ -1423,20 +1416,4 @@ bool FreehandCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 	}
 
 	return true;
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandCalibrationToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("FreehandCalibrationToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_CancelSpatial->setEnabled(aEnable);
-  ui.pushButton_CancelTemporal->setEnabled(aEnable);
-  ui.pushButton_EditSegmentationParameters->setEnabled(aEnable);
-  ui.pushButton_OpenPhantomRegistration->setEnabled(aEnable);
-  ui.pushButton_OpenSegmentationParameters->setEnabled(aEnable);
-  ui.pushButton_ShowPlots->setEnabled(aEnable);
-  ui.pushButton_StartSpatial->setEnabled(aEnable);
-  ui.pushButton_StartTemporal->setEnabled(aEnable);
 }

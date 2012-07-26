@@ -56,11 +56,6 @@ public:
 	*/
 	virtual void Initialize() = 0;
 
-  /*!
-  * \brief Enable/Disable the toolbox
-  */
-  virtual void Enable(bool aEnable) = 0;
-
 	/*!
 	* \brief Reset toolbox to initial state - virtual function
 	*/

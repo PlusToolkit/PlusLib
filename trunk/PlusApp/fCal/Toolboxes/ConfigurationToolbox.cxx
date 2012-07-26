@@ -507,14 +507,3 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 
   return PLUS_SUCCESS;
 }
-
-//-----------------------------------------------------------------------------
-
-void ConfigurationToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("ConfigurationToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_PopOut->setEnabled(aEnable);
-  ui.pushButton_SelectEditorApplicationExecutable->setEnabled(aEnable);
-  ui.pushButton_SelectImageDirectory->setEnabled(aEnable);
-}

@@ -589,15 +589,3 @@ void VolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aV
 
   DisplayReconstructedVolume();
 }
-
-//-----------------------------------------------------------------------------
-
-void VolumeReconstructionToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("VolumeReconstructionToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_OpenInputImage->setEnabled(aEnable);
-  ui.pushButton_OpenVolumeReconstructionConfig->setEnabled(aEnable);
-  ui.pushButton_Reconstruct->setEnabled(aEnable);
-  ui.pushButton_Save->setEnabled(aEnable);
-}

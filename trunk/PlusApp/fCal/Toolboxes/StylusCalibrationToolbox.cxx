@@ -553,13 +553,3 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     }
   }
 }
-
-//-----------------------------------------------------------------------------
-
-void StylusCalibrationToolbox::Enable( bool aEnable )
-{
-  LOG_TRACE("StylusCalibrationToolbox::Enable(" << (aEnable?"true":"false") << ")");
-
-  ui.pushButton_Start->setEnabled(aEnable);
-  ui.pushButton_Stop->setEnabled(aEnable);
-}
