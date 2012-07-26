@@ -12,13 +12,13 @@
     </Tracker>
 
     <ImageAcquisition Type="SonixVideo" 
-      BufferSize="20" 
-      UsImageOrientation="FM"
-      AcquisitionRate="10" 
+      BufferSize="100" 
+      UsImageOrientation="MF"
+      AcquisitionRate="-1" 
       AveragedItemsForFiltering="20" 
       IP="130.15.7.20" 
-      ImagingMode="RfMode"
-      AcquisitionDataType="RF" 
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
