@@ -314,6 +314,7 @@ protected:
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
+  int SoundVelocity;
 
   char *SonixIP;
 
