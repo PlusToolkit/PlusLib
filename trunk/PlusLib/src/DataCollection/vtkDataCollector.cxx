@@ -658,6 +658,42 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
     return PLUS_FAIL; 
   }
 
+  // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
+  if ( this->GetVideoEnabled() )
+  {
+    if ( this->GetVideoSource() == NULL )
+    {
+      LOG_ERROR("Video source is invalid"); 
+      return PLUS_FAIL; 
+    }
+    if ( this->GetVideoSource()->GetBuffer()->GetNumberOfItems()==0 )
+    {
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the video buffer is empty, no items will be returned"); 
+      return PLUS_SUCCESS;
+    }
+  }
+  if ( this->GetTrackingEnabled() )
+  {
+    if ( this->GetTracker() == NULL )
+    {
+      LOG_ERROR("Tracker is invalid"); 
+      return PLUS_FAIL; 
+    }
+    // Get the first tool
+    vtkTrackerTool* firstActiveTool = NULL; 
+    if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get first active tool"); 
+      return PLUS_FAIL; 
+    }
+    if ( firstActiveTool->GetBuffer()->GetNumberOfItems()==0 )
+    {
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
+      return PLUS_SUCCESS;
+    }
+  }
+
+
   // Get latest and oldest timestamp
   double mostRecentTimestamp(0); 
   if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
@@ -691,7 +727,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
       }
       else
       {
-        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
+        LOG_DEBUG("Number of frames in the buffer is less than maxNumberOfFramesToAdd (more data is allowed to be recorded than it was provided by the data sources)"); 
       }
 
       if ( this->VideoSource->GetBuffer()->GetTimeStamp(mostRecentVideoUid, aTimestamp ) != ITEM_OK )
