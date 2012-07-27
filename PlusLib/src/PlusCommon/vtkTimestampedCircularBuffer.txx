@@ -309,17 +309,23 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(co
 
 	int bufferIndex(0); 
 	status = this->GetBufferIndex( uid, bufferIndex ); 
-	
+
 	if ( status != ITEM_OK )
 	{
 		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
 		return status; 
 	}
-	
+
 	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec); 
-	
+
 	// Check the status again to make sure the writer didn't change it
-  return this->GetFrameStatus( uid );
+	status = this->GetFrameStatus( uid );
+	if ( status != ITEM_OK )
+	{
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+	}
+
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -400,6 +406,13 @@ template<class BufferItemType>
 ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(const double time, BufferItemUidType& uid )
 {
   PlusLockGuard< vtkTimestampedCircularBuffer<BufferItemType> > bufferGuardedLock(this);
+
+  if (this->NumberOfItems==1)
+  {
+    // There is only one item, it's the closest one to any timestamp
+    uid=this->LatestItemUid; 
+    return ITEM_OK;
+  }	
 
 	BufferItemUidType lo = this->GetOldestItemUidInBuffer();
 	BufferItemUidType hi = this->GetLatestItemUidInBuffer();
