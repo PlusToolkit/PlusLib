@@ -413,7 +413,11 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if (this->DynRange>=0 && SetDynRange(this->DynRange)!=PLUS_SUCCESS) { continue; }
     if (this->Zoom>=0 && SetZoom(this->Zoom)!=PLUS_SUCCESS) { continue; }
     if (this->CompressionStatus>=0 && SetCompressionStatus(this->CompressionStatus)!=PLUS_SUCCESS) { continue; }    
-
+    if ( this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
+    {
+      continue;
+    }
+    
     Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
 
     // Set callback and timeout for receiving new frames
@@ -616,12 +620,18 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     this->Timeout=timeout; 
   }
 
+  int soundVelocity = 1540; // Default value.
+  if ( imageAcquisitionConfig->GetScalarAttribute("SoundVelocity", soundVelocity ) ) 
+  {
+    this->SoundVelocity = soundVelocity; 
+  }
+
   double connectionSetupDelayMs=3.0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("ConnectionSetupDelayMs", connectionSetupDelayMs)) 
   {
     this->ConnectionSetupDelayMs=connectionSetupDelayMs; 
   }
-
+  
   return PLUS_SUCCESS;
 }
 
