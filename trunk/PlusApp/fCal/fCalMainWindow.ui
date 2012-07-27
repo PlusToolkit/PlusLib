@@ -224,6 +224,12 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="frameShape">
+         <enum>QFrame::Panel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
         <property name="currentIndex">
          <number>0</number>
         </property>
@@ -232,8 +238,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>480</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -245,8 +251,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>480</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -258,8 +264,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>507</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -271,8 +277,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>534</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -284,8 +290,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>561</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -297,8 +303,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>588</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -310,8 +316,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>250</width>
-           <height>615</height>
+           <width>248</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">

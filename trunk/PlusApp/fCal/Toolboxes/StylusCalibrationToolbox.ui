@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>232</width>
-    <height>560</height>
+    <height>555</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>232</width>
-    <height>560</height>
+    <width>230</width>
+    <height>360</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -35,7 +35,16 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>4</number>
    </property>
    <item>
@@ -63,6 +72,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="labelNumberOfStylusCalibrationPoints">
        <property name="text">
@@ -77,7 +89,7 @@
       <widget class="QSpinBox" name="spinBox_NumberOfStylusCalibrationPoints">
        <property name="maximumSize">
         <size>
-         <width>86</width>
+         <width>64</width>
          <height>16777215</height>
         </size>
        </property>
@@ -112,6 +124,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="label_1">
        <property name="text">
@@ -124,6 +139,12 @@
      </item>
      <item>
       <widget class="QLabel" name="label_NumberOfPoints">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="frameShape">
         <enum>QFrame::NoFrame</enum>
        </property>
@@ -158,6 +179,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="label_CurrentPositionText">
        <property name="toolTip">
@@ -173,9 +197,15 @@
      </item>
      <item>
       <widget class="QLabel" name="label_CurrentPosition">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>136</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -228,9 +258,15 @@
      </item>
      <item>
       <widget class="QLabel" name="label_StylusTipTransform">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>124</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -262,6 +298,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="label_CalibrationErrorText">
        <property name="text">
@@ -274,9 +313,15 @@
      </item>
      <item>
       <widget class="QLabel" name="label_CalibrationError">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>124</width>
+         <width>0</width>
          <height>26</height>
         </size>
        </property>
@@ -368,6 +413,12 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>80</width>
@@ -389,6 +440,12 @@
       <widget class="QPushButton" name="pushButton_Stop">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>

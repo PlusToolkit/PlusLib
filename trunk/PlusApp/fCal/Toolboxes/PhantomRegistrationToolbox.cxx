@@ -47,6 +47,12 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
     return;
   }
 
+  // Create requested landmarks
+  m_RequestedLandmarkPolyData = vtkPolyData::New();
+  m_RequestedLandmarkPolyData->Initialize();
+  vtkSmartPointer<vtkPoints> requestedLandmarkPoints = vtkSmartPointer<vtkPoints>::New();
+  m_RequestedLandmarkPolyData->SetPoints(requestedLandmarkPoints);
+
   // Create and add renderer to phantom canvas
   m_PhantomRenderer = vtkRenderer::New();
   m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
@@ -173,7 +179,7 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 {
   LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization"); 
 
-  if (m_State == ToolboxState_Uninitialized)
+  if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
   {
     vtkDisplayableModel* phantomDisplayableModel = NULL;
     if(m_PhantomRegistration->GetPhantomCoordinateFrame() != NULL)
@@ -343,25 +349,19 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
             errorStr = "N/A";
           }
 
-          QPalette palette;
-          palette.setBrush(QPalette::WindowText, QBrush(Qt::black));
-          ui.label_State->setPalette(palette);
+          ui.label_State->setPaletteForegroundColor(Qt::black);
           ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(phantomToReferenceTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
-          QPalette palette;
-          palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-          ui.label_State->setPalette(palette);
+          ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
           ui.label_State->setText( QString("%1 transform is absent, registration needs to be performed.").arg(phantomToReferenceTransformNameStr.c_str()) );
           LOG_INFO(phantomToReferenceTransformNameStr << " transform is absent, registration needs to be performed");
         }
       }
       else
       {
-        QPalette palette;
-        palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-        ui.label_State->setPalette(palette);
+        ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
         ui.label_State->setText( tr("Stylus calibration is missing. It needs to be performed or imported.") );
         LOG_INFO("Stylus calibration is missing. It needs to be performed or imported");
         m_State = ToolboxState_Error;
@@ -369,9 +369,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     }
     else
     {
-      QPalette palette;
-      palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-      ui.label_State->setPalette(palette);
+      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
       ui.label_State->setText( QString("Phantom registration configuration is missing!") );
       LOG_INFO("Phantom registration configuration is missing");
       m_State = ToolboxState_Error;
@@ -379,9 +377,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   }
   else
   {
-    QPalette palette;
-    palette.setBrush(QPalette::WindowText, QBrush(QColor::fromRgb(255, 128, 0)));
-    ui.label_State->setPalette(palette);
+    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices. Switch to Configuration toolbox to connect.");
     m_State = ToolboxState_Error;
@@ -458,7 +454,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   else if (m_State == ToolboxState_Error)
   {
     ui.label_StylusPosition->setText(tr("N/A"));
-    ui.label_Instructions->setText("Error occured!");
+    ui.label_Instructions->setText("");
 
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
     ui.pushButton_RecordPoint->setEnabled(false);
@@ -639,7 +635,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   LOG_INFO("Point recorded for phantom registration");
 
-  // If there are at least 3 acuired points then register
+  // If there are at least 3 acquired points then register
   if (m_CurrentLandmarkIndex >= 3)
   {
     if (m_PhantomRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)

@@ -3,13 +3,13 @@ QComboBox {
   border-radius: 3px;
   padding: 1px 3px 1px 3px;
   min-width: 3em;
-  width: 192px;
+  width: 200px;
 
-  border-right-width: 300px;
+  border-right-width: 308px;
   border-right-color: #808080;
   border-right-style: solid;
-  border-top-right-radius: 300px;
-  border-bottom-right-radius: 300px;
+  border-top-right-radius: 308px;
+  border-bottom-right-radius: 308px;
   }
 
 QComboBox:editable {
