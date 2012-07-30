@@ -196,8 +196,6 @@ public:
   */
   PlusStatus EnableWireLabels(bool aEnable);
 
-public:
-
   /*!
   * Enable or disable the volume actor in 3D mode
   * \param aEnable enable/disable flag

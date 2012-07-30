@@ -152,6 +152,7 @@
 
 
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfCalibrationImagesToAcquire="140"
     NumberOfValidationImagesToAcquire="70"
     NumberOfStylusCalibrationPointsToAcquire="200"

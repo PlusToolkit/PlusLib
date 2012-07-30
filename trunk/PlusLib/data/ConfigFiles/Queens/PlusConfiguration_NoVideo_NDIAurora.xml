@@ -57,6 +57,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
 
 
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

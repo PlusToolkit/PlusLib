@@ -40,6 +40,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ReferenceCoordinateFrame("")
 , m_TransducerOriginCoordinateFrame("")
 , m_TransducerOriginPixelCoordinateFrame("")
+, m_PhantomCoordinateFrame("")
 , m_ShowPoints(false)
 , m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
@@ -106,26 +107,42 @@ void fCalMainWindow::Initialize()
   // Set up menu items for image manipulation button
   QCustomAction* mfRightUpAction = new QCustomAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
   connect(mfRightUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFUp()));
-  m_ShowROIActionList.push_back(mfRightUpAction);
+  m_ImageManipulationActionList.push_back(mfRightUpAction);
   QCustomAction* mfLeftUpAction = new QCustomAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
   connect(mfLeftUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFUp()));
-  m_ShowROIActionList.push_back(mfLeftUpAction);
+  m_ImageManipulationActionList.push_back(mfLeftUpAction);
   QCustomAction* mfRightDownAction = new QCustomAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
   connect(mfRightDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFDown()));
-  m_ShowROIActionList.push_back(mfRightDownAction);
+  m_ImageManipulationActionList.push_back(mfRightDownAction);
   QCustomAction* mfLeftDownAction = new QCustomAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
   connect(mfLeftDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFDown()));
-  m_ShowROIActionList.push_back(mfLeftDownAction);
+  m_ImageManipulationActionList.push_back(mfLeftDownAction);
   m_ShowOrientationMarkerAction = new QCustomAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
   connect(m_ShowOrientationMarkerAction, SIGNAL(triggered()), this, SLOT(EnableOrientationMarkers()));
   m_ShowOrientationMarkerAction->setCheckable(true);
-  m_ShowROIActionList.push_back(m_ShowOrientationMarkerAction);
+  m_ImageManipulationActionList.push_back(m_ShowOrientationMarkerAction);
   QCustomAction* separator = new QCustomAction("", NULL, true);
-  m_ShowROIActionList.push_back(separator);
+  m_ImageManipulationActionList.push_back(separator);
   m_ShowROIAction = new QCustomAction("Show Region of Interest", ui.pushButton_ImageOrientation);
   connect(m_ShowROIAction, SIGNAL(triggered()), this, SLOT(EnableROI()));
   m_ShowROIAction->setCheckable(true);
-  m_ShowROIActionList.push_back(m_ShowROIAction);
+  m_ImageManipulationActionList.push_back(m_ShowROIAction);
+
+  // Set up menu items for 3D manipulation menu
+  m_Show3DObjectsAction = new QCustomAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
+  connect(m_Show3DObjectsAction, SIGNAL(triggered()), this, SLOT(ShowDevicesToggled()));
+  m_Show3DObjectsAction->setCheckable(true);
+  m_3DActionList.push_back(m_Show3DObjectsAction);
+  separator = new QCustomAction("", NULL, true);
+  m_3DActionList.push_back(separator);
+  m_ShowPhantomModelAction = new QCustomAction("Show phantom model", ui.pushButton_ShowDevices);
+  connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomToggled()));
+  m_ShowPhantomModelAction->setCheckable(true);
+  m_ShowPhantomModelAction->setChecked(true);
+  m_3DActionList.push_back(m_ShowPhantomModelAction);
+
+  // Declare this class as the event handler
+  ui.pushButton_ShowDevices->installEventFilter(this);
 
   // Declare this class as the event handler
   ui.pushButton_ImageOrientation->installEventFilter(this);
@@ -146,7 +163,6 @@ void fCalMainWindow::Initialize()
   // Make connections
   connect( ui.toolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentToolboxChanged(int) ) );
   connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
-  connect( ui.pushButton_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
 
   // Tell the object visualizer to show orientation markers
@@ -444,10 +460,10 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         menu->addActions(ui.pushButton_Tools->actions());
         menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
       }
-      else
+      else if( obj == ui.pushButton_ImageOrientation )
       {
         menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
-        for( std::vector<QCustomAction*>::iterator it = m_ShowROIActionList.begin(); it != m_ShowROIActionList.end(); ++it )
+        for( std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it )
         {
           QCustomAction* action = (*it);
           if( action->isSeparator )
@@ -460,6 +476,24 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
           }
         }
         menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
+      }
+      else
+      {
+        menu = new QMenu(tr("Actions"), ui.pushButton_ShowDevices);
+
+        for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
+        {
+          QCustomAction* action = (*it);
+          if( action->isSeparator )
+          {
+            menu->addSeparator();
+          }
+          else
+          {
+            menu->addAction(action);
+          }
+        }
+        menu->move( QPoint( ui.pushButton_ShowDevices->x(), ui.pushButton_ShowDevices->y() + 23 ) );
       }
 
       menu->exec();
@@ -590,8 +624,10 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::ShowDevicesToggled(bool aOn)
+void fCalMainWindow::ShowDevicesToggled()
 {
+  bool aOn = m_Show3DObjectsAction->isChecked();
+
   LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
   m_ForceShowAllDevicesIn3D = aOn;
@@ -613,6 +649,21 @@ void fCalMainWindow::ShowDevicesToggled(bool aOn)
   }
 
   LOG_INFO("Show devices " << (aOn?"enabled":"disabled"));
+}
+
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::ShowPhantomToggled()
+{
+  bool aOn = m_ShowPhantomModelAction->isChecked();
+
+  LOG_TRACE("fCalMainWindow::ShowPhantomToggled(" << (aOn?"true":"false") << ")"); 
+
+  if( !m_PhantomCoordinateFrame.empty() )
+  {
+    m_VisualizationController->ShowObject(m_PhantomCoordinateFrame.c_str(), aOn);
+  }
 }
 
 //-----------------------------------------------------------------------------

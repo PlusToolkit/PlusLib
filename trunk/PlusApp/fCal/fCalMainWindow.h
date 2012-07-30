@@ -134,6 +134,11 @@ public:
   /*! Set transducer origin pixel coordinate frame name */
   void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
 
+  /*! Get phantom coordinate frame name */
+  std::string GetPhantomCoordinateFrame() { return m_PhantomCoordinateFrame; };
+  /*! Set phantom coordinate frame name */
+  void SetPhantomCoordinateFrame(const char* aPhantomCoordinateFrame) { m_PhantomCoordinateFrame = aPhantomCoordinateFrame; };
+
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();
 
@@ -179,9 +184,13 @@ protected:
 
     /*!
     * Slot handling show devices combobox state change
-    * \param Slot aOn True if toggled, false otherwise
     */
-    void ShowDevicesToggled(bool aOn);
+    void ShowDevicesToggled();
+
+    /*!
+    * Slot handling show phantom
+    */
+    void ShowPhantomToggled();
 
     /*!
     * Resize event handler
@@ -256,6 +265,9 @@ protected:
   /*! Transducer origin (pixel) coordinate frame name for Rendering */
   std::string m_TransducerOriginPixelCoordinateFrame;
 
+  /*! phantom coordinate frame name for Rendering */
+  std::string m_PhantomCoordinateFrame;
+
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;
 
@@ -269,7 +281,16 @@ protected:
   QCustomAction* m_ShowROIAction;
 
   /*! Reference to all actions that will show up in ROI list */
-  std::vector<QCustomAction*> m_ShowROIActionList;
+  std::vector<QCustomAction*> m_ImageManipulationActionList;
+
+  /*! Reference to the switch mode button */
+  QCustomAction* m_Show3DObjectsAction;
+
+  /*! Reference to the show phantom action */
+  QCustomAction* m_ShowPhantomModelAction;
+
+  /*! Reference to all actions that will show up in ROI list */
+  std::vector<QCustomAction*> m_3DActionList;
 
 private:
   Ui::fCalMainWindow	ui;

@@ -50,6 +50,7 @@
 
 
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

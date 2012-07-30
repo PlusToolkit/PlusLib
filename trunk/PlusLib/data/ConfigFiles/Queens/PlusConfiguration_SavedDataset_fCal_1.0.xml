@@ -146,6 +146,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
 
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

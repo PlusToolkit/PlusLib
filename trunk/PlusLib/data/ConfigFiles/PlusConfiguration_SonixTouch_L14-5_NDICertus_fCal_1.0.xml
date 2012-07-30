@@ -142,6 +142,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
     
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

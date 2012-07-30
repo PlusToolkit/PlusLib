@@ -145,6 +145,7 @@ The desired file name with path needs to be added to this XML file as values Seq
   />
 
   <fCal
+    PhantomCoordinateFrame="Phantom"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

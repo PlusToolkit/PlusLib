@@ -435,6 +435,16 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
+  // phantom coordinate frame
+  const char* phantomCoordinateFrame = fCalElement->GetAttribute("PhantomCoordinateFrame");
+  if (phantomCoordinateFrame == NULL)
+  {
+    LOG_ERROR("Phantom coordinate frame not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;
+  }
+
+  m_ParentMainWindow->SetPhantomCoordinateFrame(phantomCoordinateFrame);
+
   return PLUS_SUCCESS;
 }
 
