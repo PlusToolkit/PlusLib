@@ -16,7 +16,7 @@ if (WIN32)
   )
 endif (WIN32)
 
-SET (RfProcessingAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (RfProcessingAlgo_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -34,7 +34,7 @@ TARGET_LINK_LIBRARIES(vtkRfProcessingAlgo ${RfProcessingAlgo_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkRfProcessingAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkRfProcessingAlgo vtkRfProcessingAlgo ${PlusLib_BINARY_DIR}/src/RfProcessingAlgo/vtkRfProcessingAlgo.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkRfProcessingAlgo vtkRfProcessingAlgo "${PlusLib_BINARY_DIR}/src/RfProcessingAlgo/vtkRfProcessingAlgo.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
