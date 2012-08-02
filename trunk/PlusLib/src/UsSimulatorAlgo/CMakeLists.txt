@@ -28,7 +28,7 @@ TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgo ${UsSimulatorAlgo_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkUsSimulatorAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkUsSimulatorAlgo vtkUsSimulatorAlgo ${PlusLib_BINARY_DIR}/src/UsSimulatorAlgo/vtkUsSimulatorAlgo.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkUsSimulatorAlgo vtkUsSimulatorAlgo "${PlusLib_BINARY_DIR}/src/UsSimulatorAlgo/vtkUsSimulatorAlgo.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
