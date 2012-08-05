@@ -26,6 +26,7 @@
 #include "vtkImageMagnitude.h"
 #include "vtkImageFourierCenter.h"
 #include "vtkImageLogarithmicScale.h"
+#include "vtkMetaImageReader.h"
 //#include "vtkMetaImageWriter.h"
 //#include "vtkImageMathematics.h"
 //#include "vtkImageLogic.h"
@@ -171,31 +172,31 @@ int main( int argc, char** argv )
 
   // read in the volumes
   LOG_INFO("Reading input ground truth image: " << inputGTFileName );
-  vtkSmartPointer<vtkDataSetReader> reader = vtkSmartPointer<vtkDataSetReader>::New();
+  vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
   reader->SetFileName(inputGTFileName.c_str());
   reader->Update();
   groundTruth = vtkImageData::SafeDownCast(reader->GetOutput());
 
   LOG_INFO("Reading input ground truth alpha: " << inputGTAlphaFileName );
-  vtkSmartPointer<vtkDataSetReader> reader2 = vtkSmartPointer<vtkDataSetReader>::New();
+  vtkSmartPointer<vtkMetaImageReader> reader2 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader2->SetFileName(inputGTAlphaFileName.c_str());
   reader2->Update();
   groundTruthAlpha = vtkImageData::SafeDownCast(reader2->GetOutput());
 
   LOG_INFO("Reading input testing image: " << inputTestingFileName );
-  vtkSmartPointer<vtkDataSetReader> reader3 = vtkSmartPointer<vtkDataSetReader>::New();
+  vtkSmartPointer<vtkMetaImageReader> reader3 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader3->SetFileName(inputTestingFileName.c_str());
   reader3->Update();
   testingImage = vtkImageData::SafeDownCast(reader3->GetOutput());
 
   LOG_INFO("Reading input testing alpha: " << inputTestingAlphaFileName );
-  vtkSmartPointer<vtkDataSetReader> reader4 = vtkSmartPointer<vtkDataSetReader>::New();
+  vtkSmartPointer<vtkMetaImageReader> reader4 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader4->SetFileName(inputTestingAlphaFileName.c_str());
   reader4->Update();
   testingAlpha = vtkImageData::SafeDownCast(reader4->GetOutput());
 
   LOG_INFO("Reading input slices alpha: " << inputSliceAlphaFileName );
-  vtkSmartPointer<vtkDataSetReader> reader5 = vtkSmartPointer<vtkDataSetReader>::New();
+  vtkSmartPointer<vtkMetaImageReader> reader5 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader5->SetFileName(inputSliceAlphaFileName.c_str());
   reader5->Update();
   slicesAlpha = vtkImageData::SafeDownCast(reader5->GetOutput());
@@ -360,7 +361,8 @@ int main( int argc, char** argv )
                    << histogramGenerator->GetAbsoluteStdev() << ","
                    << histogramGenerator->GetAbsolute5thPercentile() << ","
                    << histogramGenerator->GetAbsolute95thPercentile() << ","
-                   << histogramGenerator->GetRMS();
+                   << histogramGenerator->GetRMS() << ","
+                   << histogramGenerator->GetAbsoluteMeanWithHoles();
       for (int i = 0; i < 511; i++)
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)
@@ -371,7 +373,7 @@ int main( int argc, char** argv )
     { // need to create the file and write to it. First give it a header row.
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str());
-      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS";
+      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
       }
@@ -404,7 +406,8 @@ int main( int argc, char** argv )
                    << histogramGenerator->GetAbsoluteStdev() << ","
                    << histogramGenerator->GetAbsolute5thPercentile() << ","
                    << histogramGenerator->GetAbsolute95thPercentile() << ","
-                   << histogramGenerator->GetRMS();
+                   << histogramGenerator->GetRMS() << ","
+                   << histogramGenerator->GetAbsoluteMeanWithHoles();
       for (int i = 0; i < 511; i++)
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)
