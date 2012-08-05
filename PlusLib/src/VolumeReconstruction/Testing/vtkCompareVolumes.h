@@ -96,6 +96,9 @@ public:
   vtkGetMacro(NumberVoxelsVisible,int);
   vtkSetMacro(NumberVoxelsVisible,int);
 
+  vtkGetMacro(AbsoluteMeanWithHoles,double);
+  vtkSetMacro(AbsoluteMeanWithHoles,double);
+
   int* GetTrueHistogramPtr() {return TrueHistogram;}
   int* GetAbsoluteHistogramPtr() {return AbsoluteHistogram;}
   void incTrueHistogramAtIndex(int value) {int index = value + 256; TrueHistogram[index]++;}
@@ -110,6 +113,7 @@ protected:
   double RMS;
   double TrueMean,     TrueStdev,     TrueMedian,     TrueMinimum,     TrueMaximum,     True95thPercentile,     True5thPercentile;
   double AbsoluteMean, AbsoluteStdev, AbsoluteMedian, AbsoluteMinimum, AbsoluteMaximum, Absolute95thPercentile, Absolute5thPercentile;
+  double AbsoluteMeanWithHoles;
   int TrueHistogram[511];
   int AbsoluteHistogram[256];
   int NumberOfHoles;
