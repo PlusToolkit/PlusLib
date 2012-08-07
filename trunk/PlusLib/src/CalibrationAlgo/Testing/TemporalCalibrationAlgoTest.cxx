@@ -139,8 +139,10 @@ int main(int argc, char **argv)
   testTemporalCalibrationObject.SetSaveIntermediateImagesToOn(saveIntermediateImages);
   testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
 
+  TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error;
+
   //  Calculate the time-offset
-  if (testTemporalCalibrationObject.Update()!=PLUS_SUCCESS)
+  if (testTemporalCalibrationObject.Update(error)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     exit(EXIT_FAILURE);

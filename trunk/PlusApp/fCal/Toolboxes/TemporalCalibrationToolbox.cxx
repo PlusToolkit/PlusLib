@@ -414,10 +414,54 @@ void TemporalCalibrationToolbox::DoCalibration()
     temporalCalibrationObject.SetProbeToReferenceTransformName(probeToReferenceTransformNameString);
 
     //  Calculate the time-offset
-    if (temporalCalibrationObject.Update() != PLUS_SUCCESS)
+    TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error = TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
+    std::string errorStr;
+    std::ostringstream strs;
+    if (temporalCalibrationObject.Update(error) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed!");
+      switch (error)
+      {
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
+        double correlation;
+        temporalCalibrationObject.GetBestCorrelation(correlation);
+
+        strs << "Result above threshold. " << correlation;
+        errorStr = strs.str();
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
+        errorStr = "Invalid transform name.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
+        errorStr = "No timestamps on data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
+        errorStr = "Unable to normalize the data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
+        errorStr = "Correlation list empty. Unable to perform analysis on data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
+        errorStr = "Missing video data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
+        errorStr = "Data not in MF orientation.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_VIDEO_DATA:
+        errorStr = "No frames in video data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
+        errorStr = "No frames in ultrasound data.";
+        break;
+      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
+        errorStr = "Sampling resolution too small.";
+        break;
+      }
+
+      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
       CancelCalibration();
+
+      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
+      ui.label_State->setText( QString(errorStr.c_str()) );
 
       temporalCalibrationDialog->done(0);
       temporalCalibrationDialog->hide();

@@ -72,8 +72,20 @@
 
 class TemporalCalibration
 {
-
 public:
+  enum TEMPORAL_CALIBRATION_ERROR {
+    TEMPORAL_CALIBRATION_ERROR_NONE,
+    TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD,
+    TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME,
+    TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS,
+    TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC,
+    TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY,
+    TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA,
+    TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION,
+    TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_VIDEO_DATA,
+    TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA,
+    TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL,
+  };
 
   TemporalCalibration();
 
@@ -97,7 +109,7 @@ public:
   void SetIntermediateFilesOutputDirectory(std::string &outputDirectory);
 
   /*! Compute the tracker lag */  
-  PlusStatus Update(); 
+  PlusStatus Update(TEMPORAL_CALIBRATION_ERROR &error); 
 
   /*!
     Returns the computed time [s] by which the tracker stream lags the video stream. 
@@ -118,10 +130,10 @@ public:
   PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
 
+  PlusStatus GetBestCorrelation(double &videoCorrelation);
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
 private:
-
 	PlusStatus filterFrames();
 
   double m_MaxCalibrationError;
@@ -174,6 +186,9 @@ private:
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
   double m_TrackerLagSec;
 
+  /*! Given index for the calculated best fit */
+  double m_BestCorrelationLagIndex;
+
   /*! The residual error after temporal calibration of the video and tracker signals */
   double m_CalibrationError;
 
@@ -192,7 +207,7 @@ private:
   PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
                                                          double &centerOfGravity);
   
-  PlusStatus ResamplePositionMetrics();
+  PlusStatus ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
   void InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
                                  const std::vector<double> &resampledTimestamps,
                                  const std::vector<double> &originalMetric,
@@ -205,12 +220,12 @@ private:
   int FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp, int currLowerStraddleIndex);
   int FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);
   int FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);                       
-  PlusStatus ComputeTrackerLagSec();
+  PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus NormalizeMetric(std::vector<double> &metric, double &normalizationFactor);
   PlusStatus NormalizeMetricWindow(const std::vector<double> &slidingMetric, int indexOffset,
                                    int stationaryMetricSize, std::vector<double> &normalizedSlidingMetric);
-  PlusStatus ComputeVideoPositionMetric();
-  PlusStatus ComputeTrackerPositionMetric();
+  PlusStatus ComputeVideoPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
+  PlusStatus ComputeTrackerPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
   void ComputeCorrelationBetweenVideoAndTrackerMetrics();
   double ComputeCrossCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
                                                const std::vector<double> &m_VideoPositionMetric, int indexOffset);
