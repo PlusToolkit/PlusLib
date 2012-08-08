@@ -563,7 +563,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
       return PLUS_FAIL;
     }
   }
-  catch(vtkstd::bad_alloc& e)
+  catch(std::bad_alloc& e)
   {
     cerr << e.what() << endl;
     LOG_ERROR("StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output volume.");
