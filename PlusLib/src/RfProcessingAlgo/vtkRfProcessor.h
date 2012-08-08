@@ -13,7 +13,6 @@
 class vtkRfToBrightnessConvert;
 class vtkUsScanConvertLinear;
 class vtkUsScanConvertCurvilinear;
-class vtkImageCast;
 
 /*!
   \class vtkRfProcessor 
@@ -62,7 +61,6 @@ protected:
   vtkRfToBrightnessConvert* RfToBrightnessConverter;
   vtkUsScanConvertLinear* ScanConverterLinear;  
   vtkUsScanConvertCurvilinear* ScanConverterCurvilinear;  
-  vtkImageCast* ImageCaster;
 
   /*! Type of the transducer (linear or curvilinear) */
   TransducerGeometryType TransducerGeometry;

@@ -55,7 +55,24 @@ ADD_TEST(vtkUsScanConvertLinearCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
 
+# --------------------------------------------------------------------------
+ADD_TEST(vtkUsScanConvertBkCurvilinearRunTest
+	${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+	--input-config-file=${ConfigFilesDir}/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml
+	--input-rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
+	--output-img-file=outputBkCurvilinearScanConvertedData.mha 
+  --operation=BRIGHTNESS_SCAN_CONVERT
+	)
+SET_TESTS_PROPERTIES( vtkUsScanConvertBkCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+ADD_TEST(vtkUsScanConvertBkCurvilinearCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   outputBkCurvilinearScanConvertedData.mha
+   ${TestDataDir}/BkCurvilinearScanConvertedData.mha
+  )
+SET_TESTS_PROPERTIES(vtkUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertBkCurvilinearRunTest)
+
+# --------------------------------------------------------------------------
 INSTALL(TARGETS RfProcessor
   RUNTIME
   DESTINATION bin
