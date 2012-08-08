@@ -13,6 +13,10 @@
 /*!
 \class vtkRfToBrightnessConvert
 \brief This class converts ultrasound RF data to brightness values
+
+The input image type must be VTK_SHORT (signed 16-bit) and the output image type
+is always VTK_UNSIGNED_CHAR (unsigned 8-bit).
+
 \ingroup RfProcessingAlgo
 */ 
 class VTK_EXPORT vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
@@ -34,8 +38,12 @@ public:
 
 protected:
   vtkRfToBrightnessConvert();
-  ~vtkRfToBrightnessConvert() {};
+  ~vtkRfToBrightnessConvert();
   
+  virtual int RequestInformation(vtkInformation*,
+                                 vtkInformationVector**,
+                                 vtkInformationVector* outputVector);
+
   void ThreadedRequestData( vtkInformation *request,
                             vtkInformationVector **inputVector,
                             vtkInformationVector *outputVector,
@@ -43,10 +51,15 @@ protected:
                             int outExt[6], int id);
 
   virtual void PrepareHilbertTransform();
+
+  /*! Compute the Hilbert transform (90 deg phase shift) of a signal */
   virtual PlusStatus ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt);
-  virtual void ComputeAmplitudeILineQLine(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt);
+  
+  /*! Compute amplitude from the original and Hilbert transformed RF data. npt is the number of samples in the input signal */
+  virtual void ComputeAmplitudeILineQLine(unsigned char *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt);
+  
   /*! Compute amplitude from IQ encoded RF data. npt is the number of IQ pairs * 2. */
-  virtual void ComputeAmplitudeIqLine(short *ampl, short *inputSignal, const int npt);
+  virtual void ComputeAmplitudeIqLine(unsigned char *ampl, short *inputSignal, const int npt);
 
   /*! Scaling of the brightness output. Higher value means brighter image. */
   double BrightnessScale;

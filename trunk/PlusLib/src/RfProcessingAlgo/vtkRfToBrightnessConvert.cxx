@@ -29,13 +29,79 @@ vtkRfToBrightnessConvert::vtkRfToBrightnessConvert()
 }
 
 //----------------------------------------------------------------------------
+vtkRfToBrightnessConvert::~vtkRfToBrightnessConvert()
+{
+}
+
+//----------------------------------------------------------------------------
+int vtkRfToBrightnessConvert::RequestInformation(vtkInformation*,
+                                    vtkInformationVector** inputVector,
+                                    vtkInformationVector* outputVector)
+{
+  // get the info objects
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+      
+  int inExt[6]={0};
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), inExt);
+  
+  // Set the output extent to be the same as the input extent by default
+  int outExt[6]={0};
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), outExt);
+  
+  // Update the output image extent depending on the RF encoding type
+  switch (this->ImageType)
+  {
+  case US_IMG_RF_I_LINE_Q_LINE:  
+    {
+      // RF data: IIIIII..., QQQQQQ....
+      // B-mode data: BBBBBB
+      // => number of rows in the output image is half of the rows in the input image
+      int numberOfBmodeRows=(inExt[3]-inExt[2]+1)/2;
+      outExt[2] = inExt[2]/2;
+      outExt[3] = outExt[2] + numberOfBmodeRows - 1;
+    }
+    break;
+  case US_IMG_RF_REAL:
+    {
+      // RF data: III..., III...
+      // B-mode data: BBB..., BBB...
+      // => the output image size is the same as the input image size
+      // keep the default extent
+    }
+    break;
+  case US_IMG_RF_IQ_LINE:
+    {
+      // RF data: IQIQIQ....., IQIQIQ.....
+      // B-mode data: BBB..., BBB...
+      // => number of columns in the output image is half of the columns in the input image
+      int numberOfBmodeColumns=(inExt[1]-inExt[0]+1)/2;
+      outExt[0] = inExt[0]/2;
+      outExt[1] = outExt[0] + numberOfBmodeColumns - 1;
+    }
+    break;
+  default:
+    vtkErrorMacro("Unknown RF image type: " << this->ImageType);
+    return 0;
+    }
+
+  // Set the updated output image size
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),outExt,6);
+
+  // Output is B-mode image, the pixel type is always unsigned 8-bit integer
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, -1);
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
 void vtkRfToBrightnessConvert::ThreadedRequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *vtkNotUsed(outputVector),
   vtkImageData ***inData,
   vtkImageData **outData,
-  int ext[6], int id)
+  int outExt[6], int id)
 {  
   // Check input and output parameters
   if (inData[0][0]->GetNumberOfScalarComponents() != 1)
@@ -43,35 +109,77 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
     vtkErrorMacro("Expecting 1 components not " << inData[0][0]->GetNumberOfScalarComponents());
     return;
   }
-  if (inData[0][0]->GetScalarType() != VTK_SHORT || 
-    outData[0]->GetScalarType() != VTK_SHORT)
+  if (inData[0][0]->GetScalarType() != VTK_SHORT)
   {
-    vtkErrorMacro("Expecting input and output to be of type short");
+    vtkErrorMacro("Expecting VTK_SHORT input pixel type");
     return;
   }
+  if (outData[0]->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    vtkErrorMacro("Expecting VTK_UNSIGNED_CHAR output pixel type");
+    return;
+  }  
 
   int wholeExtent[6]={0};
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);  
   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), wholeExtent);
 
-  short *inPtr = static_cast<short*>(inData[0][0]->GetScalarPointerForExtent(ext));
-  short *outPtr = static_cast<short*>(outData[0]->GetScalarPointerForExtent(ext));
-
-  vtkIdType inInc0=0;
-  vtkIdType inInc1=0;
-  vtkIdType inInc2=0;
-  inData[0][0]->GetContinuousIncrements(ext, inInc0, inInc1, inInc2);
   vtkIdType outInc0=0;
   vtkIdType outInc1=0;
   vtkIdType outInc2=0;
-  outData[0]->GetContinuousIncrements(ext, outInc0, outInc1, outInc2);  
+  outData[0]->GetContinuousIncrements(outExt, outInc0, outInc1, outInc2);  
+  unsigned char *outPtr = static_cast<unsigned char*>(outData[0]->GetScalarPointerForExtent(outExt));
 
-  unsigned long target = static_cast<unsigned long>((ext[5]-ext[4]+1)*(ext[3]-ext[2]+1)/50.0);
+  int inExt[6]={outExt[0], outExt[1], outExt[2], outExt[3], outExt[4], outExt[5]};
+  // Get the input extent for the output extent
+  switch (this->ImageType)
+  {
+  case US_IMG_RF_I_LINE_Q_LINE:  
+    {
+      // RF data: IIIIII..., QQQQQQ....
+      // B-mode data: BBBBBB
+      // => number of rows in the output image is half of the rows in the input image
+      int numberOfBmodeRows=outExt[3]-outExt[2]+1;
+      int numberOfRfRows=numberOfBmodeRows*2;
+      inExt[2] = outExt[2]*2;
+      inExt[3] = inExt[2] + numberOfRfRows - 1;
+    }
+    break;
+  case US_IMG_RF_REAL:
+    {
+      // RF data: III..., III...
+      // B-mode data: BBB..., BBB...
+      // => the output image size is the same as the input image size
+      // keep the default extent
+    }
+    break;
+  case US_IMG_RF_IQ_LINE:
+    {
+      // RF data: IQIQIQ....., IQIQIQ.....
+      // B-mode data: BBB..., BBB...
+      // => number of columns in the output image is half of the columns in the input image
+      int numberOfBmodeColumns=outExt[1]-outExt[0]+1;
+      int numberOfRfColumns=numberOfBmodeColumns*2;
+      inExt[0] = outExt[0]*2;
+      inExt[1] = inExt[0] + numberOfRfColumns - 1;
+    }
+    break;
+  default:
+    vtkErrorMacro("Unknown RF image type: " << this->ImageType);
+    }
+  vtkIdType inInc0=0;
+  vtkIdType inInc1=0;
+  vtkIdType inInc2=0;
+  inData[0][0]->GetContinuousIncrements(inExt, inInc0, inInc1, inInc2);
+  short *inPtr = static_cast<short*>(inData[0][0]->GetScalarPointerForExtent(inExt));
+
+  unsigned long target = static_cast<unsigned long>((outExt[5]-outExt[4]+1)*(outExt[3]-outExt[2]+1)/50.0);
   target++;
 
   // Temporary buffer to hold Hilbert transform results
-  int numberOfSamplesInScanline=ext[1]-ext[0]+1;
-  short* hilbertTransformBuffer=new short[numberOfSamplesInScanline+1];
+  int numberOfRfSamplesInScanline=inExt[1]-inExt[0]+1;
+  int numberOfBmodeSamplesInScanline=outExt[1]-outExt[0]+1;
+  short* hilbertTransformBuffer=new short[numberOfRfSamplesInScanline+1];
   /*
   std::vector<short> hilbertTransformBuffer;
   hilbertTransformBuffer.resize(numberOfSamplesInScanline);
@@ -80,9 +188,9 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
   bool imageTypeValid=true;
   unsigned long count = 0;
   // loop over all the pixels (keeping track of normalized distance to origin.
-  for (int idx2 = ext[4]; idx2 <= ext[5]; ++idx2)
+  for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
   {
-    for (int idx1 = ext[2]; !this->AbortExecute && idx1 <= ext[3]; ++idx1)    
+    for (int idx1 = outExt[2]; !this->AbortExecute && idx1 <= outExt[3]; ++idx1)    
     {
       if (id==0)
       {
@@ -94,34 +202,40 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
         count++;
       }
 
-      // Modes: IQIQIQ....., IQIQIQIQ..... / IIIIIII..., QQQQQQ.... / IIIII..., IIIII...
       switch (this->ImageType)
       {
       case US_IMG_RF_I_LINE_Q_LINE:
         {
-          ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfSamplesInScanline);
-          short *phaseShiftedSignal=hilbertTransformBuffer;
-          ComputeAmplitudeILineQLine(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
-          outPtr += numberOfSamplesInScanline+outInc1;
-          ComputeAmplitudeILineQLine(outPtr, inPtr, phaseShiftedSignal, numberOfSamplesInScanline);
-          inPtr += 2*(numberOfSamplesInScanline+inInc1);
-          outPtr += numberOfSamplesInScanline+outInc1;
-          idx1++; // processed two lines
+          // e.g., Ultrasonix
+          // RF data: IIIIIII..., QQQQQQ...., IIIIIII..., QQQQQQ....
+          //ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfRfSamplesInScanline);
+          //short *phaseShiftedSignal=hilbertTransformBuffer;
+          short *originalSignal=inPtr;
+          inPtr += numberOfRfSamplesInScanline+inInc1;
+          short *phaseShiftedSignal=inPtr;
+          inPtr += numberOfRfSamplesInScanline+inInc1;
+          ComputeAmplitudeILineQLine(outPtr, originalSignal, phaseShiftedSignal, numberOfRfSamplesInScanline);
+          outPtr += numberOfBmodeSamplesInScanline+outInc1;
+          //inPtr += 2*(numberOfRfSamplesInScanline+inInc1);
+          
         }
         break;
       case US_IMG_RF_REAL:
         {
-          ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfSamplesInScanline);
-          ComputeAmplitudeILineQLine(outPtr, inPtr, hilbertTransformBuffer, numberOfSamplesInScanline);
-          inPtr += numberOfSamplesInScanline+inInc1;
-          outPtr += numberOfSamplesInScanline+outInc1;
+          // e.g., Ultrasonix
+          // RF data: IIIII..., IIIII...
+          ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfRfSamplesInScanline);
+          ComputeAmplitudeILineQLine(outPtr, inPtr, hilbertTransformBuffer, numberOfRfSamplesInScanline);
+          inPtr += numberOfRfSamplesInScanline+inInc1;
+          outPtr += numberOfBmodeSamplesInScanline+outInc1;
         }
         break;
       case US_IMG_RF_IQ_LINE:
         {
-          ComputeAmplitudeIqLine(outPtr, inPtr, numberOfSamplesInScanline);
-          inPtr += numberOfSamplesInScanline+inInc1;
-          outPtr += numberOfSamplesInScanline+outInc1;
+          // RF data: IQIQIQ....., IQIQIQIQ.....
+          ComputeAmplitudeIqLine(outPtr, inPtr, numberOfRfSamplesInScanline);
+          inPtr += numberOfRfSamplesInScanline+inInc1;
+          outPtr += numberOfBmodeSamplesInScanline+outInc1;
         }
         break;
       default:
@@ -275,7 +389,7 @@ PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTrans
   return PLUS_SUCCESS;
 }
 
-void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(short *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
+void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
 {
   for (int i=0; i<this->NumberOfHilberFilterCoeffs/2+1; i++)
   {
@@ -285,10 +399,10 @@ void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(short *ampl, short *in
   {
     double xt = inputSignal[i];
     double xht = inputSignalHilbertTransformed[i];
-    ampl[i] = sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
-    if (ampl[i]>255.0) ampl[i]=255.0;
-    if (ampl[i]<0.0) ampl[i]=0.0;
-
+    double brightnessValue = sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
+    if (brightnessValue>255.0) brightnessValue=255.0;
+    if (brightnessValue<0.0) brightnessValue=0.0;
+    ampl[i]=brightnessValue;
     /*
     phase[i] = atan2(xht ,xt);
     if (phase[i] < phase[i-1])
@@ -307,18 +421,18 @@ void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(short *ampl, short *in
   }
 }
 
-void vtkRfToBrightnessConvert::ComputeAmplitudeIqLine(short *ampl, short *inputSignal, const int npt)
+void vtkRfToBrightnessConvert::ComputeAmplitudeIqLine(unsigned char *ampl, short *inputSignal, const int npt)
 {
   int inputIndex=0;
   int outputIndex=0;
-  for (; inputIndex+1<npt; inputIndex++, outputIndex++) 
+  int numberOfIqPairs=floor(double(npt)/2);
+  for (int i=0; i<numberOfIqPairs; i++) 
   {
     double xt = inputSignal[inputIndex++];
-    double xht = inputSignal[inputIndex];
-    short outputValue=sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
+    double xht = inputSignal[inputIndex++];
+    double outputValue=sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
     if (outputValue>255.0) outputValue=255.0;
     if (outputValue<0.0) outputValue=0.0;
     ampl[outputIndex++] = outputValue;
-    ampl[outputIndex] = outputValue;
   }
 }

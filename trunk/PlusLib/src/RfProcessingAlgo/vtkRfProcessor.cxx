@@ -12,7 +12,6 @@
 #include "vtkUsScanConvertLinear.h"
 #include "vtkUsScanConvertCurvilinear.h"
 #include "vtkImageData.h"
-#include "vtkImageCast.h"
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.0 $");
@@ -23,17 +22,13 @@ vtkRfProcessor::vtkRfProcessor()
 {
   this->TransducerGeometry=TRANSDUCER_UNKNOWN;
   this->RfToBrightnessConverter=vtkRfToBrightnessConvert::New();
-  this->ImageCaster=vtkImageCast::New();
   this->ScanConverterLinear=vtkUsScanConvertLinear::New();  
   this->ScanConverterCurvilinear=vtkUsScanConvertCurvilinear::New();  
-  
-  this->ImageCaster->SetOutputScalarType(VTK_UNSIGNED_CHAR);
-  this->ImageCaster->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
-  
+    
   // Set the brightness input to both scan converters.
   // Only that will actually perform the scan conversion computation that will be asked for output.
-  this->ScanConverterLinear->SetInputConnection(this->ImageCaster->GetOutputPort());
-  this->ScanConverterCurvilinear->SetInputConnection(this->ImageCaster->GetOutputPort());  
+  this->ScanConverterLinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
+  this->ScanConverterCurvilinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());  
 }
 
 //----------------------------------------------------------------------------
@@ -43,8 +38,6 @@ vtkRfProcessor::~vtkRfProcessor()
   this->ScanConverterCurvilinear=NULL;
   this->ScanConverterLinear->Delete();
   this->ScanConverterLinear=NULL;
-  this->ImageCaster->Delete();
-  this->ImageCaster=NULL;  
   this->RfToBrightnessConverter->Delete();
   this->RfToBrightnessConverter=NULL;  
 }
@@ -66,8 +59,8 @@ PlusStatus vtkRfProcessor::SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE image
 //-----------------------------------------------------------------------------
 vtkImageData* vtkRfProcessor::GetBrightessConvertedImage()
 {
-  this->ImageCaster->Update();
-  return this->ImageCaster->GetOutput();
+  this->RfToBrightnessConverter->Update();
+  return this->RfToBrightnessConverter->GetOutput();
 }
 
 //-----------------------------------------------------------------------------
