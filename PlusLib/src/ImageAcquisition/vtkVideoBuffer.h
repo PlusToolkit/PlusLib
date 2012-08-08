@@ -53,8 +53,6 @@ private:
   PlusVideoFrame Frame;
 };
 
-#define UNDEFINED_TIMESTAMP DBL_MAX
-
 /*!
   \class vtkVideoBuffer 
   \brief Store a collection of video frames
