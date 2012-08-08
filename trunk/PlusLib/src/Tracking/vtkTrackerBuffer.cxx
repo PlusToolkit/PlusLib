@@ -189,32 +189,28 @@ PlusStatus vtkTrackerBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp)
-{
-  double filteredTimestamp(0); 
-  bool filteredTimestampProbablyValid=true;
-  if ( this->TrackerBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
-  {
-    LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
-    return PLUS_FAIL; 
-  }
-  if (!filteredTimestampProbablyValid)
-  {
-    LOG_INFO("Filtered timestamp is probably invalid for tracker buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
-    return PLUS_SUCCESS;
-  }
-  return this->AddTimeStampedItem(matrix, status, frameNumber, unfilteredTimestamp, filteredTimestamp); 
-
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp)
+PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
 
   if ( matrix  == NULL )
   {
     LOG_ERROR( "vtkTrackerBuffer: Unable to add NULL matrix to tracker buffer!"); 
     return PLUS_FAIL; 
+  }
+
+  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->TrackerBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
+      return PLUS_FAIL; 
+    }
+    if (!filteredTimestampProbablyValid)
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for tracker buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+      return PLUS_SUCCESS;
+    }
   }
 
   int bufferIndex(0); 
