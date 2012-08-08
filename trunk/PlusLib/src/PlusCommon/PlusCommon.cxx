@@ -288,6 +288,6 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
     LOG_ERROR("Failed to open "<<fname<<" for writing");
     return PLUS_FAIL;
   }
-  of.imbue(vtkstd::locale::classic());
+  of.imbue(std::locale::classic());
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
 }

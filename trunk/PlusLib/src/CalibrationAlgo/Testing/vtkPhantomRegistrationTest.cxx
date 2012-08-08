@@ -176,7 +176,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
+  std::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
   PlusCommon::PrintXML(registrationResultFileName.c_str(), configRootElement); 
 

@@ -172,7 +172,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
+  std::string calibrationResultFileName = "StylusCalibrationTest.xml";
   vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
   PlusCommon::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
 

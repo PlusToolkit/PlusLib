@@ -10,8 +10,8 @@
 #include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h" 
 
-#include <vtkstd/vector>
-#include <vtkstd/string>
+#include <vector>
+#include <string>
 
 #include "ulterius_def.h"
 

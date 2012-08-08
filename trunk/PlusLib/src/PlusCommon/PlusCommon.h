@@ -11,6 +11,8 @@
 #include "vtkPlusLogger.h"
 #include "itkImageIOBase.h"
 
+#include <strstream>
+
 enum PlusStatus
 {   
   PLUS_FAIL=0,
