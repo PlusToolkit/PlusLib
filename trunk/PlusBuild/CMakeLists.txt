@@ -125,7 +125,7 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 #-----------------------------------------------------------------------------
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
-IF(PLUSBUILD_BUILD_PLUSAPP) 
+IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
   FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
     PATH
       $ENV{QTDIR}
@@ -140,7 +140,7 @@ IF(PLUSBUILD_BUILD_PLUSAPP)
   
   SET(QT_USE_QT3SUPPORT TRUE) 
   INCLUDE(${QT_USE_FILE})
-ENDIF(PLUSBUILD_BUILD_PLUSAPP) 
+ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
 
 #-----------------------------------------------------------------------------
 # Enable and setup External project global properties
@@ -204,7 +204,8 @@ IF ( PLUSBUILD_USE_3DSlicer )
   ## Try to find Slicer4
   FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
   IF ( Slicer_FOUND )
-    INCLUDE( ${Slicer_USE_FILE} )
+    SET(Slicer_SKIP_EXTENSION_NAME_CHECK TRUE)
+    INCLUDE( ${Slicer_USE_FILE} )    
     IF(PLUSBUILD_USE_OpenIGTLink)
       FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
     ENDIF(PLUSBUILD_USE_OpenIGTLink)
