@@ -33,6 +33,8 @@
 #include <vtkRenderer.h> 
 #include <vtkPNGWriter.h>
 #include <vtkAxis.h>
+#include <vtkDelimitedTextWriter.h>
+#include <vtkPiecewiseFunction.h>
 
 #include <itkHoughTransform2DLinesImageFilter.h>
 #include <itkImageFileWriter.h>
@@ -48,7 +50,6 @@
 
 //#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
-//#include "itkBinaryThinningImageFilter.h"
 //#include "itkRescaleIntensityImageFilter.h"
 
 #include "vtkTrackedFrameList.h"
@@ -110,6 +111,13 @@ public:
 
   /*! Compute the tracker lag */  
   PlusStatus Update(TEMPORAL_CALIBRATION_ERROR &error); 
+
+	/*! TODO */  
+	PlusStatus Interpolate2(const std::vector<double> &originalTimestamps,
+													const std::vector<double> &originalMetricValues,
+													const std::vector<double> &resampledTimestamps,
+													std::vector<double> &resampledPositionMetric,
+													double midpoint, double sharpness);
 
   /*!
     Returns the computed time [s] by which the tracker stream lags the video stream. 
