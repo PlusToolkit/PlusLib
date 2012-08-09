@@ -112,13 +112,6 @@ public:
   /*! Compute the tracker lag */  
   PlusStatus Update(TEMPORAL_CALIBRATION_ERROR &error); 
 
-	/*! TODO */  
-	PlusStatus Interpolate2(const std::vector<double> &originalTimestamps,
-													const std::vector<double> &originalMetricValues,
-													const std::vector<double> &resampledTimestamps,
-													std::vector<double> &resampledPositionMetric,
-													double midpoint, double sharpness);
-
   /*!
     Returns the computed time [s] by which the tracker stream lags the video stream. 
     If the lag < 0, the tracker stream leads the video stream.
@@ -216,18 +209,6 @@ private:
                                                          double &centerOfGravity);
   
   PlusStatus ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
-  void InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
-                                 const std::vector<double> &resampledTimestamps,
-                                 const std::vector<double> &originalMetric,
-                                 std::vector<double> &resampledPositionMetric);
-  double LinearInterpolation(double resampledTimeValue, const std::vector<double> &originalTimestamps, 
-                             const std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex);
-  void GetStraddleIndices(const std::vector<double> &originalTimestamps, const std::vector<double> &resampledTimestamps, 
-                          std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices);
-  int FindSubsequentLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp, int currLowerStraddleIndex);
-  int FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp, int currLowerStraddleIndex);
-  int FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);
-  int FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp);                       
   PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus NormalizeMetric(std::vector<double> &metric, double &normalizationFactor);
   PlusStatus NormalizeMetricWindow(const std::vector<double> &slidingMetric, int indexOffset,
@@ -245,6 +226,13 @@ private:
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
   
+	/*! TODO */  
+	PlusStatus InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
+																				const std::vector<double> &originalMetricValues,
+																				const std::vector<double> &resampledTimestamps,
+																				std::vector<double> &resampledPositionMetric,
+																				double midpoint, double sharpness);
+
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
