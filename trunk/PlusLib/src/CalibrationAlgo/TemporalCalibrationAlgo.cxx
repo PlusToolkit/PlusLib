@@ -355,6 +355,17 @@ PlusStatus TemporalCalibration::filterFrames()
 		}
 
 	}
+
+	// DEBUG
+	std::ofstream originalVideoTimestampsFile;
+	originalVideoTimestampsFile.open("C:\\Users\\moult\\Documents\\Perk\\Summer2012\\TemporalCalibration\\Results\\OldTemporalCalibrationTests\\August_6_2012\\Frequency10\\Trial01\\OrigVideoTimes.txt");
+
+	for(int i = 0; i < m_VideoTimestamps.size(); ++i)
+	{
+		originalVideoTimestampsFile << std::setprecision(8) << m_VideoTimestamps.at(i) << ", " << m_VideoPositionMetric.at(i) << std::endl;
+	}
+	originalVideoTimestampsFile.close();
+
 	//  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = m_TrackerTimestamps.at(0);
   double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
@@ -1200,13 +1211,27 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
     m_ResampledTrackerTimestamps.push_back( (m_CommonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
     ++n;
   }
-  
+
+	//  Get resampled position metric for the US video data
+  LOG_DEBUG("InterpolatePositionMetric for video data");
+	Interpolate2(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
+							 m_ResampledVideoPositionMetric, 0.5, 0);
+
+	//  Get resampled position metric for the tracker data
+	LOG_DEBUG("InterpolatePositionMetric for tracker data");
+	Interpolate2(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
+							 m_ResampledTrackerPositionMetric, 0.5, 0);
+
+	/*
   //  Get resampled position metric for the US video data
   LOG_DEBUG("InterpolatePositionMetric for video data");
   InterpolatePositionMetric(m_VideoTimestamps, m_ResampledVideoTimestamps, m_VideoPositionMetric, m_ResampledVideoPositionMetric);
-  LOG_DEBUG("InterpolatePositionMetric for tracker data");
-  InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
   
+	//  Get resampled position metric for the tracker data
+	LOG_DEBUG("InterpolatePositionMetric for tracker data");
+  InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
+  */
+
   // Normalize the calculated translations
   if(NormalizeMetric(m_ResampledTrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
   {
@@ -1366,6 +1391,26 @@ int TemporalCalibration::FindSubsequentUpperStraddleIndex(const std::vector<doub
     ++currIndex;
   }
   return currIndex;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::Interpolate2(const std::vector<double> &originalTimestamps,
+																						 const std::vector<double> &originalMetricValues,
+																						 const std::vector<double> &resampledTimestamps,
+																						 std::vector<double> &resampledPositionMetric,
+																						 double midpoint, double sharpness)
+{
+	vtkSmartPointer<vtkPiecewiseFunction> piecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  for(int i = 0; i < originalTimestamps.size(); ++i)
+	{
+		piecewiseSignal->AddPoint(originalTimestamps.at(i), originalMetricValues.at(i), midpoint, sharpness);
+	}
+
+	for(int i = 0; i < resampledTimestamps.size(); ++i)
+	{
+		resampledPositionMetric.push_back(piecewiseSignal->GetValue(resampledTimestamps.at(i)));
+	}
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
