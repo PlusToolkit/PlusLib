@@ -45,7 +45,7 @@
   </Rendering>
 
   <fCal
-    PhantomCoordinateFrame="Phantom"
+    PhantomModelId="PhantomModel"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

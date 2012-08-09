@@ -346,7 +346,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
     m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
     m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), true);
 
     QApplication::restoreOverrideCursor();
   }

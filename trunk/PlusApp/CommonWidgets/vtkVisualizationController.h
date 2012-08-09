@@ -42,7 +42,7 @@ Before calling this, force the data collector to provide new data by calling Get
 It has three modes, DISPLAY_MODE_2D, DISPLAY_MODE_3D and DISPLAY_MODE_NONE. In DISPLAY_MODE_2D it shows only the video input in the whole window. In DISPLAY_MODE_3D, all the devices and 
 the image is visible (that are defined in the device set configuration file's Rendering element). In DISPLAY_MODE_NONE the canvas is hidden and all renderers are detached.
 
-Devices and objects can be shown and hidden (HideAll(), ShowAllObjects(), ShowObject(), ShowInput(), ShowResult()). Internally, this class forwards these requests to the underlying visualization classes.
+Devices and objects can be shown and hidden (HideAll(), ShowAllObjects(), ShowObjectsByCoordinateFrame(), ShowInput(), ShowResult()). Internally, this class forwards these requests to the underlying visualization classes.
 
 \ingroup PlusAppCommonWidgets
 */
@@ -87,11 +87,18 @@ public:
   PlusStatus ShowResult(bool aOn);
 
   /*!
-  * Forward the ShowObject request to the 3D visualizer
+  * Forward the ShowObjectsByCoordinateFrame request to the 3D visualizer
   * \param aObjectCoordinateFrame Object coordinate frame name
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowObject(const char* aObjectCoordinateFrame, bool aOn);
+  PlusStatus ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn);
+
+  /*!
+  * Forward the ShowObjectById request to the 3D visualizer
+  * \param aModelId Model ID to operate on
+  * \param aOn Show if true, else hide
+  */
+  PlusStatus ShowObjectById(const char* aModelId, bool aOn);
 
   /*!
   * Forward the ShowAllObjects request to the 3D visualizer

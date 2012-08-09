@@ -426,10 +426,10 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
     if (m_CurrentLandmarkIndex >= 3)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -447,8 +447,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
 
   }
   else if (m_State == ToolboxState_Error)
@@ -640,7 +640,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   {
     if (m_PhantomRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
     }
     else
     {
@@ -703,7 +703,7 @@ void PhantomRegistrationToolbox::Undo()
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
   }
 
   // If tracker is FakeTracker then set counter
@@ -752,7 +752,7 @@ void PhantomRegistrationToolbox::Reset()
   // Hide phantom from main canvas
   if (m_PhantomRegistration->GetReferenceCoordinateFrame())
   {
-    m_ParentMainWindow->GetVisualizationController()->ShowObject(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
   }
 
   // If tracker is FakeTracker then reset counter

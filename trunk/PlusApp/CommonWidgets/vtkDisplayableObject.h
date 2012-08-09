@@ -63,6 +63,9 @@ public:
   /*! Get previously set opacity */
 	vtkGetMacro(LastOpacity, double);
 
+  /*! Get displayable model id */
+  vtkGetStringMacro(ObjectId);
+
   /*! Set opacity */
   virtual void SetOpacity(double aOpacity) = 0;
   /*! Get opacity */
@@ -75,9 +78,15 @@ protected:
   /*! Destructor */
   virtual ~vtkDisplayableObject();
 
+  /*! Set displayable model id */
+  vtkSetStringMacro(ObjectId);
+
 protected:
   /* Object coordinate frame name */
   char*               ObjectCoordinateFrame;
+
+  /*! Id of the model, for lookup purposes */
+  char*               ObjectId;
 
   /*! Actor displaying the tool model */
   vtkProp3D*          Actor;

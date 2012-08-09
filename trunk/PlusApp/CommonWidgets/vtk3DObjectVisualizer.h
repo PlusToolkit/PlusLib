@@ -55,7 +55,14 @@ public:
   * \param aObjectCoordinateFrame Object coordinate frame name
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowObject(const char* aObjectCoordinateFrame, bool aOn);
+  PlusStatus ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn);
+
+  /*!
+  * Show or hide a displayable object
+  * \param aModelId Model ID of the object to work on
+  * \param aOn Show if true, else hide
+  */
+  PlusStatus ShowObjectById( const char* aModelId, bool aOn );
 
   /*!
   * Show or hide input points

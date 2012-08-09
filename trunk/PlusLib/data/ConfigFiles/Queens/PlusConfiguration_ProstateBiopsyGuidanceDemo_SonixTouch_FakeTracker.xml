@@ -31,7 +31,7 @@
   </DataCollection>
 
   <fCal
-    PhantomCoordinateFrame="Phantom"
+    PhantomModelId="PhantomModel"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

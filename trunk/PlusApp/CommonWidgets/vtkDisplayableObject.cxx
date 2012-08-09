@@ -58,13 +58,13 @@ vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
 //-----------------------------------------------------------------------------
 
 vtkDisplayableObject::vtkDisplayableObject()
+: Actor(NULL)
+, ObjectCoordinateFrame(NULL)
+, ObjectId(NULL)
+, LastOpacity(1.0)
+, Displayable(true)
 {
-  this->Actor = NULL;
-  this->ObjectCoordinateFrame = NULL;
 
-  this->LastOpacity = 1.0;
-
-  this->Displayable = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -72,6 +72,7 @@ vtkDisplayableObject::vtkDisplayableObject()
 vtkDisplayableObject::~vtkDisplayableObject()
 {
   this->SetActor(NULL);
+  this->SetObjectId(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,6 +96,14 @@ PlusStatus vtkDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
 	{
     this->LastOpacity = opacity;
 	}
+
+  // ID
+  const char* id = aConfig->GetAttribute("Id");
+  if( id == NULL )
+  {
+    LOG_WARNING("Displayable object " << objectCoordinateFrame << " without an ID. Cannot perform a lookup by ID.");
+  }
+  this->SetObjectId(id);
 
   return PLUS_SUCCESS;
 }
@@ -382,10 +391,9 @@ vtkStandardNewMacro(vtkDisplayableModel);
 
 vtkDisplayableModel::vtkDisplayableModel()
   : vtkDisplayablePolyData()
+  , STLModelFileName(NULL)
+  , ModelToObjectTransform(NULL)
 {
-  this->STLModelFileName = NULL;
-  this->ModelToObjectTransform = NULL;
-
   vtkSmartPointer<vtkTransform> ModelToObjectTransform = vtkSmartPointer<vtkTransform>::New();
   ModelToObjectTransform->Identity();
   this->SetModelToObjectTransform(ModelToObjectTransform);

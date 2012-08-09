@@ -269,9 +269,9 @@ PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
+PlusStatus vtk3DObjectVisualizer::ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn)
 {
-  LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkPerspectiveVisualizer::ShowObjectsByCoordinateFrame(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
 
   std::vector<vtkDisplayableModel*> objects = this->GetDisplayableObjects<vtkDisplayableModel>(aObjectCoordinateFrame);
   for( std::vector<vtkDisplayableModel*>::iterator it = objects.begin(); it != objects.end(); ++it)
@@ -512,6 +512,23 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
     }
 
     this->CanvasRenderer->AddActor(displayableObject->GetActor());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn )
+{
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  {
+    vtkDisplayableObject* displayableObject = *it;
+
+    if( displayableObject->GetObjectId() != NULL && STRCASECMP(displayableObject->GetObjectId(), aModelId) == 0 )
+    {
+      displayableObject->GetActor()->SetVisibility(aOn);
+    }
   }
 
   return PLUS_SUCCESS;

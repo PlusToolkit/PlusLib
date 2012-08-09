@@ -92,6 +92,12 @@ public:
   */
   void SetImageManipulationMenuEnabled(bool);
 
+  /*!
+  * Enable/disable show 3d objects menu
+  * \param Enable/Disable flag
+  */
+  void Set3DManipulationMenuEnabled(bool);
+
   /*! 
   * Accessor to query the state of the check box 
   */
@@ -134,10 +140,12 @@ public:
   /*! Set transducer origin pixel coordinate frame name */
   void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
 
-  /*! Get phantom coordinate frame name */
-  std::string GetPhantomCoordinateFrame() { return m_PhantomCoordinateFrame; };
+  /*! Get phantom model id */
+  std::string GetPhantomModelId() { return m_PhantomModelId; };
   /*! Set phantom coordinate frame name */
-  void SetPhantomCoordinateFrame(const char* aPhantomCoordinateFrame) { m_PhantomCoordinateFrame = aPhantomCoordinateFrame; };
+  void SetPhantomModelId(const char* aPhantomModelId) { m_PhantomModelId = aPhantomModelId; };
+  /*! Enable/disable the phantom action */
+  void EnablePhantomToggle(bool aEnable);
 
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();
@@ -266,7 +274,7 @@ protected:
   std::string m_TransducerOriginPixelCoordinateFrame;
 
   /*! phantom coordinate frame name for Rendering */
-  std::string m_PhantomCoordinateFrame;
+  const char * m_PhantomModelId;
 
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;

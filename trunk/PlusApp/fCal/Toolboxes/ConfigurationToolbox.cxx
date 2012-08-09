@@ -222,10 +222,17 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
       // Re-enable main window
        m_ParentMainWindow->setEnabled(true);
+
+       // Re-enable manipulation buttons
+       m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
+       m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
     }
   }
   else // Disconnect
   {
+    m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
+    m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
+
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
     m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
@@ -436,14 +443,13 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   // phantom coordinate frame
-  const char* phantomCoordinateFrame = fCalElement->GetAttribute("PhantomCoordinateFrame");
-  if (phantomCoordinateFrame == NULL)
+  const char* phantomModelId = fCalElement->GetAttribute("PhantomModelId");
+  if (phantomModelId == NULL)
   {
-    LOG_ERROR("Phantom coordinate frame not specified in the fCal section of the configuration!");
-    return PLUS_FAIL;
+    LOG_WARNING("Phantom model ID not specified in the fCal section of the configuration. Can't hide/show the phantom model.");
   }
-
-  m_ParentMainWindow->SetPhantomCoordinateFrame(phantomCoordinateFrame);
+  m_ParentMainWindow->SetPhantomModelId(phantomModelId);
+  m_ParentMainWindow->EnablePhantomToggle(phantomModelId != NULL);
 
   return PLUS_SUCCESS;
 }

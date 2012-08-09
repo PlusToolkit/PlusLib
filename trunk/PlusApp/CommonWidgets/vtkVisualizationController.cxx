@@ -600,13 +600,13 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowObject(const char* aObjectCoordinateFrame, bool aOn)
+PlusStatus vtkVisualizationController::ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn)
 {
-  LOG_TRACE("vtkPerspectiveVisualizer::ShowObject(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkVisualizationController::ShowObjectsByCoordinateFrame(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
 
   if( this->PerspectiveVisualizer != NULL )
   {
-    return this->PerspectiveVisualizer->ShowObject(aObjectCoordinateFrame, aOn);
+    return this->PerspectiveVisualizer->ShowObjectsByCoordinateFrame(aObjectCoordinateFrame, aOn);
   }
 
   return PLUS_FAIL;
@@ -817,6 +817,8 @@ PlusStatus vtkVisualizationController::EnableROI( bool aEnable )
 
 PlusStatus vtkVisualizationController::EnableWireLabels( bool aEnable )
 {
+  LOG_TRACE("vtkVisualizationController::EnableWireLabels");
+
   if( this->ImageVisualizer != NULL )
   {
     this->ImageVisualizer->EnableWireLabels(aEnable);
@@ -840,5 +842,21 @@ PlusStatus vtkVisualizationController::SetWireLabelPositions( vtkPoints* aPointL
   }
 
   LOG_ERROR("Image visualizer not created when attempting to set wire label positions.");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, bool aOn )
+{
+  LOG_TRACE("vtkVisualizationController::ShowObjectById");
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->PerspectiveVisualizer->ShowObjectById(aModelId, aOn);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("3D visualizer not created when attempting to show an object by ID.");
   return PLUS_FAIL;
 }

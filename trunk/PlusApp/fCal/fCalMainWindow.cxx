@@ -40,7 +40,7 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ReferenceCoordinateFrame("")
 , m_TransducerOriginCoordinateFrame("")
 , m_TransducerOriginPixelCoordinateFrame("")
-, m_PhantomCoordinateFrame("")
+, m_PhantomModelId(NULL)
 , m_ShowPoints(false)
 , m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
@@ -50,6 +50,9 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
   // Maximize window
   this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
+
+  this->Set3DManipulationMenuEnabled(false);
+  this->SetImageManipulationMenuEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -80,6 +83,8 @@ fCalMainWindow::~fCalMainWindow()
     delete m_ShowOrientationMarkerAction;
     m_ShowOrientationMarkerAction = NULL;
   }
+
+  this->SetPhantomModelId(NULL);
 
   m_ToolboxList.clear();
 }
@@ -660,9 +665,12 @@ void fCalMainWindow::ShowPhantomToggled()
 
   LOG_TRACE("fCalMainWindow::ShowPhantomToggled(" << (aOn?"true":"false") << ")"); 
 
-  if( !m_PhantomCoordinateFrame.empty() )
+  if( m_PhantomModelId != NULL )
   {
-    m_VisualizationController->ShowObject(m_PhantomCoordinateFrame.c_str(), aOn);
+    if( m_VisualizationController->ShowObjectById(m_PhantomModelId, aOn) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Unable to hide/show the object: " << m_PhantomModelId);
+    }
   }
 }
 
@@ -685,4 +693,20 @@ bool fCalMainWindow::IsForceShowDevicesEnabled()
 void fCalMainWindow::ResetShowDevices()
 {
   ui.pushButton_ShowDevices->setChecked(false);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::EnablePhantomToggle( bool aEnable )
+{
+  m_ShowPhantomModelAction->setDisabled(!aEnable);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::Set3DManipulationMenuEnabled( bool aEnable)
+{
+  LOG_TRACE("fCalMainWindow::Set3DManipulationMenuEnabled(" << (aEnable?"true":"false") << ")");
+
+  ui.pushButton_ShowDevices->setEnabled(aEnable);
 }

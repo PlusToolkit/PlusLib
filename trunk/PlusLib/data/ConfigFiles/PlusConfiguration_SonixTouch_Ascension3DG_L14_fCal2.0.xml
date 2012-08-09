@@ -63,7 +63,7 @@
         0 0 1 0
         0 0 0 1"
     />
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom"
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.1.stl"
       ModelToObjectTransform="
@@ -137,7 +137,7 @@
 
 
   <fCal
-    PhantomCoordinateFrame="Phantom"
+    PhantomModelId="PhantomModel"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
