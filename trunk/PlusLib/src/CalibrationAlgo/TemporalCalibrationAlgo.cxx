@@ -1214,23 +1214,13 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
 
 	//  Get resampled position metric for the US video data
   LOG_DEBUG("InterpolatePositionMetric for video data");
-	Interpolate2(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
+	InterpolatePositionMetrics(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
 							 m_ResampledVideoPositionMetric, 0.5, 0);
 
 	//  Get resampled position metric for the tracker data
 	LOG_DEBUG("InterpolatePositionMetric for tracker data");
-	Interpolate2(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
+	InterpolatePositionMetrics(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
 							 m_ResampledTrackerPositionMetric, 0.5, 0);
-
-	/*
-  //  Get resampled position metric for the US video data
-  LOG_DEBUG("InterpolatePositionMetric for video data");
-  InterpolatePositionMetric(m_VideoTimestamps, m_ResampledVideoTimestamps, m_VideoPositionMetric, m_ResampledVideoPositionMetric);
-  
-	//  Get resampled position metric for the tracker data
-	LOG_DEBUG("InterpolatePositionMetric for tracker data");
-  InterpolatePositionMetric(m_TrackerTimestamps, m_ResampledTrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerPositionMetric);
-  */
 
   // Normalize the calculated translations
   if(NormalizeMetric(m_ResampledTrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
@@ -1243,158 +1233,9 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
   return PLUS_SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
-void TemporalCalibration::InterpolatePositionMetric(const std::vector<double> &originalTimestamps,
-                                                    const std::vector<double> &resampledTimestamps,
-                                                    const std::vector<double> &originalMetric,
-                                                    std::vector<double> &resampledPositionMetric)
-                                                                 
-{
-  std::vector<int> lowerStraddleIndices;
-  std::vector<int> upperStraddleIndices;
-  GetStraddleIndices(originalTimestamps, resampledTimestamps, lowerStraddleIndices, upperStraddleIndices);
-
-  for(long int resampledTimeValueIndex = 0; resampledTimeValueIndex < resampledTimestamps.size(); ++resampledTimeValueIndex)
-  {
-    resampledPositionMetric.push_back(LinearInterpolation(resampledTimestamps.at(resampledTimeValueIndex), originalTimestamps, 
-                                                             originalMetric, 
-                                                             lowerStraddleIndices.at(resampledTimeValueIndex), 
-                                                             upperStraddleIndices.at(resampledTimeValueIndex)));
-  }                                            
-}
 
 //-----------------------------------------------------------------------------
-double TemporalCalibration::LinearInterpolation(double resampledTimeValue, const std::vector<double> &originalTimestamps, 
-                                                   const std::vector<double> &originalMetric, int lowerStraddleIndex, int upperStraddleIndex)
-                                                    
-{
-  //  If the time index between the two straddling indices is very small, avoid interpolation (to
-  //  prevent divding by a really small number).
-  if(std::abs(originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex)) < TIMESTAMP_EPSILON_SEC)
-  {
-    return originalMetric.at(upperStraddleIndex);
-  }
-  
-  // Peform linear interpolation
-  double m = (originalMetric.at(upperStraddleIndex) - originalMetric.at(lowerStraddleIndex)) / 
-             (originalTimestamps.at(upperStraddleIndex) - originalTimestamps.at(lowerStraddleIndex));
-
-  return originalMetric.at(lowerStraddleIndex) + (resampledTimeValue - originalTimestamps.at(lowerStraddleIndex)) * m;
-
-} // End linearInterpolation()
-
-//-----------------------------------------------------------------------------
-void TemporalCalibration::GetStraddleIndices(const std::vector<double> &originalTimestamps, const std::vector<double> &resampledTimestamps, 
-                                             std::vector<int> &lowerStraddleIndices, std::vector<int> &upperStraddleIndices)
-{
-  //  Find the straddle indices; that is, the indices of the original timestamp series that "straddle", or lie on either side of,
-  //  the first resampled timestamp value.
-  int currLowerStraddleIndex = FindFirstLowerStraddleIndex(originalTimestamps, resampledTimestamps.at(0) );
-  int currUpperStraddleIndex = FindFirstUpperStraddleIndex(originalTimestamps, resampledTimestamps.at(0) );
-
-  lowerStraddleIndices.push_back(currLowerStraddleIndex);
-  upperStraddleIndices.push_back(currUpperStraddleIndex);
-
-  //  For each subsequent resampled timestamp value, find the straddle indices
-  for(long int timestampIndex = 0; timestampIndex < resampledTimestamps.size(); ++timestampIndex)
-  {
-    currLowerStraddleIndex = FindSubsequentLowerStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currLowerStraddleIndex);
-    lowerStraddleIndices.push_back(currLowerStraddleIndex);
-
-    currUpperStraddleIndex = FindSubsequentUpperStraddleIndex(originalTimestamps, resampledTimestamps.at(timestampIndex), currUpperStraddleIndex);
-    upperStraddleIndices.push_back(currUpperStraddleIndex);
-  }
-
-}
-
-//-----------------------------------------------------------------------------
-int TemporalCalibration::FindFirstLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp)                                                    
-{
-  if(originalTimestamps.size()==0)
-  {
-    LOG_DEBUG("FindFirstLowerStraddleIndex failed, timestamps vector is empty");
-    return 0;
-  }
-
-  //  No original timestamps lie below the desired resampled timestamp--cannot interpolate
-  if(originalTimestamps.at(0) > resampledTimestamp)
-  {
-    LOG_DEBUG("FindFirstLowerStraddleIndex failed to find a value within the valid time range, cannot interpolate");
-    return 0;
-  }
-
-  int currIndex = 0;
-  while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) <= resampledTimestamp)
-  {
-    ++currIndex;
-  }
-  --currIndex;
-
-  return currIndex;
-}
-
-//-----------------------------------------------------------------------------
-int TemporalCalibration::FindFirstUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp)
-{
-  if(originalTimestamps.size()==0)
-  {
-    LOG_WARNING("FindFirstUpperStraddleIndex failed, timestamps vector is empty");
-    return 0;
-  }
-  //  No original timestamps lie past the desired resampled timestamp--cannot interpolate
-  if(originalTimestamps.at(originalTimestamps.size() - 1) < resampledTimestamp)
-  {
-    LOG_WARNING("FindFirstUpperStraddleIndex failed to find a value within the valid time range, cannot interpolate");
-    return originalTimestamps.size() - 1;
-  }
-
-  int currIndex = originalTimestamps.size() - 1;
-  while(currIndex >= 0 && originalTimestamps.at(currIndex) >= resampledTimestamp)
-  {
-    --currIndex;
-  }
-  ++currIndex;
-
-  return currIndex;
-}
-
-//-----------------------------------------------------------------------------
-int TemporalCalibration::FindSubsequentLowerStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currLowerStraddleIndex)
-{ 
-	int currIndex = currLowerStraddleIndex;
-
-	if(originalTimestamps.at(currIndex) > resampledTimestamp)
-	{
-		return currIndex;
-	}
-  
-  while(currIndex < originalTimestamps.size() && originalTimestamps.at(currIndex) <= resampledTimestamp)
-  {
-    ++currIndex;
-  }
-  --currIndex;
-  return currIndex;
-}
-
-//-----------------------------------------------------------------------------
-int TemporalCalibration::FindSubsequentUpperStraddleIndex(const std::vector<double> &originalTimestamps, double resampledTimestamp,
-                                                       int currUpperStraddleIndex)
-{
-  if(originalTimestamps.at(currUpperStraddleIndex) >= resampledTimestamp)
-  {
-    return currUpperStraddleIndex;
-  }
-  int currIndex = currUpperStraddleIndex;
-  while(currIndex < originalTimestamps.size()  && originalTimestamps.at(currIndex) < resampledTimestamp)
-  {
-    ++currIndex;
-  }
-  return currIndex;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::Interpolate2(const std::vector<double> &originalTimestamps,
+PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
 																						 const std::vector<double> &originalMetricValues,
 																						 const std::vector<double> &resampledTimestamps,
 																						 std::vector<double> &resampledPositionMetric,
