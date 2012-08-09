@@ -46,7 +46,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   // Render plot and save it to file
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(view->GetRenderer());
-  renderWindow->SetSize(800,400);
+  renderWindow->SetSize(8000,4000);
   renderWindow->OffScreenRenderingOn(); 
 
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
     SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);
-  }
+	}
 
   return EXIT_SUCCESS;
 }
