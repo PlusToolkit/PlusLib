@@ -93,6 +93,14 @@ private:
   class vtkInternal;
   vtkInternal* Internal;
 
+  // parameters that will be initialized by querying OEM
+  char* TransducerGeometry;
+  float ImagingDepth;
+  float TransducerWidth;
+  int OutputImageSizePixel[2];
+  int OutputImageSpacingMmPerPixel[2];
+  float FrameRate;
+
   static bool vtkBkProFocusVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
   vtkBkProFocusVideoSource(const vtkBkProFocusVideoSource&);  // Not implemented.
   void operator=(const vtkBkProFocusVideoSource&);  // Not implemented.

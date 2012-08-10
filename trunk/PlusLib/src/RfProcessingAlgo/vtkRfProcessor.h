@@ -13,6 +13,7 @@
 class vtkRfToBrightnessConvert;
 class vtkUsScanConvertLinear;
 class vtkUsScanConvertCurvilinear;
+class vtkImageCast;
 
 /*!
   \class vtkRfProcessor 
@@ -54,6 +55,13 @@ public:
   /*! Set the transducer geometry (linear or curvilinear) */
   vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
 
+  /*
+  vtkSetMacro(StartDepthMm, double); 
+  vtkSetMacro(StopDepthMm, double); 
+  vtkSetMacro(StartAngleDeg, double); 
+  vtkSetMacro(StopAngleDeg, double); 
+  */
+
 protected:
   vtkRfProcessor();
   virtual ~vtkRfProcessor(); 
@@ -61,10 +69,18 @@ protected:
   vtkRfToBrightnessConvert* RfToBrightnessConverter;
   vtkUsScanConvertLinear* ScanConverterLinear;  
   vtkUsScanConvertCurvilinear* ScanConverterCurvilinear;  
+  vtkImageCast* ImageCaster;
 
   /*! Type of the transducer (linear or curvilinear) */
   TransducerGeometryType TransducerGeometry;
 
+  /* Parameters related to reconstruction */
+  /*
+  double StartDepthMm;
+  double StopDepthMm;
+  double StartAngleDeg;
+  double StopAngleDeg;
+  */
 }; 
 
 #endif

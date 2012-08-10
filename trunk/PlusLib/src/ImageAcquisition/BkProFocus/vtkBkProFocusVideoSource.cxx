@@ -3,6 +3,7 @@
 #include "vtkVideoBuffer.h"
 
 #include "PlusBkProFocusReceiver.h"
+#include "vtkRfProcessor.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
@@ -12,9 +13,45 @@
 #include "ParamConnectionSettings.h"
 #include "BmodeViewDataReceiver.h"
 #include "SaperaViewDataReceiver.h"
+#include "TcpClient.h"
 
 vtkCxxRevisionMacro(vtkBkProFocusVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkBkProFocusVideoSource);
+
+std::string ParseResponse(std::string str,int item)
+{
+	int nItems = 0;
+	std::string rest = str;
+	while(rest.size())
+	{	
+		int pos = rest.find(",");
+		std::string curItem;
+		if(pos==-1)
+		{	
+			curItem = rest;
+			rest = "";
+		} 
+		else
+		{
+			curItem = rest.substr(0,pos);
+			rest = rest.substr(pos+1,rest.length());
+		}
+		if(nItems++ == item)
+		{
+			return curItem;
+		}
+	}
+	return "";
+}
+
+std::string ParseResponseQuoted(std::string str,int item)
+{
+	std::string result = ParseResponse(str, item);
+	if(result.length()>2)
+		return result.substr(1,result.length()-1);
+	else
+		return "";
+}
 
 class vtkBkProFocusVideoSource::vtkInternal
 {
@@ -50,6 +87,95 @@ public:
     this->pBKcmdCtrl=NULL;
     this->External = NULL;
   }  
+
+  void vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM()
+  {
+	  //WSAIF wsaif;
+	  TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
+	  std::string value;	  
+
+	  // Explanation of the queries/responses is from the BK document 
+	  //  "Product Specification for Pro Focus OEM Interface"
+	  // DATA:TRANSDUCER:A "A","8848"; 
+	  // the first value is the connector used, the second is the transducer type
+	  value = QueryParameter(oemClient, "TRANSDUCER");
+	  std::string transducer = ParseResponseQuoted(value,1);
+	  std::cout << "Transducer: " << transducer << std::endl;
+	  // DATA:SCAN_PLANE:A "S";
+	  // reply depends on the transducer type; for 8848, it is either "T" (transverse) or "S"
+	  // (sagittal). For the abdominal 8820, the response apparently is "" (!)
+	  value = QueryParameter(oemClient, "SCAN_PLANE");
+ 	  std::string scanPlane = ParseResponseQuoted(value, 0);
+
+	  if(transducer == "8848")
+	  {
+		  if(scanPlane == "S")
+		  {
+			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
+		  }
+		  else if(scanPlane == "T")
+		  {
+			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
+		  }
+	  }
+
+	  value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
+	  float frameRate = atof(ParseResponse(value,0).c_str());
+	  std::cout << "Frame rate: " << frameRate << std::endl;
+
+	  std::cout << "Queried value: " << value << std::endl;
+	  // DATA:B_GEOMETRY_SCANAREA:A 
+	  //    StartLineX,StartLineY,StartLineAngle,StartDepth,StopLineX,StopLineY,StopLineAngle,StopDepth
+	  // StartLineX/Y: coordinate of the start line origin in mm
+	  // StartLineAngle: angle of the start line in radians
+	  // StartDepth: start depth of the scanning area in m
+	  // StopLineX/Y: coordinate of the stop line origin in mm
+	  // StopDepth: stop depth of the scanning area in mm
+	  value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
+	  float startLineXMm = atof(ParseResponse(value,0).c_str());
+	  float startLineYMm = atof(ParseResponse(value,1).c_str());
+	  float startAngleDeg = atof(ParseResponse(value,2).c_str())*180./3.1416;
+	  float startDepthMm = atof(ParseResponse(value,3).c_str())*1000.;
+	  float stopLineXMm = atof(ParseResponse(value,4).c_str());
+	  float stopLineYMm = atof(ParseResponse(value,5).c_str());
+	  float stopAngleDeg = atof(ParseResponse(value,6).c_str())*180./3.1416;
+	  float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
+
+	  std::cout << "Start line X: " << startLineXMm << " mm" << std::endl;
+	  std::cout << "Start line Y: " << startLineYMm << " mm" << std::endl;
+	  std::cout << "Start angle: " << startAngleDeg << " deg" << std::endl;
+	  std::cout << "Start depth: " << startDepthMm << " mm" << std::endl;
+	  std::cout << "Stop line X: " << stopLineXMm << " mm" << std::endl;
+	  std::cout << "Stop line Y: " << stopLineYMm << " mm" << std::endl;
+	  std::cout << "Stop angle: " << stopAngleDeg << " deg" << std::endl;
+	  std::cout << "Stop depth: " << stopDepthMm << " m" << std::endl;
+
+	  std::cout << "Queried value: " << value << std::endl;
+	  // DATA:3D_SPACING:A 0.25;
+	  //  Returns the spacing between the frames; 
+	  //  Fan-type movers return spacing in degrees
+	  //  Linear-type movers returm spacing in mm
+	  value = QueryParameter(oemClient, "3D_SPACING");
+	  std::cout << "Queried value: " << value << std::endl;
+	  // DATA:3D_CAPTURE_AREA:A Left,Top,Right,Bottom;
+	  //  Returns the capture area for the acquisition in screen pixel coordinates
+	  value = QueryParameter(oemClient, "3D_CAPTURE_AREA");
+	  std::cout << "Queried value: " << value << std::endl;
+	  //for(;;);
+  }
+
+  std::string vtkBkProFocusVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
+  {
+	  std::string query;
+	  char buffer[1024];
+
+	  query = std::string("QUERY:")+parameter+":A;";
+	  oemClient->Write(query.c_str(), strlen(query.c_str()));
+	  oemClient->Read(&buffer[0], 1024);
+	  std::string value = std::string(&buffer[0]);
+	  std::string prefix = std::string("DATA:")+parameter+":A";
+	  return value.substr(prefix.length(),value.length()-prefix.length()-1);
+  }
 };
 
 //----------------------------------------------------------------------------
@@ -66,6 +192,15 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->Buffer->Modified();
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
+
+  this->TransducerGeometry = NULL;
+  this->ImagingDepth = 0;
+  this->TransducerWidth = 0;
+  this->OutputImageSizePixel[0] = 0;
+  this->OutputImageSizePixel[1] = 0;
+  this->OutputImageSpacingMmPerPixel[0] = 0;
+  this->OutputImageSpacingMmPerPixel[1] = 0;
+  this->FrameRate = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -121,6 +256,8 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 
   this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
   this->Internal->BKcmdCtrlSettings = this->Internal->pBKcmdCtrl->GetCmdCtrlSettings();    // Get what has not failed !!!
+
+  this->Internal->InitializeParametersFromOEM();
 
   int numSamples = 0;
   int numLines = 0;
