@@ -14,6 +14,20 @@
 \class vtkRfToBrightnessConvert
 \brief This class converts ultrasound RF data to brightness values
 
+The filter computes brightness values by envelope detection and dynamic range
+compression of the RF data.
+
+Envelope detection (estimation of the amplitude of the RF signal) is performed by computing
+the Euclidean norm of the RF signal (in-phase, I) and a 90deg phase shifted version of the
+RF signal (quadrature, Q). The Q signal may be provided by the acquisition system or can be
+computed from the I signal by a Hilbert transform.
+
+Dynamic range compression converts the 16-bit input signal to 8-bit by a non-linear function.
+In this filter the compressedSignal=sqrt(sqrt(envelopeDetected))*BrightnessScale function is used.
+A log function is also frequently used for dynamic range compression. The sqrt(sqrt(.)) function was
+chosen because it provides a somewhat more linear mapping than log(.) function for the input data
+range (16 bits).
+
 The input image type must be VTK_SHORT (signed 16-bit) and the output image type
 is always VTK_UNSIGNED_CHAR (unsigned 8-bit).
 
@@ -50,7 +64,8 @@ protected:
                             vtkImageData ***inData, vtkImageData **outData,
                             int outExt[6], int id);
 
-  virtual void PrepareHilbertTransform();
+  /*! Compute the Hilbert transform coefficients. Used by the ComputeHilbertTransform method. */
+  virtual void ComputeHilbertTransformCoeffs();
 
   /*! Compute the Hilbert transform (90 deg phase shift) of a signal */
   virtual PlusStatus ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt);

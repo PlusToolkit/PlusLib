@@ -33,104 +33,6 @@ non-commercial terms in your toolbox and distribute it."
 
 vtkStandardNewMacro(vtkUsScanConvertCurvilinear);
 
-/*-----------------------------------------------------------*/
-/*    Define the global constants used by the program        */
-/*-----------------------------------------------------------*/
-
-#define  Nz_max   1024   /*  Largest number of pixels in x-direction  */
-#define  Nx_max   1024   /*  Largest number of pixels in y-direction  */
-#define  Ncoef_max   4   /*  Largest number of weight coefficients    */
-
-/*-------------------------------------------------------------*/
-/*    Define the global variables used by the program          */
-/*-------------------------------------------------------------*/
-
-double   weight_coef[Nz_max * Nx_max * Ncoef_max]; /*  Coefficients for the weighting of the image data          */
-int     index_samp_line[Nz_max * Nx_max];         /*  Index for the data sample number                          */
-int     image_index[Nz_max * Nx_max];             /*  Index for the image matrix                                */
-
-/*------------------------------------------------------------------------------*/
-/*  Function for calculating the different weight tables for the interpolation  */
-/*------------------------------------------------------------------------------*/
-
-void  make_tables (double  start_depth,     /*  Depth for start of image in mm        */
-
-                   double  start_of_data,   /*  Depth for start of data in mm         */
-                   double  delta_r,         /*  Sampling interval for data in mm      */
-                   int     N_samples,       /*  Number of data samples                */
-
-                   double  theta_start,     /*  Angle for first line in image, in rad */
-                   double  delta_theta,     /*  Angle between individual lines, in rad*/
-                   int     N_lines,         /*  Number of acquired lines              */
-
-                   double  scaling,         /*  Scaling factor form envelope to image */
-
-                   int     Nx,              /*  Size of image in pixels               */
-                   int     Nz,              /*  Size of image in pixels               */
-                   double  image_size_x,      /*  Size x of image in mm                   */
-                   double  image_size_z,      /*  Size z of image in mm                   */
-
-                   double   *weight_coef,    /*  The weight table                      */
-                   int     *index_samp_line,/*  Index for the data sample number      */
-                   int     *image_index,    /*  Index for the image matrix            */
-                   int     &N_values)       /*  Number of values to calculate in the image      */
-{
-
-  // Increments in image coordinates in mm
-  double dx = image_size_x/Nx;
-  double dz = image_size_z/Nz;  
-
-  // Image coordinate in meters
-  double z = start_depth;
-
-  int ij_index = 0; // Index into array
-  int ij_index_coef = 0; // Index into coefficient array 
-
-  for (int i=0; i<Nz; i++)
-  {
-    double x=-(Nx-1)/2.0*dx; // image coordinate, in mm
-    double z2 = z*z;
-
-    for (int j=0; j<Nx; j++)
-    {
-      // Find which samples to select from the envelope array 
-      double radius = sqrt(z2+x*x); // Radial distance
-      double theta = atan2 (x,z); // Angle in degrees
-      double samp = (radius - start_of_data)/delta_r; // Sample number for interpolation
-      double line = (theta - theta_start)/delta_theta; // Line number for interpolation
-      int index_samp = floor(samp); // Index for the data sample number
-      int index_line = floor(line); // Index for the data line number
-
-      // Test whether the samples are outside the array
-      bool make_pixel = 
-        (index_samp >= 0) && (index_samp+1 < N_samples) && 
-        (index_line >= 0) && (index_line+1 < N_lines); 
-      if (make_pixel)
-      {
-        double samp_val = samp - index_samp; // Sub-sample fraction for interpolation
-        double line_val = line - index_line; // Sub-line fraction for interpolation
-
-        //  Calculate the coefficients
-        weight_coef[ij_index_coef    ] = (1-samp_val)*(1-line_val)*scaling;
-        weight_coef[ij_index_coef + 1] =    samp_val *(1-line_val)*scaling;
-        weight_coef[ij_index_coef + 2] = (1-samp_val)* line_val   *scaling;
-        weight_coef[ij_index_coef + 3] =    samp_val * line_val   *scaling;
-
-        index_samp_line[ij_index] = index_samp + index_line*N_samples;
-        //image_index[ij_index] = (Nx-j-1)*Nz + i;
-        image_index[ij_index] = (Nx-1-j)+ Nx*i;
-        ij_index++;
-        ij_index_coef += 4;
-      }
-      x = x + dx;
-    }
-    z = z + dz;
-  }
-  N_values = ij_index;
-
-  LOG_DEBUG("Table has now been set-up, "<<Nz<<" x "<<Nx<<", "<<ij_index<<" "<<N_values<<" values\n");
-}
-
 //----------------------------------------------------------------------------
 vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
 {
@@ -150,13 +52,156 @@ vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
   this->ThetaStartDeg=-30.0;
   this->ThetaStopDeg=30.0;
   this->OutputIntensityScaling=1.0;
-  
-  this->InterpolationTableSize=0; // N_values
+
+  // Values that are used for computing the InterpolatedPointArray
+  this->InterpInputImageExtent[0]=0;
+  this->InterpInputImageExtent[1]=-1;
+  this->InterpInputImageExtent[2]=0;
+  this->InterpInputImageExtent[3]=-1;
+  this->InterpInputImageExtent[4]=0;
+  this->InterpInputImageExtent[5]=-1;
+  this->InterpRadiusStartMm=0.0;
+  this->InterpRadiusStopMm=0.0;
+  this->InterpThetaStartDeg=0.0;
+  this->InterpThetaStopDeg=0.0;
+  this->InterpOutputImageExtent[0]=0;
+  this->InterpOutputImageExtent[1]=-1;
+  this->InterpOutputImageExtent[2]=0;
+  this->InterpOutputImageExtent[3]=-1;
+  this->InterpOutputImageExtent[4]=0;
+  this->InterpOutputImageExtent[5]=-1;
+  this->InterpOutputImageSpacing[0]=0.0;
+  this->InterpOutputImageSpacing[1]=0.0;
+  this->InterpOutputImageSpacing[2]=0.0;
+  this->InterpOutputImageStartDepthMm=0.0;
+  this->InterpIntensityScaling=0.0;
 }
 
 //----------------------------------------------------------------------------
 vtkUsScanConvertCurvilinear::~vtkUsScanConvertCurvilinear()
 {
+}
+
+//----------------------------------------------------------------------------
+void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
+  int *inputImageExtent, double radiusStartMm, double radiusStopMm, double thetaStartDeg, double thetaStopDeg,
+  int *outputImageExtent, double *outputImageSpacing, double outputImageStartDepthMm, double intensityScaling)
+{
+  // Computing the point array is a costly operation, so perform it only if a scan conversion parameter has been changed
+
+  // Check if any scan conversion parameter has been changed
+  bool modifiedScanConversionParams=false;
+  for (int i=0; i<6; i++)
+  {
+    if (this->InterpInputImageExtent[i]!=inputImageExtent[i])
+    {
+      modifiedScanConversionParams=true;
+    }
+    if (this->OutputImageExtent[i]!=outputImageExtent[i])
+    {
+      modifiedScanConversionParams=true;
+    }
+  }
+  for (int i=0; i<3; i++)
+  {
+    if (this->InterpOutputImageSpacing[i]!=outputImageSpacing[i])
+    {
+      modifiedScanConversionParams=true;
+    }
+  }
+  if ( (this->InterpRadiusStartMm!=radiusStartMm)
+    || (this->InterpRadiusStopMm!=radiusStopMm)
+    || (this->InterpThetaStartDeg!=thetaStartDeg)
+    || (this->InterpThetaStopDeg!=thetaStopDeg)
+    || (this->InterpOutputImageStartDepthMm!=outputImageStartDepthMm)
+    || (this->InterpIntensityScaling!=intensityScaling) )
+  {
+    modifiedScanConversionParams=true;
+  }
+
+  if (!modifiedScanConversionParams)
+  {
+    // scan conversion parameters haven't been modified since the InterpolatedPointArray was last computed
+    // there is no need to recompute, just return
+    return;
+  }
+
+  // remember the current scan conversion parameters that are used to compute the interpolated point array
+  for (int i=0; i<6; i++)
+  {
+    this->InterpInputImageExtent[i]=inputImageExtent[i];
+    this->OutputImageExtent[i]=outputImageExtent[i];
+  }
+  for (int i=0; i<3; i++)
+  {
+    this->InterpOutputImageSpacing[i]=outputImageSpacing[i];
+  }
+  this->InterpRadiusStartMm=radiusStartMm;
+  this->InterpRadiusStopMm=radiusStopMm;
+  this->InterpThetaStartDeg=thetaStartDeg;
+  this->InterpThetaStopDeg=thetaStopDeg;
+  this->InterpOutputImageStartDepthMm=outputImageStartDepthMm;
+  this->InterpIntensityScaling=intensityScaling;
+
+  // Compute the interpolated point array now
+
+  this->InterpolatedPointArray.clear();
+
+  int numberOfSamples=inputImageExtent[1]-inputImageExtent[0]+1;
+  int numberOfLines=inputImageExtent[3]-inputImageExtent[2]+1;
+  double radiusDeltaMm=(radiusStopMm-radiusStartMm)/numberOfSamples;
+  double thetaStartRad=vtkMath::RadiansFromDegrees(thetaStartDeg);
+  double thetaDeltaRad=vtkMath::RadiansFromDegrees((thetaStopDeg-thetaStartDeg)/numberOfLines);
+  int outputImageSizePixelsX=outputImageExtent[1]-outputImageExtent[0]+1;
+  int outputImageSizePixelsY=outputImageExtent[3]-outputImageExtent[2]+1;
+
+  // Increments in image coordinates in mm
+  double dx = outputImageSpacing[0];
+  double dz = outputImageSpacing[1];  
+
+  // Image coordinate in mm
+  double z = outputImageStartDepthMm;
+
+  for (int i=0; i<outputImageSizePixelsY; i++)
+  {
+    double x=-(outputImageSizePixelsX-1)/2.0*dx; // image coordinate, in mm
+    double z2 = z*z;
+
+    for (int j=0; j<outputImageSizePixelsX; j++)
+    {
+      // Find which samples to select from the envelope array 
+      double radius = sqrt(z2+x*x); // Radial distance
+      double theta = atan2 (x,z); // Angle in degrees
+      double samp = (radius - radiusStartMm)/radiusDeltaMm; // Sample number for interpolation
+      double line = (theta - thetaStartRad)/thetaDeltaRad; // Line number for interpolation
+      int index_samp = floor(samp); // Index for the data sample number
+      int index_line = floor(line); // Index for the data line number
+      
+      if ((index_samp >= 0) && (index_samp+1 < numberOfSamples) && 
+        (index_line >= 0) && (index_line+1 < numberOfLines))
+      {
+        // The sample is inside the input image, so it can be computed
+        InterpolatedPoint ip;
+        double samp_val = samp - index_samp; // Sub-sample fraction for interpolation
+        double line_val = line - index_line; // Sub-line fraction for interpolation
+
+        //  Calculate the coefficients
+        ip.weightCoefficients[0] = (1-samp_val)*(1-line_val)*intensityScaling;
+        ip.weightCoefficients[1] =    samp_val *(1-line_val)*intensityScaling;
+        ip.weightCoefficients[2] = (1-samp_val)* line_val   *intensityScaling;
+        ip.weightCoefficients[3] =    samp_val * line_val   *intensityScaling;
+
+        ip.inputPixelIndex = index_samp + index_line*numberOfSamples;
+        ip.outputPixelIndex = (outputImageSizePixelsX-1-j)+ outputImageSizePixelsX*i;
+        
+        this->InterpolatedPointArray.push_back(ip);
+      }
+
+      x = x + dx;
+    }
+    z = z + dz;
+  }
+
 }
 
 //----------------------------------------------------------------------------
@@ -179,29 +224,9 @@ int vtkUsScanConvertCurvilinear::RequestInformation (vtkInformation * vtkNotUsed
   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),inExtent);
   //inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),inExtent, 6);
 
-  // Create the interpolation table
-  // TODO: make sure it's updated when needed
-  if (this->InterpolationTableSize==0)
-  {
-    //int* inExtent=inData[0][0]->GetWholeExtent();
-    int numberOfSamples=inExtent[1]-inExtent[0]+1;
-    int numberOfLines=inExtent[3]-inExtent[2]+1;
-    int outputImageSizeX=this->OutputImageExtent[1]-this->OutputImageExtent[0]+1;
-    int outputImageSizeY=this->OutputImageExtent[3]-this->OutputImageExtent[2]+1;
-    // interpolation table has not been computed yet
-    double radiusDeltaMm=(this->RadiusStopMm-this->RadiusStartMm)/numberOfSamples;
-    double thetaDeltaDeg=(this->ThetaStopDeg-this->ThetaStartDeg)/numberOfLines;
-    double outputImageSizeXmm=outputImageSizeX*this->OutputImageSpacing[0];
-    double outputImageSizeYmm=outputImageSizeY*this->OutputImageSpacing[1];
-
-    make_tables (this->OutputImageStartDepthMm,
-      this->RadiusStartMm, radiusDeltaMm, numberOfSamples,
-      vtkMath::RadiansFromDegrees(this->ThetaStartDeg), vtkMath::RadiansFromDegrees(thetaDeltaDeg), numberOfLines,
-      this->OutputIntensityScaling,
-      outputImageSizeX, outputImageSizeY, outputImageSizeXmm, outputImageSizeYmm,
-      weight_coef, index_samp_line, image_index,
-      this->InterpolationTableSize);
-  }
+  // Create the interpolation table. It is recomputed only if the scan conversion parameters change.
+  ComputeInterpolatedPointArray(inExtent, this->RadiusStartMm, this->RadiusStopMm, this->ThetaStartDeg, this->ThetaStopDeg,
+    this->OutputImageExtent, this->OutputImageSpacing, this->OutputImageStartDepthMm, this->OutputIntensityScaling);
 
   return 1;
 }
@@ -267,23 +292,24 @@ void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
                              int interpolationTableExt[6], int id)
 {
   T *envelope_data=inPtr; // The envelope detected and log-compressed data
-  int N_samples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
+  int numberOfSamples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
   T *image=outPtr; // The resulting image
   
   vtkIdType* outInc=outData->GetIncrements();
 
   int ij_index_coef = interpolationTableExt[0]*4; //Index into coefficient array
-  for (int i=interpolationTableExt[0]; i<=interpolationTableExt[1]; i++)
+
+  std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator firstPoint=self->GetInterpolatedPointArray().begin()+interpolationTableExt[0];
+  std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator afterLastPoint=self->GetInterpolatedPointArray().begin()+interpolationTableExt[1]+1;
+  for (std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator it=firstPoint; it!=afterLastPoint; ++it)
   {
-    double *weight_pointer = &(weight_coef[ij_index_coef]); // Pointer to the weight coefficients
-    T *env_pointer = (T*) &(envelope_data[index_samp_line[i]]); // Pointer to the envelope data
-    image[image_index[i]] =
-      weight_pointer[0] * env_pointer[0] // (+0, +0)
-    + weight_pointer[1] * env_pointer[1] // (+1, +0)
-    + weight_pointer[2] * env_pointer[N_samples] // (+0, +1)
-    + weight_pointer[3] * env_pointer[N_samples+1] // (+1, +1)
+    T *env_pointer = (T*) &(envelope_data[it->inputPixelIndex]); // Pointer to the envelope data
+    image[it->outputPixelIndex] =
+      it->weightCoefficients[0] * env_pointer[0] // (+0, +0)
+    + it->weightCoefficients[1] * env_pointer[1] // (+1, +0)
+    + it->weightCoefficients[2] * env_pointer[numberOfSamples] // (+0, +1)
+    + it->weightCoefficients[3] * env_pointer[numberOfSamples+1] // (+1, +1)
     + 0.5; // for rounding
-    ij_index_coef += 4;
   }
 }
 
@@ -336,7 +362,7 @@ void vtkUsScanConvertCurvilinear::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
   os << indent << "ThetaStopDeg: "<< this->ThetaStopDeg << "\n";
   os << indent << "OutputIntensityScaling: "<< this->OutputIntensityScaling << "\n";
-  os << indent << "InterpolationTableSize: "<< this->InterpolationTableSize << "\n";
+  os << indent << "InterpolatedPointArraySize: "<< this->InterpolatedPointArray.size() << "\n";
 
 }
 
@@ -353,7 +379,7 @@ int vtkUsScanConvertCurvilinear::SplitExtent(int splitExt[6], int startExt[6], i
 
   // Starting extent
   int min = 0;
-  int max = this->InterpolationTableSize-1;;
+  int max = this->InterpolatedPointArray.size()-1;
 
   splitExt[0]=min;
   splitExt[1]=max;

@@ -19,13 +19,15 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkRfToBrightnessConvert);
 
+const double MIN_BRIGHTNESS_VALUE=0.0;
+const double MAX_BRIGHTNESS_VALUE=255.0;
+
 //----------------------------------------------------------------------------
 vtkRfToBrightnessConvert::vtkRfToBrightnessConvert()
 {
   this->ImageType=US_IMG_TYPE_XX;
   this->BrightnessScale=10.0;
-  this->NumberOfHilberFilterCoeffs=64; // 128;
-  PrepareHilbertTransform();
+  this->NumberOfHilberFilterCoeffs=64;
 }
 
 //----------------------------------------------------------------------------
@@ -310,22 +312,27 @@ PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToB
   return PLUS_SUCCESS;
 }
 
-
-// From http://www.vbforums.com/archive/index.php/t-639223.html
-
-void vtkRfToBrightnessConvert::PrepareHilbertTransform()
+//-----------------------------------------------------------------------------
+void vtkRfToBrightnessConvert::ComputeHilbertTransformCoeffs()
 {
+  if (this->HilbertTransformCoeffs.size()==this->NumberOfHilberFilterCoeffs+1)
+  {
+    // already computed the requested number of Hilbert transform coefficients
+    return;
+  }
+
   this->HilbertTransformCoeffs.resize(this->NumberOfHilberFilterCoeffs+1);
+  for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
+  {
+    // From http://www.vbforums.com/archive/index.php/t-639223.html
+    this->HilbertTransformCoeffs[i]=1/((i-this->NumberOfHilberFilterCoeffs/2)-0.5)/vtkMath::Pi();
+  }
   
-  const bool debugOutput=false; // print Hilbert transform coefficients?  
+  bool debugOutput=false; // print Hilbert transform coefficients in Matlab format
   if (debugOutput)
   {
     std::cout << "hc = [ ";
-  }
-  for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
-  {
-    this->HilbertTransformCoeffs[i]=1/((i-this->NumberOfHilberFilterCoeffs/2)-0.5)/vtkMath::Pi();
-    if (debugOutput)
+    for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
     {
       std::cout << this->HilbertTransformCoeffs[i];
       if (i<this->NumberOfHilberFilterCoeffs)
@@ -337,20 +344,13 @@ void vtkRfToBrightnessConvert::PrepareHilbertTransform()
         std::cout << "\n";
       }
     }
-  }
-  if (debugOutput)
-  {
     std::cout << "]\n";
   }
 }
 
-// time, x: input vectors
-// npt: number of input points
-// xh, ampl, phase, omega: output vectors
 PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt)
 {
-  double pi=vtkMath::Pi();
-  double pi2=2*pi;
+  ComputeHilbertTransformCoeffs(); // update the transform coefficients if needed
 
   if (npt < this->NumberOfHilberFilterCoeffs)
   {
@@ -400,18 +400,16 @@ void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, s
     double xt = inputSignal[i];
     double xht = inputSignalHilbertTransformed[i];
     double brightnessValue = sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
-    if (brightnessValue>255.0) brightnessValue=255.0;
-    if (brightnessValue<0.0) brightnessValue=0.0;
+    if (brightnessValue>MAX_BRIGHTNESS_VALUE) brightnessValue=MAX_BRIGHTNESS_VALUE;
+    if (brightnessValue<MIN_BRIGHTNESS_VALUE) brightnessValue=MIN_BRIGHTNESS_VALUE;
     ampl[i]=brightnessValue;
     /*
+    If needed, the phase could be computed as follows:
     phase[i] = atan2(xht ,xt);
-    if (phase[i] < phase[i-1])
-    {
-    omega[i] = phase[i]-phase[i-1]+pi2;
-    }
-    else
-    {
     omega[i] = phase[i]-phase[i-1];
+    if (omega[i]<0)
+    {
+      omega[i]+=2*pi;
     }
     */
   }
@@ -431,8 +429,8 @@ void vtkRfToBrightnessConvert::ComputeAmplitudeIqLine(unsigned char *ampl, short
     double xt = inputSignal[inputIndex++];
     double xht = inputSignal[inputIndex++];
     double outputValue=sqrt(sqrt(sqrt(xt*xt+xht*xht)))*this->BrightnessScale;
-    if (outputValue>255.0) outputValue=255.0;
-    if (outputValue<0.0) outputValue=0.0;
+    if (outputValue>MAX_BRIGHTNESS_VALUE) outputValue=MAX_BRIGHTNESS_VALUE;
+    if (outputValue<MIN_BRIGHTNESS_VALUE) outputValue=MIN_BRIGHTNESS_VALUE;
     ampl[outputIndex++] = outputValue;
   }
 }
