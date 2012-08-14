@@ -45,6 +45,14 @@ public:
   /*! Retrieve the InterpolatedPointArray (used internally by the thread function) */
   const std::vector<InterpolatedPoint> & GetInterpolatedPointArray() { return this->InterpolatedPointArray; };
 
+  /*! Initialize the parameters used in reconstruction. These are for the cases
+  when video source can obtain them from the hardware */
+  vtkSetMacro(RadiusStartMm, double);
+  vtkSetMacro(RadiusStopMm, double);
+  vtkSetMacro(ThetaStartDeg, double);
+  vtkSetMacro(ThetaStopDeg, double);
+  vtkSetMacro(OutputImageStartDepthMm, double);
+
 protected:
   vtkUsScanConvertCurvilinear();
   virtual ~vtkUsScanConvertCurvilinear();

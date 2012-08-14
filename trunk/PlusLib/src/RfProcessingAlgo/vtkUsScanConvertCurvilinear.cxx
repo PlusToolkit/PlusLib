@@ -418,7 +418,7 @@ int vtkUsScanConvertCurvilinear::SplitExtent(int splitExt[6], int startExt[6], i
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
-  LOG_TRACE("vtkUsScanConvertCurvilinear::ReadConfiguration"); 
+  LOG_INFO("vtkUsScanConvertCurvilinear::ReadConfiguration"); 
   if ( scanConversionElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkUsScanConvertCurvilinear! (XML data element is NULL)"); 
@@ -483,7 +483,7 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
 {
-  LOG_TRACE("vtkUsScanConvertCurvilinear::WriteConfiguration"); 
+  LOG_INFO("vtkUsScanConvertCurvilinear::WriteConfiguration"); 
   if ( scanConversionElement == NULL )
   {
     LOG_DEBUG("Unable to write vtkUsScanConvertCurvilinear: XML data element is NULL"); 

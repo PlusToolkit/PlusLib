@@ -48,7 +48,7 @@ std::string ParseResponseQuoted(std::string str,int item)
 {
 	std::string result = ParseResponse(str, item);
 	if(result.length()>2)
-		return result.substr(1,result.length()-1);
+		return result.substr(1,result.length()-2);
 	else
 		return "";
 }
@@ -91,6 +91,7 @@ public:
   void vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM()
   {
 	  //WSAIF wsaif;
+	  LOG_INFO("vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM");
 	  TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
 	  std::string value;	  
 
@@ -106,18 +107,7 @@ public:
 	  // (sagittal). For the abdominal 8820, the response apparently is "" (!)
 	  value = QueryParameter(oemClient, "SCAN_PLANE");
  	  std::string scanPlane = ParseResponseQuoted(value, 0);
-
-	  if(transducer == "8848")
-	  {
-		  if(scanPlane == "S")
-		  {
-			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
-		  }
-		  else if(scanPlane == "T")
-		  {
-			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
-		  }
-	  }
+	  std::cout << "Scan plane: " << scanPlane << std::endl;
 
 	  value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
 	  float frameRate = atof(ParseResponse(value,0).c_str());
@@ -132,24 +122,51 @@ public:
 	  // StopLineX/Y: coordinate of the stop line origin in mm
 	  // StopDepth: stop depth of the scanning area in mm
 	  value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
-	  float startLineXMm = atof(ParseResponse(value,0).c_str());
-	  float startLineYMm = atof(ParseResponse(value,1).c_str());
-	  float startAngleDeg = atof(ParseResponse(value,2).c_str())*180./3.1416;
-	  float startDepthMm = atof(ParseResponse(value,3).c_str())*1000.;
-	  float stopLineXMm = atof(ParseResponse(value,4).c_str());
-	  float stopLineYMm = atof(ParseResponse(value,5).c_str());
-	  float stopAngleDeg = atof(ParseResponse(value,6).c_str())*180./3.1416;
+	  float startAngleDeg = 
+		  vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
+	  // start depth is defined at the distance from the outer surface of the transducer 
+	  // to the surface of the crystal. stop depth is from the outer surface to the scan depth.
+	  // start depth has negative depth in this coordinate system, so we take the abs.
+	  float startDepthMm = fabs(atof(ParseResponse(value,3).c_str())*1000.);
+	  float stopAngleDeg = 
+		  vtkMath::DegreesFromRadians(atof(ParseResponse(value,6).c_str()));
 	  float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
 
-	  std::cout << "Start line X: " << startLineXMm << " mm" << std::endl;
-	  std::cout << "Start line Y: " << startLineYMm << " mm" << std::endl;
-	  std::cout << "Start angle: " << startAngleDeg << " deg" << std::endl;
-	  std::cout << "Start depth: " << startDepthMm << " mm" << std::endl;
-	  std::cout << "Stop line X: " << stopLineXMm << " mm" << std::endl;
-	  std::cout << "Stop line Y: " << stopLineYMm << " mm" << std::endl;
-	  std::cout << "Stop angle: " << stopAngleDeg << " deg" << std::endl;
-	  std::cout << "Stop depth: " << stopDepthMm << " m" << std::endl;
+	  // DATA:B_SCANLINES_COUNT:A 517;
+	  // Number of scanning lines in specified view
+	  value = QueryParameter(oemClient, "B_SCANLINES_COUNT");
+	  float scanlinesCount = atof(ParseResponse(value,0).c_str());
+	  value = QueryParameter(oemClient, "B_RF_LINE_LENGTH");
+	  float rfLineLength = atof(ParseResponse(value,0).c_str());
 
+	  // BK defines angles start at 9:00, not at 12:00
+	  startAngleDeg = -(startAngleDeg-stopAngleDeg)/2.;
+	  stopAngleDeg = -startAngleDeg;
+
+	  // set relevant parameters on RfProcessor
+	  if(transducer == "8848")
+	  {
+		  if(scanPlane == "S")
+		  {
+			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
+		  }
+		  else if(scanPlane == "T")
+		  {
+			  std::cout << "Transducer geometry is curvilinear" << std::endl;
+			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
+			  // this is a predefined value for 8848 transverse array, which
+			  // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
+			  // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
+			  this->External->RfProcessor->InitConverterRadiusOfCurvatureMm(9.74);
+		  	  this->External->RfProcessor->InitConverterStartAngleDeg(startAngleDeg);
+			  this->External->RfProcessor->InitConverterStopAngleDeg(stopAngleDeg);
+		  }
+	  }
+
+	  this->External->RfProcessor->InitConverterStartDepthMm(startDepthMm);
+	  this->External->RfProcessor->InitConverterStopDepthMm(stopDepthMm);
+
+	  /* Not used in reconstruction
 	  std::cout << "Queried value: " << value << std::endl;
 	  // DATA:3D_SPACING:A 0.25;
 	  //  Returns the spacing between the frames; 
@@ -161,7 +178,7 @@ public:
 	  //  Returns the capture area for the acquisition in screen pixel coordinates
 	  value = QueryParameter(oemClient, "3D_CAPTURE_AREA");
 	  std::cout << "Queried value: " << value << std::endl;
-	  //for(;;);
+	  */
   }
 
   std::string vtkBkProFocusVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
@@ -173,7 +190,7 @@ public:
 	  oemClient->Write(query.c_str(), strlen(query.c_str()));
 	  oemClient->Read(&buffer[0], 1024);
 	  std::string value = std::string(&buffer[0]);
-	  std::string prefix = std::string("DATA:")+parameter+":A";
+	  std::string prefix = std::string("DATA:")+parameter+":A ";
 	  return value.substr(prefix.length(),value.length()-prefix.length()-1);
   }
 };

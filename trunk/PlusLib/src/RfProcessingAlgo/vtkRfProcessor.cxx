@@ -81,6 +81,88 @@ vtkImageData* vtkRfProcessor::GetBrightessScanConvertedImage()
 }
 
 //-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterStartDepthMm(double startDepth)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+	this->ScanConverterLinear->SetOutputImageStartDepthMm(startDepth);
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->SetOutputImageStartDepthMm(startDepth);
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterStopDepthMm(double stopDepth)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+	this->ScanConverterLinear->SetImagingDepthMm(stopDepth);
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->SetRadiusStopMm(stopDepth);
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterStartAngleDeg(double startAngle) 
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->SetThetaStartDeg(startAngle);
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterStopAngleDeg(double stopAngle)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->SetThetaStopDeg(stopAngle);
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterRadiusOfCurvatureMm(double roc)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->SetRadiusStartMm(roc);
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
 {
   if ( config == NULL )
