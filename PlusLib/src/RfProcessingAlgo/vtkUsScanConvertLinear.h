@@ -40,6 +40,9 @@ public:
 
   /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
+
+  vtkSetMacro(OutputImageStartDepthMm,double);
+  vtkSetMacro(ImagingDepthMm,double);
    
 protected:
   vtkUsScanConvertLinear();

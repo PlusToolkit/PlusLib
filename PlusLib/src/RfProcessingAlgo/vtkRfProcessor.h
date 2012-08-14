@@ -55,12 +55,12 @@ public:
   /*! Set the transducer geometry (linear or curvilinear) */
   vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
 
-  /*
-  vtkSetMacro(StartDepthMm, double); 
-  vtkSetMacro(StopDepthMm, double); 
-  vtkSetMacro(StartAngleDeg, double); 
-  vtkSetMacro(StopAngleDeg, double); 
-  */
+  /*! Initialize the corresponding values in the converter classes. */
+  void InitConverterStartDepthMm(double); 
+  void InitConverterStopDepthMm(double); 
+  void InitConverterStartAngleDeg(double); 
+  void InitConverterStopAngleDeg(double); 
+  void InitConverterRadiusOfCurvatureMm(double);
 
 protected:
   vtkRfProcessor();
@@ -73,14 +73,6 @@ protected:
 
   /*! Type of the transducer (linear or curvilinear) */
   TransducerGeometryType TransducerGeometry;
-
-  /* Parameters related to reconstruction */
-  /*
-  double StartDepthMm;
-  double StopDepthMm;
-  double StartAngleDeg;
-  double StopAngleDeg;
-  */
 }; 
 
 #endif
