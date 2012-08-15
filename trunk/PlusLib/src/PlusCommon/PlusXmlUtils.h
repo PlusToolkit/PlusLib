@@ -24,12 +24,12 @@ namespace PlusXmlUtils
   {
     if (config==NULL)
     {
-      LOG_ERROR("PlusXmlUtils::GetNestedElementCreateIfNeeded failed: config is invalid");
+      LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: config is invalid");
       return NULL;
     }
     if (elementName==NULL)
     {
-      LOG_ERROR("PlusXmlUtils::GetNestedElementCreateIfNeeded failed: elementName is invalid");
+      LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: elementName is invalid");
       return NULL;
     }    
     vtkXMLDataElement* nestedElement = config->FindNestedElementWithName(elementName); 
@@ -44,7 +44,7 @@ namespace PlusXmlUtils
     nestedElement = config->FindNestedElementWithName(elementName);
     if (nestedElement == NULL)
     {
-      LOG_ERROR("Failed to add nested element with name "<<elementName);
+      LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: cannot add nested element with name "<<elementName);
     }
     return nestedElement;
   }
