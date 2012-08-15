@@ -177,6 +177,11 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
 
   /*!
+  * Save the current device set configuration into XML
+  */
+  PlusStatus WriteConfiguration(vtkXMLDataElement* aXMLElement);
+
+  /*!
   * Set the image visualizer ROI region
   * \param xMin min x bounds of ROI
   * \param xMax max x bounds of ROI

@@ -458,6 +458,9 @@ void CapturingToolbox::Save()
       volumeReconstructionToolbox->AddImageFileName(fileName);
     }
 
+    // Write the current state into the device set configuration XML
+    m_ParentMainWindow->GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
     // Save config file next to the tracked frame list
     std::string configFileName = path + "/" + filename + "_config.xml";
     PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());

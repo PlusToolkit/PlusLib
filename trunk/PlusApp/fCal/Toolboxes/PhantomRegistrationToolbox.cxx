@@ -9,8 +9,6 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkVisualizationController.h"
 
-#include "ConfigFileSaverDialog.h"
-
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkFakeTracker.h"

@@ -11,7 +11,6 @@ See License.txt for details.
 #include "PlusMath.h"
 
 #include "vtkPivotCalibrationAlgo.h"
-#include "ConfigFileSaverDialog.h"
 
 #include <QFileDialog>
 #include <QTimer>

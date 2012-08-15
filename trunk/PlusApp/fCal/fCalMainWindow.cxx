@@ -621,6 +621,9 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
     return;
   }
 
+  // Write the current state into the device set configuration XML
+  GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
   ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
