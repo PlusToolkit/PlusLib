@@ -130,8 +130,6 @@ vtkPlusLogger::vtkPlusLogger()
   vtkOutputWindow::SetInstance(vtkLogger);
 
   this->m_LogStream << "time|level|timeoffset|message|location" << std::endl; 
-  std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
-  this->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", 121); 
 }
 
 //-------------------------------------------------------
@@ -158,6 +156,8 @@ vtkPlusLogger* vtkPlusLogger::Instance()
   if (m_pInstance==NULL)
   {
     m_pInstance = new vtkPlusLogger;
+    std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
+    m_pInstance->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", __LINE__); 
   }
   return m_pInstance;
 }
