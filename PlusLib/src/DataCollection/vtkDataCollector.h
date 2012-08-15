@@ -41,6 +41,9 @@ public:
   /*! Read the configuration file in XML format and set up the devices */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
+  /*! Write the device set configuration to XML format */
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
+
   /*! Disconnect from devices */
   virtual PlusStatus Disconnect(); 
 

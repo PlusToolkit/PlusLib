@@ -6,6 +6,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
+#include "PlusXmlUtils.h"
+
 #include "vtkDataCollector.h"
 
 #include "vtkXMLUtilities.h"
@@ -1123,6 +1125,41 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aConfiguration
   }
 
   return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollector::WriteConfiguration( vtkXMLDataElement* aConfigurationData )
+{
+  vtkXMLDataElement* dataCollectionConfig = PlusXmlUtils::GetNestedElementWithName(aConfigurationData,"DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  dataCollectionConfig->SetDoubleAttribute("StartupDelaySec", GetStartupDelaySec());
+
+  PlusStatus status=PLUS_SUCCESS;
+
+  if (this->Tracker!=NULL)
+  {
+    if (this->Tracker->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to save tracker configuration");
+      status=PLUS_FAIL;
+    }
+  }
+
+  if (this->VideoSource!=NULL)
+  {
+    if (this->VideoSource->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to save tracker configuration");
+      status=PLUS_FAIL;
+    }
+  }
+
+  return status;
 }
 
 //------------------------------------------------------------------------------
