@@ -6,10 +6,10 @@
       Description="MicronTracker" 
     />
 
-    <Tracker Type="MicronTracker" BufferSize="500" AcquisitionRate="5" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" TemplateDirectory="Markers" IniFile="MicronTracker.ini">
-      <Tool Name="Probe" PortName="probeMarker" />
-      <Tool Name="Reference"  PortName="patientMarker" />
-      <Tool Name="Stylus" PortName="stitchMarker" />
+    <Tracker Type="MicronTracker" BufferSize="500" AcquisitionRate="20" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" TemplateDirectory="Markers" IniFile="MicronTracker.ini">
+      <Tool Name="Probe" PortName="1b" />
+      <Tool Name="Reference"  PortName="TTblock" />
+      <Tool Name="Stylus" PortName="2b" />
     </Tracker>
 
     <ImageAcquisition
@@ -19,7 +19,7 @@
       AcquisitionRate="30" 
       AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2976"
-      IP="137.82.56.243" 
+      IP="130.15.7.20" 
       ImagingMode="BMode"
       AcquisitionDataType="BPost" 
       Depth="-1" 
@@ -31,6 +31,7 @@
       Timeout="-1" 
       CompressionStatus="0" 
     />
+    
   </DataCollection>
 
 
