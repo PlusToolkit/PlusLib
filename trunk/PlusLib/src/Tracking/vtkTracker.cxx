@@ -196,6 +196,11 @@ void * vtkTracker::vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 
     { // Lock before update 
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
+      if (!self->Recording)
+      {
+        // recording has been stopped
+        break;
+      }
       self->InternalUpdate();
       self->UpdateTime.Modified();
     }

@@ -4,41 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/*=========================================================================
-The following copyright notice is applicable to parts of this file:
-
-Copyright (c) 2000-2005 Atamai, Inc.
-
-Use, modification and redistribution of the software, in source or
-binary forms, are permitted provided that the following terms and
-conditions are met:
-
-1) Redistribution of the source code, in verbatim or modified
-form, must retain the above copyright notice, this license,
-the following disclaimer, and any notices that refer to this
-license and/or the following disclaimer.  
-
-2) Redistribution in binary form must include the above copyright
-notice, a copy of this license and the following disclaimer
-in the documentation or with other materials provided with the
-distribution.
-
-3) Modified copies of the source code must be clearly marked as such,
-and must not be misrepresented as verbatim copies of the source code.
-
-THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE SOFTWARE "AS IS"
-WITHOUT EXPRESSED OR IMPLIED WARRANTY INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  IN NO EVENT SHALL ANY COPYRIGHT HOLDER OR OTHER PARTY WHO MAY
-MODIFY AND/OR REDISTRIBUTE THE SOFTWARE UNDER THE TERMS OF THIS LICENSE
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, LOSS OF DATA OR DATA BECOMING INACCURATE
-OR LOSS OF PROFIT OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF
-THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGES.
-
-=========================================================================*/
-
 #include "PlusConfigure.h"
 
 #include "vtkMicronTracker.h"
@@ -51,9 +16,9 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "MicronTrackerInterface.h"
 
-// Do not include "MTC.h" directly (it causes compilation warnings
-// and unnecessary coupling to lower-level MTC functions)!
-// Access all MTC internal functions through MicronTrackerInterface.
+// Note that "MTC.h" is not included directly, as it causes compilation warnings
+// and unnecessary coupling to lower-level MTC functions.
+// All MTC internal functions shall be accessed through MicronTrackerInterface.
 
 /****************************************************************************/
 
@@ -66,27 +31,19 @@ vtkMicronTracker::vtkMicronTracker()
   this->MT = new MicronTrackerInterface();
 
   // for accurate timing
-  this->LastFrameNumber=0;
-
-  this->IsAdditionalFacetAdding = 0;
-  this->IsCollectingNewSamples = 0;
-  this->NewSampleFramesCollected = 0;
   this->FrameNumber = 0;
-  this->LeftImage = NULL;
-  this->RightImage = NULL;
-  this->Xpoints = NULL;
-  this->VectorEnds = NULL;
-  //  this->LeftImageArray = new unsigned char();
-  //  this->RightImageArray = new unsigned char();
-
 }
 
 //----------------------------------------------------------------------------
 vtkMicronTracker::~vtkMicronTracker() 
 {
-  if ( this->MT != NULL )
+  if (this->IsMicronTrackingInitialized)
   {
     this->MT->mtEnd();
+    this->IsMicronTrackingInitialized=false;
+  }
+  if ( this->MT != NULL )
+  {    
     delete this->MT;
     this->MT = NULL;
   }
@@ -96,12 +53,6 @@ vtkMicronTracker::~vtkMicronTracker()
 std::string vtkMicronTracker::GetSdkVersion()
 {
   return this->MT->GetSdkVersion(); 
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SaveSettingsToINI()
-{
-  this->MT->mtSaveSettingsToINI();
 }
 
 //----------------------------------------------------------------------------
@@ -137,6 +88,7 @@ PlusStatus vtkMicronTracker::Probe()
   LOG_DEBUG("Number of attached cameras: " << numOfCameras );
 
   this->MT->mtEnd();
+  this->IsMicronTrackingInitialized=false;
 
   return PLUS_SUCCESS;
 } 
@@ -149,42 +101,36 @@ PlusStatus vtkMicronTracker::InternalStartTracking()
     LOG_ERROR("InternalStartTracking failed: MicronTracker has not been initialized");
     return PLUS_FAIL;
   }
-
-  this->RefreshMarkerTemplates();
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::InternalStopTracking()
 {
-  if (!this->IsMicronTrackingInitialized)
-  {    
-    return PLUS_SUCCESS;
-  }
-
-  // :TODO: we could stop the MicronTracker
-
+  // No need to do anything here, as the MicronTracker only performs grabbing on request
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::InternalUpdate()
 {
-  int callResult = 0;
-
   if (!this->IsMicronTrackingInitialized)
   {
     LOG_ERROR("InternalUpdate failed: MicronTracker has not been initialized");
     return PLUS_FAIL;
   }
-  // TODO: Frame number is fake here!
-  // FrameNumber will be used in ToolTimeStampedUpdate
-  ++ this->FrameNumber;
-  // If grabbing a frame was not successful prevent it from calling the mtGrabFrame
-  // method of this->MT, until the problem is solved.
+
+  // Generate a frame number, as the tool does not provide a frame number.
+  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
+  // TODO: test if this->MT->mtGetLatestFrameTime(cam) function can provide accurate enough without filtering
+  ++this->FrameNumber;
+
+  // Setting the timestamp
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
   if (this->MT->mtGrabFrame() == -1)
   {
+    // If grabbing a frame was not successful then just skip this attempt and retry on the next callback
     LOG_WARNING("Failed to grab a new frame (" << this->MT->GetLastErrorString() <<"). Maybe the requested frame rate is too high.");
     return PLUS_FAIL;
   }
@@ -195,36 +141,6 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   }
 
   this->MT->mtFindIdentifiedMarkers();
-  // this->MT->mtFindUnidentifiedMarkers();
-
-  // Collecting new samples if creating a new template by the user
-  if (this->IsCollectingNewSamples == 1)
-  {
-
-    int collectNewSamplesResult=this->MT->mtCollectNewSamples(this->IsAdditionalFacetAdding);
-    if ( collectNewSamplesResult == -1)
-    {
-      LOG_ERROR("Less than two vectors are detected.");
-      return PLUS_FAIL;
-    }
-    else if (collectNewSamplesResult == 1)
-    {
-      LOG_ERROR("More than two vectors are detected.");
-      return PLUS_FAIL;
-    }
-    else if (collectNewSamplesResult == 99)
-    {
-      LOG_ERROR("No known facet detected.");
-      return PLUS_FAIL;
-    }
-    this->NewSampleFramesCollected++;
-    LOG_TRACE("Samples collected so far: " << this->NewSampleFramesCollected);
-
-  }
-
-  // Setting the timestamp
-  this->LastFrameNumber++;
-  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   int numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
   LOG_TRACE("Number of identified markers: " << numOfIdentifiedMarkers);
@@ -245,7 +161,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     }
 
     GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
-    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, TOOL_OK, this->LastFrameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 
     identifiedToolNames.insert(tool->GetToolName());
   }
@@ -261,29 +177,10 @@ PlusStatus vtkMicronTracker::InternalUpdate()
       continue;
     }
     LOG_TRACE("Tool "<<it->second->GetToolName()<<": not found");
-    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
+    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);   
   }
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
-{
-  std::ostringstream dumpStr; 
-  for (int i=0; i<4; i++)
-  {
-    for (int j=0; j<4; j++)
-    {
-      dumpStr << std::setw(10) <<  std::fixed << std::right << std::setprecision(5) << m->GetElement(i,j);
-      if (j==3)
-      {
-        dumpStr << "   ";
-      }
-    }
-  }
-  LOG_INFO(dumpStr.str());
-  LOG_DEBUG(dumpStr.str());
 }
 
 //----------------------------------------------------------------------------
@@ -291,7 +188,6 @@ PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
 {
   std::vector<std::string> vTemplatesName;
   std::vector<std::string> vTemplatesError;
-  std::vector<std::string> vTemplatesWarn;
 
   std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
   LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
@@ -305,17 +201,11 @@ PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
     LOG_ERROR("Failed to load marker templates from "<<templateFullPath);
     for (int i=0; i<vTemplatesError.size(); i++)
     {
-      LOG_ERROR("MicronTracker error: " << vTemplatesError[i]);
+      LOG_ERROR("Error loading template: " << vTemplatesError[i]);
     }
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumOfLoadedMarkers()
-{
-  return this->MT->mtGetLoadedTemplatesNum();
 }
 
 //----------------------------------------------------------------------------
@@ -342,368 +232,46 @@ void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transfo
 }
 
 //----------------------------------------------------------------------------
-void vtkMicronTracker::UpdateLeftRightImage()
+PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rightImage)
 {
-  this->UpdateMutex->Lock();
-  this->MT->mtGetLeftRightImageArray(this->LeftImageArray, this->RightImageArray, 0);
-  this->UpdateMutex->Unlock();
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
-  if (this->LeftImage != NULL)
+  unsigned char** leftImageArray=0;
+  unsigned char** rightImageArray=0;
+  if (this->MT->mtGetLeftRightImageArray(leftImageArray, rightImageArray) == -1)
   {
-    this->LeftImage->Delete();
-  }
-  if (this->RightImage != NULL)
-  {
-    this->RightImage->Delete();
+    LOG_ERROR("Error getting images from MicronTracker");
+    return PLUS_FAIL;
   }
 
-  this->LeftImage = vtkImageImport::New();
-  this->RightImage = vtkImageImport::New();
+  int imageWidth=this->MT->mtGetXResolution(-1);
+  int imageHeight=this->MT->mtGetYResolution(-1);
 
-  this->LeftImage->SetDataScalarTypeToUnsignedChar();
-  this->LeftImage->SetImportVoidPointer((unsigned char*)this->LeftImageArray);
-  this->LeftImage->SetDataScalarTypeToUnsignedChar();
-  this->LeftImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
-
-  this->RightImage->SetDataScalarTypeToUnsignedChar();
-  this->RightImage->SetImportVoidPointer((unsigned char*)this->RightImageArray);
-  this->RightImage->SetDataScalarTypeToUnsignedChar();
-  this->RightImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
-}
-
-//----------------------------------------------------------------------------
-vtkImageImport* vtkMicronTracker::GetLeftImage()
-{
-  this->LeftImage->GlobalWarningDisplayOff();
-  return this->LeftImage;
-}
-
-//----------------------------------------------------------------------------
-vtkImageImport* vtkMicronTracker::GetRightImage()
-{
-  this->RightImage->GlobalWarningDisplayOff();
-  return this->RightImage;
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::GetSnapShot(const std::string &leftJpgFilePath, const std::string &rightJpgFilePath)
-{
-  this->UpdateLeftRightImage();
-
-  PlusVideoFrame::SaveImageToFile(this->GetLeftImage()->GetOutput(), leftJpgFilePath.c_str()); 
-  PlusVideoFrame::SaveImageToFile(this->GetRightImage()->GetOutput(), rightJpgFilePath.c_str()); 
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::StopSampling(char* name, double jitter)
-{
-  return this->MT->mtStopSampling(name, jitter);
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::ResetNewSampleFramesCollected()
-{
-  this->NewSampleFramesCollected = 0;
-  this->MT->mtResetSamples();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::SaveTemplate(char* markerName)
-{
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
-  int callResult = this->MT->mtSaveMarkerTemplate(markerName, templateFullPath);
-  this->RefreshMarkerTemplates();
-  return callResult;
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumberOfFacetsInMarker(int markerIdx)
-{
-  //  this->UpdateMutex->Lock();
-  return this->MT->mtGetNumOfFacetsInMarker(markerIdx);
-  //  this->UpdateMutex->Unlock();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumberOfTotalFacetsInMarker(int markerIdx)
-{
-  //  this->UpdateMutex->Lock();
-  return this->MT->mtGetNumOfTotalFacetsInMarker(markerIdx);
-  //  this->UpdateMutex->Unlock();
-}
-
-//----------------------------------------------------------------------------
-vtkDoubleArray* vtkMicronTracker::vtkGetIdentifiedMarkersXPoints(int markerIdx)
-{
-  if (this->Xpoints != NULL)
+  if (leftImage != NULL)
   {
-    this->Xpoints->Delete();
+    vtkSmartPointer<vtkImageImport> imageImport=vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataScalarTypeToUnsignedChar();
+    imageImport->SetImportVoidPointer((unsigned char*)leftImageArray);
+    imageImport->SetDataScalarTypeToUnsignedChar();
+    imageImport->SetDataExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
+    imageImport->SetWholeExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
+    imageImport->Update();
+    leftImage->DeepCopy(imageImport->GetOutput());
   }
-  this->Xpoints = vtkDoubleArray::New();
-  double* xpointsTemp;
-  // Note: Removing lock/unlock here causes crash
-  this->UpdateMutex->Lock();
-  this->MT->mtGetIdentifiedMarkersXPoints(xpointsTemp, markerIdx);
-  int arraySize = this->MT->mtGetNumOfFacetsInMarker(markerIdx);
-  this->UpdateMutex->Unlock();
-  // Each facet contains 16*numberOfFacets piece of information 
-  this->Xpoints->SetArray(xpointsTemp,arraySize*16,1);
-  return this->Xpoints;
-}
 
-//----------------------------------------------------------------------------
-vtkDoubleArray* vtkMicronTracker::vtkGetUnidentifiedMarkersEnds(int vectorIdx)
-{  
-  if (this->VectorEnds != NULL)
+  if (rightImage != NULL)
   {
-    this->VectorEnds->Delete();
+    vtkSmartPointer<vtkImageImport> imageImport=vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataScalarTypeToUnsignedChar();
+    imageImport->SetImportVoidPointer((unsigned char*)rightImageArray);
+    imageImport->SetDataScalarTypeToUnsignedChar();
+    imageImport->SetDataExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
+    imageImport->SetWholeExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
+    imageImport->Update();
+    rightImage->DeepCopy(imageImport->GetOutput());
   }
-  this->VectorEnds = vtkDoubleArray::New();
-  double* vectorEndsTemp;
-  // Note: Removing lock/unlock here causes crash
-  this->UpdateMutex->Lock();
-  this->MT->mtGetUnidentifiedMarkersEnds(vectorEndsTemp, vectorIdx);
-  this->UpdateMutex->Unlock();
-  // Each facet contains 8 piece of information
-  this->VectorEnds->SetArray(vectorEndsTemp,8,1);
-  return this->VectorEnds;
-}
 
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SelectCamera(int n)
-{
-  this->UpdateMutex->Lock();
-  this->MT->mtSelectCamera(n);
-  this->UpdateMutex->Unlock();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetCurrCamIndex()
-{
-  int currCamIndex = this->MT->mtGetCurrCamIndex();
-  return currCamIndex;
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetTemplatesMatchingTolerance(double mTolerance)
-{
-  this->MT->mtSetTemplMatchTolerance(mTolerance);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetTemplatesMatchingTolerance()
-{
-  return this->MT->mtGetTemplMatchTolerance();
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetTemplatesMatchingToleranceDefault()
-{
-  return this->MT->mtGetTemplMatchToleranceDefault();
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetPredictiveFrameInterleave(int predInterleave)
-{
-  this->MT->mtSetPredictiveFramesInterleave(predInterleave);
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetPredictiveFrameInterleave()
-{
-  return this->MT->mtGetPredictiveFramesInterleave();
-}
-
-//-----------------------------------------------------------------------------
-void vtkMicronTracker::SetAdjustCamAfterEveryProcess(short autoCamExposure)
-{
-  this->MT->mtSetAdjustCamAfterEveryProcess(autoCamExposure);
-}
-
-//----------------------------------------------------------------------------
-short vtkMicronTracker::GetAdjustCamAfterEveryProcess()
-{
-  return this->MT->mtGetAdjustCamAfterEveryProcess();
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetPredictiveTracking(short predictiveTracking)
-{
-  this->MT->mtSetPredictiveTracking(predictiveTracking);
-}
-
-//----------------------------------------------------------------------------
-short vtkMicronTracker::GetPredictiveTracking()
-{
-  return this->MT->mtGetPredictiveTracking();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetShutterPref()
-{
-  return this->MT->mtGetShutterPreference();
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetShutterPref(int shutterPref)
-{
-  this->MT->mtSetShutterPreference(shutterPref);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetShutterTime(int cam)
-{
-  return  this->MT->mtGetShutterTime(cam);
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetShutterTime(double shutterTime, int cam)
-{
-  this->MT->mtSetShutterTime(shutterTime, cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMinShutterTime(int cam)
-{
-  return this->MT->mtGetMinShutterTime(cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMaxShutterTime(int cam)
-{
-  return this->MT->mtGetMaxShutterTime(cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetGain(int cam)
-{
-  return this->MT->mtGetGain(cam);
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetGain(double gain, int cam)
-{
-  this->MT->mtSetGain(gain, cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMinGain(int cam)
-{
-  return this->MT->mtGetMinGain(cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMaxGain(int cam)
-{
-  return this->MT->mtGetMaxGain(cam);
-}
-
-//-----------------------------------------------------------------------------
-double vtkMicronTracker::GetDBGain(int cam)
-{
-  return this->MT->mtGetDBGain(cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetExposure(int cam)
-{
-  return this->MT->mtGetExposure(cam);
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetExposure(double exposure, int cam)
-{
-  this->MT->mtSetExposure(exposure, cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMinExposure(int cam)
-{
-  return this->MT->mtGetMinExposure(cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetMaxExposure(int cam)
-{
-  return this->MT->mtGetMaxExposure(cam);
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetCamAutoExposure(int cam)
-{
-  return this->MT->mtGetCamAutoExposure(cam);
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::SetCamAutoExposure(int autoExposure, int cam)
-{
-  this->MT->mtSetCamAutoExposure(autoExposure, cam);
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetLatestFrameTime(int cam)
-{
-  return this->MT->mtGetLatestFrameTime(cam);
-}
-
-//-----------------------------------------------------------------------------
-char* vtkMicronTracker::GetTemplateName(int markerIdx)
-{  
-  return this->MT->mtGetTemplateName(markerIdx);
-}
-
-//-----------------------------------------------------------------------------
-char* vtkMicronTracker::GetIdentifiedTemplateName(int markerIdx)
-{
-  return (char*)(this->MT->mtGetIdentifiedTemplateName(markerIdx));
-}
-
-//-----------------------------------------------------------------------------
-void vtkMicronTracker::SetTemplateName(int markerIdx, char* templateName)
-{
-  int callResult =  this->MT->mtSetTemplateName(markerIdx, templateName);
-  if (callResult != 0)
-  {
-    LOG_ERROR(this->MT->GetLastErrorString());
-  }
-  this->RefreshMarkerTemplates();
-}
-
-//-----------------------------------------------------------------------------
-void vtkMicronTracker::DeleteTemplate(int markerIdx)
-{
-  int callResult = this->MT->mtDeleteTemplate(markerIdx);
-  if (callResult != 0 )
-  {
-    LOG_ERROR(this->MT->GetLastErrorString());
-  }
-  this->RefreshMarkerTemplates();
-}
-
-//-----------------------------------------------------------------------------
-vtkLongArray* vtkMicronTracker::GetLatestFramePixHistogram(int cam, int ssr)
-{
-  long* paPixHist;
-  this->MT->mtGetLatestFramePixHistogram(paPixHist, ssr, cam);
-
-  vtkLongArray* pTemp = vtkLongArray::New();
-  pTemp->SetArray(paPixHist, 256, 1);
-
-  vtkLongArray* pPixHist = vtkLongArray::New();
-  pPixHist->DeepCopy(pTemp);
-  return pPixHist;
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumOfFramesGrabbed(int cam)
-{
-  return this->MT->mtGetNumOfFramesGrabbed(cam);
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetBitsPerPixel(int cam)
-{
-  return this->MT->mtGetBitsPerPixel(cam);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -813,6 +381,14 @@ PlusStatus vtkMicronTracker::Connect()
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
+  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
+  for (int i=0; i<numOfCameras; i++)
+  {
+    LOG_DEBUG("Camera "<<i<<": "
+      <<this->MT->mtGetXResolution(i)<<"x"<<this->MT->mtGetYResolution(i)<<", "
+      <<this->MT->mtGetNumOfSensors(i)<<" sensors "
+      <<"(serial number: "<<this->MT->mtGetSerialNum(i)<<")");
+  }
 
   if (RefreshMarkerTemplates()!=PLUS_SUCCESS)
   {
@@ -823,59 +399,16 @@ PlusStatus vtkMicronTracker::Connect()
 
   this->IsMicronTrackingInitialized=1;
 
-  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
-  this->CameraInfoList.clear();
-  for (int i=0; i<numOfCameras; i++)
-  {
-    CameraInfo info;
-    info.serialNum=this->MT->mtGetSerialNum(i);
-    info.xResolution=this->MT->mtGetXResolution(i);
-    info.yResolution=this->MT->mtGetYResolution(i);
-    info.numOfSensors=this->MT->mtGetNumOfSensors(i);
-    this->CameraInfoList.push_back(info);
-  }
-  if (numOfCameras>0)
-  {
-    LOG_DEBUG("Serial number of the current camera: " << this->CameraInfoList[0].serialNum);
-    LOG_DEBUG("Resolution of the current camera: " << this->CameraInfoList[0].xResolution << " x " << this->CameraInfoList[0].yResolution );
-  }
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::Disconnect()
 { 
-  this->MT->mtEnd();  
+  if (this->IsMicronTrackingInitialized)
+  {
+    this->MT->mtEnd();  
+    this->IsMicronTrackingInitialized=false;
+  }  
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumOfCameras()
-{
-  return this->MT->mtGetNumOfCameras();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumOfIdentifiedMarkers()
-{
-  return this->MT->mtGetIdentifiedMarkersCount();
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetNumOfUnidentifiedMarkers()
-{
-  return this->MT->mtGetUnidentifiedMarkersCount();
-}
-
-//----------------------------------------------------------------------------
-double vtkMicronTracker::GetLightCoolness(int cam /* = -1 */) 
-{
-  return MT->mtGetLightCoolness(cam);
-}
-
-//----------------------------------------------------------------------------
-int vtkMicronTracker::GetLatestFrameHazard() 
-{
-  return MT->mtGetLatestFrameHazard();
 }
