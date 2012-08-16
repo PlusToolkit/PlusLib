@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
@@ -63,14 +63,14 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
 	if ( printHelp ) 
 	{
 		std::cout << "\n\nvtkWin32VideoSourceTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 
 	}
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	vtkSmartPointer<vtkWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkWin32VideoSource2>::New();
 

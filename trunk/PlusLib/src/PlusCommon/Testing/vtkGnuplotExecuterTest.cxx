@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 	std::vector<std::string> inputGnuplotArguments;
 	double timeout(120); 
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -39,6 +39,8 @@ int main(int argc, char **argv)
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( printHelp ) 
 	{
@@ -51,9 +53,7 @@ int main(int argc, char **argv)
 	{
 		std::cerr << "gnuplot-command argument is required!" << std::endl;
 		exit(EXIT_FAILURE);; 
-	}
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	}	
 
 	///////////////
 	

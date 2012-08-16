@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -54,6 +54,8 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {
@@ -75,9 +77,7 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
-  dataCollector->ReadConfiguration( configRootElement );
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  dataCollector->ReadConfiguration( configRootElement );  
 
   if ( ! inputVideoBufferMetafile.empty() )
   {

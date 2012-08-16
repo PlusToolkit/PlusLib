@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--serial-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serialNumber, "Serial number of the Epiphan device to connect");
   args.AddArgument("--frame-rate", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameRate, "Requested acquisition frame rate (in FPS, default = 30)");
@@ -68,14 +68,14 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+
 	if ( printHelp ) 
 	{
 		std::cout << "\n\nvtkEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 
 	}
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	vtkSmartPointer<vtkEpiphanVideoSource> frameGrabber = vtkSmartPointer<vtkEpiphanVideoSource>::New();
 

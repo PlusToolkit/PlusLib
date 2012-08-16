@@ -55,7 +55,7 @@ int main( int argc, char** argv )
   int center[3];
   int size[3];
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -87,6 +87,8 @@ int main( int argc, char** argv )
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {
@@ -94,9 +96,7 @@ int main( int argc, char** argv )
     exit(EXIT_SUCCESS); 
   }
 
-  /************************************************************/
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  /************************************************************/	
   
   // record the start time for data recording, see http://www.cplusplus.com/reference/clibrary/ctime/localtime/
   time_t rawtime;

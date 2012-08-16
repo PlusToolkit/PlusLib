@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   std::string inputTransformName; 
   bool inputRepeat(false); 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -134,14 +134,14 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {
     std::cerr << "input-config-file-name is required" << std::endl;
     exit(EXIT_FAILURE);
-  }
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  }  
 
   ///////////////
 

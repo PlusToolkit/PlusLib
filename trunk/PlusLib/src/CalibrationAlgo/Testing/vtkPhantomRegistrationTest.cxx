@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);

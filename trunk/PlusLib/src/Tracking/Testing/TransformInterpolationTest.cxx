@@ -25,7 +25,7 @@ int main(int argc, char **argv)
   double inputMaxRotationDifference(1.0); 
   std::string inputTransformName; 
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -43,6 +43,8 @@ int main(int argc, char **argv)
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( printHelp ) 
 	{
@@ -56,9 +58,7 @@ int main(int argc, char **argv)
     std::cerr << "input-metafile argument required!" << std::endl; 
     std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE); 
-  }
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  }	
 
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 

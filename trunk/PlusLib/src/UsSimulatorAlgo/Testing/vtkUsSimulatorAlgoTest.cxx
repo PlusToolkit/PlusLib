@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   std::string intersectionFile;
   std::string showModel; 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   int numberOfFailures(0); 
 

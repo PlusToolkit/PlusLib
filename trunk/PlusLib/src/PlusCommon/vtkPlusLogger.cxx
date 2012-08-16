@@ -156,6 +156,7 @@ vtkPlusLogger* vtkPlusLogger::Instance()
   if (m_pInstance==NULL)
   {
     m_pInstance = new vtkPlusLogger;
+    vtkPlusConfig::GetInstance(); // set the log file name from the XML config
     std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
     m_pInstance->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", __LINE__); 
   }
@@ -171,6 +172,11 @@ int vtkPlusLogger::GetLogLevel()
 //-------------------------------------------------------
 void vtkPlusLogger::SetLogLevel(int logLevel) 
 { 
+  if (logLevel==LOG_LEVEL_UNDEFINED)
+  {
+    // keeping the current log level is requested
+    return;
+  }
   m_CriticalSection->Lock();
   m_LogLevel=logLevel;
   m_CriticalSection->Unlock();

@@ -65,7 +65,7 @@ int main(int argc, char **argv)
   bool printHelp(false);
   bool plotResults(false);
   bool saveIntermediateImages(false);
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackerSequenceMetafile; // Raw-buffer tracker file
   std::string inputVideoSequenceMetafile; // Corresponding raw-buffer video file
   std::string intermediateFileOutputDirectory; // Directory into which the intermediate files are written
@@ -89,14 +89,14 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp )
   {
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( inputTrackerSequenceMetafile.empty() )
   {

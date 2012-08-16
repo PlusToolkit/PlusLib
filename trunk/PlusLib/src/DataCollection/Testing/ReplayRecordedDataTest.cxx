@@ -27,7 +27,7 @@ int main( int argc, char** argv )
   std::string  inputConfigFileName;
   std::string  inputVideoBufferMetafile;
   std::string  inputTrackerBufferMetafile;
-  int          verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int          verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );

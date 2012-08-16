@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	std::string inputXmlFileName;
 	std::string outputFcsvFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);

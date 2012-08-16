@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
 	int inputNumberOfTrials(20); 
 	int samplingTimeMs(50);
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -39,15 +39,15 @@ int main (int argc, char* argv[])
 		std::cout << "\n\nCmsBrachyStepperTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( printHelp ) 
 	{
 		std::cout << "\n\nCmsBrachyStepperTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 
-	}
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	}	
 
 	for ( int reconnect = 0; reconnect < 5; reconnect++ )
 	{
