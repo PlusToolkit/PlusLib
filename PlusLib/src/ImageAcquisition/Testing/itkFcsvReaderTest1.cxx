@@ -21,7 +21,7 @@
 
 int main(int argc, char *argv[])
 {
-	vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEFAULT);  
+	vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);  
 
 	itk::FcsvReader::Pointer reader = itk::FcsvReader::New();
 

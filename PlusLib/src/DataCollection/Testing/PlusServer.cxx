@@ -26,7 +26,7 @@ int main( int argc, char** argv )
 {
   // Check command line arguments.
   std::string inputConfigFileName;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   double runTime = 60;
   bool testing = false; 
 
@@ -46,6 +46,8 @@ int main( int argc, char** argv )
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( inputConfigFileName.empty() )
   {
@@ -64,7 +66,6 @@ int main( int argc, char** argv )
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   // Create data collector instance 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();

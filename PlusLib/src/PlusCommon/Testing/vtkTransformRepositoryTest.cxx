@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 {
   // Parse command-line arguments
 	bool printHelp(false);
-	int verboseLevel(vtkPlusLogger::LOG_LEVEL_DEFAULT);
+	int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
@@ -31,13 +31,14 @@ int main(int argc, char **argv)
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
 	if ( printHelp ) 
 	{
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 
-	}
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	}	
 
   /////////////////////////////////////////////////////////////////////////////
   // Set up coordinate transforms

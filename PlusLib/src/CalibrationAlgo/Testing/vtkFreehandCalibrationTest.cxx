@@ -50,7 +50,7 @@ int main (int argc, char* argv[])
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -74,6 +74,8 @@ int main (int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize"); 
 
@@ -84,9 +86,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);  
 
   // Read coordinate definitions
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();

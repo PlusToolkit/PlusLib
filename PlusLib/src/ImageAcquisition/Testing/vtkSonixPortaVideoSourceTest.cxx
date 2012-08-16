@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--setting-path", vtksys::CommandLineArguments::NO_ARGUMENT, &PortaSettingPath, "Setting path.");	
   args.AddArgument("--lut-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &LUTPath, "LUT Path." );

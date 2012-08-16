@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   std::string outputImgFile;
   std::string operation="BRIGHTNESS_SCAN_CONVERT";
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   int numberOfFailures(0); 
 

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 {
   // Parse command-line arguments
   bool printHelp = false;
-  int verboseLevel(vtkPlusLogger::LOG_LEVEL_DEFAULT);
+  int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
   vtksys::CommandLineArguments args;
 
   std::string inputFileName; // Sequence metafile name with path to edit 
@@ -144,6 +144,9 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
   if ( printHelp ) 
   {
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -163,8 +166,7 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS; 
 
-  }
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  }  
 
   ///////////////////////////////////////////////////////////////////
   // Check command line arguments 

@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 
   bool printHelp(false);
   bool plotResults(false);
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackerSequenceMetafile;
   std::string inputUSImageSequenceMetafile;
   std::string outputFilepath;
@@ -110,6 +110,8 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   //  Write file indicating whether test was succesful; initially set to 0 (= 'No')
   std::string isTestValidFileName = outputFilepath + "/IsTestValid.txt"; 
@@ -145,9 +147,6 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   vtkSmartPointer<vtkTrackedFrameList> imageList = vtkSmartPointer<vtkTrackedFrameList>::New();

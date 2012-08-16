@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	std::string inputImageSequenceFileName;
 	std::string outputImageSequenceFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	int numberOfFailures(0); 
 	

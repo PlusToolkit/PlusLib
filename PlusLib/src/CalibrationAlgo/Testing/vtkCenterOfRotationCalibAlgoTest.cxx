@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 {
   int numberOfFailures(0); 
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp(false);
   vtksys::CommandLineArguments args;
@@ -50,6 +50,8 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {
@@ -62,9 +64,7 @@ int main(int argc, char **argv)
     std::cerr << "input-translation-sequence-metafile, input-baseline-file-name and input-config-file-name are required arguments!" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
-  }
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  }  
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(

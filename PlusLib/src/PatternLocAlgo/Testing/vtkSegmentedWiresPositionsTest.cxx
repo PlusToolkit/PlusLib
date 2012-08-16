@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
@@ -64,6 +64,8 @@ int main (int argc, char* argv[])
 		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( inputTestDataPath.empty() ) 
 	{
@@ -71,9 +73,7 @@ int main (int argc, char* argv[])
 		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 
-	}
-
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	}	
 
 	int SearchRegionXMin(0), SearchRegionXSize(0), SearchRegionYMin(0), SearchRegionYSize(0); 
 

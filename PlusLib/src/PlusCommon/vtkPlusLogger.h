@@ -107,7 +107,12 @@ public:
     /*! Detailed debugging information. */
 		LOG_LEVEL_TRACE=5,
     /*! Default logging level to be applied when it is not set explicitly by the application. */
-    LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO
+    LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO,
+    /*!
+      If this value is used for SetLogLevel then the current log level
+      will be kept.
+    */
+    LOG_LEVEL_UNDEFINED=100
 	};
 
   /*!  Get a pointer to the single existing object instance */

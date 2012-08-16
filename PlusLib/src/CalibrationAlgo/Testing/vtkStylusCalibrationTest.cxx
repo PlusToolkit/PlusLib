@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   std::string inputBaselineFileName;
 
   int numberOfPointsToAcquire=100;
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);

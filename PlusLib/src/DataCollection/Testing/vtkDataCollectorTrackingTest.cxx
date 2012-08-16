@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 	std::string outputFolder("./");
   bool renderingOff(false);
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -213,14 +213,20 @@ int main(int argc, char **argv)
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-
 	if ( !args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+
+  LOG_ERROR("Level1");
+  LOG_WARNING("Level2");
+  LOG_INFO("Level3");
+  LOG_DEBUG("Level4");
+  LOG_TRACE("Level5");
 
 	if (inputConfigFileName.empty())
 	{

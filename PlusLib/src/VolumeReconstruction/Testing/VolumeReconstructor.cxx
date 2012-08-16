@@ -28,7 +28,7 @@ int main (int argc, char* argv[])
   std::string outputFrameFileName; 
   std::string inputImageToReferenceTransformName; 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -49,6 +49,9 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
+  // Set the log level
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
   if ( printHelp ) 
   {
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
@@ -61,9 +64,6 @@ int main (int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit( EXIT_FAILURE );
   }
-
-  // Set the log level
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 

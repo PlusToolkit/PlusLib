@@ -15,7 +15,7 @@ See License.txt for details.
 int main (int argc, char* argv[])
 {
   bool printHelp(false); 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -29,6 +29,8 @@ int main (int argc, char* argv[])
     std::cout << "\nHelp:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {
@@ -36,8 +38,6 @@ int main (int argc, char* argv[])
     exit(EXIT_SUCCESS); 
 
   }
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   vtkTracker* tracker = NULL; 
   vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New(); 
