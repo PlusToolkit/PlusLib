@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
 	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
 	
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -48,6 +48,8 @@ int main(int argc, char **argv)
 		std::cout << "Help: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( printHelp ) 
 	{
@@ -62,9 +64,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	///////////////
-
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	///////////////  
 
 	//************************************************************************************
 	// Find program path 

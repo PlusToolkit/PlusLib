@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   std::string stylusName("Stylus");
   std::string referenceName("Reference");
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
