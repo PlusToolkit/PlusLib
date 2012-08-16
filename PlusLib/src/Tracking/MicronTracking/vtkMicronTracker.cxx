@@ -261,7 +261,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker , mToolToReference );
       this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, TOOL_OK, this->LastFrameNumber, unfilteredTimestamp);
     }
-    identifiedToolNames.insert(tool->GetPortName());
+    identifiedToolNames.insert(tool->GetToolName());
   }
 
   // Set status for tools with non-detected markers

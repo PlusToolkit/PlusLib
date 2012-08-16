@@ -222,12 +222,6 @@ int main(int argc, char **argv)
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  LOG_ERROR("Level1");
-  LOG_WARNING("Level2");
-  LOG_INFO("Level3");
-  LOG_DEBUG("Level4");
-  LOG_TRACE("Level5");
-
 	if (inputConfigFileName.empty())
 	{
 		std::cerr << "input-config-file-name is required" << std::endl;
