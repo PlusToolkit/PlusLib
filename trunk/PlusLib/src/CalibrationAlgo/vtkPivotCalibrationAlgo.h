@@ -36,7 +36,7 @@ class vtkPivotCalibrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);
-	static vtkPivotCalibrationAlgo *New();
+  static vtkPivotCalibrationAlgo *New();
 
   /*! Initialize algorithm - clear the MarkerToReferenceTransformMatrix array */
   PlusStatus Initialize();
@@ -50,7 +50,7 @@ public:
   /*!
     Insert acquired point to calibration point list
     \param aMarkerToReferenceTransformMatrix New calibration point (tool to reference transform)
-	*/
+  */
   PlusStatus InsertNextCalibrationPoint(vtkMatrix4x4* aMarkerToReferenceTransformMatrix);
 
   /*!
@@ -59,16 +59,16 @@ public:
   */
   PlusStatus DoPivotCalibration(vtkTransformRepository* aTransformRepository = NULL);
 
-	/*!
+  /*!
     Get calibration result string to display
     \param aPrecision Number of decimals shown
-	  \return Calibration result (e.g. stylus tip to stylus translation) string
-	*/
+    \return Calibration result (e.g. stylus tip to stylus translation) string
+  */
   std::string GetPivotPointToMarkerTranslationString(double aPrecision=3);
 
 public:
 
-	vtkGetMacro(CalibrationError, double);
+  vtkGetMacro(CalibrationError, double);
 
   vtkGetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4); 
 
@@ -91,19 +91,19 @@ protected:
   vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
 
 protected:
-	vtkPivotCalibrationAlgo();
-	virtual	~vtkPivotCalibrationAlgo();
+  vtkPivotCalibrationAlgo();
+  virtual  ~vtkPivotCalibrationAlgo();
 
 protected:
   /*! Callback function for the minimizer (function to minimize) */
   friend void vtkTrackerToolCalibrationFunction(void *userData);
 
 protected:
-	/*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
-	vtkMatrix4x4*				PivotPointToMarkerTransformMatrix;
+  /*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
+  vtkMatrix4x4*        PivotPointToMarkerTransformMatrix;
 
-	/*! Uncertainty (standard deviation), error of the calibration result in mm */
-	double							CalibrationError;
+  /*! Uncertainty (standard deviation), error of the calibration result in mm */
+  double              CalibrationError;
 
   /*! Minimizer algorithm object */
   vtkAmoebaMinimizer* Minimizer;

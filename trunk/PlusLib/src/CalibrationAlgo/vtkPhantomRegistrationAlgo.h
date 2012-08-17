@@ -27,26 +27,26 @@ class vtkPhantomRegistrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPhantomRegistrationAlgo,vtkObject);
-	static vtkPhantomRegistrationAlgo *New();
+  static vtkPhantomRegistrationAlgo *New();
 
 public:
-	/*!
+  /*!
     Performs landmark registration to determine transformation from phantom reference to phantom
     \param aTransformRepository Transform repository to save the results into
-	*/
-	PlusStatus Register(vtkTransformRepository* aTransformRepository = NULL);
+  */
+  PlusStatus Register(vtkTransformRepository* aTransformRepository = NULL);
 
-	/*!
-	  Read phantom definition (landmarks)
-	  \param aConfig Root XML data element containing the tool calibration
-	*/
-	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  /*!
+    Read phantom definition (landmarks)
+    \param aConfig Root XML data element containing the tool calibration
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-	/*!
-	  Gets defined landmark name
-	  \param aIndex Index of the landmark
-	  \return Name string
-	*/
+  /*!
+    Gets defined landmark name
+    \param aIndex Index of the landmark
+    \return Name string
+  */
   std::string GetDefinedLandmarkName(int aIndex) { return this->DefinedLandmarkNames[aIndex]; };
 
   /*! Get configuration element name */
@@ -82,24 +82,24 @@ protected:
   vtkSetStringMacro(StylusTipCoordinateFrame);
 
 protected:
-	vtkPhantomRegistrationAlgo();
-	virtual	~vtkPhantomRegistrationAlgo();
+  vtkPhantomRegistrationAlgo();
+  virtual  ~vtkPhantomRegistrationAlgo();
 
 protected:
-	/*! Point array holding the defined landmarks from the configuration file */
-	vtkPoints*								DefinedLandmarks;
+  /*! Point array holding the defined landmarks from the configuration file */
+  vtkPoints*                DefinedLandmarks;
 
-	/*! Names of the defined phantom landmarks from the configuration file */
-	std::vector<std::string>	DefinedLandmarkNames;
+  /*! Names of the defined phantom landmarks from the configuration file */
+  std::vector<std::string>  DefinedLandmarkNames;
 
-	/*! Point array holding the recorded landmarks */
-	vtkPoints*								RecordedLandmarks;
+  /*! Point array holding the recorded landmarks */
+  vtkPoints*                RecordedLandmarks;
 
   /*! Phantom to reference transform matrix - the result of the registration */
-	vtkMatrix4x4*							PhantomToReferenceTransformMatrix;
+  vtkMatrix4x4*              PhantomToReferenceTransformMatrix;
 
-	/*! The mean error of the landmark registration in mm */
-	double									  RegistrationError;
+  /*! The mean error of the landmark registration in mm */
+  double                    RegistrationError;
 
   /*! Name of the phantom coordinate frame (eg. Phantom) */
   char*                     PhantomCoordinateFrame;

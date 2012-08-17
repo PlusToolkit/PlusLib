@@ -277,7 +277,7 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLData
   const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
   if (phantomCoordinateFrame == NULL)
   {
-	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
@@ -286,7 +286,7 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLData
   const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);

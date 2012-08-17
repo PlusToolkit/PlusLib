@@ -135,7 +135,7 @@ public:
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
 private:
-	PlusStatus filterFrames();
+  PlusStatus filterFrames();
 
   double m_MaxCalibrationError;
 
@@ -179,8 +179,8 @@ private:
   /*! Resampled video time stamps used for correlation */
   std::vector<double> m_ResampledVideoTimestamps;
 
-	double m_CommonRangeMin; 
-	double m_CommonRangeMax;
+  double m_CommonRangeMin; 
+  double m_CommonRangeMax;
   
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
   
@@ -226,12 +226,12 @@ private:
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
   
-	/*! TODO */  
-	PlusStatus InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
-																				const std::vector<double> &originalMetricValues,
-																				const std::vector<double> &resampledTimestamps,
-																				std::vector<double> &resampledPositionMetric,
-																				double midpoint, double sharpness);
+  /*! TODO */  
+  PlusStatus InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
+                                        const std::vector<double> &originalMetricValues,
+                                        const std::vector<double> &resampledTimestamps,
+                                        std::vector<double> &resampledPositionMetric,
+                                        double midpoint, double sharpness);
 
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;

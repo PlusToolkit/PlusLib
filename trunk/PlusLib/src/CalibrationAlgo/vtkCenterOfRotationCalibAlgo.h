@@ -120,11 +120,11 @@ protected:
   /*! Report table used for storing algorithm results */
   vtkSetObjectMacro(ReportTable, vtkTable); 
 
-	/*! Set the rotation center in pixels. */
-	vtkSetVector2Macro(CenterOfRotationPx, int); 
+  /*! Set the rotation center in pixels. */
+  vtkSetVector2Macro(CenterOfRotationPx, int); 
 
   /*! Stores the center of rotation in px space */
-	double CenterOfRotationPx[2]; 
+  double CenterOfRotationPx[2]; 
 
   /*! Image spacing (mm/pixel)*/
   double Spacing[2];
