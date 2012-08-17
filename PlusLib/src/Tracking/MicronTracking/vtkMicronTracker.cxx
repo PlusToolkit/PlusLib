@@ -4,6 +4,11 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// TODO: need to evaluate if USE_MICRONTRACKER_TIMESTAMPS without filtering
+// is better then simply using accurate timestamp with filtering.
+// E.g., it could be checked by performing temporal calibration.
+// #define USE_MICRONTRACKER_TIMESTAMPS
+
 #include "PlusConfigure.h"
 
 #include "vtkMicronTracker.h"
@@ -27,6 +32,11 @@ vtkStandardNewMacro(vtkMicronTracker);
 //----------------------------------------------------------------------------
 vtkMicronTracker::vtkMicronTracker()
 {
+#ifdef USE_MICRONTRACKER_TIMESTAMPS
+  this->TrackerTimeToSystemTimeSec = 0;
+  this->TrackerTimeToSystemTimeComputed = false;
+#endif
+
   this->IsMicronTrackingInitialized = 0;
   this->MT = new MicronTrackerInterface();
 
@@ -122,7 +132,6 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
   // Generate a frame number, as the tool does not provide a frame number.
   // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
-  // TODO: test if this->MT->mtGetLatestFrameTime(cam) function can provide accurate enough without filtering
   ++this->FrameNumber;
 
   // Setting the timestamp
@@ -134,6 +143,19 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     LOG_WARNING("Failed to grab a new frame (" << this->MT->GetLastErrorString() <<"). Maybe the requested frame rate is too high.");
     return PLUS_FAIL;
   }
+
+#ifdef USE_MICRONTRACKER_TIMESTAMPS
+  if (!this->TrackerTimeToSystemTimeComputed)
+  {
+    const double timeSystemSec = unfilteredTimestamp;
+    const double timeTrackerSec = this->MT->mtGetLatestFrameTime();
+    this->TrackerTimeToSystemTimeSec = timeSystemSec-timeTrackerSec;
+    this->TrackerTimeToSystemTimeComputed = true;
+  }
+  const double timeTrackerSec = this->MT->mtGetLatestFrameTime();
+  const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;        
+#endif
+
   if (this->MT->mtProcessFrame() == -1)
   {
     LOG_ERROR("Error in processing a frame! (" << this->MT->GetLastErrorString() <<")");
@@ -161,7 +183,11 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     }
 
     GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
+#ifdef USE_MICRONTRACKER_TIMESTAMPS
+    this->ToolTimeStampedUpdateWithoutFiltering( tool->GetToolName(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
+#else
     this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+#endif
 
     identifiedToolNames.insert(tool->GetToolName());
   }
@@ -177,7 +203,11 @@ PlusStatus vtkMicronTracker::InternalUpdate()
       continue;
     }
     LOG_TRACE("Tool "<<it->second->GetToolName()<<": not found");
+#ifdef USE_MICRONTRACKER_TIMESTAMPS
+    ToolTimeStampedUpdateWithoutFiltering(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);   
+#else
     ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);   
+#endif
   }
 
   return PLUS_SUCCESS;
@@ -396,6 +426,11 @@ PlusStatus vtkMicronTracker::Connect()
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
+
+#ifdef USE_MICRONTRACKER_TIMESTAMPS
+  this->TrackerTimeToSystemTimeSec = 0;
+  this->TrackerTimeToSystemTimeComputed = false;
+#endif
 
   this->IsMicronTrackingInitialized=1;
 
