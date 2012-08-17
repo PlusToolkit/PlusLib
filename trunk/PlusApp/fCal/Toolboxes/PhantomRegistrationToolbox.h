@@ -40,8 +40,8 @@ public:
   /*! Destructor */
   ~PhantomRegistrationToolbox();
 
-  /*! Initialize toolbox (load session data) - implementation of a pure virtual function */
-  void Initialize();
+  /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
+  void OnActivated();
 
   /*!
   * Read stylus calibration configuration for fCal
@@ -70,7 +70,7 @@ protected:
   * Initialize 3D visualization
   * \return Success flag
   */
-  PlusStatus InitializeVisualization();
+  PlusStatus LoadPhantomModel();
 
   /*!
   * Put state into in progress if all prerequisites are done

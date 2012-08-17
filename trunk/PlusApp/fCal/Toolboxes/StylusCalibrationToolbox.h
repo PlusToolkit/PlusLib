@@ -38,8 +38,8 @@ public:
   /*! Destructor */
   ~StylusCalibrationToolbox();
 
-  /*! Initialize - implementation of a pure virtual function */
-  void Initialize();
+  /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
+  void OnActivated();
 
   /*!
     Read stylus calibration configuration for fCal

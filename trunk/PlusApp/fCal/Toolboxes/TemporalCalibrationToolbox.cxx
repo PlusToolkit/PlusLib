@@ -117,9 +117,9 @@ TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
 
 //-----------------------------------------------------------------------------
 
-void TemporalCalibrationToolbox::Initialize()
+void TemporalCalibrationToolbox::OnActivated()
 {
-  LOG_TRACE("TemporalCalibrationToolbox::Initialize"); 
+  LOG_TRACE("TemporalCalibrationToolbox::OnActivated"); 
 
   if (m_State == ToolboxState_Done)
   {
@@ -130,8 +130,6 @@ void TemporalCalibrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->SetTrackingOnly(false);
-
     // Read temporal calibration configuration
     if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {

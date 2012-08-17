@@ -91,9 +91,9 @@ SpatialCalibrationToolbox::~SpatialCalibrationToolbox()
 
 //-----------------------------------------------------------------------------
 
-void SpatialCalibrationToolbox::Initialize()
+void SpatialCalibrationToolbox::OnActivated()
 {
-  LOG_TRACE("SpatialCalibrationToolbox::Initialize"); 
+  LOG_TRACE("SpatialCalibrationToolbox::OnActivated"); 
 
   if (m_State == ToolboxState_Done)
   {
@@ -101,7 +101,7 @@ void SpatialCalibrationToolbox::Initialize()
     return;
   }
 
-  // Clear results poly data
+  // Clear results polydata
   if(m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL)
   {
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
@@ -110,8 +110,6 @@ void SpatialCalibrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->SetTrackingOnly(false);
-
     if (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Reading probe calibration algorithm configuration failed!");

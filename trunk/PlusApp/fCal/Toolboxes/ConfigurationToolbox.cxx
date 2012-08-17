@@ -82,9 +82,9 @@ ConfigurationToolbox::~ConfigurationToolbox()
 
 //-----------------------------------------------------------------------------
 
-void ConfigurationToolbox::Initialize()
+void ConfigurationToolbox::OnActivated()
 {
-  LOG_TRACE("ConfigurationToolbox::Initialize"); 
+  LOG_TRACE("ConfigurationToolbox::OnActivated"); 
 
   SetDisplayAccordingToState();
 }

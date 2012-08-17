@@ -64,9 +64,9 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::Initialize()
+void VolumeReconstructionToolbox::OnActivated()
 {
-  LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
+  LOG_TRACE("VolumeReconstructionToolbox::OnActivated"); 
 
   // Try to load volume reconstruction configuration from the device set configuration
   if ( (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() != NULL)
@@ -75,7 +75,7 @@ void VolumeReconstructionToolbox::Initialize()
     m_VolumeReconstructionConfigFileLoaded = true;
   }
 
-  // Clear results poly data
+  // Clear results polydata
   if (m_State != ToolboxState_Done && m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL)
   {
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();

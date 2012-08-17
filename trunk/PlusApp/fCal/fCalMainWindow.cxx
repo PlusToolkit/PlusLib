@@ -325,7 +325,7 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
     return;
   }
 
-  m_ToolboxList[m_ActiveToolbox]->Initialize();
+  m_ToolboxList[m_ActiveToolbox]->OnActivated();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 
   LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().data());

@@ -67,14 +67,13 @@ CapturingToolbox::~CapturingToolbox()
 
 //-----------------------------------------------------------------------------
 
-void CapturingToolbox::Initialize()
+void CapturingToolbox::OnActivated()
 {
-  LOG_TRACE("CapturingToolbox::Initialize"); 
+  LOG_TRACE("CapturingToolbox::OnActivated"); 
 
-  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
+  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    //m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->SetTrackingOnly(false);
-
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
     {

@@ -44,24 +44,16 @@ public:
   */
   ~CapturingToolbox();
 
-  /*!
-  * Initialize toolbox (load session data) - overridden method
-  */
-  void Initialize();
+  /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
+  void OnActivated();
 
-  /*!
-  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-  */
+  /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   void RefreshContent();
 
-  /*!
-  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
-  */
+  /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();
 
-  /*!
-  * Get recorded tracked frame list
-  */
+  /*! Get recorded tracked frame list */
   vtkTrackedFrameList* GetRecordedFrames() { return m_RecordedFrames; };
 
 protected:

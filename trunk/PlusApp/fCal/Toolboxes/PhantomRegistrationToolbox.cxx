@@ -45,12 +45,6 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
     return;
   }
 
-  // Create requested landmarks
-  m_RequestedLandmarkPolyData = vtkPolyData::New();
-  m_RequestedLandmarkPolyData->Initialize();
-  vtkSmartPointer<vtkPoints> requestedLandmarkPoints = vtkSmartPointer<vtkPoints>::New();
-  m_RequestedLandmarkPolyData->SetPoints(requestedLandmarkPoints);
-
   // Create and add renderer to phantom canvas
   m_PhantomRenderer = vtkRenderer::New();
   m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
@@ -58,6 +52,26 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   m_PhantomRenderer->SetGradientBackground(true);
 
   ui.canvasPhantom->GetRenderWindow()->AddRenderer(m_PhantomRenderer);
+
+  // Initialize requested landmarks visualization in toolbox canvas
+  m_RequestedLandmarkPolyData = vtkPolyData::New();
+  m_RequestedLandmarkPolyData->Initialize();
+  vtkSmartPointer<vtkPoints> requestedLandmarkPoints = vtkSmartPointer<vtkPoints>::New();
+  m_RequestedLandmarkPolyData->SetPoints(requestedLandmarkPoints);
+
+  m_RequestedLandmarkActor = vtkActor::New();
+  vtkSmartPointer<vtkPolyDataMapper> requestedLandmarksMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  vtkSmartPointer<vtkGlyph3D> requestedLandmarksGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+  vtkSmartPointer<vtkSphereSource> requestedLandmarksSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  requestedLandmarksSphereSource->SetRadius(1.5); // mm
+
+  requestedLandmarksGlyph->SetInputConnection(m_RequestedLandmarkPolyData->GetProducerPort());
+  requestedLandmarksGlyph->SetSourceConnection(requestedLandmarksSphereSource->GetOutputPort());
+  requestedLandmarksMapper->SetInputConnection(requestedLandmarksGlyph->GetOutputPort());
+  m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
+  m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+  m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
 
   // Connect events
   connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibration() ) );
@@ -106,9 +120,9 @@ PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::Initialize()
+void PhantomRegistrationToolbox::OnActivated()
 {
-  LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
+  LOG_TRACE("PhantomRegistrationToolbox::OnActivated"); 
 
   if (m_State == ToolboxState_Done)
   {
@@ -119,8 +133,6 @@ void PhantomRegistrationToolbox::Initialize()
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
   {
-    //m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->SetTrackingOnly(true);
-
     if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Reading phantom registration algorithm configuration failed!");
@@ -134,7 +146,8 @@ void PhantomRegistrationToolbox::Initialize()
     }
 
     // Check if stylus tip to reference transform is available
-    if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
+      m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
     {
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -173,7 +186,7 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
+PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
 {
   LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization"); 
 
@@ -200,26 +213,6 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
       LOG_ERROR("Unable to get phantom displayable object!");
       return PLUS_FAIL;
     }
-
-    // Initialize requested landmarks visualization in toolbox canvas
-    m_RequestedLandmarkPolyData = vtkPolyData::New();
-    m_RequestedLandmarkPolyData->Initialize();
-    vtkSmartPointer<vtkPoints> requestedLandmarkPoints = vtkSmartPointer<vtkPoints>::New();
-    m_RequestedLandmarkPolyData->SetPoints(requestedLandmarkPoints);
-
-    m_RequestedLandmarkActor = vtkActor::New();
-    vtkSmartPointer<vtkPolyDataMapper> requestedLandmarksMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkGlyph3D> requestedLandmarksGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-    vtkSmartPointer<vtkSphereSource> requestedLandmarksSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-    requestedLandmarksSphereSource->SetRadius(1.5); // mm
-
-    requestedLandmarksGlyph->SetInputConnection(m_RequestedLandmarkPolyData->GetProducerPort());
-    requestedLandmarksGlyph->SetSourceConnection(requestedLandmarksSphereSource->GetOutputPort());
-    requestedLandmarksMapper->SetInputConnection(requestedLandmarksGlyph->GetOutputPort());
-    m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
-    m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
-    m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
 
     // Initialize phantom visualization in toolbox canvas
     const char* modelFileName=phantomDisplayableModel->GetSTLModelFileName();
@@ -478,17 +471,18 @@ PlusStatus PhantomRegistrationToolbox::Start()
   }
 
   // Initialize toolbox canvas
-  if (InitializeVisualization() != PLUS_SUCCESS)
+  if (LoadPhantomModel() != PLUS_SUCCESS)
   {
     LOG_ERROR("Initializing phantom registration visualization failed!");
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
+    m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
   {
     m_CurrentLandmarkIndex = 0;
 
-    // Initialize input points poly data in visualizer
+    // Initialize input points polydata in visualizer
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints()->Initialize();
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->Modified();
 

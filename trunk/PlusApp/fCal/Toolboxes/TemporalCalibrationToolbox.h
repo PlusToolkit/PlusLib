@@ -39,8 +39,8 @@ public:
   /*! Destructor */
   ~TemporalCalibrationToolbox();
 
-  /*! Initialize toolbox (load session data) - implementation of a pure virtual function */
-  void Initialize();
+  /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
+  void OnActivated();
 
   /*!
   * Read freehand calibration configuration for fCal
