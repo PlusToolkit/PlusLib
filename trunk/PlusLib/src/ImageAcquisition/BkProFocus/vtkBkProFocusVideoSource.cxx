@@ -91,7 +91,6 @@ public:
   void vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM()
   {
 	  //WSAIF wsaif;
-	  LOG_INFO("vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM");
 	  TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
 	  std::string value;	  
 
@@ -109,6 +108,8 @@ public:
  	  std::string scanPlane = ParseResponseQuoted(value, 0);
 	  std::cout << "Scan plane: " << scanPlane << std::endl;
 
+	  this->External->RfProcessor->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
+
 	  value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
 	  float frameRate = atof(ParseResponse(value,0).c_str());
 	  std::cout << "Frame rate: " << frameRate << std::endl;
@@ -122,6 +123,8 @@ public:
 	  // StopLineX/Y: coordinate of the stop line origin in mm
 	  // StopDepth: stop depth of the scanning area in mm
 	  value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
+	  float startLineXMm = fabs(atof(ParseResponse(value,0).c_str()))*1000.;
+	  float stopLineXMm = fabs(atof(ParseResponse(value,4).c_str()))*1000.;
 	  float startAngleDeg = 
 		  vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
 	  // start depth is defined at the distance from the outer surface of the transducer 
@@ -149,6 +152,7 @@ public:
 		  if(scanPlane == "S")
 		  {
 			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
+			  this->External->RfProcessor->InitConverterTransducerWidthMm(startLineXMm+stopLineXMm);
 		  }
 		  else if(scanPlane == "T")
 		  {
@@ -209,15 +213,6 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->Buffer->Modified();
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
-
-  this->TransducerGeometry = NULL;
-  this->ImagingDepth = 0;
-  this->TransducerWidth = 0;
-  this->OutputImageSizePixel[0] = 0;
-  this->OutputImageSizePixel[1] = 0;
-  this->OutputImageSpacingMmPerPixel[0] = 0;
-  this->OutputImageSpacingMmPerPixel[1] = 0;
-  this->FrameRate = 0;
 }
 
 //----------------------------------------------------------------------------

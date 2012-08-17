@@ -55,12 +55,16 @@ public:
   /*! Set the transducer geometry (linear or curvilinear) */
   vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
 
+  /*! Set the transducer name */
+  vtkSetStringMacro(TransducerName); 
+
   /*! Initialize the corresponding values in the converter classes. */
   void InitConverterStartDepthMm(double); 
   void InitConverterStopDepthMm(double); 
   void InitConverterStartAngleDeg(double); 
   void InitConverterStopAngleDeg(double); 
   void InitConverterRadiusOfCurvatureMm(double);
+  void InitConverterTransducerWidthMm(double);
 
 protected:
   vtkRfProcessor();
@@ -71,6 +75,8 @@ protected:
   vtkUsScanConvertCurvilinear* ScanConverterCurvilinear;  
   vtkImageCast* ImageCaster;
 
+  /*! Transducer name */
+  char* TransducerName;
   /*! Type of the transducer (linear or curvilinear) */
   TransducerGeometryType TransducerGeometry;
 }; 
