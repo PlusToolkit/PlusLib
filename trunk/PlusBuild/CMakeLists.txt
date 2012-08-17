@@ -105,9 +105,6 @@ OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 #-----------------------------------------------------------------------------
 # Warnings for work in progress features
 #-----------------------------------------------------------------------------
-IF (PLUS_USE_MICRONTRACKER)
-  MESSAGE("Provide support for the Claron MicronTracker option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/348")
-ENDIF()
 IF (PLUS_USE_USBECGBOX)
   MESSAGE("Provide support for the USB ECG box option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/396")
 ENDIF()
