@@ -43,6 +43,7 @@ public:
 
   vtkSetMacro(OutputImageStartDepthMm,double);
   vtkSetMacro(ImagingDepthMm,double);
+  vtkSetMacro(TransducerWidthMm,double);
    
 protected:
   vtkUsScanConvertLinear();

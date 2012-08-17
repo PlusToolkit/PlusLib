@@ -29,6 +29,8 @@ vtkRfProcessor::vtkRfProcessor()
   // Only that will actually perform the scan conversion computation that will be asked for output.
   this->ScanConverterLinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
   this->ScanConverterCurvilinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());  
+
+  this->TransducerName = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -40,6 +42,11 @@ vtkRfProcessor::~vtkRfProcessor()
   this->ScanConverterLinear=NULL;
   this->RfToBrightnessConverter->Delete();
   this->RfToBrightnessConverter=NULL;  
+  if(this->TransducerName)
+  {
+	  delete [] this->TransducerName;
+	  this->TransducerName = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -163,6 +170,22 @@ void vtkRfProcessor::InitConverterRadiusOfCurvatureMm(double roc)
 }
 
 //-----------------------------------------------------------------------------
+void vtkRfProcessor::InitConverterTransducerWidthMm(double tw)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:
+    this->ScanConverterLinear->SetTransducerWidthMm(tw);
+    return;
+  case TRANSDUCER_CURVILINEAR:
+    return;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
 {
   if ( config == NULL )
@@ -218,6 +241,12 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
         SetTransducerGeometry(TRANSDUCER_UNKNOWN); 
       }
     }
+
+    const char* transducerNameStr = scanConversionElement->GetAttribute("TransducerName"); 
+    if ( transducerNameStr != NULL) 
+    {
+		this->SetTransducerName(transducerNameStr);
+	}
   }  
   
   return status;
@@ -282,6 +311,8 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
     LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
     status=PLUS_FAIL;
   }
+
+  scanConversionElement->SetAttribute("TransducerName", this->TransducerName);
  
   return status;
 }
