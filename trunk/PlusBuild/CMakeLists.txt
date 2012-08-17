@@ -198,6 +198,12 @@ IF ( PLUSBUILD_USE_3DSlicer )
     MESSAGE(FATAL_ERROR "Cannot use 3D Slicer if PLUSBUILD_SLICER_BIN_DIRECTORY is not defined.")
   ENDIF() 
 
+  # The Slicer4 config file complains if these are set.
+  UNSET (QT_QMAKE_EXECUTABLE CACHE)  
+  UNSET (VTK_DIR CACHE)
+  UNSET (ITK_DIR CACHE)    
+  UNSET (OpenIGTLink_DIR CACHE)
+  
   ## Try to find Slicer4
   FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
   IF ( Slicer_FOUND )
