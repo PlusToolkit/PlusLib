@@ -47,11 +47,11 @@ public:
   */
   virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkTransformRepository* transformRepository, const std::vector<NWire>& nWires ); 
 
-	/*!
-	  Read phantom definition (landmarks)
-	  \param aConfig Root XML data element containing the tool calibration
-	*/
-	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  /*!
+    Read phantom definition (landmarks)
+    \param aConfig Root XML data element containing the tool calibration
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get phantom to reference transform */
   virtual PlusStatus GetPhantomToReferenceTransformMatrix( vtkMatrix4x4* phantomToReferenceTransform);

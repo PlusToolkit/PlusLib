@@ -33,7 +33,7 @@ vtkStandardNewMacro(vtkProbeCalibrationAlgo);
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os,indent);
 } 
 
 //----------------------------------------------------------------------------
@@ -45,9 +45,9 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->PhantomCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
 
-	vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	this->ImageToProbeTransformMatrix = NULL;
-	this->SetImageToProbeTransformMatrix(imageToProbeTransformMatrix); 
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  this->ImageToProbeTransformMatrix = NULL;
+  this->SetImageToProbeTransformMatrix(imageToProbeTransformMatrix); 
 
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
@@ -82,19 +82,19 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 //----------------------------------------------------------------------------
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
-	this->SetImageToProbeTransformMatrix(NULL);
+  this->SetImageToProbeTransformMatrix(NULL);
 }
 
 //----------------------------------------------------------------------------
 
 PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
-	if ( aConfig == NULL )
-	{
-		LOG_ERROR("Unable to read configuration"); 
-		return PLUS_FAIL; 
-	}
+  LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
+  if ( aConfig == NULL )
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
 
   // vtkPivotCalibrationAlgo section
   vtkXMLDataElement* probeCalibrationElement = aConfig->FindNestedElementWithName("vtkProbeCalibrationAlgo"); 
@@ -109,7 +109,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   const char* imageCoordinateFrame = probeCalibrationElement->GetAttribute("ImageCoordinateFrame");
   if (imageCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ImageCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    LOG_ERROR("ImageCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetImageCoordinateFrame(imageCoordinateFrame);
@@ -118,7 +118,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   const char* probeCoordinateFrame = probeCalibrationElement->GetAttribute("ProbeCoordinateFrame");
   if (probeCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ProbeCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    LOG_ERROR("ProbeCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetProbeCoordinateFrame(probeCoordinateFrame);
@@ -127,7 +127,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   const char* phantomCoordinateFrame = probeCalibrationElement->GetAttribute("PhantomCoordinateFrame");
   if (phantomCoordinateFrame == NULL)
   {
-	  LOG_ERROR("PhantomCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    LOG_ERROR("PhantomCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
@@ -136,7 +136,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   const char* referenceCoordinateFrame = probeCalibrationElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
@@ -148,7 +148,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
 
 PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires )
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
+  LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
 
   return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, transformRepository, nWires);
 }
@@ -177,7 +177,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     return PLUS_FAIL; 
   }
   
-	int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
+  int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
   if (validationEndFrame < 0 || validationEndFrame >= numberOfValidationFrames)
   {
     validationEndFrame = numberOfValidationFrames;
@@ -188,7 +188,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     calibrationStartFrame = 0;
   }
 
-	int numberOfCalibrationFrames = calibrationTrackedFrameList->GetNumberOfTrackedFrames(); 
+  int numberOfCalibrationFrames = calibrationTrackedFrameList->GetNumberOfTrackedFrames(); 
   if (calibrationEndFrame < 0 || calibrationEndFrame >= numberOfCalibrationFrames)
   {
     calibrationEndFrame = numberOfCalibrationFrames;
@@ -202,7 +202,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   this->CalibrationMiddleWirePositionsInPhantomFrame.clear();
 
   // Add tracked frames for calibration and validation
-	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
+  for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG("\n----------------------------------");
     LOG_DEBUG("Add frame #" << frameNumber << " for validation data");
@@ -211,9 +211,9 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
     }
-  }		
+  }    
 
-	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
+  for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG("\n----------------------------------");
     LOG_DEBUG("Add frame #" << frameNumber << " for calibration data");
@@ -265,7 +265,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository );
 
-	// Log the calibration result and error
+  // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
   PlusMath::LogVtkMatrix(this->ImageToProbeTransformMatrix, 6);
 
@@ -310,7 +310,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   }
 
   // Save the calibration results and error reports into a file 
-	if ( SaveCalibrationResultAndErrorReportToXML(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame) != PLUS_SUCCESS )
+  if ( SaveCalibrationResultAndErrorReportToXML(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save report!");
     return PLUS_FAIL;
@@ -359,18 +359,18 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
   }
 
   // Convert segmented points to vnl
-	std::vector<vnl_vector<double> > segmentedPoints;
+  std::vector<vnl_vector<double> > segmentedPoints;
   for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); i++)
-	{
-		vnl_vector<double> vnlPoint(4,0);
+  {
+    vnl_vector<double> vnlPoint(4,0);
     double point[3];
     segmentedPointsVtk->GetPoint(i, point);
-		vnlPoint[0] = point[0];
-		vnlPoint[1] = point[1];
-		vnlPoint[2] = 0.0;
-		vnlPoint[3] = 1.0;
-		segmentedPoints.push_back(vnlPoint);
-	}
+    vnlPoint[0] = point[0];
+    vnlPoint[1] = point[1];
+    vnlPoint[2] = 0.0;
+    vnlPoint[3] = 1.0;
+    segmentedPoints.push_back(vnlPoint);
+  }
 
   // Get phantom registration matrix and convert it to vnl
   PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
@@ -464,19 +464,19 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository )
 {
   // Make sure the last row in homogeneous transform is [0 0 0 1]
-	vnl_vector<double> lastRow(4,0);
-	lastRow.put(3, 1);
-	imageToProbeTransformMatrixVnl.set_row(3, lastRow);
+  vnl_vector<double> lastRow(4,0);
+  lastRow.put(3, 1);
+  imageToProbeTransformMatrixVnl.set_row(3, lastRow);
 
-	// Convert transform to vtk
-	vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	for ( int i = 0; i < 3; i++ )
-	{
-		for ( int j = 0; j < 4; j++ )
-		{
-			imageToProbeMatrix->SetElement(i, j, imageToProbeTransformMatrixVnl.get(i, j) ); 
-		}
-	}
+  // Convert transform to vtk
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  for ( int i = 0; i < 3; i++ )
+  {
+    for ( int j = 0; j < 4; j++ )
+    {
+      imageToProbeMatrix->SetElement(i, j, imageToProbeTransformMatrixVnl.get(i, j) ); 
+    }
+  }
 
   // Check orthogonality
   if ( ! IsImageToProbeTransformOrthogonal() )
@@ -484,20 +484,20 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
     LOG_WARNING("User image to probe transform matrix orthogonality test failed! The result is probably not satisfactory");
   }
 
-	// Make the z vector have about the same length as x an y, so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
-	double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
-	double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
-	double zVector[3] = {0,0,0}; 
+  // Make the z vector have about the same length as x an y, so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
+  double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
+  double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
+  double zVector[3] = {0,0,0}; 
 
   vtkMath::Cross(xVector, yVector, zVector); 
 
-	vtkMath::Normalize(zVector);
-	double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
-	vtkMath::MultiplyScalar(zVector, normZ);
-	
-	imageToProbeMatrix->SetElement(0, 2, zVector[0]);
-	imageToProbeMatrix->SetElement(1, 2, zVector[1]);
-	imageToProbeMatrix->SetElement(2, 2, zVector[2]);
+  vtkMath::Normalize(zVector);
+  double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
+  vtkMath::MultiplyScalar(zVector, normZ);
+  
+  imageToProbeMatrix->SetElement(0, 2, zVector[0]);
+  imageToProbeMatrix->SetElement(1, 2, zVector[1]);
+  imageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
   // Set result matrix
   this->ImageToProbeTransformMatrix->DeepCopy( imageToProbeMatrix );
@@ -516,7 +516,7 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
 
 PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D");
+  LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D");
 
   // Initialize objects
   std::vector< std::vector<double> >* reprojectionError3Ds = NULL;
@@ -666,7 +666,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
 
 PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D");
+  LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D");
 
   // Initialize objects
   std::vector< std::vector< std::vector<double> > >* reprojectionError2Ds = NULL;
@@ -756,19 +756,19 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
       phantomToImageVtkTransformMatrix->MultiplyPoint(wireEndPointBackInPhantomFrame, wireEndPointBackInImageFrame);
 
       double computedPositionInImagePlane[3];
-	    double t = 0; // Parametric coordinate along the line
+      double t = 0; // Parametric coordinate along the line
 
       // Compute intersection of wire and image plane
       if ( ( ! vtkPlane::IntersectWithLine(wireEndPointFrontInImageFrame, wireEndPointBackInImageFrame, normalVector, origin, t, computedPositionInImagePlane) )
         && ( wireEndPointFrontInImageFrame[3] * wireEndPointBackInImageFrame[3] < 0 ) ) // This condition to ensure that warning is thrown only if the zero value is returned because both points are on the same side of the image plane (in that case the intersection is still valid although the return value is zero)
-	    {
-		    LOG_WARNING("Image plane and wire are parallel!");
+      {
+        LOG_WARNING("Image plane and wire are parallel!");
 
         std::vector<double> reprojectionError2D(2, DBL_MAX);
         reprojectionError2Ds->at(i).push_back( reprojectionError2D );
 
         continue;
-	    }
+      }
 
       double* segmentedPositionInImagePlane = segmentedPointsVtk->GetPoint(i);
 
@@ -873,23 +873,23 @@ PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMe
 
 std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
+  LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
 
-	std::ostringstream matrixStringStream;
-	matrixStringStream << "Image to probe transform:" << std::endl;
+  std::ostringstream matrixStringStream;
+  matrixStringStream << "Image to probe transform:" << std::endl;
 
-	// Print matrix rows
-	for (int i = 0; i < 4; i++)
+  // Print matrix rows
+  for (int i = 0; i < 4; i++)
   {
-		for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 4; j++)
     {
-			matrixStringStream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << this->ImageToProbeTransformMatrix->GetElement(i,j) << " ";
-		}
+      matrixStringStream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << this->ImageToProbeTransformMatrix->GetElement(i,j) << " ";
+    }
 
-		matrixStringStream << std::endl;
-	}
+    matrixStringStream << std::endl;
+  }
 
-	std::ostringstream errorsStringStream;
+  std::ostringstream errorsStringStream;
 
   errorsStringStream << std::fixed << std::setprecision(precision) << "3D Reprojection Error (mm)" << std::endl <<
     " Mean: " << this->ValidationReprojectionError3DMean <<
@@ -904,19 +904,19 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
       " SD:(" << this->ValidationReprojectionError2DStdDevs[i][0] << "," << this->ValidationReprojectionError2DStdDevs[i][1] << ")" << std::endl;
   }
 
-	std::ostringstream resultStringStream;
-	resultStringStream << matrixStringStream.str() << std::endl << errorsStringStream.str();
+  std::ostringstream resultStringStream;
+  resultStringStream << matrixStringStream.str() << std::endl << errorsStringStream.str();
 
-	//resultStringStream << std::endl << "Error confidence: " << (int)(this->ErrorConfidenceLevel*100) << "%";
+  //resultStringStream << std::endl << "Error confidence: " << (int)(this->ErrorConfidenceLevel*100) << "%";
 
-	return resultStringStream.str();
+  return resultStringStream.str();
 }
 
 //----------------------------------------------------------------------------
 
 bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal()
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
+  LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
 
   // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
   double xVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,0), this->ImageToProbeTransformMatrix->GetElement(1,0), this->ImageToProbeTransformMatrix->GetElement(2,0) }; 
@@ -956,19 +956,19 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   LOG_TRACE("vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML");
 
   std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
-	std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 
   // ProbeCalibrationResult
-	vtkSmartPointer<vtkXMLDataElement> probeCalibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  vtkSmartPointer<vtkXMLDataElement> probeCalibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
   // ProbeCalibrationResult
-	probeCalibrationResult->SetName("ProbeCalibrationResult"); 
-	probeCalibrationResult->SetAttribute("version", "2.0"); 
+  probeCalibrationResult->SetName("ProbeCalibrationResult"); 
+  probeCalibrationResult->SetAttribute("version", "2.0"); 
 
   // CalibrationFile
-	vtkSmartPointer<vtkXMLDataElement> calibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	calibrationFile->SetName("CalibrationFile"); 
-	calibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()); 
-	calibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
+  vtkSmartPointer<vtkXMLDataElement> calibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  calibrationFile->SetName("CalibrationFile"); 
+  calibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()); 
+  calibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 
   PlusStatus status = this->GetXMLCalibrationResultAndErrorReport(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame, probeCalibrationResult); 
   
@@ -985,10 +985,10 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
 
 PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult)
 {
-	LOG_TRACE("vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport");
+  LOG_TRACE("vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport");
 
   std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
-	std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 
   if ( probeCalibrationResult == NULL )
   {
@@ -1009,8 +1009,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
   }
 
   // CalibrationResults
-	vtkSmartPointer<vtkXMLDataElement> calibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	calibrationResults->SetName("CalibrationResults"); 
+  vtkSmartPointer<vtkXMLDataElement> calibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  calibrationResults->SetName("CalibrationResults"); 
 
   // Image to Probe transform
   double imageToProbeTransformVector[16]={0}; 
@@ -1026,25 +1026,25 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 
 
   // Error report
-	vtkSmartPointer<vtkXMLDataElement> errorReport = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	errorReport->SetName("ErrorReport");
+  vtkSmartPointer<vtkXMLDataElement> errorReport = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  errorReport->SetName("ErrorReport");
 
   // ReprojectionError3D
-	vtkSmartPointer<vtkXMLDataElement> reprojectionError3DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	reprojectionError3DStatistics->SetName("ReprojectionError3DStatistics");
+  vtkSmartPointer<vtkXMLDataElement> reprojectionError3DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  reprojectionError3DStatistics->SetName("ReprojectionError3DStatistics");
   reprojectionError3DStatistics->SetDoubleAttribute("ValidationMeanMm", this->ValidationReprojectionError3DMean); 
   reprojectionError3DStatistics->SetDoubleAttribute("ValidationStdDevMm", this->ValidationReprojectionError3DStdDev); 
   reprojectionError3DStatistics->SetDoubleAttribute("CalibrationMeanMm", this->CalibrationReprojectionError3DMean); 
   reprojectionError3DStatistics->SetDoubleAttribute("CalibrationStdDevMm", this->CalibrationReprojectionError3DStdDev); 
 
   // ReprojectionError2D
-	vtkSmartPointer<vtkXMLDataElement> reprojectionError2DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	reprojectionError2DStatistics->SetName("ReprojectionError2DStatistics");
+  vtkSmartPointer<vtkXMLDataElement> reprojectionError2DStatistics = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  reprojectionError2DStatistics->SetName("ReprojectionError2DStatistics");
 
   for (int i=0; i<this->NWires.size()*3; ++i)
   {
-	  vtkSmartPointer<vtkXMLDataElement> wire = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  wire->SetName("Wire");
+    vtkSmartPointer<vtkXMLDataElement> wire = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    wire->SetName("Wire");
     wire->SetAttribute("Name", this->NWires[i/3].Wires[i%3].Name.c_str());
 
     double validationMean2D[2] = { this->ValidationReprojectionError2DMeans[i][0], this->ValidationReprojectionError2DMeans[i][1] };
@@ -1060,8 +1060,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
   }
 
   // ValidationData
-	vtkSmartPointer<vtkXMLDataElement> validationData = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	validationData->SetName("ValidationData");
+  vtkSmartPointer<vtkXMLDataElement> validationData = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  validationData->SetName("ValidationData");
 
   int numberOfSegmentedFramesSoFar = 0;
   for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
@@ -1069,8 +1069,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     vtkPoints* segmentedPointsVtk = validationTrackedFrameList->GetTrackedFrame(frameNumber)->GetFiducialPointsCoordinatePx();
 
     // Frame
-	  vtkSmartPointer<vtkXMLDataElement> frame = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  frame->SetName("Frame");
+    vtkSmartPointer<vtkXMLDataElement> frame = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    frame->SetName("Frame");
     frame->SetIntAttribute("Index", frameNumber);
 
     if (segmentedPointsVtk == NULL)
@@ -1094,44 +1094,44 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     frame->SetAttribute("SegmentationStatus", "OK");
 
     // SegmentedPoints
-	  vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  segmentedPoints->SetName("SegmentedPoints");
+    vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    segmentedPoints->SetName("SegmentedPoints");
 
     int numberOfSegmentedPoints = segmentedPointsVtk->GetNumberOfPoints();
     for (int i=0; i<numberOfSegmentedPoints; i++)
-	  {
+    {
       double point[3];
       segmentedPointsVtk->GetPoint(i, point);
 
-	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    pointElement->SetName("Point");
+      vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      pointElement->SetName("Point");
       pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
-	  }
+    }
 
     // ReprojectionError3Ds
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError3Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError3Ds->SetName("ReprojectionError3DList");
+    vtkSmartPointer<vtkXMLDataElement> reprojectionError3Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    reprojectionError3Ds->SetName("ReprojectionError3DList");
 
     for (int i = 0; i < numberOfSegmentedPoints/3; ++i)
     {
-	    vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    reprojectionError3DElement->SetName("ReprojectionError3D");
+      vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      reprojectionError3DElement->SetName("ReprojectionError3D");
       reprojectionError3DElement->SetAttribute("WireName", this->NWires[i].Wires[1].Name.c_str());
       reprojectionError3DElement->SetDoubleAttribute("ErrorMm", this->ValidationReprojectionError3Ds[i][numberOfSegmentedFramesSoFar]);
       reprojectionError3Ds->AddNestedElement( reprojectionError3DElement );
     }
 
     // ReprojectionError2Ds
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError2Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError2Ds->SetName("ReprojectionError2DList");
+    vtkSmartPointer<vtkXMLDataElement> reprojectionError2Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    reprojectionError2Ds->SetName("ReprojectionError2DList");
 
     for (int i = 0; i < numberOfSegmentedPoints; ++i)
     {
       double reprojectionError2D[2] = { this->ValidationReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][0], this->ValidationReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][1] };
-	    vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    reprojectionError2DElement->SetName("ReprojectionError2D");
+      vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      reprojectionError2DElement->SetName("ReprojectionError2D");
       reprojectionError2DElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       reprojectionError2DElement->SetVectorAttribute("ErrorPx", 2, reprojectionError2D);
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
@@ -1153,8 +1153,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
   }
 
   // CalibrationData
-	vtkSmartPointer<vtkXMLDataElement> calibrationData = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	calibrationData->SetName("CalibrationData");
+  vtkSmartPointer<vtkXMLDataElement> calibrationData = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  calibrationData->SetName("CalibrationData");
 
   numberOfSegmentedFramesSoFar = 0;
   for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
@@ -1162,8 +1162,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     vtkPoints* segmentedPointsVtk = calibrationTrackedFrameList->GetTrackedFrame(frameNumber)->GetFiducialPointsCoordinatePx();
 
     // Frame
-	  vtkSmartPointer<vtkXMLDataElement> frame = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  frame->SetName("Frame");
+    vtkSmartPointer<vtkXMLDataElement> frame = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    frame->SetName("Frame");
     frame->SetIntAttribute("Index", frameNumber);
 
     if (segmentedPointsVtk == NULL)
@@ -1187,30 +1187,30 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     frame->SetAttribute("SegmentationStatus", "OK");
 
     // SegmentedPoints
-	  vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  segmentedPoints->SetName("SegmentedPoints");
+    vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    segmentedPoints->SetName("SegmentedPoints");
 
     int numberOfSegmentedPoints = segmentedPointsVtk->GetNumberOfPoints();
     for (int i=0; i<numberOfSegmentedPoints; i++)
-	  {
+    {
       double point[3];
       segmentedPointsVtk->GetPoint(i, point);
 
-	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    pointElement->SetName("Point");
+      vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      pointElement->SetName("Point");
       pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
-	  }
+    }
 
     // MiddleWire
-	  vtkSmartPointer<vtkXMLDataElement> middleWires = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  middleWires->SetName("MiddleWires");
+    vtkSmartPointer<vtkXMLDataElement> middleWires = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    middleWires->SetName("MiddleWires");
 
     for (int i = numberOfSegmentedFramesSoFar*numberOfSegmentedPoints/3; i < (numberOfSegmentedFramesSoFar+1)*numberOfSegmentedPoints/3; ++i)
     {
-	    vtkSmartPointer<vtkXMLDataElement> middleWire = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    middleWire->SetName("MiddleWire");
+      vtkSmartPointer<vtkXMLDataElement> middleWire = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      middleWire->SetName("MiddleWire");
 
       double middleWirePositionInImageFrame[4];
       double middleWirePositionInProbeFrame[4];
@@ -1225,27 +1225,27 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     }
 
     // ReprojectionError3Ds
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError3Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError3Ds->SetName("ReprojectionError3DList");
+    vtkSmartPointer<vtkXMLDataElement> reprojectionError3Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    reprojectionError3Ds->SetName("ReprojectionError3DList");
 
     for (int i = 0; i < numberOfSegmentedPoints/3; ++i)
     {
-	    vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    reprojectionError3DElement->SetName("ReprojectionError3D");
+      vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      reprojectionError3DElement->SetName("ReprojectionError3D");
       reprojectionError3DElement->SetAttribute("WireName", this->NWires[i].Wires[1].Name.c_str());
       reprojectionError3DElement->SetDoubleAttribute("ErrorMm", this->CalibrationReprojectionError3Ds[i][numberOfSegmentedFramesSoFar]);
       reprojectionError3Ds->AddNestedElement( reprojectionError3DElement );
     }
 
     // ReprojectionError2Ds
-	  vtkSmartPointer<vtkXMLDataElement> reprojectionError2Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  reprojectionError2Ds->SetName("ReprojectionError2DList");
+    vtkSmartPointer<vtkXMLDataElement> reprojectionError2Ds = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    reprojectionError2Ds->SetName("ReprojectionError2DList");
 
     for (int i = 0; i < numberOfSegmentedPoints; ++i)
     {
       double reprojectionError2D[2] = { this->CalibrationReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][0], this->CalibrationReprojectionError2Ds[i][numberOfSegmentedFramesSoFar][1] };
-	    vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    reprojectionError2DElement->SetName("ReprojectionError2D");
+      vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      reprojectionError2DElement->SetName("ReprojectionError2D");
       reprojectionError2DElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       reprojectionError2DElement->SetVectorAttribute("ErrorPx", 2, reprojectionError2D);
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );

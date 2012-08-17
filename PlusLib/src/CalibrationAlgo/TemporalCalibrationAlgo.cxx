@@ -53,8 +53,8 @@ static const double SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_METRIC_TYPE_COUNT] 
 
 enum METRIC_NORMALIZATION_TYPE
 {
-	STD,
-	AMPLITUDE
+  STD,
+  AMPLITUDE
 };
 const int METRIC_NORMALIZATION = AMPLITUDE;
 
@@ -331,13 +331,13 @@ PlusStatus TemporalCalibration::filterFrames()
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   PlusTransformName transformName;
 
-	if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
+  if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot compute tracker position metric, transform name is invalid ("<<m_ProbeToReferenceTransformName<<")");
     return PLUS_FAIL;
   }
 
-	for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
+  for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
@@ -348,25 +348,25 @@ PlusStatus TemporalCalibration::filterFrames()
     {
       // There is no available transform for this frame; skip that frame
       continue;
-		}
-		else
-		{
-			m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
-		}
+    }
+    else
+    {
+      m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp());
+    }
 
-	}
+  }
 
-	// DEBUG
-	std::ofstream originalVideoTimestampsFile;
-	originalVideoTimestampsFile.open("C:\\Users\\moult\\Documents\\Perk\\Summer2012\\TemporalCalibration\\Results\\OldTemporalCalibrationTests\\August_6_2012\\Frequency10\\Trial01\\OrigVideoTimes.txt");
+  // DEBUG
+  std::ofstream originalVideoTimestampsFile;
+  originalVideoTimestampsFile.open("C:\\Users\\moult\\Documents\\Perk\\Summer2012\\TemporalCalibration\\Results\\OldTemporalCalibrationTests\\August_6_2012\\Frequency10\\Trial01\\OrigVideoTimes.txt");
 
-	for(int i = 0; i < m_VideoTimestamps.size(); ++i)
-	{
-		originalVideoTimestampsFile << std::setprecision(8) << m_VideoTimestamps.at(i) << ", " << m_VideoPositionMetric.at(i) << std::endl;
-	}
-	originalVideoTimestampsFile.close();
+  for(int i = 0; i < m_VideoTimestamps.size(); ++i)
+  {
+    originalVideoTimestampsFile << std::setprecision(8) << m_VideoTimestamps.at(i) << ", " << m_VideoPositionMetric.at(i) << std::endl;
+  }
+  originalVideoTimestampsFile.close();
 
-	//  Find the time-range that is common to both tracker and image signals
+  //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = m_TrackerTimestamps.at(0);
   double translationTimestampMax = m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1);
 
@@ -376,13 +376,13 @@ PlusStatus TemporalCalibration::filterFrames()
   m_CommonRangeMin = std::max(imageTimestampMin, translationTimestampMin); 
   m_CommonRangeMax = std::min(imageTimestampMax, translationTimestampMax);
 
-	if (m_CommonRangeMin + m_MaxTrackerLagSec >= m_CommonRangeMax - m_MaxTrackerLagSec)
+  if (m_CommonRangeMin + m_MaxTrackerLagSec >= m_CommonRangeMax - m_MaxTrackerLagSec)
   {
     LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
     return PLUS_FAIL;
   }
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 
 }
 //-----------------------------------------------------------------------------
@@ -398,8 +398,8 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric(TEMPORAL_CALIBRATIO
     return PLUS_FAIL;
   }
 
-	// Clear the old tracker timestamps, preparing for an update
-	m_TrackerTimestamps.clear();
+  // Clear the old tracker timestamps, preparing for an update
+  m_TrackerTimestamps.clear();
 
   // Find the mean tracker position
   itk::Point<double, 3> trackerPositionSum;
@@ -410,54 +410,54 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric(TEMPORAL_CALIBRATIO
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
-		
-		if(trackedFrame->GetTimestamp() > (m_CommonRangeMin + m_MaxTrackerLagSec) && trackedFrame->GetTimestamp() < m_CommonRangeMax - m_MaxTrackerLagSec)
-		{
+    
+    if(trackedFrame->GetTimestamp() > (m_CommonRangeMin + m_MaxTrackerLagSec) && trackedFrame->GetTimestamp() < m_CommonRangeMax - m_MaxTrackerLagSec)
+    {
 
-			  //std::cout << "Tracked frame in desired time range" << std::endl;
-			  m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
-				vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-				bool valid = false;
-				transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
-				if (!valid)
-				{
-					// There is no available transform for this frame; skip that frame
-					continue;
-				}  
-		  
-				//  Store current tracker position 
-				itk::Point<double, 3> currTrackerPosition;
-				currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
-				currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
-				currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
-				trackerPositions.push_back(currTrackerPosition);
+        //std::cout << "Tracked frame in desired time range" << std::endl;
+        m_TrackerTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
+        vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+        bool valid = false;
+        transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
+        if (!valid)
+        {
+          // There is no available transform for this frame; skip that frame
+          continue;
+        }  
+      
+        //  Store current tracker position 
+        itk::Point<double, 3> currTrackerPosition;
+        currTrackerPosition[0] = probeToReferenceTransform->GetElement(0, 3);
+        currTrackerPosition[1] = probeToReferenceTransform->GetElement(1, 3);
+        currTrackerPosition[2] = probeToReferenceTransform->GetElement(2, 3);
+        trackerPositions.push_back(currTrackerPosition);
 
-				// Add current tracker position to the running total
-				trackerPositionSum[0] = trackerPositionSum[0] + probeToReferenceTransform->GetElement(0, 3);
-				trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
-				trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
-				++numberOfValidFrames;
-		}
+        // Add current tracker position to the running total
+        trackerPositionSum[0] = trackerPositionSum[0] + probeToReferenceTransform->GetElement(0, 3);
+        trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
+        trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
+        ++numberOfValidFrames;
+    }
   }
 
-	//// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
-	//ofstream trackerPositionsFile;
+  //// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
+  //ofstream trackerPositionsFile;
  // trackerPositionsFile.open ("\\trackerPositions.txt");
-	//for(long int i = 0; i < trackerPositions.size(); ++i)
-	//{
-	//	trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
-	//		<< ", " << trackerPositions.at(i).GetElement(2) << std::endl;
-	//}
+  //for(long int i = 0; i < trackerPositions.size(); ++i)
+  //{
+  //  trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
+  //    << ", " << trackerPositions.at(i).GetElement(2) << std::endl;
+  //}
  // trackerPositionsFile.close();
 
   // Calculate the principal axis of motion (using PCA)
   itk::Point<double,3> principalAxisOfMotion;
   ComputePrincipalAxis(trackerPositions, principalAxisOfMotion, numberOfValidFrames);
 
-	//// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
-	//ofstream eigenvectorFile;
+  //// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
+  //ofstream eigenvectorFile;
  // eigenvectorFile.open ("\\eigenvector.txt");
-	//eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
+  //eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
  // eigenvectorFile.close();
 
   // Compute the mean tracker poisition
@@ -986,7 +986,7 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     return PLUS_FAIL;
   }
 
-	 //  Calculate the metric mean
+   //  Calculate the metric mean
   double mu = 0;
   for(int i = 0; i < metric.size(); ++i)
   {
@@ -995,29 +995,29 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
 
   mu /= metric.size();
 
-	// Initialize standard deviation
-	double s = 0;
+  // Initialize standard deviation
+  double s = 0;
 
-	switch (METRIC_NORMALIZATION)
-	{
-		case AMPLITUDE:
-		{
-			// Do nothing
-			break;
-		}
-		case STD:
-		{
-			// Calculate standard deviation
-			for(int i = 0; i < metric.size(); ++i)
-			{
-			s += (metric.at(i) - mu)*(metric.at(i) - mu);
-			}
+  switch (METRIC_NORMALIZATION)
+  {
+    case AMPLITUDE:
+    {
+      // Do nothing
+      break;
+    }
+    case STD:
+    {
+      // Calculate standard deviation
+      for(int i = 0; i < metric.size(); ++i)
+      {
+      s += (metric.at(i) - mu)*(metric.at(i) - mu);
+      }
 
-			s = std::sqrt(s);
-			s /= std::sqrt( static_cast<double>(metric.size()) - 1);
-			break;
-		} // End "case: STD"
-	}
+      s = std::sqrt(s);
+      s /= std::sqrt( static_cast<double>(metric.size()) - 1);
+      break;
+    } // End "case: STD"
+  }
 
   //  Subtract the metric mean from each metric value as: s' = s - mu
   for(int i = 0; i < metric.size(); ++i)
@@ -1025,21 +1025,21 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     metric.at(i) -= mu;
   }
 
-	//  Calculate maximum and minimum metric values
-	double maxMetricValue = metric.at(0);
-	double minMetricValue = metric.at(0);
+  //  Calculate maximum and minimum metric values
+  double maxMetricValue = metric.at(0);
+  double minMetricValue = metric.at(0);
 
-	for(int i = 1; i < metric.size(); ++i)
-	{
-		if(metric.at(i) > maxMetricValue)
-		{
-			maxMetricValue = metric.at(i);
-		}
-		else if(metric.at(i) < minMetricValue)
-		{
-			minMetricValue = metric.at(i);
-		}
-	} // End for()
+  for(int i = 1; i < metric.size(); ++i)
+  {
+    if(metric.at(i) > maxMetricValue)
+    {
+      maxMetricValue = metric.at(i);
+    }
+    else if(metric.at(i) < minMetricValue)
+    {
+      minMetricValue = metric.at(i);
+    }
+  } // End for()
 
   // Compute the max peak-to-peak
   double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
@@ -1052,29 +1052,29 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     return PLUS_FAIL;
   }
 
-	switch (METRIC_NORMALIZATION)
-	{
-		case AMPLITUDE:
-		{
-			// Divide by the maximum signal amplitude
-			normalizationFactor = 1.0/maxPeakToPeak;
-			for(int i = 0; i < metric.size(); ++i)
-			{
-				metric.at(i) *= normalizationFactor; 
-			}
-			break;
-		} // End "case: AMPLITUDE" 
-		case STD:
-		{
-			// Divide by the standard deviation
-			normalizationFactor = 1.0/s;
-			for(int i = 0; i < metric.size(); ++i)
-			{
-				metric.at(i) *= normalizationFactor; 
-			} 
-			break;
-		} // End "case STD"
-	}
+  switch (METRIC_NORMALIZATION)
+  {
+    case AMPLITUDE:
+    {
+      // Divide by the maximum signal amplitude
+      normalizationFactor = 1.0/maxPeakToPeak;
+      for(int i = 0; i < metric.size(); ++i)
+      {
+        metric.at(i) *= normalizationFactor; 
+      }
+      break;
+    } // End "case: AMPLITUDE" 
+    case STD:
+    {
+      // Divide by the standard deviation
+      normalizationFactor = 1.0/s;
+      for(int i = 0; i < metric.size(); ++i)
+      {
+        metric.at(i) *= normalizationFactor; 
+      } 
+      break;
+    } // End "case STD"
+  }
 
   return PLUS_SUCCESS;
 
@@ -1099,29 +1099,29 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
 
   mu /= stationaryMetricSize;
 
-	// Initialize standard deviation
-	double s = 0;
+  // Initialize standard deviation
+  double s = 0;
 
-	switch (METRIC_NORMALIZATION)
-	{
-		case AMPLITUDE:
-		{
-			// Do nothing
-			break;
-		}
-		case STD:
-		{
-			// Calculate standard deviation
-			for(int i = 0; i < stationaryMetricSize; ++i)
-			{
-				s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
-			}
+  switch (METRIC_NORMALIZATION)
+  {
+    case AMPLITUDE:
+    {
+      // Do nothing
+      break;
+    }
+    case STD:
+    {
+      // Calculate standard deviation
+      for(int i = 0; i < stationaryMetricSize; ++i)
+      {
+        s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
+      }
 
-			s = std::sqrt(s);
-			s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
-			break;
-		} // End "case: STD"
-	}
+      s = std::sqrt(s);
+      s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
+      break;
+    } // End "case: STD"
+  }
 
 
 
@@ -1158,29 +1158,29 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
     return PLUS_FAIL;
   }
 
-	switch (METRIC_NORMALIZATION)
-	{
-		case AMPLITUDE:
-		{
-			// Divide by the maximum signal amplitude
-			double normalizationFactor = 1.0/maxPeakToPeak;
-			for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-			{
-				normalizedSlidingMetric.at(i) *= normalizationFactor; 
-			}
-			break;
-		} // End "case: AMPLITUDE" 
-		case STD:
-		{
-			// Divide by the standard deviation
-			double normalizationFactor = 1.0/s;
-			for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-			{
-				normalizedSlidingMetric.at(i) *= normalizationFactor; 
-			} 
-			break;
-		} // End "case STD"
-	}
+  switch (METRIC_NORMALIZATION)
+  {
+    case AMPLITUDE:
+    {
+      // Divide by the maximum signal amplitude
+      double normalizationFactor = 1.0/maxPeakToPeak;
+      for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
+      {
+        normalizedSlidingMetric.at(i) *= normalizationFactor; 
+      }
+      break;
+    } // End "case: AMPLITUDE" 
+    case STD:
+    {
+      // Divide by the standard deviation
+      double normalizationFactor = 1.0/s;
+      for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
+      {
+        normalizedSlidingMetric.at(i) *= normalizationFactor; 
+      } 
+      break;
+    } // End "case STD"
+  }
 
 
   return PLUS_SUCCESS;
@@ -1212,15 +1212,15 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
     ++n;
   }
 
-	//  Get resampled position metric for the US video data
+  //  Get resampled position metric for the US video data
   LOG_DEBUG("InterpolatePositionMetric for video data");
-	InterpolatePositionMetrics(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
-							 m_ResampledVideoPositionMetric, 0.5, 0);
+  InterpolatePositionMetrics(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
+               m_ResampledVideoPositionMetric, 0.5, 0);
 
-	//  Get resampled position metric for the tracker data
-	LOG_DEBUG("InterpolatePositionMetric for tracker data");
-	InterpolatePositionMetrics(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
-							 m_ResampledTrackerPositionMetric, 0.5, 0);
+  //  Get resampled position metric for the tracker data
+  LOG_DEBUG("InterpolatePositionMetric for tracker data");
+  InterpolatePositionMetrics(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
+               m_ResampledTrackerPositionMetric, 0.5, 0);
 
   // Normalize the calculated translations
   if(NormalizeMetric(m_ResampledTrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
@@ -1236,22 +1236,22 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
 
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
-																						 const std::vector<double> &originalMetricValues,
-																						 const std::vector<double> &resampledTimestamps,
-																						 std::vector<double> &resampledPositionMetric,
-																						 double midpoint, double sharpness)
+                                             const std::vector<double> &originalMetricValues,
+                                             const std::vector<double> &resampledTimestamps,
+                                             std::vector<double> &resampledPositionMetric,
+                                             double midpoint, double sharpness)
 {
-	vtkSmartPointer<vtkPiecewiseFunction> piecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  vtkSmartPointer<vtkPiecewiseFunction> piecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
   for(int i = 0; i < originalTimestamps.size(); ++i)
-	{
-		piecewiseSignal->AddPoint(originalTimestamps.at(i), originalMetricValues.at(i), midpoint, sharpness);
-	}
+  {
+    piecewiseSignal->AddPoint(originalTimestamps.at(i), originalMetricValues.at(i), midpoint, sharpness);
+  }
 
-	for(int i = 0; i < resampledTimestamps.size(); ++i)
-	{
-		resampledPositionMetric.push_back(piecewiseSignal->GetValue(resampledTimestamps.at(i)));
-	}
-	return PLUS_SUCCESS;
+  for(int i = 0; i < resampledTimestamps.size(); ++i)
+  {
+    resampledPositionMetric.push_back(piecewiseSignal->GetValue(resampledTimestamps.at(i)));
+  }
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -1355,11 +1355,11 @@ double TemporalCalibration::ComputeSadForGivenLagIndex(const std::vector<double>
 PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error)
 {
 
-	// Calculate the (normalized) metric for the video data
+  // Calculate the (normalized) metric for the video data
   ComputeVideoPositionMetric(error);
-	
-	// Get the time-range for the tracker signal
-	filterFrames();
+  
+  // Get the time-range for the tracker signal
+  filterFrames();
 
   // Calculate the (normalized) metric for the tracker data
   if(ComputeTrackerPositionMetric(error) != PLUS_SUCCESS)
@@ -1688,30 +1688,30 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
   RANSACType::Pointer ransacEstimator = RANSACType::New();
   
   
-	try{
-		ransacEstimator->SetData( data );
-	}
-	catch( std::exception& e) {
-		LOG_ERROR(e.what());
-		return PLUS_FAIL;
-	}
+  try{
+    ransacEstimator->SetData( data );
+  }
+  catch( std::exception& e) {
+    LOG_ERROR(e.what());
+    return PLUS_FAIL;
+  }
 
-	try{
-		ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
-	}
-	catch( std::exception& e) {
-		LOG_ERROR(e.what());
-		return PLUS_FAIL;
-	}
+  try{
+    ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
+  }
+  catch( std::exception& e) {
+    LOG_ERROR(e.what());
+    return PLUS_FAIL;
+  }
 
   
   try{
-		ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
-	}
-	catch( std::exception& e) {
-		LOG_ERROR(e.what());
-		return PLUS_FAIL;
-	}
+    ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+  }
+  catch( std::exception& e) {
+    LOG_ERROR(e.what());
+    return PLUS_FAIL;
+  }
   
   if( planeParameters.empty() )
   {

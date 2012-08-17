@@ -30,76 +30,76 @@ class NWire;
 class vtkProbeCalibrationAlgo : public vtkObject
 {
 public:
-	static vtkProbeCalibrationAlgo *New();
-	vtkTypeRevisionMacro(vtkProbeCalibrationAlgo, vtkObject);
-	virtual void PrintSelf(ostream& os, vtkIndent indent); 
+  static vtkProbeCalibrationAlgo *New();
+  vtkTypeRevisionMacro(vtkProbeCalibrationAlgo, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-	/*!
+  /*!
     Read XML based configuration of the calibration controller
     \param aConfig Root element of device set configuration data
   */
-	PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
+  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
   /*!
-	  Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
-	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+    Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
+    \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
     \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
     \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
-	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+    \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
-	*/
+  */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
-	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
-	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+    \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+    \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
-	*/
+  */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
   /*! Check user image home to probe home transform orthogonality */
   bool IsImageToProbeTransformOrthogonal(); 
 
   /*!
-	  Assembles the result string to display
+    Assembles the result string to display
     \param precision Number of decimals printed in the string
-	  \return String containing results
-	*/
-	std::string GetResultString(int precision = 3);
+    \return String containing results
+  */
+  std::string GetResultString(int precision = 3);
 
   /*!
-	  Get calibration result and error report in XML format 
-	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+    Get calibration result and error report in XML format 
+    \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
     \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
     \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
-	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+    \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
     \param probeCalibrationResult Output XML data element 
-	*/
+  */
   PlusStatus GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, 
     int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, 
     vtkXMLDataElement* probeCalibrationResult); 
 
 public:
   /*! Set/get the calibration date and time in string format */
-	vtkSetStringMacro(CalibrationDate); 
+  vtkSetStringMacro(CalibrationDate); 
   /*! Set/get the calibration date and time in string format */
-	vtkGetStringMacro(CalibrationDate);
+  vtkGetStringMacro(CalibrationDate);
 
-	/*! Get mean validation 3D reprojection error */
-	vtkGetMacro(ValidationReprojectionError3DMean, double);
-	/*! Get standard deviation of validation 3D reprojection errors */
-	vtkGetMacro(ValidationReprojectionError3DStdDev, double);
-	/*! Get mean calibration 3D reprojection error */
-	vtkGetMacro(CalibrationReprojectionError3DMean, double);
-	/*! Get standard deviation of calibration 3D reprojection errors */
-	vtkGetMacro(CalibrationReprojectionError3DStdDev, double);
+  /*! Get mean validation 3D reprojection error */
+  vtkGetMacro(ValidationReprojectionError3DMean, double);
+  /*! Get standard deviation of validation 3D reprojection errors */
+  vtkGetMacro(ValidationReprojectionError3DStdDev, double);
+  /*! Get mean calibration 3D reprojection error */
+  vtkGetMacro(CalibrationReprojectionError3DMean, double);
+  /*! Get standard deviation of calibration 3D reprojection errors */
+  vtkGetMacro(CalibrationReprojectionError3DStdDev, double);
 
   /*! Get the image coordinate frame name */
   vtkGetStringMacro(ImageCoordinateFrame);
@@ -109,11 +109,11 @@ public:
   vtkGetStringMacro(PhantomCoordinateFrame);
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrame);
-	
-	/*! Get/set the calibration result transformation matrix */
-	vtkGetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
+  
   /*! Get/set the calibration result transformation matrix */
-	vtkSetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
+  vtkGetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
+  /*! Get/set the calibration result transformation matrix */
+  vtkSetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
 
 public:
   /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
@@ -126,7 +126,7 @@ protected:
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, bool isValidation );
+  PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, bool isValidation );
 
   /*!
     Calculate 3D reprojection errors
@@ -165,8 +165,8 @@ protected:
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
 protected:
-	vtkProbeCalibrationAlgo();
-	virtual ~vtkProbeCalibrationAlgo();
+  vtkProbeCalibrationAlgo();
+  virtual ~vtkProbeCalibrationAlgo();
 
 protected:
   /*! Calibration date in string format */
@@ -185,7 +185,7 @@ protected:
   char* ReferenceCoordinateFrame;
 
   /*! The result of the calibration */
-	vtkMatrix4x4* ImageToProbeTransformMatrix;
+  vtkMatrix4x4* ImageToProbeTransformMatrix;
 
 
   /*! List of NWires used for calibration and error computation */
@@ -201,7 +201,7 @@ protected:
     Confidence level (trusted zone) as a percentage of the independent validation data used to produce the final error computation results.  It serves as an effective way to get rid of corrupted data
     (or outliers) in the validation dataset. Default value: 0.95 (or 95%), meaning the top ranked 95% of the ascendingly-ordered PRE values from the validation data would be accepted as the valid PRE values.
   */
-	double ErrorConfidenceLevel;
+  double ErrorConfidenceLevel;
 
 
   /*! Stored positions of the middle wires in the phantom frame for the validation data. These positions come from the segmented positions and the phantom geometry.
@@ -274,8 +274,8 @@ protected:
   std::vector< std::vector<double> > CalibrationReprojectionError2DStdDevs;
 
 private:
-	vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);
-	void operator=(const vtkProbeCalibrationAlgo&);
+  vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);
+  void operator=(const vtkProbeCalibrationAlgo&);
 };
 
 #endif //  __vtkProbeCalibrationAlgo_h

@@ -234,7 +234,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
   if (phantomCoordinateFrame == NULL)
   {
-	  LOG_ERROR("PhantomCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
+    LOG_ERROR("PhantomCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
@@ -243,7 +243,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ReferenceCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
@@ -252,7 +252,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   const char* stylusTipCoordinateFrame = phantomRegistrationElement->GetAttribute("StylusTipCoordinateFrame");
   if (stylusTipCoordinateFrame == NULL)
   {
-	  LOG_ERROR("StylusTipCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
+    LOG_ERROR("StylusTipCoordinateFrame is not specified in " << vtkPhantomRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetStylusTipCoordinateFrame(stylusTipCoordinateFrame);
