@@ -6,6 +6,11 @@
 # MICRONTRACKER_BINARY_DIR - shared libraries to be installed
 
 SET( MicronTracker_PATH_HINTS 
+  ../Claron/MTC_3.6.5.4_x86_win/MicronTracker
+  ../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+  ../../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+  ../trunk/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+  ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker  
   ../Claron/MTC_3.6.1.6_x86_win/MicronTracker
   ../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
   ../../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
