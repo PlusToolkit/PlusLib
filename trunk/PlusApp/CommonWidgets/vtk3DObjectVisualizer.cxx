@@ -521,6 +521,8 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
 
 PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn )
 {
+  LOG_TRACE("vtk3DObjectVisualizer::ShowObjectById(" << aModelId << ", " << (aOn?"true":"false") << ")");
+
   for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
     vtkDisplayableObject* displayableObject = *it;

@@ -18,13 +18,13 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkObject.h"
 #include "vtkPolyData.h"
+#include "vtkProp3DCollection.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTextActor3D.h"
 
 class vtkXMLDataElement;
 class vtkLineSource;
-class vtkProp3DCollection;
 
 //-----------------------------------------------------------------------------
 
@@ -130,6 +130,7 @@ public:
   vtkGetObjectMacro(ImageCamera, vtkCamera);
   vtkGetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
   vtkGetObjectMacro(ResultPolyData, vtkPolyData);
+  vtkGetObjectMacro(ScreenAlignedProps, vtkProp3DCollection);
   vtkGetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector);
@@ -160,6 +161,7 @@ protected:
   vtkSetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
   vtkSetObjectMacro(ROIActorAssembly, vtkAssembly);
   vtkSetObjectMacro(ResultActor, vtkActor);
+  vtkSetObjectMacro(ScreenAlignedProps, vtkProp3DCollection);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkSetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);

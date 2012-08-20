@@ -5,22 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkAssembly.h"
-#include "vtkCamera.h"
 #include "vtkConeSource.h"
-#include "vtkImageActor.h"
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkObjectFactory.h"
-#include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
 #include "vtkSphereSource.h"
-#include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkProp3DCollection.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -53,15 +46,17 @@ vtkImageVisualizer::vtkImageVisualizer()
 , ScreenAlignedCurrentXRotation(0.0)
 , ScreenAlignedCurrentYRotation(0.0)
 , CurrentMarkerOrientation(US_IMG_ORIENT_MF)
+, ScreenAlignedProps(NULL)
+, ROIActorAssembly(NULL)
 , LeftLineSource(NULL)
 , TopLineSource(NULL)
 , RightLineSource(NULL)
 , BottomLineSource(NULL)
-, ROIActorAssembly(NULL)
 {
   memset(RegionOfInterest, 0, sizeof(double[4]));
 
-  this->ScreenAlignedProps=vtkProp3DCollection::New();
+  vtkSmartPointer<vtkProp3DCollection> screenAlignedProps = vtkProp3DCollection::New();
+  this->SetScreenAlignedProps(screenAlignedProps);
 
   // Set up canvas renderer
   vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -701,10 +696,11 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   this->CurrentMarkerOrientation = orientationValue;
 
   //Find segmentation parameters element
-  vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
-  if (segmentationParameters == NULL) {
+  vtkXMLDataElement* segmentationParameters = aConfig->FindNestedElementWithName("Segmentation");
+  if (segmentationParameters == NULL)
+  {
     LOG_WARNING("No Segmentation element is found in the XML tree!");
-    RegionOfInterest[0] = RegionOfInterest[1] = RegionOfInterest[2] = RegionOfInterest[4] = -1;
+    RegionOfInterest[0] = RegionOfInterest[1] = RegionOfInterest[2] = RegionOfInterest[3] = -1;
     this->EnableROI(false);
   }
   else

@@ -15,13 +15,13 @@ See License.txt for details.
 vtkStandardNewMacro(vtkFakeTracker);
 
 //----------------------------------------------------------------------------
-vtkFakeTracker::vtkFakeTracker() 
+vtkFakeTracker::vtkFakeTracker()
+: Frame(0)
+, InternalTransform(vtkTransform::New())
+, Mode(FakeTrackerMode_Undefined)
+, Counter(-1)
+, TransformRepository(NULL)
 {
-  this->Frame = 0;
-  this->InternalTransform = vtkTransform::New();
-  this->Mode = FakeTrackerMode_Undefined;
-  this->Counter = -1;
-  this->TransformRepository = NULL;
 }
 
 //----------------------------------------------------------------------------
