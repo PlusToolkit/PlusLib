@@ -55,7 +55,7 @@ vtkImageVisualizer::vtkImageVisualizer()
 {
   memset(RegionOfInterest, 0, sizeof(double[4]));
 
-  vtkSmartPointer<vtkProp3DCollection> screenAlignedProps = vtkProp3DCollection::New();
+  vtkSmartPointer<vtkProp3DCollection> screenAlignedProps = vtkSmartPointer<vtkProp3DCollection>::New();
   this->SetScreenAlignedProps(screenAlignedProps);
 
   // Set up canvas renderer
