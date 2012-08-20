@@ -37,9 +37,9 @@
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
       File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
-        1 0 0 -29.7
+        -1 0 0 29.7
         0 -1 0 1.5
-        0 0 -1 14
+        0 0 1 -14
         0 0 0 1"
     />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
