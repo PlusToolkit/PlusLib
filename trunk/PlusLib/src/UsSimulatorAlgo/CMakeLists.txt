@@ -1,12 +1,14 @@
 # Sources
 SET (UsSimulatorAlgo_SRCS
     vtkUsSimulatorAlgo.cxx
+	vtkPolyDataToOrientedImageStencil.cxx
     )
 
 SET (UsSimulatorAlgo_HDRS)
 if (WIN32)    
   SET (UsSimulatorAlgo_HDRS
     vtkUsSimulatorAlgo.h
+	vtkPolyDataToOrientedImageStencil.h
   )
 endif (WIN32)
 
