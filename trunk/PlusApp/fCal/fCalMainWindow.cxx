@@ -85,6 +85,9 @@ fCalMainWindow::~fCalMainWindow()
   }
 
   this->SetPhantomModelId(NULL);
+  this->SetStylusModelId(NULL);
+  this->SetTransducerModelId(NULL);
+  this->SetImageObjectId(NULL);
 
   m_ToolboxList.clear();
 }

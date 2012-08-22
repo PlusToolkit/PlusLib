@@ -263,23 +263,6 @@ PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::ShowObjectsByCoordinateFrame(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
-
-  std::vector<vtkDisplayableModel*> objects = this->GetDisplayableObjects<vtkDisplayableModel>(aObjectCoordinateFrame);
-  for( std::vector<vtkDisplayableModel*>::iterator it = objects.begin(); it != objects.end(); ++it)
-  {
-    (*it)->GetActor()->SetVisibility(aOn);
-  }
-
-  this->CanvasRenderer->Modified();
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
 {
   this->InputActor->SetVisibility(aOn);

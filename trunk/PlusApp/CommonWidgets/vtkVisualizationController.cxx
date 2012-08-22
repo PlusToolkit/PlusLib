@@ -600,20 +600,6 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn)
-{
-  LOG_TRACE("vtkVisualizationController::ShowObjectsByCoordinateFrame(" << aObjectCoordinateFrame << ", " << (aOn?"true":"false") << ")");
-
-  if( this->PerspectiveVisualizer != NULL )
-  {
-    return this->PerspectiveVisualizer->ShowObjectsByCoordinateFrame(aObjectCoordinateFrame, aOn);
-  }
-
-  return PLUS_FAIL;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkVisualizationController::DisconnectInput()
 {
   if( this->GetImageActor() != NULL )
@@ -883,4 +869,19 @@ PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, boo
 
   LOG_ERROR("3D visualizer not created when attempting to show an object by ID.");
   return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId )
+{
+  LOG_TRACE("vtkVisualizationController::ShowObjectById");
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    return this->PerspectiveVisualizer->GetObjectById(aId);
+  }
+
+  LOG_ERROR("3D visualizer not created when attempting to retrieve an object by ID.");
+  return NULL;
 }

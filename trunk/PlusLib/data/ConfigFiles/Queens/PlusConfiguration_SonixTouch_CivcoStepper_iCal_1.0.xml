@@ -99,7 +99,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
         0 1 0  51.3
         0 0 0  1"
     />
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="CenterOfRotation" />
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="PhantomWires" />
   </Rendering>

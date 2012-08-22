@@ -32,6 +32,9 @@
 
   <fCal
     PhantomModelId="PhantomModel"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

@@ -442,7 +442,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
-  // phantom coordinate frame
+  // phantom model id
   const char* phantomModelId = fCalElement->GetAttribute("PhantomModelId");
   if (phantomModelId == NULL)
   {
@@ -450,6 +450,30 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   m_ParentMainWindow->SetPhantomModelId(phantomModelId);
   m_ParentMainWindow->EnablePhantomToggle(phantomModelId != NULL);
+
+  // stylus model id
+  const char* stylusModelId = fCalElement->GetAttribute("StylusModelId");
+  if (stylusModelId == NULL)
+  {
+    LOG_WARNING("Stylus model ID not specified in the fCal section of the configuration. Can't visualize the stylus.");
+  }
+  m_ParentMainWindow->SetStylusModelId(stylusModelId);
+
+  // stylus model id
+  const char* probeModelId = fCalElement->GetAttribute("TransducerModelId");
+  if (probeModelId == NULL)
+  {
+    LOG_WARNING("Transducer model ID not specified in the fCal section of the configuration. Can't visualize the probe.");
+  }
+  m_ParentMainWindow->SetTransducerModelId(probeModelId);
+
+  // stylus model id
+  const char* imageObjectId = fCalElement->GetAttribute("ImageDisplayableObjectId");
+  if (imageObjectId == NULL)
+  {
+    LOG_WARNING("Image object ID not specified in the fCal section of the configuration. Can't visualize the stylus.");
+  }
+  m_ParentMainWindow->SetImageObjectId(imageObjectId);
 
   return PLUS_SUCCESS;
 }
@@ -477,14 +501,13 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get phantom displayable model object
-  vtkDisplayableModel* phantomDisplayableModel = NULL;
-  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableModel>(phantomRegistration->GetPhantomCoordinateFrame());
-  if( objects.size() != 1)
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId().c_str());
+  vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(object);
+  if( phantomDisplayableModel == NULL)
   {
-    LOG_ERROR("Requested unique phantom displayable. Got: " << objects.size());
+    LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
     return PLUS_FAIL;
   }
-  phantomDisplayableModel = objects.at(0);
 
   // Get wire pattern
   FidPatternRecognition patternRecognition;

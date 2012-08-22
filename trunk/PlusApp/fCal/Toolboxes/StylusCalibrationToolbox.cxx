@@ -345,7 +345,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
     m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
     m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PivotCalibration->GetObjectPivotPointCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId().c_str(), true);
 
     QApplication::restoreOverrideCursor();
   }
@@ -391,8 +391,8 @@ void StylusCalibrationToolbox::Start()
   m_PivotCalibration->Initialize();
 
   // Initialize stylus tool
-  std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableModel>(m_PivotCalibration->GetObjectPivotPointCoordinateFrame());
-  if (objects.size() == 0)
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId().c_str());
+  if (object == NULL)
   {
     LOG_ERROR("No stylus tip displayable objects could be found!");
     return;

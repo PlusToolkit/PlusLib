@@ -16,7 +16,7 @@ vtkStylusCalibrationTest uses this configuration"
 
 
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
         1 0 0 -210.0
@@ -32,7 +32,10 @@ vtkStylusCalibrationTest uses this configuration"
 
 
   <fCal
-    PhantomModelId="PhantomModel"
+	PhantomModelId="PhantomModel"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

@@ -59,7 +59,7 @@
 
   </CoordinateDefinitions>
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl" ModelToObjectTransform="
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl" ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
@@ -67,14 +67,14 @@
 
     
     </DisplayableObject>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl" ModelToObjectTransform="         1 0 0 -210.0         0 1 0 0         0 0 1 0         0 0 0 1">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" ModelToObjectTransform="         1 0 0 -210.0         0 1 0 0         0 0 1 0         0 0 0 1">
 
     </DisplayableObject>
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl" ModelToObjectTransform="         1 0 0 -15.0         0 1 0 10.0         0 0 1 -5.0         0 0 0 1">
 
     
     </DisplayableObject>
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image">
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage">
 
     </DisplayableObject>
 
@@ -126,7 +126,10 @@
 
   </VolumeReconstruction>
   <fCal
-    PhantomModelId="PhantomModel" NumberOfCalibrationImagesToAcquire="200" NumberOfValidationImagesToAcquire="100" NumberOfStylusCalibrationPointsToAcquire="200" RecordingIntervalMs="100" MaxTimeSpentWithProcessingMs="70" ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" ReferenceCoordinateFrame="Reference" TransducerOriginCoordinateFrame="TransducerOrigin" TransducerOriginPixelCoordinateFrame="TransducerOriginPixel">
+    PhantomModelId="PhantomModel"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"	NumberOfCalibrationImagesToAcquire="200" NumberOfValidationImagesToAcquire="100" NumberOfStylusCalibrationPointsToAcquire="200" RecordingIntervalMs="100" MaxTimeSpentWithProcessingMs="70" ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" ReferenceCoordinateFrame="Reference" TransducerOriginCoordinateFrame="TransducerOrigin" TransducerOriginPixelCoordinateFrame="TransducerOriginPixel">
 
   </fCal>
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip">

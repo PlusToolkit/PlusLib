@@ -45,12 +45,13 @@
 
 
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
 
   <fCal
     PhantomModelId="PhantomModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

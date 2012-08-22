@@ -193,25 +193,19 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
   if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
   {
     vtkDisplayableModel* phantomDisplayableModel = NULL;
-    if(m_PhantomRegistration->GetPhantomCoordinateFrame() != NULL)
+    if( !m_ParentMainWindow->GetPhantomModelId().empty() )
     {
-      std::vector<vtkDisplayableModel*> objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableModel>(m_PhantomRegistration->GetPhantomCoordinateFrame());
-      if( objects.size() != 1 )
+      vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId().c_str());
+      phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
+      if( phantomDisplayableModel == NULL )
       {
-        LOG_ERROR("Expected only one displayable model for the phantom. Got: " << objects.size());
+        LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
         return PLUS_FAIL;
       }
-      phantomDisplayableModel = objects.at(0);
     }
     else
     {
-      LOG_WARNING("Phantom coordinate frame not defined.");
-    }
-
-    if (phantomDisplayableModel == NULL)
-    {
-      LOG_ERROR("Unable to get phantom displayable object!");
-      return PLUS_FAIL;
+      LOG_WARNING("Phantom model ID not defined.");
     }
 
     // Initialize phantom visualization in toolbox canvas
@@ -417,10 +411,10 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId().c_str(), true);
     if (m_CurrentLandmarkIndex >= 3)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -438,9 +432,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetStylusTipCoordinateFrame(), true);
-
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId().c_str(), true);
   }
   else if (m_State == ToolboxState_Error)
   {
@@ -632,7 +625,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   {
     if (m_PhantomRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetPhantomCoordinateFrame(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
     }
     else
     {
@@ -695,7 +688,7 @@ void PhantomRegistrationToolbox::Undo()
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), false);
   }
 
   // If tracker is FakeTracker then set counter
@@ -744,7 +737,7 @@ void PhantomRegistrationToolbox::Reset()
   // Hide phantom from main canvas
   if (m_PhantomRegistration->GetReferenceCoordinateFrame())
   {
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectsByCoordinateFrame(m_PhantomRegistration->GetReferenceCoordinateFrame(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), false);
   }
 
   // If tracker is FakeTracker then reset counter

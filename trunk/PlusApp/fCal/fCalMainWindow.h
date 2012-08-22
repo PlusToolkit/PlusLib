@@ -142,10 +142,25 @@ public:
 
   /*! Get phantom model id */
   std::string GetPhantomModelId() { return m_PhantomModelId; };
-  /*! Set phantom coordinate frame name */
-  void SetPhantomModelId(const char* aPhantomModelId) { m_PhantomModelId = aPhantomModelId; };
+  /*! Set phantom model id */
+  void SetPhantomModelId(const char* aObjectId) { m_PhantomModelId = aObjectId; };
   /*! Enable/disable the phantom action */
   void EnablePhantomToggle(bool aEnable);
+
+  /*! Get stylus model id */
+  std::string GetStylusModelId() { return m_StylusModelId; };
+  /*! Set stylus model id */
+  void SetStylusModelId(const char* aObjectId) { m_StylusModelId = aObjectId; };
+
+  /*! Get probe object id */
+  std::string GetTransducerModelId() { return m_TransducerModelId; };
+  /*! Set probe object id */
+  void SetTransducerModelId(const char* aObjectId) { m_TransducerModelId = aObjectId; };
+
+  /*! Get image object id */
+  std::string GetImageObjectId() { return m_ImageObjectId; };
+  /*! Set image object id */
+  void SetImageObjectId(const char* aObjectId) { m_ImageObjectId = aObjectId; };
 
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();
@@ -273,8 +288,17 @@ protected:
   /*! Transducer origin (pixel) coordinate frame name for Rendering */
   std::string m_TransducerOriginPixelCoordinateFrame;
 
-  /*! phantom coordinate frame name for Rendering */
+  /*! phantom object ID for Rendering */
   const char * m_PhantomModelId;
+
+  /*! stylus object ID for Rendering */
+  const char * m_StylusModelId;
+
+  /*! transducer object ID for Rendering */
+  const char * m_TransducerModelId;
+
+  /*! image object ID for Rendering */
+  const char * m_ImageObjectId;
 
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;

@@ -47,7 +47,7 @@
 
 
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin"
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
       File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
@@ -56,7 +56,7 @@
         0 0 0 1"
     />
 	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
         1 0 0 -210.0
@@ -73,7 +73,7 @@
         0 1 0 -5.0
         0 0 0 1"
       />
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
 
@@ -140,6 +140,9 @@
   <fCal
     PhantomModelId="PhantomModel"
 	ReconstructedVolumeId="Volume"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

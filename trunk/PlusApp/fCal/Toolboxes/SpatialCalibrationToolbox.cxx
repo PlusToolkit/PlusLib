@@ -766,23 +766,23 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
-  std::vector<vtkDisplayableObject*> objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableObject>(m_ParentMainWindow->GetTransducerOriginCoordinateFrame().c_str());
-  if (objects.size() == 1)
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId().c_str());
+  if (object != NULL)
   {
-    objects.at(0)->DisplayableOn();
+    object->DisplayableOn();
   }
   else
   {
-    LOG_WARNING("Requested unique transducer displayable model. Got: " << objects.size());
+    LOG_WARNING("Missing probe displayable object.");
   }
-  objects = m_ParentMainWindow->GetVisualizationController()->GetDisplayableObjects<vtkDisplayableObject>(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
-  if (objects.size() == 1)
+  object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetImageObjectId().c_str());
+  if (object != NULL)
   {
-    objects.at(0)->DisplayableOn();
+    object->DisplayableOn();
   }
   else
   {
-    LOG_WARNING("Requested unique image displayable object. Got: " << objects.size());
+    LOG_WARNING("Missing image displayable object.");
   }
 
   // Save result in configuration

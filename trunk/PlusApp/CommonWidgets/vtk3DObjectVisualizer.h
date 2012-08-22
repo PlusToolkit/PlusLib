@@ -34,14 +34,6 @@ public:
   static vtk3DObjectVisualizer *New();
 
   /*!
-  * Get displayable tool object
-  * \param aObjectCoordinateFrame Object coordinate frame name
-  * \param aDisplayableTool Displayable object out parameter
-  */
-  template <class T>
-  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
-
-  /*!
   * Return a displayable object
   * \param aModelId Model ID of the object to return
   */
@@ -72,13 +64,6 @@ public:
   * \param b blue value
   */
   PlusStatus SetVolumeColor( double r, double g, double b );
-
-  /*!
-  * Show or hide a displayable object
-  * \param aObjectCoordinateFrame Object coordinate frame name
-  * \param aOn Show if true, else hide
-  */
-  PlusStatus ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn);
 
   /*!
   * Show or hide a displayable object
@@ -195,38 +180,5 @@ protected:
   /*! Reference to Transform repository that stores and handles all transforms */
   vtkTransformRepository* TransformRepository;
 };
-
-//-----------------------------------------------------------------------------
-
-template <class T>
-std::vector<T*> vtk3DObjectVisualizer::GetDisplayableObjects(const char* aObjectCoordinateFrame)
-{
-  LOG_TRACE("vtkPerspectiveVisualizer::GetDisplayableObjects");
-
-  std::vector<T*> result;
-
-  if (aObjectCoordinateFrame == NULL)
-  {
-    LOG_ERROR("Invalid object coordinate frame name!");
-    return result;
-  }
-
-  for( std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
-  {
-    vtkDisplayableObject* pObj = *it;
-    T* pCastedObj = dynamic_cast<T*>(pObj);
-    if(STRCASECMP(pObj->GetObjectCoordinateFrame(), aObjectCoordinateFrame) == 0 && pCastedObj != NULL)
-    {
-      result.push_back(pCastedObj);
-    }
-  }
-
-  if( result.size() == 0 )
-  {
-    LOG_DEBUG("Requested displayable objects for identifier '" << aObjectCoordinateFrame << "' is/are missing!");
-  }
-
-  return result;
-}
 
 #endif  //__vtk3DObjectVisualizer_h

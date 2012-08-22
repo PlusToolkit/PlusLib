@@ -87,18 +87,17 @@ public:
   PlusStatus ShowResult(bool aOn);
 
   /*!
-  * Forward the ShowObjectsByCoordinateFrame request to the 3D visualizer
-  * \param aObjectCoordinateFrame Object coordinate frame name
-  * \param aOn Show if true, else hide
-  */
-  PlusStatus ShowObjectsByCoordinateFrame(const char* aObjectCoordinateFrame, bool aOn);
-
-  /*!
   * Forward the ShowObjectById request to the 3D visualizer
   * \param aModelId Model ID to operate on
   * \param aOn Show if true, else hide
   */
   PlusStatus ShowObjectById(const char* aModelId, bool aOn);
+
+  /*!
+  * Forward the GetObjectById request to the 3D visualizer
+  * \param aModelId Model ID to operate on
+  */
+  vtkDisplayableObject* GetObjectById( const char* aId );
 
   /*!
   * Forward the ShowAllObjects request to the 3D visualizer
@@ -228,13 +227,6 @@ public:
   */
   PlusStatus SetVolumeColor( double r, double g, double b );
 
-  /*!
-  * Return the displayable object from the perspective visualizer
-  * \param aCoordinateFrame coordinate frame name
-  */
-  template <class T>
-  std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
-
   /*! Disconnect the image input */
   PlusStatus DisconnectInput();
 
@@ -323,19 +315,5 @@ protected:
   /*! Transform repository to store and handle all transforms */
   vtkTransformRepository* TransformRepository;
 };
-
-//-----------------------------------------------------------------------------
-
-template <class T>
-std::vector<T*> vtkVisualizationController::GetDisplayableObjects(const char* aObjectCoordinateFrame)
-{
-  std::vector<T*> result;
-  if( this->PerspectiveVisualizer != NULL )
-  {
-    result = this->PerspectiveVisualizer->GetDisplayableObjects<T>(aObjectCoordinateFrame);
-  }
-
-  return result;
-}
 
 #endif  // __vtkVisualizationController_h

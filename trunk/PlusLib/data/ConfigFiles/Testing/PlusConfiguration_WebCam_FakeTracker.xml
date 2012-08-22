@@ -32,7 +32,7 @@
     
   <Rendering WorldCoordinateFrame="Reference">
     <!-- TODO EC9 model and proper transform -->
-    <xDisplayableObject Type="Model" ObjectCoordinateFrame="Probe"
+    <xDisplayableObject Type="Model" ObjectCoordinateFrame="Probe" Id="ProbeModel"
       File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
@@ -40,11 +40,14 @@
         0 0 1 -14
         0 0 0 1"
     />
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
   <fCal
     PhantomModelId="PhantomModel"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

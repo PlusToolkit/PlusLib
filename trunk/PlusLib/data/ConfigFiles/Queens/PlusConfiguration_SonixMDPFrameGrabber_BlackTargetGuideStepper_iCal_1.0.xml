@@ -77,7 +77,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
         0 1 0  51.3
         0 0 0  1"
     />
-    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="CenterOfRotation" />
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="PhantomWires" />
   </Rendering>
