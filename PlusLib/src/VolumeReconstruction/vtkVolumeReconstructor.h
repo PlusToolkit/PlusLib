@@ -112,7 +112,7 @@ protected:
   virtual ~vtkVolumeReconstructor();
 
   /*! Helper function for computing the extent of the reconstructed volume that encloses all the frames */
-  static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref);
+  static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
 
   vtkPasteSliceIntoVolume* Reconstructor; 
   vtkFillHolesInVolume* HoleFiller; 

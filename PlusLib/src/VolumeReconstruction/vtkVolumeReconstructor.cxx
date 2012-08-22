@@ -448,7 +448,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref)
+void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref)
 {
   // Output volume is in the Reference coordinate system.
 
@@ -468,7 +468,7 @@ void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4
   for ( unsigned int corner = 0; corner < corners_ImagePix.size(); ++corner )
   {
     double corner_Ref[ 4 ] = { 0, 0, 0, 1 }; // position of the corner in the Reference coordinate system
-    mImageToReference->MultiplyPoint( corners_ImagePix[corner], corner_Ref );
+    imageToReference->MultiplyPoint( corners_ImagePix[corner], corner_Ref );
 
     for ( int axis = 0; axis < 3; axis ++ )
     {
