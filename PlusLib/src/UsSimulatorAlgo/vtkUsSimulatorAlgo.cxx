@@ -24,6 +24,7 @@ See License.txt for details.
 #include "vtkImageStencilData.h"
 #include "vtkPolyData.h"
 #include "vtkSTLReader.h"
+#include "vtkPolyDataToOrientedImageStencil.h"
 
 //-----------------------------------------------------------------------------
 
@@ -123,23 +124,27 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     // Convert to triangle strip
     vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
     stripper->SetInputConnection(triangle->GetOutputPort());
+    stripper->Update(); 
 
-    // Transform model points from the MODEL coordinate system to image coordinate system
-    vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
-    modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
-    vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-    transformModelFilter->SetInputConnection(stripper->GetOutputPort());
-    transformModelFilter->SetTransform(modelToImageTransform);
-    transformModelFilter->Update();
-    modelImage = transformModelFilter->GetOutput();
+    modelImage = stripper->GetOutput();
+
+    //// Transform model points from the MODEL coordinate system to image coordinate system
+    //vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
+    //modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
+    //vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+    //transformModelFilter->SetInputConnection(stripper->GetOutputPort());
+    //transformModelFilter->SetTransform(modelToImageTransform);
+    //transformModelFilter->Update();
+    //modelImage = transformModelFilter->GetOutput();
   }
 
   // Create PolyData to Image stencil
-  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  vtkSmartPointer<vtkPolyDataToOrientedImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToOrientedImageStencil>::New();
   modelStencil->SetInput(modelImage); 
   modelStencil->SetOutputSpacing(this->StencilBackgroundImage->GetSpacing()); 
   modelStencil->SetOutputOrigin(this->StencilBackgroundImage->GetOrigin());
   modelStencil->SetOutputWholeExtent(this->StencilBackgroundImage->GetExtent()); 
+  modelStencil->SetModelToImageMatrix(this->ModelToImageMatrix);
   modelStencil->Update(); 
   vtkImageStencilData *modelStencilOutput=modelStencil->GetOutput();
 
