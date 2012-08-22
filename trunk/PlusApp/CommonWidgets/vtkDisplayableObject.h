@@ -14,7 +14,8 @@
 
 class vtkProp3D;
 class vtkMapper;
-class vtkPolyData; 
+class vtkPolyData;
+class vtkPolyDataMapper;
 
 //-----------------------------------------------------------------------------
 
@@ -185,6 +186,9 @@ public:
 
   /* Set poly data */
   virtual void SetPolyData(vtkPolyData* polyData); 
+
+  /* Set poly data mapper */
+  virtual void SetPolyDataMapper(vtkPolyDataMapper* aPolyDataMapper);
 
 public:
   /*! Set opacity */

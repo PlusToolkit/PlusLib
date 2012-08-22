@@ -32,8 +32,8 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 , ResultPolyData(NULL)
 , ResultActor(NULL)
 , ResultGlyph(NULL)
-, VolumeActor(NULL)
 , WorldCoordinateFrame(NULL)
+, VolumeID(NULL)
 , TransformRepository(NULL)
 {
   // Set up canvas renderer
@@ -73,17 +73,12 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
   this->ResultActor->SetMapper(resultMapper);
   this->ResultActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
 
-  // Volume actor
-  vtkSmartPointer<vtkActor> volumeActor = vtkSmartPointer<vtkActor>::New();
-  this->SetVolumeActor(volumeActor);
-
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
   this->SetImageActor(imageActor);
 
   this->CanvasRenderer->AddActor(this->InputActor);
   this->CanvasRenderer->AddActor(this->ResultActor);
-  this->CanvasRenderer->AddActor(this->VolumeActor);
 }
 
 //-----------------------------------------------------------------------------
@@ -98,7 +93,6 @@ vtk3DObjectVisualizer::~vtk3DObjectVisualizer()
   this->SetImageActor(NULL);
   this->SetInputPolyData(NULL);
   this->SetInputActor(NULL);
-  this->SetVolumeActor(NULL);
   this->SetWorldCoordinateFrame(NULL);
   this->SetTransformRepository(NULL);
 }
@@ -310,7 +304,6 @@ PlusStatus vtk3DObjectVisualizer::HideAll()
 {
   this->InputActor->VisibilityOff();
   this->ResultActor->VisibilityOff();
-  this->VolumeActor->VisibilityOff();
   this->ImageActor->VisibilityOff();
 
   ShowAllObjects(false);
@@ -514,6 +507,23 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
     this->CanvasRenderer->AddActor(displayableObject->GetActor());
   }
 
+  // Rendering section
+  vtkXMLDataElement* reconElement = aXMLElement->FindNestedElementWithName("VolumeReconstruction"); 
+
+  if (reconElement == NULL)
+  {
+    return PLUS_SUCCESS;     
+  }
+
+  const char* volumeId = reconElement->GetAttribute("VolumeDisplayableObjectId");
+  if (volumeId == NULL)
+  {
+    LOG_WARNING("Volume displayable object ID not defined in fCal. Unable to update volume object.");
+    return PLUS_SUCCESS;     
+  }
+
+  this->SetVolumeID(volumeId);
+
   return PLUS_SUCCESS;
 }
 
@@ -534,4 +544,90 @@ PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkDisplayableObject* vtk3DObjectVisualizer::GetObjectById( const char* aModelId )
+{
+  LOG_TRACE("vtk3DObjectVisualizer::GetObjectById(" << aModelId << ")");
+
+  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  {
+    vtkDisplayableObject* displayableObject = *it;
+
+    if( displayableObject->GetObjectId() != NULL && STRCASECMP(displayableObject->GetObjectId(), aModelId) == 0 )
+    {
+      return displayableObject;
+    }
+  }
+
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::SetVolumeColor( double r, double g, double b )
+{
+  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeColor(" << r << ", " << g << ", " << b << ")");
+
+  if( this->GetVolumeActor() )
+  {
+    this->GetVolumeActor()->GetProperty()->SetColor(r, g, b);
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
+{
+  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeMapper(...)");
+
+  if( this->GetVolumeID() == NULL )
+  {
+    LOG_ERROR("Trying to update volume data without volume displayable object defined.");
+    return PLUS_FAIL;
+  }
+
+  vtkDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
+  if( disObj )
+  {
+    vtkDisplayablePolyData* polyObj = dynamic_cast<vtkDisplayablePolyData*>(disObj);
+
+    if( polyObj )
+    {
+      polyObj->SetPolyDataMapper(aContourMapper);
+      return PLUS_SUCCESS;
+    }
+  }
+
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
+{
+  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeMapper(...)");
+
+  if( this->GetVolumeID() == NULL )
+  {
+    LOG_ERROR("Trying to retrieve volume actor without volume displayable object defined.");
+    return NULL;
+  }
+
+  vtkDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
+  if( disObj )
+  {
+    vtkActor* actor = dynamic_cast<vtkActor*>(disObj->GetActor());
+    if(actor)
+    {
+      return actor;
+    }
+  }
+
+  return NULL;
 }

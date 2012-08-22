@@ -313,6 +313,18 @@ void vtkDisplayablePolyData::SetPolyData(vtkPolyData* aPolyData)
 
 //-----------------------------------------------------------------------------
 
+void vtkDisplayablePolyData::SetPolyDataMapper(vtkPolyDataMapper* aPolyDataMapper)
+{
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  if ( actor )
+  {
+    actor->SetMapper(aPolyDataMapper);
+    this->Modified();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 bool vtkDisplayablePolyData::IsDisplayable()
 {
   bool mapperOK = false;

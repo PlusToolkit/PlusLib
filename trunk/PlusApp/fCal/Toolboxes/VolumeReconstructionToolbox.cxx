@@ -27,6 +27,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
 , m_VolumeReconstructor(NULL)
 , m_ReconstructedVolume(NULL)
 , m_VolumeReconstructionConfigFileLoaded(false)
+, m_VolumeReconstructionComplete(false)
 , m_ContouringThreshold(64.0)
 {
   ui.setupUi(this);
@@ -124,6 +125,9 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetVisualizationController()->HideAll();
   }
 
+  // Set it to 3D mode
+  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
 
@@ -187,27 +191,27 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   else if (m_State == ToolboxState_Idle)
   {
     ui.label_Instructions->setText(tr("N/A"));
-    ui.horizontalSlider_ContouringThreshold->setEnabled(false);
+    ui.horizontalSlider_ContouringThreshold->setEnabled(m_VolumeReconstructionComplete);
+    ui.pushButton_Save->setEnabled(m_VolumeReconstructionComplete);
 
     if (! m_VolumeReconstructionConfigFileLoaded)
     {
       ui.label_Instructions->setText(tr("Volume reconstruction config XML has to be loaded"));
       ui.pushButton_Reconstruct->setEnabled(false);
-      ui.pushButton_Save->setEnabled(false);
     }
     else if ((ui.comboBox_InputImage->currentIndex() == -1) || (ui.comboBox_InputImage->count() == 0) || (ui.comboBox_InputImage->isEnabled() == false))
     {
       ui.label_Instructions->setText(tr("Input image has to be selected"));
       ui.pushButton_Reconstruct->setEnabled(false);
-      ui.pushButton_Save->setEnabled(false);
     }
     else
     {
       ui.label_Instructions->setText(tr("Press Reconstruct button start reconstruction"));
       ui.pushButton_Reconstruct->setEnabled(true);
-      ui.pushButton_Save->setEnabled(false);
       ui.comboBox_InputImage->setToolTip(ui.comboBox_InputImage->currentText());
     }
+
+    m_ParentMainWindow->GetVisualizationController()->EnableVolumeActor(m_VolumeReconstructionComplete);
   }
   else if (m_State == ToolboxState_InProgress)
   {
@@ -235,7 +239,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Error)
   {
-    ui.label_Instructions->setText("Error occured!");
+    ui.label_Instructions->setText("Error occurred!");
     ui.horizontalSlider_ContouringThreshold->setEnabled(false);
 
     ui.pushButton_Reconstruct->setEnabled(false);
@@ -440,6 +444,8 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   DisplayReconstructedVolume();
 
   m_ParentMainWindow->SetStatusBarProgress(100);
+
+  m_VolumeReconstructionComplete = true;
 
   SetState(ToolboxState_Done);
 

@@ -10,12 +10,16 @@
       Error="0.508027" Date="2011.08.19 14:11:53" />
   </CoordinateDefinitions>
   
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+	<DisplayableObject Type="PolyData" ObjectCoordinateFrame="Reference" Id="Volume"/>
+  </Rendering>
+
   <VolumeReconstruction
     Interpolation="LINEAR" 
     Optimization="FULL" 
     Compounding="On" 
     FillHoles="Off" 
     ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
-    OutputSpacing="0.5 0.5 0.5" />
+    OutputSpacing="0.5 0.5 0.5" VolumeDisplayableObjectId="Volume"/>
 
 </PlusConfiguration>

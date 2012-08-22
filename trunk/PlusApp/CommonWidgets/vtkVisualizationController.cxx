@@ -544,7 +544,7 @@ PlusStatus vtkVisualizationController::SetVolumeMapper( vtkPolyDataMapper* aCont
 {
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->PerspectiveVisualizer->GetVolumeActor()->SetMapper(aContourMapper);
+    this->PerspectiveVisualizer->SetVolumeMapper(aContourMapper);
   }
 
   return PLUS_SUCCESS;
@@ -556,7 +556,7 @@ PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, doubl
 {
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->PerspectiveVisualizer->GetVolumeActor()->GetProperty()->SetColor(r, g, b);
+    this->PerspectiveVisualizer->SetVolumeColor(r, g, b);
   }
   return PLUS_SUCCESS;
 }

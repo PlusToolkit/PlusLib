@@ -108,6 +108,9 @@ protected:
   /*! Flag indicating whether a volume reconstruction config file has been loaded successfully */
   bool                    m_VolumeReconstructionConfigFileLoaded;
 
+  /*! Flag indicating whether the volume reconstruction has been run */
+  bool                    m_VolumeReconstructionComplete;
+
   /*! Contouring threshold */
   double                  m_ContouringThreshold;
 

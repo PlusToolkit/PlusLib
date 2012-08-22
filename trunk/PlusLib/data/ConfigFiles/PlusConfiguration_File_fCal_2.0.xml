@@ -42,6 +42,7 @@
         0 0 1 -14
         0 0 0 1"
     />
+	<DisplayableObject Type="PolyData" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -119,7 +120,7 @@
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" VolumeDisplayableObjectId="Volume"
   />
 
 

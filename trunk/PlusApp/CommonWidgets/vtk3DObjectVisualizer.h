@@ -41,6 +41,12 @@ public:
   template <class T>
   std::vector<T*> GetDisplayableObjects(const char* aObjectCoordinateFrame);
 
+  /*!
+  * Return a displayable object
+  * \param aModelId Model ID of the object to return
+  */
+  vtkDisplayableObject* GetObjectById( const char* aModelId );
+
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
 
@@ -49,6 +55,23 @@ public:
   * \param aOn Show if true, else hide
   */
   PlusStatus ShowAllObjects(bool aOn);
+
+  /* Return the actor of the volume actor */
+  vtkActor* GetVolumeActor();
+
+  /*!
+  * Set the volume actor mapper
+  * \param aContourMapper new mapper to use
+  */
+  PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
+
+  /*!
+  * Set the volume actor colour
+  * \param r red value
+  * \param g green value
+  * \param b blue value
+  */
+  PlusStatus SetVolumeColor( double r, double g, double b );
 
   /*!
   * Show or hide a displayable object
@@ -95,11 +118,11 @@ public:
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector); 
   vtkGetObjectMacro(ImageActor, vtkImageActor);
-  vtkGetObjectMacro(VolumeActor, vtkActor);
   vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
+  vtkGetStringMacro(VolumeID);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
   PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
@@ -113,13 +136,13 @@ protected:
   vtkSetObjectMacro(ResultActor, vtkActor);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkSetObjectMacro(VolumeActor, vtkActor);
   vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
   vtkSetObjectMacro(DataCollector, vtkDataCollector);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkSetObjectMacro(InputGlyph, vtkGlyph3D);
   vtkGetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkGetObjectMacro(InputGlyph, vtkGlyph3D);
+  vtkSetStringMacro(VolumeID);
 
 protected:
   /*!
@@ -130,7 +153,7 @@ protected:
   /*!
   * Destructor
   */
-  virtual ~vtk3DObjectVisualizer();	
+  virtual ~vtk3DObjectVisualizer();
 
 protected:
   /*! Data collector object */
@@ -163,11 +186,11 @@ protected:
   /*! Glyph producer for result */
   vtkGlyph3D* ResultGlyph;
 
-  /*! Actor for displaying a volume */
-  vtkActor* VolumeActor;
-
   /*! Name of the rendering world coordinate frame */
   char* WorldCoordinateFrame;
+
+  /*! Name of the volume object ID */
+  char* VolumeID;
 
   /*! Reference to Transform repository that stores and handles all transforms */
   vtkTransformRepository* TransformRepository;
