@@ -11,8 +11,12 @@
   </CoordinateDefinitions>
   
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
-	<DisplayableObject Type="PolyData" ObjectCoordinateFrame="Reference" Id="Volume"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
   </Rendering>
+  
+  <fCal 
+	ReconstructedVolumeId="Volume"
+  />
 
   <VolumeReconstruction
     Interpolation="LINEAR" 

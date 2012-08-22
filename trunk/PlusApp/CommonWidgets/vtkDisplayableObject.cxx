@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "vtkDisplayableObject.h"
@@ -85,17 +85,17 @@ PlusStatus vtkDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
   const char* objectCoordinateFrame = aConfig->GetAttribute("ObjectCoordinateFrame");
   if (objectCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ObjectCoordinateFrame is not specified in DisplayableObject element of the configuration!");
+    LOG_ERROR("ObjectCoordinateFrame is not specified in DisplayableObject element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetObjectCoordinateFrame(objectCoordinateFrame);
 
   // Opacity
-	double opacity = 0.0; 
-	if ( aConfig->GetScalarAttribute("Opacity", opacity) )
-	{
+  double opacity = 0.0; 
+  if ( aConfig->GetScalarAttribute("Opacity", opacity) )
+  {
     this->LastOpacity = opacity;
-	}
+  }
 
   // ID
   const char* id = aConfig->GetAttribute("Id");
@@ -119,7 +119,7 @@ vtkStandardNewMacro(vtkDisplayableImage);
 //-----------------------------------------------------------------------------
 
 vtkDisplayableImage::vtkDisplayableImage()
-  : vtkDisplayableObject()
+: vtkDisplayableObject()
 {
 }
 
@@ -181,7 +181,7 @@ vtkStandardNewMacro(vtkDisplayableAxes);
 //-----------------------------------------------------------------------------
 
 vtkDisplayableAxes::vtkDisplayableAxes()
-  : vtkDisplayableObject()
+: vtkDisplayableObject()
 {
   vtkSmartPointer<vtkToolAxesActor> axesActor = vtkSmartPointer<vtkToolAxesActor>::New();
   axesActor->SetShaftLength(50);
@@ -255,7 +255,7 @@ vtkStandardNewMacro(vtkDisplayablePolyData);
 //-----------------------------------------------------------------------------
 
 vtkDisplayablePolyData::vtkDisplayablePolyData()
-  : vtkDisplayableObject()
+: vtkDisplayableObject()
 {
   this->PolyData = NULL; 
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
@@ -361,7 +361,7 @@ void vtkDisplayablePolyData::SetOpacity(double aOpacity)
 {
   LOG_TRACE("vtkDisplayablePolyData::SetOpacity(" << aOpacity << ")");
 
-   vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
+  vtkActor* actor = dynamic_cast<vtkActor*>(this->Actor);
   if (actor)
   {
     actor->GetProperty()->SetOpacity(aOpacity);
@@ -402,9 +402,9 @@ vtkStandardNewMacro(vtkDisplayableModel);
 //-----------------------------------------------------------------------------
 
 vtkDisplayableModel::vtkDisplayableModel()
-  : vtkDisplayablePolyData()
-  , STLModelFileName(NULL)
-  , ModelToObjectTransform(NULL)
+: vtkDisplayablePolyData()
+, STLModelFileName(NULL)
+, ModelToObjectTransform(NULL)
 {
   vtkSmartPointer<vtkTransform> ModelToObjectTransform = vtkSmartPointer<vtkTransform>::New();
   ModelToObjectTransform->Identity();
@@ -425,7 +425,7 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("vtkDisplayableModel::ReadConfiguration");
 
-	if (Superclass::ReadConfiguration(aConfig) != PLUS_SUCCESS)
+  if (Superclass::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read basic displayable object configuration!");
     return PLUS_FAIL;
@@ -439,10 +439,10 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
     this->ModelToObjectTransform->Concatenate(ModelToObjectTransformMatrixValue);
   }
 
-  this->SetSTLModelFileName("");
+  this->SetSTLModelFileName(NULL);
   this->Displayable = false;
 
-  
+
   // If the tool name contains stylus then we consider it a stylus - and do a few things differently
   // It would be probably better to define this explicitly in the config file rather than trying to figure it out from the tool name
   std::string objectName(this->ObjectCoordinateFrame);
@@ -463,29 +463,27 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
       this->Displayable = true;
       return PLUS_SUCCESS;
     }
-    // Model is missing
-    LOG_WARNING("Model file name not defined for '" << this->ObjectCoordinateFrame << "' - no model will be displayed");
-    return PLUS_FAIL;
-  }
 
+    LOG_WARNING("File not defined for Model. No visualization will occur until data is defined.");
+  }
 
   // Find absolute path for the file
   std::string modelFileFullPath;
-  if (vtkPlusConfig::GetAbsoluteModelPath(modelFileName, modelFileFullPath)!=PLUS_SUCCESS)
+  if ( modelFileName != NULL && vtkPlusConfig::GetAbsoluteModelPath(modelFileName, modelFileFullPath) == PLUS_SUCCESS)
   {
-    LOG_ERROR("Displayable object (" << this->ObjectCoordinateFrame << ") model file is not found with name: " << this->STLModelFileName);
-    return PLUS_FAIL;
+    this->SetSTLModelFileName(modelFileFullPath.c_str());
   }
-  
-  this->SetSTLModelFileName(modelFileFullPath.c_str());
-
-  vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-  stlReader->SetFileName(this->STLModelFileName);
-  stlReader->Update();
-  SetPolyData(stlReader->GetOutput());
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(this->PolyData->GetProducerPort());
+
+  if( this->STLModelFileName != NULL )
+  {
+    vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+    stlReader->SetFileName(this->STLModelFileName);
+    stlReader->Update();
+    SetPolyData(stlReader->GetOutput());
+    mapper->SetInputConnection(this->PolyData->GetProducerPort());
+  }
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);

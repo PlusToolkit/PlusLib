@@ -64,7 +64,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
         0 0 1 0
         0 0 0 1"
     />
-	<DisplayableObject Type="PolyData" ObjectCoordinateFrame="Reference" Id="Volume"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.0.stl"
@@ -139,12 +139,12 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     Optimization="FULL" 
     Compounding="On" 
     FillHoles="Off"
-	VolumeDisplayableObjectId="Volume"
   />
 
     
   <fCal
     PhantomModelId="PhantomModel"
+	ReconstructedVolumeId="Volume"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

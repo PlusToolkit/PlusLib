@@ -508,14 +508,14 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
   }
 
   // Rendering section
-  vtkXMLDataElement* reconElement = aXMLElement->FindNestedElementWithName("VolumeReconstruction"); 
+  vtkXMLDataElement* fCalElement = aXMLElement->FindNestedElementWithName("fCal"); 
 
-  if (reconElement == NULL)
+  if (fCalElement == NULL)
   {
     return PLUS_SUCCESS;     
   }
 
-  const char* volumeId = reconElement->GetAttribute("VolumeDisplayableObjectId");
+  const char* volumeId = fCalElement->GetAttribute("ReconstructedVolumeId");
   if (volumeId == NULL)
   {
     LOG_WARNING("Volume displayable object ID not defined in fCal. Unable to update volume object.");

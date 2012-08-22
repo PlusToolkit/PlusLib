@@ -95,7 +95,7 @@
         0 0 1 0
         0 0 0 1"
     />
-	<DisplayableObject Type="PolyData" ObjectCoordinateFrame="Reference" Id="Volume"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.2.stl"
@@ -170,12 +170,13 @@
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" VolumeDisplayableObjectId="Volume"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
   />
 
 
   <fCal
     PhantomModelId="PhantomModel"
+	ReconstructedVolumeId="Volume"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
