@@ -19,7 +19,7 @@
  *
  * \ingroup PlusLibBrachyStepper
  */
-class  CivcoBrachyStepper : public BrachyStepper
+class VTK_EXPORT CivcoBrachyStepper : public BrachyStepper
 {
 public:
 

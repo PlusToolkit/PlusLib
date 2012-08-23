@@ -26,7 +26,7 @@
  *
  * \ingroup PlusLibBrachyStepper
  */
-class  CmsBrachyStepper : public BrachyStepper
+class VTK_EXPORT CmsBrachyStepper : public BrachyStepper
 {
 public:
   typedef const char* STEPPERCOMMAND;
