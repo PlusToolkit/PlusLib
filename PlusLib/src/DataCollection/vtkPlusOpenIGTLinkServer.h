@@ -109,6 +109,9 @@ private:
   /*! Number of retry attempts for message sending to clients */ 
   int NumberOfRetryAttempts; 
 
+  /*! Delay between retry attempts */ 
+  int DelayBetweenRetryAttemptsSec; 
+
   /*! Maximum number of IGTL messages to send in one period */ 
   int MaxNumberOfIgtlMessagesToSend; 
 

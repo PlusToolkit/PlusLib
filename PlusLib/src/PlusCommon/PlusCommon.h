@@ -290,5 +290,23 @@ private:
   std::string m_To; /*! To coordinate frame name */
 }; 
 
+#define RETRY_UNTIL_TRUE(command_, numberOfRetryAttempts_, delayBetweenRetryAttemptsSec_) \
+  { \
+    bool success = false; \
+    int numOfTries = 0; \
+    while ( !success && numOfTries < numberOfRetryAttempts_ ) \
+    { \
+      success = (command_);   \
+      if (success)  \
+      { \
+        /* command successfully completed, continue without waiting */ \
+        break; \
+      } \
+      /* command failed, wait for some time and retry */ \
+      numOfTries++;   \
+      Sleep(delayBetweenRetryAttemptsSec_*1000.0); \
+    } \
+  }
+
 
 #endif //__PlusCommon_h

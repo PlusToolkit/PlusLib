@@ -27,6 +27,8 @@
 #include "igtlPositionMessage.h"
 #include "igtlPlusClientInfoMessage.h"
 
+static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
+
 vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 
 //----------------------------------------------------------------------------
@@ -35,7 +37,8 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->MessageType = NULL; 
   this->ServerAddress = NULL; 
   this->ServerPort = -1; 
-  this->NumberOfRetryAttempts = 3; 
+  this->NumberOfRetryAttempts = 10; 
+  this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
   this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
 }
@@ -85,9 +88,12 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     return PLUS_FAIL; 
   }
 
-  int r = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort );
+  int errorCode = 0; // 0 means success
+  RETRY_UNTIL_TRUE( 
+    (errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ))==0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
-  if ( r != 0 )
+  if ( errorCode != 0 )
   {
     LOG_ERROR( "Cannot connect to the server (" << this->ServerAddress << ":" << this->ServerPort << ")." );
     return PLUS_FAIL;
@@ -97,7 +103,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout(500); 
+  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
 
   // Clear buffers on connect
   this->ClearAllBuffers(); 
@@ -123,12 +129,10 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     clientInfoMsg->Pack(); 
 
     // Send message to server 
-    int retValue = 0, numOfTries = 0; 
-    while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
-    {
-      retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
-      numOfTries++; 
-    }
+    int retValue = 0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
     if ( retValue == 0 )
     {
@@ -198,16 +202,14 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
-  int numOfBytesReceived = 0, numOfTries = 0; 
-  while ( numOfBytesReceived == 0 && numOfTries < this->NumberOfRetryAttempts )
-  {
-    numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-    numOfTries++; 
-  }
-
-  // No message received - server disconnected 
+  int numOfBytesReceived = 0;
+  RETRY_UNTIL_TRUE( 
+    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() ))!=0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+   
   if ( numOfBytesReceived == 0 ) 
   {
+	// No message received - server disconnected
     LOG_ERROR("OpenIGTLink tracker connection lost with server - try to reconnect!");
     this->ClientSocket->CloseSocket(); 
     return this->Connect(); 

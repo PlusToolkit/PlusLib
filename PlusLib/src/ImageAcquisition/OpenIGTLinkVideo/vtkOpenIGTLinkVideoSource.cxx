@@ -20,6 +20,8 @@ See License.txt for details.
 #include <vector>
 #include <string>
 
+static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
+
 vtkCxxRevisionMacro(vtkOpenIGTLinkVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkOpenIGTLinkVideoSource);
 
@@ -32,7 +34,8 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
   this->SpawnThreadForRecording = true;
-  this->NumberOfRetryAttempts = 3; 
+  this->NumberOfRetryAttempts = 10; 
+  this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
 }
 
 //----------------------------------------------------------------------------
@@ -89,9 +92,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     return PLUS_FAIL; 
   }
 
-  int r = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort );
+  int errorCode = 0; // 0 means success
+  RETRY_UNTIL_TRUE( 
+    (errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ))==0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
-  if ( r != 0 )
+  if ( errorCode != 0 )
   {
     LOG_ERROR( "Cannot connect to the server (" << this->ServerAddress << ":" << this->ServerPort << ")." );
     return PLUS_FAIL;
@@ -101,7 +107,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout(500); 
+  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
 
   // Clear buffer on connect 
   this->GetBuffer()->Clear(); 
@@ -120,12 +126,10 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
     clientInfoMsg->Pack(); 
 
     // Send message to server 
-    int retValue = 0, numOfTries = 0; 
-    while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
-    {
-      retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ); 
-      numOfTries++; 
-    }
+    int retValue=0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize()))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
     if ( retValue == 0 )
     {
@@ -168,19 +172,14 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
-  int numOfBytesReceived = 0, numOfTries = 0; 
-  while ( numOfBytesReceived == 0 && numOfTries < this->NumberOfRetryAttempts )
-  {
-    numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-    if( numOfBytesReceived != 0 )
-      break;
-    numOfTries++;
-    Sleep(100);
-  }
+  int numOfBytesReceived = 0;
+  RETRY_UNTIL_TRUE( 
+    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize()))!=0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
-  // No message received - server disconnected 
   if ( numOfBytesReceived == 0 ) 
   {
+    // No message received - server disconnected 
     LOG_ERROR("OpenIGTLink video source connection lost with server - try to reconnect!");
     this->Connected = 0; 
     this->ClientSocket->CloseSocket(); 

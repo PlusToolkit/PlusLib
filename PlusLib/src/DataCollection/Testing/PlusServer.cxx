@@ -128,6 +128,7 @@ int main( int argc, char** argv )
       server->Stop(); 
       exit(EXIT_FAILURE);
     }
+    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
   }
   // *************************** End of testing **************************
 
@@ -153,10 +154,11 @@ int main( int argc, char** argv )
   if ( testing ) 
   {
     // make sure all the clients are still connected 
-    if ( server->GetNumberOfConnectedClients() != numOfTestClientsToConnect )
+    int numOfActuallyConnectedClients=server->GetNumberOfConnectedClients();
+    if ( numOfActuallyConnectedClients != numOfTestClientsToConnect )
     {
       LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements (" 
-        << server->GetNumberOfConnectedClients() << " out of " << numOfTestClientsToConnect << ")."); 
+        << numOfActuallyConnectedClients << " out of " << numOfTestClientsToConnect << ")."); 
       DisconnectClients( testClientList );
       server->Stop(); 
       exit(EXIT_FAILURE);
