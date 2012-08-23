@@ -4,6 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// #define USE_vtkPolyDataToOrientedImageStencil
+
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
 #include "vtkImageAlgorithm.h"
@@ -24,7 +26,10 @@ See License.txt for details.
 #include "vtkImageStencilData.h"
 #include "vtkPolyData.h"
 #include "vtkSTLReader.h"
+
+#ifdef USE_vtkPolyDataToOrientedImageStencil
 #include "vtkPolyDataToOrientedImageStencil.h"
+#endif
 
 //-----------------------------------------------------------------------------
 
@@ -110,48 +115,51 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     return 1; 
   }
 
-  // Get the model points in the image coordinate system
-  vtkSmartPointer<vtkPolyData> modelImage;
-  {
-    vtkSmartPointer<vtkPolyDataNormals> normalFilter=vtkSmartPointer<vtkPolyDataNormals>::New();
-    normalFilter->SetInput(modelModel);
-    normalFilter->ConsistencyOn();
+  vtkSmartPointer<vtkPolyDataNormals> normalFilter=vtkSmartPointer<vtkPolyDataNormals>::New();
+  normalFilter->SetInput(modelModel);
+  normalFilter->ConsistencyOn();
 
-    // Make sure that we have a clean triangle polydata
-    vtkSmartPointer<vtkTriangleFilter> triangle=vtkSmartPointer<vtkTriangleFilter>::New();
-    triangle->SetInputConnection(normalFilter->GetOutputPort());
+  // Make sure that we have a clean triangle polydata
+  vtkSmartPointer<vtkTriangleFilter> triangle=vtkSmartPointer<vtkTriangleFilter>::New();
+  triangle->SetInputConnection(normalFilter->GetOutputPort());
 
-    // Convert to triangle strip
-    vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
-    stripper->SetInputConnection(triangle->GetOutputPort());
-    stripper->Update(); 
+  // Convert to triangle strip
+  vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
+  stripper->SetInputConnection(triangle->GetOutputPort());
 
-    modelImage = stripper->GetOutput();
-
-    //// Transform model points from the MODEL coordinate system to image coordinate system
-    //vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
-    //modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
-    //vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-    //transformModelFilter->SetInputConnection(stripper->GetOutputPort());
-    //transformModelFilter->SetTransform(modelToImageTransform);
-    //transformModelFilter->Update();
-    //modelImage = transformModelFilter->GetOutput();
-  }
+#ifdef USE_vtkPolyDataToOrientedImageStencil
 
   // Create PolyData to Image stencil
   vtkSmartPointer<vtkPolyDataToOrientedImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToOrientedImageStencil>::New();
+  modelStencil->SetInputConnection(stripper->GetOutputPort());
+  modelStencil->SetModelToImageMatrix(this->ModelToImageMatrix);
+
+#else
+
+  // Transform model points from the MODEL coordinate system to image coordinate system
+  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
+  modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformModelFilter->SetInputConnection(stripper->GetOutputPort());
+  transformModelFilter->SetTransform(modelToImageTransform);
+  transformModelFilter->Update();
+  // Model points in the image coordinate system
+  vtkPolyData* modelImage = transformModelFilter->GetOutput();
+  // Create PolyData to Image stencil
+  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   modelStencil->SetInput(modelImage); 
+
+#endif    
+
   modelStencil->SetOutputSpacing(this->StencilBackgroundImage->GetSpacing()); 
   modelStencil->SetOutputOrigin(this->StencilBackgroundImage->GetOrigin());
   modelStencil->SetOutputWholeExtent(this->StencilBackgroundImage->GetExtent()); 
-  modelStencil->SetModelToImageMatrix(this->ModelToImageMatrix);
   modelStencil->Update(); 
-  vtkImageStencilData *modelStencilOutput=modelStencil->GetOutput();
 
   // Create Image stencil
   vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
   combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
-  combineModelwithBackgroundStencil->SetStencil(modelStencilOutput);
+  combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
   combineModelwithBackgroundStencil->ReverseStencilOff();
   combineModelwithBackgroundStencil->SetBackgroundValue(this->BackgroundValue);
   combineModelwithBackgroundStencil->Update();
