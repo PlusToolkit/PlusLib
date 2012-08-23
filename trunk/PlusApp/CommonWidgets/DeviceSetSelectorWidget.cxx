@@ -249,6 +249,12 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 	while (filesIterator.hasNext())
   {
 		QString fileName(configDir.absoluteFilePath(filesIterator.next()));
+    QString extension = fileName.mid(fileName.lastIndexOf("."));
+    if( extension.compare(QString(".xml")) != 0 )
+    {
+      continue;
+    }
+
 		QFile file(fileName);
 		QDomDocument doc;
 
