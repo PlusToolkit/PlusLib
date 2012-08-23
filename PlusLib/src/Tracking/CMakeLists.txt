@@ -17,6 +17,7 @@ SET (Tracking_SRCS
   vtkTrackerBuffer.cxx 
   vtkTrackerTool.cxx 
   vtkSavedDataTracker.cxx 
+  SerialLine.cxx
   )
 
 SET (Tracking_HDRS)
@@ -29,6 +30,7 @@ if (WIN32)
     vtkTrackerBuffer.h 
     vtkTrackerTool.h 
     vtkSavedDataTracker.h
+    SerialLine.h
     )
 endif (WIN32)  
 
@@ -148,31 +150,33 @@ IF (PLUS_USE_BRACHY_TRACKER)
 
   SET (Tracking_SRCS ${Tracking_SRCS}
     BrachyTracking/vtkBrachyTracker.cxx
+    BrachyTracking/CmsBrachyStepper.cxx
+    BrachyTracking/CivcoBrachyStepper.cxx 
   )
   
   if (WIN32)  
     SET (Tracking_HDRS
       ${Tracking_HDRS}
       BrachyTracking/vtkBrachyTracker.h
+      BrachyTracking/CmsBrachyStepper.h 
+      BrachyTracking/BrachyStepper.h 
+      BrachyTracking/CivcoBrachyStepper.h
       )
   endif (WIN32)
     
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking/Utils
+    ${USDIGITAL_SEI_INCLUDE_DIR}
     CACHE INTERNAL "" FORCE)    
   
   SET (Tracking_LIBS ${Tracking_LIBS}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
-    BrachyStepper
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
-
-  ADD_SUBDIRECTORY(BrachyTracking/Utils)
     
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
@@ -243,7 +247,7 @@ IF( PLUS_USE_Ascension3DGm )
 ENDIF( PLUS_USE_Ascension3DGm )
 
 #--------------------------------------------------------------------------
-# Ascension 3DGm support (medSAFE)
+# PhidgetSpatial 3/3/3 MARG sensor (magnetometer, accelerometer, gyroscope)
 IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   
   SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)
@@ -284,6 +288,20 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
     )
           
 ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
+
+#--------------------------------------------------------------------------
+# CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
+        
+  SET (Tracking_SRCS ${Tracking_SRCS} 
+    ChRobotics/vtkChRoboticsTracker.cxx
+    )
+  if (WIN32)  
+    SET (Tracking_HDRS ${Tracking_HDRS} ChRobotics/vtkChRoboticsTracker.h )
+  endif (WIN32)
+  
+  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
+    CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------
 # OpenIGTLink tracker

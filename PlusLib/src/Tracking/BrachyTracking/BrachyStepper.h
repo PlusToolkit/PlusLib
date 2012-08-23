@@ -12,7 +12,7 @@
  * \brief Generic interface for position tracking using brachy stepper devices
  * \ingroup PlusLibBrachyStepper
  */
-class  BrachyStepper 
+class VTK_EXPORT BrachyStepper 
 {
 public:
 
