@@ -90,6 +90,9 @@ protected:
   /*! Number of retry attempts for message sending to and receiving from the server */ 
   int NumberOfRetryAttempts; 
 
+  /*! Delay between retry attempts */ 
+  int DelayBetweenRetryAttemptsSec; 
+
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
     

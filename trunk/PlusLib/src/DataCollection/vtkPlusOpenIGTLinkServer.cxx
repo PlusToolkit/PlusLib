@@ -35,7 +35,8 @@ vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 : ListeningPort(-1)
 , LastSentTrackedFrameTimestamp(0)
-, NumberOfRetryAttempts(3)
+, NumberOfRetryAttempts(10) 
+, DelayBetweenRetryAttemptsSec(0.100)
 , MaxNumberOfIgtlMessagesToSend(100)
 , MaxTimeSpentWithProcessingMs(50)
 , LastProcessingTimePerFrameMs(-1)
@@ -481,13 +482,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
         continue; 
       }
 
-      int retValue = 0, numOfTries = 0; 
-      while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
-      {
-        retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize() ); 
-        numOfTries++; 
-      }
-
+      int retValue = 0;
+      RETRY_UNTIL_TRUE( 
+        (retValue = client.ClientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize()))!=0,
+        this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
       if ( retValue == 0 )
       {
         clientDisconnected = true; 
@@ -543,12 +541,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
     statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
     statusMsg->Pack(); 
 
-    int retValue = 0, numOfTries = 0; 
-    while ( retValue == 0 && numOfTries < this->NumberOfRetryAttempts )
-    {
-      retValue = client.ClientSocket->Send( statusMsg->GetPackPointer(), statusMsg->GetPackSize() ); 
-      numOfTries++; 
-    }
+    int retValue = 0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = client.ClientSocket->Send( statusMsg->GetPackPointer(), statusMsg->GetPackSize() ))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
     bool clientDisconnected = false; 
     if ( retValue == 0 )
     {

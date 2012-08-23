@@ -89,6 +89,9 @@ protected:
   /*! Number of retry attempts for message sending to and receiving from the server */ 
   int NumberOfRetryAttempts; 
 
+  /*! Delay between retry attempts */ 
+  int DelayBetweenRetryAttemptsSec; 
+
   /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
   int IgtlMessageCrcCheckEnabled; 
 
