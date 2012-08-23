@@ -870,3 +870,43 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints()
     }
   }
 }
+
+void SpatialCalibrationToolbox::Reset()
+{
+  AbstractToolbox::Reset();
+
+  if (m_Calibration != NULL)
+  {
+    m_Calibration->Delete();
+    m_Calibration = NULL;
+  } 
+
+  if (m_PatternRecognition != NULL)
+  {
+    delete m_PatternRecognition;
+    m_PatternRecognition = NULL;
+  } 
+
+  if (m_SpatialCalibrationData != NULL)
+  {
+    m_SpatialCalibrationData->Delete();
+    m_SpatialCalibrationData = NULL;
+  } 
+
+  if (m_SpatialValidationData != NULL)
+  {
+    m_SpatialValidationData->Delete();
+    m_SpatialValidationData = NULL;
+  }
+
+  // Create algorithms
+  m_Calibration = vtkProbeCalibrationAlgo::New();
+  m_PatternRecognition = new FidPatternRecognition();
+
+  // Create tracked frame lists
+  m_SpatialCalibrationData = vtkTrackedFrameList::New();
+  m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+
+  m_SpatialValidationData = vtkTrackedFrameList::New();
+  m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+}

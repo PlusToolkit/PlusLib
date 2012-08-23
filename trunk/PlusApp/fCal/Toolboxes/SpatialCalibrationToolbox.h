@@ -44,6 +44,9 @@ public:
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   void OnActivated();
 
+  /*! \brief Reset toolbox to initial state - */
+  virtual void Reset();
+
   /*!
   * Read freehand calibration configuration for fCal
   * \param aConfig Root element of the input device set configuration XML data

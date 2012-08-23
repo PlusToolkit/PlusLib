@@ -57,7 +57,7 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
   }
 
   if (m_ReconstructedVolume != NULL)
-  {
+  { 
     m_ReconstructedVolume->Delete();
     m_ReconstructedVolume = NULL;
   }
@@ -588,4 +588,26 @@ void VolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aV
   LOG_INFO("Recomputing controur from reconstructed volume using threshold " << m_ContouringThreshold);
 
   DisplayReconstructedVolume();
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::Reset()
+{
+  AbstractToolbox::Reset();
+
+  m_VolumeReconstructionComplete = false;
+
+  if( m_VolumeReconstructor != NULL )
+  {
+    m_VolumeReconstructor->Delete();
+    m_VolumeReconstructor = NULL;
+  }
+  if( m_ReconstructedVolume != NULL )
+  {
+    m_ReconstructedVolume->Delete();
+    m_ReconstructedVolume = NULL;
+  }
+  m_VolumeReconstructor = vtkVolumeReconstructor::New();
+  m_ReconstructedVolume = vtkImageData::New();
 }

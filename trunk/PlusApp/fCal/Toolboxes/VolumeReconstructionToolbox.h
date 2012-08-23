@@ -46,6 +46,9 @@ public:
   */
   void RefreshContent();
 
+  /*! \brief Reset toolbox to initial state - */
+  virtual void Reset();
+
   /*!
   * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
   */

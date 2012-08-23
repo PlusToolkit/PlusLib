@@ -484,9 +484,7 @@ void CapturingToolbox::ClearRecordedFrames()
     return; 
   }
 
-  m_RecordedFrames->Clear();
-
-  SetState(ToolboxState_Idle);
+  ClearRecordedFramesInternal();
 
   LOG_INFO("Recorded frames cleared");
 }
@@ -527,4 +525,22 @@ double CapturingToolbox::GetMaximumFrameRate()
   }
 
   return frameRate;
+}
+
+//-----------------------------------------------------------------------------
+
+void CapturingToolbox::Reset()
+{
+  AbstractToolbox::Reset();
+
+  this->ClearRecordedFramesInternal();
+}
+
+//-----------------------------------------------------------------------------
+
+void CapturingToolbox::ClearRecordedFramesInternal()
+{
+  m_RecordedFrames->Clear();
+
+  SetState(ToolboxState_Idle);
 }

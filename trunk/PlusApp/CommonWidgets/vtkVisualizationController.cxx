@@ -458,14 +458,14 @@ PlusStatus vtkVisualizationController::EnableVolumeActor( bool aEnable )
 {
   if( aEnable )
   {
-    if( this->PerspectiveVisualizer != NULL )
+    if( this->PerspectiveVisualizer != NULL && this->PerspectiveVisualizer->GetVolumeActor() != NULL)
     {
       this->PerspectiveVisualizer->GetVolumeActor()->VisibilityOn();
     }
   }
   else
   {
-    if( this->PerspectiveVisualizer != NULL )
+    if( this->PerspectiveVisualizer != NULL && this->PerspectiveVisualizer->GetVolumeActor() != NULL)
     {
       this->PerspectiveVisualizer->GetVolumeActor()->VisibilityOff();
     }

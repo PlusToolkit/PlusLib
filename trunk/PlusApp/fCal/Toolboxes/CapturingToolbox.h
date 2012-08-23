@@ -50,6 +50,9 @@ public:
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   void RefreshContent();
 
+  /*! \brief Reset toolbox to initial state - */
+  virtual void Reset();
+
   /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();
 
@@ -69,6 +72,11 @@ protected:
   * \return Maximum frame rate
   */
   double GetMaximumFrameRate();
+
+  /*!
+  * Actual clearing of frames
+  */
+  void ClearRecordedFramesInternal();
 
 protected slots:
   /*!
