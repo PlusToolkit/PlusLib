@@ -55,8 +55,8 @@ public:
   /*! Pack image message from tracked frame */ 
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix ); 
 
-  /*! Unpack image message to tracked frame (CRC check disabled by default) */ 
-  static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck); 
+  /*! Unpack image message to tracked frame */ 
+  static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck); 
 
   /*! Pack transform message from tracked frame */ 
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
