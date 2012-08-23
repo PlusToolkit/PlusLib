@@ -871,6 +871,8 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints()
   }
 }
 
+//-----------------------------------------------------------------------------
+
 void SpatialCalibrationToolbox::Reset()
 {
   AbstractToolbox::Reset();
