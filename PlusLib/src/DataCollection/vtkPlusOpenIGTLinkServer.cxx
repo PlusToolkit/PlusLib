@@ -366,7 +366,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         clientInfoMsg->AllocatePack(); 
 
         client.ClientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() ); 
-        //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
+
         int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {

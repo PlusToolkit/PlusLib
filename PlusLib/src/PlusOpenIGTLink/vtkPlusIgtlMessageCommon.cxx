@@ -111,7 +111,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
 
   socket->Receive(trackedFrameMsg->GetPackBodyPointer(), trackedFrameMsg->GetPackBodySize());
 
-  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = trackedFrameMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
@@ -163,7 +162,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Point
 
   socket->Receive(usMsg->GetPackBodyPointer(), usMsg->GetPackBodySize());
 
-  // If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = usMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
@@ -222,7 +220,9 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
   
   
-    // Convert VTK transform to IGTL transform.
+  // Convert VTK transform to IGTL transform.
+  // VTK and Plus: corner image origin
+  // OpenIGTLink image message: center image origin
   
   vtkSmartPointer< vtkMatrix4x4 > vtkMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   for ( int row = 0; row < 4; ++ row )
@@ -242,8 +242,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
     {
       igtlMatrix[ row ][ col ] = convertedMatrix->GetElement( row, col );
     }
-  }
-  
+  }  
   
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
@@ -256,7 +255,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -277,7 +276,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
 
   socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
 
-  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = imgMsg->Unpack(crccheck);
   if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
   {
@@ -289,7 +287,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
   imgMsg->GetTimeStamp(igtlTimestamp); 
 
-  int imgSize[3]={0}; // image dimension
+  int imgSize[3]={0}; // image dimension in pixels
   imgMsg->GetDimensions(imgSize);
 
   // Set scalar pixel type
@@ -306,6 +304,30 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
 
   trackedFrame.SetImageData(frame); 
   trackedFrame.SetTimestamp(igtlTimestamp->GetTimeStamp());
+
+  if (embeddedTransformName.IsValid())
+  {
+    // Save the transform that is embedded in the IMAGE message into the tracked frame
+    // igtlMatrix origin is in the image center
+    // vtkMatrix origin is in the image corner
+    vtkSmartPointer<vtkMatrix4x4> igtlMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    {
+      igtl::Matrix4x4 igtlMatrixSource;
+      imgMsg->GetMatrix(igtlMatrixSource);  
+      for ( int row = 0; row < 4; ++ row )
+      {
+        for ( int col = 0; col < 4; ++ col )
+        {
+          igtlMatrix->SetElement(row, col, igtlMatrixSource[row][col]);
+        }
+      }
+    }
+    vtkSmartPointer<vtkTransform> igtlToVtkTransform = vtkSmartPointer<vtkTransform>::New();
+    igtlToVtkTransform->Translate( -imgSize[ 0 ] / 2.0, -imgSize[ 1 ] / 2.0, -imgSize[ 2 ] / 2.0 );
+    vtkSmartPointer< vtkMatrix4x4 > vtkMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+    vtkMatrix4x4::Multiply4x4( igtlMatrix, igtlToVtkTransform->GetMatrix(), vtkMatrix ); 
+    trackedFrame.SetCustomFrameTransform(embeddedTransformName, vtkMatrix);
+  }
 
   return PLUS_SUCCESS; 
 }
@@ -364,7 +386,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
 
   socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
 
-  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
   int c = transMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {
@@ -450,7 +471,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
 
   socket->Receive(posMsg->GetPackBodyPointer(), posMsg->GetPackBodySize());
 
-  //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
+  //  If crccheck is specified it performs CRC check and unpack the data only if CRC passes
   int c = posMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
   {

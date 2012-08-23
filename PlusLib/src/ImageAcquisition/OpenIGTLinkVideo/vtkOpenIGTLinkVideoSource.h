@@ -95,6 +95,9 @@ protected:
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
+
+  /*! Name of the transform that is supplied with the IMAGE OpenIGTLink message */ 
+  PlusTransformName ImageMessageEmbeddedTransformName;
     
 private:
   vtkOpenIGTLinkVideoSource(const vtkOpenIGTLinkVideoSource&);  // Not implemented.

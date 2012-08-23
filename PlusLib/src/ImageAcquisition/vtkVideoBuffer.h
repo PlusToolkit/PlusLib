@@ -98,7 +98,7 @@ public:
     then the frame is not added to the buffer.
   */
   virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, TrackedFrame::FieldMapType* customFields = NULL); 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
@@ -106,7 +106,7 @@ public:
     then the frame is not added to the buffer.
   */
   virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, TrackedFrame::FieldMapType* customFields = NULL); 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     Additionally an optional field name&value can be added,
@@ -117,7 +117,7 @@ public:
   */
   virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
     int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
-    TrackedFrame::FieldMapType* customFields = NULL); 
+    const TrackedFrame::FieldMapType* customFields = NULL); 
 
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);

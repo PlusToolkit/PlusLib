@@ -196,7 +196,7 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::I
 PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
   const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int	numberOfBytesToSkip, long frameNumber,  
   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-  TrackedFrame::FieldMapType* customFields /*=NULL*/)
+  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
@@ -278,7 +278,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
   // Add custom fields
   if ( customFields != NULL )
   {
-    for ( TrackedFrame::FieldMapType::iterator it = customFields->begin(); it != customFields->end(); ++it )
+    for ( TrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
     {
       newObjectInBuffer->SetCustomFrameField( it->first, it->second ); 
     }
@@ -289,7 +289,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usI
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
-                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
+                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -332,7 +332,7 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
-                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, TrackedFrame::FieldMapType* customFields /*=NULL*/)
+                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {

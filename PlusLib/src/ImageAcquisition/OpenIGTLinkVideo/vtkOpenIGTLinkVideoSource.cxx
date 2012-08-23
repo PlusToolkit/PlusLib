@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
 #include "PlusVideoFrame.h"
+#include "TrackedFrame.h"
 
 #include "igtlMessageHeader.h"
 #include "igtlImageMessage.h"
@@ -185,86 +186,26 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     this->ClientSocket->CloseSocket(); 
     return this->Connect();
   }
-
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
-  igtl::Matrix4x4 igtlMatrix;
-  igtl::IdentityMatrix(igtlMatrix);
-  std::string igtlTransformName; 
   
   headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
+
+  TrackedFrame trackedFrame;
+
   if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-  {
-    // Message body handler for IMAGE
-    igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
-    imgMsg->SetMessageHeader(headerMsg);
-    imgMsg->AllocatePack();
-
-    this->ClientSocket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
-
-    //  If 1 is specified it performs CRC check and unpack the data only if CRC passes
-    int c = imgMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-    if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
+  {      
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
     {
-      LOG_ERROR("Couldn't receive image message from server!"); 
-      return PLUS_FAIL; 
+      LOG_ERROR("Couldn't get image from OpenIGTLink server!"); 
+      return PLUS_FAIL;
     }
-
-    // if CRC check is OK. Read image data.
-    imgMsg->GetTimeStamp(igtlTimestamp); 
-
-    // Set scalar pixel type
-    PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
-
-    int imgSize[3]={0}; // image dimension
-    imgMsg->GetDimensions(imgSize);
-
-    // Set unfiltered and filtered timestamp by converting UTC to system timestamp
-    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(igtlTimestamp->GetTimeStamp());
-    double filteredTimestamp = unfilteredTimestamp;  
-
-    // The timestamps are already defined, so we don't need to filter them, 
-    // for simplicity, we increase frame number always by 1.
-    this->FrameNumber++;
-
-    // If the buffer is empty, set the pixel type and frame size to the first received properties 
-    if ( this->GetBuffer()->GetNumberOfItems() == 0 )
-    {
-      this->GetBuffer()->SetPixelType(pixelType);  
-      this->GetBuffer()->SetFrameSize( imgSize[0], imgSize[1] );
-    }
-
-    PlusStatus status = this->Buffer->AddItem( imgMsg->GetScalarPointer() , this->GetDeviceImageOrientation(), imgSize, pixelType, US_IMG_BRIGHTNESS, 0, this->FrameNumber, unfilteredTimestamp, filteredTimestamp); 
-    this->Modified();
-    return status;
-
   }
   else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
   {
-    TrackedFrame trackedFrame; 
     if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
       return PLUS_FAIL; 
     }
-
-    // Set unfiltered and filtered timestamp by converting UTC to system timestamp
-    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(trackedFrame.GetTimestamp());  
-    double filteredTimestamp = unfilteredTimestamp;  
-
-    // The timestamps are already defined, so we don't need to filter them, 
-    // for simplicity, we increase frame number always by 1.
-    this->FrameNumber++;
-   
-    // If the buffer is empty, set the pixel type and frame size to the first received properties 
-    if ( this->GetBuffer()->GetNumberOfItems() == 0 )
-    {
-      this->GetBuffer()->SetPixelType(trackedFrame.GetImageData()->GetITKScalarPixelType() );  
-      this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
-    }
-    TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
-    PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
-    this->Modified();
-    return status;
   }
   else
   {
@@ -273,7 +214,31 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     return PLUS_SUCCESS; 
   }
 
-  return PLUS_SUCCESS; 
+  // Set unfiltered and filtered timestamp by converting UTC to system timestamp
+  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(trackedFrame.GetTimestamp());  
+  double filteredTimestamp = unfilteredTimestamp;  
+
+  // The timestamps are already defined, so we don't need to filter them, 
+  // for simplicity, we increase frame number always by 1.
+  this->FrameNumber++;
+
+  // If the buffer is empty, set the pixel type and frame size to the first received properties 
+  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  {
+    PlusVideoFrame* videoFrame=trackedFrame.GetImageData();
+    if (videoFrame==NULL)
+    {
+      LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
+      return PLUS_FAIL;
+    }
+    this->GetBuffer()->SetPixelType( videoFrame->GetITKScalarPixelType() );  
+    this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
+  }
+  TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
+  PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
+  this->Modified();
+
+  return status;
 }
 
 
@@ -343,6 +308,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
       this->SetIgtlMessageCrcCheckEnabled(0);
     }
   }
+
+  const char* imageMessageEmbeddedTransformName = imageAcquisitionConfig->GetAttribute("ImageMessageEmbeddedTransformName"); 
+  if ( imageMessageEmbeddedTransformName != NULL )
+  {
+    this->ImageMessageEmbeddedTransformName.SetTransformName(imageMessageEmbeddedTransformName);
+  }  
 
   return PLUS_SUCCESS;
 }
