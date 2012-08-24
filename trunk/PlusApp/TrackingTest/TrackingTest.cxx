@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkDataCollectorTrackingTest.cxx 
+  \file TrackingTest.cxx 
   \brief This a simple test program to acquire a tracking data and optionally 
   writes the buffer to a metafile and displays the live transform in a 3D view.
 */ 

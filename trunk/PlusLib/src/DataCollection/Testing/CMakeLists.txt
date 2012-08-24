@@ -48,16 +48,6 @@ ADD_TEST(vtkDataCollectorTest2
   --verbose=3
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
- 
-#***************************  vtkDataCollectorTrackingTest ***************************
-ADD_EXECUTABLE(vtkDataCollectorTrackingTest vtkDataCollectorTrackingTest.cxx )
-TARGET_LINK_LIBRARIES(vtkDataCollectorTrackingTest vtkDataCollection vtkPlusCommon )
-# ADD_TEST(vtkDataCollectorTrackingTest 
-  # ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTrackingTest
-  # --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_VideoNone.xml 
-  # --verbose=2
-  # )
-# SET_TESTS_PROPERTIES( vtkDataCollectorTrackingTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
@@ -70,21 +60,6 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 	  # )
 	  # SET_TESTS_PROPERTIES( vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 # ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
-
-#***************************  PlusServer ***************************
-IF (PLUS_USE_OpenIGTLink )
-  ADD_EXECUTABLE( PlusServer PlusServer.cxx )
-  TARGET_LINK_LIBRARIES( PlusServer vtkDataCollection vtkCommon )
-
-  ADD_TEST( PlusServer
-    ${EXECUTABLE_OUTPUT_PATH}/PlusServer
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTest.xml
-    --running-time=5
-    --testing
-    )
-  SET_TESTS_PROPERTIES( PlusServer PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_OpenIGTLink )
-
 
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE( ReplayRecordedDataTest
@@ -116,13 +91,6 @@ ADD_TEST(PlusVersion
 # --------------------------------------------------------------------------
 # Install
 #
-
-IF (PLUS_USE_OpenIGTLink )
-  INSTALL(TARGETS PlusServer
-  DESTINATION bin
-  COMPONENT RuntimeExecutables
-  )
-ENDIF()
 
 INSTALL(TARGETS PlusVersion
   DESTINATION bin
