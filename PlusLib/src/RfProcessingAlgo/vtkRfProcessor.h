@@ -58,13 +58,23 @@ public:
   /*! Set the transducer name */
   vtkSetStringMacro(TransducerName); 
 
-  /*! Initialize the corresponding values in the converter classes. */
-  void InitConverterStartDepthMm(double); 
-  void InitConverterStopDepthMm(double); 
-  void InitConverterStartAngleDeg(double); 
-  void InitConverterStopAngleDeg(double); 
-  void InitConverterRadiusOfCurvatureMm(double);
-  void InitConverterTransducerWidthMm(double);
+  /*! Initialize the corresponding values in the converter classes. For all transducer types. */
+  void SetStartDepthMm(double); 
+
+  /*! Initialize the corresponding values in the converter classes. For all transducer types. */
+  void SetStopDepthMm(double); 
+
+  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
+  void SetStartAngleDeg(double); 
+
+  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
+  void SetStopAngleDeg(double); 
+
+  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
+  void SetRadiusOfCurvatureMm(double);
+
+  /*! Initialize the corresponding values in the converter classes. For linear transducer type only. */
+  void SetTransducerWidthMm(double);
 
 protected:
   vtkRfProcessor();
