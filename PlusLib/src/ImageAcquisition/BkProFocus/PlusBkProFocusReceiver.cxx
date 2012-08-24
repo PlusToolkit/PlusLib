@@ -5,28 +5,21 @@
 
 //////////// IAcquitisionDataReceiver interface
 
+const int BYTES_PER_SAMPLE = 2; // One sample is one I or Q value, stored on 16 bits
+
+const int HEADER_SIZE_BYTES = 4; // The header consists of two 16 bit fields
+
 //----------------------------------------------------------------------------
 PlusBkProFocusReceiver::PlusBkProFocusReceiver()
 {
-  this->ImagingMode=vtkBkProFocusVideoSource::RfMode;
+  m_ImagingMode=vtkBkProFocusVideoSource::RfMode;
 
   m_Frame = NULL;
-  m_RfFrame = NULL;
-  m_BModeFrame = NULL;
 
-  m_Decimation = 2; // ignore IQ samples in each line
+  m_Decimation = 1;
 
-  m_BModeConvertParams.alg= BMODE_DRC_SQRT;
-  m_BModeConvertParams.n_lines = 0;
-  m_BModeConvertParams.n_samples = 0;
-  m_BModeConvertParams.len = 0;
-  m_BModeConvertParams.min = 0;
-  m_BModeConvertParams.max = 0;
-  m_BModeConvertParams.scale = 0;
-  m_BModeConvertParams.dyn_range = 50;
-  m_BModeConvertParams.offset = 10;
-
-  m_NumberOfRfSamples = 0;
+  m_NumberOfRfSamplesPerLine = 0;
+  m_MaxNumberOfLines = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -39,172 +32,152 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 {
   LOG_DEBUG("Prepare: samples"<<samples<<", lines="<<lines<<", pitch="<<pitch);
 
+  int maxNumberOfLines = lines;
+  // maxNumberOfRfSamples refers to the number of availble 16-bit data samples (without the header)
+  // need to subtract the the line header length, because the input "samples" includes the line header as well
+  int numberOfRfSamplesPerLine = (samples-HEADER_SIZE_BYTES/BYTES_PER_SAMPLE) / m_Decimation;
+
+  if (maxNumberOfLines==m_MaxNumberOfLines && numberOfRfSamplesPerLine==m_NumberOfRfSamplesPerLine && m_Frame!=NULL)
+  {
+    // frame buffer already allocated
+    return true;
+  }
+
   // initialize parameters
-  m_BModeConvertParams.n_lines = lines;
-
-  // TODO: check this, in CuteGrabbie it is simply: m_BModeConvertParams.n_samples = samples / 2;
-  m_NumberOfRfSamples = samples-2; // subtract 2 due to header
-  m_BModeConvertParams.n_samples = m_NumberOfRfSamples / 2;
+  m_MaxNumberOfLines = maxNumberOfLines;
+  m_NumberOfRfSamplesPerLine = numberOfRfSamplesPerLine;
   
-
-  // the number of the samples must be 16 byte aligned
-  m_BModeConvertParams.n_samples -= m_BModeConvertParams.n_samples % 8; // each sample is 2 bytes, so mod 8
-
-  // compute derived parameters
-  bmode_set_params_sqrt(&m_BModeConvertParams);
-  
-  // Allocate memory for storage buffers
-  
-  if(m_Frame != NULL)
+  if (m_Frame != NULL)
   {
     _aligned_free(m_Frame);
   }
-  // m_BModeConvertParams.len = number of B-mode pixels in the image
-  // one B-mode pixel is computed from an IQ sample = 2*16 bits = 32 bits = 4 bytes
-  // therefore we have to allocate 4 bytes for each B-mode pixel
-  m_Frame = reinterpret_cast<unsigned char*>(_aligned_malloc(4 * m_BModeConvertParams.len, 16u));
+  m_Frame = reinterpret_cast<unsigned char*>(_aligned_malloc(m_MaxNumberOfLines * m_NumberOfRfSamplesPerLine * BYTES_PER_SAMPLE, 16u));
   if (m_Frame == NULL)
   {
     LOG_ERROR("PlusBkProFocusReceiver::Prepare: Failed to allocate memory for m_Frame");
-  }
-  
-  if(m_BModeFrame != NULL)
-  {
-    _aligned_free(m_BModeFrame);
-  }
-  // m_BModeConvertParams.len = number of B-mode pixels in the image
-  m_BModeFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(m_BModeConvertParams.len, 16u));
-  if (m_BModeFrame == NULL)
-  {
-    LOG_ERROR("PlusBkProFocusReceiver::Prepare: Failed to allocate memory for m_BModeFrame");
-  }
+    return false;
+  } 
 
-  // Prepare the buffer to copy the input entirely
-  if(m_RfFrame != NULL)
-  {
-    _aligned_free(m_RfFrame);
-  }  
-  m_RfFrame = reinterpret_cast<unsigned char*>(_aligned_malloc(m_BModeConvertParams.n_lines*m_NumberOfRfSamples*2, 32u));
-  if (m_RfFrame == NULL)
-  {
-    LOG_ERROR("PlusBkProFocusReceiver::Prepare: Failed to allocate memory for m_RfFrame");
-  }
-
-  return (m_Frame != NULL) && (m_BModeFrame != NULL) && (m_RfFrame != NULL);
+  return true;
 }
 
 //----------------------------------------------------------------------------
 bool PlusBkProFocusReceiver::Cleanup()
 {
-  if(m_Frame != NULL)
+  if (m_Frame != NULL)
   {
     _aligned_free(m_Frame);
     m_Frame = NULL;
   }
-  if(m_BModeFrame != NULL)
-  {
-    _aligned_free(m_BModeFrame);
-    m_BModeFrame = NULL;
-  }
-  if(m_RfFrame != NULL)
-  {
-    _aligned_free(m_RfFrame);
-    m_RfFrame = NULL;
-  }
+  m_NumberOfRfSamplesPerLine = 0;
+  m_MaxNumberOfLines = 0;
   return true;
 }
 
 //----------------------------------------------------------------------------
 bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* frameData)
 {
-  if(m_Frame == NULL || m_BModeFrame == NULL)
+  if (frameData==NULL)
   {
     LOG_DEBUG("DataAvailable received empty m_Frame");
     return false;
   }
-
-  if (this->CallbackVideoSource==NULL)
+  if (m_Frame==NULL)
   {
-    LOG_WARNING("No BK video source callback is set");
+    LOG_ERROR("Frame buffer is not initialized");
+    return false;
+  }
+  if (m_CallbackVideoSource==NULL)
+  {
+    LOG_ERROR("No video source callback is set");
     return false;
   }
 
   const ResearchInterfaceLineHeader* header = reinterpret_cast<const ResearchInterfaceLineHeader*>(frameData);
   const unsigned char* inputFrame = reinterpret_cast<const unsigned char*>(frameData);
-
-  // decimate received data into m_Frame
-  const int bytesPerSample = 2;
+  
+  // Copy as many sample pairs (2x16 bits) as available in the input and allocated in the output    
+  int numberOfSamplePairsInInput=((pitch-HEADER_SIZE_BYTES)/(2*BYTES_PER_SAMPLE))/m_Decimation;
+  int numberOfSamplePairsInOutput=m_NumberOfRfSamplesPerLine/2;    
+  int numberOfSamplePairsToCopy=0;
+  if (numberOfSamplePairsInOutput==numberOfSamplePairsInInput)
+  {
+    numberOfSamplePairsToCopy=numberOfSamplePairsInOutput;
+  }
+  else if (numberOfSamplePairsInOutput<numberOfSamplePairsInInput)
+  {
+    LOG_WARNING("Not enough space allocated to store all the RF samples");
+    numberOfSamplePairsToCopy=numberOfSamplePairsInOutput;
+  }
+  else // numberOfSamplePairsInInput < numberOfSamplePairsInOutput
+  {
+    LOG_WARNING("Not enough samples are available in the acquired frame, the end of the RF lines will be undefined");
+    numberOfSamplePairsToCopy=numberOfSamplePairsInInput;
+  }
 
   int numBmodeLines = 0; // number of bmode lines in this m_Frame
-  for(int i = 0; i < m_BModeConvertParams.n_lines; ++i)
+  for(int inputLineIndex = 0; inputLineIndex < lines; ++inputLineIndex)
   {
-    // AF: each line has a header (1 32-bit sample) and gap after the data
-    //  pitch is the offset of header for the ith sample line 
-    const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + i*pitch);
-    header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(currentInputPosition);
-
-    // only show bmode line --> AF: Should we copy RF data outside this if?
-    if(header->ModelID == 0 && header->CFM == 0 && header->FFT == 0)
+    // Each RF line has a header (two 16-bit fields, see ResearchInterfaceLineHeader), then data values, then some undefined values (padding) till the next line
+    // Pitch is the total number of bytes of the RF line (including header, data, and padding)     
+    header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(inputFrame + inputLineIndex*pitch);
+    
+    if(header->ModelID != 0 || header->CFM != 0 || header->FFT != 0)
     {
-      int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + numBmodeLines*m_BModeConvertParams.n_samples*bytesPerSample);
-      // AF: each sample in m_RfFrame is twice as large as in bmode, and we do not decimate
-      int32_t* currentRFOutputPosition = reinterpret_cast<int32_t*>(m_RfFrame + numBmodeLines*m_NumberOfRfSamples*bytesPerSample);
-
-      ++currentInputPosition; // AF: skip the header
-
-      // n_samples is 16 bit samples, but we need to iterate over 32 bit iq samples, 
-      // so divide by 2 to get the right number
-      for(int j = 0; j < m_BModeConvertParams.n_samples /m_Decimation; ++j)
-      {
-        *currentOutputPosition = *currentInputPosition;
-        currentOutputPosition += 1;		
-
-        *currentRFOutputPosition = *currentInputPosition;
-        *(currentRFOutputPosition+1) = *(currentInputPosition+1);
-        currentRFOutputPosition += 2;
-
-        currentInputPosition += m_Decimation;
-      }
-
-      ++numBmodeLines;
+      // Only process lines that refer to lines that can be converted to brightness lines,
+      // so skip special lines (CFM, FFT, ...)
+      continue;
     }
+
+    if (numBmodeLines>=m_MaxNumberOfLines)
+    {
+      LOG_WARNING("Not enough lines are available in the frame buffer, ignore the acquired line");
+      continue;
+    }
+
+    // TODO: check if header->LineLength can be used to make the numberOfSamplePairsToCopy computation more accurate
+    // (now there might be junk pixels at the end of the line if the line lenght is different for different lines) 
+
+    // 32 bit, one sample pair
+    const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + inputLineIndex*pitch + HEADER_SIZE_BYTES);
+    int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + numBmodeLines*m_NumberOfRfSamplesPerLine );
+
+    for(int samplePairIndex = 0; samplePairIndex < numberOfSamplePairsToCopy; ++samplePairIndex)
+    {
+      *currentOutputPosition = *currentInputPosition;
+      currentInputPosition += m_Decimation; // copy every N-th sample pair (N=m_Decimation), ignore the rest
+      ++currentOutputPosition;
+    }
+
+    ++numBmodeLines;
   }
 
   // compute bmode
   if(numBmodeLines == 0)
   {
-    LOG_DEBUG("No B-mode image lines were found");
+    LOG_DEBUG("No B-mode compatible image lines were found");
     return false;
   }
 
-  switch (this->ImagingMode)
+  switch (m_ImagingMode)
   {
   case vtkBkProFocusVideoSource::BMode:
     {
-      int tempLines = m_BModeConvertParams.n_lines;
-      m_BModeConvertParams.n_lines = numBmodeLines;
-      bmode_set_params_sqrt(&m_BModeConvertParams);
-      bmode_detect_compress_sqrt_16sc_8u(reinterpret_cast<int16_t*>(m_Frame), m_BModeFrame, &(m_BModeConvertParams));
-      m_BModeConvertParams.n_lines = tempLines;
-      bmode_set_params_sqrt(&m_BModeConvertParams);
-      // The image is stored in memory line-by-line, thus the orientation is FM or FU (not the usual MF or UF)
-      int frameSizeInPix[2]={m_BModeConvertParams.n_samples/2, m_BModeConvertParams.n_lines};      // TODO: check this, it may need to be {m_BModeConvertParams.n_samples/2, m_BModeConvertParams.n_lines} - from CuteGrabbie; or try to change m_BModeConvertParams.n_lines to numBmodeLines
-      const int numberOfBitsPerPixel=8;
-      this->CallbackVideoSource->NewFrameCallback(m_BModeFrame, frameSizeInPix, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS);
+      LOG_ERROR("B-mode imaging is not supported");
       break;
     }
   case vtkBkProFocusVideoSource::RfMode:
     {
-      if (this->CallbackVideoSource!=NULL)
+      if (m_CallbackVideoSource!=NULL)
       {
         // AF: each sample in m_RfFrame is twice as large as in bmode, and we do not decimate
-        int frameSizeInPix[2]={m_NumberOfRfSamples, m_BModeConvertParams.n_lines}; // each I and Q value is a sample (there are numRfSamples/2 IQ pairs in one line)
-        this->CallbackVideoSource->NewFrameCallback(m_RfFrame, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
+        int frameSizeInPix[2]={m_NumberOfRfSamplesPerLine, numBmodeLines}; // each I and Q value is a sample (there are numRfSamples/2 IQ pairs in one line)
+        m_CallbackVideoSource->NewFrameCallback(m_Frame, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
       }
       break;
     }
   default:
-    LOG_ERROR("Invalid imaging mode requested: "<<this->ImagingMode);
+    LOG_ERROR("Invalid imaging mode requested: "<<m_ImagingMode);
     return false;
   }
 
@@ -214,11 +187,17 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 //----------------------------------------------------------------------------
 void PlusBkProFocusReceiver::SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource)
 {
-  this->CallbackVideoSource = videoSource;
+  m_CallbackVideoSource = videoSource;
 }
 
 //----------------------------------------------------------------------------
 void PlusBkProFocusReceiver::SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode)
 {
-  this->ImagingMode = imagingMode;
+  m_ImagingMode = imagingMode;
+}
+
+//----------------------------------------------------------------------------
+void PlusBkProFocusReceiver::SetDecimation(int decimation)
+{
+  m_Decimation = decimation;
 }
