@@ -5,6 +5,7 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_1.2.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NoVideo_NDIAurora.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NwirePhantomFreehandReconstructionOnly.xml 
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_TemporalCalibration.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixRP_L14-5_NDICertus_fCal_1.0.xml
