@@ -24,32 +24,6 @@ See License.txt for details.
 #include "MadgwickAHRS.h"
 #include "MahonyAHRS.h"
  
-
-
-
-
-
-
-
-
-
-//=====================================================================================================
-// MahonyAHRS.c
-//=====================================================================================================
-//
-// Madgwick's implementation of Mayhony's AHRS algorithm.
-// See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
-//
-// Date			Author			Notes
-// 29/09/2011	SOH Madgwick    Initial release
-// 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
-//
-//=====================================================================================================
-
-//---------------------------------------------------------------------------------------------------
-// Header files
-
-#include "MahonyAHRS.h"
 #include <math.h>
 
 vtkStandardNewMacro(vtkPhidgetSpatialTracker);
