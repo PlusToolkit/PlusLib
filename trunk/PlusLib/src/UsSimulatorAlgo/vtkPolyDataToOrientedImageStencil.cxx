@@ -66,6 +66,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTransform.h"
 #include "vtkSmartPointer.h"
 #include "vtkPlane.h"
+#include "vtkMath.h" 
+
 
 #include <math.h>
 
@@ -247,7 +249,8 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
   modelToImageTransform->SetMatrix(this->ModelToImageMatrix); 
 
   vtkSmartPointer<vtkMatrix4x4> directionCosines = vtkSmartPointer<vtkMatrix4x4>::New();// remember to free memory?
-  vtkSmartPointer<vtkMatrix4x4> spacingAndOrigin = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> spacingMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> translateToOrigin = vtkSmartPointer<vtkMatrix4x4>::New(); 
  
   /*
     Create a direction cosines matrix ( the expanded to homogenous space for later multiplication)
@@ -256,16 +259,17 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
   */
   for( int i=0; i<3; i++)
   {
-    spacingAndOrigin->SetElement(i,i,spacing[i]);
-    spacingAndOrigin->SetElement(i,3,origin[i]);
+    spacingMatrix->SetElement(i,i,spacing[i]);
+    spacingMatrix->SetElement(i,3,0);
+    translateToOrigin->SetElement(i,i,1);
+    translateToOrigin->SetElement(i,3,origin[i]); 
     for( int j = 0; j<3; j++)
     {
-    directionCosines->SetElement(i,j,ModelToImageMatrix->GetElement(i,j)); 
-
+      directionCosines->SetElement(i,j,ModelToImageMatrix->GetElement(i,j)); 
     }
-  directionCosines->SetElement(i,3,1);
+    directionCosines->SetElement(i,3,0);
   }
-  spacingAndOrigin->SetElement(3,3,1);
+  spacingMatrix->SetElement(3,3,1);
   
   // if we have no data then return
   if (!this->GetInput()->GetNumberOfPoints())
@@ -308,11 +312,9 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       }
 
     double z = idxZ*spacing[2] + origin[2];
-
-    // multiply direction cosine matrix and spacing matrix to create an intermediary transformation matrix
-    vtkSmartPointer<vtkMatrix4x4> spacingAndDirectionCosines= vtkMatrix4x4::New(); 
-    directionCosines->Multiply4x4(spacingAndOrigin,directionCosines,spacingAndDirectionCosines);
     
+    
+
     // step size represents the increment used to create different slices per iteration
     double stepSize[4]=
     {
@@ -322,7 +324,12 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       1
     };
     
-    double *slicePosition = spacingAndDirectionCosines->MultiplyDoublePoint(stepSize);
+    double *slicePosition = translateToOrigin->MultiplyDoublePoint(directionCosines->MultiplyDoublePoint(spacingMatrix->MultiplyDoublePoint(stepSize))); 
+    
+    
+    
+    
+  
 
  /*  original idea:
    {
@@ -331,13 +338,25 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       idxZ*directionCosines[3][2]*spacing[2] + origin[2]
     };*/
 
-    double sliceNormal[3]=
+    
+    double sliceXDirectionVector[4]=
     {
-      // **** check math, also eventually standardize length with slice Position
-      directionCosines->GetElement(1,0),
-      directionCosines->GetElement(1,1),
-      directionCosines->GetElement(1,2)
+      directionCosines->GetElement(0,0),
+      directionCosines->GetElement(0,1),
+      directionCosines->GetElement(0,2),
+      1
     };
+    
+    
+    double sliceNormal[4];
+    
+      // **** check math, also eventually standardize length with slice Position
+    /*  directionCosines->GetElement(1,0),
+      directionCosines->GetElement(1,1),
+      directionCosines->GetElement(1,2)*/
+      
+      vtkMath::Cross(sliceXDirectionVector,slicePosition,sliceNormal); 
+    ;
 
 
     slice->PrepareForNewData();
