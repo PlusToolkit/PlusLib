@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-// #define USE_vtkPolyDataToOrientedImageStencil
+//#define USE_vtkPolyDataToOrientedImageStencil
 
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
