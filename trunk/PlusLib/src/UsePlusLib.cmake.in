@@ -130,10 +130,6 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkCalibrationAlgo@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_PatternLocAlgo@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
-      # if PLUS_USE_BRACHY_TRACKER
-      IF (@PLUS_USE_BRACHY_TRACKER@)
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
-      ENDIF()      
       # if PLUS_USE_CERTUS OR PLUS_USE_POLARIS
       IF (@PLUS_USE_CERTUS@ OR @PLUS_USE_POLARIS@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
