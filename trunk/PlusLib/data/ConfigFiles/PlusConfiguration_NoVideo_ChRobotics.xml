@@ -1,0 +1,32 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="No video + Phidget Spatial" 
+      Description="Configuration file for No video + Phidget Spatial accelerometer" 
+    />
+
+    <Tracker Type="ChRobotics" SerialPort="5" BaudRate="115200" FirmwareDirectory="ChRoboticsFirmware" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+      <xTool Name="Accelerometer" PortName="Accelerometer" />
+      <xTool Name="Gyroscope" PortName="Gyroscope" />
+      <xTool Name="Magnetometer" PortName="Magnetometer" />
+      <Tool Name="OrientationSensor" PortName="OrientationSensor" />
+    </Tracker>
+
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="OrientationSensorToTracker" /> 
+        <xTransform Name="AccelerometerToTracker" /> 
+        <xTransform Name="GyroscopeToTracker" /> 
+        <xTransform Name="MagnetometerToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>

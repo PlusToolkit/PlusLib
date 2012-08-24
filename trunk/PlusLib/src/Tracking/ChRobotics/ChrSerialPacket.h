@@ -123,7 +123,7 @@ public:
       return GetHeaderByte(index);
     }
     index-=GetHeaderLength();
-    if (index<GetHeaderLength())
+    if (index<GetDataLength())
     {
       return GetDataByte(index);
     }

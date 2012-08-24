@@ -67,11 +67,24 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopTracking();
 
-  /*! Get the firmware version identification string */
-  PlusStatus GetFirmwareVersion(std::string &firmwareVersion);
+  /*! 
+    Find the firmware definition with the specified id among the firmware definition the XML files.
+    If the definition is found then fill the foundDefinition object with the description.
+  */
+  PlusStatus FindFirmwareDefinition(const std::string& id, vtkXMLDataElement* foundDefinition);
 
+  /*! Utility function for finding all the firmware descriptor files */
+  void GetFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir);
+
+  /*! Query the firmware version of the connected device and load its definition from XML file */
+  PlusStatus LoadFirmwareDescriptionForConnectedDevice();
+
+  /*! Send a packet and wait for and receive a reply packet */
+  PlusStatus SendCommand( ChrSerialPacket& requestPacket, ChrSerialPacket& replyPacket );
+  
   PlusStatus SendPacket( ChrSerialPacket& packet );
   PlusStatus ReceivePacket( ChrSerialPacket& packet );
+
   PlusStatus ProcessPacket( ChrSerialPacket& packet );
 
 private:  // Functions.
@@ -91,6 +104,12 @@ private:  // Variables.
   /*! Baud rate */
   long BaudRate; 
 
+  /*! 
+    Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.).
+    The path can be relative to the confiuration directory.
+  */
+  std::string FirmwareDirectory;
+
   unsigned int FrameNumber;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
@@ -105,7 +124,8 @@ private:  // Variables.
   vtkTrackerTool* MagnetometerTool;
   vtkTrackerTool* OrientationSensorTool;
 
-  int SelectedFirmwareIndex;
+  vtkXMLDataElement* FirmwareDefinition;
+  std::string FirmwareVersionId;
 };
 
 #endif
