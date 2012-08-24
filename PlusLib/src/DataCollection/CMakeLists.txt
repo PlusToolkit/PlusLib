@@ -83,6 +83,12 @@ INSTALL(TARGETS vtkDataCollection
 # Testing
 #
 
+SUBDIRS (Applications)
+  
+# --------------------------------------------------------------------------
+# Testing
+#
+
 IF (BUILD_TESTING)
 	SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)
