@@ -98,10 +98,6 @@ ADD_SUBDIRECTORY(CommonWidgets)
 ADD_SUBDIRECTORY(PointSetExtractor)
 
 # --------------------------------------------------------------------------
-# Build various utilities
-ADD_SUBDIRECTORY(TrackingTest)
-
-# --------------------------------------------------------------------------
 # Build the DiagnosticTools 
 IF (PLUSAPP_BUILD_DiagnosticTools)
     ADD_SUBDIRECTORY(DiagnosticTools)
