@@ -32,6 +32,12 @@ public:
   /*! Disconnect from device */
   virtual PlusStatus Disconnect();
 
+  /*! Read main configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  /*! Write main configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+
   /*! 
   Probe to see if the tracking system is present on the specified serial port.  
   If the SerialPort is set to -1, then all serial ports will be checked.
@@ -45,12 +51,22 @@ public:
   */
   PlusStatus InternalUpdate();
 
-  /*! Get number of sensors */
   vtkGetMacro(NumberOfSensors, int);
 
+  vtkGetMacro(FilterAcWideNotch, int);
+  vtkGetMacro(FilterAcNarrowNotch, int);
+  vtkGetMacro(FilterDcAdaptive, double);
+  vtkGetMacro(FilterLargeChange, int);
+  vtkGetMacro(FilterAlpha, bool);
 
 protected:
+  vtkSetMacro(FilterAcWideNotch, int);
+  vtkSetMacro(FilterAcNarrowNotch, int);
+  vtkSetMacro(FilterDcAdaptive, double);
+  vtkSetMacro(FilterLargeChange, int);
+  vtkSetMacro(FilterAlpha, bool);
 
+protected:
   vtkAscension3DGTrackerBase();
   ~vtkAscension3DGTrackerBase();
 
@@ -65,13 +81,10 @@ protected:
 
   vtkTrackerBuffer* LocalTrackerBuffer; 
 
-
 private:  // Definitions.
-
   enum {TRANSMITTER_OFF = -1};
 
 private:  // Functions.
-
   vtkAscension3DGTrackerBase( const vtkAscension3DGTrackerBase& );
   void operator=( const vtkAscension3DGTrackerBase& );  
 
@@ -80,7 +93,6 @@ private:  // Functions.
 
 
 private:  // Variables.
-
   std::vector< bool > SensorSaturated;
   std::vector< bool > SensorAttached;
   std::vector< bool > SensorInMotion;
@@ -92,4 +104,18 @@ private:  // Variables.
   unsigned int FrameNumber;
   int NumberOfSensors; 
 
+  /*! AC wide notch filter status: enabled (1) or disabled (0) */
+  int FilterAcWideNotch;
+
+  /*! AC narrow notch filter status: enabled (1) or disabled (0) */
+  int FilterAcNarrowNotch;
+
+  /*! DC adaptive filter parameter (0.0 for no filtering, 1.0 for maximum filtering) */
+  double FilterDcAdaptive;
+
+  /*! Large change filter status: enabled (1) or disabled (0) */
+  int FilterLargeChange;
+
+  /*! Alpha filter status: enabled (true) or disabled (false) */
+  bool FilterAlpha;
 };

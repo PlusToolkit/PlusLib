@@ -29,7 +29,12 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->AscensionRecordBuffer = NULL; 
 
   this->TransmitterAttached = false;
-  this->NumberOfSensors = 0; 
+  this->NumberOfSensors = 0;
+  this->FilterAcWideNotch = 0;
+  this->FilterAcNarrowNotch = 0;
+  this->FilterDcAdaptive = 0.0;
+  this->FilterLargeChange = 0;
+  this->FilterAlpha = false;
 }
 
 //-------------------------------------------------------------------------
@@ -42,14 +47,14 @@ vtkAscension3DGTrackerBase::~vtkAscension3DGTrackerBase()
 
   if ( this->AscensionRecordBuffer != NULL )
   {
-    delete this->AscensionRecordBuffer; 
-    this->AscensionRecordBuffer = NULL; 
+    delete this->AscensionRecordBuffer;
+    this->AscensionRecordBuffer = NULL;
   }
 
   if ( this->LocalTrackerBuffer != NULL )
   {
-    this->LocalTrackerBuffer->Delete(); 
-    this->LocalTrackerBuffer = NULL; 
+    this->LocalTrackerBuffer->Delete();
+    this->LocalTrackerBuffer = NULL;
   }
 }
 
@@ -62,7 +67,7 @@ void vtkAscension3DGTrackerBase::PrintSelf( ostream& os, vtkIndent indent )
 //-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTrackerBase::Connect()
 {
-  LOG_TRACE("vtkAscension3DGTracker::Connect" ); 
+  LOG_TRACE("vtkAscension3DGTracker::Connect" );
 
   if ( this->Probe()!=PLUS_SUCCESS )
   {
@@ -79,14 +84,14 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
     LOG_ERROR("Connection initialization failed");
     return PLUS_FAIL;
   }  
-  // Change to metric units.
 
+  // Change to metric units.
   int metric = 1;
   if (this->CheckReturnStatus( SetSystemParameter( METRIC, &metric, sizeof( metric ) ) )!= PLUS_SUCCESS)
   {
     LOG_ERROR("Connection set to metric units failed");
     return PLUS_FAIL;
-  }  
+  }
 
   // Go through all tools.
 
@@ -95,7 +100,25 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
 
   for ( sensorID = 0; sensorID < systemConfig.numberSensors; ++ sensorID )
   {
+    // Set data format
     this->CheckReturnStatus( SetSensorParameter( sensorID, DATA_FORMAT, &formatType, sizeof( formatType ) ) );
+
+    // Set filtering
+    this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_AC_WIDE_NOTCH, &this->FilterAcWideNotch, sizeof( int ) ) );
+    this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_AC_NARROW_NOTCH, &this->FilterAcNarrowNotch, sizeof( int ) ) );
+    this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_DC_ADAPTIVE, &this->FilterDcAdaptive, sizeof( double ) ) );
+    this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_LARGE_CHANGE, &this->FilterLargeChange, sizeof( int ) ) );
+
+    tagADAPTIVE_PARAMETERS alphaStruct;
+    alphaStruct.alphaMin[0] = alphaStruct.alphaMin[1] = alphaStruct.alphaMin[2] = alphaStruct.alphaMin[3]
+      = alphaStruct.alphaMin[4] = alphaStruct.alphaMin[5] = alphaStruct.alphaMin[6] = 655;
+    alphaStruct.alphaMax[0] = alphaStruct.alphaMax[1] = alphaStruct.alphaMax[2] = alphaStruct.alphaMax[3]
+      = alphaStruct.alphaMax[4] = alphaStruct.alphaMax[5] = alphaStruct.alphaMax[6] = 29491;
+    alphaStruct.vm[0] = 2;
+    alphaStruct.vm[1] = alphaStruct.vm[2] = alphaStruct.vm[3]
+      = alphaStruct.vm[4] = alphaStruct.vm[5] = alphaStruct.vm[6] = 4;
+    alphaStruct.alphaOn = this->FilterAlpha;
+    this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_ALPHA_PARAMETERS, &alphaStruct, sizeof( alphaStruct ) ) );
 
     DEVICE_STATUS status;
     status = GetSensorStatus( sensorID );
@@ -104,9 +127,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
     this->SensorAttached.push_back( ( status & NOT_ATTACHED ) ? false : true );
     this->SensorInMotion.push_back( ( status & OUT_OF_MOTIONBOX ) ? false : true );
     this->TransmitterAttached = ( ( status & NO_TRANSMITTER_ATTACHED ) ? false : true );
-
   }
-
 
   this->NumberOfSensors = systemConfig.numberSensors; 
 
@@ -359,5 +380,100 @@ PlusStatus vtkAscension3DGTrackerBase::CheckReturnStatus( int status )
     LOG_ERROR(buffer);
     return PLUS_FAIL;
   }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+  if ( rootConfigElement == NULL ) 
+  {
+    LOG_WARNING("Unable to find BrachyTracker XML data element");
+    return PLUS_FAIL; 
+  }
+
+  // Read superclass configuration first
+  Superclass::ReadConfiguration(rootConfigElement); 
+
+  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  int filterAcWideNotch = 0; 
+  if ( trackerConfig->GetScalarAttribute("FilterAcWideNotch", filterAcWideNotch) ) 
+  {
+    this->SetFilterAcWideNotch(filterAcWideNotch); 
+  }
+
+  int filterAcNarrowNotch = 0; 
+  if ( trackerConfig->GetScalarAttribute("FilterAcNarrowNotch", filterAcNarrowNotch) ) 
+  {
+    this->SetFilterAcNarrowNotch(filterAcNarrowNotch); 
+  }
+
+  double filterDcAdaptive = 0.0; 
+  if ( trackerConfig->GetScalarAttribute("FilterDcAdaptive", filterDcAdaptive) ) 
+  {
+    this->SetFilterDcAdaptive(filterDcAdaptive); 
+  }
+
+  int filterLargeChange = 0; 
+  if ( trackerConfig->GetScalarAttribute("FilterLargeChange", filterLargeChange) ) 
+  {
+    this->SetFilterLargeChange(filterLargeChange); 
+  }
+
+  int filterAlpha = 0;
+  if ( trackerConfig->GetScalarAttribute("FilterAlpha", filterAlpha) ) 
+  {
+    this->SetFilterAlpha(filterAlpha>0?true:false); 
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+  if ( rootConfigElement == NULL )
+  {
+    LOG_ERROR("Configuration is invalid");
+    return PLUS_FAIL;
+  }
+
+  // Write configuration 
+  Superclass::WriteConfiguration(rootConfigElement); 
+
+  // Get data collection and then Tracker configuration element
+  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if ( trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  trackerConfig->SetIntAttribute("FilterAcWideNotch", this->GetFilterAcWideNotch()); 
+  trackerConfig->SetIntAttribute("FilterAcNarrowNotch", this->GetFilterAcNarrowNotch()); 
+  trackerConfig->SetDoubleAttribute("FilterDcAdaptive", this->GetFilterDcAdaptive()); 
+  trackerConfig->SetIntAttribute("FilterLargeChange", this->GetFilterLargeChange()); 
+  trackerConfig->SetIntAttribute("FilterAlpha", (this->GetFilterAlpha()?1:0));
+
   return PLUS_SUCCESS;
 }
