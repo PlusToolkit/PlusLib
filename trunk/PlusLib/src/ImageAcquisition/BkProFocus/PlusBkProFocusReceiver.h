@@ -24,12 +24,16 @@ public:
     when the raw RF data is recorded. Applications (e.g., fCal) may still be able
     to show a B-mode image for monitoring the acquisition by performing the
     brightness conversion and scan conversion internally.
-    If B mode is selected then the receiver performs brightness conversion using
-    the algorithm implemented in the BK ProFocus SDK, however no scan conversion
-    is performed. Therefore, B mode acquisition is intended for experimental or
-    testing use only.
+    Other imaging modes are not yet supported.
   */
   virtual void SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode);
+
+  /*!
+    Set decimation value to reduce the amount of processed data.
+    Only every N-th RF sample is acquired.
+    Regardelss of the decimation value all the lines are acquired.
+  */
+  virtual void SetDecimation(int decimation);
 
   /*! Callback functions called by the BK ProFocus SDK when starting the acquisition */
   virtual bool Prepare(int samples, int lines, int pitch);
@@ -41,29 +45,27 @@ public:
   virtual bool Cleanup();  
 
 protected:
-  vtkBkProFocusVideoSource* CallbackVideoSource;
+  
+  /*! Video source that is notified about each new frame */
+  vtkBkProFocusVideoSource* m_CallbackVideoSource;
 
-  vtkBkProFocusVideoSource::ImagingModeType ImagingMode;
+  /*! For future use. Now only RF mode is supported. */
+  vtkBkProFocusVideoSource::ImagingModeType m_ImagingMode;
 
-  /*! Parameters used by the BK ProFocus SDK RF to B mode converter */
-  TBModeParams m_BModeConvertParams;
-
-  /*! Buffer storing the RF lines that can be converted to brightness lines */
+  /*! Buffer storing the RF lines that can be converted to brightness lines, after decimation */
   unsigned char* m_Frame;
   
-  /*! Buffer storing the brightness converted lines */
-  unsigned char* m_BModeFrame;
-
-  /*!
-    Buffer storing the full RF lines, without decimation
-    TODO: this has to be cleaned up, because it's essentially the same as the m_Frame (without decimation).
-     Probably it's enough to save the RF data with the specified decimation.
-  */
-  unsigned char* m_RfFrame;
-
   /*! Paramter to reduce the amount of processed and stored data. The receiver uses only 1 out of m_Decimation samples in a line.*/
   int m_Decimation;
 
-  /*! Number of RF samples in one RF line. TODO: clarify what does one sample mean (an IQ pair is 1 sample; or an IQ pair are 2 samples). */
-  int m_NumberOfRfSamples;
+  /*!
+    Number of samples (I or Q value) in one RF line in m_Frame.
+    One sample is a 16-bit integer.
+    The number of RF "sample pairs" = number of RF "samples" / 2.
+    The number does not include the RF line header.
+  */
+  int m_NumberOfRfSamplesPerLine;
+
+  /*! Number RF lines that can be stored in m_Frame */
+  int m_MaxNumberOfLines;
 };
