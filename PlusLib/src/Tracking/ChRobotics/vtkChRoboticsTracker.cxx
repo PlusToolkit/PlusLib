@@ -18,6 +18,7 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
 
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
@@ -25,6 +26,11 @@ See License.txt for details.
 #include "vtkTrackerBuffer.h"
 
 #include <math.h>
+
+#ifdef WIN32
+  #include <io.h> // for findnext
+#endif
+
 
 vtkStandardNewMacro(vtkChRoboticsTracker);
 
@@ -42,10 +48,13 @@ static const unsigned char DATA_REGISTER_START_ADDRESS=85;
 static const unsigned char COMMAND_START_ADDRESS=170;
 
 //-------------------------------------------------------------------------
+
+static const int MAX_COMMAND_REPLY_WAIT=500; // number of maximum replies to wait for a command reply
+
+//-------------------------------------------------------------------------
 vtkChRoboticsTracker::vtkChRoboticsTracker() :
 ComPort(5),
-BaudRate(115200),
-SelectedFirmwareIndex(-1)
+BaudRate(115200)
 { 
   this->Serial = new SerialLine(); 
 
@@ -61,6 +70,8 @@ SelectedFirmwareIndex(-1)
   this->LastGyroscopeToTrackerTransform=vtkMatrix4x4::New();
   this->LastMagnetometerToTrackerTransform=vtkMatrix4x4::New();
   this->LastOrientationSensorToTrackerTransform=vtkMatrix4x4::New();
+
+  this->FirmwareDefinition=vtkXMLDataElement::New();
 }
 
 //-------------------------------------------------------------------------
@@ -86,6 +97,9 @@ vtkChRoboticsTracker::~vtkChRoboticsTracker()
   this->LastMagnetometerToTrackerTransform=NULL;
   this->LastOrientationSensorToTrackerTransform->Delete();
   this->LastOrientationSensorToTrackerTransform=NULL;
+
+  this->FirmwareDefinition->Delete();
+  this->FirmwareDefinition=NULL;
 }
 
 //-------------------------------------------------------------------------
@@ -126,13 +140,9 @@ PlusStatus vtkChRoboticsTracker::Connect()
     return PLUS_FAIL; 
   }
 
-  // Reset the firmware id, it will be queried from the device
-  this->SelectedFirmwareIndex=-1;
-
-  std::string firmwareVersion;
-  if (GetFirmwareVersion(firmwareVersion)!=PLUS_SUCCESS)
+  if (LoadFirmwareDescriptionForConnectedDevice()!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to query fimware version of the device");
+    LOG_ERROR("Failed to load firmware description for the connected device");
     this->Serial->Close();
     return PLUS_FAIL;
   }
@@ -206,24 +216,149 @@ PlusStatus vtkChRoboticsTracker::InternalUpdate()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::GetFirmwareVersion(std::string &firmwareVersion)
+PlusStatus vtkChRoboticsTracker::FindFirmwareDefinition(const std::string& requestedFirmwareId, vtkXMLDataElement* foundDefinition)
 {
-  firmwareVersion.empty();
+  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->FirmwareDirectory;
+  LOG_DEBUG("Loading the firmware files from "<<firmwareFullPath);
+  
+  std::vector<std::string> firmwareFileList;
+  GetFileNamesFromDirectory(firmwareFileList, firmwareFullPath);
+  if (firmwareFileList.size()==0)
+  {
+    LOG_ERROR("Failed to load firmware definitions from "<<firmwareFullPath);
+    return PLUS_FAIL;
+  }
+  
+  for (std::vector<std::string>::iterator it=firmwareFileList.begin(); it!=firmwareFileList.end(); ++it)
+  {
+    LOG_DEBUG("Loading firmware from: "<<(*it));
+    vtkSmartPointer<vtkXMLDataElement> firmwareElemRoot = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile((*it).c_str())); 
+    if (firmwareElemRoot.GetPointer()==NULL)
+    {
+      LOG_WARNING("Failed to read firmware definition from "<<(*it)<<". The file is ignored.");
+      continue;
+    }
+    const char* foundFirmwareId=firmwareElemRoot->GetAttribute("id");
+    if (foundFirmwareId==NULL)
+    {
+      LOG_WARNING("Id not found in firmware definition file "<<(*it)<<". The file is ignored.");
+      continue;
+    }      
+          
+    if (requestedFirmwareId.compare(foundFirmwareId)==0)
+    {
+      // found firmware description
+      foundDefinition->DeepCopy(firmwareElemRoot);      
+      return PLUS_SUCCESS;
+    }
+  }
+  
+  foundDefinition->RemoveAllAttributes();
+  foundDefinition->RemoveAllNestedElements();
+  LOG_ERROR("Could not find ChRobotics firmware definition for attached device ("<<requestedFirmwareId<<")");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir)
+{  
+#if(WIN32) // Windows
+  _finddata_t file; 
+  std::string findPath=dir+"\\*.*";
+  long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
+  if (currentPosition == -1L)
+  {
+    return ; //end the procedure if no file is found
+  }
+  do
+  {
+    std::string fileName = file.name;
+    //ignore . and ..
+    if(strcmp(fileName.c_str() , ".") != 0 && strcmp(fileName.c_str() , "..") !=0 )
+    {
+      //If not subdirectory
+      if (!(file.attrib & _A_SUBDIR))
+      {
+        fileNames.push_back(std::string(dir) + "/" +  fileName);
+      }
+    }
+  } while(_findnext(currentPosition, &file) == 0);
+  _findclose(currentPosition); //close search
+#else // Linux
+  DIR* d;
+  struct dirent *ent;
+
+  if ( (d = opendir(dir)) != NULL)
+  {
+    while ((ent = readdir(d)) != NULL)
+    {
+      string entry( ent->d_name );
+      if (entry != "." && entry != "..")
+      {
+        fileNames.push_back(currentFolderPath + entry);
+      }
+    }
+  }
+  closedir(d);
+#endif
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkChRoboticsTracker::LoadFirmwareDescriptionForConnectedDevice()
+{
+  LOG_TRACE("vtkChRoboticsTracker::LoadFirmwareDescriptionForConnectedDevice");
+  this->FirmwareVersionId.empty();
 
   ChrSerialPacket fwRequest;
   fwRequest.SetHasData(false);
   fwRequest.SetBatchEnable(false);
   fwRequest.SetAddress(UM6_GET_FW_VERSION);  
 
-  if (this->SendPacket( fwRequest )!=PLUS_SUCCESS)
+  ChrSerialPacket fwReply;
+
+  if (SendCommand(fwRequest, fwReply)!=PLUS_SUCCESS)
   {
+    LOG_ERROR("Failed to query ChRobotics device firmware version");
     return PLUS_FAIL;
   }
 
-  ChrSerialPacket reply;
-  while (ReceivePacket( reply )==PLUS_SUCCESS) {};
+  // Convert packet data to string
+  unsigned char dataLength=fwReply.GetDataLength();
+  for (int i=0; i<dataLength; i++)
+  {
+    this->FirmwareVersionId.push_back(fwReply.GetDataByte(i));
+  }
 
+  // Search loaded firmware items to determine if we have a definition
+  // for the firmware revision given by the sensor.
+  if (FindFirmwareDefinition(this->FirmwareVersionId, this->FirmwareDefinition)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to load firmware definition for ChRobotics device version "<<this->FirmwareVersionId);
+    return PLUS_FAIL;
+  }
+
+  LOG_INFO("CHRobotics device firmware identified ("<< this->FirmwareVersionId <<") and firmware definition loaded." );
   return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkChRoboticsTracker::SendCommand( ChrSerialPacket& requestPacket, ChrSerialPacket& replyPacket )
+{
+  if (SendPacket( requestPacket )!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  for (int i=0; i<MAX_COMMAND_REPLY_WAIT; i++)
+  {
+    ReceivePacket(replyPacket);    
+    if (replyPacket.GetAddress()==requestPacket.GetAddress())
+    {
+      // we've received reply to the command
+      return PLUS_SUCCESS;
+    }    
+  }
+  LOG_ERROR("Failed to receive reply to command "<<int(requestPacket.GetAddress()));
+  return PLUS_FAIL;
 }
 
 //-------------------------------------------------------------------------
@@ -237,6 +372,8 @@ PlusStatus vtkChRoboticsTracker::SendPacket( ChrSerialPacket& packet )
   {
     this->Serial->Write(packet.GetPacketByte(i));
   }
+
+  LOG_TRACE("Sent packet: address="<<int(packet.GetAddress())<<", data length="<<int(packet.GetDataLength()));
 
   return PLUS_SUCCESS;
 }
@@ -308,9 +445,15 @@ PlusStatus vtkChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
 
   if (packet.GetChecksumByte(0)!=checksum0 || packet.GetChecksumByte(1)!=checksum1)
   {
-    LOG_ERROR("Received a packet with bad checksum through serial line");
+    LOG_ERROR("Received a packet with bad checksum through serial line ("
+      <<"address="<<int(packet.GetAddress())<<", checksum: "
+      <<int(packet.GetChecksumByte(0))<<"!="<<int(checksum0)<<" and/or "
+      <<int(packet.GetChecksumByte(1))<<"!="<<int(checksum1)<<")"
+      );
     return PLUS_FAIL;
   }
+
+  LOG_TRACE("Received packet: address="<<int(packet.GetAddress())<<", data length="<<int(packet.GetDataLength()));
 
   return PLUS_SUCCESS;
 }
@@ -318,62 +461,39 @@ PlusStatus vtkChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
 {
+  // Firmware-independent processing
+
+  if( packet.GetAddress() == UM6_BAD_CHECKSUM )
+  {
+    LOG_WARNING("Received ChRobotics sensor reply: BAD_CHECKSUM");
+    return PLUS_FAIL;
+  }
+  else if( packet.GetAddress() == UM6_UNKNOWN_ADDRESS )
+  {
+    LOG_WARNING("Received ChRobotics sensor reply: UNKNOWN_ADDRESS");
+    return PLUS_FAIL;
+  }
+  else if( packet.GetAddress() == UM6_INVALID_BATCH_SIZE )
+  {
+    LOG_WARNING("Received ChRobotics sensor reply: INVALID_BATCH_SIZE");
+    return PLUS_FAIL;
+  }
+
   // If no firmware definition has been selected yet, ignore this packet if it isn't reporting the firmware version
-  if( this->SelectedFirmwareIndex == -1 )
+
+/*
+if( this->SelectedFirmwareIndex == -1 )
   {
     if( packet.GetAddress() != UM6_GET_FW_VERSION )
     {
       return PLUS_SUCCESS;
     }
   }
+*/
 
-  // Check if the received packet is a firmware definition
-  if( packet.GetAddress() == UM6_GET_FW_VERSION )
-  {
-    std::string packetFirmwareId;
-    unsigned char dataLength=packet.GetDataLength();
-    for (int i=0; i<dataLength; i++)
-    {
-      packetFirmwareId.push_back(packet.GetDataByte(i));
-    }
+  // Firmware-dependent processing
 
-    // This is a firmware definition packet.  Search loaded firmware items to determine if we have a definition
-    // for the firmware revision given by the sensor.
-    /* TODO:
-    for( int i = 0; i < this->FirmwareCount; i++ )
-    {
-    std::string firmwareId = FirmwareArray[i]->GetID();
-    if( firmwareId.compare(packetFirmwareId)==0 )
-    {
-    // found firmware
-    this->SelectedFirmwareIndex = i;
-    LOG_INFO("CHRobotics device firmware identified: " << firmwareId);
-    break;
-    }									
-    }
-    */
-    if( SelectedFirmwareIndex == -1 )
-    {
-      LOG_ERROR("Could not find firmware definition for attached device ("<<packetFirmwareId<<")");
-      return PLUS_FAIL;
-    }
-  }
-  else if( packet.GetAddress() == UM6_BAD_CHECKSUM )
-  {
-    LOG_TRACE("Received BAD_CHECKSUM message from sensor");
-    return PLUS_FAIL;
-  }
-  else if( packet.GetAddress() == UM6_UNKNOWN_ADDRESS )
-  {
-    LOG_ERROR("Received UNKNOWN_ADDRESS message from sensor.");
-    return PLUS_FAIL;
-  }
-  else if( packet.GetAddress() == UM6_INVALID_BATCH_SIZE )
-  {
-    LOG_ERROR("Received INVALID_BATCH_SIZE message from sensor.");
-    return PLUS_FAIL;
-  }
-  else if( packet.GetHasData() )
+  if( packet.GetHasData() )
   {
     // Packet has data.  Copy data into local registers.
     unsigned char regIndex = 0;
@@ -510,6 +630,12 @@ PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* config)
   if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
   {
     this->BaudRate=baudRate; 
+  }
+
+  const char* firmwareDirectory = trackerConfig->GetAttribute("FirmwareDirectory"); 
+  if ( firmwareDirectory != NULL )
+  { 
+  	this->FirmwareDirectory=firmwareDirectory;
   }
 
   return PLUS_SUCCESS;
