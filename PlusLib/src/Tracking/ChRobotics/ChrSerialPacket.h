@@ -14,8 +14,19 @@ public:
     m_Data.resize(16*4);
   }
 
+  unsigned char GetAddress()
+  {
+    return m_Address;
+  }
+
   void SetAddress(unsigned char address)
   {
+    m_Address=address;
+  }
+
+  void SetPacketDescriptor(unsigned char packetDescriptor)
+  {
+    m_PacketDescriptor=packetDescriptor;
   }
 
   bool GetBatchEnable()
