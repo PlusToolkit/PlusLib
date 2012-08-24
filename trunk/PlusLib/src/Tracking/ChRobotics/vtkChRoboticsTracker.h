@@ -72,6 +72,7 @@ protected:
 
   PlusStatus SendPacket( ChrSerialPacket& packet );
   PlusStatus ReceivePacket( ChrSerialPacket& packet );
+  PlusStatus ProcessPacket( ChrSerialPacket& packet );
 
 private:  // Functions.
 
@@ -103,6 +104,8 @@ private:  // Variables.
   vtkTrackerTool* GyroscopeTool;
   vtkTrackerTool* MagnetometerTool;
   vtkTrackerTool* OrientationSensorTool;
+
+  int SelectedFirmwareIndex;
 };
 
 #endif

@@ -24,9 +24,6 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-#include "MadgwickAHRS.h"
-#include "MahonyAHRS.h"
- 
 #include <math.h>
 
 vtkStandardNewMacro(vtkChRoboticsTracker);
@@ -40,12 +37,17 @@ static const unsigned char UM6_BAD_CHECKSUM=253;
 static const unsigned char UM6_UNKNOWN_ADDRESS=254;
 static const unsigned char UM6_INVALID_BATCH_SIZE=255;
 
+static const unsigned char CONFIG_REGISTER_START_ADDRES=0;
+static const unsigned char DATA_REGISTER_START_ADDRESS=85;
+static const unsigned char COMMAND_START_ADDRESS=170;
+
 //-------------------------------------------------------------------------
 vtkChRoboticsTracker::vtkChRoboticsTracker() :
-  ComPort(5),
-  BaudRate(115200)
+ComPort(5),
+BaudRate(115200),
+SelectedFirmwareIndex(-1)
 { 
-	this->Serial = new SerialLine(); 
+  this->Serial = new SerialLine(); 
 
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
@@ -69,12 +71,12 @@ vtkChRoboticsTracker::~vtkChRoboticsTracker()
     this->StopTracking();
   }
 
-	if (this->Serial->IsHandleAlive())
-	{
-		this->Serial->Close();
-		delete this->Serial; 
-		this->Serial = NULL; 
-	}
+  if (this->Serial->IsHandleAlive())
+  {
+    this->Serial->Close();
+    delete this->Serial; 
+    this->Serial = NULL; 
+  }
 
   this->LastAccelerometerToTrackerTransform->Delete();
   this->LastAccelerometerToTrackerTransform=NULL;
@@ -98,11 +100,11 @@ PlusStatus vtkChRoboticsTracker::Connect()
 {
   LOG_TRACE( "vtkChRoboticsTracker::Connect" ); 
 
-	if (this->Serial->IsHandleAlive())
-	{
-		LOG_ERROR("Already connected to serial port");
+  if (this->Serial->IsHandleAlive())
+  {
+    LOG_ERROR("Already connected to serial port");
     return PLUS_FAIL;
-	}
+  }
 
   std::ostringstream strComPort; 
   strComPort << "COM" << this->ComPort; 
@@ -110,7 +112,7 @@ PlusStatus vtkChRoboticsTracker::Connect()
 
   this->Serial->SetSerialPortSpeed(this->BaudRate); 
 
-	this->Serial->SetMaxReplyTime(1000);
+  this->Serial->SetMaxReplyTime(1000);
 
   if (!this->Serial->Open())
   {
@@ -123,6 +125,9 @@ PlusStatus vtkChRoboticsTracker::Connect()
     LOG_ERROR("COM port handle is not alive "<<strComPort);
     return PLUS_FAIL; 
   }
+
+  // Reset the firmware id, it will be queried from the device
+  this->SelectedFirmwareIndex=-1;
 
   std::string firmwareVersion;
   if (GetFirmwareVersion(firmwareVersion)!=PLUS_SUCCESS)
@@ -156,7 +161,7 @@ PlusStatus vtkChRoboticsTracker::Disconnect()
   LOG_TRACE( "vtkChRoboticsTracker::Disconnect" ); 
   this->StopTracking();
 
-	this->Serial->Close();
+  this->Serial->Close();
 
   this->AccelerometerTool = NULL;
   this->GyroscopeTool = NULL;
@@ -216,7 +221,7 @@ PlusStatus vtkChRoboticsTracker::GetFirmwareVersion(std::string &firmwareVersion
   }
 
   ChrSerialPacket reply;
-  ReceivePacket( reply );
+  while (ReceivePacket( reply )==PLUS_SUCCESS) {};
 
   return PLUS_SUCCESS;
 }
@@ -251,153 +256,222 @@ PlusStatus vtkChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
   while (lastThreeChars[0]!='s' || lastThreeChars[1]!='n' || lastThreeChars[2]!='p')
   {
     lastThreeChars.pop_front();
-    this->Serial->Read(d);
+    if (!this->Serial->Read(d))
+    {
+      LOG_ERROR("Failed to read packet header (start sequence) through serial line");
+      return PLUS_FAIL;
+    }
     lastThreeChars.push_back(d);
   }
-  
-  LOG_DEBUG("OK!");
 
-  /*
-	int BytesReturned;
-	bool found_packet;
-	int packet_start_index;
-	int packet_index;
+  if (!this->Serial->Read(d))
+  {
+    LOG_ERROR("Failed to read packet header (packet descriptor) through serial line");
+    return PLUS_FAIL;
+  }
+  packet.SetPacketDescriptor(d);
 
-	RXBufPtr += BytesReturned;
+  if (!this->Serial->Read(d))
+  {
+    LOG_ERROR("Failed to read packet header (address) through serial line");
+    return PLUS_FAIL;
+  }
+  packet.SetAddress(d);
 
-	// If there are enough bytes in the buffer to construct a full packet, then check data.
-    // There are RXbufPtr bytes in the buffer at any given time
-    while (RXBufPtr >= 7)
+  // Copy data bytes into packet data array
+  int dataLength = packet.GetDataLength();
+  for( int i = 0; i < dataLength; i++ )
+  {
+    if (!this->Serial->Read(d))
     {
-        // Search for the packet start sequence
-        found_packet = false;
-        packet_start_index = 0;
-        for (packet_index = 0; packet_index < (RXBufPtr - 2); packet_index++)
-        {
-            if (RXBuffer[packet_index] == 's' && RXBuffer[packet_index + 1] == 'n' && RXBuffer[packet_index + 2] == 'p')
-            {
-                found_packet = true;
-                packet_start_index = packet_index;
+      LOG_ERROR("Failed to read packet data["<<i<<"] through serial line");
+      return PLUS_FAIL;
+    }
+    packet.SetDataByte( i, d );
+  }
 
-                break;
-            }
-        }
+  unsigned char checksum0=0;
+  if (!this->Serial->Read(checksum0))
+  {
+    LOG_ERROR("Failed to read packet checksum[0] through serial line");
+    return PLUS_FAIL;
+  }
+  unsigned char checksum1=0;
+  if (!this->Serial->Read(checksum1))
+  {
+    LOG_ERROR("Failed to read packet checksum[1] through serial line");
+    return PLUS_FAIL;
+  }
 
-		// If packet start sequence was not found, then remove all but the last three bytes from the buffer.  This prevents
-		// bad data from filling the buffer up.
-		if( !found_packet )
-		{
-			RXBuffer[0] = RXBuffer[RXBufPtr-3];
-			RXBuffer[1] = RXBuffer[RXBufPtr-2];
-			RXBuffer[2] = RXBuffer[RXBufPtr-1];
+  // Compute the checksum and compare with the one given in the packet.  If different, ignore this packet
+  packet.ComputeChecksum();
 
-			RXBufPtr = 3;
-		}
+  if (packet.GetChecksumByte(0)!=checksum0 || packet.GetChecksumByte(1)!=checksum1)
+  {
+    LOG_ERROR("Received a packet with bad checksum through serial line");
+    return PLUS_FAIL;
+  }
 
-		// If a packet start sequence was found, extract the packet descriptor byte.
-		// Make sure that there are enough bytes in the buffer to consitute a full packet
-		int indexed_buffer_length = RXBufPtr - packet_start_index;
-		if (found_packet && (indexed_buffer_length >= 7))
-		{
-			unsigned char packet_descriptor = (UInt32)RXBuffer[packet_start_index + 3];
-			unsigned char address = (UInt32)RXBuffer[packet_start_index + 4];
-
-			// Check the R/W bit in the packet descriptor.  If it is set, then this packet does not contain data 
-			// (the packet is either reporting that the last write operation was succesfull, or it is reporting that
-			// a command finished).
-			// If the R/W bit is cleared and the batch bit B is cleared, then the packet is 11 bytes long.  Make sure
-			// that the buffer contains enough data to hold a complete packet.
-			bool HasData;
-			bool IsBatch;
-			unsigned char BatchLength;
-
-			int packet_length;
-
-			if( ( packet_descriptor & 0x80 ) )
-			{
-				HasData = true;
-			}
-			else
-			{
-				HasData = false;
-			}
-
-			if( ( packet_descriptor & 0x40 ) )
-			{
-				IsBatch = true;
-			}
-			else
-			{
-				IsBatch = false;
-			}
-			
-			if( HasData && !IsBatch )
-			{
-				packet_length = 11;
-			}
-			else if( HasData && IsBatch )
-			{
-				// If this is a batch operation, then the packet length is: length = 5 + 4*L + 2, where L is the length of the batch.
-				// Make sure that the buffer contains enough data to parse this packet.
-				BatchLength = (packet_descriptor >> 2) & 0x0F;
-				packet_length = 5 + 4*BatchLength + 2;				
-			}
-			else if( !HasData )
-			{
-				packet_length = 7;
-			}
-
-			if( indexed_buffer_length < packet_length )
-			{
-				return;
-			}
-
-			SerialPacket^ NewPacket = gcnew SerialPacket();
-
-			// If code reaches this point, then there enough bytes in the RX buffer to form a complete packet.
-			NewPacket->Address = address;
-			NewPacket->PacketDescriptor = packet_descriptor;
-
-			// Copy data bytes into packet data array
-			int data_start_index = packet_start_index + 5;
-			for( int i = 0; i < NewPacket->DataLength; i++ )
-			{
-				NewPacket->SetDataByte( i, RXBuffer[data_start_index + i] );
-			}
-
-			// Now record the checksum
-			UInt16 Checksum = ((UInt16)RXBuffer[packet_start_index + packet_length - 2] << 8) | ((UInt16)RXBuffer[packet_start_index + packet_length - 1]);
-
-			// Compute the checksum and compare with the one given in the packet.  If different, ignore this packet
-			NewPacket->ComputeChecksum();
-
-			if( Checksum == NewPacket->Checksum )
-			{
-				OnSerialPacketReceived( NewPacket );
-			}
-			else
-			{
-				OnSerialPacketError(L"Received packet with bad checksum.  Packet discarded.");
-			}
-
-			// At this point, the newest packet has been parsed and copied into the RXPacketBuffer array.
-			// Copy all received bytes that weren't part of this packet into the beginning of the
-            // buffer.  Then, reset RXbufPtr.
-            for (int index = 0; index < (RXBufPtr - (packet_start_index + packet_length)); index++)
-            {
-                RXBuffer[index] = RXBuffer[(packet_start_index + packet_length) + index];
-            }
-
-			RXBufPtr -= (packet_start_index + packet_length);
-		}
-		else
-		{
-			return;
-		}
-	
-	}
-  */
   return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
+{
+  // If no firmware definition has been selected yet, ignore this packet if it isn't reporting the firmware version
+  if( this->SelectedFirmwareIndex == -1 )
+  {
+    if( packet.GetAddress() != UM6_GET_FW_VERSION )
+    {
+      return PLUS_SUCCESS;
+    }
+  }
+
+  // Check if the received packet is a firmware definition
+  if( packet.GetAddress() == UM6_GET_FW_VERSION )
+  {
+    std::string packetFirmwareId;
+    unsigned char dataLength=packet.GetDataLength();
+    for (int i=0; i<dataLength; i++)
+    {
+      packetFirmwareId.push_back(packet.GetDataByte(i));
+    }
+
+    // This is a firmware definition packet.  Search loaded firmware items to determine if we have a definition
+    // for the firmware revision given by the sensor.
+    /* TODO:
+    for( int i = 0; i < this->FirmwareCount; i++ )
+    {
+    std::string firmwareId = FirmwareArray[i]->GetID();
+    if( firmwareId.compare(packetFirmwareId)==0 )
+    {
+    // found firmware
+    this->SelectedFirmwareIndex = i;
+    LOG_INFO("CHRobotics device firmware identified: " << firmwareId);
+    break;
+    }									
+    }
+    */
+    if( SelectedFirmwareIndex == -1 )
+    {
+      LOG_ERROR("Could not find firmware definition for attached device ("<<packetFirmwareId<<")");
+      return PLUS_FAIL;
+    }
+  }
+  else if( packet.GetAddress() == UM6_BAD_CHECKSUM )
+  {
+    LOG_TRACE("Received BAD_CHECKSUM message from sensor");
+    return PLUS_FAIL;
+  }
+  else if( packet.GetAddress() == UM6_UNKNOWN_ADDRESS )
+  {
+    LOG_ERROR("Received UNKNOWN_ADDRESS message from sensor.");
+    return PLUS_FAIL;
+  }
+  else if( packet.GetAddress() == UM6_INVALID_BATCH_SIZE )
+  {
+    LOG_ERROR("Received INVALID_BATCH_SIZE message from sensor.");
+    return PLUS_FAIL;
+  }
+  else if( packet.GetHasData() )
+  {
+    // Packet has data.  Copy data into local registers.
+    unsigned char regIndex = 0;
+    /* TODO: */
+    unsigned char dataLength=packet.GetDataLength();
+    for( int i = 0; i < dataLength; i += 4 )
+    {
+      int data = (packet.GetDataByte(i) << 24) | (packet.GetDataByte(i+1) << 16) | (packet.GetDataByte(i+2) << 8) | (packet.GetDataByte(i+3));
+      //TODO: FirmwareArray[SelectedFirmwareIndex]->SetRegisterContents( packet.GetAddress() + regIndex, data );
+      regIndex++;
+    }
+
+    // If this packet reported the contents of data registers, update local data registers accordingly
+    if( (packet.GetAddress() >= DATA_REGISTER_START_ADDRESS) && (packet.GetAddress() < COMMAND_START_ADDRESS) )
+    {
+      // Copy new register data into individual items for display in GUI
+      //updateItemsSafe( DATA_UPDATE );	
+
+      // If magnetometer data collection (for calibration) is enabled, check to determine if this packet contained raw
+      // magnetometer data.  This code is device-specific, and it would be preferable to find another way to do this
+      // since the rest of this interface software makes no assumptions about the formatting of the registers aboard
+      // the device... Anyway, this code should work for any device with ID UM1*, where * can be anything.
+      /* TODO:
+      String^ firmware_id = FirmwareArray[SelectedFirmwareIndex]->GetID();
+      if( firmware_id->Substring(0,2)  == "UM" )
+      {
+        // Is data collection enabled?
+        if( this->magDataCollectionEnabled )
+        {
+          // Check to see if this is raw mag. data (register address of first raw mag register is 90.  Second is 91.
+          if( packet->IsBatch && (packet->BatchLength == 2) && (packet.GetAddress() == 90) )
+          {
+            // New raw mag data has arrived.  Write it to the mag logging array.
+            Int16 mag_x = (packet->GetDataByte(0) << 8) | (packet->GetDataByte(1));
+            Int16 mag_y = (packet->GetDataByte(2) << 8) | packet->GetDataByte(3);
+            Int16 mag_z = (packet->GetDataByte(4) << 8) | packet->GetDataByte(5);
+
+            // Make sure we don't read too much data
+            if( this->rawMagDataPointer < MAXIMUM_MAG_DATA_POINTS )
+            {
+              this->rawMagData[this->rawMagDataPointer,0] = (double)mag_x;
+              this->rawMagData[this->rawMagDataPointer,1] = (double)mag_y;
+              this->rawMagData[this->rawMagDataPointer,2] = (double)mag_z;
+
+              this->rawMagDataPointer++;
+
+              updateMagCounterLabelSafe();
+            }
+          }
+        }
+      }
+      */
+    }
+    // If this packet reported the contents of configuration registers, update local configuration registers accordingly
+    else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
+    {
+      //					FirmwareRegister^ current_register = FirmwareArray[SelectedFirmwareIndex]->GetRegister(packet.GetAddress());
+      //updateItemsSafe( CONFIG_UPDATE );
+      //					this->addStatusTextSafe(L"Received " + current_register->Name + " register contents.", Color::Green);
+    }
+    // This should never be reached for a properly formatted packet (ie. commands should never contain data)
+    else
+    {
+
+    }
+  }
+  // Packet has not data.  If a configuration register address, the packet signifies that a write operation
+  // to a configuration register was just completed.
+  else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
+  {
+    /* TODO:
+    FirmwareRegister^ current_register = FirmwareArray[SelectedFirmwareIndex]->GetRegister(packet.GetAddress());
+    current_register->UserModified = false;
+    this->addStatusTextSafe(L"Successfully wrote to " + current_register->Name + " register.", Color::Green);
+    this->resetTreeNodeColorSafe( packet.GetAddress() );
+    */
+  }
+  // Packet has no data.  If a command register address, the packet signals that a received command either succeeded or
+  // failed.
+  else if( packet.GetAddress() >= COMMAND_START_ADDRESS )
+  {
+    /* TODO:
+    String^ command_name = FirmwareArray[SelectedFirmwareIndex]->GetCommandName( packet.GetAddress() );
+
+    // Check to see if command succeeded
+    if( packet->CommandFailed == 1 )
+    {					
+      this->addStatusTextSafe(L"Command failed: " + command_name, Color::Green);
+    }
+    else
+    {
+      this->addStatusTextSafe(L"Command complete: " + command_name, Color::Red);
+    }
+    */
+  }
+
+  return PLUS_SUCCESS;
+
 }
 
 //----------------------------------------------------------------------------
