@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusMath.h"
@@ -24,7 +24,7 @@ vtkRfProcessor::vtkRfProcessor()
   this->RfToBrightnessConverter=vtkRfToBrightnessConvert::New();
   this->ScanConverterLinear=vtkUsScanConvertLinear::New();  
   this->ScanConverterCurvilinear=vtkUsScanConvertCurvilinear::New();  
-    
+
   // Set the brightness input to both scan converters.
   // Only that will actually perform the scan conversion computation that will be asked for output.
   this->ScanConverterLinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
@@ -44,8 +44,8 @@ vtkRfProcessor::~vtkRfProcessor()
   this->RfToBrightnessConverter=NULL;  
   if(this->TransducerName)
   {
-	  delete [] this->TransducerName;
-	  this->TransducerName = NULL;
+    delete [] this->TransducerName;
+    this->TransducerName = NULL;
   }
 }
 
@@ -88,101 +88,41 @@ vtkImageData* vtkRfProcessor::GetBrightessScanConvertedImage()
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterStartDepthMm(double startDepth)
+void vtkRfProcessor::SetStartDepthMm(double startDepth)
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-	this->ScanConverterLinear->SetOutputImageStartDepthMm(startDepth);
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->SetOutputImageStartDepthMm(startDepth);
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterLinear->SetOutputImageStartDepthMm(startDepth);
+  this->ScanConverterCurvilinear->SetOutputImageStartDepthMm(startDepth);
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterStopDepthMm(double stopDepth)
+void vtkRfProcessor::SetStopDepthMm(double stopDepth)
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-	this->ScanConverterLinear->SetImagingDepthMm(stopDepth);
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->SetRadiusStopMm(stopDepth);
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterLinear->SetImagingDepthMm(stopDepth);
+  this->ScanConverterCurvilinear->SetRadiusStopMm(stopDepth);
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterStartAngleDeg(double startAngle) 
+void vtkRfProcessor::SetStartAngleDeg(double startAngle) 
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->SetThetaStartDeg(startAngle);
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterCurvilinear->SetThetaStartDeg(startAngle);
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterStopAngleDeg(double stopAngle)
+void vtkRfProcessor::SetStopAngleDeg(double stopAngle)
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->SetThetaStopDeg(stopAngle);
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterCurvilinear->SetThetaStopDeg(stopAngle);
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterRadiusOfCurvatureMm(double roc)
+void vtkRfProcessor::SetRadiusOfCurvatureMm(double roc)
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->SetRadiusStartMm(roc);
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterCurvilinear->SetRadiusStartMm(roc);
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::InitConverterTransducerWidthMm(double tw)
+void vtkRfProcessor::SetTransducerWidthMm(double tw)
 {
-  switch (this->TransducerGeometry)
-  {
-  case TRANSDUCER_LINEAR:
-    this->ScanConverterLinear->SetTransducerWidthMm(tw);
-    return;
-  case TRANSDUCER_CURVILINEAR:
-    return;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
-    return;
-  }
+  this->ScanConverterLinear->SetTransducerWidthMm(tw);
 }
 
 //-----------------------------------------------------------------------------
@@ -245,10 +185,10 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
     const char* transducerNameStr = scanConversionElement->GetAttribute("TransducerName"); 
     if ( transducerNameStr != NULL) 
     {
-		this->SetTransducerName(transducerNameStr);
-	}
+      this->SetTransducerName(transducerNameStr);
+    }
   }  
-  
+
   return status;
 }
 
@@ -286,7 +226,7 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
   {
     status=PLUS_FAIL;
   }  
-  
+
   switch (this->TransducerGeometry)
   {
   case TRANSDUCER_LINEAR:
@@ -313,6 +253,6 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
   }
 
   scanConversionElement->SetAttribute("TransducerName", this->TransducerName);
- 
+
   return status;
 }

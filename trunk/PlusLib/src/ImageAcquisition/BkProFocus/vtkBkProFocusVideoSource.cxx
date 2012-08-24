@@ -20,37 +20,37 @@ vtkStandardNewMacro(vtkBkProFocusVideoSource);
 
 std::string ParseResponse(std::string str,int item)
 {
-	int nItems = 0;
-	std::string rest = str;
-	while(rest.size())
-	{	
-		int pos = rest.find(",");
-		std::string curItem;
-		if(pos==-1)
-		{	
-			curItem = rest;
-			rest = "";
-		} 
-		else
-		{
-			curItem = rest.substr(0,pos);
-			rest = rest.substr(pos+1,rest.length());
-		}
-		if(nItems++ == item)
-		{
-			return curItem;
-		}
-	}
-	return "";
+  int nItems = 0;
+  std::string rest = str;
+  while(rest.size())
+  {	
+    int pos = rest.find(",");
+    std::string curItem;
+    if(pos==-1)
+    {	
+      curItem = rest;
+      rest = "";
+    } 
+    else
+    {
+      curItem = rest.substr(0,pos);
+      rest = rest.substr(pos+1,rest.length());
+    }
+    if(nItems++ == item)
+    {
+      return curItem;
+    }
+  }
+  return "";
 }
 
 std::string ParseResponseQuoted(std::string str,int item)
 {
-	std::string result = ParseResponse(str, item);
-	if(result.length()>2)
-		return result.substr(1,result.length()-2);
-	else
-		return "";
+  std::string result = ParseResponse(str, item);
+  if(result.length()>2)
+    return result.substr(1,result.length()-2);
+  else
+    return "";
 }
 
 class vtkBkProFocusVideoSource::vtkInternal
@@ -90,112 +90,112 @@ public:
 
   void vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM()
   {
-	  //WSAIF wsaif;
-	  TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
-	  std::string value;	  
+    //WSAIF wsaif;
+    TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
+    std::string value;	  
 
-	  // Explanation of the queries/responses is from the BK document 
-	  //  "Product Specification for Pro Focus OEM Interface"
-	  // DATA:TRANSDUCER:A "A","8848"; 
-	  // the first value is the connector used, the second is the transducer type
-	  value = QueryParameter(oemClient, "TRANSDUCER");
-	  std::string transducer = ParseResponseQuoted(value,1);
-	  std::cout << "Transducer: " << transducer << std::endl;
-	  // DATA:SCAN_PLANE:A "S";
-	  // reply depends on the transducer type; for 8848, it is either "T" (transverse) or "S"
-	  // (sagittal). For the abdominal 8820, the response apparently is "" (!)
-	  value = QueryParameter(oemClient, "SCAN_PLANE");
- 	  std::string scanPlane = ParseResponseQuoted(value, 0);
-	  std::cout << "Scan plane: " << scanPlane << std::endl;
+    // Explanation of the queries/responses is from the BK document 
+    //  "Product Specification for Pro Focus OEM Interface"
+    // DATA:TRANSDUCER:A "A","8848"; 
+    // the first value is the connector used, the second is the transducer type
+    value = QueryParameter(oemClient, "TRANSDUCER");
+    std::string transducer = ParseResponseQuoted(value,1);
+    std::cout << "Transducer: " << transducer << std::endl;
+    // DATA:SCAN_PLANE:A "S";
+    // reply depends on the transducer type; for 8848, it is either "T" (transverse) or "S"
+    // (sagittal). For the abdominal 8820, the response apparently is "" (!)
+    value = QueryParameter(oemClient, "SCAN_PLANE");
+    std::string scanPlane = ParseResponseQuoted(value, 0);
+    std::cout << "Scan plane: " << scanPlane << std::endl;
 
-	  this->External->RfProcessor->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
+    this->External->RfProcessor->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
 
-	  value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
-	  float frameRate = atof(ParseResponse(value,0).c_str());
-	  std::cout << "Frame rate: " << frameRate << std::endl;
+    value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
+    float frameRate = atof(ParseResponse(value,0).c_str());
+    std::cout << "Frame rate: " << frameRate << std::endl;
 
-	  std::cout << "Queried value: " << value << std::endl;
-	  // DATA:B_GEOMETRY_SCANAREA:A 
-	  //    StartLineX,StartLineY,StartLineAngle,StartDepth,StopLineX,StopLineY,StopLineAngle,StopDepth
-	  // StartLineX/Y: coordinate of the start line origin in mm
-	  // StartLineAngle: angle of the start line in radians
-	  // StartDepth: start depth of the scanning area in m
-	  // StopLineX/Y: coordinate of the stop line origin in mm
-	  // StopDepth: stop depth of the scanning area in mm
-	  value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
-	  float startLineXMm = fabs(atof(ParseResponse(value,0).c_str()))*1000.;
-	  float stopLineXMm = fabs(atof(ParseResponse(value,4).c_str()))*1000.;
-	  float startAngleDeg = 
-		  vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
-	  // start depth is defined at the distance from the outer surface of the transducer 
-	  // to the surface of the crystal. stop depth is from the outer surface to the scan depth.
-	  // start depth has negative depth in this coordinate system, so we take the abs.
-	  float startDepthMm = fabs(atof(ParseResponse(value,3).c_str())*1000.);
-	  float stopAngleDeg = 
-		  vtkMath::DegreesFromRadians(atof(ParseResponse(value,6).c_str()));
-	  float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
+    std::cout << "Queried value: " << value << std::endl;
+    // DATA:B_GEOMETRY_SCANAREA:A 
+    //    StartLineX,StartLineY,StartLineAngle,StartDepth,StopLineX,StopLineY,StopLineAngle,StopDepth
+    // StartLineX/Y: coordinate of the start line origin in mm
+    // StartLineAngle: angle of the start line in radians
+    // StartDepth: start depth of the scanning area in m
+    // StopLineX/Y: coordinate of the stop line origin in mm
+    // StopDepth: stop depth of the scanning area in mm
+    value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
+    float startLineXMm = fabs(atof(ParseResponse(value,0).c_str()))*1000.;
+    float stopLineXMm = fabs(atof(ParseResponse(value,4).c_str()))*1000.;
+    float startAngleDeg = 
+      vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
+    // start depth is defined at the distance from the outer surface of the transducer 
+    // to the surface of the crystal. stop depth is from the outer surface to the scan depth.
+    // start depth has negative depth in this coordinate system, so we take the abs.
+    float startDepthMm = fabs(atof(ParseResponse(value,3).c_str())*1000.);
+    float stopAngleDeg = 
+      vtkMath::DegreesFromRadians(atof(ParseResponse(value,6).c_str()));
+    float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
 
-	  // DATA:B_SCANLINES_COUNT:A 517;
-	  // Number of scanning lines in specified view
-	  value = QueryParameter(oemClient, "B_SCANLINES_COUNT");
-	  float scanlinesCount = atof(ParseResponse(value,0).c_str());
-	  value = QueryParameter(oemClient, "B_RF_LINE_LENGTH");
-	  float rfLineLength = atof(ParseResponse(value,0).c_str());
+    // DATA:B_SCANLINES_COUNT:A 517;
+    // Number of scanning lines in specified view
+    value = QueryParameter(oemClient, "B_SCANLINES_COUNT");
+    float scanlinesCount = atof(ParseResponse(value,0).c_str());
+    value = QueryParameter(oemClient, "B_RF_LINE_LENGTH");
+    float rfLineLength = atof(ParseResponse(value,0).c_str());
 
-	  // BK defines angles start at 9:00, not at 12:00
-	  startAngleDeg = -(startAngleDeg-stopAngleDeg)/2.;
-	  stopAngleDeg = -startAngleDeg;
+    // BK defines angles start at 9:00, not at 12:00
+    startAngleDeg = -(startAngleDeg-stopAngleDeg)/2.;
+    stopAngleDeg = -startAngleDeg;
 
-	  // set relevant parameters on RfProcessor
-	  if(transducer == "8848")
-	  {
-		  if(scanPlane == "S")
-		  {
-			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
-			  this->External->RfProcessor->InitConverterTransducerWidthMm(startLineXMm+stopLineXMm);
-		  }
-		  else if(scanPlane == "T")
-		  {
-			  std::cout << "Transducer geometry is curvilinear" << std::endl;
-			  this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
-			  // this is a predefined value for 8848 transverse array, which
-			  // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
-			  // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
-			  this->External->RfProcessor->InitConverterRadiusOfCurvatureMm(9.74);
-		  	  this->External->RfProcessor->InitConverterStartAngleDeg(startAngleDeg);
-			  this->External->RfProcessor->InitConverterStopAngleDeg(stopAngleDeg);
-		  }
-	  }
+    // set relevant parameters on RfProcessor
+    if(transducer == "8848")
+    {
+      if(scanPlane == "S")
+      {
+        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
+        this->External->RfProcessor->SetTransducerWidthMm(startLineXMm+stopLineXMm);
+      }
+      else if(scanPlane == "T")
+      {
+        std::cout << "Transducer geometry is curvilinear" << std::endl;
+        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
+        // this is a predefined value for 8848 transverse array, which
+        // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
+        // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
+        this->External->RfProcessor->SetRadiusOfCurvatureMm(9.74);
+        this->External->RfProcessor->SetStartAngleDeg(startAngleDeg);
+        this->External->RfProcessor->SetStopAngleDeg(stopAngleDeg);
+      }
+    }
 
-	  this->External->RfProcessor->InitConverterStartDepthMm(startDepthMm);
-	  this->External->RfProcessor->InitConverterStopDepthMm(stopDepthMm);
+    this->External->RfProcessor->SetStartDepthMm(startDepthMm);
+    this->External->RfProcessor->SetStopDepthMm(stopDepthMm);
 
-	  /* Not used in reconstruction
-	  std::cout << "Queried value: " << value << std::endl;
-	  // DATA:3D_SPACING:A 0.25;
-	  //  Returns the spacing between the frames; 
-	  //  Fan-type movers return spacing in degrees
-	  //  Linear-type movers returm spacing in mm
-	  value = QueryParameter(oemClient, "3D_SPACING");
-	  std::cout << "Queried value: " << value << std::endl;
-	  // DATA:3D_CAPTURE_AREA:A Left,Top,Right,Bottom;
-	  //  Returns the capture area for the acquisition in screen pixel coordinates
-	  value = QueryParameter(oemClient, "3D_CAPTURE_AREA");
-	  std::cout << "Queried value: " << value << std::endl;
-	  */
+    /* Not used in reconstruction
+    std::cout << "Queried value: " << value << std::endl;
+    // DATA:3D_SPACING:A 0.25;
+    //  Returns the spacing between the frames; 
+    //  Fan-type movers return spacing in degrees
+    //  Linear-type movers returm spacing in mm
+    value = QueryParameter(oemClient, "3D_SPACING");
+    std::cout << "Queried value: " << value << std::endl;
+    // DATA:3D_CAPTURE_AREA:A Left,Top,Right,Bottom;
+    //  Returns the capture area for the acquisition in screen pixel coordinates
+    value = QueryParameter(oemClient, "3D_CAPTURE_AREA");
+    std::cout << "Queried value: " << value << std::endl;
+    */
   }
 
   std::string vtkBkProFocusVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
   {
-	  std::string query;
-	  char buffer[1024];
+    std::string query;
+    char buffer[1024];
 
-	  query = std::string("QUERY:")+parameter+":A;";
-	  oemClient->Write(query.c_str(), strlen(query.c_str()));
-	  oemClient->Read(&buffer[0], 1024);
-	  std::string value = std::string(&buffer[0]);
-	  std::string prefix = std::string("DATA:")+parameter+":A ";
-	  return value.substr(prefix.length(),value.length()-prefix.length()-1);
+    query = std::string("QUERY:")+parameter+":A;";
+    oemClient->Write(query.c_str(), strlen(query.c_str()));
+    oemClient->Read(&buffer[0], 1024);
+    std::string value = std::string(&buffer[0]);
+    std::string prefix = std::string("DATA:")+parameter+":A ";
+    return value.substr(prefix.length(),value.length()-prefix.length()-1);
   }
 };
 
@@ -258,7 +258,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   LOG_DEBUG("BK scanner OEM port: " << this->Internal->BKparamSettings.GetOemPort());
   LOG_DEBUG("BK scanner toolbox port: " << this->Internal->BKparamSettings.GetToolboxPort());
 
-	this->Internal->BKcmdCtrlSettings.LoadFromIniFile(iniFilePath.c_str());
+  this->Internal->BKcmdCtrlSettings.LoadFromIniFile(iniFilePath.c_str());
 
   if (!this->Internal->BKAcqSettings.LoadIni(iniFilePath.c_str()))
   {
@@ -321,7 +321,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 {
 
-  
+
 
   this->Internal->BKAcqSapera.Destroy();
 
@@ -362,8 +362,8 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
   Sleep(500);
   if (!this->Internal->BKAcqSapera.StopGrabbing())
   {
-    LOG_ERROR("Failed to start grabbing");
-    return PLUS_FAIL;
+  LOG_ERROR("Failed to start grabbing");
+  return PLUS_FAIL;
   }
   */
   return PLUS_SUCCESS;
@@ -373,7 +373,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
 {      
   LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
-    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+  <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
     <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType));
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
@@ -395,16 +395,16 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int fr
     }
     LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
     <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
-    <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
-    <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
-    <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->Buffer->GetImageOrientation()));
+      <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
+      <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
+      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->Buffer->GetImageOrientation()));
 
   } 
 
   this->Buffer->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
-  
+
   // just for testing: PlusVideoFrame::SaveImageToFile( (unsigned char*)pixelDataPtr, frameSizeInPix, numberOfBitsPerPixel, (char *)"test.jpg");
 }
 
