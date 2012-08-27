@@ -80,7 +80,7 @@ INSTALL(TARGETS vtkDataCollection
   )
 
 # --------------------------------------------------------------------------
-# Testing
+# Applications
 #
 
 SUBDIRS (Applications)
