@@ -141,24 +141,24 @@ public:
   void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
 
   /*! Get phantom model id */
-  std::string GetPhantomModelId() { return m_PhantomModelId; };
+  const char * GetPhantomModelId() { return m_PhantomModelId; };
   /*! Set phantom model id */
   void SetPhantomModelId(const char* aObjectId) { m_PhantomModelId = aObjectId; };
   /*! Enable/disable the phantom action */
   void EnablePhantomToggle(bool aEnable);
 
   /*! Get stylus model id */
-  std::string GetStylusModelId() { return m_StylusModelId; };
+  const char * GetStylusModelId() { return m_StylusModelId; };
   /*! Set stylus model id */
   void SetStylusModelId(const char* aObjectId) { m_StylusModelId = aObjectId; };
 
   /*! Get probe object id */
-  std::string GetTransducerModelId() { return m_TransducerModelId; };
+  const char * GetTransducerModelId() { return m_TransducerModelId; };
   /*! Set probe object id */
   void SetTransducerModelId(const char* aObjectId) { m_TransducerModelId = aObjectId; };
 
   /*! Get image object id */
-  std::string GetImageObjectId() { return m_ImageObjectId; };
+  const char * GetImageObjectId() { return m_ImageObjectId; };
   /*! Set image object id */
   void SetImageObjectId(const char* aObjectId) { m_ImageObjectId = aObjectId; };
 

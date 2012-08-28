@@ -766,7 +766,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId().c_str());
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId());
   if (object != NULL)
   {
     object->DisplayableOn();
@@ -775,7 +775,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   {
     LOG_WARNING("Missing probe displayable object.");
   }
-  object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetImageObjectId().c_str());
+  object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetImageObjectId());
   if (object != NULL)
   {
     object->DisplayableOn();

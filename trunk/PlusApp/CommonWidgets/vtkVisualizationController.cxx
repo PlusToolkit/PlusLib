@@ -861,6 +861,11 @@ PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, boo
 {
   LOG_TRACE("vtkVisualizationController::ShowObjectById");
 
+  if( aModelId == NULL )
+  {
+    return PLUS_FAIL;
+  }
+
   if( this->PerspectiveVisualizer != NULL )
   {
     this->PerspectiveVisualizer->ShowObjectById(aModelId, aOn);
@@ -876,6 +881,11 @@ PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, boo
 vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId )
 {
   LOG_TRACE("vtkVisualizationController::ShowObjectById");
+
+  if( aId == NULL )
+  {
+    return NULL;
+  }
 
   if( this->PerspectiveVisualizer != NULL )
   {

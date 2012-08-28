@@ -193,9 +193,9 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
   if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
   {
     vtkDisplayableModel* phantomDisplayableModel = NULL;
-    if( !m_ParentMainWindow->GetPhantomModelId().empty() )
+    if( !m_ParentMainWindow->GetPhantomModelId() != NULL )
     {
-      vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId().c_str());
+      vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
       phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
       if( phantomDisplayableModel == NULL )
       {
@@ -411,10 +411,10 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId().c_str(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId(), true);
     if (m_CurrentLandmarkIndex >= 3)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -432,8 +432,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId().c_str(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId(), true);
   }
   else if (m_State == ToolboxState_Error)
   {
@@ -625,7 +625,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   {
     if (m_PhantomRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
-      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
     }
     else
     {
@@ -688,7 +688,7 @@ void PhantomRegistrationToolbox::Undo()
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
   }
 
   // If tracker is FakeTracker then set counter
@@ -737,7 +737,7 @@ void PhantomRegistrationToolbox::Reset()
   // Hide phantom from main canvas
   if (m_PhantomRegistration->GetReferenceCoordinateFrame())
   {
-    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId().c_str(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
   }
 
   // If tracker is FakeTracker then reset counter

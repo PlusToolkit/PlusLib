@@ -501,7 +501,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get phantom displayable model object
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId().c_str());
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
   vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(object);
   if( phantomDisplayableModel == NULL)
   {
