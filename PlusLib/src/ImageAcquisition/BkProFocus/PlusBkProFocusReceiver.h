@@ -35,10 +35,20 @@ public:
   */
   virtual void SetDecimation(int decimation);
 
-  /*! Callback functions called by the BK ProFocus SDK when starting the acquisition */
+  /*! 
+    Callback functions called by the BK ProFocus SDK when starting the acquisition
+    \param samples Number of bytes of one RF line, including the line header
+    \param lines Number of RF lines
+    \param pitch Number of bytes between the start of two consecutive lines in frame data
+  */
   virtual bool Prepare(int samples, int lines, int pitch);
 
-  /*! Callback functions called by the BK ProFocus SDK when a frame is acquired */
+  /*! 
+    Callback functions called by the BK ProFocus SDK when a frame is acquired 
+    \param lines Number of RF lines
+    \param pitch Number of bytes between the start of two consecutive lines in frame data
+    \param frameData Pixel data
+  */
   virtual bool DataAvailable(int lines, int pitch, void const* frameData);
 
   /*! Callback functions called by the BK ProFocus SDK when stopping the acquisition */
