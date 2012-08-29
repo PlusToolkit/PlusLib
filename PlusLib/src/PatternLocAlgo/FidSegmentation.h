@@ -180,47 +180,47 @@ class FidSegmentation
     void  SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 
   protected:
-    int                  m_FrameSize[2];
-    int                  m_RegionOfInterest[4];
-    bool                m_UseOriginalImageIntensityForDotIntensityScore;
+    int                   m_FrameSize[2];
+    int                   m_RegionOfInterest[4];
+    bool                  m_UseOriginalImageIntensityForDotIntensityScore;
 
     /*! Segmentation threshold (in percentage, minimum is 0, maximum is 100) */
-    double               m_ThresholdImagePercent;  
+    double                m_ThresholdImagePercent;  
 
-    double              m_MorphologicalOpeningBarSizeMm; 
-    double              m_MorphologicalOpeningCircleRadiusMm; 
+    double                m_MorphologicalOpeningBarSizeMm; 
+    double                m_MorphologicalOpeningCircleRadiusMm; 
 
-    std::string          m_PossibleFiducialsImageFilename;
+    std::string           m_PossibleFiducialsImageFilename;
     
     FiducialGeometryType  m_FiducialGeometry;
     
-    std::vector<Coordinate2D>    m_MorphologicalCircle; 
+    std::vector<Coordinate2D> m_MorphologicalCircle; 
 
-    double              m_ApproximateSpacingMmPerPixel;
-    double              m_ImageScalingTolerancePercent[4];
-    double              m_ImageNormalVectorInPhantomFrameEstimation[3];
-    double              m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
-    double              m_ImageToPhantomTransform[16];
+    double                m_ApproximateSpacingMmPerPixel;
+    double                m_ImageScalingTolerancePercent[4];
+    double                m_ImageNormalVectorInPhantomFrameEstimation[3];
+    double                m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
+    double                m_ImageToPhantomTransform[16];
 
     /*! True if the dots are found, false otherwise. */
-    bool                m_DotsFound;
+    bool                  m_DotsFound;
 
     /*! X and Y values of found dots. */
     std::vector< std::vector<double> >  m_FoundDotsCoordinateValue; 
 
     /*! Number of possibel fiducial points */
-    double              m_NumDots; 
+    double                m_NumDots; 
     /*! Pointer to the fiducial candidates coordinates */
-    std::vector<Dot>    m_CandidateFidValues; 
+    std::vector<Dot>      m_CandidateFidValues; 
 
-    PixelType*          m_Working;
-    PixelType*          m_Dilated;
-    PixelType*          m_Eroded;
-    PixelType*          m_UnalteredImage; 
+    PixelType*            m_Working;
+    PixelType*            m_Dilated;
+    PixelType*            m_Eroded;
+    PixelType*            m_UnalteredImage; 
 
-    std::vector<Dot>    m_DotsVector;
+    std::vector<Dot>      m_DotsVector;
 
-    bool                m_DebugOutput; 
+    bool                  m_DebugOutput; 
 };
 
 #endif // _FIDUCIAL_SEGMENTATION_H
