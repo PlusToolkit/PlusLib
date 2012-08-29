@@ -8,7 +8,7 @@
 
     <ImageAcquisition
       Type="SavedDataset"
-      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+      SequenceMetafile="fCal_Test_Calibration_Phantom2_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
@@ -23,13 +23,19 @@
       Date="2011.12.06 17:57:00"
     />
     <Transform From="Phantom" To="Reference"
-      Matrix="0.00898765 -0.0136951 -0.999866 9.59137 0.0246163 -0.9996 0.0139127 36.0012 -0.999657 -0.024738 -0.00864693 87.8909 0 0 0 1"
-      Error="0.404711" Date="012712_152104"
-    />
+      Matrix="
+        0.207124	-0.010787	-0.978255	17.4933
+        0.109558	-0.993394	0.0341504	47.7904
+        -0.972161	-0.114249	-0.204574	-15.8552
+        0	0	0	1"
+       Error="12.2481" Date="082912_150427"/>
     <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
-      Error="0.582721" Date="012712_152030"
-    />
+      Matrix="
+        0.997397	0.0691035	0.0205791	197.007
+        -0.0691182	0.997608	0	-13.6523
+        -0.0205298	-0.00142239	0.999788	-4.05507
+        0	0	0	1"
+       Error="2.44837" Date="082912_143334"/>
   </CoordinateDefinitions> 
   
 
