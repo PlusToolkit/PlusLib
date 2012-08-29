@@ -108,10 +108,10 @@ private:  // Variables.
   /*! Serial (RS232) line connection */
   SerialLine* Serial;
 
-  /*! Used COM port number */
+  /*! Used COM port number for serial communication (ComPort: 1 => Port name: "COM1")*/
   long ComPort; 
 
-  /*! Baud rate */
+  /*! Baud rate for serial communication */
   long BaudRate; 
 
   /*! 
@@ -120,27 +120,18 @@ private:  // Variables.
   */
   std::string FirmwareDirectory;
 
-  unsigned int FrameNumber;
-  double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
-  bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
-
-  vtkMatrix4x4* LastAccelerometerToTrackerTransform;
-  vtkMatrix4x4* LastGyroscopeToTrackerTransform;
-  vtkMatrix4x4* LastMagnetometerToTrackerTransform;
-  vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
-
-  vtkTrackerTool* AccelerometerTool;
-  vtkTrackerTool* GyroscopeTool;
-  vtkTrackerTool* MagnetometerTool;
   vtkTrackerTool* OrientationSensorTool;
 
   vtkXMLDataElement* FirmwareDefinition;
   std::string FirmwareVersionId;
 
-  ChrDataItem QuaternionW;
-  ChrDataItem QuaternionX;
-  ChrDataItem QuaternionY;
-  ChrDataItem QuaternionZ;  
+  /*! Data item received from the ChRobotics device. Euler angle component (deg). */
+  ChrDataItem EulerRoll;
+  /*! Data item received from the ChRobotics device. Euler angle component (deg). */
+  ChrDataItem EulerPitch;
+  /*! Data item received from the ChRobotics device. Euler angle component (deg). */
+  ChrDataItem EulerYaw;
+
 };
 
 #endif

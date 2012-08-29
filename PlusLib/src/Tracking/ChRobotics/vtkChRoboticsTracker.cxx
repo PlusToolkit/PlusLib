@@ -58,18 +58,7 @@ BaudRate(115200)
 { 
   this->Serial = new SerialLine(); 
 
-  this->TrackerTimeToSystemTimeSec = 0;
-  this->TrackerTimeToSystemTimeComputed = false;
-
-  this->AccelerometerTool = NULL;
-  this->GyroscopeTool = NULL;
-  this->MagnetometerTool = NULL;
   this->OrientationSensorTool = NULL;
-
-  this->LastAccelerometerToTrackerTransform=vtkMatrix4x4::New();
-  this->LastGyroscopeToTrackerTransform=vtkMatrix4x4::New();
-  this->LastMagnetometerToTrackerTransform=vtkMatrix4x4::New();
-  this->LastOrientationSensorToTrackerTransform=vtkMatrix4x4::New();
 
   this->FirmwareDefinition=vtkXMLDataElement::New();
 }
@@ -88,15 +77,6 @@ vtkChRoboticsTracker::~vtkChRoboticsTracker()
     delete this->Serial; 
     this->Serial = NULL; 
   }
-
-  this->LastAccelerometerToTrackerTransform->Delete();
-  this->LastAccelerometerToTrackerTransform=NULL;
-  this->LastGyroscopeToTrackerTransform->Delete();
-  this->LastGyroscopeToTrackerTransform=NULL;
-  this->LastMagnetometerToTrackerTransform->Delete();
-  this->LastMagnetometerToTrackerTransform=NULL;
-  this->LastOrientationSensorToTrackerTransform->Delete();
-  this->LastOrientationSensorToTrackerTransform=NULL;
 
   this->FirmwareDefinition->Delete();
   this->FirmwareDefinition=NULL;
@@ -154,20 +134,8 @@ PlusStatus vtkChRoboticsTracker::Connect()
     return PLUS_FAIL;
   }
 
-  this->AccelerometerTool = NULL;
-  GetToolByPortName("Accelerometer", this->AccelerometerTool);
-
-  this->GyroscopeTool = NULL;
-  GetToolByPortName("Gyroscope", this->GyroscopeTool);
-
-  this->MagnetometerTool = NULL;
-  GetToolByPortName("Magnetometer", this->MagnetometerTool);
-
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
-
-  this->TrackerTimeToSystemTimeSec = 0;
-  this->TrackerTimeToSystemTimeComputed = false;
 
   return PLUS_SUCCESS; 
 }
@@ -180,9 +148,6 @@ PlusStatus vtkChRoboticsTracker::Disconnect()
 
   this->Serial->Close();
 
-  this->AccelerometerTool = NULL;
-  this->GyroscopeTool = NULL;
-  this->MagnetometerTool = NULL;
   this->OrientationSensorTool = NULL;
   return PLUS_SUCCESS;
 }
@@ -190,7 +155,9 @@ PlusStatus vtkChRoboticsTracker::Disconnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::Probe()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::Probe" ); 
+  LOG_TRACE("vtkChRoboticsTracker::Probe"); 
+
+  LOG_ERROR("vtkChRoboticsTracker::Probe is not implemented");
 
   return PLUS_SUCCESS; 
 } 
@@ -199,19 +166,13 @@ PlusStatus vtkChRoboticsTracker::Probe()
 PlusStatus vtkChRoboticsTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkChRoboticsTracker::InternalStartTracking" ); 
-  if ( this->Recording )
-  {
-    return PLUS_SUCCESS;
-  }  
-
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::InternalStopTracking()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::InternalStopTracking" );   
-
+  LOG_TRACE( "vtkChRoboticsTracker::InternalStopTracking" );
   return PLUS_SUCCESS;
 }
 
@@ -231,78 +192,19 @@ PlusStatus vtkChRoboticsTracker::InternalUpdate()
   }
 
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-/*
-  if (tracker->AccelerometerTool!=NULL)
-  {
-    ConvertVectorToTransformationMatrix(data[i]->acceleration, tracker->LastAccelerometerToTrackerTransform);
-    tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetToolName(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-  }  
-  if (tracker->GyroscopeTool!=NULL)
-  {
-    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-    transform->RotateX(data[i]->angularRate[0]/10.0);
-    transform->RotateY(data[i]->angularRate[1]/10.0);  
-    transform->RotateY(data[i]->angularRate[2]/10.0);  
-    transform->GetMatrix(tracker->LastGyroscopeToTrackerTransform);
-    tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetToolName(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-  }  
-  if (tracker->MagnetometerTool!=NULL)
-  {      
-    if (data[i]->magneticField[0]>1e100)
-    {
-      // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
-    }
-    else
-    {
-      // magnetometer data is valid
-      ConvertVectorToTransformationMatrix(data[i]->magneticField, tracker->LastMagnetometerToTrackerTransform);        
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-    }
-  }     
-*/
+
   if (this->OrientationSensorTool!=NULL)
   {
     vtkSmartPointer<vtkMatrix4x4> orientationSensorToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
 
-    /*
-    double rotQuat[4]=
-    {      
-      this->QuaternionX.GetValue(),
-      this->QuaternionY.GetValue(),
-      this->QuaternionZ.GetValue(),
-      this->QuaternionW.GetValue()
-    };    
-    double rotMatrix[3][3] = {0};
-    vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
-    for (int c=0;c<3; c++)
-    {
-      for (int r=0;r<3; r++)
-      {
-        orientationSensorToTracker->SetElement(r,c,rotMatrix[r][c]);
-      }
-    }
-    */
-
-    LOG_INFO("w="<<this->QuaternionW.GetValue()
-      <<", x="<<this->QuaternionX.GetValue()
-      <<", y="<<this->QuaternionY.GetValue()
-      <<", z="<<this->QuaternionZ.GetValue());
+    // LOG_TRACE("roll="<<this->EulerRoll.GetValue() <<", pitch="<<this->EulerPitch.GetValue() <<", yaw="<<this->EulerYaw.GetValue());
 
     vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-
-    transform->RotateX(this->QuaternionX.GetValue());
-    transform->RotateY(-this->QuaternionZ.GetValue());
-    transform->RotateZ(this->QuaternionY.GetValue());
+    transform->RotateX(this->EulerRoll.GetValue());
+    transform->RotateY(this->EulerPitch.GetValue());
+    transform->RotateZ(this->EulerYaw.GetValue());
     transform->GetMatrix(orientationSensorToTracker);
     
-
-    /*
-    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-    transform->RotateWXYZ(vtkMath::DegreesFromRadians(q0),q1,q2,q3);
-    transform->GetMatrix(tracker->LastGyroscopeToTrackerTransform);
-    */
-
     // This device has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = this->OrientationSensorTool->GetFrameNumber() + 1 ; 
     ToolTimeStampedUpdate( this->OrientationSensorTool->GetToolName(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp); 
@@ -383,7 +285,6 @@ void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &f
 #else // Linux
   DIR* d;
   struct dirent *ent;
-
   if ( (d = opendir(dir)) != NULL)
   {
     while ((ent = readdir(d)) != NULL)
@@ -403,26 +304,20 @@ void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &f
 PlusStatus vtkChRoboticsTracker::UpdateDataItemDescriptors()
 {
   PlusStatus status=PLUS_SUCCESS;
-  /*
-  if (FindDataItemDescriptor("a",this->QuaternionW)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("b",this->QuaternionX)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("c",this->QuaternionY)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("d",this->QuaternionZ)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  */
-  if (FindDataItemDescriptor("Roll (phi)",this->QuaternionW)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("Roll (phi)",this->QuaternionX)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("Pitch (theta)",this->QuaternionY)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("Yaw (psi)",this->QuaternionZ)!=PLUS_SUCCESS) { status=PLUS_FAIL; }  
+  
+  if (FindDataItemDescriptor("Roll (phi)",this->EulerRoll)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("Pitch (theta)",this->EulerPitch)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("Yaw (psi)",this->EulerYaw)!=PLUS_SUCCESS) { status=PLUS_FAIL; }  
+  
   return status;
 }
 
 //-------------------------------------------------------------------------
 void vtkChRoboticsTracker::UpdateDataItemValues(ChrSerialPacket& packet)
 {
-  this->QuaternionW.ReadValueFromPacket(packet);
-  this->QuaternionX.ReadValueFromPacket(packet);
-  this->QuaternionY.ReadValueFromPacket(packet);
-  this->QuaternionZ.ReadValueFromPacket(packet);
+  this->EulerRoll.ReadValueFromPacket(packet);
+  this->EulerPitch.ReadValueFromPacket(packet);
+  this->EulerYaw.ReadValueFromPacket(packet); 
 }
 
 
@@ -470,11 +365,9 @@ PlusStatus vtkChRoboticsTracker::FindDataItemDescriptor(const std::string itemNa
       {
         // item name does not match the item that we are looking for
         continue;
-      }
-      
+      }      
       // data item description found
       return foundItem.ReadDescriptionFromXml(dataItemElem);
-
     } 
   } 
 
@@ -658,20 +551,6 @@ PlusStatus vtkChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
     return PLUS_FAIL;
   }
 
-  // If no firmware definition has been selected yet, ignore this packet if it isn't reporting the firmware version
-
-/*
-if( this->SelectedFirmwareIndex == -1 )
-  {
-    if( packet.GetAddress() != UM6_GET_FW_VERSION )
-    {
-      return PLUS_SUCCESS;
-    }
-  }
-*/
-
-  // Firmware-dependent processing
-
   if( packet.GetHasData() )
   {
     // Packet has data.  
@@ -679,21 +558,7 @@ if( this->SelectedFirmwareIndex == -1 )
     // If this packet reported the contents of data registers, update local data registers accordingly
     if( (packet.GetAddress() >= DATA_REGISTER_START_ADDRESS) && (packet.GetAddress() < COMMAND_START_ADDRESS) )
     {
-      UpdateDataItemValues(packet);
-      
-      /* TODO:
-      // data received
-      unsigned char regIndex = 0;
-      // Copy data into local registers.
-      unsigned char dataLength=packet.GetDataLength();
-      for( int i = 0; i < dataLength; i += 4 )
-      {
-      int data = (packet.GetDataByte(i) << 24) | (packet.GetDataByte(i+1) << 16) | (packet.GetDataByte(i+2) << 8) | (packet.GetDataByte(i+3));
-      //TODO: FirmwareArray[SelectedFirmwareIndex]->SetRegisterContents( packet.GetAddress() + regIndex, data );
-      regIndex++;
-      }
-      */
-
+      UpdateDataItemValues(packet);   
     }    
     else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
     {
