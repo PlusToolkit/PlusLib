@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkChRoboticsTracker_h
 
 #include "vtkTracker.h"
+#include "ChrDataItem.h"
 
 class vtkTrackerBuffer;
 class SerialLine;
@@ -79,6 +80,15 @@ protected:
   /*! Query the firmware version of the connected device and load its definition from XML file */
   PlusStatus LoadFirmwareDescriptionForConnectedDevice();
 
+  /*! Read all the needed data item descriptors from the firmware description */
+  PlusStatus UpdateDataItemDescriptors();
+
+  /*! Read all the needed data item values from a packet received from the device */
+  void UpdateDataItemValues(ChrSerialPacket& packet);
+
+  /*! Find the description of a data item in the firmware description */
+  PlusStatus FindDataItemDescriptor(const std::string itemName, ChrDataItem &foundItem);
+
   /*! Send a packet and wait for and receive a reply packet */
   PlusStatus SendCommand( ChrSerialPacket& requestPacket, ChrSerialPacket& replyPacket );
   
@@ -126,6 +136,11 @@ private:  // Variables.
 
   vtkXMLDataElement* FirmwareDefinition;
   std::string FirmwareVersionId;
+
+  ChrDataItem QuaternionW;
+  ChrDataItem QuaternionX;
+  ChrDataItem QuaternionY;
+  ChrDataItem QuaternionZ;  
 };
 
 #endif

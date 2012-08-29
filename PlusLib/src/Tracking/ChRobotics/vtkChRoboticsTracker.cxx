@@ -49,7 +49,7 @@ static const unsigned char COMMAND_START_ADDRESS=170;
 
 //-------------------------------------------------------------------------
 
-static const int MAX_COMMAND_REPLY_WAIT=500; // number of maximum replies to wait for a command reply
+static const int MAX_COMMAND_REPLY_WAIT=3000; // number of maximum replies to wait for a command reply
 
 //-------------------------------------------------------------------------
 vtkChRoboticsTracker::vtkChRoboticsTracker() :
@@ -147,6 +147,13 @@ PlusStatus vtkChRoboticsTracker::Connect()
     return PLUS_FAIL;
   }
 
+  if (UpdateDataItemDescriptors()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to update data item descriptors from firmware description");
+    this->Serial->Close();
+    return PLUS_FAIL;
+  }
+
   this->AccelerometerTool = NULL;
   GetToolByPortName("Accelerometer", this->AccelerometerTool);
 
@@ -212,6 +219,95 @@ PlusStatus vtkChRoboticsTracker::InternalStopTracking()
 PlusStatus vtkChRoboticsTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkChRoboticsTracker::InternalUpdate" ); 
+
+  ChrSerialPacket packet;
+
+  while (this->Serial->GetNumberOfBytesAvailableForReading()>0)
+  {    
+    if (ReceivePacket(packet)==PLUS_SUCCESS)
+    {
+      ProcessPacket(packet);
+    }
+  }
+
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+/*
+  if (tracker->AccelerometerTool!=NULL)
+  {
+    ConvertVectorToTransformationMatrix(data[i]->acceleration, tracker->LastAccelerometerToTrackerTransform);
+    tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetToolName(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+  }  
+  if (tracker->GyroscopeTool!=NULL)
+  {
+    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+    transform->RotateX(data[i]->angularRate[0]/10.0);
+    transform->RotateY(data[i]->angularRate[1]/10.0);  
+    transform->RotateY(data[i]->angularRate[2]/10.0);  
+    transform->GetMatrix(tracker->LastGyroscopeToTrackerTransform);
+    tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetToolName(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+  }  
+  if (tracker->MagnetometerTool!=NULL)
+  {      
+    if (data[i]->magneticField[0]>1e100)
+    {
+      // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
+    }
+    else
+    {
+      // magnetometer data is valid
+      ConvertVectorToTransformationMatrix(data[i]->magneticField, tracker->LastMagnetometerToTrackerTransform);        
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+    }
+  }     
+*/
+  if (this->OrientationSensorTool!=NULL)
+  {
+    vtkSmartPointer<vtkMatrix4x4> orientationSensorToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
+
+    /*
+    double rotQuat[4]=
+    {      
+      this->QuaternionX.GetValue(),
+      this->QuaternionY.GetValue(),
+      this->QuaternionZ.GetValue(),
+      this->QuaternionW.GetValue()
+    };    
+    double rotMatrix[3][3] = {0};
+    vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
+    for (int c=0;c<3; c++)
+    {
+      for (int r=0;r<3; r++)
+      {
+        orientationSensorToTracker->SetElement(r,c,rotMatrix[r][c]);
+      }
+    }
+    */
+
+    LOG_INFO("w="<<this->QuaternionW.GetValue()
+      <<", x="<<this->QuaternionX.GetValue()
+      <<", y="<<this->QuaternionY.GetValue()
+      <<", z="<<this->QuaternionZ.GetValue());
+
+    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+
+    transform->RotateX(this->QuaternionX.GetValue());
+    transform->RotateY(-this->QuaternionZ.GetValue());
+    transform->RotateZ(this->QuaternionY.GetValue());
+    transform->GetMatrix(orientationSensorToTracker);
+    
+
+    /*
+    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+    transform->RotateWXYZ(vtkMath::DegreesFromRadians(q0),q1,q2,q3);
+    transform->GetMatrix(tracker->LastGyroscopeToTrackerTransform);
+    */
+
+    // This device has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = this->OrientationSensorTool->GetFrameNumber() + 1 ; 
+    ToolTimeStampedUpdate( this->OrientationSensorTool->GetToolName(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp); 
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -301,6 +397,89 @@ void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &f
   }
   closedir(d);
 #endif
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkChRoboticsTracker::UpdateDataItemDescriptors()
+{
+  PlusStatus status=PLUS_SUCCESS;
+  /*
+  if (FindDataItemDescriptor("a",this->QuaternionW)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("b",this->QuaternionX)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("c",this->QuaternionY)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("d",this->QuaternionZ)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  */
+  if (FindDataItemDescriptor("Roll (phi)",this->QuaternionW)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("Roll (phi)",this->QuaternionX)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("Pitch (theta)",this->QuaternionY)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
+  if (FindDataItemDescriptor("Yaw (psi)",this->QuaternionZ)!=PLUS_SUCCESS) { status=PLUS_FAIL; }  
+  return status;
+}
+
+//-------------------------------------------------------------------------
+void vtkChRoboticsTracker::UpdateDataItemValues(ChrSerialPacket& packet)
+{
+  this->QuaternionW.ReadValueFromPacket(packet);
+  this->QuaternionX.ReadValueFromPacket(packet);
+  this->QuaternionY.ReadValueFromPacket(packet);
+  this->QuaternionZ.ReadValueFromPacket(packet);
+}
+
+
+//-------------------------------------------------------------------------
+PlusStatus vtkChRoboticsTracker::FindDataItemDescriptor(const std::string itemName, ChrDataItem &foundItem)
+{
+  if (this->FirmwareDefinition==NULL)
+  {
+    LOG_ERROR("Firmware definition is not available");
+    return PLUS_FAIL;
+  }
+
+  const std::string dataGroupElemName="DataGroup";
+  const std::string dataItemElemName="DataItem";
+
+  for ( int dataGroupIndex = 0; dataGroupIndex < this->FirmwareDefinition->GetNumberOfNestedElements(); ++dataGroupIndex )
+  {
+    vtkXMLDataElement* groupElem = this->FirmwareDefinition->GetNestedElement(dataGroupIndex);
+    if ( groupElem == NULL )
+    {
+      continue; 
+    }
+    if (dataGroupElemName.compare(groupElem->GetName())!=0)
+    {
+      // not a data group
+      continue;
+    }
+    for ( int dataItemIndex = 0; dataItemIndex < groupElem->GetNumberOfNestedElements(); ++dataItemIndex )
+    {
+      vtkXMLDataElement* dataItemElem = groupElem->GetNestedElement(dataItemIndex);
+
+      if (dataItemElemName.compare(dataItemElem->GetName())!=0)
+      {
+        // not a data item
+        continue;
+      }
+
+      vtkXMLDataElement* dataItemNameElem=dataItemElem->FindNestedElementWithName("Name");
+      if ( dataItemNameElem == NULL )
+      {
+        // name is undefined
+        continue; 
+      }
+      if (itemName.compare(dataItemNameElem->GetCharacterData())!=0)
+      {
+        // item name does not match the item that we are looking for
+        continue;
+      }
+      
+      // data item description found
+      return foundItem.ReadDescriptionFromXml(dataItemElem);
+
+    } 
+  } 
+
+  LOG_ERROR("Data item desctiption not found: "<<itemName);
+  return PLUS_FAIL;
 }
 
 //-------------------------------------------------------------------------
@@ -495,99 +674,51 @@ if( this->SelectedFirmwareIndex == -1 )
 
   if( packet.GetHasData() )
   {
-    // Packet has data.  Copy data into local registers.
-    unsigned char regIndex = 0;
-    /* TODO: */
-    unsigned char dataLength=packet.GetDataLength();
-    for( int i = 0; i < dataLength; i += 4 )
-    {
-      int data = (packet.GetDataByte(i) << 24) | (packet.GetDataByte(i+1) << 16) | (packet.GetDataByte(i+2) << 8) | (packet.GetDataByte(i+3));
-      //TODO: FirmwareArray[SelectedFirmwareIndex]->SetRegisterContents( packet.GetAddress() + regIndex, data );
-      regIndex++;
-    }
+    // Packet has data.  
 
     // If this packet reported the contents of data registers, update local data registers accordingly
     if( (packet.GetAddress() >= DATA_REGISTER_START_ADDRESS) && (packet.GetAddress() < COMMAND_START_ADDRESS) )
     {
-      // Copy new register data into individual items for display in GUI
-      //updateItemsSafe( DATA_UPDATE );	
-
-      // If magnetometer data collection (for calibration) is enabled, check to determine if this packet contained raw
-      // magnetometer data.  This code is device-specific, and it would be preferable to find another way to do this
-      // since the rest of this interface software makes no assumptions about the formatting of the registers aboard
-      // the device... Anyway, this code should work for any device with ID UM1*, where * can be anything.
+      UpdateDataItemValues(packet);
+      
       /* TODO:
-      String^ firmware_id = FirmwareArray[SelectedFirmwareIndex]->GetID();
-      if( firmware_id->Substring(0,2)  == "UM" )
+      // data received
+      unsigned char regIndex = 0;
+      // Copy data into local registers.
+      unsigned char dataLength=packet.GetDataLength();
+      for( int i = 0; i < dataLength; i += 4 )
       {
-        // Is data collection enabled?
-        if( this->magDataCollectionEnabled )
-        {
-          // Check to see if this is raw mag. data (register address of first raw mag register is 90.  Second is 91.
-          if( packet->IsBatch && (packet->BatchLength == 2) && (packet.GetAddress() == 90) )
-          {
-            // New raw mag data has arrived.  Write it to the mag logging array.
-            Int16 mag_x = (packet->GetDataByte(0) << 8) | (packet->GetDataByte(1));
-            Int16 mag_y = (packet->GetDataByte(2) << 8) | packet->GetDataByte(3);
-            Int16 mag_z = (packet->GetDataByte(4) << 8) | packet->GetDataByte(5);
-
-            // Make sure we don't read too much data
-            if( this->rawMagDataPointer < MAXIMUM_MAG_DATA_POINTS )
-            {
-              this->rawMagData[this->rawMagDataPointer,0] = (double)mag_x;
-              this->rawMagData[this->rawMagDataPointer,1] = (double)mag_y;
-              this->rawMagData[this->rawMagDataPointer,2] = (double)mag_z;
-
-              this->rawMagDataPointer++;
-
-              updateMagCounterLabelSafe();
-            }
-          }
-        }
+      int data = (packet.GetDataByte(i) << 24) | (packet.GetDataByte(i+1) << 16) | (packet.GetDataByte(i+2) << 8) | (packet.GetDataByte(i+3));
+      //TODO: FirmwareArray[SelectedFirmwareIndex]->SetRegisterContents( packet.GetAddress() + regIndex, data );
+      regIndex++;
       }
       */
-    }
-    // If this packet reported the contents of configuration registers, update local configuration registers accordingly
+
+    }    
     else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
     {
-      //					FirmwareRegister^ current_register = FirmwareArray[SelectedFirmwareIndex]->GetRegister(packet.GetAddress());
-      //updateItemsSafe( CONFIG_UPDATE );
-      //					this->addStatusTextSafe(L"Received " + current_register->Name + " register contents.", Color::Green);
-    }
-    // This should never be reached for a properly formatted packet (ie. commands should never contain data)
-    else
-    {
-
-    }
-  }
-  // Packet has not data.  If a configuration register address, the packet signifies that a write operation
-  // to a configuration register was just completed.
-  else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
-  {
-    /* TODO:
-    FirmwareRegister^ current_register = FirmwareArray[SelectedFirmwareIndex]->GetRegister(packet.GetAddress());
-    current_register->UserModified = false;
-    this->addStatusTextSafe(L"Successfully wrote to " + current_register->Name + " register.", Color::Green);
-    this->resetTreeNodeColorSafe( packet.GetAddress() );
-    */
-  }
-  // Packet has no data.  If a command register address, the packet signals that a received command either succeeded or
-  // failed.
-  else if( packet.GetAddress() >= COMMAND_START_ADDRESS )
-  {
-    /* TODO:
-    String^ command_name = FirmwareArray[SelectedFirmwareIndex]->GetCommandName( packet.GetAddress() );
-
-    // Check to see if command succeeded
-    if( packet->CommandFailed == 1 )
-    {					
-      this->addStatusTextSafe(L"Command failed: " + command_name, Color::Green);
+      // this packet reported the contents of configuration registers
+      // we could get here the new configuration register value
     }
     else
     {
-      this->addStatusTextSafe(L"Command complete: " + command_name, Color::Red);
+      // command received
+      LOG_WARNING("Improperly formatted packet: commands should never contain data");
     }
-    */
+  }
+  else
+  {
+    // Packet has no data
+    if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
+    {
+      // configuration register address
+      // the packet signifies that a write operation to a configuration register was just completed
+    }
+    else if( packet.GetAddress() >= COMMAND_START_ADDRESS )
+    {
+      // command register address
+      // the packet signals that a received command either succeeded or failed
+    }
   }
 
   return PLUS_SUCCESS;

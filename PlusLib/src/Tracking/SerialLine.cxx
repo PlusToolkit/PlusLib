@@ -136,3 +136,11 @@ DWORD SerialLine::ClearError()
 	ClearCommError(m_CommHandle,&dwErrors, &comStat);
 	return dwErrors;
 }
+
+unsigned int SerialLine::GetNumberOfBytesAvailableForReading() const
+{
+  DWORD dwErrorFlags=0;
+  COMSTAT comStat;
+  ClearCommError( m_CommHandle, &dwErrorFlags, &comStat );
+  return( (int) comStat.cbInQue );
+}
