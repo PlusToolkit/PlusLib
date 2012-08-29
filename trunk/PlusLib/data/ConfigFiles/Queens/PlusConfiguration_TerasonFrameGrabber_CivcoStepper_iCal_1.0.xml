@@ -29,6 +29,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
 
 
   <Segmentation
+	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.33"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"

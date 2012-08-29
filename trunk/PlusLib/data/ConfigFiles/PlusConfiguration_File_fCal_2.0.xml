@@ -75,6 +75,7 @@
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
 	MaxLineShiftMm="10.0"
+	MaxCandidates="20"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"

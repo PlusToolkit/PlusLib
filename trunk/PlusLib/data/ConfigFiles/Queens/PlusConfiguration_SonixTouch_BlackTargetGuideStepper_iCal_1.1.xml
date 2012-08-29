@@ -31,7 +31,8 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     />
   </DataCollection>
   
-  <Segmentation 
+  <Segmentation
+	MaxCandidates="80" 
     ApproximateSpacingMmPerPixel="0.145"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2"

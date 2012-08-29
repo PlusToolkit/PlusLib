@@ -871,6 +871,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
   connect( ui.doubleSpinBox_MaxLineShiftMm, SIGNAL( valueChanged(double) ), this, SLOT( MaxLineShiftMmChanged(double) ) );
   connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
+  connect (ui.doubleSpinBox_MaxCandidates, SIGNAL(valueChanged(double) ), this, SLOT( MaxCandidatesChanged(double) ));
 
   // Set up timer for refreshing UI
   m_CanvasRefreshTimer = new QTimer(this);
@@ -1135,6 +1136,14 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read UseOriginalImageIntensityForDotIntensityScore from configuration");
   }
 
+  double maxCandidates(20.0); 
+  if ( segmentationParameters->GetScalarAttribute("MaxCandidates", maxCandidates) )
+  {
+    ui.doubleSpinBox_MaxCandidates->setValue(maxCandidates);
+  } else {
+    LOG_WARNING("Could not read MaxCandidates from configuration");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -1223,6 +1232,8 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   segmentationParameters->SetDoubleAttribute("CollinearPointsMaxDistanceFromLineMm", ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine->value());
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
+
+  segmentationParameters->SetIntAttribute("MaxCandidates", ui.doubleSpinBox_MaxCandidates->value());
 
   return PLUS_SUCCESS;
 }
@@ -1746,6 +1757,15 @@ void SegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::MaxLineShiftMmChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidLabeling()->SetMaxLineShiftMm(aValue);
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameterDialog::MaxCandidatesChanged(double aValue)
+{
+  LOG_TRACE("SegmentationParameterDialog::MaxCandidatesChanged(" << aValue << ")");
+
+  m_PatternRecognition->SetMaxNumberOfCandidates(aValue);
 }
 
 //-----------------------------------------------------------------------------

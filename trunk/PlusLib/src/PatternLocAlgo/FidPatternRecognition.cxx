@@ -14,12 +14,12 @@ See License.txt for details.
 
 static const double DOT_STEPS  = 4.0;
 static const double DOT_RADIUS = 6.0;
-static const int MAX_SEGMENTATION_CANDIDATES = 80;
 
 //-----------------------------------------------------------------------------
 
 FidPatternRecognition::FidPatternRecognition()
 : m_CurrentFrame(0)
+, m_MaxNumberOfCandidates(20)
 {
 
 }
@@ -46,6 +46,13 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
   m_FidSegmentation.ReadConfiguration(rootConfigElement);
   m_FidLineFinder.ReadConfiguration(rootConfigElement);
   m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinThetaRad(), m_FidLineFinder.GetMaxThetaRad());
+
+  vtkXMLDataElement* segmentationParameters = rootConfigElement->FindNestedElementWithName("Segmentation");
+  double maxCandidates;
+  if ( segmentationParameters != NULL && segmentationParameters->GetScalarAttribute("MaxCandidates", maxCandidates) )
+  {
+    m_MaxNumberOfCandidates = maxCandidates;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -105,7 +112,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
   // If the number of candidates is arbitrarily high, return with an error code that will tell the system
   // to warn the user that the number of candidates is too high
-  if( m_FidSegmentation.GetDotsVector().size() > MAX_SEGMENTATION_CANDIDATES )
+  if( m_FidSegmentation.GetDotsVector().size() > m_MaxNumberOfCandidates )
   {
     LOG_WARNING("Too many candidate values for sementation algorithm. Consider reducing the number of candidates via ROI selection.");
     patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
@@ -513,4 +520,11 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+void FidPatternRecognition::SetMaxNumberOfCandidates( int aMax )
+{
+  m_MaxNumberOfCandidates = aMax;
 }

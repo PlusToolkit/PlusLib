@@ -33,6 +33,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
 
   
   <Segmentation
+	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.145"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"

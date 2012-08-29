@@ -79,7 +79,10 @@ public:
   FidLabeling* GetFidLabeling() { return & m_FidLabeling; };
 
   /*! Set the maximum tolerance on the line length in Mm */
-  void SetMaxLineLengthToleranceMm(double value); 
+  void SetMaxLineLengthToleranceMm(double value);
+
+  /*! Set the maximum number of candidates to consider */
+  void SetMaxNumberOfCandidates(int aMax);
 
   /*! Reads the phantom definition and computes the NWires intersection if needed */
   PlusStatus        ReadPhantomDefinition(vtkXMLDataElement* rootConfigElement);
@@ -91,6 +94,8 @@ protected:
   FidLabeling             m_FidLabeling;
 
   double                  m_MaxLineLengthToleranceMm;
+
+  int                     m_MaxNumberOfCandidates;
 
   int                     m_CurrentFrame;
 };

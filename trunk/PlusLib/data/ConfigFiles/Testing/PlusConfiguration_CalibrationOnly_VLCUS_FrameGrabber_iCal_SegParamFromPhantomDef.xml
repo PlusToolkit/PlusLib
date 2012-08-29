@@ -1,6 +1,7 @@
 <PlusConfiguration version="1.4">
 
   <Segmentation
+	MaxCandidates="80"
     ComputeSegmentationParametersFromPhantomDefinition="1"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
