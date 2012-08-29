@@ -114,7 +114,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   // to warn the user that the number of candidates is too high
   if( m_FidSegmentation.GetDotsVector().size() > m_MaxNumberOfCandidates )
   {
-    LOG_WARNING("Too many candidate values for sementation algorithm. Consider reducing the number of candidates via ROI selection.");
     patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
     return PLUS_FAIL;
   }
