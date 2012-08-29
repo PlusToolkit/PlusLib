@@ -193,7 +193,7 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
   if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
   {
     vtkDisplayableModel* phantomDisplayableModel = NULL;
-    if( !m_ParentMainWindow->GetPhantomModelId() != NULL )
+    if( m_ParentMainWindow->GetPhantomModelId() != NULL )
     {
       vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
       phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
@@ -205,7 +205,8 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
     }
     else
     {
-      LOG_WARNING("Phantom model ID not defined.");
+      LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
+      return PLUS_FAIL;
     }
 
     // Initialize phantom visualization in toolbox canvas
