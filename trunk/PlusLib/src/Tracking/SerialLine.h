@@ -58,6 +58,9 @@ public:
   /*! Check the handle alive status */ 
   bool IsHandleAlive() const { return (m_CommHandle != INVALID_HANDLE_VALUE); };
 
+  /*! Check the handle alive status */ 
+  unsigned int GetNumberOfBytesAvailableForReading() const;
+
   /*! Clears the device's error flag to enable additional input and output (I/O) operations  */ 
   DWORD ClearError();
 
