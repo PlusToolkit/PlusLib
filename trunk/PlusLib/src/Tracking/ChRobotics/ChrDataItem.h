@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
 #ifndef __ChrDataItem_h
 #define __ChrDataItem_h
 
@@ -81,7 +87,9 @@ public:
 
   int GetByteAddressFromBitAddress(unsigned int bitAddress)
   {
-    //return bitAddress/8;
+    // Data is stored in 32-bit registers.
+    // As usual on little endian systems, the high word (16-31 bits) are stored on the first two bytes in memory (dwordAddress 0-1),
+    // and low word (0-15 bits) are stored on the second two bytes in memory (dwordAddress 2-3),
     unsigned int dwordAddress=(bitAddress/32)*4;
     unsigned int remainingOffsetBit=bitAddress%32;
     if (remainingOffsetBit<8)

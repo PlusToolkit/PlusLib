@@ -6,10 +6,7 @@
       Description="Configuration file for No video + Phidget Spatial accelerometer" 
     />
 
-    <Tracker Type="ChRobotics" SerialPort="5" BaudRate="115200" FirmwareDirectory="ChRoboticsFirmware" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <xTool Name="Accelerometer" PortName="Accelerometer" />
-      <xTool Name="Gyroscope" PortName="Gyroscope" />
-      <xTool Name="Magnetometer" PortName="Magnetometer" />
+    <Tracker Type="ChRobotics" SerialPort="5" BaudRate="115200" FirmwareDirectory="ChRoboticsFirmware" BufferSize="2500" AcquisitionRate="20" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <Tool Name="OrientationSensor" PortName="OrientationSensor" />
     </Tracker>
 
