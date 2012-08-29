@@ -35,7 +35,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
   int maxNumberOfLines = lines;
   // maxNumberOfRfSamples refers to the number of available 16-bit data samples (without the header)
   // need to subtract the the line header length, because the input "samples" includes the line header as well
-  int numberOfRfSamplesPerLine = (samples-HEADER_SIZE_BYTES) / BYTES_PER_SAMPLE / m_Decimation;
+  int numberOfRfSamplesPerLine = (samples-HEADER_SIZE_BYTES/BYTES_PER_SAMPLE) / m_Decimation;
 
   if (maxNumberOfLines==m_MaxNumberOfLines && numberOfRfSamplesPerLine==m_NumberOfRfSamplesPerLine && m_Frame!=NULL)
   {
@@ -97,7 +97,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   const unsigned char* inputFrame = reinterpret_cast<const unsigned char*>(frameData);
   
   // Copy as many sample pairs (2x16 bits) as available in the input and allocated in the output
-  int numberOfSamplesInInput= (pitch-HEADER_SIZE_BYTES) / BYTES_PER_SAMPLE / m_Decimation;
+  int numberOfSamplesInInput= (pitch-HEADER_SIZE_BYTES/BYTES_PER_SAMPLE) / m_Decimation;
   int numberOfSamplePairsInInput=numberOfSamplesInInput/2;
   int numberOfSamplePairsInOutput=m_NumberOfRfSamplesPerLine/2;    
   int numberOfSamplePairsToCopy=0;
