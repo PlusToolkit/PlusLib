@@ -141,7 +141,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 
     // 32 bit, one sample pair
     const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + inputLineIndex*pitch + HEADER_SIZE_BYTES);
-    int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + numBmodeLines*m_NumberOfRfSamplesPerLine );
+    int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + numBmodeLines*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE );
 
     for(int samplePairIndex = 0; samplePairIndex < numberOfSamplePairsToCopy; ++samplePairIndex)
     {
