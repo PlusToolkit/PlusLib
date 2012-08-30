@@ -11,11 +11,8 @@ See License.txt for details.
 
 #include <phidget21.h>
 
-#include "MadgwickAHRS.h"
-#include "MahonyAHRS.h"
-
-
 class vtkTrackerBuffer; 
+class AhrsAlgo;
 
 /*!
 \class vtkPhidgetSpatialTracker 
@@ -24,7 +21,15 @@ class vtkTrackerBuffer;
 This class talks with PhidgetSpatial 3/3/3 accelerometer/magnetometer/gyroscope device.
 
 Gyroscope zeroing is performed automatically at device connect, therefore the sensor shall not be moved
-for 2 seconds after the Connect() call.
+for 2 seconds after the vtkPhidgetSpatialTracker::Connect() call.
+
+AHRS algorithm gain values:
+ The Madgwick method uses only one parameter (beta). A value of 1.0 works well at 125Hz.
+ The Mahony method uses two parameters (proportional and integral). A value of proportional=15.0, integral=1.0 work well at 125Hz.
+
+If magnetic fields nearby the sensor have non-negligible effect then compass can be ignored by choosing an ..._IMU AHRS algorithm
+(as opposed to ..._MARG) or compass correction may be performed (see http://www.phidgets.com/docs/Compass_Primer). If compass correction
+parameters cannot be stored in the device flash then they should be set in vtkPhidgetSpatialTracker::Connect().
 
 \ingroup PlusLibTracking
 */
@@ -67,9 +72,6 @@ protected:
   vtkPhidgetSpatialTracker();
   ~vtkPhidgetSpatialTracker();
 
-  /*! Initialize the tracking device */
-  PlusStatus InitPhidgetSpatialTracker();
-
   /*! 
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
@@ -89,15 +91,13 @@ private:  // Functions.
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
   void operator=( const vtkPhidgetSpatialTracker& );  
 
-
-private:  // Variables.
+private:  // Variables.  
 
   CPhidgetSpatialHandle SpatialDeviceHandle;
 
   unsigned int FrameNumber;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
-  bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
-  double LastAhrsUpdateTime; // last AHRS update time (in system time)
+  bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking  
 
   vtkMatrix4x4* LastAccelerometerToTrackerTransform;
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
@@ -109,16 +109,29 @@ private:  // Variables.
   vtkTrackerTool* MagnetometerTool;
   vtkTrackerTool* OrientationSensorTool;
 
+  enum AHRS_METHOD
+  {
+    AHRS_MADGWICK,
+    AHRS_MAHONY
+  };
+
+  AhrsAlgo* AhrsAlgo;
+
+  /*!
+    If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.
+    Otherwise (when a ..._IMU algorithm is chosen) only the gyroscope data will be used for getting the heading information.
+    IMU may be more noisy, but not sensitive to magnetic field distortions.
+  */
+  bool AhrsUseMagnetometer;
+
   /*!
     Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
     Higher gain gives higher reliability to accelerometer&magnetometer data.
-    Higher gain advantage: on startup the initial orientation is reached more quickly (0.1 => takes 10 sec; 0.5 => takes 2-3 sec)
-    Higher gain disadvantage: tracking is less robust, e.g., when starting/ending the rotation there could be a slicght extra "swing" in the output
   */
   double AhrsAlgorithmGain[2];
 
-  MadgwickAHRS MadgwickAhrsAlgo;
-  MahonyAHRS MahonyAhrsAlgo;
+  /*! last AHRS update time (in system time) */
+  double AhrsLastUpdateTime;
 
 };
 

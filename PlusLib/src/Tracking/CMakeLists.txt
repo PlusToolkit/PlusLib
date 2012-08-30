@@ -265,8 +265,8 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
       
   SET (Tracking_SRCS ${Tracking_SRCS} 
     PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS/MadgwickAHRS.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAHRS/MahonyAHRS.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAhrsAlgo.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAhrsAlgo.cxx
     )
   if (WIN32)  
     SET (Tracking_HDRS ${Tracking_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
@@ -275,8 +275,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAHRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio
     CACHE INTERNAL "" FORCE)
 
   SET (Tracking_LIBS ${Tracking_LIBS}

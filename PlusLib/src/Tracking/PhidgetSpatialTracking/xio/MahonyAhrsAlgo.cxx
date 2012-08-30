@@ -1,23 +1,23 @@
-//=====================================================================================================
-// MahonyAHRS.c
-//=====================================================================================================
-//
-// Madgwick's implementation of Mayhony's AHRS algorithm.
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
+// Madgwick's implementation of Mahony's AHRS algorithm.
 // See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
 //
 // Date			Author			Notes
 // 29/09/2011	SOH Madgwick    Initial release
 // 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
-//
-//=====================================================================================================
 
-#include "MahonyAHRS.h"
+#include "MahonyAhrsAlgo.h"
 #include <math.h>
 
 //---------------------------------------------------------------------------------------------------
 // AHRS algorithm update
 
-void MahonyAHRS::Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz) {
+void MahonyAhrsAlgo::Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz) {
 	float recipNorm;
   float q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;  
 	float hx, hy, bx, bz;
@@ -121,7 +121,7 @@ void MahonyAHRS::Update(float gx, float gy, float gz, float ax, float ay, float 
 //---------------------------------------------------------------------------------------------------
 // IMU algorithm update
 
-void MahonyAHRS::UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
+void MahonyAhrsAlgo::UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
@@ -185,18 +185,4 @@ void MahonyAHRS::UpdateIMU(float gx, float gy, float gz, float ax, float ay, flo
 	q1 *= recipNorm;
 	q2 *= recipNorm;
 	q3 *= recipNorm;
-}
-
-//---------------------------------------------------------------------------------------------------
-// Fast inverse square-root
-// See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
-
-float MahonyAHRS::InvSqrt(float x) {
-	float halfx = 0.5f * x;
-	float y = x;
-	long i = *(long*)&y;
-	i = 0x5f3759df - (i>>1);
-	y = *(float*)&i;
-	y = y * (1.5f - (halfx * y * y));
-	return y;
 }

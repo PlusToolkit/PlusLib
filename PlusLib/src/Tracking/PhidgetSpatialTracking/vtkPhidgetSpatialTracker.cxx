@@ -20,7 +20,10 @@ See License.txt for details.
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
- 
+
+#include "MadgwickAhrsAlgo.h"
+#include "MahonyAhrsAlgo.h"
+
 #include <math.h>
 
 vtkStandardNewMacro(vtkPhidgetSpatialTracker);
@@ -42,10 +45,11 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->LastMagnetometerToTrackerTransform=vtkMatrix4x4::New();
   this->LastOrientationSensorToTrackerTransform=vtkMatrix4x4::New();
 
-  this->AhrsAlgorithmGain[0]=0.5; // proportional
+  this->AhrsAlgo=new MadgwickAhrsAlgo; 
+  this->AhrsUseMagnetometer=true;
+  this->AhrsAlgorithmGain[0]=1.5; // proportional
   this->AhrsAlgorithmGain[1]=0.0; // integral
-
-  this->LastAhrsUpdateTime=-1;
+  this->AhrsLastUpdateTime=-1;
 }
 
 //-------------------------------------------------------------------------
@@ -205,75 +209,40 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       {
         // magnetometer data is valid
 
-        if (tracker->LastAhrsUpdateTime<0)
+        // Compute the time that passed since the last AHRS update
+        if (tracker->AhrsLastUpdateTime<0)
         {
           // this is the first update
           // just use it as a reference
-          tracker->LastAhrsUpdateTime=timeSystemSec;
+          tracker->AhrsLastUpdateTime=timeSystemSec;
           continue;
-        }
+        }       
+        double timeSinceLastAhrsUpdateSec=timeSystemSec-tracker->AhrsLastUpdateTime;
+        tracker->AhrsLastUpdateTime=timeSystemSec;
 
-        // Settings
-        // which AHRS algo to use
-        const bool useMadgwick=true; 
-        // enable/disable input for debugging
-        const bool useGyroscope=true;
-        const bool useAccelerometer=true;
-        const bool useMagnetometer=true;       
-       
-        if (!useMagnetometer)
-        {
-          data[i]->magneticField[0]=0;
-          data[i]->magneticField[1]=0;
-          data[i]->magneticField[2]=0;
-        }
-        if (!useAccelerometer)
-        {
-          data[i]->acceleration[0]=0;
-          data[i]->acceleration[1]=0;
-          data[i]->acceleration[2]=0;
-        }
-        if (!useGyroscope)
-        {
-          data[i]->angularRate[0]=0;
-          data[i]->angularRate[1]=0;
-          data[i]->angularRate[2]=0;
-        }
-        
-        double timeSinceLastAhrsUpdateSec=timeSystemSec-tracker->LastAhrsUpdateTime;
-        tracker->LastAhrsUpdateTime=timeSystemSec;
+        tracker->AhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastAhrsUpdateSec);
 
-        tracker->MadgwickAhrsAlgo.SetSampleFreqHz(1.0/timeSinceLastAhrsUpdateSec);
-        tracker->MahonyAhrsAlgo.SetSampleFreqHz(1.0/timeSinceLastAhrsUpdateSec);
+        //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
+        //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
+        //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->magneticField[0]<<", magY="<<data[i]->magneticField[1]<<", magZ="<<data[i]->magneticField[2]);               
 
-        //LOG_INFO("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
-        //LOG_INFO("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
-        //LOG_INFO("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->magneticField[0]<<", magY="<<data[i]->magneticField[1]<<", magZ="<<data[i]->magneticField[2]);               
-
-        if (useMadgwick)
+        if (tracker->AhrsUseMagnetometer)
         {
-          tracker->MadgwickAhrsAlgo.Update(          
+          tracker->AhrsAlgo->Update(          
             vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
             data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2],
             data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2]);
         }
         else
         {
-          tracker->MahonyAhrsAlgo.Update(
+          tracker->AhrsAlgo->UpdateIMU(          
             vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2],
-            data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2]);
+            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
         }
 
         double rotQuat[4]={0};
-        if (useMadgwick)
-        {
-          tracker->MadgwickAhrsAlgo.GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-        }
-        else
-        {
-          tracker->MahonyAhrsAlgo.GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-        }
+        tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+
         double rotMatrix[3][3]={0};
         vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
 
@@ -323,7 +292,9 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
-	//Create the spatial object  
+  // TODO: verify tool definition
+
+	//Create the communicator object to the PhidgetSpatial device
 	CPhidgetSpatial_create(&this->SpatialDeviceHandle);
 
 	//Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
@@ -332,13 +303,9 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 	CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, ErrorHandler, this);
 
 	//Registers a callback that will run according to the set data rate that will return the spatial data changes
-	//Requires the handle for the Spatial, the callback handler function that will be called, 
-	//and an arbitrary pointer that will be supplied to the callback function (may be NULL)
-
 	CPhidgetSpatial_set_OnSpatialData_Handler(this->SpatialDeviceHandle, vtkPhidgetSpatialTracker::SpatialDataHandler, this);
 
-  // TODO: verify tool definition
-
+  //This will initiate the SystemTime (time reference in Plus) to TrackerTime (time reference of the internal clock of the device) offset computation
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
 
@@ -370,23 +337,17 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 	CPhidgetSpatial_setDataRate(this->SpatialDeviceHandle, userDataRateMsec);
 	LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
 
-  // Initialize both AHRS algorithm implementations, we will decide in the update step which one to actually use
+  // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
+  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
 
-  // Set some default frequency here, more accurate value will be set at each update step anyway
-  this->MadgwickAhrsAlgo.SetSampleFreqHz(1000.0/userDataRateMsec);
-  this->MahonyAhrsAlgo.SetSampleFreqHz(1000.0/userDataRateMsec);
-
-  this->MadgwickAhrsAlgo.SetGain(this->AhrsAlgorithmGain[0]);
-  this->MahonyAhrsAlgo.SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
-
-  // If magnetic fields nearby the sensor have non-negligible effect then compass correction may be needed (see http://www.phidgets.com/docs/Compass_Primer)
   // To set compass correction parameters:
   //  CPhidgetSpatial_setCompassCorrectionParameters(this->SpatialDeviceHandle, 0.648435, 0.002954, -0.024140, 0.002182, 1.520509, 1.530625, 1.575390, -0.002039, 0.003182, -0.001966, -0.013848, 0.003168, -0.014385);
   // To reset compass correction parameters:
   //  CPhidgetSpatial_resetCompassCorrectionParameters(this->SpatialDeviceHandle);
-  
-  // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
-  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
+
+  // Initialize AHRS algorithm
+  this->AhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec); // more accurate value will be set at each update step anyway
+  this->AhrsAlgo->SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
 
   return PLUS_SUCCESS; 
 }
@@ -418,11 +379,6 @@ PlusStatus vtkPhidgetSpatialTracker::Probe()
 PlusStatus vtkPhidgetSpatialTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartTracking" ); 
-  if ( this->Recording )
-  {
-    return PLUS_SUCCESS;
-  }  
-
   return PLUS_SUCCESS;
 }
 
@@ -430,7 +386,6 @@ PlusStatus vtkPhidgetSpatialTracker::InternalStartTracking()
 PlusStatus vtkPhidgetSpatialTracker::InternalStopTracking()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopTracking" );   
-
   return PLUS_SUCCESS;
 }
 
@@ -439,13 +394,6 @@ PlusStatus vtkPhidgetSpatialTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::InternalUpdate" ); 
   return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::InitPhidgetSpatialTracker()
-{
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InitPhidgetSpatialTracker" ); 
-  return this->Connect(); 
 }
 
 //----------------------------------------------------------------------------
@@ -479,6 +427,52 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
   {
     this->AhrsAlgorithmGain[0]=ahrsAlgorithmGain[0]; 
     this->AhrsAlgorithmGain[1]=ahrsAlgorithmGain[1]; 
+  }
+
+  const char* ahrsAlgoName = trackerConfig->GetAttribute("AhrsAlgorithm"); 
+  if ( ahrsAlgoName != NULL )
+  {
+    if ( STRCASECMP("MADGWICK_MARG", ahrsAlgoName)==0 || STRCASECMP("MADGWICK_IMU", ahrsAlgoName)==0)
+    {
+      if (dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo)==0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->AhrsAlgo; 
+        this->AhrsAlgo=new MadgwickAhrsAlgo;
+      }
+      if (STRCASECMP("MADGWICK_MARG", ahrsAlgoName)==0)
+      {
+        this->AhrsUseMagnetometer=true;
+      }
+      else
+      {
+        this->AhrsUseMagnetometer=false;
+      }
+    }
+    else if ( STRCASECMP("MAHONY_MARG", ahrsAlgoName)==0 || STRCASECMP("MAHONY_IMU", ahrsAlgoName)==0)
+    {
+      if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo)==0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->AhrsAlgo; 
+        this->AhrsAlgo=new MahonyAhrsAlgo;
+      }
+      if (STRCASECMP("MAHONY_MARG", ahrsAlgoName)==0)
+      {
+        this->AhrsUseMagnetometer=true;
+      }
+      else
+      {
+        this->AhrsUseMagnetometer=false;
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to recognize AHRS algorithm type: " << ahrsAlgoName <<". Supported types: MADGWICK_MARG, MAHONY_MARG, MADGWICK_IMU, MAHONY_IMU");
+      return PLUS_FAIL; 
+    }
   }
 
   return PLUS_SUCCESS;
@@ -520,6 +514,33 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   {
     trackerConfig->SetVectorAttribute( "AhrsAlgorithmGain", 2, this->AhrsAlgorithmGain );
   }
+  
+  if ( dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo)!=0)
+  {
+    if (this->AhrsUseMagnetometer)
+    {
+      trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_MARG" ); 
+    }
+    else
+    {
+      trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_IMU" ); 
+    }
+  }
+  else if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo)!=0)
+  {
+    if (this->AhrsUseMagnetometer)
+    {
+      trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_MARG" ); 
+    }
+    else
+    {
+      trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_IMU" ); 
+    }
+  }
+  else
+  {
+    LOG_ERROR("Unknown AHRS algorithm type. Cannot write name to XML.");
+  }    
 
   return PLUS_SUCCESS;
 }

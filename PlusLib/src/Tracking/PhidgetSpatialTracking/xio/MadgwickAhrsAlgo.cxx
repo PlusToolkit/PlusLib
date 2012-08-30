@@ -1,7 +1,9 @@
-//=====================================================================================================
-// MadgwickAHRS.c
-//=====================================================================================================
-//
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
 // Implementation of Madgwick's IMU and AHRS algorithms.
 // See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
 //
@@ -9,16 +11,14 @@
 // 29/09/2011	SOH Madgwick    Initial release
 // 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
 // 19/02/2012	SOH Madgwick	Magnetometer measurement is normalised
-//
-//=====================================================================================================
 
-#include "MadgwickAHRS.h"
+#include "MadgwickAhrsAlgo.h"
 #include <math.h>
 
 //---------------------------------------------------------------------------------------------------
 // AHRS algorithm update
 
-void MadgwickAHRS::Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz) {
+void MadgwickAhrsAlgo::Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz) {
 	float recipNorm;
 	float s0, s1, s2, s3;
 	float qDot1, qDot2, qDot3, qDot4;
@@ -117,7 +117,7 @@ void MadgwickAHRS::Update(float gx, float gy, float gz, float ax, float ay, floa
 //---------------------------------------------------------------------------------------------------
 // IMU algorithm update
 
-void MadgwickAHRS::UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
+void MadgwickAhrsAlgo::UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
 	float s0, s1, s2, s3;
 	float qDot1, qDot2, qDot3, qDot4;
@@ -183,18 +183,4 @@ void MadgwickAHRS::UpdateIMU(float gx, float gy, float gz, float ax, float ay, f
 	q1 *= recipNorm;
 	q2 *= recipNorm;
 	q3 *= recipNorm;
-}
-
-//---------------------------------------------------------------------------------------------------
-// Fast inverse square-root
-// See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
-
-float MadgwickAHRS::InvSqrt(float x) {
-	float halfx = 0.5f * x;
-	float y = x;
-	long i = *(long*)&y;
-	i = 0x5f3759df - (i>>1);
-	y = *(float*)&i;
-	y = y * (1.5f - (halfx * y * y));
-	return y;
 }
