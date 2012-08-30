@@ -93,11 +93,14 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     return false;
   }
 
+  
   const ResearchInterfaceLineHeader* header = reinterpret_cast<const ResearchInterfaceLineHeader*>(frameData);
   const unsigned char* inputFrame = reinterpret_cast<const unsigned char*>(frameData);
   
   // Copy as many sample pairs (2x16 bits) as available in the input and allocated in the output
-  int numberOfSamplesInInput= (pitch-HEADER_SIZE_BYTES/BYTES_PER_SAMPLE) / m_Decimation;
+  // pitch size is in 1x8 bits, not in samples (2x8 bits). 
+  // Note the inconsistency: in Prepare(), pitch is defined in 2x8 samples!
+  int numberOfSamplesInInput= (pitch-HEADER_SIZE_BYTES)/BYTES_PER_SAMPLE / m_Decimation;
   int numberOfSamplePairsInInput=numberOfSamplesInInput/2;
   int numberOfSamplePairsInOutput=m_NumberOfRfSamplesPerLine/2;    
   int numberOfSamplePairsToCopy=0;
@@ -107,7 +110,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   }
   else if (numberOfSamplePairsInOutput<numberOfSamplePairsInInput)
   {
-    LOG_WARNING("Not enough space allocated to store all the RF samples");
+	  LOG_WARNING("Not enough space allocated to store all the RF samples. Input: "<<numberOfSamplePairsInInput<<", output: "<<numberOfSamplePairsInOutput);
     numberOfSamplePairsToCopy=numberOfSamplePairsInOutput;
   }
   else // numberOfSamplePairsInInput < numberOfSamplePairsInOutput
@@ -122,7 +125,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
     // Each RF line has a header (two 16-bit fields, see ResearchInterfaceLineHeader), then data values, then some undefined values (padding) till the next line
     // Pitch is the total number of bytes of the RF line (including header, data, and padding)     
     header =  reinterpret_cast<const ResearchInterfaceLineHeader*>(inputFrame + inputLineIndex*pitch);
-    
+
     if(header->ModelID != 0 || header->CFM != 0 || header->FFT != 0)
     {
       // Only process lines that refer to lines that can be converted to brightness lines,
