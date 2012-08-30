@@ -11,13 +11,20 @@ See License.txt for details.
 
 #include <phidget21.h>
 
+#include "MadgwickAHRS.h"
+#include "MahonyAHRS.h"
+
+
 class vtkTrackerBuffer; 
 
 /*!
 \class vtkPhidgetSpatialTracker 
 \brief Interface for the Phidget 3/3/3 tracker 
 
-This class talks with PhidgetSpatial 3/3/3 accelerometer/magnetometer/gyroscope device
+This class talks with PhidgetSpatial 3/3/3 accelerometer/magnetometer/gyroscope device.
+
+Gyroscope zeroing is performed automatically at device connect, therefore the sensor shall not be moved
+for 2 seconds after the Connect() call.
 
 \ingroup PlusLibTracking
 */
@@ -48,6 +55,12 @@ public:
   This method is called by the tracker thread.
   */
   PlusStatus InternalUpdate();
+
+  /*! Read configuration from xml data */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  /*! Write configuration to xml data */
+  PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
 
 protected:
 
@@ -84,6 +97,7 @@ private:  // Variables.
   unsigned int FrameNumber;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
+  double LastAhrsUpdateTime; // last AHRS update time (in system time)
 
   vtkMatrix4x4* LastAccelerometerToTrackerTransform;
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
@@ -94,6 +108,18 @@ private:  // Variables.
   vtkTrackerTool* GyroscopeTool;
   vtkTrackerTool* MagnetometerTool;
   vtkTrackerTool* OrientationSensorTool;
+
+  /*!
+    Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
+    Higher gain gives higher reliability to accelerometer&magnetometer data.
+    Higher gain advantage: on startup the initial orientation is reached more quickly (0.1 => takes 10 sec; 0.5 => takes 2-3 sec)
+    Higher gain disadvantage: tracking is less robust, e.g., when starting/ending the rotation there could be a slicght extra "swing" in the output
+  */
+  double AhrsAlgorithmGain[2];
+
+  MadgwickAHRS MadgwickAhrsAlgo;
+  MahonyAHRS MahonyAhrsAlgo;
+
 };
 
 #endif

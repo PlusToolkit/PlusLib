@@ -265,7 +265,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
       
   SET (Tracking_SRCS ${Tracking_SRCS} 
     PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
-    #${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS/MadgwickAHRS.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAHRS/MadgwickAHRS.cxx
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAHRS/MahonyAHRS.cxx
     )
   if (WIN32)  
