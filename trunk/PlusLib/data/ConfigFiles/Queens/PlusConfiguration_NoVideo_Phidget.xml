@@ -3,10 +3,10 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="No video + Phidget Spatial" 
-      Description="Configuration file for No video + Phidget Spatial accelerometer" 
+      Description="Configuration file for No video + Phidget Spatial accelerometer. Keep the device stationary for 2 seconds after connect." 
     />
 
-    <Tracker Type="PhidgetSpatial" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+    <Tracker Type="PhidgetSpatial" AhrsAlgorithmGain="1.5" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
       <xTool Name="Accelerometer" PortName="Accelerometer" />
       <xTool Name="Gyroscope" PortName="Gyroscope" />
       <xTool Name="Magnetometer" PortName="Magnetometer" />

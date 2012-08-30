@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="No video + Phidget Spatial" 
-      Description="Configuration file for No video + Phidget Spatial accelerometer" 
+      Name="No video + CHRobotics MARG sensor" 
+      Description="Configuration file for No video + CHRobotics CHR-UM6 MARG sensor" 
     />
 
     <Tracker Type="ChRobotics" SerialPort="5" BaudRate="115200" FirmwareDirectory="ChRoboticsFirmware" BufferSize="2500" AcquisitionRate="20" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
