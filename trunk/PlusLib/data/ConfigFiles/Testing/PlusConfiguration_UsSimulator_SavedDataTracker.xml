@@ -46,12 +46,14 @@
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume" />
   </Rendering>
 
 
   <fCal
     PhantomModelId="PhantomModel"
 	ImageDisplayableObjectId="LiveImage"
+	ReconstructedVolumeId="Volume"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
