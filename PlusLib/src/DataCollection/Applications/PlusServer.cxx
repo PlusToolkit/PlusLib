@@ -129,6 +129,7 @@ int main( int argc, char** argv )
       exit(EXIT_FAILURE);
     }
     vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
+    LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
 
@@ -153,6 +154,7 @@ int main( int argc, char** argv )
   // *************************** Testing **************************
   if ( testing ) 
   {
+    LOG_INFO("Requested testing time elapsed");
     // make sure all the clients are still connected 
     int numOfActuallyConnectedClients=server->GetNumberOfConnectedClients();
     if ( numOfActuallyConnectedClients != numOfTestClientsToConnect )
@@ -164,18 +166,25 @@ int main( int argc, char** argv )
       exit(EXIT_FAILURE);
     }
 
-    // Disconnect clients from server 
+    // Disconnect clients from server
+    LOG_INFO("Disconnecting clients...");
     if ( DisconnectClients( testClientList ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disconnect clients from PlusServer!"); 
       server->Stop(); 
       exit(EXIT_FAILURE);
     }
+    LOG_INFO("Clients are disconnected");
   }
   // *************************** End of testing **************************
 
 
   server->Stop(); 
+  
+  if ( testing ) 
+  {
+    LOG_INFO("Test is successfully completed");
+  }
 
   return EXIT_SUCCESS;
 }

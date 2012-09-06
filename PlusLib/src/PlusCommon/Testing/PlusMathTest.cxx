@@ -367,17 +367,33 @@ template<class floatType> int TestFloor(const char* floatName)
   floatType *floorInputs=testFloatNumbers;
   floatType *floorResults=testResultsFloor;
   floatType *plusFloorResults=testResultsPlusFloor;
+  int numberOfPlusMathFloorMismatches=0;
   for (int i=0; i<numberOfOperations; i++)
   {
     if ( *floorResults != *plusFloorResults )
     {
-      LOG_ERROR("PlusMath::Floor computation mismatch for input "<<*floorInputs<<": "<<*floorResults<<" (using vtkMath::Floor) != "<<*plusFloorResults<<" (using vtkMath::Floor)");
-      numberOfErrors++;
+      LOG_INFO("PlusMath::Floor computation mismatch for input "
+	<<std::scientific<<std::setprecision(std::numeric_limits<double>::digits10+1)
+	<<*floorInputs<<": "<<*floorResults<<" (using vtkMath::Floor) != "<<*plusFloorResults<<" (using PlusMath::Floor)");
+      numberOfPlusMathFloorMismatches++;      
     }
     floorInputs++;
     floorResults++;
     plusFloorResults++;
   }
+  
+  double percentagePlusMathFloorMismatches=double(numberOfPlusMathFloorMismatches)/numberOfOperations*100.0;
+  const double percentagePlusMathFloorMismatchesAlowed=0.01; // 1.0 means 1 percent, so we allow 1/10000 error rate
+  if (percentagePlusMathFloorMismatches>percentagePlusMathFloorMismatchesAlowed)
+  {
+    LOG_ERROR("Percentage of floor computation errors with PlusMath::Floor() is "<<percentagePlusMathFloorMismatches<<"%, which is out of the acceptable range (maximum "<<percentagePlusMathFloorMismatchesAlowed<<"%)");
+    numberOfErrors++;
+  }
+  else
+  {
+    LOG_INFO("Percentage of floor computation errors with PlusMath::Floor() is "<<percentagePlusMathFloorMismatches<<"%, which is within the acceptable range (maximum "<<percentagePlusMathFloorMismatchesAlowed<<"%)");
+  }
+  
 
   LOG_INFO("Time required for "<<numberOfOperations*repeatOperations<<" floor operations on type "<<floatName<<": "
     <<"using PlusMath::Floor: "<<timestampDiffPlusFloor<<"sec, "
