@@ -364,13 +364,14 @@ template<class floatType> int TestFloor(const char* floatName)
   }
 
   int numberOfErrors=0;
+  floatType *floorInputs=testFloatNumbers;
   floatType *floorResults=testResultsFloor;
   floatType *plusFloorResults=testResultsPlusFloor;
   for (int i=0; i<numberOfOperations; i++)
   {
     if ( *floorResults != *plusFloorResults )
     {
-      LOG_ERROR("PlusMath::Floor computation mismatch: "<<*floorResults<<" != "<<*plusFloorResults);
+      LOG_ERROR("PlusMath::Floor computation mismatch for input "<<*floorInputs<<": "<<*floorResults<<" (using vtkMath::Floor) != "<<*plusFloorResults<<" (using vtkMath::Floor)");
       numberOfErrors++;
     }
     floorResults++;
