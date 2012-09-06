@@ -29,6 +29,8 @@ See License.txt for details.
 
 #ifdef WIN32
   #include <io.h> // for findnext
+#else
+  #include <dirent.h>
 #endif
 
 
@@ -285,14 +287,14 @@ void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &f
 #else // Linux
   DIR* d;
   struct dirent *ent;
-  if ( (d = opendir(dir)) != NULL)
+  if ( (d = opendir(dir.c_str())) != NULL)
   {
     while ((ent = readdir(d)) != NULL)
     {
-      string entry( ent->d_name );
+      std::string entry( ent->d_name );
       if (entry != "." && entry != "..")
       {
-        fileNames.push_back(currentFolderPath + entry);
+        fileNames.push_back(dir + "/" + entry);
       }
     }
   }

@@ -374,7 +374,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   }
 
   int frameCount=this->Dimensions[2];
-  int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
+  unsigned int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
   
   std::vector<unsigned char> allFramesPixelBuffer;
   if (this->UseCompression)
@@ -382,7 +382,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     unsigned int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
     allFramesPixelBuffer.resize(allFramesPixelBufferSize);
 
-    int allFramesCompressedPixelBufferSize=0;
+    unsigned int allFramesCompressedPixelBufferSize=0;
     PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
     std::vector<unsigned char> allFramesCompressedPixelBuffer;
     allFramesCompressedPixelBuffer.resize(allFramesCompressedPixelBufferSize);
@@ -532,7 +532,7 @@ PlusStatus vtkMetaImageSequenceIO::Write()
 }
 
 //----------------------------------------------------------------------------
-void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
+void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(unsigned int frameNumber)
 {
   if (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames())
   {
@@ -540,7 +540,7 @@ void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
     return;
   }
   TrackedFrame emptyFrame;
-  for (int i=this->TrackedFrameList->GetNumberOfTrackedFrames(); i<frameNumber+1; i++)
+  for (unsigned int i=this->TrackedFrameList->GetNumberOfTrackedFrames(); i<frameNumber+1; i++)
   {
     this->TrackedFrameList->AddTrackedFrame(&emptyFrame, vtkTrackedFrameList::ADD_INVALID_FRAME);
   }
@@ -640,7 +640,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   // Make sure the frame size is the same for each valid image 
   // If it's needed, we can use the largest frame size for each frame and copy the image data row by row 
   // but then, we need to save the original frame size for each frame and crop the image when we read it 
-  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
     if ( this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid() 
@@ -736,7 +736,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   }
 
   // Write frame fields (Seq_Frame0000_... = ...)
-  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
@@ -777,7 +777,7 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
   maxFrameSize[0]=0;
   maxFrameSize[1]=0;
 
-  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
     if ( maxFrameSize[0] < currFrameSize[0] )
@@ -836,7 +836,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
     blankFrame.FillBlank(); 
 
     // not compressed
-    for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+    for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
       TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
@@ -896,7 +896,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
   }
   blankFrame.FillBlank(); 
 
-  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
     if (trackedFrame==NULL)
@@ -934,7 +934,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
         return PLUS_FAIL;
       }
 
-      int numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
+      size_t numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
       if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, outputFileStream) != numberOfBytesReadyForWriting || ferror(outputFileStream))
       {        
         LOG_ERROR("Error writing compressed data into file");
@@ -1107,7 +1107,7 @@ PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusComm
   };
   
   PlusCommon::ITKScalarPixelType testedPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
-  for (int i=0; i<sizeof(metaElementTypes); i++)
+  for (unsigned int i=0; i<sizeof(metaElementTypes); i++)
   {    
     if (ConvertMetaElementTypeToItkPixelType(metaElementTypes[i], testedPixelType)!=PLUS_SUCCESS)
     {

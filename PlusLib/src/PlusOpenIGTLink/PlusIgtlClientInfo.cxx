@@ -158,7 +158,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
 
   vtkSmartPointer<vtkXMLDataElement> messageTypes = vtkSmartPointer<vtkXMLDataElement>::New(); 
   messageTypes->SetName("MessageTypes"); 
-  for ( int i = 0; i < IgtlMessageTypes.size(); ++i )
+  for ( unsigned int i = 0; i < IgtlMessageTypes.size(); ++i )
   {
     vtkSmartPointer<vtkXMLDataElement> message = vtkSmartPointer<vtkXMLDataElement>::New(); 
     message->SetName("Message"); 
@@ -169,7 +169,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
 
   vtkSmartPointer<vtkXMLDataElement> transformNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
   transformNames->SetName("TransformNames"); 
-  for ( int i = 0; i < TransformNames.size(); ++i )
+  for ( unsigned int i = 0; i < TransformNames.size(); ++i )
   {
     if ( ! TransformNames[i].IsValid() )
     {
@@ -189,7 +189,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
 
   vtkSmartPointer<vtkXMLDataElement> imageNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
   imageNames->SetName("ImageNames"); 
-  for ( int i = 0; i < ImageStreams.size(); ++i )
+  for ( unsigned int i = 0; i < ImageStreams.size(); ++i )
   {
     vtkSmartPointer<vtkXMLDataElement> image = vtkSmartPointer<vtkXMLDataElement>::New(); 
     image->SetName("Image"); 

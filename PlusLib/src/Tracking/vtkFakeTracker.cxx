@@ -19,8 +19,10 @@ vtkFakeTracker::vtkFakeTracker()
 : Frame(0)
 , InternalTransform(vtkTransform::New())
 , Mode(FakeTrackerMode_Undefined)
-, Counter(-1)
 , TransformRepository(NULL)
+, RandomSeed(0)
+, Counter(-1)
+
 {
 }
 

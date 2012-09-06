@@ -191,7 +191,7 @@ namespace igtl
   {
     igtl::ImageMessage::UnpackBody();
 
-    MessageHeader* header = (MessageHeader*)(m_Image[GetSubVolumeImageSize()]);
+    MessageHeader* header = (MessageHeader*)(m_Image + GetSubVolumeImageSize() );
 
     // Convert header endian
     header->ConvertEndianness(); 

@@ -304,7 +304,7 @@ private:
       } \
       /* command failed, wait for some time and retry */ \
       numOfTries++;   \
-      Sleep(delayBetweenRetryAttemptsSec_*1000.0); \
+      vtkAccurateTimer::Delay(delayBetweenRetryAttemptsSec_); \
     } \
   }
 

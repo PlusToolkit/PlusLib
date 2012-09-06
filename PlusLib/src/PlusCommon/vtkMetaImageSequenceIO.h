@@ -120,7 +120,7 @@ protected:
     Convenience function that extends the tracked frame list (if needed) to make sure
     that the requested frame is included in the list
   */
-  virtual void CreateTrackedFrameIfNonExisting(int frameNumber);
+  virtual void CreateTrackedFrameIfNonExisting(unsigned int frameNumber);
   
   /*! Get the largest possible image size in the tracked frame list */
   virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
