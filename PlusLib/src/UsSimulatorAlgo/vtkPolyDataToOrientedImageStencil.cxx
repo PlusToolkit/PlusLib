@@ -78,7 +78,7 @@ vtkStandardNewMacro(vtkPolyDataToOrientedImageStencil);
 vtkPolyDataToOrientedImageStencil::vtkPolyDataToOrientedImageStencil()
 {
   this->Tolerance = 1e-3;
-  this->ModelToImageMatrix = NULL; 
+  this->VolumeVoxelToOrientedVolumeVoxel = NULL; 
 }
 
 //----------------------------------------------------------------------------
@@ -121,11 +121,12 @@ void vtkPolyDataToOrientedImageStencil::PrintSelf(ostream& os,
   os << indent << "Tolerance: " << this->Tolerance << "\n";
 }
 
+
 //----------------------------------------------------------------------------
 // This method was taken from vtkCutter and slightly modified
 void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
-  vtkPolyData *input, vtkPolyData *output, double z, double thickness,
-  vtkMergePoints *locator, double *slicePosition, double sliceNormal[3])
+  vtkPolyData *input, vtkPolyData *output, double *slicePosition, double *sliceNormal,
+  vtkMergePoints *locator)
 {
   vtkCellData *inCD = input->GetCellData();
   vtkCellData *outCD = output->GetCellData();
@@ -154,55 +155,76 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
   // and process each cell.
   vtkIdType numCells = input->GetNumberOfCells();
   for (vtkIdType cellId = 0; cellId < numCells; cellId++)
-    {
+  {
     input->GetCell(cellId, cell);
     vtkPoints *cellPts = cell->GetPoints();
     vtkIdList *cellIds = cell->GetPointIds();
 
     if (cell->GetCellDimension() == 1 && input->GetNumberOfPolys() == 0)
-      {
+    {
       double *bounds = cell->GetBounds();
-      if (bounds[4] >= z - 0.5*thickness && bounds[5] < z + 0.5*thickness)
-        {
+      //if (bounds[4] >= z - 0.5*thickness && bounds[5] < z + 0.5*thickness)
+      {
         vtkIdType numCellPts = cellPts->GetNumberOfPoints();
         newLines->InsertNextCell(numCellPts);
         for (vtkIdType i = 0; i < numCellPts; i++)
-          {
+        {
           vtkIdType ptId;
           locator->InsertUniquePoint(cellPts->GetPoint(i), ptId);
           newLines->InsertCellPoint(ptId);
-          }
-        outCD->CopyData(inCD, cellId, newLines->GetNumberOfCells()-1);
         }
+        outCD->CopyData(inCD, cellId, newLines->GetNumberOfCells()-1);
       }
+    }
     else if (cell->GetCellDimension() == 2)
-      {
+    {
       vtkIdType numCellPts = cellPts->GetNumberOfPoints();
       cellScalars->SetNumberOfTuples(numCellPts);
-      
-     
+
+
       // create a representation for the slicing plane, to make
       // cellScalar calculation simpler later on. Plane is angled, so cannot
       //just used z value
       vtkSmartPointer<vtkPlane> slicingPlane = vtkPlane::New(); 
       slicingPlane->SetNormal(sliceNormal); 
       slicingPlane->SetOrigin(slicePosition[0], slicePosition[1], slicePosition[2]); 
-      
-      for (vtkIdType i = 0; i < numCellPts; i++)
-        {
-        // scalar value is distance from the specified z plane
-           
-       // cellScalars->SetValue(i, input->GetPoint(cellIds->GetId(i))[2]);
-       cellScalars->SetValue(i,slicingPlane->DistanceToPlane(input->GetPoint(cellIds->GetId(i))));
-      }
-       //Original idea for plane distance calculation:
-        //cellScalars->SetValue(i,slicingPlane->GetPointDistanceFromPlane(input->GetPoint(cellIds->GetId(i)), slicePosition));
 
-      cell->Contour(z, cellScalars, locator,
-                    newVerts, newLines, newPolys, NULL, NULL,
-                    inCD, cellId, outCD);
+      for (vtkIdType i = 0; i < numCellPts; i++)
+      {
+        // scalar value is distance from the specified z plane
+
+        // cellScalars->SetValue(i, input->GetPoint(cellIds->GetId(i))[2]);
+        cellScalars->SetValue(i,DistanceToPlane(input->GetPoint(cellIds->GetId(i)),sliceNormal,slicePosition));
+        /*
+        std::cout << "point "<<i<<": ("<<input->GetPoint(cellIds->GetId(i))[0]<<","<<input->GetPoint(cellIds->GetId(i))[1]<<","<<input->GetPoint(cellIds->GetId(i))[2]<<") - distance="<<
+          DistanceToPlane(input->GetPoint(cellIds->GetId(i)),sliceNormal,slicePosition)<<std::endl;
+          */
       }
+      //std::cout << "---------------------------" << std::endl;
+      //Original idea for plane distance calculation:
+      //cellScalars->SetValue(i,slicingPlane->GetPointDistanceFromPlane(input->GetPoint(cellIds->GetId(i)), slicePosition));
+
+      // 0: because we search for the isosurface that corresponds to the 0 value
+      cell->Contour(0, cellScalars, locator,
+        newVerts, newLines, newPolys, NULL, NULL,
+        inCD, cellId, outCD);
+
+      /*
+      newLines->InitTraversal();
+      vtkIdType npts, *pts;
+      for (int cellId = 0; newLines->GetNextCell(npts, pts); cellId++)
+      {
+        std::cout << "Cell "<<cellId<<": ";
+        for (int ptid=0; ptid<npts; ptid++)
+        {
+          std::cout << pts[ptid] << ", ";
+        }
+        std::cout <<std::endl;
+      }
+      std::cout << "===========================" << std::endl;
+      */
     }
+  }
 
   // Update ourselves.  Because we don't know upfront how many verts, lines,
   // polys we've created, take care to reclaim memory. 
@@ -222,8 +244,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
 
   //release any extra memory
   locator->Initialize();
-}
-
+} 
 //----------------------------------------------------------------------------
 void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
   vtkImageStencilData *data,
@@ -239,44 +260,48 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
   // 4) for each z integer index, find all the stored x values
   //    and use them to create one z slice of the vtkStencilData
     
-  // the spacing and origin of the generated stencil
-  double *spacing = data->GetSpacing();
-  double *origin = data->GetOrigin();
-
   double tolerance = this->Tolerance;
-  
-  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
-  modelToImageTransform->SetMatrix(this->ModelToImageMatrix); 
-
-  vtkSmartPointer<vtkMatrix4x4> directionCosines = vtkSmartPointer<vtkMatrix4x4>::New();// remember to free memory?
-  vtkSmartPointer<vtkMatrix4x4> spacingMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  vtkSmartPointer<vtkMatrix4x4> translateToOrigin = vtkSmartPointer<vtkMatrix4x4>::New(); 
  
   /*
     Create a direction cosines matrix ( the expanded to homogenous space for later multiplication)
     and a matrix that contains spacing as well as the origin, with each spacing component
     being along the diagonal of the matrix, origin in the last column, and 0s elsewhere
   */
+  // the spacing and origin of the generated stencil
+  double *spacing = data->GetSpacing();
+  double *origin = data->GetOrigin();
+  vtkSmartPointer<vtkMatrix4x4> modelToVolumeVoxel = vtkSmartPointer<vtkMatrix4x4>::New();
+  modelToVolumeVoxel->Identity();
   for( int i=0; i<3; i++)
   {
-    spacingMatrix->SetElement(i,i,spacing[i]);
-    spacingMatrix->SetElement(i,3,0);
-    translateToOrigin->SetElement(i,i,1);
-    translateToOrigin->SetElement(i,3,origin[i]); 
-    for( int j = 0; j<3; j++)
-    {
-      directionCosines->SetElement(i,j,ModelToImageMatrix->GetElement(i,j)); 
-    }
-    directionCosines->SetElement(i,3,0);
+    modelToVolumeVoxel->SetElement(i,i,(1/spacing[i]));
+    modelToVolumeVoxel->SetElement(i,3,(origin[i]/spacing[i]));    
   }
-  spacingMatrix->SetElement(3,3,1);
+
+
+  vtkSmartPointer<vtkMatrix4x4> volumeVoxelToModel= vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Invert(modelToVolumeVoxel, volumeVoxelToModel); 
+
+  vtkSmartPointer<vtkMatrix4x4> orientedVolumeVoxelToVolumeVoxel= vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Invert(this->VolumeVoxelToOrientedVolumeVoxel, orientedVolumeVoxelToVolumeVoxel); 
+  
+  
+  vtkSmartPointer<vtkMatrix4x4> orientedVolumeVoxelToModel = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Multiply4x4(volumeVoxelToModel,orientedVolumeVoxelToVolumeVoxel,orientedVolumeVoxelToModel);
+/*
+  vtkSmartPointer<vtkMatrix4x4> modelToVolumeVoxel = vtkSmartPointer<vtkMatrix4x4>::New();
+
+    modelToVolumeVoxel->DeepCopy(imageToModel); 
+ */
+  
   
   // if we have no data then return
   if (!this->GetInput()->GetNumberOfPoints())
     {
     return;
     }
-
+  
+   
   // Only divide once
   double invspacing[3];
   invspacing[0] = 1.0/spacing[0];
@@ -303,29 +328,43 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
   sliceExtent[2] = extent[2]; sliceExtent[3] = extent[3];
   sliceExtent[4] = extent[4]; sliceExtent[5] = extent[4];
 
-  // Loop through the slices
+  // Loop through the slices of the OrientedVolumeVoxel
   for (int idxZ = extent[4]; idxZ <= extent[5]; idxZ++)
     {
     if (threadId == 0)
       {
       this->UpdateProgress((idxZ - extent[4])*1.0/(extent[5] - extent[4] + 1));
-      }
-
-    double z = idxZ*spacing[2] + origin[2];
+      }    
     
-    
-
-    // step size represents the increment used to create different slices per iteration
-    double stepSize[4]=
+    double sliceOrigin_OrientedVolumeVoxel[4]=
     {
       0,
       0,
       idxZ,
       1
+   };
+     
+    double sliceNormal_OrientedVolumeVoxel[4]=
+    {
+      0,
+      0,
+      1,
+      0
     };
+
+    double sliceOrigin_Model[4]={0,0,0,1};
+    double sliceNormal_Model[4]={0,0,0,0};
+
+    orientedVolumeVoxelToModel->MultiplyPoint(sliceOrigin_OrientedVolumeVoxel,sliceOrigin_Model);
+    orientedVolumeVoxelToModel->MultiplyPoint(sliceNormal_OrientedVolumeVoxel,sliceNormal_Model);
+
+    //double z = idxZ*spacing[2] + origin[2];
     
-    double *slicePosition = translateToOrigin->MultiplyDoublePoint(directionCosines->MultiplyDoublePoint(spacingMatrix->MultiplyDoublePoint(stepSize))); 
     
+    //double sliceOrigin[4];
+    //double sliceNormal[4];
+    
+   //CalculateOriginAndSliceNormalInModelCoordinates(volumeVoxelToVolumePhysical, modelToVolumeVoxel,idxZ,sliceOrigin, sliceNormal);
     
     
     
@@ -338,24 +377,17 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       idxZ*directionCosines[3][2]*spacing[2] + origin[2]
     };*/
 
-    
-    double sliceXDirectionVector[4]=
-    {
-      directionCosines->GetElement(0,0),
-      directionCosines->GetElement(0,1),
-      directionCosines->GetElement(0,2),
-      1
-    };
+ 
     
     
-    double sliceNormal[4];
+
     
       // **** check math, also eventually standardize length with slice Position
     /*  directionCosines->GetElement(1,0),
       directionCosines->GetElement(1,1),
       directionCosines->GetElement(1,2)*/
       
-      vtkMath::Cross(sliceXDirectionVector,slicePosition,sliceNormal); 
+     
     ;
 
 
@@ -364,7 +396,7 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
 
     // Step 1: Cut the data into slices
    //*** TODO: change order : this->PolyDataCutter(input, slice, slicePosition, sliceNormal,locator);
-    this->PolyDataCutter(input, slice, z, spacing[2], locator, slicePosition,sliceNormal);
+    this->PolyDataCutter(input, slice, sliceOrigin_Model, sliceNormal_Model, locator);
     
     if (!slice->GetNumberOfLines())
       {
@@ -375,9 +407,26 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
     vtkPoints *points = slice->GetPoints();
     vtkIdType numberOfPoints = points->GetNumberOfPoints();
 
+
+    vtkSmartPointer<vtkMatrix4x4> modelToOrientedVolumeVoxel = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkMatrix4x4::Invert(orientedVolumeVoxelToModel,modelToOrientedVolumeVoxel);
+
+    // transform from Model to OrientedVolumeVoxel
     for (vtkIdType j = 0; j < numberOfPoints; j++)
-      {       
-      double tempPoint[3];
+      { 
+      double point_Model[4]={0,0,0,1};
+      points->GetPoint(j, point_Model);
+      double point_OrientedVolumeVoxel[4]={0,0,0,1};
+      modelToOrientedVolumeVoxel->MultiplyPoint(point_Model,point_OrientedVolumeVoxel);      
+      /*
+      tempPoint[0] = (tempPoint[0] - origin[0])*invspacing[0];
+      tempPoint[1] = (tempPoint[1] - origin[1])*invspacing[1];
+      tempPoint[2] = (tempPoint[2] - origin[2])*invspacing[2];
+      */
+      points->SetPoint(j, point_OrientedVolumeVoxel);
+      }
+
+   /*   double tempPoint[3];
       points->GetPoint(j, tempPoint);
 
       double transformedTempPoint[3];
@@ -388,7 +437,7 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       tempPoint[1] = (tempPoint[1] - origin[1])*invspacing[1]*transformedTempPoint[1];
       tempPoint[2] = (tempPoint[2] - origin[2])*invspacing[2]*transformedTempPoint[2];
       points->SetPoint(j, tempPoint);
-      }
+      }*/
 
     // Step 2: Find and connect all the loose ends
     vtkCellArray *lines = slice->GetLines();

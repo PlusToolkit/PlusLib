@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-//#define USE_vtkPolyDataToOrientedImageStencil
+#define USE_vtkPolyDataToOrientedImageStencil
 
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
@@ -132,7 +132,10 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   // Create PolyData to Image stencil
   vtkSmartPointer<vtkPolyDataToOrientedImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToOrientedImageStencil>::New();
   modelStencil->SetInputConnection(stripper->GetOutputPort());
-  modelStencil->SetModelToImageMatrix(this->ModelToImageMatrix);
+  // volumevoxel origin=0 and orientation=identity in the vtkImageData => VolumeVoxel = Model
+  // OrientedVolumeVoxel = Image
+  // ===> ModelToImage = VolumeVoxelToOrientedVolumeVoxel
+  modelStencil->SetVolumeVoxelToOrientedVolumeVoxel(this->ModelToImageMatrix);  
 
 #else
 

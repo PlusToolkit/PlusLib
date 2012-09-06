@@ -80,9 +80,9 @@ public:
   vtkPolyData *GetInput();
 
   // Set model to image transformation matrix
-  vtkSetObjectMacro(ModelToImageMatrix, vtkMatrix4x4); 
+  vtkSetObjectMacro(VolumeVoxelToOrientedVolumeVoxel, vtkMatrix4x4); 
   // Get model to image transformation matrix
-  vtkGetObjectMacro(ModelToImageMatrix, vtkMatrix4x4);
+  vtkGetObjectMacro(VolumeVoxelToOrientedVolumeVoxel, vtkMatrix4x4);
   
   // Description:
   // The tolerance to apply in when determining whether a voxel
@@ -98,12 +98,15 @@ protected:
   void ThreadedExecute(vtkImageStencilData *output,
                        int extent[6], int threadId);
 
-  static void PolyDataCutter(vtkPolyData *input, vtkPolyData *output,
-                             double z, double thickness,
-                             vtkMergePoints *locator, double *slicePosition, double sliceNormal[3]);
+  static void PolyDataCutter(  vtkPolyData *input, vtkPolyData *output, double *slicePosition, double *sliceNormal,vtkMergePoints *locator);
   
   virtual int RequestData(vtkInformation *, vtkInformationVector **,
                           vtkInformationVector *);
+  static inline double DistanceToPlane(double x[3], double n[3], double p0[3])
+  {
+    return (n[0]*(x[0]-p0[0]) + n[1]*(x[1]-p0[1]) + n[2]*(x[2]-p0[2]));
+  }
+
 
   virtual int FillInputPortInformation(int, vtkInformation*);
 
@@ -116,7 +119,7 @@ private:
   void operator=(const vtkPolyDataToOrientedImageStencil&);  // Not implemented.
 
     /*! Model to image transformation matrix */
-  vtkMatrix4x4* ModelToImageMatrix;
+  vtkMatrix4x4* VolumeVoxelToOrientedVolumeVoxel;
 };
 
 #endif
