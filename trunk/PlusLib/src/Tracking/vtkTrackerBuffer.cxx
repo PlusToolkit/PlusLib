@@ -550,8 +550,8 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
     LOG_ERROR("Failed to get item A matrix"); 
     return ITEM_UNKNOWN_ERROR;
   }
-  double matrixA[3][3] = {0};
-  double xyzA[3] = {0};
+  double matrixA[3][3]={{0,0,0},{0,0,0},{0,0,0}};
+  double xyzA[3]={0,0,0};
   for (int i = 0; i < 3; i++)
   {
     matrixA[i][0] = itemAmatrix->GetElement(i,0);
@@ -566,8 +566,8 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
     LOG_ERROR("Failed to get item B matrix"); 
     return ITEM_UNKNOWN_ERROR;
   }
-  double matrixB[3][3] = {0};
-  double xyzB[3] = {0};
+  double matrixB[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
+  double xyzB[3] = {0,0,0};
   for (int i = 0; i < 3; i++)
   {
     matrixB[i][0] = itemBmatrix->GetElement(i,0);
@@ -578,13 +578,13 @@ ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double ti
 
   //============== Interpolate rotation ==================
 
-  double matrixAquat[4]= {0};
+  double matrixAquat[4]= {0,0,0,0};
   vtkMath::Matrix3x3ToQuaternion(matrixA, matrixAquat);
-  double matrixBquat[4]= {0};
+  double matrixBquat[4]= {0,0,0,0};
   vtkMath::Matrix3x3ToQuaternion(matrixB, matrixBquat);
-  double interpolatedRotationQuat[4]= {0};
+  double interpolatedRotationQuat[4]= {0,0,0,0};
   PlusMath::Slerp(interpolatedRotationQuat, itemBweight, matrixAquat, matrixBquat);
-  double interpolatedRotation[3][3] = {0};
+  double interpolatedRotation[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
   vtkMath::QuaternionToMatrix3x3(interpolatedRotationQuat, interpolatedRotation);
 
   vtkSmartPointer<vtkMatrix4x4> interpolatedMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 

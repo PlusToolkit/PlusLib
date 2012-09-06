@@ -26,6 +26,8 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 
+#include <float.h> // for DBL_MAX
+
 #ifdef _WIN32
   typedef unsigned __int64 BufferItemUidType;
 #else
@@ -297,7 +299,7 @@ public:
   vtkBooleanMacro(TimeStampReporting,bool);  
 
   /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
-  vtkSetMacro(AveragedItemsForFiltering, int); 
+  vtkSetMacro(AveragedItemsForFiltering, unsigned int); 
   /*! Get number of items used for timestamp filtering (with LSQR mimimizer) */
   vtkGetMacro(AveragedItemsForFiltering, int); 
 
@@ -353,7 +355,7 @@ protected:
   int FilterContainersNumberOfValidElements; 
 
   /*! Number of averaged items used for filtering - read from config files */
-  int AveragedItemsForFiltering; 
+  unsigned int AveragedItemsForFiltering; 
 
   /*!
     Maximum time difference that is allowed between filtered and the non-filtered timestamp (in seconds).

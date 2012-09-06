@@ -113,7 +113,7 @@ int main( int argc, char** argv )
 
   PlusStatus compareStatus=PLUS_SUCCESS;
 
-  Sleep(5000); // wait for 5s until the frames are acquired into the buffer
+  vtkAccurateTimer::Delay(5.0); // wait for 5s until the frames are acquired into the buffer
 
   // Check some transforms to ensure that the correct data is returned by the data collector
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
@@ -179,5 +179,10 @@ int main( int argc, char** argv )
   dataCollector->Stop();
   dataCollector->Disconnect();
 
+  if (compareStatus!=PLUS_SUCCESS)
+  {
+    return 1;
+  }
   return 0;
 } 
+

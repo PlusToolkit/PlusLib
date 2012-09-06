@@ -15,6 +15,7 @@
 #include "WindowsAccurateTimer.h"
 WindowsAccurateTimer WindowsAccurateTimer::m_Instance;
 #endif
+#include "PlusCommon.h"
 
 double vtkAccurateTimer::SystemStartTime=0;
 double vtkAccurateTimer::UniversalStartTime=0;

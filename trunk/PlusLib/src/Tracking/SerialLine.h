@@ -7,7 +7,13 @@
 
 #ifndef _RAWSERIALLINE_H_
 #define _RAWSERIALLINE_H_
+
+#if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
+#else
+#define INVALID_HANDLE_VALUE (-1)
+#endif
+
 #include <string>
 
 /*!
@@ -21,10 +27,16 @@
 class SerialLine  
 {
 public:
-  typedef unsigned long       DWORD;
-  typedef unsigned int		    UINT;
-  typedef unsigned char       BYTE;
+  typedef unsigned long DWORD;
+  typedef unsigned int UINT;
+  typedef unsigned char BYTE;
 
+#if defined(WIN32) || defined(_WIN32)
+  // HANDLE is defined for Windows already
+#else
+  typedef int HANDLE;
+#endif
+  
   SerialLine();
   virtual ~SerialLine();
 
@@ -70,7 +82,9 @@ private:
   DWORD m_SerialPortSpeed;
   int m_MaxReplyTime;
   int UpdateSerialBuffer();
+#if defined(WIN32) || defined(_WIN32)  
   OVERLAPPED m_osReadWrite;
+#endif
 };
 
 #endif 

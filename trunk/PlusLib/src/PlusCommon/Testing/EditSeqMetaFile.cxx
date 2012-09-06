@@ -58,7 +58,7 @@ public:
   vtkMatrix4x4* FrameTransformIncrement; 
 }; 
 
-PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* trackedFrameList, int firstFrameIndex, int lastFrameIndex ); 
+PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex ); 
 PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate ); 
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
   }
 
   double lastTimestamp = 0; 
-  for ( int i = 0; i < inputFileNames.size(); i++ )
+  for ( unsigned int i = 0; i < inputFileNames.size(); i++ )
   {
     vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
     reader->SetFileName(inputFileNames[i].c_str());
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
     if ( incrementTimestamps )
     {
       vtkTrackedFrameList * tfList = reader->GetTrackedFrameList(); 
-      for ( int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f )
+      for ( unsigned int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f )
       {
         TrackedFrame * tf = tfList->GetTrackedFrame(f); 
         tf->SetTimestamp( lastTimestamp + tf->GetTimestamp() ); 
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE; 
     }
 
-    for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+    for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
     {
       TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
 
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 
       vtkSmartPointer<vtkTransform> toolToTrackerTransform = vtkSmartPointer<vtkTransform>::New(); 
       vtkSmartPointer<vtkMatrix4x4> toolToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-      for ( int n = 0; n < transformNameList.size(); ++n )
+      for ( unsigned int n = 0; n < transformNameList.size(); ++n )
       {
         // No need to change the reference transform
         if ( transformNameList[n] == referenceTransformName )
@@ -530,7 +530,7 @@ int main(int argc, char **argv)
 }
 
 //-------------------------------------------------------
-PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, int aFirstFrameIndex, int aLastFrameIndex )
+PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigned int aFirstFrameIndex, unsigned int aLastFrameIndex )
 {
   LOG_INFO("Trim sequence metafile from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex ); 
   if ( aFirstFrameIndex < 0 || aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex)
@@ -569,7 +569,7 @@ PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string 
 
   LOG_INFO("Delete frame field: " << fieldName ); 
   int numberOfErrors(0); 
-  for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
 
@@ -604,7 +604,7 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
     frameTransform->SetMatrix(fieldUpdate.FrameTransformStart); 
   }
 
-  for ( int i = 0; i < fieldUpdate.TrackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for ( unsigned int i = 0; i < fieldUpdate.TrackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     TrackedFrame* trackedFrame = fieldUpdate.TrackedFrameList->GetTrackedFrame(i); 
 
@@ -727,7 +727,7 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
   PlusTransformName transformName;
   transformName.SetTransformName(transformNameToAdd.c_str());
 
-  for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
 

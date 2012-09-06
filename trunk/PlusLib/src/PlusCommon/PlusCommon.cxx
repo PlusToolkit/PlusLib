@@ -202,7 +202,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
     
     // Find out if it's a matrix element, because we format them somewhat differently
     bool matrixElement=false;
-    const unsigned int MATRIX_ELEM_COUNT=16;
+    const int MATRIX_ELEM_COUNT=16;
     double matrixValues[MATRIX_ELEM_COUNT]={0};
     if (attName.find("Matrix")!=std::string::npos || attName.find("Transform")!=std::string::npos)
     {

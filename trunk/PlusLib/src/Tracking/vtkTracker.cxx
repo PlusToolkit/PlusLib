@@ -845,8 +845,8 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     //Create fake image 
     typedef itk::Image<unsigned char, 2> ImageType;
     ImageType::Pointer frame = ImageType::New(); 
-    ImageType::SizeType size = {1, 1};
-    ImageType::IndexType start = {0,0};
+    ImageType::SizeType size={{1,1}};
+    ImageType::IndexType start={{0,0}};
     ImageType::RegionType region;
     region.SetSize(size);
     region.SetIndex(start);
