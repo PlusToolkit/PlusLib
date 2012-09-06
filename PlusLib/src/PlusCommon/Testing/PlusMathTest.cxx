@@ -374,6 +374,7 @@ template<class floatType> int TestFloor(const char* floatName)
       LOG_ERROR("PlusMath::Floor computation mismatch for input "<<*floorInputs<<": "<<*floorResults<<" (using vtkMath::Floor) != "<<*plusFloorResults<<" (using vtkMath::Floor)");
       numberOfErrors++;
     }
+    floorInputs++;
     floorResults++;
     plusFloorResults++;
   }
