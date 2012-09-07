@@ -27,7 +27,7 @@ int main( int argc, char** argv )
   // Check command line arguments.
   std::string inputConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-  double runTime = 60;
+  double runTime = 0;
   bool testing = false; 
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
@@ -36,7 +36,7 @@ int main( int argc, char** argv )
   args.Initialize( argc, argv );
 
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds (Default 60sec)" );
+  args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--testing", vtksys::CommandLineArguments::NO_ARGUMENT, &testing, "Enable testing mode (testing PlusServer functionality)" );
 
@@ -133,9 +133,10 @@ int main( int argc, char** argv )
   }
   // *************************** End of testing **************************
 
+  bool neverStop=(runTime==0.0);
 
   // Run server until requested 
-  while ( vtkAccurateTimer::GetSystemTime() < startTime + runTime )
+  while ( (vtkAccurateTimer::GetSystemTime() < startTime + runTime) || (neverStop) )
   {
 #ifdef _WIN32
     // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
