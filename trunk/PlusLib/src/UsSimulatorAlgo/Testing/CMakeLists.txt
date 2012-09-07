@@ -5,8 +5,8 @@ ADD_EXECUTABLE(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
 TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgo vtkCommon )
 ADD_TEST(vtkUsSimulatorAlgoRunTest
 	${EXECUTABLE_OUTPUT_PATH}/vtkUsSimulatorAlgoTest
-	--input-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_UsSimulatorAlgoTest.xml
-	--input-transforms-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_UsSimulatorAlgoTest.xml
+	--transforms-seq-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
 	--output-us-img-file=simulatorOutput.mha 
 
 	)

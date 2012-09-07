@@ -35,8 +35,8 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--input-rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
-  args.AddArgument("--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing processing parameters");
+  args.AddArgument("--rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing processing parameters");
   args.AddArgument("--output-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the generated output brightness image");
   args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &operation, "Processing operation to be applied on the input file (BRIGHTNESS_CONVERT, BRIGHTNESS_SCAN_CONVERT, default: BRIGHTNESS_SCAN_CONVERT");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");

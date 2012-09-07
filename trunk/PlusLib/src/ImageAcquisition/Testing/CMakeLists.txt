@@ -6,8 +6,8 @@ ADD_EXECUTABLE(vtkMetaImageSequenceIOTest vtkMetaImageSequenceIOTest.cxx )
 TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkImageAcquisition )
 ADD_TEST(vtkMetaImageSequenceIOTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
-  --input-img-seq-file-name=${TestDataDir}/MetaImageSequenceIOTest1.mhd
-  --output-img-seq-file-name=_MetaImageSequenceIOTest1.mha
+  --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.mhd
+  --output-img-seq-file=_MetaImageSequenceIOTest1.mha
   )
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
@@ -16,9 +16,9 @@ ADD_EXECUTABLE(MetaImageSequenceViewer MetaImageSequenceViewer.cxx )
 TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkImageAcquisition )
 ADD_TEST(MetaImageSequenceViewerTest
   ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
-  --input-metafile=${TestDataDir}/SpinePhantomFreehand.mha
-  --input-configfile=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
-  --image-to-reference-transform-name=ImageToTracker
+  --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
+  --image-to-reference-transform=ImageToTracker
   --rendering-off
   )
 SET_TESTS_PROPERTIES( MetaImageSequenceViewerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -79,9 +79,9 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	TARGET_LINK_LIBRARIES(vtkSonixVolumeReaderTest1 vtkImageAcquisition )
 	ADD_TEST(vtkSonixVolumeReaderTest1 
 	${EXECUTABLE_OUTPUT_PATH}/vtkSonixVolumeReaderTest1
-	--input-file-name=${TestDataDir}/UltrasonixVolume.b8
-	--input-baseline-name=${TestDataDir}/UltrasonixFrame5Baseline.tiff
-	--input-frame-number=5 
+	--volume-file=${TestDataDir}/UltrasonixVolume.b8
+	--baseline=${TestDataDir}/UltrasonixFrame5Baseline.tiff
+	--frame-number=5 
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)

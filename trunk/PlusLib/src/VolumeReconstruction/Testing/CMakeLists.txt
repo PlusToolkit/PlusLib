@@ -8,20 +8,20 @@ TARGET_LINK_LIBRARIES(VolumeReconstructor vtkVolumeReconstruction )
 # Reconstruct a volume from brachy stepper acquisition
 ADD_TEST(vtkVolumeReconstructorTest1
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml 
-  --input-img-seq-file-name=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
-  --output-volume-file-name=vtkVolumeReconstructorTest1Output.mha
-  --input-transform-name=ImageToReference
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml 
+  --img-seq-file=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
+  --output-volume-file=vtkVolumeReconstructorTest1Output.mha
+  --transform=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # Reconstruct a volume from freehand acquisition
 ADD_TEST(vtkVolumeReconstructorTest2
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
-  --input-img-seq-file-name=${TestDataDir}/NwirePhantomFreehand.mha
-  --output-volume-file-name=vtkVolumeReconstructorTest2Output.mha
-  --input-transform-name=ImageToReference
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
+  --img-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
+  --output-volume-file=vtkVolumeReconstructorTest2Output.mha
+  --transform=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -36,10 +36,10 @@ SET_TESTS_PROPERTIES(vtkVolumeReconstructorTest3 PROPERTIES DEPENDS vtkVolumeRec
 # Reconstruct a volume from freehand acquisition and apply hole filling
 ADD_TEST(vtkVolumeReconstructorWithHoleFillingTest1
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
-  --input-img-seq-file-name=${TestDataDir}/SpinePhantomFreehand.mha
-  --output-volume-file-name=vtkVolumeReconstructorWithHoleFillingTest1Output.mha
-  --input-transform-name=ImageToReference
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
+  --img-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+  --output-volume-file=vtkVolumeReconstructorWithHoleFillingTest1Output.mha
+  --transform=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorWithHoleFillingTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -54,10 +54,10 @@ SET_TESTS_PROPERTIES(vtkVolumeReconstructorWithHoleFillingTest2 PROPERTIES DEPEN
 # Reconstruct a volume from freehand acquisition using the maximum distribution
 ADD_TEST(vtkVolumeReconstructorMaximum1
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnlyMaximum.xml 
-  --input-img-seq-file-name=${TestDataDir}/SpinePhantomFreehand.mha
-  --output-volume-file-name=vtkVolumeReconstructorMaximum1Output.mha
-  --input-transform-name=ImageToReference
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnlyMaximum.xml 
+  --img-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+  --output-volume-file=vtkVolumeReconstructorMaximum1Output.mha
+  --transform=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorMaximum1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -72,10 +72,10 @@ SET_TESTS_PROPERTIES(vtkVolumeReconstructorMaximum2 PROPERTIES DEPENDS vtkVolume
 # Reconstruct a volume from freehand acquisition in floating point format
 ADD_TEST(vtkVolumeReconstructorFloatType1
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-  --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
-  --input-img-seq-file-name=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
-  --output-volume-file-name=vtkVolumeReconstructorFloatType1Output.mha
-  --input-transform-name=ImageToReference
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
+  --img-seq-file=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
+  --output-volume-file=vtkVolumeReconstructorFloatType1Output.mha
+  --transform=ImageToReference
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorFloatType1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -93,10 +93,10 @@ ADD_EXECUTABLE( CreateSliceModels CreateSliceModels.cxx )
 TARGET_LINK_LIBRARIES( CreateSliceModels vtkPlusCommon vtkVolumeReconstruction )
 ADD_TEST(CreateSliceModelsTest 
   ${EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
-  --input-metafile=${TestDataDir}/NwirePhantomFreehand.mha
-  --output-modelfile=GeneratedSliceModels.mha  
-  --input-configfile=${ConfigFilesDir}/Testing/PlusConfiguration_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
-  --image-to-reference-transform-name=ProbeToReference
+  --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
+  --output-model-file=GeneratedSliceModels.mha  
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
+  --image-to-reference-transform=ProbeToReference
   )
 SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
