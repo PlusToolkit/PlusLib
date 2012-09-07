@@ -5,6 +5,9 @@
 #include "PlusBkProFocusReceiver.h"
 #include "vtkRfProcessor.h"
 
+#include "vtkImageImport.h"
+#include "vtkImageData.h"
+
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
 #include "AcquisitionInjector.h"
@@ -209,6 +212,8 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->ShowSaperaWindow=false;
   this->ShowBModeWindow=false;
 
+  this->ImagingMode=RfMode;
+
   this->SetFrameBufferSize(200); 
   this->Buffer->Modified();
   SetLogFunc(LogInfoMessageCallback);
@@ -370,11 +375,66 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
-{      
+void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
+{ 
+  int frameSizeInPix[2]={inputFrameSizeInPix[0],inputFrameSizeInPix[1]}; // we may need to overwrite these, so create a copy that will be used internally
+
   LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
-  <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
     <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType));
+
+  switch (this->ImagingMode)
+  {
+  case RfMode:
+    {
+      if (imageType==US_IMG_RF_REAL || imageType==US_IMG_RF_IQ_LINE || imageType==US_IMG_RF_I_LINE_Q_LINE)
+      {
+        // RF image is received and RF image is needed => no need for conversion
+        break;
+      }
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from "<<PlusVideoFrame::GetStringFromUsImageType(imageType)<<" to RF");
+      return;
+    }
+  case BMode:
+    {
+      if (imageType==US_IMG_BRIGHTNESS)
+      {
+        // B-mode image is received and B-mode image is needed => no need for conversion
+        break;
+      }
+      else if (imageType==US_IMG_RF_REAL || imageType==US_IMG_RF_IQ_LINE || imageType==US_IMG_RF_I_LINE_Q_LINE)
+      {
+        // convert from RF to Brightness
+
+        // Create a VTK image input for the RF to Brightness converter
+        vtkSmartPointer<vtkImageImport> bufferToVtkImage = vtkSmartPointer<vtkImageImport>::New();
+        bufferToVtkImage->SetDataScalarType(PlusVideoFrame::GetVTKScalarPixelType(pixelType));
+        bufferToVtkImage->SetImportVoidPointer((unsigned char*)pixelDataPtr);
+        bufferToVtkImage->SetDataExtent(0,frameSizeInPix[0]-1, 0,frameSizeInPix[1]-1, 0,0);
+        bufferToVtkImage->SetWholeExtent(0,frameSizeInPix[0]-1, 0,frameSizeInPix[1]-1, 0,0);
+        bufferToVtkImage->Update();
+
+        // Convert
+        this->RfProcessor->SetRfFrame(bufferToVtkImage->GetOutput(), imageType);        
+        this->SaveRfProcessingParameters=true; // RF processing parameters were used, make sure they will be saved into the config file
+
+        // Overwrite the input parameters with the converted image; it will look as if we received a B-mode image
+        vtkImageData* convertedBmodeImage=this->RfProcessor->GetBrightessScanConvertedImage();
+        pixelDataPtr=convertedBmodeImage->GetScalarPointer();        
+        int *resultExtent=convertedBmodeImage->GetExtent();        
+        frameSizeInPix[0]=resultExtent[1]-resultExtent[0]+1;
+        frameSizeInPix[1]=resultExtent[3]-resultExtent[2]+1;
+        pixelType=PlusVideoFrame::GetITKScalarPixelType(convertedBmodeImage->GetScalarType());
+        imageType=US_IMG_BRIGHTNESS;
+        break;
+      }
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from "<<PlusVideoFrame::GetStringFromUsImageType(imageType)<<" to Brightness");
+      return;
+    }
+  default:
+    LOG_ERROR("The received frame is discarded, as the requested imaging mode ("<<PlusVideoFrame::GetStringFromUsImageType(imageType)<<") is not supported");
+    return;
+  }
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( this->GetBuffer()->GetNumberOfItems() == 0 )
@@ -510,5 +570,7 @@ PlusStatus vtkBkProFocusVideoSource::GetFullIniFilePath(std::string &fullPath)
 //-----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::SetImagingMode(ImagingModeType imagingMode)
 {
-  this->Internal->PlusReceiver.SetImagingMode(imagingMode);
+  this->ImagingMode=imagingMode;
+  // always keep the receiver in RF mode and if B-mode image is requested then do the B-mode conversion in this class
+  // this->Internal->PlusReceiver.SetImagingMode(imagingMode);
 }

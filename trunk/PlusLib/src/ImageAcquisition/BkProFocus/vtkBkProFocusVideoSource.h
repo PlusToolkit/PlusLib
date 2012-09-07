@@ -84,14 +84,16 @@ protected:
   char* IniFileName;
 
   bool ShowSaperaWindow;
-  bool ShowBModeWindow;  
+  bool ShowBModeWindow; 
+
+  ImagingModeType ImagingMode;
   
 private:
 
 
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
-  vtkInternal* Internal;
+  vtkInternal* Internal;  
 
   static bool vtkBkProFocusVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
   vtkBkProFocusVideoSource(const vtkBkProFocusVideoSource&);  // Not implemented.
