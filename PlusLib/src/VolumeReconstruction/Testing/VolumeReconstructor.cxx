@@ -33,12 +33,12 @@ int main (int argc, char* argv[])
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Image to reference transform name used for the reconstruction");
-  cmdargs.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
-  cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
-  cmdargs.AddArgument("--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.mha)" );
-  cmdargs.AddArgument("--output-volume-alpha-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.mha)" );
-  cmdargs.AddArgument("--output-frame-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
+  cmdargs.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Image to reference transform name used for the reconstruction");
+  cmdargs.AddArgument("--img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
+  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
+  cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.mha)" );
+  cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.mha)" );
+  cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 

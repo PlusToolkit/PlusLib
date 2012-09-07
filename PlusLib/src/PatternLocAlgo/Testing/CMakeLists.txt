@@ -22,10 +22,10 @@ TARGET_LINK_LIBRARIES( ConvertFcsvToXml
   
 ADD_TEST(ConvertFcsvToXml
 	${EXECUTABLE_OUTPUT_PATH}/ConvertFcsvToXml
-	--input-test-data-dir=${TestDataDir}
-	--input-fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
-	--input-img-seq-file=ila5.mhd
-	--input-testcase-name=ila5
+	--test-data-dir=${TestDataDir}
+	--fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
+	--img-seq-file=ila5.mhd
+	--testcase=ila5
 	--output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
 	)
 SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -51,8 +51,8 @@ TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
   
 ADD_TEST(ConvertXmlToFcsv
 	${EXECUTABLE_OUTPUT_PATH}/ConvertXmlToFcsv
-	--input=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
-	--output=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
+	--xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
+	--output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
 	)
 SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -84,67 +84,67 @@ TARGET_LINK_LIBRARIES( PatternLocTest
 ###################################################
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
-	--input-testcase-name=UsTestSeqBaselineThomasShortened
-	--input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	--testcase=UsTestSeqBaselineThomasShortened
+	--baseline=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2.mha
-	--input-testcase-name=SegmentationTest_BKMedical_RandomStepperMotionData2
-	--input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2.mha
+	--testcase=SegmentationTest_BKMedical_RandomStepperMotionData2
+	--baseline=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=SegmentationTest_VLCUS_RandomStepperMotionData2.mha
-	--input-testcase-name=SegmentationTest_VLCUS_RandomStepperMotionData2
-	--input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=SegmentationTest_VLCUS_RandomStepperMotionData2.mha
+	--testcase=SegmentationTest_VLCUS_RandomStepperMotionData2
+	--baseline=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=USTC_FrameGrabber_ProbeRotationData.mha
-	--input-testcase-name=USTC_FrameGrabber_ProbeRotationData
-	--input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=USTC_FrameGrabber_ProbeRotationData.mha
+	--testcase=USTC_FrameGrabber_ProbeRotationData
+	--baseline=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=USTC_Ulterius_ProbeRotationData.mha
-	--input-testcase-name=USTC_Ulterius_ProbeRotationData
-	--input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=USTC_Ulterius_ProbeRotationData.mha
+	--testcase=USTC_Ulterius_ProbeRotationData
+	--baseline=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1
 	${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=CIRS_TranslationData1.mha
-	--input-testcase-name=CIRS_TranslationData1
-	--input-baseline-file=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
+	--test-data-dir=${TestDataDir}
+	--img-seq-file=CIRS_TranslationData1.mha
+	--testcase=CIRS_TranslationData1
+	--baseline=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
+	--output-xml-file=testcomparisons.xml
+	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
 	)
 SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -156,56 +156,56 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 
 # ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened_SegParamFromPhantomDef
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
-	# --input-testcase-name=UsTestSeqBaselineThomasShortened
-	# --input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
-	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	# --testcase=UsTestSeqBaselineThomasShortened
+	# --baseline=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
+	# --output-xml-file=testcomparisons.xml
+	# --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2_SegParamFromPhantomDef
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2.mha
-	# --input-testcase-name=SegmentationTest_BKMedical_RandomStepperMotionData2
-	# --input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
-	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2.mha
+	# --testcase=SegmentationTest_BKMedical_RandomStepperMotionData2
+	# --baseline=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
+	# --output-xml-file=testcomparisons.xml
+	# --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2_SegParamFromPhantomDef
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=SegmentationTest_VLCUS_RandomStepperMotionData2.mha
-	# --input-testcase-name=SegmentationTest_VLCUS_RandomStepperMotionData2
-	# --input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
-	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=SegmentationTest_VLCUS_RandomStepperMotionData2.mha
+	# --testcase=SegmentationTest_VLCUS_RandomStepperMotionData2
+	# --baseline=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
+	# --output-xml-file=testcomparisons.xml
+	# --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData_SegParamFromPhantomDef
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=USTC_FrameGrabber_ProbeRotationData.mha
-	# --input-testcase-name=USTC_FrameGrabber_ProbeRotationData
-	# --input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
-	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal_SegParamFromPhantomDef.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=USTC_FrameGrabber_ProbeRotationData.mha
+	# --testcase=USTC_FrameGrabber_ProbeRotationData
+	# --baseline=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
+	# --output-xml-file=testcomparisons.xml
+	# --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData_SegParamFromPhantomDef
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=USTC_Ulterius_ProbeRotationData.mha
-	# --input-testcase-name=USTC_Ulterius_ProbeRotationData
-	# --input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
-	# --output-result-file=testcomparisons.xml
-	# --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=USTC_Ulterius_ProbeRotationData.mha
+	# --testcase=USTC_Ulterius_ProbeRotationData
+	# --baseline=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
+	# --output-xml-file=testcomparisons.xml
+	# --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal_SegParamFromPhantomDef.xml
 	# )
 # SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData_SegParamFromPhantomDef PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -215,40 +215,40 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 
 # ADD_TEST(PatternLocTest_TAB2_5_POINT_1
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=PatternLocTestNov19_01.mha
-	# --input-testcase-name=Nov19_01
-	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_01ManualFidSeg.xml
-	# --output-result-file=${TestDataDir}/PatternLocTest_01comparisons.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=PatternLocTestNov19_01.mha
+	# --testcase=Nov19_01
+	# --baseline=${TestDataDir}/UsTestSeqNov19_01ManualFidSeg.xml
+	# --output-xml-file=${TestDataDir}/PatternLocTest_01comparisons.xml
 	# )
 #SET_TESTS_PROPERTIES( PatternLocTest_TAB2_5_POINT_1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_TAB2_5_POINT_2
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=PatternLocTestNov19_02.mha
-	# --input-testcase-name=Nov19_02
-	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_02ManualFidSeg.xml
-	# --output-result-file=${TestDataDir}/PatternLocTest_02comparisons.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=PatternLocTestNov19_02.mha
+	# --testcase=Nov19_02
+	# --baseline=${TestDataDir}/UsTestSeqNov19_02ManualFidSeg.xml
+	# --output-xml-file=${TestDataDir}/PatternLocTest_02comparisons.xml
 	# )
 #SET_TESTS_PROPERTIES( PatternLocTest_TAB2_5_POINT_2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(PatternLocTest_TAB2_5_POINT_3
 	# ${EXECUTABLE_OUTPUT_PATH}/PatternLocTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=PatternLocTestNov19_03.mha
-	# --input-testcase-name=Nov19_03
-	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_03ManualFidSeg.xml
-	# --output-result-file=${TestDataDir}/PatternLocTest_03comparisons.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=PatternLocTestNov19_03.mha
+	# --testcase=Nov19_03
+	# --baseline=${TestDataDir}/UsTestSeqNov19_03ManualFidSeg.xml
+	# --output-xml-file=${TestDataDir}/PatternLocTest_03comparisons.xml
 	# )
 #SET_TESTS_PROPERTIES( PatternLocTest_TAB2_5_POINT_3 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(vtkSegmentedWiresPositionsTest 
 	# ${EXECUTABLE_OUTPUT_PATH}/vtkSegmentedWiresPositionsTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
-	# --input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
-	# --output-result-file=testcomparisons.xml
+	# --test-data-dir=${TestDataDir}
+	# --img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	# --baseline=${TestDataDir}/baselineTestWithThomasData.xml
+	# --output-xml-file=testcomparisons.xml
 	# )
 # SET_TESTS_PROPERTIES( vtkSegmentedWiresPositionsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

@@ -8,31 +8,31 @@ IF (PLUS_USE_BRACHY_TRACKER)
 
     ADD_TEST(vtkTRUSCalibrationTest
             ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
-            --input-calibration-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
-            --input-validation-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
-            --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
-            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_iCal.xml
-            --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
+            --calibration-seq-file=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
+			--validation-seq-file=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
+            --probe-rotation-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+            --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_iCal.xml
+            --baseline-file=${TestDataDir}/UsTemplateCalibration.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
     ADD_TEST(vtkTRUSCalibrationTest_FrameGrabber
             ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
-            --input-calibration-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
-            --input-validation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
-            --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
-            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
-            --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
+            --calibration-seq-file=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
+			--validation-seq-file=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
+            --probe-rotation-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+            --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
+            --baseline-file=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
     ADD_TEST(vtkTRUSCalibrationTest_3NWires
             ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
-            --input-calibration-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionCalibration.mha 
-            --input-validation-sequence-metafile=${TestDataDir}/USTC_3NWires_RandomStepperMotionValidation.mha 
-            --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha
-            --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
-            --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
+            --calibration-seq-file=${TestDataDir}/USTC_3NWires_RandomStepperMotionCalibration.mha 
+			--validation-seq-file=${TestDataDir}/USTC_3NWires_RandomStepperMotionValidation.mha 
+            --probe-rotation-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.mha
+            --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+            --baseline-file=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
             )
     SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -44,8 +44,8 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkC
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
-		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
+		--config-file=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
+		--baseline-file=${TestDataDir}/StylusCalibration.results.xml 
 		)
 SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -55,8 +55,8 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-		--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
-		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
+		--config-file=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
+		--baseline-file=${TestDataDir}/PhantomRegistration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -66,19 +66,19 @@ TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkFreehandCalibration2NWiresTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
-		--input-calibration-sequence-metafile=${TestDataDir}/fCal_Test_Calibration.mha 
-		--input-validation-sequence-metafile=${TestDataDir}/fCal_Test_Validation.mha 
-		--input-baseline-file-name=${TestDataDir}/FreehandCalibration2NWires.results.xml
+		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
+		--calibration-seq-file=${TestDataDir}/fCal_Test_Calibration.mha 
+		--validation-seq-file=${TestDataDir}/fCal_Test_Validation.mha 
+		--baseline-file=${TestDataDir}/FreehandCalibration2NWires.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibration2NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibration3NWiresTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_File_fCal_1.2.xml
-		--input-calibration-sequence-metafile=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
-		--input-validation-sequence-metafile=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
-		--input-baseline-file-name=${TestDataDir}/FreehandCalibration3NWires.results.xml
+		--config-file=${ConfigFilesDir}/PlusConfiguration_File_fCal_1.2.xml
+		--calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
+		--validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
+		--baseline-file=${TestDataDir}/FreehandCalibration3NWires.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -88,25 +88,25 @@ TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrat
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-        --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
-        --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+        --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+        --source-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+        --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(CenterOfRotationCalibration-FrameGrabber
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
-        --input-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
-        --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+        --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+        --source-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
+        --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(CenterOfRotationCalibration-3NWires
         ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
-        --input-sequence-metafile=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
-        --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
+        --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --source-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
+        --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -116,25 +116,25 @@ TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo v
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-            --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
-            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --source-seq-files ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+            --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-            --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
-            --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
-            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+            --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --source-seq-files ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+            --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(SpacingCalibAlgoTest-3NWires
         ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-        --input-config-file-name=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
-        --input-sequence-metafiles ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
-        --input-baseline-file-name=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
+        --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+        --source-seq-files ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
+        --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
         )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -144,8 +144,8 @@ TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationA
 
 ADD_TEST(TemporalCalibrationAlgoTest1 
   ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
-  --input-tracker-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-  --input-video-sequence-metafile=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+  --tracker-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+  --video-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
   --sampling-resolution-sec=0.01
   --verbose=2
   )

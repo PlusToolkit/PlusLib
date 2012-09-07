@@ -35,12 +35,12 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-  args.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for generating timestamp filtering");
+  args.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for generating timestamp filtering");
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
-  args.AddArgument("--input-averaged-items-for-filtering", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAveragedItemsForFiltering, "Number of averaged items used for filtering (Default: 20).");
-  args.AddArgument("--input-max-timestamp-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxTimestampDifference, "The maximum difference between the filtered and nonfiltered timestamps for each frame (Default: 0.08s).");
-  args.AddArgument("--input-min-stdev-reduction-factor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMinStdevReductionFactor, "Minimum factor that the filtering should reduces the standard deviation of the frame periods on filtered data (Default: 3.0 ).");
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
+  args.AddArgument("--averaged-items-for-filtering", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAveragedItemsForFiltering, "Number of averaged items used for filtering (Default: 20).");
+  args.AddArgument("--max-timestamp-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxTimestampDifference, "The maximum difference between the filtered and nonfiltered timestamps for each frame (Default: 0.08s).");
+  args.AddArgument("--min-stdev-reduction-factor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMinStdevReductionFactor, "Minimum factor that the filtering should reduces the standard deviation of the frame periods on filtered data (Default: 3.0 ).");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )

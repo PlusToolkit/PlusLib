@@ -37,7 +37,7 @@ int main(int argc, char **argv)
   std::string inputDataFileName(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--input-data-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataFileName, "Input XML data file name");	
+  args.AddArgument("--xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataFileName, "Input XML data file name");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )

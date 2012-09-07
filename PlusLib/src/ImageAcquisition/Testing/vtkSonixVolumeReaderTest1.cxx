@@ -32,10 +32,10 @@ int main (int argc, char* argv[])
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--input-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
-  args.AddArgument("--output-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Sequence meta file name to save (save only if defined)" );
-	args.AddArgument("--input-frame-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFrameNumber, "The frame number to compare with baseline." );
-	args.AddArgument("--input-baseline-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineName, "The file name of the baseline image." );
+	args.AddArgument("--volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
+  args.AddArgument("--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Sequence meta file name to save (save only if defined)" );
+	args.AddArgument("--frame-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFrameNumber, "The frame number to compare with baseline." );
+	args.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineName, "The file name of the baseline image." );
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
 
 	if ( !args.Parse() )

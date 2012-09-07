@@ -28,7 +28,7 @@ TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )
 
 ADD_TEST(PlusMathTest 
   ${EXECUTABLE_OUTPUT_PATH}/PlusMathTest
-  --input-data-file=${TestDataDir}/PlusMathTestData.xml 
+  --xml-file=${TestDataDir}/PlusMathTestData.xml 
   )
   
 #--------------------------------------------------------------------------------------------

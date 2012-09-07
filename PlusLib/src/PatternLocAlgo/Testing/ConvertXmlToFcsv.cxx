@@ -40,8 +40,8 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	args.AddArgument("--input", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputXmlFileName, "Input XML file name");
-	args.AddArgument("--output", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFcsvFileName, "Output FCSV file name");
+	args.AddArgument("--xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputXmlFileName, "Input XML file name");
+	args.AddArgument("--output-xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFcsvFileName, "Output FCSV file name");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
