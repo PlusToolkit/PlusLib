@@ -163,7 +163,96 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
     if (cell->GetCellDimension() == 1 && input->GetNumberOfPolys() == 0)
     {
       double *bounds = cell->GetBounds();
-      //if (bounds[4] >= z - 0.5*thickness && bounds[5] < z + 0.5*thickness)
+      
+      // Define array to hold the x,y,z coordinates of the vertices of the
+      // bounding box. Necessary because the vktPlane:IntersectWithLine function
+      // takes in an array representing the coordinates. 
+      double verticalCornerCoordinates[8][3]=
+       {
+        { bounds[0],bounds[3],bounds[4]}, 
+        { bounds[0],bounds[2],bounds[4]}, 
+        { bounds[0],bounds[3],bounds[5]}, 
+        { bounds[0],bounds[2],bounds[5]}, 
+        { bounds[1],bounds[3],bounds[4]}, 
+        { bounds[1],bounds[2],bounds[4]}, 
+        { bounds[1],bounds[3],bounds[5]}, 
+        { bounds[1],bounds[2],bounds[5]}
+      };
+           
+     // define values to be filled by vtkPlane::IntersectWithLine function
+      // intersection will contain the x,y,z coordinates of the intersesction point
+      // and t the parametric coordinate along the line
+      double intersection[] = {0,0,0};      
+      double t = 0; 
+
+      // To keep track of the lines forming the boundary box between the vertices, 
+      // another counter is needed. Two vertices beside each other form the line that
+      // may intersect the plane ( a vertical edge of the box), as a result, to check the next line in the array,
+      //a vertex must be skipped. ( Otherwise two corners of the boudning box which are diagonal to each other
+      //will be used next). 
+      int vertCounter = 0;
+      int horizCounter = 0; 
+      int slicePlaneIntersectsWithBoundingBox = 0;
+      
+      double slicePositionArray[3] = 
+      {
+        slicePosition[0],
+        slicePosition[1],
+        slicePosition[2]
+      }; 
+             
+       
+      
+      double sliceNormalArray[3] = {sliceNormal[0],sliceNormal[1],sliceNormal[2]};
+
+      for(int i=0;i<4;i++)
+      {
+        // check to see if any of the verical lines of the bounding box intersect the slice plane, 
+        //and break if they do (these lines are parallel to the y axis)
+        
+        vtkPlane::IntersectWithLine(verticalCornerCoordinates[vertCounter],verticalCornerCoordinates[vertCounter+1],sliceNormalArray,slicePositionArray,t,intersection);
+        if(intersection!=0)
+        {
+          slicePlaneIntersectsWithBoundingBox = 1; 
+          break;
+        }
+         vertCounter = vertCounter+2;
+       
+        // check to see if any of the horizontal lines of the bounding box intersect the slice plane, 
+        //and break if they do(these lines are parallel to the x axis)
+        vtkPlane::IntersectWithLine(verticalCornerCoordinates[i],verticalCornerCoordinates[i+4],sliceNormalArray,slicePositionArray,t,intersection);
+        if(intersection!=0)
+        {
+          slicePlaneIntersectsWithBoundingBox = 1;
+          break; 
+        }
+      
+       // check to see if any of the remaining lines of the bounding box intersect the slice plane, 
+        //and break if they do (these lines are parallel to the z axis)
+
+        if(i>1)
+        {
+          vtkPlane::IntersectWithLine(verticalCornerCoordinates[i+2],verticalCornerCoordinates[i+4],sliceNormalArray,slicePositionArray,t,intersection);
+            if(intersection!=0)
+            {
+              slicePlaneIntersectsWithBoundingBox = 1;
+              break;
+            }
+       
+        }
+        else
+        {
+          vtkPlane::IntersectWithLine(verticalCornerCoordinates[i],verticalCornerCoordinates[i+2],sliceNormalArray,slicePositionArray,t,intersection);
+            if(intersection!=0)
+            {
+              slicePlaneIntersectsWithBoundingBox = 1;
+              break;
+            }
+          
+        }
+      }
+     
+      if (slicePlaneIntersectsWithBoundingBox==1)
       {
         vtkIdType numCellPts = cellPts->GetNumberOfPoints();
         newLines->InsertNextCell(numCellPts);
