@@ -61,11 +61,11 @@
       Opacity="0.6"
       File="FCal_2.0.stl"
       ModelToObjectTransform="
-        1 0 0 -25.0
-        0 0 -1 45.0
-        0 1 0 -5.0
+        1 0 0 -35.0
+        0 1 0 -10.0
+        0 0 1 -5.0
         0 0 0 1"
-      />
+	/>
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
@@ -97,7 +97,7 @@
       WiringVersion="2.0"
       Institution="Queen's University PerkLab"
     />
-    
+
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0" />
@@ -116,15 +116,15 @@
       </Pattern>
 
       <Landmarks>
-        <Landmark Name="#1" Position="104.0 15.0 25.0" />
-        <Landmark Name="#2" Position="104.0 55.0 25.0" />
-        <Landmark Name="#3" Position="104.0 55.0 5.0" />
-        <Landmark Name="#4" Position="104.0 5.0 5.0" />
+        <Landmark Name="#1" Position="104.3 5.0 20.0" />
+        <Landmark Name="#2" Position="104.3 45.0 20.0" />
+        <Landmark Name="#3" Position="104.3 45.0 0.0" />
+        <Landmark Name="#4" Position="104.3 -5.0 0.0" />
         
-        <Landmark Name="#5" Position="-34.0 55.0 20.0" />
-        <Landmark Name="#6" Position="-34.0 5.0 25.0" />
-        <Landmark Name="#7" Position="-34.0 5.0 5.0" />
-        <Landmark Name="#8" Position="-34.0 55.0 5.0" />
+        <Landmark Name="#5" Position="-34.3 45.0 15.0" />
+        <Landmark Name="#6" Position="-34.3 -5.0 20.0" />
+        <Landmark Name="#7" Position="-34.3 -5.0 0.0" />
+        <Landmark Name="#8" Position="-34.3 45.0 0.0" />
       </Landmarks>
       
     </Geometry>
