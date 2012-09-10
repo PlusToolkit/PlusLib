@@ -61,7 +61,6 @@ PlusStatus vtkPhantomRegistrationAlgo::Register(vtkTransformRepository* aTransfo
   LOG_TRACE("vtkPhantomRegistrationAlgo::Register"); 
 
   // Create input point vectors
-  //int numberOfLandmarks = this->DefinedLandmarks->GetNumberOfPoints();
   std::vector<itk::Point<double,3> > fixedPoints;
   std::vector<itk::Point<double,3> > movingPoints;
 
@@ -156,7 +155,8 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
 
   // Find phantom definition element
   vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
-  if (phantomDefinition == NULL) {
+  if (phantomDefinition == NULL)
+  {
     LOG_ERROR("No phantom definition is found in the XML tree!");
     return PLUS_FAIL;
   }
@@ -207,11 +207,6 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
 
       this->DefinedLandmarks->InsertPoint(i, landmarkPosition);
       this->DefinedLandmarkNames[i] = landmarkNameString;
-    }
-
-    if (this->DefinedLandmarks->GetNumberOfPoints() != numberOfLandmarks)
-    {
-      LOG_WARNING("Some invalid landmarks were found!");
     }
   }
 

@@ -22,16 +22,21 @@ vtkFakeTracker::vtkFakeTracker()
 , TransformRepository(NULL)
 , RandomSeed(0)
 , Counter(-1)
-
+, PhantomLandmarks(NULL)
 {
+  vtkSmartPointer<vtkPoints> phantomLandmarks = vtkSmartPointer<vtkPoints>::New();
+  this->SetPhantomLandmarks(phantomLandmarks);
 }
 
 //----------------------------------------------------------------------------
 vtkFakeTracker::~vtkFakeTracker()
 {
   this->InternalTransform->Delete();
-  // remove reference from the transform repository
+
+  // Remove reference from the transform repository
   this->SetTransformRepository(NULL);
+
+  this->SetPhantomLandmarks(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -420,31 +425,11 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       landmarkToPhantomTransform->Identity();
 
       // Translate to actual landmark point
-      switch (this->Counter) { // TODO Read from xml?
-        case 0:
-          landmarkToPhantomTransform->Translate(95.0, 5.0, 15.0);
-          break;
-        case 1:
-          landmarkToPhantomTransform->Translate(95.0, 40.0, 15.0);
-          break;
-        case 2:
-          landmarkToPhantomTransform->Translate(95.0, 40.0, 0.0);
-          break;
-        case 3:
-          landmarkToPhantomTransform->Translate(95.0, 0.0, 0.0);
-          break;
-        case 4:
-          landmarkToPhantomTransform->Translate(-25.0, 40.0, 15.0);
-          break;
-        case 5:
-          landmarkToPhantomTransform->Translate(-25.0, 0.0, 10.0);
-          break;
-        case 6:
-          landmarkToPhantomTransform->Translate(-25.0, 0.0, 0.0);
-          break;
-        case 7:
-          landmarkToPhantomTransform->Translate(-25.0, 40.0, 0.0);
-          break;
+      if (this->Counter >= 0 && this->Counter < this->PhantomLandmarks->GetNumberOfPoints())
+      {
+        double currentLandmarkPosition[3];
+        this->PhantomLandmarks->GetPoint(this->Counter, currentLandmarkPosition);
+        landmarkToPhantomTransform->Translate(currentLandmarkPosition[0], currentLandmarkPosition[1], currentLandmarkPosition[2]);
       }
 
       // Get stylus calibration inverse transform
@@ -462,9 +447,12 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       }
 
       // Rotate to make motion visible even if the camera is reset every time
-      if (this->Counter < 7) {
+      if (this->Counter < 7)
+      {
         landmarkToPhantomTransform->RotateY(this->Counter * 5.0);
-      } else {
+      }
+      else
+      {
         landmarkToPhantomTransform->RotateY(180.0);
       }
       landmarkToPhantomTransform->RotateZ(this->Counter * 5.0);
@@ -535,30 +523,104 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
   if ( !this->Recording )
   {
+    // Read mode
+    vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+    if (trackerConfig == NULL) 
+    {
+      LOG_ERROR("Cannot find Tracker element in XML tree!");
+      return PLUS_FAIL;
+    }
+
     const char* mode = trackerConfig->GetAttribute("Mode"); 
     if ( mode != NULL ) 
     {
-      if (STRCASECMP(mode, "Default") == 0) {
+      if (STRCASECMP(mode, "Default") == 0)
+      {
         this->SetMode(FakeTrackerMode_Default); 
-      } else if (STRCASECMP(mode, "SmoothMove") == 0) {
+      }
+      else if (STRCASECMP(mode, "SmoothMove") == 0)
+      {
         this->SetMode(FakeTrackerMode_SmoothMove); 
-      } else if (STRCASECMP(mode, "PivotCalibration") == 0) {
+      }
+      else if (STRCASECMP(mode, "PivotCalibration") == 0)
+      {
         this->SetMode(FakeTrackerMode_PivotCalibration); 
-      } else if (STRCASECMP(mode, "RecordPhantomLandmarks") == 0) {
+      }
+      else if (STRCASECMP(mode, "RecordPhantomLandmarks") == 0)
+      {
         this->SetMode(FakeTrackerMode_RecordPhantomLandmarks); 
-      } else if (STRCASECMP(mode, "ToolState") == 0) {
+      }
+      else if (STRCASECMP(mode, "ToolState") == 0)
+      {
         this->SetMode(FakeTrackerMode_ToolState); 
-      } else {
+      }
+      else
+      {
         this->SetMode(FakeTrackerMode_Undefined);
+      }
+    }
+
+    // Read landmarks for RecordPhantomLandmarks mode
+    bool phantomLandmarksFound = true;
+    vtkXMLDataElement* landmarks = NULL;
+    vtkXMLDataElement* phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+    if (phantomDefinition == NULL)
+    {
+      phantomLandmarksFound = false;
+    }
+    else
+    {
+      vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+      if (geometry == NULL)
+      {
+        phantomLandmarksFound = false;
+      }
+      else
+      {
+        landmarks = geometry->FindNestedElementWithName("Landmarks"); 
+        if (landmarks == NULL)
+        {
+          phantomLandmarksFound = false;
+        }
+      }
+    }
+
+    if (!phantomLandmarksFound)
+    {
+      if (this->Mode == FakeTrackerMode_RecordPhantomLandmarks)
+      {
+        LOG_ERROR("Phantom landmarks cannot be found in the configuration XML tree - FakeTracker in RecordPhantomLandmarks mode cannot be started!");
+        return PLUS_FAIL;
+      }
+      else
+      {
+        LOG_DEBUG("Phantom landmarks cannot be found in the configuration XML tree - FakeTracker in RecordPhantomLandmarks mode cannot be started.");
+      }
+    }
+    else
+    {
+      this->PhantomLandmarks->Reset();
+      int numberOfLandmarks = landmarks->GetNumberOfNestedElements();
+      for (int i=0; i<numberOfLandmarks; ++i)
+      {
+        vtkXMLDataElement* landmark = landmarks->GetNestedElement(i);
+
+        if ((landmark == NULL) || (STRCASECMP("Landmark", landmark->GetName())))
+        {
+          LOG_WARNING("Invalid landmark definition found!");
+          continue;
+        }
+
+        double landmarkPosition[3];
+        if (! landmark->GetVectorAttribute("Position", 3, landmarkPosition))
+        {
+          LOG_WARNING("Invalid landmark position!");
+          continue;
+        }
+
+        this->PhantomLandmarks->InsertPoint(i, landmarkPosition);
       }
     }
   }

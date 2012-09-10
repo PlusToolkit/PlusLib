@@ -9,6 +9,7 @@ See License.txt for details.
 
 #include "vtkTracker.h"
 #include "vtkTransformRepository.h"
+#include "vtkPoints.h"
 
 /*! Fake tracker modes */
 enum FakeTrackerMode
@@ -28,7 +29,7 @@ class vtkTransform;
 \brief Represents a fake tracking system as a simulator 
 
 This class represents a fake tracking system with tools that have
-predetermined behaviour. This allows someonew who doesn't have access to
+predetermined behavior. This allows someone who doesn't have access to
 a tracking system to test code that relies on having one active.
 
 \ingroup PlusLibTracking
@@ -45,7 +46,7 @@ public:
   /*! Disconnect from device */
   PlusStatus Disconnect();
 
-  /*! Checks availibility of tracker (this always returns 1) */
+  /*! Checks availability of tracker (this always returns 1) */
   PlusStatus Probe();
 
   /*! Read configuration from xml data */
@@ -61,6 +62,13 @@ public:
   vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
   /*! Get transform repository */
   vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+
+  /*! Get the phantom landmark points positions */
+  vtkGetObjectMacro(PhantomLandmarks, vtkPoints);
+
+protected:
+  /*! Set the phantom landmark points positions */
+  vtkSetObjectMacro(PhantomLandmarks, vtkPoints);
 
 protected:
   /*! Start the tracking system. */
@@ -93,6 +101,12 @@ protected:
 
   /*! Stores counter value used for translating landmark points */
   int Counter;
+
+  /*!
+    Point array holding the defined phantom landmarks from the configuration file.
+    Need for setting up RecordPhantomLandmarks mode
+  */
+  vtkPoints* PhantomLandmarks;
 };
 
 
