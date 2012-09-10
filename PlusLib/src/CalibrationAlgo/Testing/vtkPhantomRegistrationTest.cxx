@@ -81,15 +81,18 @@ int main (int argc, char* argv[])
 
   dataCollector->SetTrackingOnly(true);
 
-  if (dataCollector->Connect() != PLUS_SUCCESS) {
+  if (dataCollector->Connect() != PLUS_SUCCESS)
+  {
     LOG_ERROR("Data collector was unable to connect to devices!");
     exit(EXIT_FAILURE);
   }
-  if (dataCollector->Start() != PLUS_SUCCESS) {
+  if (dataCollector->Start() != PLUS_SUCCESS)
+  {
     LOG_ERROR("Unable to start data collection!");
     exit(EXIT_FAILURE);
   }
-  if (dataCollector->GetTrackingDataAvailable() == false) {
+  if (dataCollector->GetTrackingDataAvailable() == false)
+  {
     LOG_ERROR("Data collector is not tracking!");
     exit(EXIT_FAILURE);
   }
@@ -115,9 +118,10 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  if (phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() != 8)
+  int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints();
+  if (numberOfLandmarks != 8)
   {
-    LOG_ERROR("Number of defined landmarks should be 8 instead of " << phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << "!");
+    LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
     exit(EXIT_FAILURE);
   }
 
@@ -132,7 +136,7 @@ int main (int argc, char* argv[])
   TrackedFrame trackedFrame;
   PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
   
-  for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter)
+  for (int landmarkCounter=0; landmarkCounter<numberOfLandmarks; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
     vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
@@ -156,7 +160,7 @@ int main (int argc, char* argv[])
     phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
     phantomRegistration->GetRecordedLandmarks()->Modified();
 
-    vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
+    vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks); 
   }
 
   if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
