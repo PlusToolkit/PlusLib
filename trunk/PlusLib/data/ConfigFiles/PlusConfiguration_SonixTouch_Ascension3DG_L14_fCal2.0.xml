@@ -106,16 +106,16 @@
 
     <Geometry>
       <Pattern Type="NWire">
-        <Wire Name="4:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
-        <Wire Name="5:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
-        <Wire Name="6:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
       </Pattern>
 	  <Pattern Type="NWire">
         <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0" />
         <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0" />
         <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0" />
       </Pattern>
-	  <Pattern Type="NWire">
+      <Pattern Type="NWire">
         <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0" />
         <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0" />
         <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />

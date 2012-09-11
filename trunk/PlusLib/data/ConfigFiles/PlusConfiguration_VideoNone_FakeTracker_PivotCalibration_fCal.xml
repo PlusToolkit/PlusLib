@@ -32,10 +32,10 @@ vtkStylusCalibrationTest uses this configuration"
 
 
   <fCal
-	PhantomModelId="PhantomModel"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+    PhantomModelId="PhantomModel"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

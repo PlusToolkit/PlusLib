@@ -1,64 +1,71 @@
-<PlusConfiguration version="1.2">
-
+<PlusConfiguration version="1.4">
   <CoordinateDefinitions>
-    <Transform From="Reference" To="Tracker" Matrix="0 -1 0 300.0  1 0 0 400.0  0 0 1 700.0  0 0 0 1" Date="2011.12.01 11:57:00"/>
-    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 210.0  0 1 0 0  0 0 1 0  0 0 0 1" Date="2011.12.01 17:22:12"/>
-    <Transform From="Phantom" To="Reference" Matrix="1 0 0 -75.0000  0 1 0 -50.0000  0 0 1 -150.0  0 0 0 1" Date="2011.11.30 13:42:01"/> 
+    <Transform From="Phantom" To="Reference"
+      Matrix="
+        1	1.80248e-007	1.84629e-006	-75.0002
+        -1.80251e-007	1	1.71764e-006	-50
+        -1.84629e-006	-1.71764e-006	1	-150
+        0	0	0	1"
+       Error="0.000229916" Date="091112_164452"/>
+    <Transform From="Reference" To="Tracker"
+      Matrix="
+        2.22045e-016	-1	0	300
+        1	2.22045e-016	0	400
+        0	0	1	700
+        0	0	0	1"
+       Date="2011.12.01 11:57:00"/>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        1	0	0	210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.01 17:22:12"/>
   </CoordinateDefinitions>
 
-	<PhantomDefinition version="1.0">
-		<!-- Supported types are: Double-N, U-Shaped-N -->
-		<Description
-			Name="fCAL"
-			Type="Double-N"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-		<Model
-			File="FCal_1.0.stl"
-			ModelToPhantomTransform="
-				1 0 0 -15.0
-				0 1 0 10.0
-				0 0 1 -5.0
-				0 0 0 1"
-		/>
 
-		<Geometry>
-			<!-- N wire definitions -->
-			<NWire>
-				<Wire Id="1" Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
-				<Wire Id="2" Name="F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
-				<Wire Id="3" Name="K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
-			</NWire>
-			<NWire>
-				<Wire Id="4" Name="E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
-				<Wire Id="5" Name="J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
-				<Wire Id="6" Name="K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
-			</NWire>
-
-			<!-- Landmark list for registration -->
-			<Landmarks>
-				<Landmark Name="#1" Position="95.0 5.0 15.0" />
-				<Landmark Name="#2" Position="95.0 40.0 15.0" />
-				<Landmark Name="#3" Position="95.0 40.0 0.0" />
-				<Landmark Name="#4" Position="95.0 0.0 0.0" />
-				
-				<Landmark Name="#5" Position="-25.0 40.0 15.0" />
-				<Landmark Name="#6" Position="-25.0 0.0 10.0" />
-				<Landmark Name="#7" Position="-25.0 0.0 0.0" />
-				<Landmark Name="#8" Position="-25.0 40.0 0.0" />
-			</Landmarks>
-		</Geometry>
-	</PhantomDefinition>
-
-  <fCal NumberOfCalibrationImagesToAcquire="100">
-    <TrackerToolNames
-        Reference="Reference"
-        Probe="Probe"
-        Stylus="Stylus"
-    />
-  </fCal>
+  <PhantomDefinition>
+    <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0"/>
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0"/>
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0"/>
+        <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0"/>
+        <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0"/>
+        <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0"/>
+        <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0"/>
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="104.3 5.0 20.0"/>
+        <Landmark Name="#2" Position="104.3 45.0 20.0"/>
+        <Landmark Name="#3" Position="104.3 45.0 0.0"/>
+        <Landmark Name="#4" Position="104.3 -5.0 0.0"/>
+        <Landmark Name="#5" Position="-34.3 45.0 15.0"/>
+        <Landmark Name="#6" Position="-34.3 -5.0 20.0"/>
+        <Landmark Name="#7" Position="-34.3 -5.0 0.0"/>
+        <Landmark Name="#8" Position="-34.3 45.0 0.0"/>
+      </Landmarks>
+    </Geometry>
+  </PhantomDefinition>
+  
+  
+  <fCal
+    PhantomModelId="PhantomModel"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"/>
   
 </PlusConfiguration>

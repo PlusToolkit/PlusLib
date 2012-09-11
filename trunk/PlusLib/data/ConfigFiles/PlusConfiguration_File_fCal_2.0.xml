@@ -8,35 +8,44 @@
 
     <ImageAcquisition
       Type="SavedDataset"
-      SequenceMetafile="fCal_Test_Calibration_Phantom2_3NWires.mha"
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       />
-
   </DataCollection>
 
 
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
-      Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
-      Date="2011.12.06 17:57:00"
-    />
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
-        0.207124	-0.010787	-0.978255	17.4933
-        0.109558	-0.993394	0.0341504	47.7904
-        -0.972161	-0.114249	-0.204574	-15.8552
+        -0.0167397	-0.0153548	-0.999742	15.6642
+        -0.999834	0.0075107	0.0166258	-25.3628
+        0.00725347	0.999854	-0.015478	-40.7799
         0	0	0	1"
-       Error="12.2481" Date="082912_150427"/>
+       Error="0.660751" Date="091112_152716"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.997397	0.0691035	0.0205791	197.007
-        -0.0691182	0.997608	0	-13.6523
-        -0.0205298	-0.00142239	0.999788	-4.05507
+        0.997221	0.0675365	0.0314631	194.844
+        -0.06757	0.997715	0	-13.2023
+        -0.0313912	-0.00212596	0.999505	-6.13342
         0	0	0	1"
-       Error="2.44837" Date="082912_143334"/>
-  </CoordinateDefinitions> 
+       Error="0.450335" Date="091112_150057"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.0796446	0	0	0
+        0	0.0744856	0	0
+        0	0	0.0770651	0
+        0	0	0	1"
+       Date="091112_160011"/>
+  </CoordinateDefinitions>
   
 
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
@@ -48,7 +57,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -65,7 +74,7 @@
         0 1 0 -10.0
         0 0 1 -5.0
         0 0 0 1"
-	/>
+    />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
@@ -80,8 +89,8 @@
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-	MaxLineShiftMm="10.0"
-	MaxCandidates="20"
+    MaxLineShiftMm="10.0"
+    MaxCandidates="20"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
@@ -99,17 +108,17 @@
     />
 
     <Geometry>      
-	  <Pattern Type="NWire">
-        <Wire Name="4:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
-        <Wire Name="5:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
-        <Wire Name="6:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
       </Pattern>
-	  <Pattern Type="NWire">
+      <Pattern Type="NWire">
         <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0" />
         <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0" />
         <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0" />
       </Pattern>
-	  <Pattern Type="NWire">
+      <Pattern Type="NWire">
         <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0" />
         <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0" />
         <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
@@ -138,10 +147,10 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-	ReconstructedVolumeId="Volume"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="140"
     NumberOfValidationImagesToAcquire="70"
     NumberOfStylusCalibrationPointsToAcquire="200"

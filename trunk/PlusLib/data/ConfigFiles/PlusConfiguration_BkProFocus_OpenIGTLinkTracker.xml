@@ -13,11 +13,6 @@
       <Tool Name="Reference" PortName="1" />
     </Tracker>
 
-    <xTracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0"></Tool> 
-      <Tool Name="Stylus" PortName="1" ></Tool>
-    </xTracker>
-
     <ImageAcquisition
       Type="BkProFocus"
       IniFileName="BkSettings/IniFile.ini"
@@ -40,13 +35,6 @@
           OutputImageSizePixel="600 400"
           OutputImageSpacingMmPerPixel="0.15 0.15"        
           /> 
-        <xScanConversion TransducerName="BK_8848-sagittal"
-          TransducerGeometry="LINEAR"
-          ImagingDepthMm="56.0"
-          TransducerWidthMm="60.0"
-          OutputImageSizePixel="560 600"
-          OutputImageSpacingMmPerPixel="0.1 0.1"        
-          />
       </RfProcessing>  
     </ImageAcquisition>
 
@@ -110,7 +98,7 @@
 
 
   <Segmentation
-	MaxCandidates="80"
+    MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
     MorphologicalOpeningBarSizeMm="1.0"
@@ -177,10 +165,10 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-	ReconstructedVolumeId="Volume"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

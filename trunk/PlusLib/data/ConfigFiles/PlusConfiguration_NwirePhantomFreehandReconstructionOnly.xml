@@ -11,11 +11,11 @@
   </CoordinateDefinitions>
   
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
   </Rendering>
   
   <fCal 
-	ReconstructedVolumeId="Volume"
+    ReconstructedVolumeId="Volume"
   />
 
   <VolumeReconstruction
@@ -24,6 +24,7 @@
     Compounding="On" 
     FillHoles="Off" 
     ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
-    OutputSpacing="0.5 0.5 0.5" VolumeDisplayableObjectId="Volume"/>
+    OutputSpacing="0.5 0.5 0.5" VolumeDisplayableObjectId="Volume"
+  />
 
 </PlusConfiguration>

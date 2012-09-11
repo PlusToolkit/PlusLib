@@ -79,7 +79,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
 
   <Segmentation
-	MaxCandidates="80"
+    MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"
@@ -145,10 +145,10 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     
   <fCal
     PhantomModelId="PhantomModel"
-	ReconstructedVolumeId="Volume"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

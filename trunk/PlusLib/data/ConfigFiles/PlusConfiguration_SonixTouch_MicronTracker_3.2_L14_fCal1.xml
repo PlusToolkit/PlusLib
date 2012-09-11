@@ -78,7 +78,7 @@
 
 
   <Segmentation
-	MaxCandidates="80"
+    MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"
@@ -140,10 +140,10 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
-	ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    ReconstructedVolumeId="Volume"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
