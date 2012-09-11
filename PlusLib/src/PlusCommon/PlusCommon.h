@@ -31,6 +31,14 @@ enum PlusStatus
 #  define STRCASECMP strcasecmp
 #endif
 
+/* Define string printing for Windows */
+#if defined( _WIN32 ) && !defined(__CYGWIN__)
+#  define SNPRINTF sprintf_s
+#else
+#  define SNPRINTF snprintf
+#endif
+
+/* Define round function */
 #define ROUND(x) (static_cast<int>(floor( x + 0.5 )))
 
 ///////////////////////////////////////////////////////////////////
