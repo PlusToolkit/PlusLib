@@ -495,7 +495,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
   }
 
   char positionChars[32];
-  sprintf_s(positionChars, 32, "%.1lf X %.1lf X %.1lf", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+  snprintf(positionChars, 32, "%.1lf X %.1lf X %.1lf", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
 
   aTransformTranslationString = std::string(positionChars);
 

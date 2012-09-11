@@ -14,9 +14,11 @@
 
 StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   : QWidget(aParent, aFlags)
+  , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
+  , m_DotLabel(NULL)
   , m_MessageListWidget(NULL)
   , m_MessageTextEdit(NULL)
-  , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
+  , m_DisplayMessageCallbackTag(0)
 {
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
@@ -38,7 +40,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
     return;
   }
 
-	// Set callback for logger to display errors
+  // Set callback for logger to display errors
   vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
   m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
 

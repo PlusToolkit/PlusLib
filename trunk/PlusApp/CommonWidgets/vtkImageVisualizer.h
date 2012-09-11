@@ -241,7 +241,7 @@ protected:
   vtkProp3DCollection* ScreenAlignedProps;
 
   /*! List of original positions of screen-aligned objects */
-  std::vector<std::vector<double>> ScreenAlignedPropOriginalPosition;
+  std::vector<std::vector<double> > ScreenAlignedPropOriginalPosition;
 
   /*! Flag to hold value of show/hide ROI */
   bool ShowROI;

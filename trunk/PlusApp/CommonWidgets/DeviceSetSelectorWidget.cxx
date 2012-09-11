@@ -10,7 +10,9 @@
 #include <QMessageBox>
 #include <QDomDocument>
 
-#include "Shellapi.h"
+#ifdef _WIN32
+  #include "Shellapi.h"
+#endif
 
 //-----------------------------------------------------------------------------
 
@@ -369,7 +371,7 @@ void DeviceSetSelectorWidget::RefreshFolder()
 
 void DeviceSetSelectorWidget::EditConfiguration()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
+  LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
 
   QString configurationFilePath;
   int deviceSetIndex=ui.comboBox_DeviceSet->currentIndex();
@@ -390,19 +392,19 @@ void DeviceSetSelectorWidget::EditConfiguration()
     return;
   }
 
-	wchar_t wcharApplication[1024];
-	wchar_t wcharFile[1024];
+#ifdef _WIN32
+  wchar_t wcharApplication[1024];
+  wchar_t wcharFile[1024];
 
-	QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
+  QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
 
   QString file = fileInfo.absoluteFilePath();
-	int lenFile = file.toWCharArray( wcharFile );
-	wcharFile[lenFile] = '\0';
+  int lenFile = file.toWCharArray( wcharFile );
+  wcharFile[lenFile] = '\0';
 
-	int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
-	wcharApplication[lenApplication] = '\0';
+  int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
+  wcharApplication[lenApplication] = '\0';
 
-#ifdef _WIN32
   ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
 #else
   LOG_ERROR("Opening configuration files from the program is not supported on this platform.");

@@ -155,7 +155,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
           if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
           {
             char imageToProbeTransformErrorChars[32];
-            sprintf_s(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+            snprintf(imageToProbeTransformErrorChars, 32, "%.3lf", error);
             errorStr = imageToProbeTransformErrorChars;
           }
           else

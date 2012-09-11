@@ -108,7 +108,7 @@ protected:
   /*!
   * \brief Constructor
   */
-  vtkSegmentationParameterDialogModeHandlerBase::vtkSegmentationParameterDialogModeHandlerBase()
+  vtkSegmentationParameterDialogModeHandlerBase()
   {
     m_ParentDialog = NULL;
     m_ActorCollection = NULL;
@@ -118,7 +118,7 @@ protected:
   /*!
   * \brief Destructor
   */
-  virtual vtkSegmentationParameterDialogModeHandlerBase::~vtkSegmentationParameterDialogModeHandlerBase()
+  virtual ~vtkSegmentationParameterDialogModeHandlerBase()
   {
     if (m_ActorCollection != NULL) {
       m_ActorCollection->Delete();
@@ -291,7 +291,7 @@ private:
   /*!
   * \brief Constructor
   */
-  vtkROIModeHandler::vtkROIModeHandler()
+  vtkROIModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
     m_TopLeftHandleActor = NULL;
@@ -306,7 +306,7 @@ private:
   /*!
   * \brief Destructor
   */
-  vtkROIModeHandler::~vtkROIModeHandler()
+  virtual ~vtkROIModeHandler()
   {
     if (m_TopLeftHandleActor != NULL) {
       m_TopLeftHandleActor->Delete();
@@ -579,7 +579,7 @@ private:
   /*!
   * \brief Constructor
   */
-  vtkSpacingModeHandler::vtkSpacingModeHandler()
+  vtkSpacingModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
     m_HorizontalLeftHandleActor = NULL;
@@ -605,7 +605,7 @@ private:
   /*!
   * \brief Destructor
   */
-  vtkSpacingModeHandler::~vtkSpacingModeHandler()
+  virtual ~vtkSpacingModeHandler()
   {
     if (m_HorizontalLeftHandleActor != NULL) {
       m_HorizontalLeftHandleActor->Delete();
@@ -1211,8 +1211,8 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", ui.doubleSpinBox_OpeningBarSize->value());
 
-  char ROIChars[256];
-  sprintf_s(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
+  char ROIChars[64];
+  snprintf(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
   segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
 
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
@@ -1384,7 +1384,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
   segmentedPoints->SetNumberOfPoints(segResults.GetFoundDotsCoordinateValue().size());
 
-  std::vector<std::vector<double>> segmentedDots = segResults.GetFoundDotsCoordinateValue();
+  std::vector<std::vector<double> > segmentedDots = segResults.GetFoundDotsCoordinateValue();
   for (int i=0; i<segmentedDots.size(); ++i)
   {
     segmentedPoints->InsertPoint(i, segmentedDots[i][0], segmentedDots[i][1], -0.3);

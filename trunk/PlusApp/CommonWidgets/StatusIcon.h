@@ -27,24 +27,25 @@ class vtkDisplayMessageCallback : public QObject, public vtkCallbackCommand
   Q_OBJECT
 
 public:
-	static vtkDisplayMessageCallback *New()
-	{
-		vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
-		return cb;
-	}
+  static vtkDisplayMessageCallback *New()
+  {
+    vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
+    return cb;
+  }
 
-  vtkDisplayMessageCallback::vtkDisplayMessageCallback()
+  vtkDisplayMessageCallback()
     : QObject()
   { }
 
-	virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
-	{
-    if (vtkCommand::UserEvent == eventId) {
+  virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
+  {
+    if (vtkCommand::UserEvent == eventId)
+    {
       char* callDataChars = reinterpret_cast<char*>(callData);
 
       emit AddMessage(QString::fromAscii(callDataChars));
     }
-	}
+  }
 
 signals:
   void AddMessage(QString);
@@ -100,19 +101,19 @@ public slots:
 
 protected:
   /*! State level of the widget ( no errors (>2): green , warning (2): orange , error (1): red ) */
-  int							            m_Level;
+  int           m_Level;
 
   /*! Label representing the colored dot for of this widget */
-  QLabel*					          	m_DotLabel;
+  QLabel*       m_DotLabel;
 
   /*! Frame containing the field of messages */
-  QFrame*						          m_MessageListWidget;
+  QFrame*       m_MessageListWidget;
 
   /*! Field containing the messages */
-  QTextEdit*					        m_MessageTextEdit;
+  QTextEdit*    m_MessageTextEdit;
 
   /*! Tag number of the display message callback */
-  unsigned long               m_DisplayMessageCallbackTag;
+  unsigned long m_DisplayMessageCallbackTag;
 };
 
 #endif

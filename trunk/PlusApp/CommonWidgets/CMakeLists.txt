@@ -9,40 +9,40 @@ INCLUDE(${QT_USE_FILE})
 # Sources
 
 SET (CommonWidgets_SRCS
-	DeviceSetSelectorWidget.cxx
-	StatusIcon.cxx
-	ToolStateDisplayWidget.cxx
+  DeviceSetSelectorWidget.cxx
+  StatusIcon.cxx
+  ToolStateDisplayWidget.cxx
   ConfigFileSaverDialog.cxx
   SegmentationParameterDialog.cxx
   vtkVisualizationController.cxx
   vtkDisplayableObject.cxx
   vtkImageVisualizer.cxx
   vtk3DObjectVisualizer.cxx
-	)
+  )
 
 if (WIN32)	
-	SET (CommonWidgets_SRCS
-		${CommonWidgets_SRCS}
-		)
+  SET (CommonWidgets_SRCS
+    ${CommonWidgets_SRCS}
+    )
 endif (WIN32)	
 
 SET (CommonWidgets_UI_HDRS
-		DeviceSetSelectorWidget.h
-		StatusIcon.h
-		ToolStateDisplayWidget.h
+    DeviceSetSelectorWidget.h
+    StatusIcon.h
+    ToolStateDisplayWidget.h
     ConfigFileSaverDialog.h
     SegmentationParameterDialog.h
     vtkVisualizationController.h
     vtkDisplayableObject.h
     vtkImageVisualizer.h
     vtk3DObjectVisualizer.h
-	)
+  )
 
 SET (CommonWidgets_UI_SRCS
-	DeviceSetSelectorWidget.ui
+  DeviceSetSelectorWidget.ui
   ConfigFileSaverDialog.ui
   SegmentationParameterDialog.ui
-	)	
+  )	
 
 SET (QT_Resources
 	CommonWidgets.qrc
@@ -63,7 +63,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Treat wchar_t as built-in type - makes shell executes possible
-ADD_DEFINITIONS(/Zc:wchar_t-)
+if (WIN32)	
+  ADD_DEFINITIONS(/Zc:wchar_t-)
+endif (WIN32)	
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -83,5 +85,5 @@ TARGET_LINK_LIBRARIES(CommonWidgets QVTK ${CommonWidgets_LIBS})
 #
 
 IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY (Testing)
+  ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)

@@ -238,7 +238,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
         if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
         {
           char stylusTipToStylusTransformErrorChars[32];
-          sprintf_s(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
+          snprintf(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
           errorStr = stylusTipToStylusTransformErrorChars;
         }
         else
@@ -481,7 +481,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     // Assemble position string for toolbox
     char stylusPositionChars[32];
 
-    sprintf_s(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
+    snprintf(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
     m_StylusPositionString = QString(stylusPositionChars);
 
     // Add point to the input if fulfills the criteria
