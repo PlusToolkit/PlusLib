@@ -151,7 +151,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
       if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
       {
         char imageToProbeTransformErrorChars[32];
-        snprintf(imageToProbeTransformErrorChars, 32, "%.3lf", error);
+        SNPRINTF(imageToProbeTransformErrorChars, 32, "%.3lf", error);
         errorStr = imageToProbeTransformErrorChars;
       }
       else
