@@ -402,5 +402,9 @@ void DeviceSetSelectorWidget::EditConfiguration()
 	int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
 	wcharApplication[lenApplication] = '\0';
 
+#ifdef _WIN32
   ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
+#else
+  LOG_ERROR("Opening configuration files from the program is not supported on this platform.");
+#endif
 }

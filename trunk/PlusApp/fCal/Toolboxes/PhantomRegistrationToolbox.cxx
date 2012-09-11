@@ -400,10 +400,13 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
     ui.pushButton_RecordPoint->setEnabled(true);
 
-    if (m_CurrentLandmarkIndex < 1) {
+    if (m_CurrentLandmarkIndex < 1)
+    {
       ui.pushButton_Undo->setEnabled(false);
       ui.pushButton_Reset->setEnabled(false);
-    } else {
+    }
+    else
+    {
       ui.pushButton_Undo->setEnabled(true);
       ui.pushButton_Reset->setEnabled(true);
     }
