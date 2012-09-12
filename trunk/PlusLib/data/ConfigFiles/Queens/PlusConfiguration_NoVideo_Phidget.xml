@@ -6,11 +6,12 @@
       Description="Configuration file for No video + Phidget Spatial accelerometer. Keep the device stationary for 2 seconds after connect." 
     />
 
-    <Tracker Type="PhidgetSpatial" AhrsAlgorithm="MADGWICK_MARG" AhrsAlgorithmGain="1.5" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+    <Tracker Type="PhidgetSpatial" AhrsAlgorithm="MADGWICK_MARG" AhrsAlgorithmGain="1.5" TiltSensorWestAxisIndex="1" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
+      <Tool Name="OrientationSensor" PortName="OrientationSensor" />    
+      <xTool Name="TiltSensor" PortName="TiltSensor" />
       <xTool Name="Accelerometer" PortName="Accelerometer" />
       <xTool Name="Gyroscope" PortName="Gyroscope" />
-      <xTool Name="Magnetometer" PortName="Magnetometer" />
-      <Tool Name="OrientationSensor" PortName="OrientationSensor" />
+      <xTool Name="Magnetometer" PortName="Magnetometer" />     
     </Tracker>
 
   </DataCollection>
@@ -22,6 +23,7 @@
       </MessageTypes>
       <TransformNames> 
         <Transform Name="OrientationSensorToTracker" /> 
+        <xTransform Name="TiltSensorToTracker" /> 
         <xTransform Name="AccelerometerToTracker" /> 
         <xTransform Name="GyroscopeToTracker" /> 
         <xTransform Name="MagnetometerToTracker" /> 

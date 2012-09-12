@@ -20,8 +20,22 @@ class AhrsAlgo;
 
 This class talks with PhidgetSpatial 3/3/3 accelerometer/magnetometer/gyroscope device.
 
+Tracker coordinate system: South-West-Down.
+
+Sensor coordinate system is drawn on the sensor PCB. If the PCB is laying flat on the table
+with cable socket towards East then the axis directions are: South-West-Down.
+
+Tools:
+  Accelerometer, Gyroscope, Magnetometer: Raw sensor measurements.
+    The values are stored in the translation part of the transformation matrix.
+    The rotation part is identity.
+  TiltSensor: 2-DOF sensor tilt is computed as a rotation matrix. Only the accelerometer is used.
+  OrientationSensor: 3-DOF sensor orientation is computed using sensor fusion.
+    With ...IMU algorithm only the accelerometer and gyroscope data are used.
+    With ...AHRS algorithm accelerometer, gyroscope, and magnetometer data are used.
+
 Gyroscope zeroing is performed automatically at device connect, therefore the sensor shall not be moved
-for 2 seconds after the vtkPhidgetSpatialTracker::Connect() call.
+for 2 seconds after the vtkPhidgetSpatialTracker::Connect() call if the OrientationSensor or Accelerometer tool is used.
 
 AHRS algorithm gain values:
  The Madgwick method uses only one parameter (beta). A value of 1.0 works well at 125Hz.
@@ -83,9 +97,6 @@ protected:
 
   static int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
 
-  /*! Create a transformation matrix from a transformed x vector */
-  static void ConvertVectorToTransformationMatrix(double *inputVector, vtkMatrix4x4* outputMatrix);
-
 private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
@@ -102,11 +113,13 @@ private:  // Variables.
   vtkMatrix4x4* LastAccelerometerToTrackerTransform;
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
   vtkMatrix4x4* LastMagnetometerToTrackerTransform;
+  vtkMatrix4x4* LastTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
 
   vtkTrackerTool* AccelerometerTool;
   vtkTrackerTool* GyroscopeTool;
   vtkTrackerTool* MagnetometerTool;
+  vtkTrackerTool* TiltSensorTool;
   vtkTrackerTool* OrientationSensorTool;
 
   enum AHRS_METHOD
@@ -132,6 +145,16 @@ private:  // Variables.
 
   /*! last AHRS update time (in system time) */
   double AhrsLastUpdateTime;
+
+  /*!
+    In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.
+    The orientation is specified by specifying an axis that will always point to the "West" direction.
+    Recommended values:
+    If sensor axis 0 points down (the sensor plane is about vertical) => TiltSensorDownAxisIndex = 2.
+    If sensor axis 1 points down (the sensor plane is about vertical) => TiltSensorDownAxisIndex = 0.
+    If sensor axis 2 points down (the sensor plane is about horizontal) => TiltSensorDownAxisIndex = 1.
+  */
+  int TiltSensorWestAxisIndex;
 
 };
 

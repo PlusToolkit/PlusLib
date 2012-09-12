@@ -38,13 +38,18 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->AccelerometerTool = NULL;
   this->GyroscopeTool = NULL;
   this->MagnetometerTool = NULL;
+  this->TiltSensorTool = NULL;
   this->OrientationSensorTool = NULL;
 
   this->LastAccelerometerToTrackerTransform=vtkMatrix4x4::New();
   this->LastGyroscopeToTrackerTransform=vtkMatrix4x4::New();
   this->LastMagnetometerToTrackerTransform=vtkMatrix4x4::New();
+  this->LastTiltSensorToTrackerTransform=vtkMatrix4x4::New();
   this->LastOrientationSensorToTrackerTransform=vtkMatrix4x4::New();
 
+  this->TiltSensorWestAxisIndex=1; // the sensor plane is horizontal (axis 2 points down, axis 1 points West)
+
+  // Set up the AHRS algorithm used by the orientation sensor tool
   this->AhrsAlgo=new MadgwickAhrsAlgo; 
   this->AhrsUseMagnetometer=true;
   this->AhrsAlgorithmGain[0]=1.5; // proportional
@@ -65,6 +70,8 @@ vtkPhidgetSpatialTracker::~vtkPhidgetSpatialTracker()
   this->LastGyroscopeToTrackerTransform=NULL;
   this->LastMagnetometerToTrackerTransform->Delete();
   this->LastMagnetometerToTrackerTransform=NULL;
+  this->LastTiltSensorToTrackerTransform->Delete();
+  this->LastTiltSensorToTrackerTransform=NULL;
   this->LastOrientationSensorToTrackerTransform->Delete();
   this->LastOrientationSensorToTrackerTransform=NULL;
 }
@@ -171,16 +178,18 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 
     if (tracker->AccelerometerTool!=NULL)
     {
-      ConvertVectorToTransformationMatrix(data[i]->acceleration, tracker->LastAccelerometerToTrackerTransform);
+      tracker->LastAccelerometerToTrackerTransform->Identity();
+      tracker->LastAccelerometerToTrackerTransform->SetElement(0,3,data[i]->acceleration[0]);
+      tracker->LastAccelerometerToTrackerTransform->SetElement(1,3,data[i]->acceleration[1]);
+      tracker->LastAccelerometerToTrackerTransform->SetElement(2,3,data[i]->acceleration[2]);
       tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetToolName(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
     if (tracker->GyroscopeTool!=NULL)
     {
-      vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-      transform->RotateX(data[i]->angularRate[0]/10.0);
-      transform->RotateY(data[i]->angularRate[1]/10.0);  
-      transform->RotateY(data[i]->angularRate[2]/10.0);  
-      transform->GetMatrix(tracker->LastGyroscopeToTrackerTransform);
+      tracker->LastGyroscopeToTrackerTransform->Identity();
+      tracker->LastGyroscopeToTrackerTransform->SetElement(0,3,data[i]->angularRate[0]);
+      tracker->LastGyroscopeToTrackerTransform->SetElement(1,3,data[i]->angularRate[1]);
+      tracker->LastGyroscopeToTrackerTransform->SetElement(2,3,data[i]->angularRate[2]);
       tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetToolName(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
     if (tracker->MagnetometerTool!=NULL)
@@ -193,11 +202,58 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       else
       {
         // magnetometer data is valid
-        ConvertVectorToTransformationMatrix(data[i]->magneticField, tracker->LastMagnetometerToTrackerTransform);        
+        tracker->LastMagnetometerToTrackerTransform->Identity();
+        tracker->LastMagnetometerToTrackerTransform->SetElement(0,3,data[i]->magneticField[0]);
+        tracker->LastMagnetometerToTrackerTransform->SetElement(1,3,data[i]->magneticField[1]);
+        tracker->LastMagnetometerToTrackerTransform->SetElement(2,3,data[i]->magneticField[2]);
         tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
       }
     }     
+    
+    if (tracker->TiltSensorTool!=NULL)
+    {
+      // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
+      vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();      
 
+      double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
+      vtkMath::Normalize(downVector_Sensor);      
+      // Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
+      double westVector_Sensor[4]={0,0,0,0};
+      double southVector_Sensor[4] = {0,0,0,0};
+
+      if (tracker->TiltSensorWestAxisIndex>=0 && tracker->TiltSensorWestAxisIndex<3)
+      {
+        // Align a sensor axis with the West direction.
+        // Now just set the direction, the length will be corrected at the end.
+        westVector_Sensor[tracker->TiltSensorWestAxisIndex]=1; 
+      }
+      else
+      {
+        LOG_ERROR("Invalid TiltSensorWestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
+        westVector_Sensor[1]=1;
+      }
+
+      vtkMath::Cross(westVector_Sensor, downVector_Sensor, southVector_Sensor); // compute South
+      vtkMath::Normalize(southVector_Sensor);
+      vtkMath::Cross(downVector_Sensor, southVector_Sensor, westVector_Sensor); // compute West
+      vtkMath::Normalize(westVector_Sensor);
+
+      // row 0
+      tracker->LastTiltSensorToTrackerTransform->SetElement(0,0,southVector_Sensor[0]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(0,1,southVector_Sensor[1]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(0,2,southVector_Sensor[2]);
+      // row 1
+      tracker->LastTiltSensorToTrackerTransform->SetElement(1,0,westVector_Sensor[0]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(1,1,westVector_Sensor[1]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(1,2,westVector_Sensor[2]);
+      // row 2
+      tracker->LastTiltSensorToTrackerTransform->SetElement(2,0,downVector_Sensor[0]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
+      tracker->LastTiltSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
+
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetToolName(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+    }  
+    
     if (tracker->OrientationSensorTool!=NULL)
     {
       if (data[i]->magneticField[0]>1e100)
@@ -253,26 +309,14 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
             tracker->LastOrientationSensorToTrackerTransform->SetElement(r,c,rotMatrix[r][c]);
           }
         }
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetToolName(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);    
+
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetToolName(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
       }            
 
     }    
   }
 
   return 0;
-}
-
-void vtkPhidgetSpatialTracker::ConvertVectorToTransformationMatrix(double *inputVector, vtkMatrix4x4* outputMatrix)
-{
-  // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
-  double primaryRotationAngleDeg = atan2( inputVector[2],sqrt(inputVector[1]*inputVector[1]+inputVector[0]*inputVector[0]) )*180.0/vtkMath::Pi();
-  double secondaryRotationAngleDeg = atan2( inputVector[1],sqrt( inputVector[2]*inputVector[2] + inputVector[0]*inputVector[0]) )*180.0/vtkMath::Pi();
-  //LOG_TRACE("Pri="<<primaryRotationAngleDeg<<"  Sec="<<secondaryRotationAngleDeg<<"    x="<<inputVector[0]<<"    y="<<inputVector[1]<<"    z="<<inputVector[2]);
-
-  vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-  transform->RotateX(primaryRotationAngleDeg);
-  transform->RotateY(secondaryRotationAngleDeg);  
-  transform->GetMatrix(outputMatrix);
 }
 
 //-------------------------------------------------------------------------
@@ -288,7 +332,10 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 
   this->MagnetometerTool = NULL;
   GetToolByPortName("Magnetometer", this->MagnetometerTool);
-
+  
+  this->TiltSensorTool = NULL;
+  GetToolByPortName("TiltSensor", this->TiltSensorTool);
+  
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
@@ -363,6 +410,7 @@ PlusStatus vtkPhidgetSpatialTracker::Disconnect()
   this->AccelerometerTool = NULL;
   this->GyroscopeTool = NULL;
   this->MagnetometerTool = NULL;
+  this->TiltSensorTool = NULL;
   this->OrientationSensorTool = NULL;
   return PLUS_SUCCESS;
 }
@@ -420,6 +468,20 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
+  }
+
+  int tiltSensorWestAxisIndex=0; 
+  if ( trackerConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
+  {
+    if (tiltSensorWestAxisIndex<0 || tiltSensorWestAxisIndex>2)
+    {
+      LOG_ERROR("TiltSensorWestAxisIndex is invalid. Specified value: "<<tiltSensorWestAxisIndex<<". Valid values: 0, 1, 2. Keep using the default value: "
+        <<this->TiltSensorWestAxisIndex);
+    }
+    else
+    {
+      this->TiltSensorWestAxisIndex=tiltSensorWestAxisIndex;
+    }
   }
 
   double ahrsAlgorithmGain[2]={0}; 
@@ -505,42 +567,50 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
     return PLUS_FAIL;
   }
 
-  if (this->AhrsAlgorithmGain[1]==0.0)
+  if (this->TiltSensorTool)
   {
-    // if the second gain parameter is zero then just write the first value
-    trackerConfig->SetDoubleAttribute( "AhrsAlgorithmGain", this->AhrsAlgorithmGain[0] ); 
+    trackerConfig->SetIntAttribute("TiltSensorWestAxisIndex", this->TiltSensorWestAxisIndex);  
   }
-  else
+
+  if (this->OrientationSensorTool)
   {
-    trackerConfig->SetVectorAttribute( "AhrsAlgorithmGain", 2, this->AhrsAlgorithmGain );
-  }
-  
-  if ( dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo)!=0)
-  {
-    if (this->AhrsUseMagnetometer)
+    if (this->AhrsAlgorithmGain[1]==0.0)
     {
-      trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_MARG" ); 
+      // if the second gain parameter is zero then just write the first value
+      trackerConfig->SetDoubleAttribute( "AhrsAlgorithmGain", this->AhrsAlgorithmGain[0] ); 
     }
     else
     {
-      trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_IMU" ); 
+      trackerConfig->SetVectorAttribute( "AhrsAlgorithmGain", 2, this->AhrsAlgorithmGain );
     }
-  }
-  else if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo)!=0)
-  {
-    if (this->AhrsUseMagnetometer)
+
+    if ( dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo)!=0)
     {
-      trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_MARG" ); 
+      if (this->AhrsUseMagnetometer)
+      {
+        trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_MARG" ); 
+      }
+      else
+      {
+        trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_IMU" ); 
+      }
+    }
+    else if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo)!=0)
+    {
+      if (this->AhrsUseMagnetometer)
+      {
+        trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_MARG" ); 
+      }
+      else
+      {
+        trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_IMU" ); 
+      }
     }
     else
     {
-      trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_IMU" ); 
-    }
+      LOG_ERROR("Unknown AHRS algorithm type. Cannot write name to XML.");
+    }    
   }
-  else
-  {
-    LOG_ERROR("Unknown AHRS algorithm type. Cannot write name to XML.");
-  }    
 
   return PLUS_SUCCESS;
 }
