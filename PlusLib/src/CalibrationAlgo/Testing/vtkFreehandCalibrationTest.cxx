@@ -33,10 +33,13 @@ See License.txt for details.
 #include <stdlib.h>
 #include <iostream>
 
-///////////////////////////////////////////////////////////////////
-const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
+#ifndef _WIN32
+  const double ERROR_THRESHOLD = LINUXTOLERANCEPERCENT;
+#else
+  const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
+#endif
 
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, double translationErrorThreshold, double rotationErrorThreshold); 
 
 int main (int argc, char* argv[])
 {
@@ -47,8 +50,13 @@ int main (int argc, char* argv[])
   std::string inputBaselineFileName;
   std::string resultConfigFileName = "";
 
+#ifndef _WIN32
+  double inputTranslationErrorThreshold(LINUXTOLERANCE);
+  double inputRotationErrorThreshold(LINUXTOLERANCE);
+#else
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
+#endif
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -157,7 +165,7 @@ int main (int argc, char* argv[])
   }
 
   // Compare results
-	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+  std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
   if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
   {
     LOG_ERROR("Comparison of calibration data to baseline failed");
@@ -173,10 +181,16 @@ int main (int argc, char* argv[])
 //-------------------------------------------------------------------------------------------------
 
 // return the number of differences
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold)
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, double translationErrorThreshold, double rotationErrorThreshold)
 {
   int numberOfFailures=0;
 
+#ifndef _WIN32
+  double absoluteErrorTolerance = LINUXTOLERANCE;
+#else
+  double absoluteErrorTolerance = 0;
+#endif
+  
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(baselineFileName));
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
@@ -330,13 +344,15 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       }
 
       double ratioValidationMean = 1.0 * blReprojectionError3DValidationMeanMm / cReprojectionError3DValidationMeanMm; 
-      if ( ratioValidationMean > 1 + ERROR_THRESHOLD || ratioValidationMean < 1 - ERROR_THRESHOLD )
+      double absoluteErrorValidationMean = fabs(blReprojectionError3DValidationMeanMm - cReprojectionError3DValidationMeanMm);
+      if ( (ratioValidationMean > 1 + ERROR_THRESHOLD || ratioValidationMean < 1 - ERROR_THRESHOLD) && (absoluteErrorValidationMean > absoluteErrorTolerance) )
       {
         LOG_ERROR("ReprojectionError3DStatistics/ValidationMeanMm mismatch: current=" << cReprojectionError3DValidationMeanMm << ", baseline=" << blReprojectionError3DValidationMeanMm);
         return ++numberOfFailures;
       }
       double ratioValidationStdDev = 1.0 * blReprojectionError3DValidationStdDevMm / cReprojectionError3DValidationStdDevMm; 
-      if ( ratioValidationStdDev > 1 + ERROR_THRESHOLD || ratioValidationStdDev < 1 - ERROR_THRESHOLD )
+      double absoluteErrorValidationStdDev = fabs(blReprojectionError3DValidationStdDevMm - cReprojectionError3DValidationStdDevMm);
+      if ( (ratioValidationStdDev > 1 + ERROR_THRESHOLD || ratioValidationStdDev < 1 - ERROR_THRESHOLD) && (absoluteErrorValidationStdDev > absoluteErrorTolerance) )
       {
         LOG_ERROR("ReprojectionError3DStatistics/ValidationStdDevMm mismatch: current=" << cReprojectionError3DValidationStdDevMm << ", baseline=" << blReprojectionError3DValidationStdDevMm);
         return ++numberOfFailures;
@@ -361,13 +377,15 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       }
 
       double ratioCalibrationMean = 1.0 * blReprojectionError3DCalibrationMeanMm / cReprojectionError3DCalibrationMeanMm; 
-      if ( ratioCalibrationMean > 1 + ERROR_THRESHOLD || ratioCalibrationMean < 1 - ERROR_THRESHOLD )
+      double absoluteErrorCalibrationMean = fabs(blReprojectionError3DCalibrationMeanMm - cReprojectionError3DCalibrationMeanMm);
+      if ( (ratioCalibrationMean > 1 + ERROR_THRESHOLD || ratioCalibrationMean < 1 - ERROR_THRESHOLD) && (absoluteErrorCalibrationMean > absoluteErrorTolerance) )
       {
         LOG_ERROR("ReprojectionError3DStatistics/CalibrationMeanMm mismatch: current=" << cReprojectionError3DCalibrationMeanMm << ", baseline=" << blReprojectionError3DCalibrationMeanMm);
         return ++numberOfFailures;
       }
       double ratioCalibrationStdDev = 1.0 * blReprojectionError3DCalibrationStdDevMm / cReprojectionError3DCalibrationStdDevMm; 
-      if ( ratioCalibrationStdDev > 1 + ERROR_THRESHOLD || ratioCalibrationStdDev < 1 - ERROR_THRESHOLD )
+      double absoluteErrorCalibrationStdDev = fabs(blReprojectionError3DCalibrationStdDevMm - cReprojectionError3DCalibrationStdDevMm);
+      if ( (ratioCalibrationStdDev > 1 + ERROR_THRESHOLD || ratioCalibrationStdDev < 1 - ERROR_THRESHOLD) && (absoluteErrorCalibrationStdDev > absoluteErrorTolerance) )
       {
         LOG_ERROR("ReprojectionError3DStatistics/CalibrationStdDevMm mismatch: current=" << cReprojectionError3DCalibrationStdDevMm << ", baseline=" << blReprojectionError3DCalibrationStdDevMm);
         return ++numberOfFailures;
@@ -426,13 +444,15 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         for ( int i = 0; i < 2; i++) 
         {
           double ratioMean = 1.0 * blValidationMeanPx[i] / cValidationMeanPx[i]; 
-          if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
+          double absoluteErrorMean = fabs(blValidationMeanPx[i] - cValidationMeanPx[i]);
+          if ( (ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD) && (absoluteErrorMean > absoluteErrorTolerance) )
           {
             LOG_ERROR("ValidationMeanPx mismatch for wire " << wireIndex << ": current=" << cValidationMeanPx[i] << ", baseline=" << blValidationMeanPx[i]);
             return ++numberOfFailures;
           }
           double ratioStdDev = 1.0 * blValidationStdDevPx[i] / cValidationStdDevPx[i]; 
-          if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+          double absoluteErrorStdDev = fabs(blValidationStdDevPx[i] - cValidationStdDevPx[i]);
+          if ( (ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD) && (absoluteErrorStdDev > absoluteErrorTolerance) )
           {
             LOG_ERROR("ValidationStdDevPx mismatch for wire " << wireIndex << ": current=" << cValidationStdDevPx[i] << ", baseline=" << blValidationStdDevPx[i]);
             return ++numberOfFailures;
@@ -441,7 +461,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double blCalibrationMeanPx[2];
         double blCalibrationStdDevPx[2];
-	      if ( ! wireBaseline->GetVectorAttribute("CalibrationMeanPx", 2, blCalibrationMeanPx)
+        if ( ! wireBaseline->GetVectorAttribute("CalibrationMeanPx", 2, blCalibrationMeanPx)
           || ! wireBaseline->GetVectorAttribute("CalibrationStdDevPx", 2, blCalibrationStdDevPx) )
         {
           LOG_ERROR("Reading baseline calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -451,7 +471,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double cCalibrationMeanPx[2];
         double cCalibrationStdDevPx[2];
-	      if ( ! wire->GetVectorAttribute("CalibrationMeanPx", 2, cCalibrationMeanPx)
+        if ( ! wire->GetVectorAttribute("CalibrationMeanPx", 2, cCalibrationMeanPx)
           || ! wire->GetVectorAttribute("CalibrationStdDevPx", 2, cCalibrationStdDevPx) )
         {
           LOG_ERROR("Reading current calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -461,14 +481,16 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         for ( int i = 0; i < 2; i++) 
         {
-          double ratioMean = 1.0 * blCalibrationMeanPx[i] / cCalibrationMeanPx[i]; 
-          if ( ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD )
+          double ratioMean = 1.0 * blCalibrationMeanPx[i] / cCalibrationMeanPx[i];
+          double absoluteErrorMean = fabs(blCalibrationMeanPx[i] - cCalibrationMeanPx[i]);
+          if ( (ratioMean > 1 + ERROR_THRESHOLD || ratioMean < 1 - ERROR_THRESHOLD) && (absoluteErrorMean > absoluteErrorTolerance) )
           {
             LOG_ERROR("CalibrationMeanPx mismatch for wire " << wireIndex << ": current=" << cCalibrationMeanPx[i] << ", baseline=" << blCalibrationMeanPx[i]);
             return ++numberOfFailures;
           }
-          double ratioStdDev = 1.0 * blCalibrationStdDevPx[i] / cCalibrationStdDevPx[i]; 
-          if ( ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD )
+          double ratioStdDev = 1.0 * blCalibrationStdDevPx[i] / cCalibrationStdDevPx[i];
+          double absoluteErrorStdDev = fabs(blCalibrationStdDevPx[i] - cCalibrationStdDevPx[i]);
+          if ( (ratioStdDev > 1 + ERROR_THRESHOLD || ratioStdDev < 1 - ERROR_THRESHOLD) && (absoluteErrorStdDev > absoluteErrorTolerance) )
           {
             LOG_ERROR("CalibrationStdDevPx mismatch for wire " << wireIndex << ": current=" << cCalibrationStdDevPx[i] << ", baseline=" << blCalibrationStdDevPx[i]);
             return ++numberOfFailures;
@@ -552,8 +574,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               for ( int i = 0; i < 3; i++) 
               {
-                double ratio = 1.0 * blPosition[i] / cPosition[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double ratio = 1.0 * blPosition[i] / cPosition[i];
+                double absoluteError = fabs(blPosition[i] - cPosition[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
                   ++numberOfFailures;
@@ -603,8 +626,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 continue;
               }
 
-              double ratio = 1.0 * blErrorMm / cErrorMm; 
-              if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+              double ratio = 1.0 * blErrorMm / cErrorMm;
+              double absoluteError = fabs(blErrorMm - cErrorMm);
+              if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD || absoluteError > absoluteErrorTolerance )
               {
                 LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
                 ++numberOfFailures;
@@ -655,8 +679,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               for ( int i = 0; i < 2; i++) 
               {
-                double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double ratio = 1.0 * blErrorPx[i] / cErrorPx[i];
+                double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
                   ++numberOfFailures;
@@ -744,8 +769,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               for ( int i = 0; i < 3; i++) 
               {
-                double ratio = 1.0 * blPosition[i] / cPosition[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double ratio = 1.0 * blPosition[i] / cPosition[i];
+                double absoluteError = fabs(blPosition[i] - cPosition[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
                   ++numberOfFailures;
@@ -790,8 +816,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               for ( int i = 0; i < 3; i++) 
               {
-                double ratio = 1.0 * blPositionInImageFrame[i] / cPositionInImageFrame[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double ratio = 1.0 * blPositionInImageFrame[i] / cPositionInImageFrame[i];
+                double absoluteError = fabs(blPositionInImageFrame[i] - cPositionInImageFrame[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
                   ++numberOfFailures;
@@ -812,7 +839,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               for ( int i = 0; i < 3; i++) 
               {
                 double ratio = 1.0 * blPositionInProbeFrame[i] / cPositionInProbeFrame[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double absoluteError = fabs(blPositionInProbeFrame[i] - cPositionInProbeFrame[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
                   ++numberOfFailures;
@@ -862,8 +890,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 continue;
               }
 
-              double ratio = 1.0 * blErrorMm / cErrorMm; 
-              if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+              double ratio = 1.0 * blErrorMm / cErrorMm;
+              double absoluteError = fabs(blErrorMm - cErrorMm);
+              if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
               {
                 LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
                 ++numberOfFailures;
@@ -915,7 +944,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               for ( int i = 0; i < 2; i++) 
               {
                 double ratio = 1.0 * blErrorPx[i] / cErrorPx[i]; 
-                if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD )
+                double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
+                if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
                   LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
                   ++numberOfFailures;

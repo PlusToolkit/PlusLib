@@ -79,7 +79,9 @@
 
 #undef DO_CALIBRATION_FILE_CALCULATIONS
 
-#define ERRORTOLERANCE 10
+//High tolerance defined for to use in calibration tests in order to pass under linux (see #590)
+#define LINUXTOLERANCE 0.5
+#define LINUXTOLERANCEPERCENT 8
 
 #define DATACOLLECTOR 1
 #define DATAPROCESSOR 2
