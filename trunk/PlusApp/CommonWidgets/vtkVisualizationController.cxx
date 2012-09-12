@@ -769,7 +769,6 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
   this->DisconnectInput();
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->PerspectiveVisualizer->ClearDisplayableObjects();
     this->PerspectiveVisualizer->AssignDataCollector(NULL);
   }
 
@@ -894,4 +893,21 @@ vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId
 
   LOG_ERROR("3D visualizer not created when attempting to retrieve an object by ID.");
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::Reset()
+{
+  PlusStatus perspective, image;
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    perspective = this->PerspectiveVisualizer->Reset();
+  }
+  if( this->ImageVisualizer != NULL )
+  {
+    image = this->ImageVisualizer->Reset();
+  }
+
+  return (perspective == PLUS_SUCCESS && image == PLUS_SUCCESS) ? PLUS_SUCCESS : PLUS_FAIL;
 }

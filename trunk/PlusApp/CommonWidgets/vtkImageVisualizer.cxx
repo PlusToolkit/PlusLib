@@ -542,6 +542,42 @@ PlusStatus vtkImageVisualizer::AddScreenAlignedProp(vtkProp3D* aProp )
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkImageVisualizer::RemoveScreenAlignedProp( vtkProp3D* aProp )
+{
+  // Find index of aProp
+  int i = 0;
+  {
+    vtkProp3D* prop = NULL;
+    this->ScreenAlignedProps->InitTraversal();
+
+    do
+    {
+      prop = this->ScreenAlignedProps->GetNextProp3D();
+      if( prop == NULL || prop == aProp )
+      {
+        break;
+      }
+      ++i;
+    }
+    while(prop != NULL);
+  }
+
+  if( i > this->ScreenAlignedProps->GetNumberOfItems() )
+  {
+    LOG_ERROR("Prop not found in screen aligned prop list.");
+    return PLUS_FAIL;
+  }
+
+  this->ScreenAlignedProps->RemoveItem(aProp);
+  this->ScreenAlignedPropOriginalPosition.erase(this->ScreenAlignedPropOriginalPosition.begin() + i);
+
+  this->GetCanvasRenderer()->RemoveActor(aProp);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
 {
   LOG_TRACE("vtkImageVisualizer::ClearScreenAlignedActorList");
@@ -860,6 +896,8 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
 {
   LOG_TRACE("vtkImageVisualizer::InitializeWireLabelVisualization");
 
+  this->ClearWireLabelVisualization();
+
   // Load phantom definition
   vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
   if (phantomDefinition == NULL)
@@ -988,6 +1026,26 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
     }
   }
   this->EnableWireLabels(true);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::Reset()
+{
+  return this->ClearWireLabelVisualization();
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkImageVisualizer::ClearWireLabelVisualization()
+{
+  for( std::vector<vtkTextActor3D*>::iterator it = WireActors.begin(); it != WireActors.end(); ++it )
+  {
+    this->RemoveScreenAlignedProp(*it);
+  }
+  WireActors.clear();
 
   return PLUS_SUCCESS;
 }

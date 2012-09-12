@@ -108,9 +108,9 @@ IF (PLUSAPP_TEST_GUI)
       -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/StatusIconTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-          --device-set-configuration-directory-path=${ConfigFilesDir}
-          --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml
-          --image-directory-path=${TestDataDir}
+          --device-set-configuration-dir=${ConfigFilesDir}
+          --config-file=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml
+          --image-dir=${TestDataDir}
       )
   SET_TESTS_PROPERTIES( StatusIconTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -122,9 +122,9 @@ IF (PLUSAPP_TEST_GUI)
       -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-          --device-set-configuration-directory-path=${ConfigFilesDir}/Testing
-          --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
-          --image-directory-path=${TestDataDir}
+          --device-set-configuration-dir=${ConfigFilesDir}/Testing
+          --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
+          --image-dir=${TestDataDir}
       )
   SET_TESTS_PROPERTIES( SegmentationParameterDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -136,9 +136,9 @@ IF (PLUSAPP_TEST_GUI)
       -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ConfigFileSaverDialogTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-          --device-set-configuration-directory-path=${ConfigFilesDir}/Testing
-          --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
-          --image-directory-path=${TestDataDir}
+          --device-set-configuration-dir=${ConfigFilesDir}/Testing
+          --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
+          --image-dir=${TestDataDir}
           --verify-saved-configuration-file
       )
   SET_TESTS_PROPERTIES( ConfigFileSaverDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -151,8 +151,8 @@ IF (PLUSAPP_TEST_GUI)
       -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ToolStateDisplayWidgetTest.sikuli
         --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest
-          --device-set-configuration-directory-path=${ConfigFilesDir}/Testing
-          --input-config-file-name=${ConfigFilesDir}/Testing/PlusConfiguration_VideoNone_FakeTracker_ToolState.xml
+          --device-set-configuration-dir=${ConfigFilesDir}/Testing
+          --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_VideoNone_FakeTracker_ToolState.xml
       )
   SET_TESTS_PROPERTIES( ToolStateDisplayWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

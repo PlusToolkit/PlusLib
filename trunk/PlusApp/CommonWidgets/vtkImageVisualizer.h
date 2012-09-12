@@ -97,6 +97,12 @@ public:
   PlusStatus AddScreenAlignedProp(vtkProp3D* aProp);
 
   /*!
+  * Remove an actor from the list of screen aligned actors
+  * \param aProp vtkProp3D to be managed
+  */
+  PlusStatus RemoveScreenAlignedProp(vtkProp3D* aProp);
+
+  /*!
   * Set the ROI region
   * \param xMin min x bounds of ROI
   * \param xMax max x bounds of ROI
@@ -122,6 +128,11 @@ public:
   * \param aEnable enable/disable flag
   */
   PlusStatus EnableWireLabels(bool aEnable);
+
+  /*!
+  * Reset the visualization
+  */
+  PlusStatus Reset();
 
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
@@ -197,6 +208,11 @@ protected:
   * Initialize the wire actors
   */
   PlusStatus InitializeWireLabelVisualization(vtkXMLDataElement* aConfig);
+
+  /*!
+  * Clear the wire actors
+  */
+  PlusStatus ClearWireLabelVisualization();
 
   /*! Data Collector link */
   vtkDataCollector* DataCollector;

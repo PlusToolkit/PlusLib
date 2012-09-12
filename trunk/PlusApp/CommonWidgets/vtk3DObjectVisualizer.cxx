@@ -614,3 +614,10 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
 
   return NULL;
 }
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::Reset()
+{
+  return this->ClearDisplayableObjects();
+}

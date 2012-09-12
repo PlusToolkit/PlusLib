@@ -236,6 +236,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
     m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
+    m_ParentMainWindow->GetVisualizationController()->Reset();
     m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);

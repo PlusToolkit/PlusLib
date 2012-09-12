@@ -236,6 +236,11 @@ public:
   /*! Clear the transform repository */
   PlusStatus ClearTransformRepository();
 
+  /*!
+  * Reset the visualization
+  */
+  PlusStatus Reset();
+
 protected slots:
   /*!
   * Forward any updates to members that require it

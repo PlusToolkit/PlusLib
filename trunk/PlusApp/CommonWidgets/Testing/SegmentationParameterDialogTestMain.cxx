@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
 	  vtksys::CommandLineArguments cmdargs;
 	  cmdargs.Initialize(argc, argv);
 
-	  cmdargs.AddArgument("--device-set-configuration-directory-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
-	  cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
-	  cmdargs.AddArgument("--image-directory-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageDirectoryPath, "Image directory path");	
+	  cmdargs.AddArgument("--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
+	  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+	  cmdargs.AddArgument("--image-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageDirectoryPath, "Image directory path");	
 	  cmdargs.AddBooleanArgument("--verify-saved-configuration-file", &verifySavedConfigurationFile, "Verify saved configuration file if this parameter is set");	
 
 	  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	

@@ -99,6 +99,11 @@ public:
   */
   PlusStatus Update();
 
+  /*!
+  * Reset the visualization
+  */
+  PlusStatus Reset();
+
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector); 
