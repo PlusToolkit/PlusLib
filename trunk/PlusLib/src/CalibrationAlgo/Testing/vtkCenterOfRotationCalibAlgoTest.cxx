@@ -21,8 +21,12 @@
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
-const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
-
+// define tolerance used for comparing double numbers
+#ifndef _WIN32
+  const double DOUBLE_DIFF = LINUXTOLERANCE;
+#else
+  const double DOUBLE_DIFF = 0.0001;
+#endif
 
 //----------------------------------------------------------------------------
 int main(int argc, char **argv)
