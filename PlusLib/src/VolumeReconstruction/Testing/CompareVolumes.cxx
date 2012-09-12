@@ -328,8 +328,9 @@ int main( int argc, char** argv )
   // write data to a CSV
   if (!outputStatsFileName.empty()) {
     LOG_INFO("Writing output statistics: " << outputStatsFileName);
-    int* AbsHistogram = histogramGenerator->GetAbsoluteHistogramPtr();
     int* TruHistogram = histogramGenerator->GetTrueHistogramPtr();
+    int* AbsHistogram = histogramGenerator->GetAbsoluteHistogramPtr();
+    int* AbsHistogramWithHoles = histogramGenerator->GetAbsoluteHistogramWithHolesPtr();
     std::ifstream testingFile(outputStatsFileName.c_str());
     std::ofstream outputStatsFile; // for use once we establish whether or not the file exists
     if (testingFile.is_open())
@@ -367,6 +368,8 @@ int main( int argc, char** argv )
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)
         outputStatsFile << "," << AbsHistogram[i];
+      for (int i = 0; i < 256; i++)
+        outputStatsFile << "," << AbsHistogramWithHoles[i];
       outputStatsFile << std::endl;
     }
     else
@@ -376,6 +379,9 @@ int main( int argc, char** argv )
       outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
+      }
+      for (int i = 0; i < 256; i++) {
+        outputStatsFile << "," << i;
       }
       for (int i = 0; i < 256; i++) {
         outputStatsFile << "," << i;
@@ -412,6 +418,8 @@ int main( int argc, char** argv )
         outputStatsFile << "," << TruHistogram[i];
       for (int i = 0; i < 256; i++)
         outputStatsFile << "," << AbsHistogram[i];
+      for (int i = 0; i < 256; i++)
+        outputStatsFile << "," << AbsHistogramWithHoles[i];
       outputStatsFile << std::endl;
     }
   }
