@@ -60,11 +60,11 @@ int main( int argc, char** argv )
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--input-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTFileName, "The ground truth volume being compared against");
-  args.AddArgument("--input-ground-truth-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTAlphaFileName, "The ground truth volume's alpha component");
-  args.AddArgument("--input-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
-  args.AddArgument("--input-testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
-  args.AddArgument("--input-slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
+  args.AddArgument("--ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTFileName, "The ground truth volume being compared against");
+  args.AddArgument("--ground-truth-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTAlphaFileName, "The ground truth volume's alpha component");
+  args.AddArgument("--testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
+  args.AddArgument("--testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
+  args.AddArgument("--slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
   args.AddArgument("--output-cropped-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedGTFileName, "The cropped ground truth volume");
   args.AddArgument("--output-cropped-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedTestFileName, "The cropped testing volume");
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");

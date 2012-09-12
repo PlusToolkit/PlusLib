@@ -109,9 +109,9 @@ int main(int argc, char **argv)
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
-  args.AddArgument("--input-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");	
-  args.AddArgument("--input-file-names", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");	
-  args.AddArgument("--output-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");	
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");	
+  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");	
+  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");	
 
   args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE)." );	
 

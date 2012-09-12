@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 
   if (inputMetaFilename.empty())
   {
-    std::cerr << "--input-metafile is required" << std::endl;
+    std::cerr << "--source-seq-file is required" << std::endl;
     exit(EXIT_FAILURE);
   }
 

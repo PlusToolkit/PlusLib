@@ -54,12 +54,12 @@ int main(int argc, char **argv)
 
   if (inputConfigFile.empty())
   {
-    std::cerr << "--input-config-file required " << std::endl;
+    std::cerr << "--config-file required " << std::endl;
     exit(EXIT_FAILURE);
   }
   if (inputRfFile.empty())
   {
-    std::cerr << "--input-rf-file required" << std::endl;
+    std::cerr << "--rf-file required" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (outputImgFile.empty())
