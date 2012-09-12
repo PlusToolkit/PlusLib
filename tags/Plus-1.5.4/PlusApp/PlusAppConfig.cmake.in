@@ -1,0 +1,15 @@
+# - Config file for the PlusApp package
+# It defines the following variables
+#  PLUSAPP_INCLUDE_DIRS - include directories for PlusApp
+#  PLUSAPP_LIBRARY_DIRS - library directories for PlusApp (normally not used!)
+ 
+# Tell the user project where to find our headers and libraries
+SET(PLUSAPP_INCLUDE_DIRS "@PLUSAPP_INCLUDE_DIRS@")
+SET(PLUSAPP_LIBRARY_DIRS "@PLUSAPP_LIBRARY_DIRS@")
+
+# Tell the user project where to find PlusApp use file
+SET(PlusApp_USE_FILE "@CMAKE_CURRENT_BINARY_DIR@/UsePlusApp.cmake" )
+ 
+# Our library dependencies (contains definitions for IMPORTED targets)
+include("@CMAKE_CURRENT_BINARY_DIR@/PlusAppLibraryDepends.cmake")
+
