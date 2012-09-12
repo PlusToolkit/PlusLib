@@ -1,0 +1,9 @@
+@ECHO off 
+REM First we need to build a Release version 
+
+SET PATH=c:/cygwin/bin;%PATH%
+SET SVNCOMMAND=svn.exe
+
+"${CMAKE_CPACK_COMMAND}"
+
+ECHO DONE
