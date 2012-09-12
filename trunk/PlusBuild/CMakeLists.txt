@@ -140,7 +140,7 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
 ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
 
 #-----------------------------------------------------------------------------
-# Enable and setup External project global properties
+# Specify common external project properties
 #-----------------------------------------------------------------------------
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 INCLUDE(CTest)
@@ -164,30 +164,7 @@ ELSE()
 ENDIF()
 
 #------------------------------------------------------------------------------
-# Establish Target Dependencies based on Selected Options
-#------------------------------------------------------------------------------
-
-SET(PlusLib_DEPENDENCIES)
-
-IF ( NOT PLUSBUILD_USE_3DSlicer )
-  SET(VTK_DEPENDENCIES)
-  SET(ITK_DEPENDENCIES)
-  LIST(APPEND PlusLib_DEPENDENCIES vtk itk)   
-  IF(PLUSBUILD_USE_OpenIGTLink)
-    SET(OpenIGTLink_DEPENDENCIES)
-    LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
-  ENDIF(PLUSBUILD_USE_OpenIGTLink)
-ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
-
-IF ( PLUS_USE_BKPROFOCUS_VIDEO )
-  SET(GrabbieLib_DEPENDENCIES)
-  LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
-ENDIF() 
-
-SET(PlusApp_DEPENDENCIES PlusLib)
-
-#------------------------------------------------------------------------------
-# Conditionnaly include ExternalProject Target
+# Specify external projects
 #------------------------------------------------------------------------------
             
 IF ( PLUSBUILD_USE_3DSlicer )
@@ -211,8 +188,7 @@ IF ( PLUSBUILD_USE_3DSlicer )
     INCLUDE( ${Slicer_USE_FILE} )    
     IF(PLUSBUILD_USE_OpenIGTLink)
       FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
-    ENDIF(PLUSBUILD_USE_OpenIGTLink)
-      
+    ENDIF(PLUSBUILD_USE_OpenIGTLink)      
   ENDIF( Slicer_FOUND )
   
   ## Try to find Slicer3
@@ -234,39 +210,14 @@ IF ( PLUSBUILD_USE_3DSlicer )
     ENDIF (NOT VTK_USE_QT)
   ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
   
-  # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-    FILE(COPY 
-      ${VTK_LIBRARY_DIRS}/Release/
-      ${ITK_LIBRARY_DIRS}/Release/
-      ${OpenIGTLink_LIBRARY_DIRS}/Release/
-      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-    FILE(COPY 
-      ${VTK_LIBRARY_DIRS}/Debug/
-      ${ITK_LIBRARY_DIRS}/Debug/
-      ${OpenIGTLink_LIBRARY_DIRS}/Debug/
-      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )    
-  ELSE()
-      FILE(COPY 
-        ${VTK_LIBRARY_DIRS}/
-        ${ITK_LIBRARY_DIRS}/
-        ${OpenIGTLink_LIBRARY_DIRS}/
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-        )
-  ENDIF()
-ELSE ( PLUSBUILD_USE_3DSlicer )
-  INCLUDE(External_VTK.cmake)
-  INCLUDE(External_ITK.cmake)
-  IF(PLUSBUILD_USE_OpenIGTLink)
-    INCLUDE(External_OpenIGTLink.cmake)
-  ENDIF(PLUSBUILD_USE_OpenIGTLink)
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
+INCLUDE(External_VTK.cmake)
+INCLUDE(External_ITK.cmake)
+IF(PLUSBUILD_USE_OpenIGTLink)
+  INCLUDE(External_OpenIGTLink.cmake)
+ENDIF(PLUSBUILD_USE_OpenIGTLink)
+  
 IF ( PLUS_USE_BKPROFOCUS_VIDEO )
   INCLUDE(External_GrabbieLib.cmake)
 ENDIF()
@@ -298,6 +249,41 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
     MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
   ENDIF()
 ENDIF()
+
+#------------------------------------------------------------------------------
+# Specify target dependencies
+#------------------------------------------------------------------------------
+
+SET(PlusLib_DEPENDENCIES)
+
+IF ( NOT VTK_DIR )
+  # VTK_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
+  SET(VTK_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES vtk)   
+ENDIF()
+
+IF ( NOT ITK_DIR )
+  # ITK_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
+  SET(ITK_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES vtk)   
+ENDIF()
+  
+IF(PLUSBUILD_USE_OpenIGTLink AND NOT OpenIGTLink_DIR)
+  # OpenIGTLink_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
+  SET(OpenIGTLink_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
+ENDIF()
+
+IF ( PLUS_USE_BKPROFOCUS_VIDEO )
+  SET(GrabbieLib_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
+ENDIF() 
+
+SET(PlusApp_DEPENDENCIES PlusLib)
+
+#------------------------------------------------------------------------------
+# Set up project for PlusLib and PlusApp
+#------------------------------------------------------------------------------
 
 INCLUDE(External_PlusLib.cmake)
 
