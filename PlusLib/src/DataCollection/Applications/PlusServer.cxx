@@ -23,11 +23,6 @@ happens between two threads. In real life, it happens between two programs.
 #include <cstdlib>
 #include <cstdio>
 
-#ifndef _WIN32
-// For handling keyboard presses in Linux
-#include <ncurses.h>
-#endif
-
 // Connect/disconnect clients to server for testing purposes
 PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect ); 
 PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList );
@@ -147,16 +142,13 @@ int main( int argc, char** argv )
   }
   // *************************** End of testing **************************
 
+#ifdef _WIN32
   std::cout << "Press Q or Ctrl-C to quit:" << std::endl;
+#else
+  std::cout << "Press Ctrl-C to quit:" << std::endl;
+#endif
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
-
-#ifndef _WIN32
-  //Initialize ncurses
-  WINDOW *w = initscr();
-  cbreak();
-  nodelay(w, TRUE);
-#endif
 
   neverStop = (runTime==0.0);
 
@@ -179,21 +171,9 @@ int main( int argc, char** argv )
     }
     Sleep(1); // give a chance to other threads to get CPU time now
 #else
-    char c = getch();
-    if( c == 'Q' || c == 'q' )
-    {
-      runTime = 0.0;
-      neverStop = false;
-    }
-
     vtkAccurateTimer::Delay( 0.2 );
 #endif
   }
-
-#ifndef _WIN32
-  // Clean up ncurses
-  endwin();
-#endif
 
   // *************************** Testing **************************
   if ( testing ) 

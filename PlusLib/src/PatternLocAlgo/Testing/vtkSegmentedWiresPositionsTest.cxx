@@ -34,7 +34,7 @@ typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
 int main (int argc, char* argv[])
 { 
-	std::string inputTestDataPath;
+	std::string inputSequenceMetafile;
   std::string inputTransformName; 
 	std::string outputWirePositionFile("./SegmentedWirePositions.txt");
 	int inputImageType(1); 
@@ -48,12 +48,12 @@ int main (int argc, char* argv[])
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
-	cmdargs.AddArgument("--input-test-data-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataPath, "Test data path");
-	cmdargs.AddArgument("--input-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
-	cmdargs.AddArgument("--input-image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");	
+	cmdargs.AddArgument("--image-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Image sequence metafile");
+	cmdargs.AddArgument("--image-position-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
+	cmdargs.AddArgument("--image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");	
 	cmdargs.AddArgument("--output-wire-position-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputWirePositionFile, "Result wire position file name (Default: ./SegmentedWirePositions.txt)");
 
-	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+	cmdargs.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
 	cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -67,9 +67,9 @@ int main (int argc, char* argv[])
   
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if ( inputTestDataPath.empty() ) 
+	if ( inputSequenceMetafile.empty() ) 
 	{
-		std::cerr << "input-test-data-path argument required" << std::endl << std::endl;
+		std::cerr << "image-seq-file argument required" << std::endl << std::endl;
 		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 
@@ -96,9 +96,9 @@ int main (int argc, char* argv[])
 
 	LOG_INFO( "Reading sequence meta file");  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( trackedFrameList->ReadFromSequenceMetafile(inputTestDataPath.c_str()) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
-      LOG_ERROR("Failed to read sequence metafile: " << inputTestDataPath); 
+      LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;
   }
 

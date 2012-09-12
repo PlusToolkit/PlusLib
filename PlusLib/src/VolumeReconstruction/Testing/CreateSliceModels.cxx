@@ -69,12 +69,12 @@ int main( int argc, char** argv )
 
   if ( inputMetaFilename.empty() )
   {
-    std::cerr << "--input-metafile argument required!" << std::endl; 
+    std::cerr << "--source-seq-file argument required!" << std::endl; 
     exit(EXIT_FAILURE); 
   }
   if ( outputModelFilename.empty() )
   {
-    std::cerr << "--output-modelfile argument required!" << std::endl; 
+    std::cerr << "--output-model-file argument required!" << std::endl; 
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }

@@ -246,7 +246,7 @@ SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROP
 # ADD_TEST(vtkSegmentedWiresPositionsTest 
 	# ${EXECUTABLE_OUTPUT_PATH}/vtkSegmentedWiresPositionsTest
 	# --test-data-dir=${TestDataDir}
-	# --img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	# --image-seq-file=UsTestSeqBaselineThomasShortened.mha
 	# --baseline=${TestDataDir}/baselineTestWithThomasData.xml
 	# --output-xml-file=testcomparisons.xml
 	# )

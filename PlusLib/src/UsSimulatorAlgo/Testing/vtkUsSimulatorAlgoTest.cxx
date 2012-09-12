@@ -131,12 +131,12 @@ int main(int argc, char **argv)
 
   if (inputConfigFile.empty())
   {
-    std::cerr << "--input-config-file required " << std::endl;
+    std::cerr << "--config-file required " << std::endl;
     exit(EXIT_FAILURE);
   }
   if (inputTransformsFile.empty())
   {
-    std::cerr << "--input-transforms-file required" << std::endl;
+    std::cerr << "--transforms-seq-file required" << std::endl;
     exit(EXIT_FAILURE);
   }
   if (outputUsImageFile.empty())
