@@ -101,10 +101,13 @@ public:
 
   int* GetTrueHistogramPtr() {return TrueHistogram;}
   int* GetAbsoluteHistogramPtr() {return AbsoluteHistogram;}
+  int* GetAbsoluteHistogramWithHolesPtr() {return AbsoluteHistogramWithHoles;}
   void incTrueHistogramAtIndex(int value) {int index = value + 256; TrueHistogram[index]++;}
   void incAbsoluteHistogramAtIndex(int value) {int index = value; AbsoluteHistogram[index]++;}
+  void incAbsoluteHistogramWithHolesAtIndex(int value) {int index = value; AbsoluteHistogramWithHoles[index]++;}
   void resetTrueHistogram() {for (int i = 0; i < 511; i++) TrueHistogram[i] = 0;}
   void resetAbsoluteHistogram() {for (int i = 0; i < 256; i++) AbsoluteHistogram[i] = 0;}
+  void resetAbsoluteHistogramWithHoles() {for (int i = 0; i < 256; i++) AbsoluteHistogramWithHoles[i] = 0;}
 
 protected:
   vtkCompareVolumes();
@@ -116,6 +119,7 @@ protected:
   double AbsoluteMeanWithHoles;
   int TrueHistogram[511];
   int AbsoluteHistogram[256];
+  int AbsoluteHistogramWithHoles[256];
   int NumberOfHoles;
   int NumberOfFilledHoles;
   int NumberVoxelsVisible;

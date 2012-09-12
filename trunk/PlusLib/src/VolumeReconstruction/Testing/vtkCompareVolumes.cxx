@@ -75,6 +75,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 
   int xtemp(0),ytemp(0),ztemp(0); // indices for each of the axes
   self->resetTrueHistogram(); // count inside the class variables
+  self->resetAbsoluteHistogramWithHoles();
   self->resetAbsoluteHistogram();
   std::vector<double> trueDifferences; // store all differences here
   std::vector<double> absoluteDifferences;
@@ -104,6 +105,7 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
           {
             countHoles++;
             double difference = (double)gtPtr[inIndex] - testPtr[inIndex];
+            self->incAbsoluteHistogramWithHolesAtIndex(PlusMath::Round(abs(difference)));
             absoluteDifferencesInAllHoles.push_back(abs(difference));
             if (testAlphaPtr[inIndex] != 0) {
               countFilledHoles++;
