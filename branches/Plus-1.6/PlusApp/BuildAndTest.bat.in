@@ -1,0 +1,46 @@
+@ECHO off
+REM Hide all your directories from users
+
+SET ORIGPATH=%PATH%
+
+SET DIRCMD=0 
+
+if "%1" == "" goto experimental
+if "%1" == "-E" goto experimental
+if "%1" == "-N" goto nightly
+if "%1" == "-C" goto continuous
+if "%1" == "-I" goto individual
+
+:experimental
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
+IF ERRORLEVEL 1  GOTO BUILDFAILED
+"${CMAKE_CTEST_COMMAND}" -D Experimental --output-on-failure
+goto END
+
+:nightly
+@REM Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /clean Release /project ALL_BUILD
+"${CMAKE_CTEST_COMMAND}" -D Nightly
+goto END
+
+:continuous
+"${CMAKE_CTEST_COMMAND}" -D Continuous
+@REM Wait for some time before continue to allow checking the results of the executions
+timeout /t 15
+goto END
+
+:individual 
+@REM Run individual tests with regexp search 
+@REM Display the list of tests
+"${CMAKE_CTEST_COMMAND}" -R "%2" -N
+@REM Run selected tests
+"${CMAKE_CTEST_COMMAND}" -R "%2" -V
+goto END
+
+:BUILDFAILED
+ECHO ERROR: Build failed...
+GOTO END 
+
+:END
+SET PATH=%ORIGPATH%
+ECHO DONE

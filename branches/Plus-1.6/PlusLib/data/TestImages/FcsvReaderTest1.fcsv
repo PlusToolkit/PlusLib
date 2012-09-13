@@ -1,0 +1,36 @@
+# Fiducial List file C:/devel/USTemplateCalibration/data/TestImages/FcsvReaderTest1.fcsv
+# version = 2
+# name = FcsvReaderTest1
+# numPoints = 18
+# symbolScale = 5
+# symbolType = 12
+# visibility = 1
+# textScale = 4.5
+# color = 0.4,1,1
+# selectedColor = 1,0.5,0.5
+# opacity = 1
+# ambient = 0
+# diffuse = 1
+# specular = 0
+# power = 1
+# locked = 0
+# numberingScheme = 0
+# columns = label,x,y,z,sel,vis
+L-P,-209.934,-223.544,77,1,1
+L-P1,-319.5,-224.608,77,0,1
+L-P2,-411.514,-220.884,77,1,0
+L-P3,-213.126,-329.918,77,1,0
+L-P4,-302.48,-332.578,77,1,1
+L-P5,-411.514,-328.323,77,1,1
+L-P6,-209.934,-224.076,76,1,1
+L-P7,-321.096,-223.544,76,1,1
+L-P8,-410.982,-221.948,76,1,1
+L-P9,-213.657,-329.918,76,1,1
+L-P10,-301.948,-332.578,76,1,1
+L-P11,-412.046,-327.791,76,1,1
+L-P12,-209.402,-224.076,75,1,1
+L-P13,-322.159,-224.608,75,1,1
+L-P14,-412.578,-221.948,75,1,1
+L-P15,-214.189,-329.918,75,1,1
+L-P16,-301.416,-333.11,75,1,1
+L-P17,-411.514,-328.323,75,1,1

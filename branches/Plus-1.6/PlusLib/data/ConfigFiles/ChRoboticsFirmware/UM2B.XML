@@ -1,0 +1,3100 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<CHR_FIRMWARE id="UM2B" name="UM6 REV 2.0" description="UM6 AHRS revision 2.1">
+	<!-- ********************************************************* -->
+	<!-- CONFIGURATION ITEMS -->
+	<!-- ********************************************************* -->
+	<ConfigGroup>
+		<Name>Communication</Name>
+		<Description>Communication Settings</Description>
+		
+		<!-- BROADCAST ENABLED -->
+		<ConfigItem>
+			<Name>Broadcast Enabled</Name>
+			<Description>Specifies whether automatic transmission of states of the serial port is enabled</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>30</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- BROADCAST RATE -->
+		<ConfigItem>
+			<Name>Broadcast Rate</Name>
+			<Description>Specifies how often states are transmitted over the serial line</Description>
+			<Address>0</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min>0</Min>
+			<Max>255</Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+			
+		<!-- BAUD RATE -->
+		<ConfigItem>
+			<Name>Baud Rate</Name>
+			<Description>Sets the baudrate of the sensor serial connection</Description>
+			<Address>0</Address>
+			<Bits>3</Bits>
+			<Start>8</Start>
+			<DataType>option</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+
+			<Option>
+				<Name>0: 9600 Baud</Name>
+				<Value>0</Value>
+			</Option>
+			<Option>
+				<Name>1: 14400 Baud</Name>
+				<Value>1</Value>
+			</Option>
+			<Option>
+				<Name>2: 19200 Baud</Name>
+				<Value>2</Value>
+			</Option>
+			<Option>
+				<Name>3: 38400 Baud</Name>
+				<Value>3</Value>
+			</Option>
+			<Option>
+				<Name>4: 57600 Baud</Name>
+				<Value>4</Value>
+			</Option>
+			<Option>
+				<Name>5: 115200 Baud</Name>
+				<Value>5</Value>
+			</Option>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>GPS Baud Rate</Name>
+			<Description>Sets the baudrate of the GPS sensor attached to the UM6 (if any)</Description>
+			<Address>0</Address>
+			<Bits>3</Bits>
+			<Start>11</Start>
+			<DataType>option</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+
+			<Option>
+				<Name>0: 9600 Baud</Name>
+				<Value>0</Value>
+			</Option>
+			<Option>
+				<Name>1: 14400 Baud</Name>
+				<Value>1</Value>
+			</Option>
+			<Option>
+				<Name>2: 19200 Baud</Name>
+				<Value>2</Value>
+			</Option>
+			<Option>
+				<Name>3: 38400 Baud</Name>
+				<Value>3</Value>
+			</Option>
+			<Option>
+				<Name>4: 57600 Baud</Name>
+				<Value>4</Value>
+			</Option>
+			<Option>
+				<Name>5: 115200 Baud</Name>
+				<Value>5</Value>
+			</Option>
+		</ConfigItem>
+		
+		<!-- RAW GYROS ENABLED -->
+		<ConfigItem>
+			<Name>Raw Gyro Output Enabled</Name>
+			<Description>Specifies whether raw gyro data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>29</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- RAW ACCEL ENABLED -->
+		<ConfigItem>
+			<Name>Raw Accel Output Enabled</Name>
+			<Description>Specifies whether raw accel data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>28</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- RAW MAG ENABLED -->
+		<ConfigItem>
+			<Name>Raw Mag Output Enabled</Name>
+			<Description>Specifies whether raw magnetometer data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>27</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- PROC GYROS ENABLED -->
+		<ConfigItem>
+			<Name>Processed Gyro Output Enabled</Name>
+			<Description>Specifies whether processed gyro data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>26</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- PROC GYROS ENABLED -->
+		<ConfigItem>
+			<Name>Processed Accel Output Enabled</Name>
+			<Description>Specifies whether processed accel data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>25</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- PROC MAG ENABLED -->
+		<ConfigItem>
+			<Name>Processed Mag Output Enabled</Name>
+			<Description>Specifies whether processed magnetometer data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>24</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- QUATERNION OUTPUT -->
+		<ConfigItem>
+			<Name>Quaternion Output Enabled</Name>
+			<Description>Specifies whether quaternion data is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>23</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- EULER OUTPUT -->
+		<ConfigItem>
+			<Name>Euler Output Enabled</Name>
+			<Description>Specifies whether euler angles are transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>22</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- COVARIANCE OUTPUT -->
+		<ConfigItem>
+			<Name>Covariance Output Enabled</Name>
+			<Description>Specifies whether the 4x4 error covariance matrix is transmitted in serial state broadcasts</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>21</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO TEMPERATURE MEASUREMENT OUTPUT -->
+		<ConfigItem>
+			<Name>Temperature Output Enabled</Name>
+			<Description>Specifies whether the temperature measured by the onboard gyro temperature sensor is transmitted</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>20</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+				
+		<!-- GPS Position Transmission Enabled -->
+		<ConfigItem>
+			<Name>GPS Position Enabled</Name>
+			<Description>Specifies whether GPS latitude, longitude, and altitude should be transmitted when new data arrives and is parsed</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>19</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+				
+		
+		<!-- GPS Relative Position Enabled -->
+		<ConfigItem>
+			<Name>GPS Relative Position Enabled</Name>
+			<Description>Specifies whether GPS north and east positions relative to the home position should be transmitted when new data arrives</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>18</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GPS Course/Speed Enabled -->
+		<ConfigItem>
+			<Name>GPS Course/Speed Enabled</Name>
+			<Description>Specifies whether GPS course and speed data are transmitted when new data arrives</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>17</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GPS Satellite Summary Enabled -->
+		<ConfigItem>
+			<Name>GPS Satellite Summary Enabled</Name>
+			<Description>Specifies whether satellite summary information should be transmitted when new data arrives</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>16</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GPS Satellite Data Enabled -->
+		<ConfigItem>
+			<Name>GPS Satellite Data Enabled</Name>
+			<Description>Specifies whether satellite data (ID and SNR) should be transmitted when new data arrives</Description>
+			<Address>0</Address>
+			<Bits>1</Bits>
+			<Start>15</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>	
+		
+	</ConfigGroup>
+
+	<!-- Misc Configuration -->
+	<ConfigGroup>
+		<Name>Misc</Name>
+		<Description>Misc Settings</Description>
+		
+		<!-- MAG UPDATE ENABLED -->
+		<ConfigItem>
+			<Name>Mag Update Enabled</Name>
+			<Description>Specifies whether magnetometer measurements are used to update state estimates</Description>
+			<Address>1</Address>
+			<Bits>1</Bits>
+			<Start>31</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACCEL UPDATE ENABLED -->
+		<ConfigItem>
+			<Name>Accel Update Enabled</Name>
+			<Description>Specifies whether accelerometer measurements are used to update state estimates</Description>
+			<Address>1</Address>
+			<Bits>1</Bits>
+			<Start>30</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO STARTUP CALIBRATION -->
+		<ConfigItem>
+			<Name>Gyro Startup Calibration</Name>
+			<Description>Specifies whether rate gyro biases should be automatically measured on startup</Description>
+			<Address>1</Address>
+			<Bits>1</Bits>
+			<Start>29</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- QUATERNION ESTIMATION -->
+		<ConfigItem>
+			<Name>Quaternion Estimation Enabled</Name>
+			<Description>Specifies whether quaternions should be used instead of Euler Angles for attitude estimation</Description>
+			<Address>1</Address>
+			<Bits>1</Bits>
+			<Start>28</Start>
+			<DataType>en/dis</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>		
+	</ConfigGroup>
+	
+	<!-- Misc Configuration -->
+	<ConfigGroup>
+		<Name>GPS</Name>
+		<Description>GPS Settings</Description>
+			
+		<!-- GPS home latitude -->
+		<ConfigItem>
+			<Name>GPS Home Latitude</Name>
+			<Description>Specifies the latitude used as the GPS home position for computation of relative position in meters</Description>
+			<Address>56</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GPS home longitude -->
+		<ConfigItem>
+			<Name>GPS Home Longitude</Name>
+			<Description>Specifies the longitude used as the GPS home position for computation of relative position in meters</Description>
+			<Address>57</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GPS home altitude -->
+		<ConfigItem>
+			<Name>GPS Home Altitude</Name>
+			<Description>Specifies the altitude used as the GPS home position for computation of relative position in meters</Description>
+			<Address>58</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>		
+		
+	</ConfigGroup>	
+	
+	
+	<!-- SENSOR REFERENC VECTORS -->
+	<ConfigGroup>
+		<Name>Sensor Reference Vectors</Name>
+		<Description>Expected magnetometer outputs when yaw, pitch, and roll angles are zero</Description>
+		
+		<!-- Max X ref -->
+		<ConfigItem>
+			<Name>Mag X Ref</Name>
+			<Description>x-axis component of the magnetic field reference vector</Description>
+			<Address>2</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Max Y ref -->
+		<ConfigItem>
+			<Name>Mag Y Ref</Name>
+			<Description>y-axis component of the magnetic field reference vector</Description>
+			<Address>3</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Max Z ref -->
+		<ConfigItem>
+			<Name>Mag Z Ref</Name>
+			<Description>z-axis component of the magnetic field reference vector</Description>
+			<Address>4</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Accel X ref -->
+		<ConfigItem>
+			<Name>Accel X Ref</Name>
+			<Description>x-axis component of the accelerometer reference vector</Description>
+			<Address>5</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Accel Y ref -->
+		<ConfigItem>
+			<Name>Accel Y Ref</Name>
+			<Description>y-axis component of the accelerometer reference vector</Description>
+			<Address>6</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Accel Z ref -->
+		<ConfigItem>
+			<Name>Accel Z Ref</Name>
+			<Description>z-axis component of the accelerometer reference vector</Description>
+			<Address>7</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+	</ConfigGroup>
+	
+	<!-- Filter Variances -->
+	<ConfigGroup>
+		<Name>EKF Variances</Name>
+		<Description>Variances used in the EKF for state estimation</Description>
+		
+		<!-- Mag variance -->
+		<ConfigItem>
+			<Name>Mag Variance</Name>
+			<Description>Variance of magnetometer measurements</Description>
+			<Address>8</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Accel variance -->
+		<ConfigItem>
+			<Name>Accel Variance</Name>
+			<Description>Variance of accelerometer measurements</Description>
+			<Address>9</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Process variance -->
+		<ConfigItem>
+			<Name>Process Variance</Name>
+			<Description>Variance of process noise</Description>
+			<Address>10</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+	</ConfigGroup>	
+	
+	<!-- Sensor Biases -->
+	<ConfigGroup>
+		<Name>Sensor Biases</Name>
+		<Description>Rate gyro and accelerometer output biases</Description>
+		
+		<!-- X-axis Gyro bias -->
+		<ConfigItem>
+			<Name>Gyro X Bias</Name>
+			<Description>Bias of x-axis rate gyro</Description>
+			<Address>11</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Y-axis Gyro Bias -->
+		<ConfigItem>
+			<Name>Gyro Y Bias</Name>
+			<Description>Bias of y-axis rate gyro</Description>
+			<Address>11</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Z-axis Gyro Bias -->
+		<ConfigItem>
+			<Name>Gyro Z Bias</Name>
+			<Description>Bias of z-axis rate gyro</Description>
+			<Address>12</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>		
+		
+		<!-- X-axis Accel Bias -->
+		<ConfigItem>
+			<Name>Accel X Bias</Name>
+			<Description>Bias of x-axis accelerometer</Description>
+			<Address>13</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Y-axis Accel Bias -->
+		<ConfigItem>
+			<Name>Accel Y Bias</Name>
+			<Description>Bias of y-axis accelerometer</Description>
+			<Address>13</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Z-axis Accel Bias -->
+		<ConfigItem>
+			<Name>Accel Z Bias</Name>
+			<Description>Bias of z-axis accelerometer</Description>
+			<Address>14</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>		
+		
+		<!-- X-axis Mag Bias -->
+		<ConfigItem>
+			<Name>Mag X Bias</Name>
+			<Description>Bias of x-axis magnetometer</Description>
+			<Address>15</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Y-axis Mag Bias -->
+		<ConfigItem>
+			<Name>Mag Y Bias</Name>
+			<Description>Bias of y-axis magnetometer</Description>
+			<Address>15</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Z-axis Mag Bias -->
+		<ConfigItem>
+			<Name>Mag Z Bias</Name>
+			<Description>Bias of z-axis magnetometer</Description>
+			<Address>16</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>	
+		
+	</ConfigGroup>
+	
+	<!-- Gyro temperature compensation constants -->
+	<ConfigGroup>
+		<Name>Gyro Temperature Compensation</Name>
+		<Description>Terms used for rate gyro temperature compensation</Description>
+		
+		<!-- X-axis terms -->
+		<ConfigItem>
+			<Name>Gyro X C0</Name>
+			<Description>First term in temperature compensation equation</Description>
+			<Address>44</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro X C1</Name>
+			<Description>Second term in temperature compensation equation</Description>
+			<Address>45</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro X C2</Name>
+			<Description>Third term in temperature compensation equation</Description>
+			<Address>46</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro X C3</Name>
+			<Description>Fourth term in temperature compensation equation</Description>
+			<Address>47</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Y-axis terms -->
+		<ConfigItem>
+			<Name>Gyro Y C0</Name>
+			<Description>First term in temperature compensation equation</Description>
+			<Address>48</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Y C1</Name>
+			<Description>Second term in temperature compensation equation</Description>
+			<Address>49</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Y C2</Name>
+			<Description>Third term in temperature compensation equation</Description>
+			<Address>50</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Y C3</Name>
+			<Description>Fourth term in temperature compensation equation</Description>
+			<Address>51</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- Z-axis terms -->
+		<ConfigItem>
+			<Name>Gyro Z C0</Name>
+			<Description>First term in temperature compensation equation</Description>
+			<Address>52</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Z C1</Name>
+			<Description>Second term in temperature compensation equation</Description>
+			<Address>53</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Z C2</Name>
+			<Description>Third term in temperature compensation equation</Description>
+			<Address>54</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<ConfigItem>
+			<Name>Gyro Z C3</Name>
+			<Description>Fourth term in temperature compensation equation</Description>
+			<Address>55</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>		
+		
+		
+	</ConfigGroup>	
+	
+	<!-- Accelerometer calibration matrix -->
+	<ConfigGroup>
+		<Name>Accel Calibration</Name>
+		<Description>3x3 matrix for accelerometer calibration</Description>
+		
+		<!-- ACC00 -->
+		<ConfigItem>
+			<Name>ACC00</Name>
+			<Description>Entry in row 0 column 0 of calibration matrix</Description>
+			<Address>17</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC01 -->
+		<ConfigItem>
+			<Name>ACC01</Name>
+			<Description>Entry in row 0 column 1 of calibration matrix</Description>
+			<Address>18</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC02 -->
+		<ConfigItem>
+			<Name>ACC02</Name>
+			<Description>Entry in row 0 column 2 of calibration matrix</Description>
+			<Address>19</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC10 -->
+		<ConfigItem>
+			<Name>ACC10</Name>
+			<Description>Entry in row 1 column 0 of calibration matrix</Description>
+			<Address>20</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC11 -->
+		<ConfigItem>
+			<Name>ACC11</Name>
+			<Description>Entry in row 1 column 1 of calibration matrix</Description>
+			<Address>21</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC12 -->
+		<ConfigItem>
+			<Name>ACC12</Name>
+			<Description>Entry in row 1 column 2 of calibration matrix</Description>
+			<Address>22</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC20 -->
+		<ConfigItem>
+			<Name>ACC20</Name>
+			<Description>Entry in row 2 column 0 of calibration matrix</Description>
+			<Address>23</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC21 -->
+		<ConfigItem>
+			<Name>ACC21</Name>
+			<Description>Entry in row 2 column 1 of calibration matrix</Description>
+			<Address>24</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- ACC22 -->
+		<ConfigItem>
+			<Name>ACC22</Name>
+			<Description>Entry in row 2 column 2 of calibration matrix</Description>
+			<Address>25</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+	</ConfigGroup>
+	
+	<!-- Rate gyro calibration matrix -->
+	<ConfigGroup>
+		<Name>Gyro Calibration</Name>
+		<Description>3x3 matrix for rate gyro calibration</Description>
+		
+		<!-- GYRO00 -->
+		<ConfigItem>
+			<Name>GYRO00</Name>
+			<Description>Entry in row 0 column 0 of calibration matrix</Description>
+			<Address>26</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO01 -->
+		<ConfigItem>
+			<Name>GYRO01</Name>
+			<Description>Entry in row 0 column 1 of calibration matrix</Description>
+			<Address>27</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO02 -->
+		<ConfigItem>
+			<Name>GYRO02</Name>
+			<Description>Entry in row 0 column 2 of calibration matrix</Description>
+			<Address>28</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO10 -->
+		<ConfigItem>
+			<Name>GYRO10</Name>
+			<Description>Entry in row 1 column 0 of calibration matrix</Description>
+			<Address>29</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO11 -->
+		<ConfigItem>
+			<Name>GYRO11</Name>
+			<Description>Entry in row 1 column 1 of calibration matrix</Description>
+			<Address>30</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO12 -->
+		<ConfigItem>
+			<Name>GYRO12</Name>
+			<Description>Entry in row 1 column 2 of calibration matrix</Description>
+			<Address>31</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO20 -->
+		<ConfigItem>
+			<Name>GYRO20</Name>
+			<Description>Entry in row 2 column 0 of calibration matrix</Description>
+			<Address>32</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO21 -->
+		<ConfigItem>
+			<Name>GYRO21</Name>
+			<Description>Entry in row 2 column 1 of calibration matrix</Description>
+			<Address>33</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- GYRO22 -->
+		<ConfigItem>
+			<Name>GYRO22</Name>
+			<Description>Entry in row 2 column 2 of calibration matrix</Description>
+			<Address>34</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+	</ConfigGroup>
+	
+	<!-- Magnetometer Calibration Matrix -->
+	<ConfigGroup>
+		<Name>Mag Calibration</Name>
+		<Description>3x3 matrix for correctin magnetometer soft-iron distortion</Description>
+		
+		<!-- MAG00 -->
+		<ConfigItem>
+			<Name>MAG00</Name>
+			<Description>Entry in row 0 column 0 of calibration matrix</Description>
+			<Address>35</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG01 -->
+		<ConfigItem>
+			<Name>MAG01</Name>
+			<Description>Entry in row 0 column 1 of calibration matrix</Description>
+			<Address>36</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG02 -->
+		<ConfigItem>
+			<Name>MAG02</Name>
+			<Description>Entry in row 0 column 2 of calibration matrix</Description>
+			<Address>37</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG10 -->
+		<ConfigItem>
+			<Name>MAG10</Name>
+			<Description>Entry in row 1 column 0 of calibration matrix</Description>
+			<Address>38</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG11 -->
+		<ConfigItem>
+			<Name>MAG11</Name>
+			<Description>Entry in row 1 column 1 of calibration matrix</Description>
+			<Address>39</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG12 -->
+		<ConfigItem>
+			<Name>MAG12</Name>
+			<Description>Entry in row 1 column 2 of calibration matrix</Description>
+			<Address>40</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG20 -->
+		<ConfigItem>
+			<Name>MAG20</Name>
+			<Description>Entry in row 2 column 0 of calibration matrix</Description>
+			<Address>41</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG21 -->
+		<ConfigItem>
+			<Name>MAG21</Name>
+			<Description>Entry in row 2 column 1 of calibration matrix</Description>
+			<Address>42</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+		<!-- MAG22 -->
+		<ConfigItem>
+			<Name>MAG22</Name>
+			<Description>Entry in row 2 column 2 of calibration matrix</Description>
+			<Address>43</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</ConfigItem>
+		
+	</ConfigGroup>
+	
+	<!-- ********************************************************* -->
+	<!-- Data Items 											   -->
+	<!-- ********************************************************* -->
+	
+	<!-- STATUS REGISTER -->
+		<DataGroup>
+			<Name>Status</Name>
+			<Description>Flags describing UM6 status</Description>
+			
+			<!-- Mag Initialization -->
+			<DataItem>
+				<Name>Mag Init</Name>
+				<Description>Asserted if magnetometer initialization failed on startup</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>31</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Accel Initialization -->
+			<DataItem>
+				<Name>Accel Init</Name>
+				<Description>Asserted if accelerometer initialization failed on startup</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>30</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Gyro Initialization -->
+			<DataItem>
+				<Name>Gyro Init</Name>
+				<Description>Asserted if rate gyro initialization failed on startup</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>29</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Gyro x-axis self-test failed -->
+			<DataItem>
+				<Name>Gyro X Self-Test</Name>
+				<Description>Asserted if the x-axis rate gyro self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>28</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>			
+			
+			<!-- Gyro y-axis self-test failed -->
+			<DataItem>
+				<Name>Gyro Y Self-Test</Name>
+				<Description>Asserted if the y-axis rate gyro self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>27</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Gyro z-axis self-test failed -->
+			<DataItem>
+				<Name>Gyro Z Self-Test</Name>
+				<Description>Asserted if the z-axis rate gyro self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>26</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Accel x-axis self-test failed -->
+			<DataItem>
+				<Name>Accel X Self-Test</Name>
+				<Description>Asserted if the x-axis accelerometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>25</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Accel y-axis self-test failed -->
+			<DataItem>
+				<Name>Accel Y Self-Test</Name>
+				<Description>Asserted if the y-axis accelerometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>24</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Accel z-axis self-test failed -->
+			<DataItem>
+				<Name>Accel Z Self-Test</Name>
+				<Description>Asserted if the z-axis accelerometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>23</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Mag x-axis self-test failed -->
+			<DataItem>
+				<Name>Mag X Self-Test</Name>
+				<Description>Asserted if the x-axis magnetometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>22</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Mag y-axis self-test failed -->
+			<DataItem>
+				<Name>Mag Y Self-Test</Name>
+				<Description>Asserted if the y-axis magnetometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>21</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- Mag z-axis self-test failed -->
+			<DataItem>
+				<Name>Mag Z Self-Test</Name>
+				<Description>Asserted if the z-axis magnetometer self-test failed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>20</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>	
+			
+			<!-- i2c bus error while communicating with rate gyro -->
+			<DataItem>
+				<Name>Gyro i2c Bus Error</Name>
+				<Description>Asserted if there was an i2c bus error while communicating with the rate gyros</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>19</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- i2c bus error while communicating with accels -->
+			<DataItem>
+				<Name>Accel i2c Bus Error</Name>
+				<Description>Asserted if there was an i2c bus error while communicating with the accelerometers</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>18</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- i2c bus error while communicating with mag -->
+			<DataItem>
+				<Name>Mag i2c Bus Error</Name>
+				<Description>Asserted if there was an i2c bus error while communicating with the magnetometer</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>17</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- EKF divergent -->
+			<DataItem>
+				<Name>EKF Divergent</Name>
+				<Description>Asserted if the EKF estimate diverged and had to be reset</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>16</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Rate gyros unresponsive -->
+			<DataItem>
+				<Name>Gyros Unresponsive</Name>
+				<Description>Asserted if the gyros fail to signal new data available for longer than expected</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>15</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Accels unresponsive -->
+			<DataItem>
+				<Name>Accels Unresponsive</Name>
+				<Description>Asserted if the accels fail to signal new data available for longer than expected</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>14</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Mag unresponsive -->
+			<DataItem>
+				<Name>Mag Unresponsive</Name>
+				<Description>Asserted if the magnetometer fails to signal new data available for longer than expected</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>13</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+			
+			<!-- Self-test Complete -->
+			<DataItem>
+				<Name>Self-Test Complete</Name>
+				<Description>Asserted if a self-test operation was completed</Description>
+				<Address>85</Address>
+				<Bits>1</Bits>
+				<Start>0</Start>
+				<DataType>binary</DataType>
+				<Min>0</Min>
+				<Max>1</Max>
+				<ScaleFactor>1.0</ScaleFactor>
+			</DataItem>
+	</DataGroup>
+	
+	<!-- RAW AND PROCESSED GYRO DATA -->
+	<DataGroup>
+		<Name>Gyro Data</Name>
+		<Description>Data from rate gyros</Description>
+		
+		<!-- Raw X -->
+		<DataItem>
+			<Name>Raw X Gyro</Name>
+			<Description>Raw (unprocessed) data from x-axis rate gyro</Description>
+			<Address>86</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Raw Y -->
+		<DataItem>
+			<Name>Raw Y Gyro</Name>
+			<Description>Raw (unprocessed) data from y-axis rate gyro</Description>
+			<Address>86</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Raw Z -->
+		<DataItem>
+			<Name>Raw Z Gyro</Name>
+			<Description>Raw (unprocessed) data from z-axis rate gyro</Description>
+			<Address>87</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Processed X -->
+		<DataItem>
+			<Name>Processed X Gyro</Name>
+			<Description>Processed data from x-axis rate gyro (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>92</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.0610352</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Y -->
+		<DataItem>
+			<Name>Processed Y Gyro</Name>
+			<Description>Processed data from y-axis rate gyro (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>92</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.0610352</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Z -->
+		<DataItem>
+			<Name>Processed Z Gyro</Name>
+			<Description>Processed data from z-axis rate gyro (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>93</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.0610352</ScaleFactor>
+		</DataItem>
+		
+		<!-- Gyro temperature -->
+		<DataItem>
+			<Name>Gyro Temperature</Name>
+			<Description>Measured rate gyro temperature</Description>
+			<Address>118</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+	</DataGroup>
+	
+	<!-- RAW AND PROCESSED ACCELEROMETER DATA -->
+	<DataGroup>
+		<Name>Accel Data</Name>
+		<Description>Data from accelerometers</Description>
+
+		<!-- Raw X -->
+		<DataItem>
+			<Name>Raw X Accel</Name>
+			<Description>Raw (unprocessed) data from x-axis accelerometer</Description>
+			<Address>88</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Raw Y -->
+		<DataItem>
+			<Name>Raw Y Accel</Name>
+			<Description>Raw (unprocessed) data from y-axis accelerometer</Description>
+			<Address>88</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Raw Z -->
+		<DataItem>
+			<Name>Raw Z Accel</Name>
+			<Description>Raw (unprocessed) data from z-axis accelerometer</Description>
+			<Address>89</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed X -->
+		<DataItem>
+			<Name>Processed X Accel</Name>
+			<Description>Processed data from x-axis accelerometer (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>94</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000183105</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Y -->
+		<DataItem>
+			<Name>Processed Y Accel</Name>
+			<Description>Processed data from y-axis accelerometer (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>94</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000183105</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Z -->
+		<DataItem>
+			<Name>Processed Z Accel</Name>
+			<Description>Processed data from z-axis accelerometer (biases subtracted, scale factors and alignment compensation applied)</Description>
+			<Address>95</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000183105</ScaleFactor>
+		</DataItem>		
+	</DataGroup>
+		
+	<!-- RAW AND PROCESSED MAGNETOMETER DATA -->
+	<DataGroup>
+		<Name>Mag Data</Name>
+		<Description>Data from magnetometer</Description>
+
+		<!-- Raw X -->
+		<DataItem>
+			<Name>Raw X Mag</Name>
+			<Description>Raw (unprocessed) data from x-axis magnetometer</Description>
+			<Address>90</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Raw Y -->
+		<DataItem>
+			<Name>Raw Y Mag</Name>
+			<Description>Raw (unprocessed) data from y-axis magnetometer</Description>
+			<Address>90</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Raw Z -->
+		<DataItem>
+			<Name>Raw Z Mag</Name>
+			<Description>Raw (unprocessed) data from z-axis magnetometer</Description>
+			<Address>91</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed X -->
+		<DataItem>
+			<Name>Processed X Mag</Name>
+			<Description>Processed data from x-axis magnetometer (biases subtracted, soft and hard iron compensation applied)</Description>
+			<Address>96</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000305176</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Y -->
+		<DataItem>
+			<Name>Processed Y Mag</Name>
+			<Description>Processed data from y-axis magnetometer (biases subtracted, soft and hard iron compensation applied)</Description>
+			<Address>96</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000305176</ScaleFactor>
+		</DataItem>
+
+		<!-- Processed Z -->
+		<DataItem>
+			<Name>Processed Z Mag</Name>
+			<Description>Processed data from z-axis magnetometer (biases subtracted, soft and hard iron compensation applied)</Description>
+			<Address>97</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.000305176</ScaleFactor>
+		</DataItem>		
+	</DataGroup>
+	
+	<!-- EULER ANGLES -->
+	<DataGroup>
+		<Name>Euler Angles</Name>
+		<Description>Euler Angle Outputs</Description>
+		
+		<!-- Roll -->
+		<DataItem>
+			<Name>Roll (phi)</Name>
+			<Description>Roll angle in degrees</Description>
+			<Address>98</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min>-360</Min>
+			<Max>360</Max>
+			<ScaleFactor>0.0109863</ScaleFactor>
+		</DataItem>
+		
+		<!-- Pitch -->
+		<DataItem>
+			<Name>Pitch (theta)</Name>
+			<Description>Pitch angle in degrees</Description>
+			<Address>98</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min>-360</Min>
+			<Max>360</Max>
+			<ScaleFactor>0.0109863</ScaleFactor>
+		</DataItem>
+		
+		<!-- Yaw -->
+		<DataItem>
+			<Name>Yaw (psi)</Name>
+			<Description>Yaw angle in degrees</Description>
+			<Address>99</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min>-360</Min>
+			<Max>360</Max>
+			<ScaleFactor>0.0109863</ScaleFactor>
+		</DataItem>
+	</DataGroup>
+	
+	<!-- QUATERNIONS -->
+	<DataGroup>
+		<Name>Quaternion</Name>
+		<Description>Quaternion Estimate</Description>
+		
+		<DataItem>
+			<Name>a</Name>
+			<Description>First quaternion component</Description>
+			<Address>100</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min>-1.0</Min>
+			<Max>1.0</Max>
+			<ScaleFactor>0.0000335693</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>b</Name>
+			<Description>Second quaternion component</Description>
+			<Address>100</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min>-1.0</Min>
+			<Max>1.0</Max>
+			<ScaleFactor>0.0000335693</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>c</Name>
+			<Description>Third quaternion component</Description>
+			<Address>101</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min>-1.0</Min>
+			<Max>1.0</Max>
+			<ScaleFactor>0.0000335693</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>d</Name>
+			<Description>Fourth quaternion component</Description>
+			<Address>101</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>int16</DataType>
+			<Min>-1.0</Min>
+			<Max>1.0</Max>
+			<ScaleFactor>0.0000335693</ScaleFactor>
+		</DataItem>
+	</DataGroup>
+		
+	<!-- STATE ESTIMATE ERROR COVARIANCE -->
+	<DataGroup>
+		<Name>Error Covariance</Name>
+		<Description>Angle estimate error covariance (for euler angles)</Description>
+
+		<!-- 0,0 covariance entry -->
+		<DataItem>
+			<Name>COV00</Name>
+			<Description>Row 0 column 0 of error covariance matrix</Description>
+			<Address>102</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 0,1 covariance entry -->
+		<DataItem>
+			<Name>COV01</Name>
+			<Description>Row 0 column 1 of error covariance matrix</Description>
+			<Address>103</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>		
+		
+		<!-- 0,2 covariance entry -->
+		<DataItem>
+			<Name>COV02</Name>
+			<Description>Row 0 column 2 of error covariance matrix</Description>
+			<Address>104</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 0,3 covariance entry -->
+		<DataItem>
+			<Name>COV03</Name>
+			<Description>Row 0 column 3 of error covariance matrix</Description>
+			<Address>105</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 1,0 covariance entry -->
+		<DataItem>
+			<Name>COV10</Name>
+			<Description>Row 1 column 0 of error covariance matrix</Description>
+			<Address>106</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 1,1 covariance entry -->
+		<DataItem>
+			<Name>COV11</Name>
+			<Description>Row 1 column 1 of error covariance matrix</Description>
+			<Address>107</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 1,2 covariance entry -->
+		<DataItem>
+			<Name>COV12</Name>
+			<Description>Row 1 column 2 of error covariance matrix</Description>
+			<Address>108</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 1,3 covariance entry -->
+		<DataItem>
+			<Name>COV13</Name>
+			<Description>Row 1 column 3 of error covariance matrix</Description>
+			<Address>109</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>		
+		
+		<!-- 2,0 covariance entry -->
+		<DataItem>
+			<Name>COV20</Name>
+			<Description>Row 2 column 0 of error covariance matrix</Description>
+			<Address>110</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 2,1 covariance entry -->
+		<DataItem>
+			<Name>COV21</Name>
+			<Description>Row 2 column 1 of error covariance matrix</Description>
+			<Address>111</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 2,2 covariance entry -->
+		<DataItem>
+			<Name>COV22</Name>
+			<Description>Row 2 column 2 of error covariance matrix</Description>
+			<Address>112</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 2,3 covariance entry -->
+		<DataItem>
+			<Name>COV23</Name>
+			<Description>Row 2 column 3 of error covariance matrix</Description>
+			<Address>113</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- 3,0 covariance entry -->
+		<DataItem>
+			<Name>COV30</Name>
+			<Description>Row 3 column 0 of error covariance matrix</Description>
+			<Address>114</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- 3,1 covariance entry -->
+		<DataItem>
+			<Name>COV31</Name>
+			<Description>Row 3 column 1 of error covariance matrix</Description>
+			<Address>115</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- 3,2 covariance entry -->
+		<DataItem>
+			<Name>COV32</Name>
+			<Description>Row 3 column 2 of error covariance matrix</Description>
+			<Address>116</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<!-- 3,3 covariance entry -->
+		<DataItem>
+			<Name>COV33</Name>
+			<Description>Row 3 column 3 of error covariance matrix</Description>
+			<Address>117</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+	</DataGroup>
+	
+	<!-- GPS Data -->
+	<DataGroup>
+		<Name>GPS Data</Name>
+		<Description>GPS Data</Description>
+		
+		<DataItem>
+			<Name>Longitude</Name>
+			<Description>Longitude measurement of GPS module</Description>
+			<Address>119</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Latitude</Name>
+			<Description>Latitude measurement of GPS module</Description>
+			<Address>120</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Altitude</Name>
+			<Description>Altitude measurement of GPS module</Description>
+			<Address>121</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Relative North Position</Name>
+			<Description>North position of GPS module relative to home position</Description>
+			<Address>122</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+
+		<DataItem>
+			<Name>Relative East Position</Name>
+			<Description>East position of GPS module relative to home position</Description>
+			<Address>123</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Relative Height</Name>
+			<Description>Altitude of GPS module relative to home position</Description>
+			<Address>124</Address>
+			<Bits>32</Bits>
+			<Start>0</Start>
+			<DataType>float</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Ground Course</Name>
+			<Description>Ground course measured by the GPS receiver</Description>
+			<Address>125</Address>
+			<Bits>16</Bits>
+			<Start>16</Start>
+			<DataType>int16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.1</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Speed</Name>
+			<Description>Speed measured by the GPS receiver</Description>
+			<Address>125</Address>
+			<Bits>16</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.01</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellites Used in Fix</Name>
+			<Description>Number of satellites used in the solution</Description>
+			<Address>126</Address>
+			<Bits>4</Bits>
+			<Start>26</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Mode</Name>
+			<Description>GPS mode (2D, 3D, or no fix)</Description>
+			<Address>126</Address>
+			<Bits>2</Bits>
+			<Start>30</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>HDOP</Name>
+			<Description>Horizontal Dilution of Precision</Description>
+			<Address>126</Address>
+			<Bits>10</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.1</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>VDOP</Name>
+			<Description>Vertical Dilution of Precision</Description>
+			<Address>126</Address>
+			<Bits>10</Bits>
+			<Start>6</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>0.1</ScaleFactor>
+		</DataItem>		
+	</DataGroup>
+	
+	<!-- GPS Data -->
+	<DataGroup>
+		<Name>GPS Satellite Data</Name>
+		<Description>Data about the satellites used in the GPS position/velocity solution</Description>
+		
+		<!-- Satellites 1 and 2 -->
+		<DataItem>
+			<Name>Satellite 1 ID</Name>
+			<Description>ID of first satellite reported by the GPS receiver</Description>
+			<Address>127</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 1 SNR</Name>
+			<Description>SNR of first satellite reported by the GPS receiver</Description>
+			<Address>127</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 2 ID</Name>
+			<Description>ID of satellite used by the GPS receiver</Description>
+			<Address>127</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 2 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>127</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>			
+		
+		<!-- Satellites 3 and 4 -->
+		<DataItem>
+			<Name>Satellite 3 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>128</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 3 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>128</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 4 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>128</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 4 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>128</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Satellites 5 and 6 -->
+		<DataItem>
+			<Name>Satellite 5 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>129</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 5 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>129</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 6 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>129</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 6 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>129</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Satellites 7 and 8 -->
+		<DataItem>
+			<Name>Satellite 7 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>130</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 7 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>130</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 8 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>130</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 8 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>130</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<!-- Satellites 9 and 10 -->
+		<DataItem>
+			<Name>Satellite 9 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>131</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 9 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>131</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 10 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>131</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 10 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>131</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>	
+		
+		<!-- Satellites 11 and 12 -->
+		<DataItem>
+			<Name>Satellite 11 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>132</Address>
+			<Bits>8</Bits>
+			<Start>24</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 11 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>132</Address>
+			<Bits>8</Bits>
+			<Start>16</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 12 ID</Name>
+			<Description>ID of satellite tracked by the GPS receiver</Description>
+			<Address>132</Address>
+			<Bits>8</Bits>
+			<Start>8</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>
+		
+		<DataItem>
+			<Name>Satellite 12 SNR</Name>
+			<Description>SNR of satellite tracked by the GPS receiver</Description>
+			<Address>132</Address>
+			<Bits>8</Bits>
+			<Start>0</Start>
+			<DataType>uint16</DataType>
+			<Min></Min>
+			<Max></Max>
+			<ScaleFactor>1.0</ScaleFactor>
+		</DataItem>		
+	</DataGroup>
+	
+	<!-- ********************************************************* -->
+	<!-- Registers												   -->
+	<!-- ********************************************************* -->
+	<Registers>
+		<!-- Configuration Registers -->
+		<Register address="0">
+			<Name>UM6_COMMUNICATION</Name>
+			<Description>Communication settings</Description>
+		</Register>
+		
+		<Register address="1">
+			<Name>UM6_MISC_CONFIG</Name>
+			<Description>Miscellaneous configuration settings, including EKF configuration items</Description>
+		</Register>
+		
+		<Register address="2">
+			<Name>UM6_MAG_REF_X</Name>
+			<Description>Magnetic field reference vector x-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="3">
+			<Name>UM6_MAG_REF_Y</Name>
+			<Description>Magnetic field reference vector y-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="4">
+			<Name>UM6_MAG_REF_Z</Name>
+			<Description>Magnetic field reference vector x-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="5">
+			<Name>UM6_ACCEL_REF_X</Name>
+			<Description>Accelerometer reference vector x-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="6">
+			<Name>UM6_ACCEL_REF_Y</Name>
+			<Description>Accelerometer reference vector y-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="7">
+			<Name>UM6_ACCEL_REF_Z</Name>
+			<Description>Accelerometer reference vector z-axis component.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="8">
+			<Name>UM6_EKF_MAG_VARIANCE</Name>
+			<Description>Variance used in the EKF for magnetometer sensor updates.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="9">
+			<Name>UM6_EKF_ACCEL_VARIANCE</Name>
+			<Description>Variance used in the EKF for accelerometer sensor updates.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="10">
+			<Name>UM6_EKF_PROCESS_VARIANCE</Name>
+			<Description>Variance used in the EKF for state prediction.  Stored as 32-bit IEEE floating-point value.</Description>
+		</Register>
+		
+		<Register address="11">
+			<Name>UM6_GYRO_BIAS_XY</Name>
+			<Description>Gyro biases on the X and Y axes (applied to raw data).  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="12">
+			<Name>UM6_GYRO_BIAS_Z</Name>
+			<Description>Gyro bias on the Z axis (applied to raw data).  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="13">
+			<Name>UM6_ACCEL_BIAS_XY</Name>
+			<Description>Accelerometer biases on the X and Y axes (applied to raw data).  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="14">
+			<Name>UM6_ACCEL_BIAS_Z</Name>
+			<Description>Accelerometer bias on the Z axis (applied to raw data).  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="15">
+			<Name>UM6_MAG_BIAS_XY</Name>
+			<Description>Magnetometer biases on the X and Y axes (applied to raw data).  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="16">
+			<Name>UM6_MAG_BIAS_Z</Name>
+			<Description>Magnetometer biases on the Z aiss (applied to raw data).  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="17">
+			<Name>UM6_ACCEL_CAL_00</Name>
+			<Description>Row 0 column 0 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="18">
+			<Name>UM6_ACCEL_CAL_01</Name>
+			<Description>Row 0 column 1 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="19">
+			<Name>UM6_ACCEL_CAL_02</Name>
+			<Description>Row 0 column 2 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="20">
+			<Name>UM6_ACCEL_CAL_10</Name>
+			<Description>Row 1 column 0 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="21">
+			<Name>UM6_ACCEL_CAL_11</Name>
+			<Description>Row 1 column 1 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="22">
+			<Name>UM6_ACCEL_CAL_12</Name>
+			<Description>Row 1 column 2 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="23">
+			<Name>UM6_ACCEL_CAL_20</Name>
+			<Description>Row 2 column 0 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="24">
+			<Name>UM6_ACCEL_CAL_21</Name>
+			<Description>Row 2 column 1 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="25">
+			<Name>UM6_ACCEL_CAL_22</Name>
+			<Description>Row 2 column 2 element of accelerometer calibration matrix</Description>
+		</Register>
+		
+		<Register address="26">
+			<Name>UM6_GYRO_CAL_00</Name>
+			<Description>Row 0 column 0 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="27">
+			<Name>UM6_GYRO_CAL_01</Name>
+			<Description>Row 0 column 1 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="28">
+			<Name>UM6_GYRO_CAL_02</Name>
+			<Description>Row 0 column 2 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="29">
+			<Name>UM6_GYRO_CAL_10</Name>
+			<Description>Row 1 column 0 element of gyro calibration matrix</Description>
+		</Register>
+
+		<Register address="30">
+			<Name>UM6_GYRO_CAL_11</Name>
+			<Description>Row 1 column 1 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="31">
+			<Name>UM6_GYRO_CAL_12</Name>
+			<Description>Row 1 column 2 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="32">
+			<Name>UM6_GYRO_CAL_20</Name>
+			<Description>Row 2 column 0 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="33">
+			<Name>UM6_GYRO_CAL_21</Name>
+			<Description>Row 2 column 1 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="34">
+			<Name>UM6_GYRO_CAL_22</Name>
+			<Description>Row 2 column 2 element of gyro calibration matrix</Description>
+		</Register>
+		
+		<Register address="35">
+			<Name>UM6_MAG_CAL_00</Name>
+			<Description>Row 0 column 0 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="36">
+			<Name>UM6_MAG_CAL_01</Name>
+			<Description>Row 0 column 1 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="37">
+			<Name>UM6_MAG_CAL_02</Name>
+			<Description>Row 0 column 2 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="38">
+			<Name>UM6_MAG_CAL_10</Name>
+			<Description>Row 1 column 0 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="39">
+			<Name>UM6_MAG_CAL_11</Name>
+			<Description>Row 1 column 1 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="40">
+			<Name>UM6_MAG_CAL_12</Name>
+			<Description>Row 1 column 2 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="41">
+			<Name>UM6_MAG_CAL_20</Name>
+			<Description>Row 2 column 0 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="42">
+			<Name>UM6_MAG_CAL_21</Name>
+			<Description>Row 2 column 1 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="43">
+			<Name>UM6_MAG_CAL_22</Name>
+			<Description>Row 2 column 2 element of magnetometer calibration matrix (for soft-iron distortion compensation)</Description>
+		</Register>
+		
+		<Register address="44">
+			<Name>UM6_GYROX_BIAS_0</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="45">
+			<Name>UM6_GYROX_BIAS_1</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="46">
+			<Name>UM6_GYROX_BIAS_2</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="47">
+			<Name>UM6_GYROX_BIAS_3</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="48">
+			<Name>UM6_GYROY_BIAS_0</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="49">
+			<Name>UM6_GYROY_BIAS_1</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="50">
+			<Name>UM6_GYROY_BIAS_2</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="51">
+			<Name>UM6_GYROY_BIAS_3</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>	
+		
+		<Register address="52">
+			<Name>UM6_GYROZ_BIAS_0</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="53">
+			<Name>UM6_GYROZ_BIAS_1</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="54">
+			<Name>UM6_GYROZ_BIAS_2</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>
+		
+		<Register address="55">
+			<Name>UM6_GYROZ_BIAS_3</Name>
+			<Description>Term used for rate gyro temperature compensation</Description>
+		</Register>	
+		
+		<Register address="56">
+			<Name>UM6_GPS_HOME_LAT</Name>
+			<Description>Home latitude position</Description>
+		</Register>
+		
+		<Register address="57">
+			<Name>UM6_GPS_HOME_LONG</Name>
+			<Description>Home longitude position</Description>
+		</Register>
+		
+		<Register address="58">
+			<Name>UM6_GPS_HOME_ALTITUDE</Name>
+			<Description>Home altitude</Description>
+		</Register>			
+		
+		<!-- Data Registers -->
+		<Register address="85">
+			<Name>UM6_STATUS</Name>
+			<Description>Status register</Description>
+		</Register>
+		
+		<Register address="86">
+			<Name>UM6_GYRO_RAW_XY</Name>
+			<Description>Raw output of x and y axis rate gyros.  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="87">
+			<Name>UM6_GYRO_RAW_Z</Name>
+			<Description>Raw output of z-axis rate gyro.  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="88">
+			<Name>UM6_ACCEL_RAW_XY</Name>
+			<Description>Raw output of x and y axis accelerometers.  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="89">
+			<Name>UM6_ACCEL_RAW_Z</Name>
+			<Description>Raw output of z-axis accelerometer.  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="90">
+			<Name>UM6_MAG_RAW_XY</Name>
+			<Description>Raw output of x and y axis magnetometers.  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="91">
+			<Name>UM6_MAG_RAW_Z</Name>
+			<Description>Raw output of z-axis magnetometer.  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="92">
+			<Name>UM6_GYRO_PROC_XY</Name>
+			<Description>X and Y-axis rate gyro output after alignment, bias, and scale compensation have been applied. Stored as two 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="93">
+			<Name>UM6_GYRO_PROC_Z</Name>
+			<Description>Z-axis rate gyro output after alignment, bias, and scale compensation have been applied. Stored as 16-bit signed integer.</Description>
+		</Register>
+			
+		<Register address="94">
+			<Name>UM6_ACCEL_PROC_XY</Name>
+			<Description>X and Y-axis accelerometer output after alignment, bias, and scale compensation have been applied. Stored as two 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="95">
+			<Name>UM6_ACCEL_PROC_Z</Name>
+			<Description>Z-axis accelerometer output after alignment, bias, and scale compensation have been applied. Stored as 16-bit signed integer.</Description>
+		</Register>
+				
+		<Register address="96">
+			<Name>UM6_MAG_PROC_XY</Name>
+			<Description>X and Y-axis magnetometer output after soft and hard iron calibration. Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="97">
+			<Name>UM6_MAG_PROC_Z</Name>
+			<Description>Z-axis magnetometer output after soft and hard iron calibration. Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="98">
+			<Name>UM6_EULER_PHI_THETA</Name>
+			<Description>Roll and pitch angles.  Stored as 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="99">
+			<Name>UM6_EULER_PSI</Name>
+			<Description>Yaw angle in degrees.  Stored as 16-bit signed integer.</Description>
+		</Register>
+		
+		<Register address="100">
+			<Name>UM6_QUAT_AB</Name>
+			<Description>First two elements of attitude quaternion. Stored as two 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="101">
+			<Name>UM6_QUAT_CD</Name>
+			<Description>Third and fourth elements of attitude quaternion. Stored as two 16-bit signed integers.</Description>
+		</Register>
+		
+		<Register address="102">
+			<Name>UM6_ERROR_COV_00</Name>
+			<Description>Row 0 column 0 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="103">
+			<Name>UM6_ERROR_COV_01</Name>
+			<Description>Row 0 column 1 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="104">
+			<Name>UM6_ERROR_COV_02</Name>
+			<Description>Row 0 column 2 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="105">
+			<Name>UM6_ERROR_COV_03</Name>
+			<Description>Row 0 column 3 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="106">
+			<Name>UM6_ERROR_COV_10</Name>
+			<Description>Row 1 column 0 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="107">
+			<Name>UM6_ERROR_COV_11</Name>
+			<Description>Row 1 column 1 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="108">
+			<Name>UM6_ERROR_COV_12</Name>
+			<Description>Row 1 column 2 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="109">
+			<Name>UM6_ERROR_COV_13</Name>
+			<Description>Row 1 column 3 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="110">
+			<Name>UM6_ERROR_COV_20</Name>
+			<Description>Row 2 column 0 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="111">
+			<Name>UM6_ERROR_COV_21</Name>
+			<Description>Row 2 column 1 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="112">
+			<Name>UM6_ERROR_COV_22</Name>
+			<Description>Row 2 column 2 element of error covariance matrix.  Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="113">
+			<Name>UM6_ERROR_COV_23</Name>
+			<Description>Row 2 column 3 element of error covariance matrix.  Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+		
+		<Register address="114">
+			<Name>UM6_ERROR_COV_30</Name>
+			<Description>Row 3 column 0 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+
+		<Register address="115">
+			<Name>UM6_ERROR_COV_31</Name>
+			<Description>Row 3column 1 element of error covariance matrix. Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+
+		<Register address="116">
+			<Name>UM6_ERROR_COV_32</Name>
+			<Description>Row 3 column 2 element of error covariance matrix.  Stored as 32-bit IEEE floating point value.</Description>
+		</Register>
+
+		<Register address="117">
+			<Name>UM6_ERROR_COV_33</Name>
+			<Description>Row 3 column 3 element of error covariance matrix.  Stored as 32-bit IEEE floating point value.</Description>
+		</Register>	
+		
+		<Register address="118">
+			<Name>UM6_TEMPERATURE</Name>
+			<Description>Stores temperature measured by gyro temperature sensor</Description>
+		</Register>
+		
+		<Register address="119">
+			<Name>UM6_GPS_LONGITUDE</Name>
+			<Description>Stores the GPS longitude</Description>
+		</Register>
+		
+		<Register address="120">
+			<Name>UM6_GPS_LATITUDE</Name>
+			<Description>Stores the GPS latitude</Description>
+		</Register>
+		
+		<Register address="121">
+			<Name>UM6_GPS_ALTITUDE</Name>
+			<Description>Stores the GPS altitude</Description>
+		</Register>
+		
+		<Register address="122">
+			<Name>UM6_GPS_POSITION_N</Name>
+			<Description>Stores the relative north GPS position</Description>
+		</Register>
+		
+		<Register address="123">
+			<Name>UM6_GPS_POSITION_E</Name>
+			<Description>Stores the relative east GPS position</Description>
+		</Register>
+		
+		<Register address="124">
+			<Name>UM6_GPS_POSITION_H</Name>
+			<Description>Stores the relative GPS altitude</Description>
+		</Register>
+		
+		<Register address="125">
+			<Name>UM6_GPS_COURSE_SPEED</Name>
+			<Description>Stores the GPS course and speed</Description>
+		</Register>
+		
+		<Register address="126">
+			<Name>UM6_GPS_SAT_SUMMARY</Name>
+			<Description>Stores a variety of properties of the GPS satellites</Description>
+		</Register>
+		
+		<Register address="127">
+			<Name>UM6_GPS_SAT_1_2</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>
+		
+		<Register address="128">
+			<Name>UM6_GPS_SAT_3_4</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>
+		
+		<Register address="129">
+			<Name>UM6_GPS_SAT_5_6</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>
+		
+		<Register address="130">
+			<Name>UM6_GPS_SAT_7_8</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>
+		
+		<Register address="131">
+			<Name>UM6_GPS_SAT_9_10</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>
+		
+		<Register address="132">
+			<Name>UM6_GPS_SAT_11_12</Name>
+			<Description>Stores information about satellites used by the GPS module</Description>
+		</Register>		
+		
+	</Registers>
+	
+	<Commands>
+		<Command>
+			<Name>Get Firmware Revision</Name>
+			<Description>Causes the sensor to transmit to the current firmware revision</Description>
+			<Address>170</Address>			
+		</Command>
+		
+		<Command>
+			<Name>Write To Flash</Name>
+			<Description>Causes the sensor to write all current configuration settings to FLASH</Description>
+			<Address>171</Address>			
+		</Command>		
+		
+		<Command>
+			<Name>Zero Rate Gyros</Name>
+			<Description>Causes the sensor to automatically zero the rate gyros</Description>
+			<Address>172</Address>
+		</Command>
+		
+		<Command>
+			<Name>Reset EKF</Name>
+			<Description>Causes the sensor to reset the EKF and reinitialize state estimates</Description>
+			<Address>173</Address>
+		</Command>
+		
+		<Command>
+			<Name>Get Data</Name>
+			<Description>Requests that data from all active channels be transmitted over the UART</Description>
+			<Address>174</Address>
+		</Command>
+		
+		<Command>
+			<Name>Set Accelerometer Reference Vector</Name>
+			<Description>Causes the sensor to use the current acclereometer measurement as the measurement to expect when pitch and roll angles are zero</Description>
+			<Address>175</Address>
+		</Command>
+		
+		<Command>
+			<Name>Set Magnetometer Reference Vector</Name>
+			<Description>Causes the sensor to use the current magnetometer measurement as the measurement to expect when pitch, roll, and yaw angles are zero</Description>
+			<Address>176</Address>
+		</Command>
+		
+		<Command>
+			<Name>Reset to Factory</Name>
+			<Description>Causes the UM6 to reload factory-default settings</Description>
+			<Address>177</Address>
+		</Command>
+		
+		<Command>
+			<Name>Write to Factory</Name>
+			<Description>Causes the UM6 to save current configuration as the factory-default</Description>
+			<Address>178</Address>
+		</Command>
+		
+		<Command>
+			<Name>Set GPS Home Position</Name>
+			<Description>Sets the measured GPS position as position (0,0,0) for relative position reporting</Description>
+			<Address>179</Address>
+		</Command>		
+		
+	</Commands>
+	
+</CHR_FIRMWARE>
