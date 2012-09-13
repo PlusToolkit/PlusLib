@@ -45,6 +45,9 @@ If magnetic fields nearby the sensor have non-negligible effect then compass can
 (as opposed to ..._MARG) or compass correction may be performed (see http://www.phidgets.com/docs/Compass_Primer). If compass correction
 parameters cannot be stored in the device flash then they should be set in vtkPhidgetSpatialTracker::Connect().
 
+The magnetometer has an internal calibration mechanism, which is running continuously. During this internal calibration no measurement
+data can be retrieved from the magnetometer. When magnetometer data is not available then the associated tool status is set to INVALID.
+
 \ingroup PlusLibTracking
 */
 class
