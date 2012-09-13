@@ -427,9 +427,9 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
   {
     vtkTrackerTool* tool = this->GetToolIteratorBegin()->second; 
 
-    config->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
+    trackerConfig->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
 
-    config->SetDoubleAttribute("LocalTimeOffsetSec", tool->GetBuffer()->GetLocalTimeOffsetSec() ); 
+    trackerConfig->SetDoubleAttribute("LocalTimeOffsetSec", tool->GetBuffer()->GetLocalTimeOffsetSec() ); 
   }
 
   return PLUS_SUCCESS; 
