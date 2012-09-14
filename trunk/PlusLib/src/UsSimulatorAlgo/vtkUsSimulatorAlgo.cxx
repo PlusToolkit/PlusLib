@@ -225,21 +225,24 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
   // Model file name
-  const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
-  if (modelFileName == NULL)
-  {
-	  LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  std::string foundAbsoluteImagePath;
-  if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
-  {
-    this->SetModelFileName(foundAbsoluteImagePath.c_str());
-  }
-  else
-  {
-    LOG_ERROR("Cannot find input model file!");
-    return PLUS_FAIL;
+  if(this->ModelFileName==NULL)
+  { 
+    const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
+    if (modelFileName == NULL)
+    {
+	    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration!");
+      return PLUS_FAIL;     
+    }
+    std::string foundAbsoluteImagePath;
+    if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    {
+      this->SetModelFileName(foundAbsoluteImagePath.c_str());
+    }
+    else
+    {
+      LOG_ERROR("Cannot find input model file!");
+      return PLUS_FAIL;
+    }
   }
 
   // Load Model
