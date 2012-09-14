@@ -168,6 +168,12 @@ int main(int argc, char **argv)
 
   // Create simulator
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
+  
+  if(!inputModelFile.empty())
+  {
+    usSimulator->SetModelFileName(inputModelFile.c_str()); 
+  }
+  
   if ( usSimulator->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US simulator configuration!"); 
@@ -224,6 +230,7 @@ int main(int argc, char **argv)
   }
 
   for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
+      
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
