@@ -26,6 +26,8 @@ See License.txt for details.
 #include "vtkImageStencilData.h"
 #include "vtkPolyData.h"
 #include "vtkSTLReader.h"
+#include "vtkXMLPolyDataReader.h"
+#include "vtksys/SystemTools.hxx"
 
 #ifdef USE_vtkPolyDataToOrientedImageStencil
 #include "vtkPolyDataToOrientedImageStencil.h"
@@ -246,12 +248,29 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Load Model
-  vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
-  modelReader->SetFileName(this->ModelFileName);
-  modelReader->Update();
-
+  
+  std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
   vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
-  model = modelReader->GetOutput();
+ 
+  
+  
+  if (STRCASECMP(fileExt.c_str(),".stl")==0)
+  {  
+    vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
+    modelReader->SetFileName(this->ModelFileName);
+    modelReader->Update();
+    model = modelReader->GetOutput();
+  }
+  
+  else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
+  {
+    vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+    modelReader->SetFileName(this->ModelFileName);
+    modelReader->Update();
+     model = modelReader->GetOutput();
+  }
+    
+    
   this->SetInput(model);
 
   // Reference coordinate frame
