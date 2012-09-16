@@ -175,6 +175,11 @@ protected slots:
   void FreezeImage(bool aOn);
 
 	/*!
+	* Export frozen image into a single-frame metafile
+	*/
+  void ExportImage();
+
+	/*!
 	* Slot handling ROI XMin value change
   * \param aValue New value
 	*/

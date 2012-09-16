@@ -10,6 +10,7 @@ See License.txt for details.
 #include "PlusVideoFrame.h"
 #include "SegmentationParameterDialog.h"
 #include "TrackedFrame.h"
+
 #include "vtkActor.h"
 #include "vtkActor.h"
 #include "vtkCallbackCommand.h"
@@ -35,8 +36,11 @@ See License.txt for details.
 #include "vtkTextProperty.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-#include <QTimer>
 #include "vtkSphereSource.h"
+#include "vtksys/SystemTools.hxx"
+
+#include <QTimer>
+#include <QMessageBox>
 
 static const int HANDLE_SIZE = 8;
 
@@ -852,6 +856,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.groupBox_ROI, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxROIToggled(bool) ) );
   connect( ui.groupBox_Spacing, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxSpacingToggled(bool) ) );
   connect( ui.pushButton_FreezeImage, SIGNAL( toggled(bool) ), this, SLOT( FreezeImage(bool) ) );
+  connect( ui.pushButton_Export, SIGNAL( clicked() ), this, SLOT( ExportImage() ) );
   connect( ui.pushButton_ApplyAndClose, SIGNAL( clicked() ), this, SLOT( ApplyAndCloseClicked() ) );
   connect( ui.pushButton_SaveAndClose, SIGNAL( clicked() ), this, SLOT( SaveAndCloseClicked() ) );
   connect( ui.spinBox_XMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMinChanged(int) ) );
@@ -871,7 +876,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
   connect( ui.doubleSpinBox_MaxLineShiftMm, SIGNAL( valueChanged(double) ), this, SLOT( MaxLineShiftMmChanged(double) ) );
   connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
-  connect (ui.doubleSpinBox_MaxCandidates, SIGNAL(valueChanged(double) ), this, SLOT( MaxCandidatesChanged(double) ));
+  connect( ui.doubleSpinBox_MaxCandidates, SIGNAL( valueChanged(double) ), this, SLOT( MaxCandidatesChanged(double) ) );
 
   // Set up timer for refreshing UI
   m_CanvasRefreshTimer = new QTimer(this);
@@ -1407,9 +1412,56 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
 void SegmentationParameterDialog::FreezeImage(bool aOn)
 {
-  LOG_TRACE("SegmentationParameterDialog::FreezeImage(" << (aOn?"true":"false") << ")");
+  LOG_INFO("FreezeImage turned " << (aOn?"on":"off"));
 
   m_ImageFrozen = aOn;
+  ui.pushButton_Export->setEnabled(m_ImageFrozen);
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameterDialog::ExportImage()
+{
+  LOG_INFO("Export image");
+
+  // Get and convert currently displayed image // TODO Get TrackedFrame directly from vtkDataCollector
+  vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
+  currentImage->DeepCopy(m_DataCollector->GetOutput());
+
+  PlusVideoFrame videoFrame;
+  videoFrame.DeepCopyFrom(currentImage);
+
+  TrackedFrame* trackedFrame = new TrackedFrame();
+  trackedFrame->SetImageData(videoFrame);
+
+  std::string metafileName = "SegmentationParameterDialog_ExportedImage_";
+  metafileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
+
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  trackedFrameList->AddTrackedFrame(trackedFrame);
+
+  if (trackedFrameList->SaveToSequenceMetafile(vtkPlusConfig::GetInstance()->GetImageDirectory(), metafileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, false) == PLUS_SUCCESS)
+  {
+    QMessageBox::information(this, tr("Image exported"),
+      QString("Image exported as metafile as %1/%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+
+    // Write the current state into the device set configuration XML
+    if (m_DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to save configuration of data collector"); 
+    }
+    else
+    {
+      // Save config file next to the tracked frame list
+      std::string configFileName = (std::string)vtkPlusConfig::GetInstance()->GetImageDirectory() + "/" + metafileName + "_Config.xml";
+      PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    }
+  }
+  else
+  {
+    QMessageBox::critical(this, tr("Image export failed"),
+      QString("Image export failed to metafile %1/%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1776,3 +1828,4 @@ void SegmentationParameterDialog::OriginalIntensityForDotsToggled(bool aOn)
 
   m_PatternRecognition->GetFidSegmentation()->SetUseOriginalImageIntensityForDotIntensityScore(aOn);
 }
+
