@@ -27,9 +27,9 @@ FidLabeling::FidLabeling()
 , m_MaxLinePairDistanceErrorPercent(-1.0)
 , m_MinThetaRad(-1.0)
 , m_MaxThetaRad(-1.0)
+, m_DotsFound(false)
 , m_AngleToleranceRad(-1.0)
 , m_InclinedLineAngleRad(-1.0)
-, m_DotsFound(false)
 , m_PatternIntensity(-1.0)
 {
   memset(m_FrameSize, 0, sizeof(int[2]));
@@ -274,7 +274,7 @@ Line FidLabeling::SortPointsByDistanceFromStartPoint(Line fiducials)
   std::vector<std::vector<double> > temporaryLine;
   Dot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
 
-  for(int i=0 ; i<fiducials.GetPoints()->size() ; i++)
+  for(unsigned int i=0 ; i<fiducials.GetPoints()->size() ; i++)
   {
     std::vector<double> temp;
     Dot point = m_DotsVector[fiducials.GetPoint(i)];
@@ -288,7 +288,7 @@ Line FidLabeling::SortPointsByDistanceFromStartPoint(Line fiducials)
 
   Line resultLine = fiducials;
 
-  for(int i=0 ; i<fiducials.GetPoints()->size() ; i++)
+  for(unsigned int i=0 ; i<fiducials.GetPoints()->size() ; i++)
   {
     resultLine.SetPoint(i,temporaryLine[i][0]);
   }
@@ -409,7 +409,7 @@ void FidLabeling::UpdateNWiresResults(std::vector<Line*> resultLines)
 
   for (int line=0; line<numberOfLines; ++line)
   {
-    for(int i=0 ; i<resultLines[line]->GetPoints()->size() ; i++)
+    for(unsigned int i=0 ; i<resultLines[line]->GetPoints()->size() ; i++)
     {
       LabelingResults result;
       result.x = m_DotsVector[resultLines[line]->GetPoint(i)].GetX();
@@ -442,7 +442,7 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
-  for(int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
+  for(unsigned int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine1.GetPoint(i)].GetX();
@@ -457,7 +457,7 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   }
   intensity += resultLine1.GetIntensity();
 
-  for(int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
+  for(unsigned int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();
@@ -472,7 +472,7 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   }
   intensity += resultLine2.GetIntensity();
 
-  for(int i=0 ; i<resultLine3.GetPoints()->size() ; i++)
+  for(unsigned int i=0 ; i<resultLine3.GetPoints()->size() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine3.GetPoint(i)].GetX();
@@ -512,7 +512,7 @@ void FidLabeling::FindPattern()
   m_DotsFound = false;
 
   //permutation generator
-  for(int i=0 ; i<lineIndices.size() ; i++)
+  for(unsigned int i=0 ; i<lineIndices.size() ; i++)
   {
     lineIndices[i] = lineIndices.size()-1-i;
   }
@@ -659,7 +659,7 @@ void FidLabeling::FindPattern()
       bool test1 = (resultLine1.GetStartPointIndex() == resultLine2.GetStartPointIndex()) || (resultLine1.GetStartPointIndex() == resultLine2.GetEndPointIndex());
       bool test2 = (resultLine1.GetEndPointIndex() == resultLine2.GetStartPointIndex()) || (resultLine1.GetEndPointIndex() == resultLine2.GetEndPointIndex());
       bool test3 = (resultLine1.GetStartPointIndex() == resultLine3.GetStartPointIndex()) || (resultLine1.GetStartPointIndex() == resultLine3.GetEndPointIndex());
-      bool test4 = (resultLine1.GetEndPointIndex() == resultLine3.GetStartPointIndex()) || (resultLine1.GetEndPointIndex() == resultLine3.GetEndPointIndex());
+      //bool test4 = (resultLine1.GetEndPointIndex() == resultLine3.GetStartPointIndex()) || (resultLine1.GetEndPointIndex() == resultLine3.GetEndPointIndex());
 
       if(!test1 && !test2)//if line 1 and 2 have no point in common
       {
@@ -705,14 +705,14 @@ void FidLabeling::SortRightToLeft( Line *line )
 
   std::vector<std::vector<Dot>::iterator> pointsIterator(line->GetPoints()->size());
 
-  for (int i=0; i<line->GetPoints()->size() ; i++)
+  for (unsigned int i=0; i<line->GetPoints()->size() ; i++)
   {
     pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
   }
 
   std::sort(pointsIterator.begin(), pointsIterator.end(), Dot::PositionLessThan);
 
-  for (int i=0; i<line->GetPoints()->size(); i++)
+  for (unsigned int i=0; i<line->GetPoints()->size(); i++)
   {
     line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
   }
