@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkTriangle.h"
 #include "vtkPlane.h"
 
+//#define DEBUG_LABELING
 //-----------------------------------------------------------------------------
 FidLabeling::FidLabeling()
 : m_ApproximateSpacingMmPerPixel(-1.0)
@@ -508,6 +509,26 @@ void FidLabeling::FindPattern()
   std::vector<int> lineIndices(numberOfLines);
   std::vector<LabelingResults> results;
 
+#ifdef DEBUG_LABELING
+  LOG_DEBUG("Number of lines in the pattern: "<<numberOfLines);
+  LOG_DEBUG("Number of candidate lines: "<<numberOfCandidateLines);  
+  for (int lineIndex=0; lineIndex<numberOfCandidateLines; lineIndex++)
+  {
+    std::ostrstream linePermutationStr; 
+    linePermutationStr.clear();
+    std::vector<int> *pointIndices=maxPointsLines[lineIndex].GetPoints();
+    for (int pointIndex=0; pointIndex<pointIndices->size(); pointIndex++)
+    {
+      if (pointIndex>0)
+      {
+        linePermutationStr << ", ";
+      }
+      linePermutationStr << (*pointIndices)[pointIndex];        
+    }
+    linePermutationStr << std::ends;    
+    LOG_DEBUG("  Line "<<lineIndex<<": "<<linePermutationStr.str());
+  }
+#endif
 
   m_DotsFound = false;
 
@@ -546,6 +567,21 @@ void FidLabeling::FindPattern()
       }
     }
 
+#ifdef DEBUG_LABELING
+    std::ostrstream linePermutationStr; 
+    for (int lineIndex=0; lineIndex<numberOfLines; lineIndex++)
+    {
+      if (lineIndex>0)
+      {
+        linePermutationStr << ", ";
+      }
+      linePermutationStr << lineIndices[lineIndex];
+    }
+    linePermutationStr << std::ends;
+    LOG_DEBUG("Try permutation: ("<<linePermutationStr.str()<<")");
+#endif
+
+
     // We have a new permutation in lineIndices.
     // Check if the distance and angle between each possible line pairs within the permutation are within the allowed range.
     // This is a quick filtering to keep only those line combinations for further processing that may form a valid pattern.
@@ -569,6 +605,10 @@ void FidLabeling::FindPattern()
           if((distance > maxLinePairDistPx) || (distance < minLinePairDistPx))
           {
             // The distance between the lines is smaller or larger than the allowed range
+#ifdef DEBUG_LABELING
+            LOG_DEBUG("The distance between the lines is smaller or larger than the allowed range: distance="<<distance
+              <<", min="<<minLinePairDistPx<<", max="<<maxLinePairDistPx);
+#endif
             foundPattern=false;
             break;
           }
@@ -580,6 +620,10 @@ void FidLabeling::FindPattern()
           if(fabs(shift) > maxLineShiftDistPx)
           {
             // The shift between the is larger than the allowed value
+#ifdef DEBUG_LABELING
+            LOG_DEBUG("The shift between the is larger than the allowed value: shift="<<shift
+              <<", maxLineShiftDistPx="<<maxLineShiftDistPx);
+#endif
             foundPattern=false;
             break;
           }
@@ -587,10 +631,18 @@ void FidLabeling::FindPattern()
         else 
         {
           // Non-parallel lines
-
-          if ( (angleBetweenLinesRad>m_MaxLinePairAngleRad+m_AngleToleranceRad) || (angleBetweenLinesRad<m_MinLinePairAngleRad-m_AngleToleranceRad) )
+#ifdef DEBUG_LABELING
+          LOG_DEBUG("Non-parallel lines");
+#endif
+          double minAngle=m_MinLinePairAngleRad-m_AngleToleranceRad;
+          double maxAngle=m_MaxLinePairAngleRad+m_AngleToleranceRad;
+          if ( (angleBetweenLinesRad>maxAngle) || (angleBetweenLinesRad<minAngle) )
           {
             // The angle between the patterns are not in the valid range
+#ifdef DEBUG_LABELING
+            LOG_DEBUG("The angle between the patterns are not in the valid range: angleBetweenLinesRad="<<angleBetweenLinesRad
+              <<", min="<<minAngle<<", max="<<maxAngle);
+#endif
             foundPattern=false;
             break;
           }
@@ -609,9 +661,15 @@ void FidLabeling::FindPattern()
           if(commonPointIndex != -1)          
           {
             // there is a common point
-            if ( (angleBetweenLinesRad>m_InclinedLineAngleRad+m_AngleToleranceRad) || (angleBetweenLinesRad<m_InclinedLineAngleRad-m_AngleToleranceRad) )
+            double minAngle=m_InclinedLineAngleRad-m_AngleToleranceRad;
+            double maxAngle=m_InclinedLineAngleRad+m_AngleToleranceRad;
+            if ( (angleBetweenLinesRad>maxAngle) || (angleBetweenLinesRad<minAngle) )
             {
               // The angle between the patterns are not in the valid range
+#ifdef DEBUG_LABELING
+            LOG_DEBUG("The angle between the patterns are not in the valid range: angleBetweenLinesRad="<<angleBetweenLinesRad
+              <<", min="<<minAngle<<", max="<<maxAngle);
+#endif
               foundPattern=false;
               break;
             }
@@ -621,6 +679,10 @@ void FidLabeling::FindPattern()
     }
 
   } while ((lineIndices[numberOfLines-1]!=numberOfCandidateLines-numberOfLines+2) && (!foundPattern));
+
+#ifdef DEBUG_LABELING
+  LOG_DEBUG("Found a valid pattern");
+#endif
 
   if (foundPattern)//We have the right permutation of lines in lineIndices
   {

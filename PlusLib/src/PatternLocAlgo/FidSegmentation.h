@@ -90,17 +90,19 @@ class FidSegmentation
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
       \param fiducials position of fiducial points
       \param unalteredImage original image
+      \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
+    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
 
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
       \param fiducials position of fiducial points
       \param unalteredImage original image
+      \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
+    void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
 
     /*! Perform the morphological operations on the image */
     void MorphologicalOperations();  

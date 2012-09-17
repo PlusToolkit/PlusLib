@@ -1100,7 +1100,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
@@ -1164,17 +1164,13 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
     }
   } 
   std::ostrstream possibleFiducialsImageFilename; 
-  possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
+  possibleFiducialsImageFilename << namePrefix << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
 
-  //const char *test=possibleFiducialsImageFilename.str();
-
-  //std::string possibleFiducialsImageFilename = std::string("possibleFiducials")+ std::string(frameIndex) + std::string(".bmp"); 
   SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str()); 
 
   typedef itk::ImageFileWriter< ImageType > WriterType; 
   WriterType::Pointer writeImage = WriterType::New();  
   writeImage->SetFileName(m_PossibleFiducialsImageFilename);  
-  // possibleFiducialsImageFilename.rdbuf()->freeze();
 
   writeImage->SetInput( possibleFiducials );
 
@@ -1191,92 +1187,18 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
-  //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
-
-  typedef itk::RGBPixel< unsigned char >    PixelType;
-  typedef itk::Image< PixelType, 2 >   ImageType;
-
-  ImageType::Pointer possibleFiducials = ImageType::New(); 
-  
-  ImageType::SizeType size;
-  size[0] = m_FrameSize[0];
-  size[1] = m_FrameSize[1]; 
-
-  ImageType::IndexType start; 
-  start[0] = 0; 
-  start[1] = 0; 
-
-  ImageType::RegionType wholeImage; 
-  wholeImage.SetSize(size);
-  wholeImage.SetIndex(start); 
-
-  possibleFiducials->SetRegions(wholeImage); 
-  possibleFiducials->Allocate(); 
-
-  ImageType::IndexType pixelLocation={0,0};
-
-  ImageType::PixelType pixelValue; 
-
-  // copy pixel by pixel (we need to do gray->RGB conversion and only a ROI is updated)
-  for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
-  {
-    for ( unsigned int c = m_RegionOfInterest[0]; c < m_RegionOfInterest[2]; c++ ) 
-    {
-      pixelValue[0] = 0; //unalteredImage[r*cols+c];
-      pixelValue[1] = unalteredImage[r*m_FrameSize[0]+c];
-      pixelValue[2] = unalteredImage[r*m_FrameSize[0]+c];
-      pixelLocation[0]= c;
-      pixelLocation[1]= r; 
-      possibleFiducials->SetPixel(pixelLocation,pixelValue);
-    }
-  }
-
-  // Set pixelValue to red (it will be used to mark the centroid of the clusters)
+  std::vector<Dot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)
   {
-    const int markerPosCount=5;
-    const int markerPos[markerPosCount][2]={{0,0}, {+1,0}, {-1,0}, {0,+1}, {0,-1}};
-
-    for (int i=0; i<markerPosCount; i++)
-    {
-      pixelLocation[0]= fiducials[numDots][0]+markerPos[i][0];
-      pixelLocation[1]= fiducials[numDots][1]+markerPos[i][1]; 
-      int clusterMarkerIntensity=255;
-      if (clusterMarkerIntensity>255)
-      {
-        clusterMarkerIntensity=255;
-      }
-      pixelValue[0] = clusterMarkerIntensity;
-      pixelValue[1] = 0;
-      pixelValue[2] = 0;
-      possibleFiducials->SetPixel(pixelLocation,pixelValue); 
-    }
+    Dot newDot;
+    newDot.SetX(fiducials[numDots][0]);
+    newDot.SetY(fiducials[numDots][1]);
+    newDot.SetDotIntensity(10.0);
+    dots.push_back(newDot);
   } 
-  std::ostrstream possibleFiducialsImageFilename; 
-  possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
-
-  //const char *test=possibleFiducialsImageFilename.str();
-
-  //std::string possibleFiducialsImageFilename = std::string("possibleFiducials")+ std::string(frameIndex) + std::string(".bmp"); 
-  SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str()); 
-
-  typedef itk::ImageFileWriter< ImageType > WriterType; 
-  WriterType::Pointer writeImage = WriterType::New();  
-  writeImage->SetFileName(m_PossibleFiducialsImageFilename);  
-  // possibleFiducialsImageFilename.rdbuf()->freeze();
-
-  writeImage->SetInput( possibleFiducials );  
-  try
-  {
-    writeImage->Update(); 
-  }
-  catch (itk::ExceptionObject & err) 
-  {    
-    LOG_ERROR("Exception! writer did not update");
-    LOG_ERROR(err);
-  }
+  WritePossibleFiducialOverlayImage(dots, unalteredImage, namePrefix, frameIndex);
 }
 
 //-----------------------------------------------------------------------------
