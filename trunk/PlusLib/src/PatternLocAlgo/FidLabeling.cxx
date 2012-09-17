@@ -527,32 +527,22 @@ void FidLabeling::FindPattern()
 
       if (lineIndices[i]<numberOfCandidateLines-i)
       {
+        // no need to carry over more
+        // the i-th index is correct, so just adjust all the ones before that
+        int nextIndex=lineIndices[i]+1;
+        for (int j=i-1; j>=0; j--)
+        {
+          lineIndices[j] = nextIndex;
+          nextIndex++;
+        }
         break; //valid permutation
       }
 
-      if (i+1<numberOfLines)
+      // need to carry over
+      if (i==numberOfLines-1)
       {
-        if (lineIndices[i+1]<numberOfCandidateLines-i-1)
-        {
-          lineIndices[i]=lineIndices[i+1]+2;
-        }
-        else if (i+2<numberOfLines)
-        {
-          lineIndices[i]=lineIndices[i+2]+3;
-        }
-        else
-        {
-          return;
-        }
-      }
-      else
-      {
-        return; //no permutation was valid
-      }
-
-      if (lineIndices[i]==numberOfCandidateLines)
-      {
-        return; //no permutation was valid
+        // we are already at the last index, cannot carry over more
+        return;
       }
     }
 

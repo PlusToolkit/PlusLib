@@ -1,4 +1,4 @@
 <CalibrationResults>
-  <CenterOfRotationCalibrationResult CenterOfRotationPx="414.070296 22.700488" ErrorMean="-1.51695026" ErrorStdev="20.405100"  />
-  <SpacingCalibrationResult Spacing="0.14709635 0.14240129" ErrorMean="0.75263456" ErrorStdev="14.51500488"  />
+  <CenterOfRotationCalibrationResult CenterOfRotationPx="414.09379495 22.59174563" ErrorMean="-1.44630276" ErrorStdev="20.42444002"  />
+  <SpacingCalibrationResult Spacing="0.14709615 0.14239371" ErrorMean="0.74885636" ErrorStdev="14.52168194"  />
 </CalibrationResults>

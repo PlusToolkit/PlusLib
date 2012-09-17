@@ -101,6 +101,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   memcpy( m_FidSegmentation.GetWorking(), image, bytes );
   memcpy( m_FidSegmentation.GetUnalteredImage(), image, bytes);
 
+  //m_FidSegmentation.SetDebugOutput(true); // For testing purpose only
+
   //Start of the segmentation
   m_FidSegmentation.MorphologicalOperations();
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
@@ -108,7 +110,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   //End of the segmentation
 
   m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
-  //m_FidSegmentation.SetDebugOutput(true);//for testing purpose only
 
   // If the number of candidates is arbitrarily high, return with an error code that will tell the system
   // to warn the user that the number of candidates is too high

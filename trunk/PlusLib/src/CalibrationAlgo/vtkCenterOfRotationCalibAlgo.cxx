@@ -134,7 +134,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::Update()
 
   if ( this->ConstructLinearEquationForCalibration(aMatrix, bVector) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to contruct linear equation for center of rotation calibration algorithm!"); 
+    LOG_ERROR("Unable to construct linear equation for center of rotation calibration algorithm!"); 
     return PLUS_FAIL; 
   }
   
