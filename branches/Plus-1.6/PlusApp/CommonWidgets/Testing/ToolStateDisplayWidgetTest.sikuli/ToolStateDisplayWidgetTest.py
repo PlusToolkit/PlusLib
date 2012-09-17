@@ -15,7 +15,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles/Testing" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/Testing/PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'
+    exe = '"' + plusDir + '/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-dir=' + plusDir + '/PlusLib/data/ConfigFiles/Testing" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/Testing/PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'
   
   return exe
 

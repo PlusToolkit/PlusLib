@@ -15,7 +15,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
+    exe = '"' + plusDir + '/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-dir=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml" "--image-dir=' + plusDir + '/PlusLib/data/TestImages"'
   
   return exe
 
