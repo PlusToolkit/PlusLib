@@ -122,7 +122,7 @@ PlusStatus vtkSpacingCalibAlgo::Update()
   // Construct linear equation for spacing calibration
   if ( this->ConstructLinearEquationForCalibration(aMatrix, bVector) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to contruct linear equations for spacing calibration!"); 
+    LOG_ERROR("Unable to construct linear equations for spacing calibration!"); 
     return PLUS_FAIL; 
   }
 
