@@ -24,7 +24,7 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFla
 
   // Create default appearance
   QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
-  QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until not connected to a device set."), this);
+  QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);
   uninitializedLabel->setWordWrap(true);
   grid->addWidget(uninitializedLabel);
   m_ToolNameLabels.push_back(uninitializedLabel);
@@ -66,7 +66,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
   if (! aConnectionSuccessful)
   {
     QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
-    QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until not connected to a device set."), this);
+    QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);
     uninitializedLabel->setWordWrap(true);
     grid->addWidget(uninitializedLabel);
     m_ToolNameLabels.push_back(uninitializedLabel);
