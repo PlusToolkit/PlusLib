@@ -108,7 +108,8 @@ int main(int argc, char **argv)
   int numberOfSuccessfullySegmentedImages = 0;
   FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.RecognizePattern(trackedFrameList, error, &numberOfSuccessfullySegmentedImages);
-  LOG_INFO("Segmentation success rate: " << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%"); 
+  LOG_INFO("Segmentation success rate: " << numberOfSuccessfullySegmentedImages << " out of " << trackedFrameList->GetNumberOfTrackedFrames()
+    << " (" << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%)");
 
   LOG_INFO("Testing spacing computation...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
