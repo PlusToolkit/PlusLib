@@ -1336,22 +1336,14 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   }
 
   // Get and convert currently displayed image // TODO Get TrackedFrame directly from vtkDataCollector
-  vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
-  currentImage->DeepCopy(m_DataCollector->GetOutput());
-
-  PlusVideoFrame videoFrame;
-  videoFrame.DeepCopyFrom(currentImage);
-
-  TrackedFrame* trackedFrame = new TrackedFrame();
-  trackedFrame->SetImageData(videoFrame);
-
-  // Set image for canvas
-  m_ImageVisualizer->SetInput(currentImage);
+  //vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
+  TrackedFrame trackedFrame;
+  m_DataCollector->GetTrackedFrame(&trackedFrame);
 
   // Segment image
   PatternRecognitionResult segResults;
   FidPatternRecognition::PatternRecognitionError error;
-  if( m_PatternRecognition->RecognizePattern(trackedFrame, segResults, error) != PLUS_SUCCESS )
+  if( m_PatternRecognition->RecognizePattern(&trackedFrame, segResults, error) != PLUS_SUCCESS )
   {
     if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
@@ -1400,8 +1392,6 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   m_SegmentedPointsPolyData->Initialize();
   m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
-
-  delete trackedFrame;
 
   ui.label_Feedback->setText("");
 
