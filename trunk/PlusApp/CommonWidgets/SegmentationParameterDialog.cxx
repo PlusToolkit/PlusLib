@@ -1342,8 +1342,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   PlusVideoFrame videoFrame;
   videoFrame.DeepCopyFrom(currentImage);
 
-  TrackedFrame* trackedFrame = new TrackedFrame();
-  trackedFrame->SetImageData(videoFrame);
+  TrackedFrame trackedFrame;
+  trackedFrame.SetImageData(videoFrame);
 
   // Set image for canvas
   m_ImageVisualizer->SetInput(currentImage);
@@ -1351,10 +1351,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // Segment image
   PatternRecognitionResult segResults;
   FidPatternRecognition::PatternRecognitionError error;
-  if( m_PatternRecognition->RecognizePattern(trackedFrame, segResults, error) != PLUS_SUCCESS )
+  if( m_PatternRecognition->RecognizePattern(&trackedFrame, segResults, error) != PLUS_SUCCESS )
   {
-    delete trackedFrame;
-
     if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
       ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
@@ -1402,8 +1400,6 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   m_SegmentedPointsPolyData->Initialize();
   m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
-
-  delete trackedFrame;
 
   ui.label_Feedback->setText("");
 
