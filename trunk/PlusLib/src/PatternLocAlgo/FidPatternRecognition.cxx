@@ -101,8 +101,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   memcpy( m_FidSegmentation.GetWorking(), image, bytes );
   memcpy( m_FidSegmentation.GetUnalteredImage(), image, bytes);
 
-  //m_FidSegmentation.SetDebugOutput(true); // For testing purpose only
-
   //Start of the segmentation
   m_FidSegmentation.MorphologicalOperations();
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
@@ -134,8 +132,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   if(m_FidSegmentation.GetDebugOutput()) 
   {
     //Displays the result dots
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);
-    //m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);//Display all candidates dots
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), "foundFiducials", m_CurrentFrame);
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), "candidateFiducials", m_CurrentFrame);//Display all candidates dots
   }
 
   // Set results

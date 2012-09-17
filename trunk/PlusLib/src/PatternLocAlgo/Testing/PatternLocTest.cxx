@@ -44,12 +44,13 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     outFileFidPositions<< "Frame number, Unfiltered timestamp, Timestamp, w1x, w1y, w2x, w2y, w3x, w3y, w4x, w4y, w5x, w5y, w6x, w6y " <<std::endl;
   }
 
+  // Set to false if you don't want images produced after each morphological operation
+  bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
+  patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
+
   for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
     LOG_DEBUG("Frame: "<<currentFrameIndex);
-
-    // Set to false if you don't want images produced after each morphological operation
-    bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
 
     std::ostrstream possibleFiducialsImageFilename; 
     possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
@@ -83,7 +84,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
       const char* strTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("Timestamp"); 
       const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("UnfilteredTimestamp"); 
 
-      outFileFidPositions<< strFrameNumber << ", " << strUnfilteredTimestamp << ", " << strTimestamp;
+      outFileFidPositions<< ((strFrameNumber!=NULL)?strFrameNumber:"unknown") << ", " << ((strUnfilteredTimestamp!=NULL)?strUnfilteredTimestamp:"unknown") << ", " << ((strTimestamp!=NULL)?strTimestamp:"unknown");
       for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
       { 
         std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
