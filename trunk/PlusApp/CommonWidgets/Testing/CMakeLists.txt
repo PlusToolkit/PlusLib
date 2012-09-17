@@ -95,8 +95,8 @@ IF (PLUSAPP_TEST_GUI)
       -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/DeviceSetSelectorWidgetTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-          --device-set-configuration-directory-path=${ConfigFilesDir}
-          --image-directory-path=${TestDataDir}
+          --device-set-configuration-dir=${ConfigFilesDir}
+          --image-dir=${TestDataDir}
       )
   SET_TESTS_PROPERTIES( DeviceSetSelectorWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
