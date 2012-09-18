@@ -42,3 +42,17 @@ std::string vtkPlusDevice::GetSdkVersion()
   std::string ver = std::string("Plus-") + std::string(PLUSLIB_VERSION); 
   return ver; 
 }
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::IsResettable()
+{
+  // By default, devices cannot be reset.
+  return false;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::Reset()
+{
+  // By default, do nothing
+  return PLUS_SUCCESS;
+}

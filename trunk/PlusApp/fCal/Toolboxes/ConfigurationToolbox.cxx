@@ -48,6 +48,7 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
   connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
   connect( ui.pushButton_SelectEditorApplicationExecutable, SIGNAL( clicked() ), this, SLOT( SelectEditorApplicationExecutable() ) );
+  connect( m_DeviceSetSelectorWidget, SIGNAL( ResetTracker() ), this, SLOT( ResetTracker() ) );
   connect( ui.pushButton_SelectImageDirectory, SIGNAL( clicked() ), this, SLOT( SelectImageDirectory() ) );
 
   // Insert widgets into placeholders
@@ -220,6 +221,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->hide();
       delete connectDialog;
 
+      vtkTracker* tracker = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTracker();
+      if( tracker != NULL )
+      {
+        m_DeviceSetSelectorWidget->ShowResetTrackerButton(tracker->IsResettable());
+      }
+
       // Re-enable main window
        m_ParentMainWindow->setEnabled(true);
 
@@ -239,6 +246,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_ParentMainWindow->GetVisualizationController()->Reset();
     m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+    m_DeviceSetSelectorWidget->ShowResetTrackerButton(false);
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);
   }
 
@@ -546,4 +554,18 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::ResetTracker()
+{
+  if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
+  {
+    vtkTracker* tracker = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTracker();
+    if( tracker != NULL )
+    {
+      tracker->Reset();
+    }
+  }
 }

@@ -114,6 +114,11 @@ signals:
     */
     void SelectImageDirectory();
 
+    /*!
+    * Reset the tracker if it is connected
+    */
+    void ResetTracker();
+
 protected:
   /*! Device set selector widget */
   DeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;

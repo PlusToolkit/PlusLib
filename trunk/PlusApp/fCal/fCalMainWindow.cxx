@@ -526,6 +526,12 @@ void fCalMainWindow::DumpBuffers()
   // Directory open dialog for selecting directory to save the buffers into 
   QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
 
+  if( dirName == "" )
+  {
+    // Cancel button hit, just cancel gracefully
+    return;
+  }
+
   if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
   {
     LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");

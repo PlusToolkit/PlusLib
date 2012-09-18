@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "DeviceSetSelectorWidget.h"
@@ -11,22 +11,25 @@
 #include <QDomDocument>
 
 #ifdef _WIN32
-  #include "Shellapi.h"
+#include "Shellapi.h"
 #endif
 
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
-	: QWidget(aParent)
-	, m_ConnectionSuccessful(false)
+: QWidget(aParent)
+, m_ConnectionSuccessful(false)
 {
-	ui.setupUi(this);
+  ui.setupUi(this);
 
-	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
-	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
-	connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolder() ) );
-	connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
-	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
+  connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
+  connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+  connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolder() ) );
+  connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
+  connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
+  connect( ui.pushButton_ResetTracker, SIGNAL( clicked() ), this, SLOT( ResetTrackerButtonClicked() ) );
+
+  ui.pushButton_ResetTracker->setVisible(false);
 
   SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 }
@@ -44,25 +47,25 @@ PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory
   LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toAscii().data() << ")");
 
   // Try to parse up directory and set UI according to the result
-	if (ParseDirectory(aDirectory))
+  if (ParseDirectory(aDirectory))
   {
-		ui.lineEdit_ConfigurationDirectory->setText(aDirectory);
-		ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
+    ui.lineEdit_ConfigurationDirectory->setText(aDirectory);
+    ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
 
     m_ConfigurationDirectory = aDirectory;
 
     return PLUS_SUCCESS;
-	}
+  }
   else
   {
-		ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
-		ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
+    ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
+    ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
 
-	  ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
-	  ui.textEdit_Description->setText("Selected directory does not contain valid device set configuration files!\n\nPlease select another directory");
+    ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
+    ui.textEdit_Description->setText("Selected directory does not contain valid device set configuration files!\n\nPlease select another directory");
 
     return PLUS_FAIL;
-	}
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -71,12 +74,12 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 {
   LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked"); 
 
-	// Directory open dialog for selecting configuration directory 
-	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
-	if (dirName.isNull())
+  // Directory open dialog for selecting configuration directory 
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
+  if (dirName.isNull())
   {
-		return;
-	}
+    return;
+  }
 
   if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS)
   {
@@ -94,7 +97,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 
 void DeviceSetSelectorWidget::InvokeConnect()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
+  LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
 
   if ( ui.comboBox_DeviceSet->currentIndex() < 0 )
   {
@@ -104,14 +107,14 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
   ui.pushButton_Connect->setEnabled(false);
 
-	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
+  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
 }
 
 //-----------------------------------------------------------------------------
 
 std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
+  LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
 
   return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toAscii().data(); 
 }
@@ -120,34 +123,34 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 
 void DeviceSetSelectorWidget::InvokeDisconnect()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
+  LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
 
   RefreshFolder();
 
   ui.pushButton_Connect->setEnabled(false);
 
-	emit ConnectToDevicesByConfigFileInvoked("");
+  emit ConnectToDevicesByConfigFileInvoked("");
 }
 
 //-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
-	LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
 
-	if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count()))
+  if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count()))
   {
-		return;
-	}
+    return;
+  }
 
-	ui.textEdit_Description->setTextColor(QColor(Qt::black));
+  ui.textEdit_Description->setTextColor(QColor(Qt::black));
 
-	ui.textEdit_Description->setText(
-		ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1)
-		//+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
-		);
+  ui.textEdit_Description->setText(
+    ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1)
+    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
+    );
 
-	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
+  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
@@ -158,59 +161,59 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
-	LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
 
-	m_ConnectionSuccessful = aConnectionSuccessful;
+  m_ConnectionSuccessful = aConnectionSuccessful;
 
-	// If connect button has been pushed
-	if (ui.pushButton_Connect->text() == "Connect")
+  // If connect button has been pushed
+  if (ui.pushButton_Connect->text() == "Connect")
   {
-		if (m_ConnectionSuccessful)
+    if (m_ConnectionSuccessful)
     {
-			ui.pushButton_Connect->setText(tr("Disconnect"));
+      ui.pushButton_Connect->setText(tr("Disconnect"));
       ui.comboBox_DeviceSet->setEnabled(false);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-	    ui.textEdit_Description->setText("Connection successful!\n\n"
+      ui.textEdit_Description->setText("Connection successful!\n\n"
         + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-		    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
-		    );
+        //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+        );
 
       // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
-			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
-			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
+      disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+      connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 
       // Set last used device set config file
       vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
-		}
+    }
     else
     {
-			ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
-			ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
-		}
-	}
+      ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
+      ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
+    }
+  }
   else
   { // If disconnect button has been pushed
-		if (! m_ConnectionSuccessful)
+    if (! m_ConnectionSuccessful)
     {
-			ui.pushButton_Connect->setText(tr("Connect"));
+      ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-	    ui.textEdit_Description->setText(
-		    ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-		    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
-		    );
+      ui.textEdit_Description->setText(
+        ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
+        //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+        );
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
-			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
-			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
-		}
+      disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
+      connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+    }
     else
     {
-			LOG_ERROR("Disconnect failed!");
-		}
-	}
+      LOG_ERROR("Disconnect failed!");
+    }
+  }
 
   ui.pushButton_Connect->setEnabled(true);
 }
@@ -219,107 +222,107 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
 bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful"); 
+  LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful"); 
 
-	return m_ConnectionSuccessful;
+  return m_ConnectionSuccessful;
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
-	LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toAscii().data() << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toAscii().data() << ")"); 
 
-	QDir configDir(aDirectory);
-	QStringList fileList(configDir.entryList());
+  QDir configDir(aDirectory);
+  QStringList fileList(configDir.entryList());
 
-	if (fileList.size() > 200)
+  if (fileList.size() > 200)
   {
-		if (QMessageBox::No == QMessageBox::question(this, tr("Many files in the directory"), tr("There are more than 200 files in the selected directory. Do you really want to continue parsing the files?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes))
+    if (QMessageBox::No == QMessageBox::question(this, tr("Many files in the directory"), tr("There are more than 200 files in the selected directory. Do you really want to continue parsing the files?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes))
     {
-			return PLUS_FAIL;
-		}
-	}
+      return PLUS_FAIL;
+    }
+  }
 
   int lastSelectedDeviceSetIndex = -1; 
-  
+
   // Block signals before we add items
   ui.comboBox_DeviceSet->blockSignals(true); 
   ui.comboBox_DeviceSet->clear();
 
-	QStringListIterator filesIterator(fileList);
-	while (filesIterator.hasNext())
+  QStringListIterator filesIterator(fileList);
+  while (filesIterator.hasNext())
   {
-		QString fileName(configDir.absoluteFilePath(filesIterator.next()));
+    QString fileName(configDir.absoluteFilePath(filesIterator.next()));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
     if( extension.compare(QString(".xml")) != 0 )
     {
       continue;
     }
 
-		QFile file(fileName);
-		QDomDocument doc;
+    QFile file(fileName);
+    QDomDocument doc;
 
-		// If file is not readable then skip
-		if (!file.open(QIODevice::ReadOnly))
+    // If file is not readable then skip
+    if (!file.open(QIODevice::ReadOnly))
     {
-			continue;
-		}
+      continue;
+    }
 
-		// If parsing is successful then check the content and if data collection config file is found then add it to combo box
-		if (doc.setContent(&file))
+    // If parsing is successful then check the content and if data collection config file is found then add it to combo box
+    if (doc.setContent(&file))
     {
-			QDomElement docElem = doc.documentElement();
-			
-			// Check if the root element is PlusConfiguration and contains a DataCollection child
-			if (! docElem.tagName().compare("PlusConfiguration"))
+      QDomElement docElem = doc.documentElement();
+
+      // Check if the root element is PlusConfiguration and contains a DataCollection child
+      if (! docElem.tagName().compare("PlusConfiguration"))
       {
-				QDomNodeList list = docElem.elementsByTagName("DataCollection");
+        QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
-				if (list.count() > 0)
+        if (list.count() > 0)
         { // If it has a DataCollection children then use the first one
-					docElem = list.at(0).toElement();
-				}
+          docElem = list.at(0).toElement();
+        }
         else
         { // If it does not have a DataCollection then it cannot be used for connecting
-					continue;
-				}
-			}
+          continue;
+        }
+      }
       else
       {
-				continue;
-			}
+        continue;
+      }
 
-			// Add the name attribute to the first node named DeviceSet to the combo box
-			QDomNodeList list(doc.elementsByTagName("DeviceSet"));
-			if (list.size() <= 0)
+      // Add the name attribute to the first node named DeviceSet to the combo box
+      QDomNodeList list(doc.elementsByTagName("DeviceSet"));
+      if (list.size() <= 0)
       {
-				continue;
-			}
+        continue;
+      }
 
-			QDomElement elem = list.at(0).toElement();
+      QDomElement elem = list.at(0).toElement();
 
-			QStringList datas;
-			datas.append(fileName);
-			datas.append(elem.attribute("Description", tr("Description not found")));
-			QVariant userData(datas);
+      QStringList datas;
+      datas.append(fileName);
+      datas.append(elem.attribute("Description", tr("Description not found")));
+      QVariant userData(datas);
 
-			QString name(elem.attribute("Name"));
-			if (name.isEmpty())
+      QString name(elem.attribute("Name"));
+      if (name.isEmpty())
       {
         LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toAscii().data() << "', it is not added to the list");
-				continue;
-			}
+        continue;
+      }
 
       // Check if the same name already exists
       int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
       if (foundIndex > -1)
       {
         LOG_WARNING("Device set with name '" << name.toAscii().data() << "' already found, configuration file '" << fileName.toAscii().data() << "' is not added to the list");
-				continue;
+        continue;
       }
 
-			ui.comboBox_DeviceSet->addItem(name, userData);
+      ui.comboBox_DeviceSet->addItem(name, userData);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
       // Add tooltip
@@ -330,12 +333,12 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
-		}
+    }
     else
     {
       LOG_WARNING("Unable to parse file '" << fileName.toLatin1().constData() << "' as an XML. It will not appear in the device set configuration file list!");
     }
-	}
+  }
 
   // If no valid configuration files have been parsed then warn user
   if (ui.comboBox_DeviceSet->count() < 1)
@@ -352,14 +355,14 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
   ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex); 
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::RefreshFolder()
 {
-	LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
+  LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
   if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory())) != PLUS_SUCCESS)
   {
@@ -409,4 +412,20 @@ void DeviceSetSelectorWidget::EditConfiguration()
 #else
   LOG_ERROR("Opening configuration files from the program is not supported on this platform.");
 #endif
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
+{
+  LOG_TRACE("DeviceSetSelectorWidget::ResetTrackerButtonClicked()");
+
+  emit ResetTracker();
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
+{
+  ui.pushButton_ResetTracker->setVisible(aValue);
 }
