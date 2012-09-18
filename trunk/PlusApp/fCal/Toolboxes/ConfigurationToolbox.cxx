@@ -10,6 +10,7 @@
 #include "FidPatternRecognition.h"
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
+#include "vtkTracker.h"
 #include "vtkLineSource.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkVisualizationController.h"
