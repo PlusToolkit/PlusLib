@@ -73,6 +73,9 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
 vtkStandardNewMacro(vtkPolyDataToOrientedImageStencil);
+const unsigned int NUMBER_OF_BOUNDING_BOX_EDGES=12;
+const unsigned int START=0;
+const unsigned int END=1;
 
 //----------------------------------------------------------------------------
 vtkPolyDataToOrientedImageStencil::vtkPolyDataToOrientedImageStencil()
@@ -167,7 +170,9 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       // Define array to hold the x,y,z coordinates of the vertices of the
       // bounding box. Necessary because the vktPlane:IntersectWithLine function
       // takes in an array representing the coordinates. 
-    double boundingBoxLineEndpoints[12][2][4]=
+    
+      // lineIndex, line point index (0=start, 1=end), coordinate index (0=x, 1=y, 2=z)       {
+      double boundingBoxLineEndpoints[NUMBER_OF_BOUNDING_BOX_EDGES][2][4]=
       { 
         { {bounds[0],bounds[2],bounds[4],1}, {bounds[0],bounds[3],bounds[4],1} },
         { {bounds[0],bounds[2],bounds[5],1}, {bounds[0],bounds[3],bounds[5],1} }, 
@@ -182,23 +187,8 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
         { {bounds[0],bounds[2],bounds[4],1}, {bounds[0],bounds[2],bounds[5],1} },
         { {bounds[1],bounds[2],bounds[4],1}, {bounds[1],bounds[2],bounds[5],1} }
 
-    };// lineIndex, line point index (0=start, 1=end), coordinate index (0=x, 1=y, 2=z)       {
-       
-    
-    
-    
-    
-    
-   /*     { bounds[0],bounds[3],bounds[4]}, 
-        { bounds[0],bounds[2],bounds[4]}, 
-        { bounds[0],bounds[3],bounds[5]}, 
-        { bounds[0],bounds[2],bounds[5]}, 
-        { bounds[1],bounds[3],bounds[4]}, 
-        { bounds[1],bounds[2],bounds[4]}, 
-        { bounds[1],bounds[3],bounds[5]}, 
-        { bounds[1],bounds[2],bounds[5]}
-      };*/
-           
+    };
+
      // define values to be filled by vtkPlane::IntersectWithLine function
       // intersection will contain the x,y,z coordinates of the intersesction point
       // and t the parametric coordinate along the line
@@ -210,9 +200,8 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       // may intersect the plane ( a vertical edge of the box), as a result, to check the next line in the array,
       //a vertex must be skipped. ( Otherwise two corners of the boudning box which are diagonal to each other
       //will be used next). 
-      int vertCounter = 0;
-      int horizCounter = 0; 
-      int slicePlaneIntersectsWithBoundingBox = 0;
+     
+      bool slicePlaneIntersectsWithBoundingBox = 0;
       
       double slicePlaneOriginPoint[4] = 
       {
@@ -226,12 +215,12 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       
       double slicePlaneNormalVector[4] = {sliceNormal[0],sliceNormal[1],sliceNormal[2],0};
 
-      for(int i=0;i<12;i++)
+      for(int currentBoundingEdge=0;currentBoundingEdge<NUMBER_OF_BOUNDING_BOX_EDGES;currentBoundingEdge++)
       {
         // check to see if any of the verical lines of the bounding box intersect the slice plane, 
         //and break if they do (these lines are parallel to the y axis)
         
-        vtkPlane::IntersectWithLine(boundingBoxLineEndpoints[i][0],boundingBoxLineEndpoints[i][1],slicePlaneNormalVector,slicePlaneOriginPoint,planeLineIntersectionPointParametricCoordinate, planeLineIntersectionPoint);
+        vtkPlane::IntersectWithLine(boundingBoxLineEndpoints[currentBoundingEdge][START],boundingBoxLineEndpoints[currentBoundingEdge][END],slicePlaneNormalVector,slicePlaneOriginPoint,planeLineIntersectionPointParametricCoordinate, planeLineIntersectionPoint);
         if( planeLineIntersectionPoint!=0)
         {
           slicePlaneIntersectsWithBoundingBox = 1; 
@@ -239,7 +228,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
         }
        }
      
-      if (slicePlaneIntersectsWithBoundingBox==1)
+      if (slicePlaneIntersectsWithBoundingBox)
       {
         vtkIdType numCellPts = cellPts->GetNumberOfPoints();
         newLines->InsertNextCell(numCellPts);
@@ -269,36 +258,17 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       {
         // scalar value is distance from the specified z plane
 
-        // cellScalars->SetValue(i, input->GetPoint(cellIds->GetId(i))[2]);
+       
         cellScalars->SetValue(i,DistanceToPlane(input->GetPoint(cellIds->GetId(i)),sliceNormal,slicePosition));
-        /*
-        std::cout << "point "<<i<<": ("<<input->GetPoint(cellIds->GetId(i))[0]<<","<<input->GetPoint(cellIds->GetId(i))[1]<<","<<input->GetPoint(cellIds->GetId(i))[2]<<") - distance="<<
-          DistanceToPlane(input->GetPoint(cellIds->GetId(i)),sliceNormal,slicePosition)<<std::endl;
-          */
+      
       }
-      //std::cout << "---------------------------" << std::endl;
-      //Original idea for plane distance calculation:
-      //cellScalars->SetValue(i,slicingPlane->GetPointDistanceFromPlane(input->GetPoint(cellIds->GetId(i)), slicePosition));
+     
 
       // 0: because we search for the isosurface that corresponds to the 0 value
       cell->Contour(0, cellScalars, locator,
         newVerts, newLines, newPolys, NULL, NULL,
         inCD, cellId, outCD);
 
-      /*
-      newLines->InitTraversal();
-      vtkIdType npts, *pts;
-      for (int cellId = 0; newLines->GetNextCell(npts, pts); cellId++)
-      {
-        std::cout << "Cell "<<cellId<<": ";
-        for (int ptid=0; ptid<npts; ptid++)
-        {
-          std::cout << pts[ptid] << ", ";
-        }
-        std::cout <<std::endl;
-      }
-      std::cout << "===========================" << std::endl;
-      */
     }
   }
 
