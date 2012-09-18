@@ -88,7 +88,13 @@ int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
 //-----------------------------------------------------------------------------
 int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector** inputVector,vtkInformationVector* outputVector)
 {
-  if (this->ModelToImageMatrix== NULL)
+  if (this->ModelFileName == NULL)
+    {
+	    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration nor is set as input!");
+      return PLUS_FAIL;     
+    }
+  
+  if (this->ModelToImageMatrix == NULL)
   {
     LOG_ERROR(" No Model to US image transform specified " ); 
     return 1; 
@@ -227,51 +233,28 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
   // Model file name
-  if(this->ModelFileName==NULL)
-  { 
+  
     const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
-    if (modelFileName == NULL)
+
+    if(modelFileName)
     {
-	    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration!");
-      return PLUS_FAIL;     
-    }
-    std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
-    {
-      this->SetModelFileName(foundAbsoluteImagePath.c_str());
+ 
+      std::string foundAbsoluteImagePath;
+      if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+      {
+        LoadModel(foundAbsoluteImagePath);  
+      }
+    
+      else
+      {
+        LOG_WARNING("Cannot find input model file!");
+     // return PLUS_FAIL; comment out, because should fail later when update is called. 
+      }
     }
     else
     {
-      LOG_ERROR("Cannot find input model file!");
-      return PLUS_FAIL;
+      LOG_WARNING("Cannot find input model file!"); 
     }
-  }
-
-  // Load Model
-  
-  std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
-  vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
- 
-  
-  
-  if (STRCASECMP(fileExt.c_str(),".stl")==0)
-  {  
-    vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
-    modelReader->SetFileName(this->ModelFileName);
-    modelReader->Update();
-    model = modelReader->GetOutput();
-  }
-  
-  else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
-  {
-    vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-    modelReader->SetFileName(this->ModelFileName);
-    modelReader->Update();
-     model = modelReader->GetOutput();
-  }
-    
-    
-  this->SetInput(model);
 
   // Reference coordinate frame
   const char* imageCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ImageCoordinateFrame");
@@ -293,8 +276,46 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 
   return PLUS_SUCCESS;
 }
-
 //-----------------------------------------------------------------------------
+
+PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
+{
+      this->SetModelFileName(absoluteImagePath.c_str());
+        // Load Model
+  
+      std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
+      vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
+ 
+  
+  
+      if (STRCASECMP(fileExt.c_str(),".stl")==0)
+      {  
+        vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
+        modelReader->SetFileName(this->ModelFileName);
+        modelReader->Update();
+        model = modelReader->GetOutput();
+      }
+  
+      else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
+      {
+        vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+        modelReader->SetFileName(this->ModelFileName);
+        modelReader->Update();
+        model = modelReader->GetOutput();
+      }
+    
+      if (model == NULL)
+      {
+        LOG_ERROR("Model specified cannot be found, check path");
+        return PLUS_FAIL;
+      }
+   
+    this->SetInput(model);
+    return PLUS_SUCCESS;
+}
+
+
+
 PlusStatus vtkUsSimulatorAlgo::CreateStencilBackgroundImage()
 {
   vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 

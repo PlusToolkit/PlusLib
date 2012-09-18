@@ -169,16 +169,17 @@ int main(int argc, char **argv)
   // Create simulator
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
   
-  if(!inputModelFile.empty())
-  {
-    usSimulator->SetModelFileName(inputModelFile.c_str()); 
-  }
-  
   if ( usSimulator->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US simulator configuration!"); 
     exit(EXIT_FAILURE); 
   }
+ 
+  if(!inputModelFile.empty())
+  {
+    usSimulator->LoadModel(inputModelFile.c_str()); 
+  }
+
   usSimulator->CreateStencilBackgroundImage();
 
   PlusTransformName imageToReferenceTransformName(usSimulator->GetImageCoordinateFrame(), usSimulator->GetReferenceCoordinateFrame());

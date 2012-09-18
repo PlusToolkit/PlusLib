@@ -28,6 +28,9 @@ public:
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
+  /*! Load stl or vtp model  */ 
+  PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath);
+
   /*! Create stencil background image according to the already read configuration settings */
   PlusStatus CreateStencilBackgroundImage();
 
