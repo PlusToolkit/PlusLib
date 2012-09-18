@@ -312,6 +312,5 @@ int main(int argc, char **argv)
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
-
 	return EXIT_SUCCESS; 
 }
