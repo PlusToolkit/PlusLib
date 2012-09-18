@@ -82,7 +82,18 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+  PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
+  /*
+  * Override the default resettable behavior of the device
+  * because Phidget trackers can be reset
+  */
+  virtual bool IsResettable();
+
+  /*!
+    Reset the device
+  */
+  virtual PlusStatus Reset();
 
 protected:
 

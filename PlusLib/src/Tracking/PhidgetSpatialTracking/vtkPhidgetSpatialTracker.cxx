@@ -121,26 +121,26 @@ void vtkPhidgetSpatialTracker::PrintSelf( ostream& os, vtkIndent indent )
 //callback that will run if the Spatial is attached to the computer
 int CCONV AttachHandler(CPhidgetHandle spatial, void *trackerPtr)
 {
-	int serialNo;
-	CPhidget_getSerialNumber(spatial, &serialNo);
+  int serialNo;
+  CPhidget_getSerialNumber(spatial, &serialNo);
   LOG_DEBUG("Phidget spatial sensor attached: " << serialNo);
-	return 0;
+  return 0;
 }
 
 //callback that will run if the Spatial is detached from the computer
 int CCONV DetachHandler(CPhidgetHandle spatial, void *trackerPtr)
 {
-	int serialNo;
-	CPhidget_getSerialNumber(spatial, &serialNo);
-	LOG_DEBUG("Phidget spatial sensor detached: " << serialNo);
-	return 0;
+  int serialNo;
+  CPhidget_getSerialNumber(spatial, &serialNo);
+  LOG_DEBUG("Phidget spatial sensor detached: " << serialNo);
+  return 0;
 }
 
 //callback that will run if the Spatial generates an error
 int CCONV ErrorHandler(CPhidgetHandle spatial, void *trackerPtr, int ErrorCode, const char *unknown)
 {
   LOG_ERROR("Phidget spatial sensor error: "<<ErrorCode<<" ("<<unknown<<")");
-	return 0;
+  return 0;
 }
 
 //callback that will run at datarate
@@ -209,7 +209,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
         tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
       }
     }     
-    
+
     if (tracker->TiltSensorTool!=NULL)
     {
       // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
@@ -253,7 +253,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 
       tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetToolName(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
-    
+
     if (tracker->OrientationSensorTool!=NULL)
     {
       if (data[i]->magneticField[0]>1e100)
@@ -332,45 +332,45 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 
   this->MagnetometerTool = NULL;
   GetToolByPortName("Magnetometer", this->MagnetometerTool);
-  
+
   this->TiltSensorTool = NULL;
   GetToolByPortName("TiltSensor", this->TiltSensorTool);
-  
+
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
   // TODO: verify tool definition
 
-	//Create the communicator object to the PhidgetSpatial device
-	CPhidgetSpatial_create(&this->SpatialDeviceHandle);
+  //Create the communicator object to the PhidgetSpatial device
+  CPhidgetSpatial_create(&this->SpatialDeviceHandle);
 
-	//Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
-	CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, AttachHandler, this);
-	CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, DetachHandler, this);
-	CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, ErrorHandler, this);
+  //Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
+  CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, AttachHandler, this);
+  CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, DetachHandler, this);
+  CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, ErrorHandler, this);
 
-	//Registers a callback that will run according to the set data rate that will return the spatial data changes
-	CPhidgetSpatial_set_OnSpatialData_Handler(this->SpatialDeviceHandle, vtkPhidgetSpatialTracker::SpatialDataHandler, this);
+  //Registers a callback that will run according to the set data rate that will return the spatial data changes
+  CPhidgetSpatial_set_OnSpatialData_Handler(this->SpatialDeviceHandle, vtkPhidgetSpatialTracker::SpatialDataHandler, this);
 
   //This will initiate the SystemTime (time reference in Plus) to TrackerTime (time reference of the internal clock of the device) offset computation
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
 
   //open the spatial object for device connections
-	CPhidget_open((CPhidgetHandle)this->SpatialDeviceHandle, -1);
+  CPhidget_open((CPhidgetHandle)this->SpatialDeviceHandle, -1);
 
-	//get the program to wait for a spatial device to be attached
-	LOG_DEBUG("Waiting for phidget spatial device to be attached...");
+  //get the program to wait for a spatial device to be attached
+  LOG_DEBUG("Waiting for phidget spatial device to be attached...");
   int result=0;
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)this->SpatialDeviceHandle, 10000)))
-	{
+  if((result = CPhidget_waitForAttachment((CPhidgetHandle)this->SpatialDeviceHandle, 10000)))
+  {
     const char *err=NULL;
-		CPhidget_getErrorDescription(result, &err);
+    CPhidget_getErrorDescription(result, &err);
     LOG_ERROR( "Couldn't initialize vtkPhidgetSpatialTracker: Problem waiting for attachment (" << err << ")");
     return PLUS_FAIL;
-	}
+  }
 
-	//Set the data rate for the spatial events
+  //Set the data rate for the spatial events
   int userDataRateMsec=1000/this->GetAcquisitionRate();
   // Allowed userDataRateMsec values: 8, 16, 32, 64, 128, 256, 512, 1000, set the closest one
   if (userDataRateMsec<12) { userDataRateMsec=8; }
@@ -381,11 +381,8 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
   else if (userDataRateMsec<384) { userDataRateMsec=256; }
   else if (userDataRateMsec<756) { userDataRateMsec=512; }
   else { userDataRateMsec=1000; }
-	CPhidgetSpatial_setDataRate(this->SpatialDeviceHandle, userDataRateMsec);
-	LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
-
-  // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
-  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
+  CPhidgetSpatial_setDataRate(this->SpatialDeviceHandle, userDataRateMsec);
+  LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
 
   // To set compass correction parameters:
   //  CPhidgetSpatial_setCompassCorrectionParameters(this->SpatialDeviceHandle, 0.648435, 0.002954, -0.024140, 0.002182, 1.520509, 1.530625, 1.575390, -0.002039, 0.003182, -0.001966, -0.013848, 0.003168, -0.014385);
@@ -610,6 +607,24 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
     {
       LOG_ERROR("Unknown AHRS algorithm type. Cannot write name to XML.");
     }    
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPhidgetSpatialTracker::IsResettable()
+{
+  return true;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPhidgetSpatialTracker::Reset()
+{
+  if( this->IsTracking() )
+  {
+    // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
+    int result = CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
   }
 
   return PLUS_SUCCESS;

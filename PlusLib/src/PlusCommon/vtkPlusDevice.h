@@ -57,6 +57,16 @@ public:
   */
   virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame *trackedFrame) = 0;
 
+  /*!
+    Return whether or not the device can be reset
+  */
+  virtual bool IsResettable();
+
+  /*!
+    Reset the device
+  */
+  virtual PlusStatus Reset();
+
 public:
   /*! Get the acquisition rate */
   vtkGetMacro(AcquisitionRate, double);
