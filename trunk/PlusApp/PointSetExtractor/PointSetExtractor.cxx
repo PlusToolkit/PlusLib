@@ -56,11 +56,11 @@ int main(int argc, char **argv)
 	args.Initialize(argc, argv);
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file");
-	args.AddArgument("--input-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data");	
+	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file");
+	args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data");	
 	args.AddArgument("--stylus-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusName, "Name of the stylus tool (Default: Stylus)");
   args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
-  args.AddArgument("--output-pointset-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output pointset file in PLY format (optional)");
+  args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output pointset file in PLY format (optional)");
   args.AddArgument("--display-points", vtksys::CommandLineArguments::NO_ARGUMENT, &displayPoints, "Show the points on the screen (optional)");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	}
 	if (inputConfigFileName.empty())
 	{
-		std::cerr << "input-config-file-name is required" << std::endl;
+		std::cerr << "--config-file is required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
   if (inputSequenceFileName.empty())
