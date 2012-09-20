@@ -114,6 +114,11 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   if( m_FidSegmentation.GetDotsVector().size() > m_MaxNumberOfCandidates )
   {
     patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
+    // Set the FiducialPointsCoordinatePx to _non_ NULL
+    // fiducialPoints->GetNumberOfPoints() == NULL means not yet segmented
+    // fiducialPoints->GetNumberOfPoints() == 0 means segmentation failed 
+    vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
+    trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
     return PLUS_FAIL;
   }
 
@@ -222,7 +227,7 @@ void FidPatternRecognition::DrawDots( PixelType *image)
       int r = (int)floor( row + cos(t) * DOT_RADIUS );
       int c = (int)floor( col + sin(t)* DOT_RADIUS );
 
-      if ( r >= 0 && r < m_FidSegmentation.GetFrameSize()[1] && c >= 0 && c <=  m_FidSegmentation.GetFrameSize()[0] )
+      if ( r >= 0 && r < m_FidSegmentation.GetFrameSize()[1] && c >= 0 && c <  m_FidSegmentation.GetFrameSize()[0] )
       {
         image[r* m_FidSegmentation.GetFrameSize()[0]+c] = UCHAR_MAX;
       }
@@ -236,16 +241,16 @@ void FidPatternRecognition::DrawDots( PixelType *image)
 
 void FidPatternRecognition::DrawResults( PixelType *image )
 {
-  LOG_TRACE("FidPatternRecognition::DrawLines"); 
-
   std::vector<Line> foundLines = m_FidLabeling.GetFoundLinesVector();
   DrawDots(image);  
+
+  LOG_TRACE("FidPatternRecognition::DrawLines"); 
 
   for ( int l = 0; l < foundLines.size(); l++ )
   {
     double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetY()};
     double directionVector[2] = { foundLines[l].GetDirectionVector()[0], foundLines[l].GetDirectionVector()[1]};
-    if(directionVector[0] < 0)
+    if(directionVector[0] > 0)
     {
       directionVector[0] = -directionVector[0];
       directionVector[1] = -directionVector[1];
@@ -254,13 +259,20 @@ void FidPatternRecognition::DrawResults( PixelType *image )
     vtkMath::Normalize2D(directionVector);
     double r = origin[1]-0.2*foundLines[l].GetLength()*directionVector[1];
     double c = origin[0]-0.2*foundLines[l].GetLength()*directionVector[0];
-    image[int(r*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
+
+    if ( r >= 0 && r < m_FidSegmentation.GetFrameSize()[1] && c >= 0 && c <  m_FidSegmentation.GetFrameSize()[0] )
+    {
+      image[int(r*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
+    }
 
     for( int i=0 ; i<foundLines[l].GetLength()*1.4 ; i++ )
     {
       r += directionVector[1];
       c += directionVector[0];
-      image[int(int(r)*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
+      if ( r >= 0 && r < m_FidSegmentation.GetFrameSize()[1] && c >= 0 && c <  m_FidSegmentation.GetFrameSize()[0] )
+      {
+        image[int(int(r)*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
+      }
     }
   }
 }
