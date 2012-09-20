@@ -112,6 +112,11 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
+  if ( intermediateFileOutputDirectory.empty() )
+  {
+    intermediateFileOutputDirectory = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory());
+  }
+
   vtkSmartPointer<vtkTrackedFrameList> trackerFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   vtkSmartPointer<vtkTrackedFrameList> videoFrames = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   
