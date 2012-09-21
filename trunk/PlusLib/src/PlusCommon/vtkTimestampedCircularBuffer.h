@@ -298,6 +298,11 @@ public:
   vtkGetMacro(TimeStampReporting,bool); 
   vtkBooleanMacro(TimeStampReporting,bool);  
 
+  /*! If TimeStampLogging is enabled then the timestamps and frame indexes that are used for filtering will be logged at TRACE level for diagnostic purposes. */
+  vtkSetMacro(TimeStampLogging,bool);
+  vtkGetMacro(TimeStampLogging,bool); 
+  vtkBooleanMacro(TimeStampLogging,bool);  
+  
   /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
   vtkSetMacro(AveragedItemsForFiltering, unsigned int); 
   /*! Get number of items used for timestamp filtering (with LSQR mimimizer) */
@@ -375,6 +380,11 @@ protected:
     a table. As the table is continuously growing it should be enabled only temporarily, for diagnostic purposes.
   */
   bool TimeStampReporting;
+  /*! 
+    If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes.
+    It generates quite a lot of output in the logs, so it is recommended to use only for diagnostic purposes.
+  */
+  bool TimeStampLogging;
 
 private:
   vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);
