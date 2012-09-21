@@ -92,8 +92,11 @@ protected:
   /*! Duration of the temporal calibration process in seconds */
   int m_TemporalCalibrationDurationSec;
 
-  /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
-  double m_LastRecordedFrameTimestamp;
+  /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
+  double m_LastRecordedTrackingItemTimestamp;
+
+  /*! Timestamp of last recorded tracker item (items acquired since this timestamp will be recorded) */
+  double m_LastRecordedVideoItemTimestamp;
 
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
   int m_RecordingIntervalMs;

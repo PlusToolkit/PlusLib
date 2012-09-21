@@ -649,6 +649,11 @@ PlusStatus vtkTracker::GetTrackedFrame(double timestamp, TrackedFrame *aTrackedF
     return PLUS_FAIL;
   }
 
+  // Add main tool timestamp
+  std::ostringstream timestampFieldValue; 
+  timestampFieldValue << std::fixed << timestamp; 
+  aTrackedFrame->SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
+
   for (ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 

@@ -32,7 +32,8 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_CancelRequest(false)
-, m_LastRecordedFrameTimestamp(0.0)
+, m_LastRecordedTrackingItemTimestamp(0.0)
+, m_LastRecordedVideoItemTimestamp(0.0)
 , m_RecordingIntervalMs(200)
 , m_TemporalCalibrationDurationSec(10)
 , m_StartTimeSec(0.0)
@@ -49,7 +50,7 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
   m_TemporalCalibrationTrackingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_TemporalCalibrationVideoData = vtkTrackedFrameList::New();
-  m_TemporalCalibrationVideoData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+  m_TemporalCalibrationVideoData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
   // Create temporal calibration metric tables
   m_VideoPositionMetric = vtkTable::New();
@@ -357,7 +358,9 @@ void TemporalCalibrationToolbox::StartCalibration()
   m_TemporalCalibrationTrackingData->Clear();
   m_TemporalCalibrationVideoData->Clear();
 
-  m_LastRecordedFrameTimestamp = 0.0;
+  double currentTimeSec = vtkAccurateTimer::GetSystemTime();
+  m_LastRecordedTrackingItemTimestamp = currentTimeSec;
+  m_LastRecordedVideoItemTimestamp = currentTimeSec;
 
   m_StartTimeSec = vtkAccurateTimer::GetSystemTime();
   m_CancelRequest = false;
@@ -549,24 +552,20 @@ void TemporalCalibrationToolbox::DoCalibration()
   int numberOfVideoFramesBeforeRecording = m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames();
 
   // Acquire tracking frames
-  double lastRecordedTrackingFrameTimestamp = m_LastRecordedFrameTimestamp;
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(lastRecordedTrackingFrameTimestamp, m_TemporalCalibrationTrackingData, -1, false, true) != PLUS_SUCCESS )
+  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingData(m_LastRecordedTrackingItemTimestamp, m_TemporalCalibrationTrackingData) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to tracking data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Failed to tracking data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedTrackingItemTimestamp << ")"); 
     CancelCalibration();
     return; 
   }
 
   // Acquire video frames
-  double lastRecordedVideoFrameTimestamp = m_LastRecordedFrameTimestamp;
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(lastRecordedVideoFrameTimestamp, m_TemporalCalibrationVideoData, -1, true, false) != PLUS_SUCCESS )
+  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetVideoData(m_LastRecordedVideoItemTimestamp, m_TemporalCalibrationVideoData) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedVideoItemTimestamp << ")"); 
     CancelCalibration();
     return; 
   }
-
-  m_LastRecordedFrameTimestamp = std::min( lastRecordedTrackingFrameTimestamp, lastRecordedVideoFrameTimestamp );
 
   // Update progress
   int progressPercent = (int)((currentTimeSec - m_StartTimeSec) / m_TemporalCalibrationDurationSec * 100.0);

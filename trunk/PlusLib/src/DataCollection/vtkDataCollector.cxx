@@ -650,9 +650,9 @@ int vtkDataCollector::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/, bool aVideoEnabled/*=true*/, bool aTrackingEnabled/*=true*/)
+PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
 {
-  LOG_TRACE("vtkDataCollector::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ", " << (aVideoEnabled?"true":"false") << ", " << (aTrackingEnabled?"true":"false") << ")"); 
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd); 
 
   if ( aTrackedFrameList == NULL )
   {
@@ -713,7 +713,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
 
   if ( aMaxNumberOfFramesToAdd > 0 ) 
   {
-    if ( this->VideoEnabled && aVideoEnabled )
+    if ( this->GetVideoEnabled() )
     {
       BufferItemUidType mostRecentVideoUid=0; 
       if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
@@ -725,7 +725,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
       if ( mostRecentVideoUid - this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd )
       {
         // Most recent is needed too
-        firstVideoUidToAdd = mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; 
+        firstVideoUidToAdd= mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; 
       }
       else
       {
@@ -738,7 +738,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
         return PLUS_FAIL; 
       }
     }
-    else if ( this->TrackingEnabled && aTrackingEnabled )
+    else if ( this->GetTrackingEnabled() )
     {
       // Get the first tool
       vtkTrackerTool* firstActiveTool = NULL; 
@@ -894,6 +894,149 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
 
   return status; 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList)
+{
+  LOG_TRACE("vtkDataCollector::GetVideoData(" << aTimestampFrom); 
+
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
+  if ( !this->GetVideoEnabled() )
+  {
+    LOG_ERROR("Unable to get tracked frame list - video is not enabled"); 
+    return PLUS_FAIL; 
+  }
+  if ( this->GetVideoSource() == NULL )
+  {
+    LOG_ERROR("Video source is invalid"); 
+    return PLUS_FAIL; 
+  }
+  if ( this->GetVideoSource()->GetBuffer()->GetNumberOfItems()==0 )
+  {
+    LOG_DEBUG("vtkDataCollector::GetVideoData: the video buffer is empty, no items will be returned"); 
+    return PLUS_SUCCESS;
+  }
+
+  PlusStatus status = PLUS_SUCCESS;
+  BufferItemUidType oldestItemUid=this->GetVideoSource()->GetBuffer()->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid=this->GetVideoSource()->GetBuffer()->GetLatestItemUidInBuffer();
+  for (BufferItemUidType itemUid=oldestItemUid; itemUid<=latestItemUid; ++itemUid)
+  {
+    double itemTimestamp=0;
+    if (this->GetVideoSource()->GetBuffer()->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
+    {
+      // probably the buffer item is not available anymore
+      continue;
+    }
+    if (itemTimestamp<=aTimestampFrom)
+    {
+      // this item has been acquired before the requested start time
+      continue;
+    }
+    aTimestampFrom=itemTimestamp;
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+    if ( this->GetVideoSource()->GetTrackedFrame(itemTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
+      status=PLUS_FAIL;
+    }
+    // Add tracked frame to the list 
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add video data to the list!" ); 
+      status=PLUS_FAIL; 
+    }
+  }
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList)
+{
+  LOG_TRACE("vtkDataCollector::GetTrackingData(" << aTimestampFrom); 
+
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
+  if ( !this->GetTrackingEnabled() )
+  {
+    LOG_ERROR("Unable to get tracked frame list - Tracking is not enabled"); 
+    return PLUS_FAIL; 
+  }
+  if ( this->GetTracker() == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - Tracker is invalid"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get the first tool
+  vtkTrackerTool* firstActiveTool = NULL; 
+  if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get tracked frame list - there is no active tool!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  if ( trackerBuffer == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - Failed to get first active tool!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( trackerBuffer->GetNumberOfItems()==0 )
+  {
+    LOG_DEBUG("vtkDataCollector::GetTrackingData: the tracking buffer is empty, no items will be returned"); 
+    return PLUS_SUCCESS;
+  }
+
+  PlusStatus status = PLUS_SUCCESS;
+  BufferItemUidType oldestItemUid=trackerBuffer->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid=trackerBuffer->GetLatestItemUidInBuffer();
+  for (BufferItemUidType itemUid=oldestItemUid; itemUid<=latestItemUid; ++itemUid)
+  {
+    double itemTimestamp=0;
+    if (trackerBuffer->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
+    {
+      // probably the buffer item is not available anymore
+      continue;
+    }
+    if (itemTimestamp<=aTimestampFrom)
+    {
+      // this item has been acquired before the requested start time
+      continue;
+    }
+    aTimestampFrom=itemTimestamp;
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+    if ( this->GetTracker()->GetTrackedFrame(itemTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get tracking data by time: " << std::fixed << itemTimestamp ); 
+      status=PLUS_FAIL;
+    }
+    // Add tracked frame to the list 
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracking data to the list!" ); 
+      status=PLUS_FAIL; 
+    }
+  }
+
+  return status; 
+}
+
 
 //----------------------------------------------------------------------------
 
