@@ -75,6 +75,9 @@ protected slots:
 
   /*! Slot handling cancel calibration event (button click or explicit call) */
   void CancelCalibration();
+  
+  /*! Compute calibration results from the collected data and display the results */
+  void ComputeCalibrationResults();
 
 protected:
   /*! Tracked frame for tracking data for temporal calibration */

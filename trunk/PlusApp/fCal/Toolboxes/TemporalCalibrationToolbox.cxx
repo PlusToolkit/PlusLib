@@ -369,6 +369,159 @@ void TemporalCalibrationToolbox::StartCalibration()
 }
 
 //-----------------------------------------------------------------------------
+void TemporalCalibrationToolbox::ComputeCalibrationResults()
+{
+  // Create dialog
+  QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
+  temporalCalibrationDialog->setMinimumSize(QSize(360,80));
+  temporalCalibrationDialog->setCaption(tr("fCal"));
+  temporalCalibrationDialog->setBackgroundColor(QColor(224, 224, 224));
+
+  QLabel* temporalCalibrationLabel = new QLabel(QString("Computing temporal calibration, please wait..."), temporalCalibrationDialog);
+  temporalCalibrationLabel->setFont(QFont("SansSerif", 16));
+
+  QHBoxLayout* layout = new QHBoxLayout();
+  layout->addWidget(temporalCalibrationLabel);
+
+  temporalCalibrationDialog->setLayout(layout);
+  temporalCalibrationDialog->show();
+
+  ui.label_InstructionsTemporal->setText(tr("Please wait until computing temporal calibration is finished"));
+  m_ParentMainWindow->SetStatusBarText(QString(" Computing temporal calibration"));
+
+  QApplication::processEvents();
+
+  // Do the calibration
+  TemporalCalibration temporalCalibrationObject;
+  temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData);
+  temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
+  temporalCalibrationObject.SetSamplingResolutionSec(0.001);
+  temporalCalibrationObject.SetSaveIntermediateImagesToOn(false);
+
+  PlusTransformName probeToReferenceTransformName(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
+  std::string probeToReferenceTransformNameString;
+  probeToReferenceTransformName.GetTransformName(probeToReferenceTransformNameString);
+  temporalCalibrationObject.SetProbeToReferenceTransformName(probeToReferenceTransformNameString);
+
+  //  Calculate the time-offset
+  TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error = TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
+  std::string errorStr;
+  std::ostringstream strs;
+  if (temporalCalibrationObject.Update(error) != PLUS_SUCCESS)
+  {
+    switch (error)
+    {
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
+      double correlation;
+      temporalCalibrationObject.GetBestCorrelation(correlation);
+
+      strs << "Result above threshold. " << correlation;
+      errorStr = strs.str();
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
+      errorStr = "Invalid transform name.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
+      errorStr = "No timestamps on data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
+      errorStr = "Unable to normalize the data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
+      errorStr = "Correlation list empty. Unable to perform analysis on data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
+      errorStr = "Missing video data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
+      errorStr = "Data not in MF orientation.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_VIDEO_DATA:
+      errorStr = "No frames in video data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
+      errorStr = "No frames in ultrasound data.";
+      break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
+      errorStr = "Sampling resolution too small.";
+      break;
+    }
+
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
+    CancelCalibration();
+
+    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
+    ui.label_State->setText( QString(errorStr.c_str()) );
+
+    temporalCalibrationDialog->done(0);
+    temporalCalibrationDialog->hide();
+    delete temporalCalibrationDialog;
+
+    return;
+  }
+
+  // Get result
+  double trackerLagSec = 0;
+  if (temporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    CancelCalibration();
+
+    temporalCalibrationDialog->done(0);
+    temporalCalibrationDialog->hide();
+    delete temporalCalibrationDialog;
+
+    return;
+  }
+
+  LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
+
+  // Set the result local time offset
+  bool offsetsSuccessfullySet = false;
+  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+  {
+    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+    if (dataCollector)
+    {
+      if ( (dataCollector->GetVideoSource() != NULL)
+        && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
+      {
+        dataCollector->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
+        offsetsSuccessfullySet = true;
+      }
+    }
+  }
+  if (!offsetsSuccessfullySet)
+  {
+    LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
+    CancelCalibration();
+
+    temporalCalibrationDialog->done(0);
+    temporalCalibrationDialog->hide();
+    delete temporalCalibrationDialog;
+
+    return;
+  }
+  // Save metric tables
+  temporalCalibrationObject.GetVideoPositionSignal(m_VideoPositionMetric);
+  temporalCalibrationObject.GetUncalibratedTrackerPositionSignal(m_UncalibratedTrackerPositionMetric);
+  temporalCalibrationObject.GetCalibratedTrackerPositionSignal(m_CalibratedTrackerPositionMetric);
+
+  m_TemporalCalibrationTrackingData->Clear();
+  m_TemporalCalibrationVideoData->Clear();
+
+  SetState(ToolboxState_Done);
+
+  m_ParentMainWindow->SetToolboxesEnabled(true);
+
+  // Close dialog
+  temporalCalibrationDialog->done(0);
+  temporalCalibrationDialog->hide();
+  delete temporalCalibrationDialog;
+}
+
+
+//-----------------------------------------------------------------------------
 
 void TemporalCalibrationToolbox::DoCalibration()
 {
@@ -379,157 +532,10 @@ void TemporalCalibrationToolbox::DoCalibration()
 
   if (currentTimeSec - m_StartTimeSec >= m_TemporalCalibrationDurationSec)
   {
-    // Create dialog
-    QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
-    temporalCalibrationDialog->setMinimumSize(QSize(360,80));
-    temporalCalibrationDialog->setCaption(tr("fCal"));
-    temporalCalibrationDialog->setBackgroundColor(QColor(224, 224, 224));
-
-    QLabel* temporalCalibrationLabel = new QLabel(QString("Computing temporal calibration, please wait..."), temporalCalibrationDialog);
-    temporalCalibrationLabel->setFont(QFont("SansSerif", 16));
-
-    QHBoxLayout* layout = new QHBoxLayout();
-    layout->addWidget(temporalCalibrationLabel);
-
-    temporalCalibrationDialog->setLayout(layout);
-    temporalCalibrationDialog->show();
-
-    ui.label_InstructionsTemporal->setText(tr("Please wait until computing temporal calibration is finished"));
-    m_ParentMainWindow->SetStatusBarText(QString(" Computing temporal calibration"));
-
-    QApplication::processEvents();
-
-    // Do the calibration
-    TemporalCalibration temporalCalibrationObject;
-    temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData);
-    temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
-    temporalCalibrationObject.SetSamplingResolutionSec(0.001);
-    temporalCalibrationObject.SetSaveIntermediateImagesToOn(false);
-
-    PlusTransformName probeToReferenceTransformName(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
-    std::string probeToReferenceTransformNameString;
-    probeToReferenceTransformName.GetTransformName(probeToReferenceTransformNameString);
-    temporalCalibrationObject.SetProbeToReferenceTransformName(probeToReferenceTransformNameString);
-
-    //  Calculate the time-offset
-    TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error = TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
-    std::string errorStr;
-    std::ostringstream strs;
-    if (temporalCalibrationObject.Update(error) != PLUS_SUCCESS)
-    {
-      switch (error)
-      {
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
-        double correlation;
-        temporalCalibrationObject.GetBestCorrelation(correlation);
-
-        strs << "Result above threshold. " << correlation;
-        errorStr = strs.str();
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
-        errorStr = "Invalid transform name.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
-        errorStr = "No timestamps on data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
-        errorStr = "Unable to normalize the data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
-        errorStr = "Correlation list empty. Unable to perform analysis on data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
-        errorStr = "Missing video data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
-        errorStr = "Data not in MF orientation.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_VIDEO_DATA:
-        errorStr = "No frames in video data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
-        errorStr = "No frames in ultrasound data.";
-        break;
-      case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
-        errorStr = "Sampling resolution too small.";
-        break;
-      }
-
-      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
-      CancelCalibration();
-
-      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
-      ui.label_State->setText( QString(errorStr.c_str()) );
-
-      temporalCalibrationDialog->done(0);
-      temporalCalibrationDialog->hide();
-      delete temporalCalibrationDialog;
-
-      return;
-    }
-
-    // Get result
-    double trackerLagSec = 0;
-    if (temporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
-      CancelCalibration();
-
-      temporalCalibrationDialog->done(0);
-      temporalCalibrationDialog->hide();
-      delete temporalCalibrationDialog;
-
-      return;
-    }
-
-    LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
-
-    // Set the result local time offset
-    bool offsetsSuccessfullySet = false;
-    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
-    {
-      vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-      if (dataCollector)
-      {
-        if ( (dataCollector->GetVideoSource() != NULL)
-          && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
-        {
-          dataCollector->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
-          offsetsSuccessfullySet = true;
-        }
-      }
-    }
-    if (!offsetsSuccessfullySet)
-    {
-      LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
-      CancelCalibration();
-
-      temporalCalibrationDialog->done(0);
-      temporalCalibrationDialog->hide();
-      delete temporalCalibrationDialog;
-
-      return;
-    }
-    // Save metric tables
-    temporalCalibrationObject.GetVideoPositionSignal(m_VideoPositionMetric);
-    temporalCalibrationObject.GetUncalibratedTrackerPositionSignal(m_UncalibratedTrackerPositionMetric);
-    temporalCalibrationObject.GetCalibratedTrackerPositionSignal(m_CalibratedTrackerPositionMetric);
-
-    m_TemporalCalibrationTrackingData->Clear();
-    m_TemporalCalibrationVideoData->Clear();
-
-    SetState(ToolboxState_Done);
-
-    m_ParentMainWindow->SetToolboxesEnabled(true);
-
-    // Close dialog
-    temporalCalibrationDialog->done(0);
-    temporalCalibrationDialog->hide();
-    delete temporalCalibrationDialog;
-
+    // The prescribed data collection time is up
+    ComputeCalibrationResults();
     return;
   }
-
 
   // Cancel if requested
   if (m_CancelRequest)
@@ -546,7 +552,7 @@ void TemporalCalibrationToolbox::DoCalibration()
   double lastRecordedTrackingFrameTimestamp = m_LastRecordedFrameTimestamp;
   if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(lastRecordedTrackingFrameTimestamp, m_TemporalCalibrationTrackingData, -1, false, true) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Failed to tracking data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelCalibration();
     return; 
   }
@@ -555,7 +561,7 @@ void TemporalCalibrationToolbox::DoCalibration()
   double lastRecordedVideoFrameTimestamp = m_LastRecordedFrameTimestamp;
   if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(lastRecordedVideoFrameTimestamp, m_TemporalCalibrationVideoData, -1, true, false) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelCalibration();
     return; 
   }
