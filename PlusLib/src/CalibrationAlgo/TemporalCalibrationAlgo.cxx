@@ -92,7 +92,7 @@ PlusStatus TemporalCalibration::Update(TEMPORAL_CALIBRATION_ERROR &error)
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkTrackedFrameList::VerifyProperties(this->m_TrackerFrames, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  if (vtkTrackedFrameList::VerifyProperties(this->m_VideoFrames, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
   {
     error = TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION;
     LOG_ERROR("Failed to perform calibration - video data is invalid"); 
