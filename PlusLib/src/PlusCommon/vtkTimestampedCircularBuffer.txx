@@ -34,6 +34,8 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
   this->TimeStampReportTable = NULL; 
   this->TimeStampReporting = false;
 
+  this->TimeStampLogging = false;
+  
   this->StartTime = 0; 
 
 }
@@ -683,8 +685,11 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 
   outFilteredTimestamp = a * itemIndex + b; 
 
-  LOG_TRACE("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
-  LOG_TRACE("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
+  if (this->TimeStampLogging)
+  {
+    LOG_TRACE("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
+    LOG_TRACE("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
+  }
 
   AddToTimeStampReport(itemIndex, inUnfilteredTimestamp, outFilteredTimestamp);  
 
