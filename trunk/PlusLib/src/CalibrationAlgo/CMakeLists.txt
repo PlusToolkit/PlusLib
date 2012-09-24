@@ -10,6 +10,7 @@ SET (CalibrationAlgo_SRCS
   vtkCenterOfRotationCalibAlgo.cxx
   vtkBrachyStepperPhantomRegistrationAlgo.cxx
   TemporalCalibrationAlgo.cxx
+  vtkSpatialCalibrationOptimizer.cxx
 	)
 
 SET (CalibrationAlgo_HDRS)	
@@ -23,6 +24,7 @@ IF (WIN32)
     vtkCenterOfRotationCalibAlgo.h
     vtkBrachyStepperPhantomRegistrationAlgo.h
     TemporalCalibrationAlgo.h
+	vtkSpatialCalibrationOptimizer.h
 		)
 ENDIF (WIN32)
 
