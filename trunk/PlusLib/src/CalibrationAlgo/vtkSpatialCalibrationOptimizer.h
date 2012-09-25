@@ -82,11 +82,11 @@ protected:
 
 protected:
   /*! Callback function for the minimizer (function to minimize) */
-  friend void vtkTrackerToolCalibrationFunction(void *userData);
+  friend void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
 
 protected:
   /*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
-  vtkMatrix4x4*        PivotPointToMarkerTransformMatrix;
+  vtkMatrix4x4*       PivotPointToMarkerTransformMatrix;
 
   /*! Uncertainty (standard deviation), error of the calibration result in mm */
   double              CalibrationError;

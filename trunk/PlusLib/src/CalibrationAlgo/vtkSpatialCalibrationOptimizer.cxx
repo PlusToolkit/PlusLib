@@ -73,9 +73,9 @@ PlusStatus vtkSpatialCalibrationOptimizer::InsertNextCalibrationPoint(vtkMatrix4
 
 //----------------------------------------------------------------------------
 
-void vtkTrackerToolCalibrationFunction(void *userData)
+void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
 {
-  LOG_TRACE("(vtkSpatialCalibrationOptimizer)vtkTrackerToolCalibrationFunction");
+  LOG_TRACE("(vtkSpatialCalibrationOptimizer)vtkImageToProbeCalibrationMatrixEvaluationFunction");
 
   vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)userData;
 
@@ -131,12 +131,5 @@ PlusStatus vtkSpatialCalibrationOptimizer::DoCalibrationOptimization(vtkTransfor
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::DoCalibrationOptimization");
 
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
-
-//-----------------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------------
-
-
