@@ -12,6 +12,7 @@ happens between two threads. In real life, it happens between two programs.
 */ 
 
 #include "PlusConfigure.h"
+#include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkDataCollector.h"
 #include "vtkPlusOpenIGTLinkServer.h"
@@ -204,6 +205,9 @@ int main( int argc, char** argv )
 
 
   server->Stop(); 
+  server->SetDataCollector(NULL);
+  dataCollector->Stop();
+  dataCollector->Disconnect();
   
   if ( testing ) 
   {

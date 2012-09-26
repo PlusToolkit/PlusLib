@@ -364,6 +364,7 @@ PlusStatus vtkTracker::Connect()
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::Disconnect()
 {
+  this->StopTracking();
   return PLUS_SUCCESS;
 }
 

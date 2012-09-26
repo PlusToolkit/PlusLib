@@ -61,6 +61,8 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
 {
   this->Stop();
+  SetTransformRepository(NULL); // remove reference to prevent memory leaks
+  SetDataCollector(NULL); // remove reference to prevent memory leaks
 }
 
 //----------------------------------------------------------------------------
