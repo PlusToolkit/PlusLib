@@ -25,6 +25,8 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkPoints.h" 
 
+#include "vtkSpatialCalibrationOptimizer.h"
+
 static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=10; // minimum number of successfully calibrated frames required for calibration
 
 vtkCxxRevisionMacro(vtkProbeCalibrationAlgo, "$Revision: 1.0 $");
@@ -264,6 +266,15 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository );
+
+  /* 
+  // Interface with the vtkSpatialCalibrationOptimizer
+  vtkSpatialCalibrationOptimizer *optimizer = vtkSpatialCalibrationOptimizer::New();
+  optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
+  optimizer->Optimize();
+  */
+ 
+
 
   // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");

@@ -14,6 +14,17 @@ See License.txt for details.
 #include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
 
+#include "vnl/vnl_matrix.h"
+#include <vnl/vnl_double_3x3.h>
+#include <vnl/vnl_double_3.h>
+#include <vnl/algo/vnl_svd.h>
+#include <vnl/algo/vnl_determinant.h>
+#include <vnl/vnl_trace.h>
+
+
+#include <vcl_iostream.h>
+
+
 class vtkTransformRepository;
 class vtkXMLDataElement;
 
@@ -45,7 +56,7 @@ public:
     Insert acquired point to calibration point list
     \param aMarkerToReferenceTransformMatrix New calibration point (tool to reference transform)
   */
-  PlusStatus InsertNextCalibrationPoint(vtkMatrix4x4* aMarkerToReferenceTransformMatrix);
+  PlusStatus Optimize();
 
   /*!
     Calibrate (call the minimizer and set the result)
@@ -53,28 +64,24 @@ public:
   */
   PlusStatus DoCalibrationOptimization(vtkTransformRepository* aTransformRepository = NULL);
 
+  /*! Provides to the class the information necessary make the optimization 
+   */
+  PlusStatus SetOptimizerData(std::vector< vnl_vector<double> > *DataPositionsInImageFrame, std::vector< vnl_vector<double> > *DataPositionsInProbeFrame, vnl_matrix<double> *imageToProbeTransformMatrixVnl);
+ 
 
 public:
 
-  vtkGetMacro(CalibrationError, double);
-
-  vtkGetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4); 
-
-  vtkGetStringMacro(ObjectMarkerCoordinateFrame);
-  vtkGetStringMacro(ReferenceCoordinateFrame);
-  vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
 
 protected:
 
-  vtkSetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4);
+    /*! Positions of segmented points in image frame - input of optimization algorithm */
+  std::vector< vnl_vector<double> > DataPositionsInImageFrame;
 
-  vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
+  /*! Positions of segmented points in probe frame - input of optimization algorithm */
+  std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
 
-  vtkSetObjectMacro(MarkerToReferenceTransformMatrixArray, vtkDoubleArray);
-
-  vtkSetStringMacro(ObjectMarkerCoordinateFrame);
-  vtkSetStringMacro(ReferenceCoordinateFrame);
-  vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
+  /*! Store the seed for the optimization process */
+  vnl_matrix<double> imageToProbeSeedTransformMatrixVnl;
 
 protected:
   vtkSpatialCalibrationOptimizer();
@@ -83,6 +90,7 @@ protected:
 protected:
   /*! Callback function for the minimizer (function to minimize) */
   friend void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
+  
 
 protected:
   /*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
@@ -94,17 +102,8 @@ protected:
   /*! Minimizer algorithm object */
   vtkAmoebaMinimizer* Minimizer;
 
-  /*! Array of the input points */
-  vtkDoubleArray*     MarkerToReferenceTransformMatrixArray;
-
-  /*! Name of the object marker coordinate frame (eg. Stylus) */
-  char*               ObjectMarkerCoordinateFrame;
-
-  /*! Name of the reference coordinate frame (eg. Reference) */
-  char*               ReferenceCoordinateFrame;
-
-  /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
-  char*               ObjectPivotPointCoordinateFrame;
+  
+  vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
 
 };
 
