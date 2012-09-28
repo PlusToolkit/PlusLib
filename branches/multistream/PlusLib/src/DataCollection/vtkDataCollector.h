@@ -107,7 +107,6 @@ public:
   /*! Get frame rate - from video if enabled, else from tracker */
   virtual PlusStatus GetFrameRate(double &aFrameRate);
 
-public:
   /*! Set video source of ultrasound */
   virtual void SetVideoSource(vtkPlusVideoSource* videoSource); 
   /*! Get video source of ultrasound */
@@ -196,8 +195,6 @@ protected:
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
-
-protected:
 
   /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double StartupDelaySec; 
