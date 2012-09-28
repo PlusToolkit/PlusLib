@@ -202,7 +202,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   this->DataPositionsInProbeFrame.clear();
 
   this->SegmentedPointsInImageFrame.clear();
-  this->probeToPhantomTransforms.clear();
+  this->ProbeToPhantomTransforms.clear();
 
   this->ValidationMiddleWirePositionsInPhantomFrame.clear();
   this->CalibrationMiddleWirePositionsInPhantomFrame.clear();
@@ -279,7 +279,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   //optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
   //optimizer->Optimize(1);
   // Second method
-  optimizer->SetOptimizerData2(&this->SegmentedPointsInImageFrame,&this->NWires,&this->probeToPhantomTransforms,&imageToProbeTransformMatrixVnl);
+  optimizer->SetOptimizerData2(&this->SegmentedPointsInImageFrame,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl);
   optimizer->Optimize(2);
   */
 
@@ -435,7 +435,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
   // Get  probe to phantome transform in vnl
   vnl_matrix<double> probeToPhantomTransformMatrix(4,4);
   PlusMath::ConvertVtkMatrixToVnlMatrix(probeToPhantomVtkTransformMatrix, probeToPhantomTransformMatrix); 
-  probeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
+  this->ProbeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
 
   //  xxxxx
   */
