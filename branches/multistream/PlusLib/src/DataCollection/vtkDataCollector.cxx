@@ -89,16 +89,16 @@ void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  if ( this->Tracker != NULL )
+  if ( this->GetTracker() != NULL )
   {
     os << indent << "Tracker: " << std::endl; 
-    this->Tracker->PrintSelf(os, indent); 
+    this->GetTracker()->PrintSelf(os, indent); 
   }
 
-  if ( this->VideoSource != NULL )
+  if ( this->GetVideoSource() != NULL )
   {
     os << indent << "Video source: " << std::endl; 
-    this->VideoSource->PrintSelf(os, indent); 
+    this->GetVideoSource()->PrintSelf(os, indent); 
   }
 }
 
@@ -301,7 +301,7 @@ PlusStatus vtkDataCollector::Start()
 {
   LOG_TRACE("vtkDataCollector::Start"); 
 
-  if (this->Tracker == NULL && this->VideoSource == NULL)
+  if (this->GetTracker() == NULL && this->GetVideoSource() == NULL)
   {
     LOG_ERROR("Data collection cannot be started because neither tracker nor imaging device is available!");
     return PLUS_FAIL;
@@ -403,7 +403,7 @@ PlusStatus vtkDataCollector::GetOldestTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(oldestVideoTimestamp) != ITEM_OK )
+    if ( this->GetVideoSource()->GetBuffer()->GetOldestTimeStamp(oldestVideoTimestamp) != ITEM_OK )
     {
       LOG_WARNING("Failed to get oldest timestamp from video buffer!"); 
       return PLUS_FAIL; 
@@ -599,13 +599,13 @@ int vtkDataCollector::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, 
   if ( this->GetVideoEnabled() )
   {
     VideoBufferItem vFromItem; 
-    if (this->VideoSource->GetBuffer()->GetVideoBufferItemFromTime(aTimestampFrom, &vFromItem) != ITEM_OK )
+    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(aTimestampFrom, &vFromItem) != ITEM_OK )
     {
       return 0;
     }
 
     VideoBufferItem vToItem; 
-    if (this->VideoSource->GetBuffer()->GetVideoBufferItemFromTime(aTimestampTo, &vToItem) != ITEM_OK )
+    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(aTimestampTo, &vToItem) != ITEM_OK )
     {
       return 0;
     }
@@ -716,13 +716,13 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
     if ( this->GetVideoEnabled() )
     {
       BufferItemUidType mostRecentVideoUid=0; 
-      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
+      if ( this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
       {
         LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
       BufferItemUidType firstVideoUidToAdd=0;
-      if ( mostRecentVideoUid - this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd )
+      if ( mostRecentVideoUid - this->GetVideoSource()->GetBuffer()->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd )
       {
         // Most recent is needed too
         firstVideoUidToAdd= mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; 
@@ -732,7 +732,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
         LOG_DEBUG("Number of frames in the buffer is less than maxNumberOfFramesToAdd (more data is allowed to be recorded than it was provided by the data sources)"); 
       }
 
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(firstVideoUidToAdd, aTimestamp ) != ITEM_OK )
+      if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(firstVideoUidToAdd, aTimestamp ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get video buffer timestamp from UID: " << firstVideoUidToAdd ); 
         return PLUS_FAIL; 
@@ -834,20 +834,20 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
     if ( this->GetVideoEnabled() && i < numberOfFramesToAdd - 1 )
     {
       BufferItemUidType videoUid(0); 
-      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(aTimestamp, videoUid) != ITEM_OK )
+      if ( this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(aTimestamp, videoUid) != ITEM_OK )
       {
         LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << aTimestamp ); 
         return PLUS_FAIL; 
       }
 
-      if ( videoUid >= this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() )
+      if ( videoUid >= this->GetVideoSource()->GetBuffer()->GetLatestItemUidInBuffer() )
       {
         LOG_WARNING("Requested video uid (" << videoUid+1 << ") is not in the buffer yet!");
         break;
       }
 
       // Get the timestamp of the next item in the buffer
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, aTimestamp) != ITEM_OK )
+      if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(++videoUid, aTimestamp) != ITEM_OK )
       {
         LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
         return PLUS_FAIL;
@@ -1211,12 +1211,12 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
 //----------------------------------------------------------------------------
 vtkImageData* vtkDataCollector::GetBrightnessOutput()
 {
-  if (this->VideoSource == NULL)
+  if (this->GetVideoSource() == NULL)
   {
     LOG_ERROR("Video source is invalid!");
     return this->BlankImage;
   }
-  return this->VideoSource->GetBrightnessOutput();
+  return this->GetVideoSource()->GetBrightnessOutput();
 }
 
 //------------------------------------------------------------------------------
@@ -1252,7 +1252,7 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aConfiguration
     LOG_DEBUG("StartupDelaySec: " << std::fixed << startupDelaySec ); 
   }
 
-  // Read Tracker
+  // Read Tracker details from config, use tracker factory to create the tracker (or fail)
   if (this->ReadTrackerProperties(aConfigurationData) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read tracker configuration!");
@@ -1285,18 +1285,18 @@ PlusStatus vtkDataCollector::WriteConfiguration( vtkXMLDataElement* aConfigurati
 
   PlusStatus status=PLUS_SUCCESS;
 
-  if (this->Tracker!=NULL)
+  if (this->GetTracker() != NULL)
   {
-    if (this->Tracker->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
+    if (this->GetTracker()->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save tracker configuration");
       status=PLUS_FAIL;
     }
   }
 
-  if (this->VideoSource!=NULL)
+  if (this->GetVideoSource() != NULL)
   {
-    if (this->VideoSource->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
+    if (this->GetVideoSource()->WriteConfiguration(aConfigurationData) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save tracker configuration");
       status=PLUS_FAIL;
@@ -1312,11 +1312,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* aConfigura
   LOG_TRACE("vtkDataCollector::ReadTrackerProperties");
 
   this->TrackingEnabled = false; 
-  if (this->Tracker!=NULL)
-  {
-    this->Tracker->Delete();
-  }
-  this->Tracker=NULL;
+  this->SetTracker(NULL);
 
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
@@ -1346,17 +1342,17 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* aConfigura
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New(); 
+  vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New();
   if ( trackerFactory->CreateInstance(type, this->Tracker) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create tracker instance!"); 
     return PLUS_FAIL; 
   }
 
-  if ( this->Tracker )
+  if ( this->GetTracker() )
   {
     this->TrackingEnabled = true; 
-    return this->Tracker->ReadConfiguration(aConfigurationData); 
+    return this->GetTracker()->ReadConfiguration(aConfigurationData); 
   }
   
   return PLUS_SUCCESS;
@@ -1367,12 +1363,8 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
 {
   LOG_TRACE("vtkDataCollector::ReadImageAcquisitionProperties");
 
-  this->VideoEnabled = false; 
-  if (this->VideoSource!=NULL)
-  {
-    this->VideoSource->Delete();
-  }
-  this->VideoSource=NULL;
+  this->VideoEnabled = false;
+  this->SetVideoSource(NULL);
 
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
@@ -1396,12 +1388,12 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
       return PLUS_SUCCESS;
     }
     vtkSmartPointer<vtkPlusVideoSourceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusVideoSourceFactory>::New(); 
-    if ( videoSourceFactory->CreateInstance(deviceType, this->VideoSource) != PLUS_SUCCESS || this->VideoSource==NULL)
+    if ( videoSourceFactory->CreateInstance(deviceType, this->VideoSource) != PLUS_SUCCESS || this->GetVideoSource() == NULL)
     {
       LOG_ERROR("Failed to create video source instance"); 
       return PLUS_FAIL; 
     }
-    if (this->VideoSource->ReadConfiguration(aConfigurationData)!=PLUS_SUCCESS)
+    if (this->GetVideoSource()->ReadConfiguration(aConfigurationData)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to initialize video source from device set configuration"); 
       return PLUS_FAIL;
@@ -1412,9 +1404,9 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
     LOG_DEBUG("Unable to find DataCollection/ImageAcquisition element in configuration XML structure!");
     
     // Try if we can find a File element:
-    // For compatibility reasons we allow definition of SavedDataVideoSource as 
+    // For compatibility reasons we allow definition of SavedDataVideoSource as
     // <File SequenceMetafile="xyz.mha" ReplayEnabled="TRUE" />
-    vtkXMLDataElement* fileAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("File"); 
+    vtkXMLDataElement* fileAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("File");
     if (fileAcquisitionConfig==NULL)
     {
       LOG_DEBUG("Unable to find DataCollection/File element in configuration XML structure!");
@@ -1466,17 +1458,17 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
     savedDataVideoSource->UseOriginalTimestampsOn();
     savedDataVideoSource->UseAllFrameFieldsOn();
         
-    this->VideoSource=savedDataVideoSource;
+    this->SetVideoSource(savedDataVideoSource);
   }
 
   // Set tracker to the UsSimulatorVideoSource
   //   TODO: Change this when dealing with the streams - #461
-  vtkUsSimulatorVideoSource* usSimulatorVideoSource = dynamic_cast<vtkUsSimulatorVideoSource*>(this->VideoSource);
+  vtkUsSimulatorVideoSource* usSimulatorVideoSource = dynamic_cast<vtkUsSimulatorVideoSource*>(this->GetVideoSource());
   if (usSimulatorVideoSource)
   {
-    if (this->Tracker)
+    if (this->GetTracker())
     {
-      usSimulatorVideoSource->SetTracker(this->Tracker);
+      usSimulatorVideoSource->SetTracker(this->GetTracker());
     }
     else
     {
@@ -1485,7 +1477,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
     }
   }
 
-  if ( this->VideoSource )
+  if ( this->GetVideoSource() )
   {
     this->VideoEnabled = true; 
   }
@@ -1503,13 +1495,13 @@ void vtkDataCollector::SetTrackingOnly(bool trackingOnly)
   }
   else
   {
-    if (this->VideoSource != NULL)
+    if (this->GetVideoSource() != NULL)
     {
       this->VideoEnabled = true;
     }
   }
 
-  if ( this->GetConnected() && this->VideoSource != NULL )
+  if ( this->GetConnected() && this->GetVideoSource() != NULL )
   {
     if ( this->VideoEnabled )
     {
@@ -1532,13 +1524,13 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
   }
   else
   {
-    if (this->Tracker != NULL)
+    if (this->GetTracker() != NULL)
     {
       this->TrackingEnabled = true;
     }
   }
 
-  if ( this->GetConnected() && this->Tracker != NULL )
+  if ( this->GetConnected() && this->GetTracker() != NULL )
   {
     if ( this->TrackingEnabled )
     {
@@ -1556,20 +1548,20 @@ PlusStatus vtkDataCollector::GetFrameSize(int aDim[2])
 {
   LOG_TRACE("vtkDataCollector::GetFrameSize");
 
-  if (this->VideoSource == NULL)
+  if (this->GetVideoSource() == NULL)
   {
     LOG_ERROR("Video source is invalid!");
     return PLUS_FAIL;
   }
 
-  this->VideoSource->GetFrameSize(aDim);
+  this->GetVideoSource()->GetFrameSize(aDim);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
 {
-  if (this->VideoSource == NULL)
+  if (this->GetVideoSource() == NULL)
   {
     LOG_ERROR("Video source is invalid!");
     aDim[0]=this->BlankImage->GetExtent()[1]-this->BlankImage->GetExtent()[0];
@@ -1577,7 +1569,7 @@ PlusStatus vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
     return PLUS_FAIL;
   }
   
-  this->VideoSource->GetBrightnessFrameSize(aDim);
+  this->GetVideoSource()->GetBrightnessFrameSize(aDim);
   return PLUS_SUCCESS;
 }
 
@@ -1587,9 +1579,9 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrame(std::string &aToolRefe
   LOG_TRACE("vtkDataCollector::GetTrackerToolReferenceFrame");
 
   // If there is a physical tracker device then get the info from there
-  if (this->Tracker != NULL)
+  if (this->GetTracker() != NULL)
   {
-    aToolReferenceFrameName = std::string(this->Tracker->GetToolReferenceFrameName());
+    aToolReferenceFrameName = std::string(this->GetTracker()->GetToolReferenceFrameName());
     return PLUS_SUCCESS;
   }
   
@@ -1643,13 +1635,13 @@ PlusStatus vtkDataCollector::GetFrameRate(double &aFrameRate)
 {
   LOG_TRACE("vtkDataCollector::GetFrameRate");
 
-  if ( this->VideoEnabled && this->VideoSource )
+  if ( this->VideoEnabled && this->GetVideoSource() )
   {
-    aFrameRate = this->VideoSource->GetAcquisitionRate();
+    aFrameRate = this->GetVideoSource()->GetAcquisitionRate();
   }
-  else if ( this->Tracker )
+  else if ( this->GetTracker() )
   {
-    aFrameRate = this->Tracker->GetAcquisitionRate();
+    aFrameRate = this->GetTracker()->GetAcquisitionRate();
   }
   else
   {
