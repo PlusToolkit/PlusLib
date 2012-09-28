@@ -187,17 +187,17 @@ protected:
   /*! The result of the calibration */
   vtkMatrix4x4* ImageToProbeTransformMatrix;
 
-
   /*! List of NWires used for calibration and error computation */
   std::vector<NWire> NWires;
 
   /*! Positions of segmented points in image frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInImageFrame;
 
-  /*! Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points. Added by GC */
+  /*! Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points */
   std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
 
-  std::vector< vnl_matrix<double> > probeToPhantomTransforms;
+  /*! Vector containing all Probe to Phantom transforms */
+  std::vector< vnl_matrix<double> > ProbeToPhantomTransforms;
 
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
