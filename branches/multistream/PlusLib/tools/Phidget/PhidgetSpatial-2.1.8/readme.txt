@@ -1,1 +1,0 @@
-Downloaded from http://www.phidgets.com/downloads/examples/VCpp_2.1.8.20120131.zip (Feb 15, 2012)
