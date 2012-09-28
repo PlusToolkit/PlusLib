@@ -24,9 +24,12 @@ See License.txt for details.
 
 #include <vcl_iostream.h>
 
+#include "FidPatternRecognitionCommon.h"
+
 
 class vtkTransformRepository;
 class vtkXMLDataElement;
+class NWire;
 
 //-----------------------------------------------------------------------------
 
@@ -56,18 +59,25 @@ public:
     Insert acquired point to calibration point list
     \param aMarkerToReferenceTransformMatrix New calibration point (tool to reference transform)
   */
-  PlusStatus Optimize();
 
-  /*!
-    Calibrate (call the minimizer and set the result)
-    \param aTransformRepository Transform repository to save the results into
+   /*!
+    Calibrate (call the minimizer)
   */
+  PlusStatus Optimize(int method);
+
+   /*! Set the result */
   PlusStatus DoCalibrationOptimization(vtkTransformRepository* aTransformRepository = NULL);
 
   /*! Provides to the class the information necessary make the optimization 
    */
   PlusStatus SetOptimizerData(std::vector< vnl_vector<double> > *DataPositionsInImageFrame, std::vector< vnl_vector<double> > *DataPositionsInProbeFrame, vnl_matrix<double> *imageToProbeTransformMatrixVnl);
+
+  /*! Provides to the class the information necessary make the optimization 
+   */
+  PlusStatus SetOptimizerData2(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl);
  
+
+  vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix(){return this->imageToProbeTransformMatrixVnl;};
 
 public:
 
@@ -80,8 +90,20 @@ protected:
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
 
+  /*! Positions of ALL the segmented points in image frame - input to the second cost function (distance to wires) */
+  std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
+
+  /* Contains all the probe to phantom transforms used during calibration */
+  std::vector< vnl_matrix<double> > probeToPhantomTransforms;
+
+  /*! List of NWires used for calibration and error computation */
+  std::vector<NWire> NWires;
+
   /*! Store the seed for the optimization process */
   vnl_matrix<double> imageToProbeSeedTransformMatrixVnl;
+
+  /*! Store the result of the optimization process */
+  vnl_matrix<double> imageToProbeTransformMatrixVnl;
 
 protected:
   vtkSpatialCalibrationOptimizer();
@@ -90,6 +112,9 @@ protected:
 protected:
   /*! Callback function for the minimizer (function to minimize) */
   friend void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
+
+    /*! Callback function for the minimizer (function to minimize) */
+  friend void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData);
   
 
 protected:

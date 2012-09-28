@@ -159,6 +159,7 @@ vnl_vector<double> transform_matrix_to_parameters_vector(vnl_matrix<double> tran
   R = transform_matrix.extract(3,3,0,0);
   scaleX = R.get_column(0).two_norm();
   scaleY = R.get_column(1).two_norm();
+  scaleZ = R.get_column(2).two_norm();
 
   R.normalize_columns();
   rotationVersor = rodrigues(R);
@@ -172,6 +173,30 @@ vnl_vector<double> transform_matrix_to_parameters_vector(vnl_matrix<double> tran
   parameters_vector(7)=scaleY;
 
     return parameters_vector;
+}
+
+vnl_matrix<double>  transform_parameters_to_transform_matrix(vnl_vector<double> transform_parameters){
+	// transform_vector = [r1 r2 r3 t1 t2 t3 sx sy]
+	vnl_matrix<double> transform_matrix(4,4);
+	vnl_vector<double> rotationVersor(3);
+	vnl_matrix<double> rotationMatrix(3,3);
+
+	rotationVersor(0)=transform_parameters[0]; rotationVersor(1)=transform_parameters[1]; rotationVersor(2)=transform_parameters[2];
+	rotationMatrix = rodrigues(rotationVersor);
+
+
+	// multiply the matrix with the scales
+	rotationMatrix.set_column(0, rotationMatrix.get_column(0) * transform_parameters[6]);
+	rotationMatrix.set_column(1, rotationMatrix.get_column(1) * transform_parameters[7]);
+
+	//copy the rotation matrix to imageToProbeTransformMatrix in (0,0)
+	transform_matrix.update(rotationMatrix, 0, 0);
+	// copy the translation to imageToProbeTransformMatrix
+	transform_matrix(0,3)=transform_parameters[3]; transform_matrix(1,3)=transform_parameters[4]; transform_matrix(2,3)=transform_parameters[5];
+	// set last row
+	transform_matrix(3,0)=0; transform_matrix(3,1)=0; transform_matrix(3,2)=0; transform_matrix(3,3)=1;
+
+	return transform_matrix;
 }
 
 
@@ -193,7 +218,6 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
   sx = self->Minimizer->GetParameterValue("sx");
   sy = self->Minimizer->GetParameterValue("sy");
   
-  vnl_vector<double> parameters_vector(8);
   vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> R(3,3);
 
@@ -207,7 +231,7 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
   for(int i=0;i<m;i++){
     px = sx*R[0][0]*self->DataPositionsInImageFrame[i][0] + sy*R[0][1]*self->DataPositionsInImageFrame[i][1] + R[0][2]*self->DataPositionsInImageFrame[i][2]+ t1;
     py = sx*R[1][0]*self->DataPositionsInImageFrame[i][0] + sy*R[1][1]*self->DataPositionsInImageFrame[i][1] + R[1][2]*self->DataPositionsInImageFrame[i][2]+ t2;
-    pz = sx*R[2][0]*self->DataPositionsInImageFrame[i][0] + sy*R[2][1]*self->DataPositionsInImageFrame[i][1] + R[2][2]*self->DataPositionsInImageFrame[i][2]+ t3;
+    pz = sx*R[2][0]*self->DataPositionsInImageFrame[i][0] + sy*R[2][1]  *self->DataPositionsInImageFrame[i][1] + R[2][2]*self->DataPositionsInImageFrame[i][2]+ t3;
     dx = px - self->DataPositionsInProbeFrame[i][0];
     dy = py - self->DataPositionsInProbeFrame[i][1];
     dz = pz - self->DataPositionsInProbeFrame[i][2];
@@ -217,25 +241,102 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
 
 }
 
+double point_to_line_distance(vnl_double_3 P, vnl_double_3 LP1, vnl_double_3 LP2 ){
+	//norm(cross( (LP2-LP1), (P-LP1) ) ) / norm(LP2-LP1);
+	double d = vnl_cross_3d(LP2-LP1,P-LP1).two_norm() / (LP2-LP1).two_norm();
+	return d;
+}
 
-PlusStatus vtkSpatialCalibrationOptimizer::Optimize()
+
+void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData)
 {
-  //LOG_TRACE("vtkSpatialCalibrationOptimizer::InsertNextCalibrationPoint");
+  LOG_TRACE("(vtkImageToProbeCalibrationMatrixEvaluationFunction2");
+
+  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)userData;
+
+  double r1, r2, r3, t1, t2, t3, sx,sy;
+  r1 = self->Minimizer->GetParameterValue("r1");
+  r2 = self->Minimizer->GetParameterValue("r2");
+  r3 = self->Minimizer->GetParameterValue("r3");
+  t1 = self->Minimizer->GetParameterValue("t1");
+  t2 = self->Minimizer->GetParameterValue("t2");
+  t3 = self->Minimizer->GetParameterValue("t3");
+  sx = self->Minimizer->GetParameterValue("sx");
+  sy = self->Minimizer->GetParameterValue("sy");
+  
+  vnl_vector<double> rotationVersor(3);
+  vnl_matrix<double> R(3,3);
+
+  rotationVersor(0)=r1; rotationVersor(1)=r2; rotationVersor(2)=r3;
+  R= rodrigues(rotationVersor);
+ 
+  int nWires = self->NWires.size(); 
+  int m = self->SegmentedPointsInImageFrame.size()/(3*nWires); //number of frames
+ 
+  double px, py, pz;
+  double residual=0;
+
+  vnl_vector<double> segmentedInProbeFrame_vnl(4), segmentedInPhantomFrame_vnl(4);
+  vnl_vector<double> wireFrontPoint_vnl(3), wireBackPoint_vnl(3);
+
+  for(int i=0;i<m;i++){ // for each frame
+
+   vnl_matrix<double> probeToPhantomTransform_vnl = self->probeToPhantomTransforms[i];
+
+   for (int j=0;j<3*nWires;j++){  // for each segmented point
+    // find the projection in the probe frame 
+    px = sx*R[0][0]*self->SegmentedPointsInImageFrame[3*nWires*i+j][0] + sy*R[0][1]*self->SegmentedPointsInImageFrame[3*nWires*i+j][1] + R[0][2]*self->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ t1;
+    py = sx*R[1][0]*self->SegmentedPointsInImageFrame[3*nWires*i+j][0] + sy*R[1][1]*self->SegmentedPointsInImageFrame[3*nWires*i+j][1] + R[1][2]*self->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ t2;
+    pz = sx*R[2][0]*self->SegmentedPointsInImageFrame[3*nWires*i+j][0] + sy*R[2][1]*self->SegmentedPointsInImageFrame[3*nWires*i+j][1] + R[2][2]*self->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ t3;
+    // 
+
+ 
+    segmentedInProbeFrame_vnl[0] = px; segmentedInProbeFrame_vnl[1] = py; segmentedInProbeFrame_vnl[2] = pz; segmentedInProbeFrame_vnl[3] = 1;
+    		//Transform points from image to phantom frame
+		segmentedInPhantomFrame_vnl = probeToPhantomTransform_vnl * segmentedInProbeFrame_vnl;
+
+    	// compute distance to wire
+
+		int line = j%3;
+    int w = j/3; 
+
+    wireFrontPoint_vnl[0]= self->NWires[w].Wires[line].EndPointFront[0];
+    wireFrontPoint_vnl[1]= self->NWires[w].Wires[line].EndPointFront[1];
+    wireFrontPoint_vnl[2]= self->NWires[w].Wires[line].EndPointFront[2];
+    wireBackPoint_vnl[0]= self->NWires[w].Wires[line].EndPointBack[0];
+    wireBackPoint_vnl[1]= self->NWires[w].Wires[line].EndPointBack[1];
+    wireBackPoint_vnl[2]= self->NWires[w].Wires[line].EndPointBack[2];
+
+    residual += point_to_line_distance(segmentedInPhantomFrame_vnl.extract(3,0), wireFrontPoint_vnl, wireBackPoint_vnl );
+    }
+  }
+  self->Minimizer->SetFunctionValue(residual);
+
+}
+
+
+
+
+
+PlusStatus vtkSpatialCalibrationOptimizer::Optimize(int method)
+{
 
  LOG_TRACE("vtkSpatialCalibrationOptimizer::Optimize");
-
-  if (this->DataPositionsInImageFrame.size() <1)
-  {
-    LOG_ERROR("No points are available for the optimization"); 
-    return PLUS_FAIL;
-  }
 
   vnl_vector<double> parameters_vector(8); //[r1 r2 r3 t1 t2 t3 sx sy]
   parameters_vector = transform_matrix_to_parameters_vector(this->imageToProbeSeedTransformMatrixVnl);
   
 
-  // Set up minimizer and run the optimalization
-  this->Minimizer->SetFunction(vtkImageToProbeCalibrationMatrixEvaluationFunction,this);
+  switch (method){
+    case 1:
+       // Set up minimizer and run the optimalization
+      this->Minimizer->SetFunction(vtkImageToProbeCalibrationMatrixEvaluationFunction,this);
+      break;
+    case 2:
+      this->Minimizer->SetFunction(vtkImageToProbeCalibrationMatrixEvaluationFunction2,this);
+      break;
+  }
+
   double scale = 0.01;
   this->Minimizer->SetFunctionArgDelete(NULL);
   this->Minimizer->SetParameterValue("r1",parameters_vector[0]);
@@ -245,7 +346,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize()
   this->Minimizer->SetParameterValue("r3",parameters_vector[2]);
   this->Minimizer->SetParameterScale("r3",scale);
   
-  scale = 0.1;
+  scale = 0.5;
   this->Minimizer->SetParameterValue("t1",parameters_vector[3]);
   this->Minimizer->SetParameterScale("t1",scale);
   this->Minimizer->SetParameterValue("t2",parameters_vector[4]);
@@ -258,6 +359,8 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize()
   this->Minimizer->SetParameterScale("sx",scale);
   this->Minimizer->SetParameterValue("sy",parameters_vector[7]);
   this->Minimizer->SetParameterScale("sy",scale);
+
+  LOG_DEBUG("Vector parameters " << parameters_vector << " seed");
 
   this->Minimizer->Minimize();
 
@@ -278,8 +381,16 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize()
   rotationVersor(0)=r1; rotationVersor(1)=r2; rotationVersor(2)=r3;
   R= rodrigues(rotationVersor);
   
+  parameters_vector[0]=r1; parameters_vector[1]=r2; parameters_vector[2]=r3;
+  parameters_vector[3]=t1; parameters_vector[4]=t2; parameters_vector[5]=t3;
+  parameters_vector[6]=sx; parameters_vector[7]=sy;
+
+  this->imageToProbeTransformMatrixVnl = transform_parameters_to_transform_matrix(parameters_vector);
+  
   return PLUS_SUCCESS; 
 }
+
+
 
 //----------------------------------------------------------------------------
 
@@ -287,6 +398,16 @@ PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerData(std::vector< vnl_vec
 {
   this->DataPositionsInImageFrame = *DataPositionsInImageFrame;
   this->DataPositionsInProbeFrame = *DataPositionsInProbeFrame;
+  this->imageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
+
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerData2(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl)
+{
+  this->SegmentedPointsInImageFrame = *SegmentedPointsInImageFrame;
+  this->NWires = * NWires;
+  this->probeToPhantomTransforms = *probeToPhantomTransforms;
   this->imageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
 
   return PLUS_SUCCESS;

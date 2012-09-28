@@ -200,6 +200,10 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
+
+  this->SegmentedPointsInImageFrame.clear();
+  this->probeToPhantomTransforms.clear();
+
   this->ValidationMiddleWirePositionsInPhantomFrame.clear();
   this->CalibrationMiddleWirePositionsInPhantomFrame.clear();
 
@@ -267,13 +271,17 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository );
 
-  /* 
-  // Interface with the vtkSpatialCalibrationOptimizer
+  
+  
+  /*  // Interface with the vtkSpatialCalibrationOptimizer
+  // First Method
   vtkSpatialCalibrationOptimizer *optimizer = vtkSpatialCalibrationOptimizer::New();
-  optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
-  optimizer->Optimize();
+  //optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
+  //optimizer->Optimize(1);
+  // Second method
+  optimizer->SetOptimizerData2(&this->SegmentedPointsInImageFrame,&this->NWires,&this->probeToPhantomTransforms,&imageToProbeTransformMatrixVnl);
+  optimizer->Optimize(2);
   */
- 
 
 
   // Log the calibration result and error
@@ -410,6 +418,28 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
   std::vector< vnl_vector<double> > middleWirePositionsInPhantomFramePerImage;
 
+  /*
+  // From here until xxxxx was aded by GC
+
+  // Store all the probe to phantom transforms
+  PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
+  vtkSmartPointer<vtkMatrix4x4> probeToPhantomVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  if ( (transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+  {
+    std::string transformName; 
+    probeToPhantomTransformName.GetTransformName(transformName); 
+    LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
+    return PLUS_FAIL;
+  }
+  // Get  probe to phantome transform in vnl
+  vnl_matrix<double> probeToPhantomTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(probeToPhantomVtkTransformMatrix, probeToPhantomTransformMatrix); 
+  probeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
+
+  //  xxxxx
+  */
+
 
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
   for (int n = 0; n < this->NWires.size(); ++n)
@@ -455,6 +485,18 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
       // Store into the list of positions in the image frame and the probe frame
       this->DataPositionsInImageFrame.push_back( segmentedPoints[n*3+1] );
       this->DataPositionsInProbeFrame.push_back( positionInProbeFrame );
+
+      /*
+       // From here until xxxxx was aded by GC
+
+      // Store all the segmented points
+      this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3]);
+      this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+1]);
+      this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+2]);
+
+      // xxxxx
+      */
+
     }
   }
 

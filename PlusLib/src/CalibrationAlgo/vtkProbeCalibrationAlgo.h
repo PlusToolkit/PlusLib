@@ -194,6 +194,11 @@ protected:
   /*! Positions of segmented points in image frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInImageFrame;
 
+  /*! Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points. Added by GC */
+  std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
+
+  std::vector< vnl_matrix<double> > probeToPhantomTransforms;
+
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
 
