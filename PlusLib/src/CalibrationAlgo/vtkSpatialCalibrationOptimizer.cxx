@@ -40,14 +40,14 @@ vtkSpatialCalibrationOptimizer::~vtkSpatialCalibrationOptimizer()
 
 //-----------------------------------------------------------------------------
 
-vnl_matrix<double> VectorToMatrix(const vnl_double_3 &A)
+vnl_matrix<double> VectorToMatrix(const vnl_double_3 &vnlVector)
 {
-  vnl_matrix<double> M(3,1);
-  M(0,0) = A(0);
-  M(1,0) = A(1);
-  M(2,0) = A(2);
+  vnl_matrix<double> vnlMatrix(3,1);
+  vnlMatrix(0,0) = vnlVector(0);
+  vnlMatrix(1,0) = vnlVector(1);
+  vnlMatrix(2,0) = vnlVector(2);
 
-  return M;
+  return vnlMatrix;
 }
 
 //-----------------------------------------------------------------------------
@@ -95,11 +95,11 @@ vnl_double_3 rodrigues (vnl_double_3x3 rotationMatrix)
 
   vnl_double_3x3 eye; eye.set_identity();
   vnl_double_3x3 in_x_in; in_x_in = (rotationMatrix.transpose() * rotationMatrix - eye);
-  vnl_svd<double> svd_in_x_in (in_x_in);
-  double norm_in_x_in = svd_in_x_in.sigma_max();
+  vnl_svd<double> svdInXIn (in_x_in);
+  double normInXIn = svdInXIn.sigma_max();
   double det_in = vnl_determinant(rotationMatrix);
 
-  if (norm_in_x_in < BIGEPS &&  fabs(det_in-1)<BIGEPS)
+  if (normInXIn < BIGEPS &&  fabs(det_in-1)<BIGEPS)
   {
     //project the rotation matrix to SO(3);
     vnl_svd<double> svd (rotationMatrix);
@@ -125,22 +125,22 @@ vnl_double_3 rodrigues (vnl_double_3x3 rotationMatrix)
       else //% case norm(om)=pi;
       {
         //out = theta * (sqrt((diag(R)+1)/2).*[1;2*(R(1,2:3)>=0)'-1]);
-        vnl_double_3 diag, left_part, right_part;
+        vnl_double_3 diag, leftPart, rightPart;
         diag(0)=R(0,0); diag(1)=R(1,1); diag(2)=R(2,2);
-        left_part(0) = sqrt((diag(0)+1)/2);
-        left_part(1) = sqrt((diag(1)+1)/2);
-        left_part(2) = sqrt((diag(2)+1)/2);
-        right_part(0)=1;
-        right_part(1) = 2*(R(0,1)>=0) - 1;
-        right_part(2) = 2*(R(0,2)>=0) - 1;
+        leftPart(0) = sqrt((diag(0)+1)/2);
+        leftPart(1) = sqrt((diag(1)+1)/2);
+        leftPart(2) = sqrt((diag(2)+1)/2);
+        rightPart(0)=1;
+        rightPart(1) = 2*(R(0,1)>=0) - 1;
+        rightPart(2) = 2*(R(0,2)>=0) - 1;
 
-        rotationVersor = element_product(left_part,right_part)*theta;
+        rotationVersor = element_product(leftPart,rightPart)*theta;
       }
     }
   }
   else
   {
-    LOG_DEBUG( "Rodrigues: Matrix to versor : (norm_in_x_in < BIGEPS &&  fabs(det_in-1)<BIGEPS)==false" );
+    LOG_DEBUG( "Rodrigues: Matrix to versor : (normInXIn < BIGEPS &&  fabs(det_in-1)<BIGEPS)==false" );
   }
 
   return rotationVersor;
@@ -148,17 +148,17 @@ vnl_double_3 rodrigues (vnl_double_3x3 rotationMatrix)
 
 //-----------------------------------------------------------------------------
 
-vnl_vector<double> transform_matrix_to_parameters_vector(vnl_matrix<double> transform_matrix)
+vnl_vector<double> TransformMatrixToParametersVector(vnl_matrix<double> transformMatrix)
 {
   // transform_vector = [r1 r2 r3 t1 t2 t3 sx sy]
-  vnl_vector<double> parameters_vector(8);
+  vnl_vector<double> parametersVector(8);
   vnl_vector<double> rotationVersor(3);
   //vnl_matrix<double> rotationMatrix(3,3);
   vnl_vector<double> translationVector(3);
   vnl_matrix<double> R(3,3);
   double scaleX, scaleY, scaleZ;
 
-  R = transform_matrix.extract(3,3,0,0);
+  R = transformMatrix.extract(3,3,0,0);
   scaleX = R.get_column(0).two_norm();
   scaleY = R.get_column(1).two_norm();
   scaleZ = R.get_column(2).two_norm();
@@ -166,41 +166,41 @@ vnl_vector<double> transform_matrix_to_parameters_vector(vnl_matrix<double> tran
   R.normalize_columns();
   rotationVersor = rodrigues(R);
 
-  translationVector = transform_matrix.extract(3,1,0,3).get_column(0);
+  translationVector = transformMatrix.extract(3,1,0,3).get_column(0);
 
   // fill the transform_vector
-  parameters_vector.update(rotationVersor,0);
-  parameters_vector.update(translationVector,3);
-  parameters_vector(6)=scaleX;
-  parameters_vector(7)=scaleY;
+  parametersVector.update(rotationVersor,0);
+  parametersVector.update(translationVector,3);
+  parametersVector(6)=scaleX;
+  parametersVector(7)=scaleY;
 
-  return parameters_vector;
+  return parametersVector;
 }
 
 //-----------------------------------------------------------------------------
 
-vnl_matrix<double> transform_parameters_to_transform_matrix(vnl_vector<double> transform_parameters)
+vnl_matrix<double> TransformParametersToTransformMatrix(vnl_vector<double> transformParameters)
 {
   // transform_vector = [r1 r2 r3 t1 t2 t3 sx sy]
-  vnl_matrix<double> transform_matrix(4,4);
+  vnl_matrix<double> transformMatrix(4,4);
   vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> rotationMatrix(3,3);
 
-  rotationVersor(0)=transform_parameters[0]; rotationVersor(1)=transform_parameters[1]; rotationVersor(2)=transform_parameters[2];
+  rotationVersor(0)=transformParameters[0]; rotationVersor(1)=transformParameters[1]; rotationVersor(2)=transformParameters[2];
   rotationMatrix = rodrigues(rotationVersor);
 
   // multiply the matrix with the scales
-  rotationMatrix.set_column(0, rotationMatrix.get_column(0) * transform_parameters[6]);
-  rotationMatrix.set_column(1, rotationMatrix.get_column(1) * transform_parameters[7]);
+  rotationMatrix.set_column(0, rotationMatrix.get_column(0) * transformParameters[6]);
+  rotationMatrix.set_column(1, rotationMatrix.get_column(1) * transformParameters[7]);
 
   // copy the rotation matrix to imageToProbeTransformMatrix in (0,0)
-  transform_matrix.update(rotationMatrix, 0, 0);
+  transformMatrix.update(rotationMatrix, 0, 0);
   // copy the translation to imageToProbeTransformMatrix
-  transform_matrix(0,3)=transform_parameters[3]; transform_matrix(1,3)=transform_parameters[4]; transform_matrix(2,3)=transform_parameters[5];
+  transformMatrix(0,3)=transformParameters[3]; transformMatrix(1,3)=transformParameters[4]; transformMatrix(2,3)=transformParameters[5];
   // set last row
-  transform_matrix(3,0)=0; transform_matrix(3,1)=0; transform_matrix(3,2)=0; transform_matrix(3,3)=1;
+  transformMatrix(3,0)=0; transformMatrix(3,1)=0; transformMatrix(3,2)=0; transformMatrix(3,3)=1;
 
-  return transform_matrix;
+  return transformMatrix;
 }
 
 
@@ -229,7 +229,7 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
   R = rodrigues(rotationVersor);
  
   int m = self->DataPositionsInImageFrame.size();
-  double px, py, pz, dx, dy, dz;
+  double px, py, pz, dx, dy, dz, d;
   double residual=0;
 
   for(int i=0;i<m;i++)
@@ -240,15 +240,16 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
 	  dx = px - self->DataPositionsInProbeFrame[i][0];
 	  dy = py - self->DataPositionsInProbeFrame[i][1];
 	  dz = pz - self->DataPositionsInProbeFrame[i][2];
-	  residual += dx*dx + dy*dy + dz*dz;
+    d = dx*dx + dy*dy + dz*dz;
+	  residual += d*d;
   }
-  
+  double rmsError = sqrt(residual/m);
   self->Minimizer->SetFunctionValue(residual);
 }
 
 //-----------------------------------------------------------------------------
 
-double point_to_line_distance(vnl_double_3 P, vnl_double_3 LP1, vnl_double_3 LP2 )
+double PointToLineDistance(vnl_double_3 P, vnl_double_3 LP1, vnl_double_3 LP2 )
 {
   //norm(cross( (LP2-LP1), (P-LP1) ) ) / norm(LP2-LP1);
   double d = vnl_cross_3d(LP2-LP1,P-LP1).two_norm() / (LP2-LP1).two_norm();
@@ -315,12 +316,14 @@ void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData)
       wireBackPoint_vnl[0]= self->NWires[w].Wires[line].EndPointBack[0];
       wireBackPoint_vnl[1]= self->NWires[w].Wires[line].EndPointBack[1];
       wireBackPoint_vnl[2]= self->NWires[w].Wires[line].EndPointBack[2];
-
-      residual += point_to_line_distance(segmentedInPhantomFrame_vnl.extract(3,0), wireFrontPoint_vnl, wireBackPoint_vnl );
+      
+      double d = PointToLineDistance(segmentedInPhantomFrame_vnl.extract(3,0), wireFrontPoint_vnl, wireBackPoint_vnl );
+      residual += d*d;
     }
   }
   
-  self->Minimizer->SetFunctionValue(residual);
+  double rmsError= sqrt(residual/(3*m*nWires));
+  self->Minimizer->SetFunctionValue(rmsError);
 }
 
 //-----------------------------------------------------------------------------
@@ -329,8 +332,8 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize(int method)
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::Optimize");
 
-  vnl_vector<double> parameters_vector(8); //[r1 r2 r3 t1 t2 t3 sx sy]
-  parameters_vector = transform_matrix_to_parameters_vector(this->ImageToProbeSeedTransformMatrixVnl);
+  vnl_vector<double> parametersVector(8); //[r1 r2 r3 t1 t2 t3 sx sy]
+  parametersVector = TransformMatrixToParametersVector(this->ImageToProbeSeedTransformMatrixVnl);
 
   switch (method)
   {
@@ -345,32 +348,34 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize(int method)
 
   double scale = 0.01;
   this->Minimizer->SetFunctionArgDelete(NULL);
-  this->Minimizer->SetParameterValue("r1",parameters_vector[0]);
+  this->Minimizer->SetParameterValue("r1",parametersVector[0]);
   this->Minimizer->SetParameterScale("r1",scale);
-  this->Minimizer->SetParameterValue("r2",parameters_vector[1]);
+  this->Minimizer->SetParameterValue("r2",parametersVector[1]);
   this->Minimizer->SetParameterScale("r2",scale);
-  this->Minimizer->SetParameterValue("r3",parameters_vector[2]);
+  this->Minimizer->SetParameterValue("r3",parametersVector[2]);
   this->Minimizer->SetParameterScale("r3",scale);
   
-  scale = 0.5;
-  this->Minimizer->SetParameterValue("t1",parameters_vector[3]);
+  scale = 0.1;
+  this->Minimizer->SetParameterValue("t1",parametersVector[3]);
   this->Minimizer->SetParameterScale("t1",scale);
-  this->Minimizer->SetParameterValue("t2",parameters_vector[4]);
+  this->Minimizer->SetParameterValue("t2",parametersVector[4]);
   this->Minimizer->SetParameterScale("t2",scale);
-  this->Minimizer->SetParameterValue("t3",parameters_vector[5]);
+  this->Minimizer->SetParameterValue("t3",parametersVector[5]);
   this->Minimizer->SetParameterScale("t3",scale);
 
-  scale = 0.05;
-  this->Minimizer->SetParameterValue("sx",parameters_vector[6]);
+  scale = 0.005;
+  this->Minimizer->SetParameterValue("sx",parametersVector[6]);
   this->Minimizer->SetParameterScale("sx",scale);
-  this->Minimizer->SetParameterValue("sy",parameters_vector[7]);
+  this->Minimizer->SetParameterValue("sy",parametersVector[7]);
   this->Minimizer->SetParameterScale("sy",scale);
 
-  LOG_DEBUG("Vector parameters " << parameters_vector << " seed");
+  LOG_DEBUG("Vector parameters " << parametersVector << " seed");
 
   this->Minimizer->Minimize();
 
-  //this->CalibrationError = this->Minimizer->GetFunctionValue();
+  double rmsError = this->Minimizer->GetFunctionValue();
+  int iteration = this->Minimizer->GetIterations();
+  int evaluations = this->Minimizer->GetFunctionEvaluations();
 
   double r1, r2, r3, t1, t2, t3, sx,sy;
   r1 = this->Minimizer->GetParameterValue("r1");
@@ -387,11 +392,11 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize(int method)
   rotationVersor(0)=r1; rotationVersor(1)=r2; rotationVersor(2)=r3;
   R= rodrigues(rotationVersor);
   
-  parameters_vector[0]=r1; parameters_vector[1]=r2; parameters_vector[2]=r3;
-  parameters_vector[3]=t1; parameters_vector[4]=t2; parameters_vector[5]=t3;
-  parameters_vector[6]=sx; parameters_vector[7]=sy;
+  parametersVector[0]=r1; parametersVector[1]=r2; parametersVector[2]=r3;
+  parametersVector[3]=t1; parametersVector[4]=t2; parametersVector[5]=t3;
+  parametersVector[6]=sx; parametersVector[7]=sy;
 
-  this->ImageToProbeTransformMatrixVnl = transform_parameters_to_transform_matrix(parameters_vector);
+  this->ImageToProbeTransformMatrixVnl = TransformParametersToTransformMatrix(parametersVector);
   
   return PLUS_SUCCESS; 
 }

@@ -151,6 +151,9 @@ protected:
   /*! Set ImageToProbe calibration result matrix and validate it */
   void SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
 
+    /*! Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal*/
+  void SetAndValidateImageToProbeTransform2( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
+
   /*! Save results and error report to XML */
   PlusStatus SaveCalibrationResultAndErrorReportToXML(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame);
 
