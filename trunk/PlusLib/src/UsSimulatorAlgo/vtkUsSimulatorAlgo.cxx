@@ -63,6 +63,9 @@ vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
 {
   SetModelToImageMatrix(NULL); 
   SetStencilBackgroundImage(NULL);
+  SetModelFileName(NULL); 
+  SetImageCoordinateFrame(NULL); 
+  SetReferenceCoordinateFrame(NULL); 
 }
 
 //-----------------------------------------------------------------------------
@@ -109,14 +112,14 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
-  vtkPolyData* modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
+  vtkSmartPointer<vtkPolyData> modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
   if (modelModel == NULL)
   {
     LOG_ERROR("Model specified is empty");
     return 1; 
   }
 
-  vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+  vtkSmartPointer<vtkImageData> simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
   if (simulatedUsImage == NULL)
   {
     LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
@@ -177,6 +180,9 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkImageData *combinedStencilOutput = combineModelwithBackgroundStencil->GetOutput();
 
   simulatedUsImage->DeepCopy(combinedStencilOutput); 
+
+  
+   
 
   return 1; 
 }
