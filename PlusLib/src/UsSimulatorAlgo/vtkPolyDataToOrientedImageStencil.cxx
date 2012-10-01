@@ -87,6 +87,7 @@ vtkPolyDataToOrientedImageStencil::vtkPolyDataToOrientedImageStencil()
 //----------------------------------------------------------------------------
 vtkPolyDataToOrientedImageStencil::~vtkPolyDataToOrientedImageStencil()
 {
+  SetVolumeVoxelToOrientedVolumeVoxel(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -187,7 +188,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
         { {bounds[0],bounds[2],bounds[4],1}, {bounds[0],bounds[2],bounds[5],1} },
         { {bounds[1],bounds[2],bounds[4],1}, {bounds[1],bounds[2],bounds[5],1} }
 
-    };
+       };
 
      // define values to be filled by vtkPlane::IntersectWithLine function
       // intersection will contain the x,y,z coordinates of the intersesction point
@@ -250,7 +251,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       // create a representation for the slicing plane, to make
       // cellScalar calculation simpler later on. Plane is angled, so cannot
       //just used z value
-      vtkSmartPointer<vtkPlane> slicingPlane = vtkPlane::New(); 
+      vtkSmartPointer<vtkPlane> slicingPlane = vtkSmartPointer<vtkPlane>::New(); 
       slicingPlane->SetNormal(sliceNormal); 
       slicingPlane->SetOrigin(slicePosition[0], slicePosition[1], slicePosition[2]); 
 
@@ -268,7 +269,6 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       cell->Contour(0, cellScalars, locator,
         newVerts, newLines, newPolys, NULL, NULL,
         inCD, cellId, outCD);
-
     }
   }
 
@@ -287,6 +287,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
   newLines->Delete();
   newVerts->Delete();
   newPolys->Delete();
+
 
   //release any extra memory
   locator->Initialize();
@@ -403,45 +404,16 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
 
     orientedVolumeVoxelToModel->MultiplyPoint(sliceOrigin_OrientedVolumeVoxel,sliceOrigin_Model);
     orientedVolumeVoxelToModel->MultiplyPoint(sliceNormal_OrientedVolumeVoxel,sliceNormal_Model);
-
-    //double z = idxZ*spacing[2] + origin[2];
-    
-    
-    //double sliceOrigin[4];
-    //double sliceNormal[4];
-    
-   //CalculateOriginAndSliceNormalInModelCoordinates(volumeVoxelToVolumePhysical, modelToVolumeVoxel,idxZ,sliceOrigin, sliceNormal);
-    
-    
-    
-  
-
- /*  original idea:
-   {
-      idxZ*directionCosines[3][0]*spacing[0] + origin[0],
-      idxZ*directionCosines[3][1]*spacing[1] + origin[1],
-      idxZ*directionCosines[3][2]*spacing[2] + origin[2]
-    };*/
-
- 
-    
-    
-
-    
-      // **** check math, also eventually standardize length with slice Position
-    /*  directionCosines->GetElement(1,0),
-      directionCosines->GetElement(1,1),
-      directionCosines->GetElement(1,2)*/
       
      
-    ;
+    
 
 
     slice->PrepareForNewData();
     raster.PrepareForNewData();
 
     // Step 1: Cut the data into slices
-   //*** TODO: change order : this->PolyDataCutter(input, slice, slicePosition, sliceNormal,locator);
+   
     this->PolyDataCutter(input, slice, sliceOrigin_Model, sliceNormal_Model, locator);
     
     if (!slice->GetNumberOfLines())
@@ -464,26 +436,11 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
       points->GetPoint(j, point_Model);
       double point_OrientedVolumeVoxel[4]={0,0,0,1};
       modelToOrientedVolumeVoxel->MultiplyPoint(point_Model,point_OrientedVolumeVoxel);      
-      /*
-      tempPoint[0] = (tempPoint[0] - origin[0])*invspacing[0];
-      tempPoint[1] = (tempPoint[1] - origin[1])*invspacing[1];
-      tempPoint[2] = (tempPoint[2] - origin[2])*invspacing[2];
-      */
+
       points->SetPoint(j, point_OrientedVolumeVoxel);
       }
 
-   /*   double tempPoint[3];
-      points->GetPoint(j, tempPoint);
-
-      double transformedTempPoint[3];
-      
-      modelToImageTransform->TransformPoint(tempPoint,transformedTempPoint); 
-
-      tempPoint[0] = (tempPoint[0] - origin[0])*invspacing[0]*transformedTempPoint[0];
-      tempPoint[1] = (tempPoint[1] - origin[1])*invspacing[1]*transformedTempPoint[1];
-      tempPoint[2] = (tempPoint[2] - origin[2])*invspacing[2]*transformedTempPoint[2];
-      points->SetPoint(j, tempPoint);
-      }*/
+ 
 
     // Step 2: Find and connect all the loose ends
     vtkCellArray *lines = slice->GetLines();
@@ -656,10 +613,19 @@ void vtkPolyDataToOrientedImageStencil::ThreadedExecute(
     sliceExtent[4] = idxZ;
     sliceExtent[5] = idxZ;
     raster.FillStencilData(data, sliceExtent);
-    }
+  
+   
+
+  
+
+  }
 
   slice->Delete();
   locator->Delete();
+
+ 
+
+ 
 }
 
 //----------------------------------------------------------------------------
