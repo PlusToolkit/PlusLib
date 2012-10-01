@@ -271,9 +271,8 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository );
 
-  
-  
-  /*  // Interface with the vtkSpatialCalibrationOptimizer
+  /*
+    // Interface with the vtkSpatialCalibrationOptimizer
   // First Method
   vtkSpatialCalibrationOptimizer *optimizer = vtkSpatialCalibrationOptimizer::New();
   //optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
@@ -281,9 +280,9 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Second method
   optimizer->SetOptimizerData2(&this->SegmentedPointsInImageFrame,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl);
   optimizer->Optimize(2);
-  */
-
-
+  SetAndValidateImageToProbeTransform2( optimizer->GetOptimizedImageToProbeTransformMatrix(), transformRepository );
+*/
+  
   // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
   PlusMath::LogVtkMatrix(this->ImageToProbeTransformMatrix, 6);
@@ -418,8 +417,8 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
   std::vector< vnl_vector<double> > middleWirePositionsInPhantomFramePerImage;
 
-  /*
-  // From here until xxxxx was aded by GC
+/*
+  // From here until xxxxx was added by GC
 
   // Store all the probe to phantom transforms
   PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
@@ -439,6 +438,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
   //  xxxxx
   */
+  
 
 
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
@@ -487,7 +487,7 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
       this->DataPositionsInProbeFrame.push_back( positionInProbeFrame );
 
       /*
-       // From here until xxxxx was aded by GC
+       // From here until xxxxx was added by GC
 
       // Store all the segmented points
       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3]);
@@ -564,6 +564,45 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
 }
+
+
+
+void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform2( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository )
+{
+  // Make sure the last row in homogeneous transform is [0 0 0 1]
+  vnl_vector<double> lastRow(4,0);
+  lastRow.put(3, 1);
+  imageToProbeTransformMatrixVnl.set_row(3, lastRow);
+
+  // Convert transform to vtk
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  for ( int i = 0; i < 3; i++ )
+  {
+    for ( int j = 0; j < 4; j++ )
+    {
+      imageToProbeMatrix->SetElement(i, j, imageToProbeTransformMatrixVnl.get(i, j) ); 
+    }
+  }
+
+  // Check orthogonality
+  if ( ! IsImageToProbeTransformOrthogonal() )
+  {
+    LOG_WARNING("User image to probe transform matrix orthogonality test failed! The result is probably not satisfactory");
+  }
+
+  // Set result matrix
+  this->ImageToProbeTransformMatrix->DeepCopy( imageToProbeMatrix );
+
+  // Save results into transform repository
+  PlusTransformName imageToProbeTransformName(this->ImageCoordinateFrame, this->ProbeCoordinateFrame);
+  transformRepository->SetTransform(imageToProbeTransformName, this->ImageToProbeTransformMatrix);
+  transformRepository->SetTransformPersistent(imageToProbeTransformName, true);
+  transformRepository->SetTransformDate(imageToProbeTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+}
+
 
 //-----------------------------------------------------------------------------
 
