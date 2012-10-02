@@ -715,13 +715,13 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
   {
     if ( this->GetVideoEnabled() )
     {
-      BufferItemUidType mostRecentVideoUid=0; 
+      BufferItemUidType mostRecentVideoUid = 0; 
       if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
       {
         LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      BufferItemUidType firstVideoUidToAdd=0;
+      BufferItemUidType firstVideoUidToAdd = mostRecentVideoUid;
       if ( mostRecentVideoUid - this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd )
       {
         // Most recent is needed too
@@ -755,13 +755,13 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& aTimestamp, vtkTrackedF
         return PLUS_FAIL; 
       }
 
-      BufferItemUidType mostRecentTrackerUid=0;
+      BufferItemUidType mostRecentTrackerUid = 0;
       if ( trackerBuffer->GetItemUidFromTime(mostRecentTimestamp, mostRecentTrackerUid ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracked buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      BufferItemUidType firstTrackerUidToAdd=0;
+      BufferItemUidType firstTrackerUidToAdd = mostRecentTrackerUid;
       if ( mostRecentTrackerUid - trackerBuffer->GetOldestItemUidInBuffer() > aMaxNumberOfFramesToAdd  )
       {
         // Most recent is needed too
