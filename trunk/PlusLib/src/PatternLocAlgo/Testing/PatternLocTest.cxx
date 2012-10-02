@@ -409,7 +409,7 @@ int main(int argc, char **argv)
 
   if (inputImageSequenceFileName.empty() || inputConfigFileName.empty())
   {
-    std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-config-file-name" << std::endl;
+    std::cerr << "At lease one of the following parameters is missing: --img-seq-file, --config-file" << std::endl;
     exit(EXIT_FAILURE);
   }
 

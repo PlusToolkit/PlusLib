@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
 	if (inputImageSequenceFileName.empty())
 	{
-		std::cerr << "input-img-seq-file-name is required" << std::endl;
+		std::cerr << "--img-seq-file is required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
