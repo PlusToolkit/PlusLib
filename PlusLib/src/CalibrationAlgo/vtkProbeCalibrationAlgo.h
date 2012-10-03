@@ -62,8 +62,10 @@ public:
   */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
-  /*! Check user image home to probe home transform orthogonality */
-  bool IsImageToProbeTransformOrthogonal(); 
+  /*! 
+    Check user image home to probe home transform orthogonality 
+  */
+  bool IsImageToProbeTransformOrthogonal() const; 
 
   /*!
     Assembles the result string to display
@@ -148,13 +150,17 @@ protected:
   */
   PlusStatus ComputeReprojectionErrors2D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation );
 
-  /*! Set ImageToProbe calibration result matrix and validate it */
-  void SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
+  /*! 
+    Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
+    \param imageToProbeTransformMatrixVnl the calculated image to probe matrix
+    \param transformRepository the transform repository to populate
+    \param ensureOrthogonal flag to indicate desired behaviour for orthogonality correction
+  */
+  void SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool ensureOrthogonal = true );
 
-    /*! Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal*/
-  void SetAndValidateImageToProbeTransform2( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
-
-  /*! Save results and error report to XML */
+  /*! 
+    Save results and error report to XML 
+  */
   PlusStatus SaveCalibrationResultAndErrorReportToXML(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame);
 
 protected:
