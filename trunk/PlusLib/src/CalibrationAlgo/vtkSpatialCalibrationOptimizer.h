@@ -48,6 +48,12 @@ class NWire;
 */
 class vtkSpatialCalibrationOptimizer : public vtkObject
 {
+private:
+  enum OptimizationMethod {
+    OptimizationMethod_Method1,
+    OptimizationMethod_Method2
+  };
+
 public:
   vtkTypeRevisionMacro(vtkSpatialCalibrationOptimizer,vtkObject);
   static vtkSpatialCalibrationOptimizer *New();
@@ -56,7 +62,7 @@ public:
   PlusStatus Initialize();
 
   /*! Calibrate (call the minimizer) */
-  PlusStatus Optimize(int method);
+  PlusStatus Optimize(OptimizationMethod aMethod);
 
    /*! Set the result */
   PlusStatus DoCalibrationOptimization(vtkTransformRepository* aTransformRepository = NULL);
@@ -68,17 +74,26 @@ public:
   PlusStatus SetOptimizerData2(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl);
 
   /*! Get optimized Image to Probe matrix */
-  vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix(){return this->ImageToProbeTransformMatrixVnl;};
+  vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix();
 
 protected:
+  /* Helper functions */
+  static void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
+  static void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData);
+  static vnl_matrix<double> TransformParametersToTransformMatrix(const vnl_vector<double> &transformParameters);
+  static vnl_vector<double> TransformMatrixToParametersVector(const vnl_matrix<double> &transformMatrix);
+  static vnl_double_3 RotationMatrixToRotationVector (const vnl_double_3x3 &rotationMatrix);
+  static vnl_double_3x3 RotationVectorToRotationMatrix (const vnl_double_3 &rotationVersor);
+  static vnl_matrix<double> VectorToMatrix(const vnl_double_3 &vnlVector);
+  static double PointToLineDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2 ); 
+  static void vtkOptimizationMetricFunction(void *userData);
+
   /*! Set minimizer */
   vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
 
-protected:
   vtkSpatialCalibrationOptimizer();
   virtual  ~vtkSpatialCalibrationOptimizer();
 
-protected:
   /*! Callback function for the minimizer (function to minimize) */
   friend void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
 
