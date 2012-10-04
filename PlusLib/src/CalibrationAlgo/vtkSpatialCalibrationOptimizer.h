@@ -35,16 +35,11 @@ class NWire;
 
 /*!
   \class vtkSpatialCalibrationOptimizer 
-  \brief Pivot calibration algorithm to calibrate a stylus. It determines the pose of the stylus tip relative to the marker attached to the stylus.
+  \brief Optimizing an image to probe transform.
+
+  Guillermo, how does it do this?
   
-  The stylus tip position computation is straightforward. The stylus pose is computed assuming that the marker is attached on the center of one of
-  the stylus axes, which is often a good approximation.
-  The axis that points towards the marker is the PivotPoint coordinate system's X axis. The Y axis of the PivotPoint coordinate system is
-  aligned with the marker coordinate system's Y axis (unless the X axis of the PivotPoint coordinate system is parallel with the marker coordinate
-  system's Y axis; in this case the Y axis of the PivotPoint coordinate system is aligned with the marker coordinate system's Z axis). The Z axis
-  of the PivotPoint coordinate system is chosen to be the cross product of the X and Y axes.
-  
-  \ingroup PlusLibCalibrationAlgorithm
+  \ingroup PlusLibCalibrationAlgo
 */
 class vtkSpatialCalibrationOptimizer : public vtkObject
 {
