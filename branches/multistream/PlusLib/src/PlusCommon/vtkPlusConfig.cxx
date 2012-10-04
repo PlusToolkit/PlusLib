@@ -431,12 +431,15 @@ std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
   }
 
   // Detect if date is already in the filename and remove it if it is there
-  std::string possibleDate = resultFileName.substr(resultFileName.length() - 15, 15);
-  std::string possibleDay = possibleDate.substr(0, 8);
-  std::string possibleTime = possibleDate.substr(9, 6);
-  if (atoi(possibleDay.c_str()) && atoi(possibleTime.c_str()))
+  if (resultFileName.length() > 16)
   {
-    resultFileName = resultFileName.substr(0, resultFileName.length() - 16);
+    std::string possibleDate = resultFileName.substr(resultFileName.length() - 15, 15);
+    std::string possibleDay = possibleDate.substr(0, 8);
+    std::string possibleTime = possibleDate.substr(9, 6);
+    if (atoi(possibleDay.c_str()) && atoi(possibleTime.c_str()))
+    {
+      resultFileName = resultFileName.substr(0, resultFileName.length() - 16);
+    }
   }
 
   // Construct new file name with date and time

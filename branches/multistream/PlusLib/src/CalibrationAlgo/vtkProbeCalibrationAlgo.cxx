@@ -23,9 +23,7 @@
 #include "vtkTransform.h"
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPoints.h" 
-
-#include "vtkSpatialCalibrationOptimizer.h"
+#include "vtkPoints.h"
 
 static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=10; // minimum number of successfully calibrated frames required for calibration
 
@@ -200,6 +198,10 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
   this->DataPositionsInImageFrame.clear();
   this->DataPositionsInProbeFrame.clear();
+
+  this->SegmentedPointsInImageFrame.clear();
+  this->ProbeToPhantomTransforms.clear();
+
   this->ValidationMiddleWirePositionsInPhantomFrame.clear();
   this->CalibrationMiddleWirePositionsInPhantomFrame.clear();
 
@@ -265,17 +267,8 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   }
 
   // Validate calibration result and set it to member variable and transform repository
-  SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository );
-
-  /* 
-  // Interface with the vtkSpatialCalibrationOptimizer
-  vtkSpatialCalibrationOptimizer *optimizer = vtkSpatialCalibrationOptimizer::New();
-  optimizer->SetOptimizerData(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl);
-  optimizer->Optimize();
-  */
- 
-
-
+  SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository, true );
+  
   // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
   PlusMath::LogVtkMatrix(this->ImageToProbeTransformMatrix, 6);
@@ -410,7 +403,6 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
   std::vector< vnl_vector<double> > middleWirePositionsInPhantomFramePerImage;
 
-
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
   for (int n = 0; n < this->NWires.size(); ++n)
   {
@@ -472,13 +464,8 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
 //-----------------------------------------------------------------------------
 
-void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository )
+void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool ensureOrthogonal )
 {
-  // Make sure the last row in homogeneous transform is [0 0 0 1]
-  vnl_vector<double> lastRow(4,0);
-  lastRow.put(3, 1);
-  imageToProbeTransformMatrixVnl.set_row(3, lastRow);
-
   // Convert transform to vtk
   vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   for ( int i = 0; i < 3; i++ )
@@ -489,26 +476,35 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
     }
   }
 
+  // Make sure the last row in homogeneous transform is [0 0 0 1]
+  imageToProbeMatrix->SetElement(3, 0, 0.0);
+  imageToProbeMatrix->SetElement(3, 1, 0.0);
+  imageToProbeMatrix->SetElement(3, 2, 0.0);
+  imageToProbeMatrix->SetElement(3, 3, 1.0);
+
   // Check orthogonality
   if ( ! IsImageToProbeTransformOrthogonal() )
   {
-    LOG_WARNING("User image to probe transform matrix orthogonality test failed! The result is probably not satisfactory");
+    LOG_WARNING("ImageToProbeTransform is not orthogonal! The result is probably not satisfactory");
   }
 
-  // Make the z vector have about the same length as x an y, so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
-  double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
-  double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
-  double zVector[3] = {0,0,0}; 
+  if( ensureOrthogonal )
+  {
+    // Make the z vector have about the same length as x an y, so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
+    double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
+    double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
+    double zVector[3] = {0,0,0}; 
 
-  vtkMath::Cross(xVector, yVector, zVector); 
+    vtkMath::Cross(xVector, yVector, zVector); 
 
-  vtkMath::Normalize(zVector);
-  double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
-  vtkMath::MultiplyScalar(zVector, normZ);
-  
-  imageToProbeMatrix->SetElement(0, 2, zVector[0]);
-  imageToProbeMatrix->SetElement(1, 2, zVector[1]);
-  imageToProbeMatrix->SetElement(2, 2, zVector[2]);
+    vtkMath::Normalize(zVector);
+    double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
+    vtkMath::MultiplyScalar(zVector, normZ);
+
+    imageToProbeMatrix->SetElement(0, 2, zVector[0]);
+    imageToProbeMatrix->SetElement(1, 2, zVector[1]);
+    imageToProbeMatrix->SetElement(2, 2, zVector[2]);
+  }
 
   // Set result matrix
   this->ImageToProbeTransformMatrix->DeepCopy( imageToProbeMatrix );
@@ -522,6 +518,7 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( vnl_matrix<do
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
 }
+
 
 //-----------------------------------------------------------------------------
 
@@ -925,7 +922,7 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 
 //----------------------------------------------------------------------------
 
-bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal()
+bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal() const
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
 

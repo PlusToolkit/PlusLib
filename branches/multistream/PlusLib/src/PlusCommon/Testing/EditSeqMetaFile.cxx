@@ -136,7 +136,7 @@ int main(int argc, char **argv)
   args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");	
 
   args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");	
-  args.AddArgument("--device-set-configuration-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");	
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");	
 
   if ( !args.Parse() )
   {
@@ -185,7 +185,8 @@ int main(int argc, char **argv)
   // Set operation
   if ( strOperation.empty() )
   {
-    operation = NO_OPERATION; 
+    operation = NO_OPERATION;
+    LOG_INFO("No modification operation has been specified (specify --operation parameter to change the input sequence).");
   }
   else if ( STRCASECMP(strOperation.c_str(), "UPDATE_FRAME_FIELD_NAME" ) == 0 )
   {

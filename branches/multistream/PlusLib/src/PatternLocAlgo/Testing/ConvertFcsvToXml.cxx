@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 
 	if (inputImageSequenceFileName.empty() || inputFcsvFileName.empty() || inputTestcaseName.empty() || outputXmlFileName.empty())
 	{
-		std::cerr << "input-img-seq-file, input-fcsv-file, input-testcase-name, and output-xml-file parameters are required" << std::endl;
+		std::cerr << "--img-seq-file, input-fcsv-file, input-testcase-name, and output-xml-file parameters are required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	

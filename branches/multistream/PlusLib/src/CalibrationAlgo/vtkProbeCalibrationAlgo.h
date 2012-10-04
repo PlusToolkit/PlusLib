@@ -62,8 +62,10 @@ public:
   */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
-  /*! Check user image home to probe home transform orthogonality */
-  bool IsImageToProbeTransformOrthogonal(); 
+  /*! 
+    Check user image home to probe home transform orthogonality 
+  */
+  bool IsImageToProbeTransformOrthogonal() const; 
 
   /*!
     Assembles the result string to display
@@ -148,10 +150,17 @@ protected:
   */
   PlusStatus ComputeReprojectionErrors2D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation );
 
-  /*! Set ImageToProbe calibration result matrix and validate it */
-  void SetAndValidateImageToProbeTransform( vnl_matrix<double> imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository );
+  /*! 
+    Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
+    \param imageToProbeTransformMatrixVnl the calculated image to probe matrix
+    \param transformRepository the transform repository to populate
+    \param ensureOrthogonal flag to indicate desired behaviour for orthogonality correction
+  */
+  void SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool ensureOrthogonal = true );
 
-  /*! Save results and error report to XML */
+  /*! 
+    Save results and error report to XML 
+  */
   PlusStatus SaveCalibrationResultAndErrorReportToXML(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame);
 
 protected:
@@ -187,12 +196,17 @@ protected:
   /*! The result of the calibration */
   vtkMatrix4x4* ImageToProbeTransformMatrix;
 
-
   /*! List of NWires used for calibration and error computation */
   std::vector<NWire> NWires;
 
   /*! Positions of segmented points in image frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInImageFrame;
+
+  /*! Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points */
+  std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
+
+  /*! Vector containing all Probe to Phantom transforms */
+  std::vector< vnl_matrix<double> > ProbeToPhantomTransforms;
 
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
   std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
