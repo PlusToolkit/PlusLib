@@ -357,7 +357,7 @@ void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationF
 
 PlusStatus vtkSpatialCalibrationOptimizer::Update(OptimizationMethod aMethod)
 {
-  LOG_TRACE("vtkSpatialCalibrationOptimizer::Optimize");
+  LOG_TRACE("vtkSpatialCalibrationOptimizer::Optimize( " << (aMethod == OptimizationMethod_Method1 ? "OptimizationMethod_Method1" : "OptimizationMethod_Method2") << ")");
 
   vnl_vector<double> parametersVector(8); //[r1 r2 r3 t1 t2 t3 sx sy]
   parametersVector = TransformMatrixToParametersVector(this->ImageToProbeSeedTransformMatrixVnl);
