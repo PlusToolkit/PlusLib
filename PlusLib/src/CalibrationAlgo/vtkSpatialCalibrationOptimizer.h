@@ -58,32 +58,26 @@ public:
   vtkTypeRevisionMacro(vtkSpatialCalibrationOptimizer,vtkObject);
   static vtkSpatialCalibrationOptimizer *New();
 
-  /*! Initialize algorithm - clear the MarkerToReferenceTransformMatrix array */
-  PlusStatus Initialize();
-
   /*! Calibrate (call the minimizer) */
-  PlusStatus Optimize(OptimizationMethod aMethod);
-
-   /*! Set the result */
-  PlusStatus DoCalibrationOptimization(vtkTransformRepository* aTransformRepository = NULL);
+  PlusStatus Update(OptimizationMethod aMethod);
 
   /*! Provides to the class the information necessary make the optimization */
   PlusStatus SetOptimizerData(std::vector< vnl_vector<double> > *DataPositionsInImageFrame, std::vector< vnl_vector<double> > *DataPositionsInProbeFrame, vnl_matrix<double> *ImageToProbeTransformMatrixVnl);
 
   /*! Provides to the class the information necessary make the optimization */
-  PlusStatus SetOptimizerData2(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl);
+  PlusStatus SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl);
 
   /*! Get optimized Image to Probe matrix */
   vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix();
 
 protected:
   /* Helper functions */
-  static void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData);
-  static void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData);
+  static void vtkImageToProbeCalibrationMatrixEvaluationFunction(void *vtkSpatialCalibrationOptimizerPointer);
+  static void vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *vtkSpatialCalibrationOptimizerPointer);
   static vnl_matrix<double> TransformParametersToTransformMatrix(const vnl_vector<double> &transformParameters);
   static vnl_vector<double> TransformMatrixToParametersVector(const vnl_matrix<double> &transformMatrix);
-  static vnl_double_3 RotationMatrixToRotationVector (const vnl_double_3x3 &rotationMatrix);
-  static vnl_double_3x3 RotationVectorToRotationMatrix (const vnl_double_3 &rotationVersor);
+  static vnl_double_3 RotationMatrixToRotationVersor (const vnl_double_3x3 &aRotationMatrix);
+  static vnl_double_3x3 RotationVersorToRotationMatrix (const vnl_double_3 &aRotationVersor);
   static vnl_matrix<double> VectorToMatrix(const vnl_double_3 &vnlVector);
   static double PointToLineDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2 ); 
   static void vtkOptimizationMetricFunction(void *userData);

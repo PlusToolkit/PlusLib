@@ -52,7 +52,7 @@ vnl_matrix<double> vtkSpatialCalibrationOptimizer::VectorToMatrix(const vnl_doub
 
 //-----------------------------------------------------------------------------
 
-vnl_double_3x3 vtkSpatialCalibrationOptimizer::RotationVectorToRotationMatrix (const vnl_double_3 &rotationVersor)
+vnl_double_3x3 vtkSpatialCalibrationOptimizer::RotationVersorToRotationMatrix (const vnl_double_3 &rotationVersor)
 {
   /* 
   * Adapted from MatLab code by Yves Bouget
@@ -96,7 +96,7 @@ vnl_double_3x3 vtkSpatialCalibrationOptimizer::RotationVectorToRotationMatrix (c
 
 //-----------------------------------------------------------------------------
 
-vnl_double_3 vtkSpatialCalibrationOptimizer::RotationMatrixToRotationVector (const vnl_double_3x3 &rotationMatrix)
+vnl_double_3 vtkSpatialCalibrationOptimizer::RotationMatrixToRotationVersor (const vnl_double_3x3 &aRotationMatrix)
 {
   /* 
   * Adapted from MatLab code by Yves Bouget
@@ -108,7 +108,7 @@ vnl_double_3 vtkSpatialCalibrationOptimizer::RotationMatrixToRotationVector (con
   */
 
   vnl_double_3 rotationVersor;
-  vnl_double_3x3 R;
+  vnl_double_3x3 rotationMatrix;
 
   vnl_double_3x3 eye; eye.set_identity();
   vnl_double_3x3 in_x_in; in_x_in = (rotationMatrix.transpose() * rotationMatrix - eye);
@@ -119,16 +119,16 @@ vnl_double_3 vtkSpatialCalibrationOptimizer::RotationMatrixToRotationVector (con
   if (normInXIn < BIGEPS &&  fabs(det_in-1)<BIGEPS)
   {
     //project the rotation matrix to SO(3);
-    vnl_svd<double> svd (rotationMatrix);
-    R = svd.U() * svd.V().transpose();
+    vnl_svd<double> svd (aRotationMatrix);
+    rotationMatrix = svd.U() * svd.V().transpose();
 
-    double tr = (vnl_trace(R)-1)/2;
+    double tr = (vnl_trace(rotationMatrix)-1)/2;
     double theta = acos(tr); 
 
     if (sin(theta) >= 1e-5)
     {
       double  vth = 1/(2*sin(theta));
-      vnl_double_3 om1;  om1(0) = R(2,1)-R(1,2); om1(1)= R(0,2)-R(2,0); om1(2)= R(1,0)-R(0,1);
+      vnl_double_3 om1;  om1(0) = rotationMatrix(2,1)-rotationMatrix(1,2); om1(1)= rotationMatrix(0,2)-rotationMatrix(2,0); om1(2)= rotationMatrix(1,0)-rotationMatrix(0,1);
       vnl_double_3 om = vth*om1;
       rotationVersor = om*theta;
 
@@ -143,13 +143,13 @@ vnl_double_3 vtkSpatialCalibrationOptimizer::RotationMatrixToRotationVector (con
       {
         //out = theta * (sqrt((diag(R)+1)/2).*[1;2*(R(1,2:3)>=0)'-1]);
         vnl_double_3 diag, leftPart, rightPart;
-        diag(0)=R(0,0); diag(1)=R(1,1); diag(2)=R(2,2);
+        diag(0)=rotationMatrix(0,0); diag(1)=rotationMatrix(1,1); diag(2)=rotationMatrix(2,2);
         leftPart(0) = sqrt((diag(0)+1)/2);
         leftPart(1) = sqrt((diag(1)+1)/2);
         leftPart(2) = sqrt((diag(2)+1)/2);
         rightPart(0)=1;
-        rightPart(1) = 2*(R(0,1)>=0) - 1;
-        rightPart(2) = 2*(R(0,2)>=0) - 1;
+        rightPart(1) = 2*(rotationMatrix(0,1)>=0) - 1;
+        rightPart(2) = 2*(rotationMatrix(0,2)>=0) - 1;
 
         rotationVersor = element_product(leftPart,rightPart)*theta;
       }
@@ -169,24 +169,24 @@ vnl_vector<double> vtkSpatialCalibrationOptimizer::TransformMatrixToParametersVe
 {
   // transform_vector = [r1 r2 r3 t1 t2 t3 sx sy]
   vnl_vector<double> parametersVector(8);
-  vnl_vector<double> rotationVector(3);
+  vnl_vector<double> rotationVersor(3);
   //vnl_matrix<double> rotationMatrix(3,3);
   vnl_vector<double> translationVector(3);
-  vnl_matrix<double> RotationMatrix(3,3);
+  vnl_matrix<double> rotationMatrix(3,3);
   double scaleX, scaleY, scaleZ;
 
-  RotationMatrix = transformMatrix.extract(3,3,0,0);
-  scaleX = RotationMatrix.get_column(0).two_norm();
-  scaleY = RotationMatrix.get_column(1).two_norm();
-  scaleZ = RotationMatrix.get_column(2).two_norm();
+  rotationMatrix = transformMatrix.extract(3,3,0,0);
+  scaleX = rotationMatrix.get_column(0).two_norm();
+  scaleY = rotationMatrix.get_column(1).two_norm();
+  scaleZ = rotationMatrix.get_column(2).two_norm();
 
-  RotationMatrix.normalize_columns();
-  rotationVector = RotationMatrixToRotationVector(RotationMatrix);
+  rotationMatrix.normalize_columns();
+  rotationVersor = RotationMatrixToRotationVersor(rotationMatrix);
 
   translationVector = transformMatrix.extract(3,1,0,3).get_column(0);
 
   // fill the transform_vector
-  parametersVector.update(rotationVector,0);
+  parametersVector.update(rotationVersor,0);
   parametersVector.update(translationVector,3);
   parametersVector(6)=scaleX;
   parametersVector(7)=scaleY;
@@ -200,13 +200,13 @@ vnl_matrix<double> vtkSpatialCalibrationOptimizer::TransformParametersToTransfor
 {
   // transform_vector = [r1 r2 r3 t1 t2 t3 sx sy]
   vnl_matrix<double> transformMatrix(4,4);
-  vnl_vector<double> rotationVector(3);
+  vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> rotationMatrix(3,3);
 
-  rotationVector(0) = transformParameters[0];
-  rotationVector(1) = transformParameters[1];
-  rotationVector(2) = transformParameters[2];
-  rotationMatrix = RotationVectorToRotationMatrix(rotationVector);
+  rotationVersor(0) = transformParameters[0];
+  rotationVersor(1) = transformParameters[1];
+  rotationVersor(2) = transformParameters[2];
+  rotationMatrix = RotationVersorToRotationMatrix(rotationVersor);
 
   // multiply the matrix with the scales
   rotationMatrix.set_column(0, rotationMatrix.get_column(0) * transformParameters[6]);
@@ -230,11 +230,11 @@ vnl_matrix<double> vtkSpatialCalibrationOptimizer::TransformParametersToTransfor
 
 //----------------------------------------------------------------------------
 
-void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction(void *userData)
+void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction(void *vtkSpatialCalibrationOptimizerPointer)
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction");
 
-  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)userData;
+  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)vtkSpatialCalibrationOptimizerPointer;
 
   double r1, r2, r3, t1, t2, t3, sx,sy;
   r1 = self->Minimizer->GetParameterValue("r1");
@@ -246,13 +246,13 @@ void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationF
   sx = self->Minimizer->GetParameterValue("sx");
   sy = self->Minimizer->GetParameterValue("sy");
 
-  vnl_vector<double> rotationVector(3);
+  vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> rotationMatrix(3,3);
 
-  rotationVector(0) = r1;
-  rotationVector(1) = r2;
-  rotationVector(2) = r3;
-  rotationMatrix = RotationVectorToRotationMatrix(rotationVector);
+  rotationVersor(0) = r1;
+  rotationVersor(1) = r2;
+  rotationVersor(2) = r3;
+  rotationMatrix = RotationVersorToRotationMatrix(rotationVersor);
 
   int m = self->DataPositionsInImageFrame.size();
   double px, py, pz, dx, dy, dz, d;
@@ -284,11 +284,11 @@ double vtkSpatialCalibrationOptimizer::PointToLineDistance( const vnl_double_3 &
 
 //-----------------------------------------------------------------------------
 
-void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *userData)
+void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction2(void *vtkSpatialCalibrationOptimizerPointer)
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationFunction2");
 
-  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)userData;
+  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)vtkSpatialCalibrationOptimizerPointer;
 
   double r1, r2, r3, t1, t2, t3, sx,sy;
   r1 = self->Minimizer->GetParameterValue("r1");
@@ -300,13 +300,13 @@ void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationF
   sx = self->Minimizer->GetParameterValue("sx");
   sy = self->Minimizer->GetParameterValue("sy");
 
-  vnl_vector<double> rotationVector(3);
+  vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> rotationMatrix(3,3);
 
-  rotationVector(0) = r1;
-  rotationVector(1) = r2;
-  rotationVector(2) = r3;
-  rotationMatrix = RotationVectorToRotationMatrix(rotationVector);
+  rotationVersor(0) = r1;
+  rotationVersor(1) = r2;
+  rotationVersor(2) = r3;
+  rotationMatrix = RotationVersorToRotationMatrix(rotationVersor);
 
   int nWires = self->NWires.size(); 
   int m = self->SegmentedPointsInImageFrame.size()/(3*nWires); //number of frames
@@ -355,7 +355,7 @@ void vtkSpatialCalibrationOptimizer::vtkImageToProbeCalibrationMatrixEvaluationF
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkSpatialCalibrationOptimizer::Optimize(OptimizationMethod aMethod)
+PlusStatus vtkSpatialCalibrationOptimizer::Update(OptimizationMethod aMethod)
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::Optimize");
 
@@ -414,12 +414,12 @@ PlusStatus vtkSpatialCalibrationOptimizer::Optimize(OptimizationMethod aMethod)
   sx = this->Minimizer->GetParameterValue("sx");
   sy = this->Minimizer->GetParameterValue("sy");
 
-  vnl_vector<double> rotationVector(3);
+  vnl_vector<double> rotationVersor(3);
   vnl_matrix<double> rotationMatrix(3,3);
-  rotationVector(0) = r1;
-  rotationVector(1) = r2;
-  rotationVector(2) = r3;
-  rotationMatrix = RotationVectorToRotationMatrix(rotationVector);
+  rotationVersor(0) = r1;
+  rotationVersor(1) = r2;
+  rotationVersor(2) = r3;
+  rotationMatrix = RotationVersorToRotationMatrix(rotationVersor);
 
   parametersVector[0] = r1; parametersVector[1] = r2; parametersVector[2] = r3;
   parametersVector[3] = t1; parametersVector[4] = t2; parametersVector[5] = t3;
@@ -443,30 +443,12 @@ PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerData(std::vector< vnl_vec
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerData2(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *ProbeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl)
+PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *ProbeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl)
 {
   this->SegmentedPointsInImageFrame = *SegmentedPointsInImageFrame;
   this->NWires = * NWires;
   this->ProbeToPhantomTransforms = *ProbeToPhantomTransforms;
   this->ImageToProbeSeedTransformMatrixVnl= *ImageToProbeTransformMatrixVnl;
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkSpatialCalibrationOptimizer::vtkOptimizationMetricFunction(void *userData)
-{
-  LOG_TRACE("(vtkSpatialCalibrationOptimizer)vtkTrackerToolCalibrationFunction");
-
-  vtkSpatialCalibrationOptimizer *self = (vtkSpatialCalibrationOptimizer*)userData;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkSpatialCalibrationOptimizer::DoCalibrationOptimization(vtkTransformRepository* aTransformRepository/* = NULL*/)
-{
-  LOG_TRACE("vtkSpatialCalibrationOptimizer::DoCalibrationOptimization");
 
   return PLUS_SUCCESS;
 }
