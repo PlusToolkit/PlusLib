@@ -31,6 +31,10 @@ See License.txt for details.
 #include "vtkSavedDataVideoSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
+// If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
+// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up
+static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1; 
+
 //----------------------------------------------------------------------------
 // Signal boxes
 #include "vtkSignalBox.h"
@@ -1040,7 +1044,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec)
+PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec/*=-1*/)
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled(" << aTimestamp << ", " << aSamplingRateSec << ")"); 
 
@@ -1050,29 +1054,18 @@ PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& aTimestamp, vtkT
     return PLUS_FAIL; 
   }
 
-  // Get latest and oldest timestamp
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
+
   double mostRecentTimestamp(0); 
   if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to get most recent timestamp!"); 
     return PLUS_FAIL; 
   }
-
-  double oldestTimestamp(0); 
-  if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Failed to get oldest timestamp from buffer!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Check input frameTimestamp to be in a valid range 
-  if ( aTimestamp < 0.0001 || aTimestamp > mostRecentTimestamp )
+  // If the user provided a 0 timestamp then we just set the timestamp and not yet collect any data
+  if ( aTimestamp < 0.0001 )
   {
     aTimestamp = mostRecentTimestamp; 
-  }
-  else if ( oldestTimestamp > aTimestamp )
-  {
-    aTimestamp = oldestTimestamp; 
   }
 
   // Check if there are less frames than it would be needed according to the sampling rate
@@ -1081,25 +1074,42 @@ PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& aTimestamp, vtkT
 
   if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
   {
-    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate is lower than the requested sampling rate. Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
+    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate ("<<numberOfFramesSinceTimestamp/(mostRecentTimestamp - aTimestamp)<<") is lower than the requested sampling rate ("<<1.0/aSamplingRateSec<<"fps). Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
   }
 
   PlusStatus status=PLUS_SUCCESS;
   // Add frames to input trackedFrameList
   double latestAddedTimestamp=UNDEFINED_TIMESTAMP;
-  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp; aTimestamp += aSamplingRateSec)
+  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp && (vtkAccurateTimer::GetSystemTime() - startTimeSec)<maxTimeLimitSec; aTimestamp += aSamplingRateSec)
   {
-    if ( latestAddedTimestamp!=UNDEFINED_TIMESTAMP && GetClosestTrackedFrameTimestampByTime(aTimestamp) <= latestAddedTimestamp )
+    double oldestTimestamp=0;
+    if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
     {
-      // frame already added
+      LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+      return PLUS_FAIL; 
+    }
+    const double skippingMargin=ceil(SAMPLING_SKIPPING_MARGIN_SEC/aSamplingRateSec)*aSamplingRateSec;
+    if (aTimestamp<oldestTimestamp+skippingMargin)
+    {
+      // the frame will be removed from the buffer really soon, so instead of trying to retrieve from the buffer and failing skip some frames
+      double skipTime=ceil((oldestTimestamp+skippingMargin+aSamplingRateSec-aTimestamp)/aSamplingRateSec)*aSamplingRateSec;
+      aTimestamp+=skipTime;
+      LOG_WARNING("Frames are not available any more at time: " << std::fixed << aTimestamp <<". Skipping "<<skipTime<<" seconds."); 
       continue;
-    }    
+    }
+    double closestTimestamp=GetClosestTrackedFrameTimestampByTime(aTimestamp);
+    if ( latestAddedTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp <= latestAddedTimestamp )
+    {
+      // This frame has been already added.
+      // Continue to avoid running GetTrackedFrameByTime (that copies the frame pixels from the device buffer).
+      continue;
+    }
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( GetTrackedFrameByTime(closestTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable retrieve frame from the devices for time: " << std::fixed << aTimestamp <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
-      return PLUS_FAIL;
+      LOG_WARNING("Unable retrieve frame from the devices for time: " << std::fixed << aTimestamp <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
+      continue;
     }
     latestAddedTimestamp=trackedFrame.GetTimestamp();
     // Add tracked frame to the list 
