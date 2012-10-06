@@ -365,7 +365,8 @@ void CapturingToolbox::Capture()
   }
   
   // Record
-  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, 1.0 / m_RequestedFrameRate) != PLUS_SUCCESS )
+  double maxProcessingTime = 1000.0 / m_SamplingFrameRate * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording (as a maximum of 2x the update rate)
+  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, 1.0 / m_RequestedFrameRate, maxProcessingTime) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
   }
