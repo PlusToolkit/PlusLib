@@ -95,6 +95,9 @@ public:
   */
   virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec); 
 
+  /*! Get the closest tracked frame timestamp to the specified time */
+  double GetClosestTrackedFrameTimestampByTime(double time);
+
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
 

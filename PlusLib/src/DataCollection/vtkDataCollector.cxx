@@ -1081,33 +1081,36 @@ PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& aTimestamp, vtkT
 
   if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
   {
-    LOG_WARNING("The requested sampling rate is faster than the acquisition itself - fewer unique frames will be added to the list!");
+    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate is lower than the requested sampling rate. Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
   }
 
+  PlusStatus status=PLUS_SUCCESS;
   // Add frames to input trackedFrameList
-  while (aTimestamp + aSamplingRateSec <= mostRecentTimestamp)
+  double latestAddedTimestamp=UNDEFINED_TIMESTAMP;
+  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp; aTimestamp += aSamplingRateSec)
   {
+    if ( latestAddedTimestamp!=UNDEFINED_TIMESTAMP && GetClosestTrackedFrameTimestampByTime(aTimestamp) <= latestAddedTimestamp )
+    {
+      // frame already added
+      continue;
+    }    
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-
-    if ( this->GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestamp ); 
+      LOG_ERROR("Unable retrieve frame from the devices for time: " << std::fixed << aTimestamp <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
       return PLUS_FAIL;
     }
-
+    latestAddedTimestamp=trackedFrame.GetTimestamp();
     // Add tracked frame to the list 
     if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracked frame to the list!" ); 
-      return PLUS_FAIL; 
+      status=PLUS_FAIL; 
     }
-
-    // Set timestamp to the next sampled one
-    aTimestamp += aSamplingRateSec;
   }
 
-  return PLUS_SUCCESS;
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -1123,6 +1126,57 @@ PlusStatus vtkDataCollector::GetTrackedFrame(TrackedFrame* trackedFrame)
   }
 
   return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame); 
+}
+
+//----------------------------------------------------------------------------
+double vtkDataCollector::GetClosestTrackedFrameTimestampByTime(double time)
+{
+  
+  if ( this->GetVideoEnabled() && this->GetVideoSource() )
+  {
+    BufferItemUidType uid=0;
+    if (this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(time, uid)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }    
+    double closestTimestamp = UNDEFINED_TIMESTAMP; 
+    if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(uid, closestTimestamp)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }
+    return closestTimestamp;
+  }
+
+  if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )
+  {
+    // Get the first tool
+    vtkTrackerTool* firstActiveTool = NULL; 
+    if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      // there is no active tool
+      return UNDEFINED_TIMESTAMP; 
+    }
+    vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    if ( trackerBuffer == NULL )
+    {
+      // there is no buffer
+      return UNDEFINED_TIMESTAMP;
+    }
+    BufferItemUidType uid=0;
+    if (trackerBuffer->GetItemUidFromTime(time, uid)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }    
+    double closestTimestamp = UNDEFINED_TIMESTAMP; 
+    if (trackerBuffer->GetTimeStamp(uid, closestTimestamp)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }
+    return closestTimestamp;
+  }
+
+  // neither tracker, nor video data available
+  return UNDEFINED_TIMESTAMP;
 }
 
 //----------------------------------------------------------------------------

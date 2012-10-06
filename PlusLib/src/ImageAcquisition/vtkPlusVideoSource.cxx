@@ -719,6 +719,7 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
 {
   if (!trackedFrame)
   {
+    LOG_ERROR("vtkPlusVideoSource::GetTrackedFrame failed, the output pointer is invalid");
     return PLUS_FAIL;
   }
 
