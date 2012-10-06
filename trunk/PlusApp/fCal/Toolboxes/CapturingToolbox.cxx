@@ -333,7 +333,7 @@ void CapturingToolbox::Record()
   m_ParentMainWindow->SetToolboxesEnabled(false);
 
   // Reset accessory members
-  m_RecordedFrameNumberQueue.clear();
+  m_FirstRecordedFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
 
   vtkDataCollector* dataCollector = NULL;
   if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
@@ -363,39 +363,36 @@ void CapturingToolbox::Capture()
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
   }
-
-  int numberOfFramesBeforeRecording = m_RecordedFrames->GetNumberOfTrackedFrames();
-
+  
   // Record
   if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, 1.0 / m_RequestedFrameRate) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
-    return; 
+    LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
   }
 
-  int numberOfRecordedFrames = m_RecordedFrames->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording;
-
-  // Compute actual frame rate
-  m_RecordedFrameNumberQueue.push_back(numberOfRecordedFrames);
-
-  while (m_RecordedFrameNumberQueue.size() > m_SamplingFrameRate * 2)
+  // Compute the average frame rate from the ratio of recently acquired frames
+  int frame1Index=m_RecordedFrames->GetNumberOfTrackedFrames()-1; // index of the latest frame
+  int frame2Index=frame1Index-m_RequestedFrameRate*2.0-1; // index of an earlier acquired frame (go back by approximately 2 seconds + one frame)
+  if (frame2Index<m_FirstRecordedFrameIndexInThisSegment)
   {
-    m_RecordedFrameNumberQueue.pop_front();
+    // make sure we stay in the current recording segment
+    frame2Index=m_FirstRecordedFrameIndexInThisSegment;
   }
-
-  int numberOfRecordedFramesInTheLastTwoSeconds = 0;
-  for (std::deque<int>::iterator it = m_RecordedFrameNumberQueue.begin(); it != m_RecordedFrameNumberQueue.end(); ++it)
-  {
-    numberOfRecordedFramesInTheLastTwoSeconds += (*it);
+  if (frame1Index>frame2Index)
+  {   
+    TrackedFrame *frame1=m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame *frame2=m_RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1!=NULL && frame2!=NULL)
+    {
+      m_ActualFrameRate = (frame1Index-frame2Index)/(frame1->GetTimestamp()-frame2->GetTimestamp());
+    }    
   }
-
-  m_ActualFrameRate = (double)numberOfRecordedFramesInTheLastTwoSeconds / (m_RecordedFrameNumberQueue.size() * (1.0 / m_SamplingFrameRate));
 
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
   if (recordingTimeMs > 1000.0 / m_SamplingFrameRate)
   {
-    LOG_WARNING("Recording cannot keep up with aquisition!");
+    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeMs<<"ms instead of the allocated "<<1000.0 / m_SamplingFrameRate<<"ms). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
 }
 

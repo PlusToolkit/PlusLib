@@ -134,8 +134,13 @@ protected:
   /*! Actual frame rate (frames per second) */
   double m_ActualFrameRate;
 
-  /*! Queue storing the number of recorded frames in each round in the last two seconds */
-  std::deque<int> m_RecordedFrameNumberQueue;
+  /*!
+    Frame index of the first frame that is recorded in this segment (since pressed the record button).
+    It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,
+    those that were acquired in a different recording segment) will not be taken into account in the actual
+    frame rate computation.
+  */
+  int m_FirstRecordedFrameIndexInThisSegment;
 
   /*! String to hold the last location of data saved */
   QString m_LastSaveLocation;
