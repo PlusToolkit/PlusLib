@@ -78,23 +78,8 @@ protected:
   */
   void ClearRecordedFramesInternal();
 
-  /*!
-    Get the sampling period length in msec
-  */
-  double GetSamplingPeriodMsec()
-  {
-    double samplingPeriodMsec=100;
-    if (m_SamplingFrameRate>0)
-    {
-      samplingPeriodMsec=1000.0/m_SamplingFrameRate;
-    }
-    else
-    {
-      LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate);
-    }
-    return samplingPeriodMsec;
-  }
-
+  /*! Get the sampling period length in msec */
+  double GetSamplingPeriodMsec();
   
 protected slots:
   /*!
