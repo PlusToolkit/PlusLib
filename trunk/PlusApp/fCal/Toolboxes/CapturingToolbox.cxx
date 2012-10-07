@@ -346,7 +346,7 @@ void CapturingToolbox::Record()
 
   // Start capturing
   SetState(ToolboxState_InProgress);
-  m_RecordingTimer->start(1000.0 / m_SamplingFrameRate); 
+  m_RecordingTimer->start(GetSamplingPeriodMsec()); 
 }
 
 //-----------------------------------------------------------------------------
@@ -365,8 +365,17 @@ void CapturingToolbox::Capture()
   }
   
   // Record
-  double maxProcessingTime = 1000.0 / m_SamplingFrameRate * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording (as a maximum of 2x the update rate)
-  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, 1.0 / m_RequestedFrameRate, maxProcessingTime) != PLUS_SUCCESS )
+  double maxProcessingTimeSec = (GetSamplingPeriodMsec()*1000.0) * 2; // put a hard limit on the max processing time to make sure the application remains responsive during recording (as a maximum of 2x the update timer period)
+  double requestedFramePeriodSec=0.1;
+  if (m_RequestedFrameRate>0)
+  {
+    requestedFramePeriodSec=1.0 / m_RequestedFrameRate;
+  }
+  else
+  {
+    LOG_WARNING("RequestedFrameRate is invalid");
+  }
+  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
   }
@@ -385,15 +394,23 @@ void CapturingToolbox::Capture()
     TrackedFrame *frame2=m_RecordedFrames->GetTrackedFrame(frame2Index);
     if (frame1!=NULL && frame2!=NULL)
     {
-      m_ActualFrameRate = (frame1Index-frame2Index)/(frame1->GetTimestamp()-frame2->GetTimestamp());
+      double frameTimeDiff=frame1->GetTimestamp()-frame2->GetTimestamp();
+      if (frameTimeDiff>0)
+      {
+        m_ActualFrameRate = (frame1Index-frame2Index)/frameTimeDiff;
+      }
+      else
+      {
+        m_ActualFrameRate=0;
+      }
     }    
   }
 
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
-  if (recordingTimeMs > 1000.0 / m_SamplingFrameRate)
+  if (recordingTimeMs > GetSamplingPeriodMsec())
   {
-    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeMs<<"ms instead of the allocated "<<1000.0 / m_SamplingFrameRate<<"ms). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeMs<<"ms instead of the allocated "<<GetSamplingPeriodMsec()<<"ms). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
 }
 
@@ -496,7 +513,15 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
   double maxFrameRate = GetMaximumFrameRate();
   int samplingRate = (int)(pow(2.0, ui.horizontalSlider_SamplingRate->maxValue() - aValue));
 
-  m_RequestedFrameRate = maxFrameRate / (double)samplingRate;
+  if (samplingRate>0)
+  {
+    m_RequestedFrameRate = maxFrameRate / (double)samplingRate;
+  }
+  else
+  {
+    LOG_WARNING("samplingRate value is invalid");
+    m_RequestedFrameRate = maxFrameRate;
+  }
 
   ui.horizontalSlider_SamplingRate->setToolTip(tr("1 / ").append(QString::number((int)samplingRate)));
   ui.label_RequestedRecordingFrameRate->setText(QString::number(m_RequestedFrameRate, 'f', 2));

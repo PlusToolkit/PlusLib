@@ -78,6 +78,24 @@ protected:
   */
   void ClearRecordedFramesInternal();
 
+  /*!
+    Get the sampling period length in msec
+  */
+  double GetSamplingPeriodMsec()
+  {
+    double samplingPeriodMsec=100;
+    if (m_SamplingFrameRate>0)
+    {
+      samplingPeriodMsec=1000.0/m_SamplingFrameRate;
+    }
+    else
+    {
+      LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate);
+    }
+    return samplingPeriodMsec;
+  }
+
+  
 protected slots:
   /*!
   * Take snapshot (record the current frame only)
@@ -133,7 +151,7 @@ protected:
 
   /*! Actual frame rate (frames per second) */
   double m_ActualFrameRate;
-
+  
   /*!
     Frame index of the first frame that is recorded in this segment (since pressed the record button).
     It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,
