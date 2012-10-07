@@ -34,6 +34,7 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->SpatialDeviceHandle = 0;
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
+  this->ZeroGyroscopeOnConnect = false;
 
   this->AccelerometerTool = NULL;
   this->GyroscopeTool = NULL;
@@ -389,6 +390,11 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
   // To reset compass correction parameters:
   //  CPhidgetSpatial_resetCompassCorrectionParameters(this->SpatialDeviceHandle);
 
+  if (this->ZeroGyroscopeOnConnect)
+  {
+    ZeroGyroscope();
+  }
+
   // Initialize AHRS algorithm
   this->AhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec); // more accurate value will be set at each update step anyway
   this->AhrsAlgo->SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
@@ -466,6 +472,19 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
   }
+
+  const char* zeroGyroscopeOnConnect = trackerConfig->GetAttribute("ZeroGyroscopeOnConnect"); 
+  if ( zeroGyroscopeOnConnect != NULL )
+  {
+    if ( STRCASECMP(zeroGyroscopeOnConnect, "true") == 0 )
+    {
+      this->ZeroGyroscopeOnConnect=true;
+    }
+    else
+    {
+      this->ZeroGyroscopeOnConnect=false;
+    }
+  } 
 
   int tiltSensorWestAxisIndex=0; 
   if ( trackerConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
@@ -564,6 +583,11 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
     return PLUS_FAIL;
   }
 
+  if (this->ZeroGyroscopeOnConnect)
+  {
+    trackerConfig->SetAttribute("ZeroGyroscopeOnConnect","TRUE");
+  }
+
   if (this->TiltSensorTool)
   {
     trackerConfig->SetIntAttribute("TiltSensorWestAxisIndex", this->TiltSensorWestAxisIndex);  
@@ -613,6 +637,13 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
 }
 
 //----------------------------------------------------------------------------
+void vtkPhidgetSpatialTracker::ZeroGyroscope()
+{  
+  LOG_INFO("Zeroing the gyroscope. Keep the sensor stationary for 2 seconds.");
+  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
+}
+
+//----------------------------------------------------------------------------
 bool vtkPhidgetSpatialTracker::IsResettable()
 {
   return true;
@@ -623,8 +654,7 @@ PlusStatus vtkPhidgetSpatialTracker::Reset()
 {
   if( this->IsTracking() )
   {
-    // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
-    int result = CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
+    ZeroGyroscope();
   }
 
   return PLUS_SUCCESS;

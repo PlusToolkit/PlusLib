@@ -111,6 +111,12 @@ protected:
 
   static int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
 
+  /*! 
+    Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
+    The offset may slightly change as the temperature of the sensor changes.
+  */  
+  void ZeroGyroscope();
+
 private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
@@ -170,6 +176,9 @@ private:  // Variables.
   */
   int TiltSensorWestAxisIndex;
 
+  /*! Zero the gyroscope when connecting to the device */
+  bool ZeroGyroscopeOnConnect;
+  
 };
 
 #endif
