@@ -6,7 +6,7 @@
       Description="SonixTouch and GPStracker. The SonixTouch US device should be in research mode. Used at UBC" 
     />
 
-    <Tracker Type="Ascension3DG" BufferSize="500" AcquisitionRate="50" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" >
+    <Tracker Type="Ascension3DG" BufferSize="500" AcquisitionRate="50" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" FilterAcWideNotch="1">
       <Tool Name="Probe" PortName="0" />
     </Tracker>
 
