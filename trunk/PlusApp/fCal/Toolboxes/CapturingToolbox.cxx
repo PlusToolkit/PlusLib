@@ -351,6 +351,8 @@ void CapturingToolbox::Record()
     return;
   }
 
+  ui.plainTextEdit_saveResult->clear();
+
   dataCollector->GetMostRecentTimestamp(m_LastRecordedFrameTimestamp);
 
   // Start capturing
@@ -497,6 +499,10 @@ void CapturingToolbox::WriteToFile( QString& aFilename )
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
       return;
     }
+
+    QString result = "File saved to\n";
+    result += aFilename;
+    ui.plainTextEdit_saveResult->insertPlainText(result);
 
     // Add file name to image list in Volume reconstruction toolbox
     VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
