@@ -77,6 +77,10 @@ protected:
   * Actual clearing of frames
   */
   void ClearRecordedFramesInternal();
+  /*!
+  * Save data to file
+  */
+  void WriteToFile(QString& aFilename);
 
   /*! Get the sampling period length in msec */
   double GetSamplingPeriodMsec();
@@ -103,9 +107,14 @@ protected slots:
   void ClearRecordedFrames();
 
   /*!
-  * Slot handling open save button click
+  * Slot handling Save button click
   */
   void Save();
+
+  /*!
+  * Slot handling Save As button click
+  */
+  void SaveAs();
 
   /*!
   * Slot handling value change of sampling rate slider
