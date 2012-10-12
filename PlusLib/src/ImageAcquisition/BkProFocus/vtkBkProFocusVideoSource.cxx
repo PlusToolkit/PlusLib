@@ -1,12 +1,10 @@
+#include "PlusBkProFocusReceiver.h"
 #include "PlusConfigure.h"
 #include "vtkBkProFocusVideoSource.h"
-#include "vtkVideoBuffer.h"
-
-#include "PlusBkProFocusReceiver.h"
-#include "vtkRfProcessor.h"
-
-#include "vtkImageImport.h"
 #include "vtkImageData.h"
+#include "vtkImageImport.h"
+#include "vtkPlusDataBuffer.h"
+#include "vtkRfProcessor.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"

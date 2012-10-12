@@ -19,7 +19,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 #include "MadgwickAhrsAlgo.h"
 #include "MahonyAhrsAlgo.h"
