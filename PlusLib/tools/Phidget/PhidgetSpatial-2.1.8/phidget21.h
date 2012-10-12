@@ -32,16 +32,16 @@ typedef long long __int64;
   this easy to use and robust Application Program Interface (API) library.
 
   The library was written originally for Windows, but has been ported to MacOS and Linux.  
-  Although the library is written in C, the functions can be called from a number of languages including C, C++, Objective-C, Matlab, etc.  
+  Although the library is written in C, the functions can be called from a number of languages including C#, C/C++, Java, Python, Visual Basic, and many more.  
   The full library source is not available for all platforms - however, the Linux distribution contains all platform independent code.
 
   See the <a class="el" href="modules.html">Modules</a> section for the API documentation.
 
   See \ref phidcommon for calls common to all phidgets.
 
-  Refer to the <a class="el" href="http://www.phidgets.com/information.php#products" target="_blank">Product manual</a> for your Phidget and the 
-  <a class="el" href="http://www.phidgets.com/documentation/Programming_Manual.pdf" target="_blank">Programming Manual</a> for more detailed, language inspecific API documentation. 
-  Also, there are a set of C/C++ examples available for download.
+  Refer to the User Guide for your device and the 
+  <a class="el" href="http://www.phidgets.com/docs/General_Phidget_Programming" target="_blank">General Phidget Programming</a> page for more detailed, language inspecific API documentation and examples. 
+  You can download a set of C/C++ example code from the Quick Downloads section of the <a class="el" href="http://www.phidgets.com/docs/Language_-_C/C%2B%2B#Quick_Downloads" target="_blank"> C/C++ Language Page</a>.
 
   \section general_sec General Usage
   Phidgets in C are accessed/controlled via handles. Every Phidget has it's own Handle, as well as a generic Phidget handle. These handles are simply pointers
@@ -78,7 +78,7 @@ typedef long long __int64;
  */
 
 /** \defgroup phidcommon Phidget Common
- * Calls common to all Phidgets. See the programming manual for more specific API details, supported functionality, units, etc.
+ * These calls are common to all Phidgets objects. See the <a class="el" href="http://www.phidgets.com/docs/General_Phidget_Programming" target="_blank">General Phidget Programming</a> page for more in-depth usage instructions and examples.
  * @{
  */
 
@@ -186,8 +186,118 @@ typedef enum
  PHIDID_TEXTLED_4x8 = 0x048,								/**< Phidget TextLED 4x8 (1040) */
  PHIDID_WEIGHTSENSOR = 0x072,								/**< Phidget Weight Sensor (1050) */
 
+ /* Device in firmware upgrade mode */
+ PHIDID_FIRMWARE_UPGRADE = 0x098,
+
 } CPhidget_DeviceID;
 /** @} */
+
+typedef enum
+{
+ PHIDUID_NOTHING = 1,
+
+ PHIDUID_ACCELEROMETER_2AXIS_2G,
+ PHIDUID_ACCELEROMETER_2AXIS_10G,
+ PHIDUID_ACCELEROMETER_2AXIS_5G,
+ PHIDUID_ACCELEROMETER_3AXIS_3G,
+
+ PHIDUID_ADVANCEDSERVO_1MOTOR,
+
+ PHIDUID_ADVANCEDSERVO_8MOTOR,
+ PHIDUID_ADVANCEDSERVO_8MOTOR_PGOOD_FLAG,
+ PHIDUID_ADVANCEDSERVO_8MOTOR_CURSENSE_FIX,
+
+ PHIDUID_ANALOG_4OUTPUT,
+
+ PHIDUID_BRIDGE_4INPUT,
+
+ PHIDUID_ENCODER_1ENCODER_1INPUT_OLD,
+ PHIDUID_ENCODER_1ENCODER_1INPUT_v1,
+ PHIDUID_ENCODER_1ENCODER_1INPUT_v2,
+ PHIDUID_ENCODER_HS_1ENCODER,
+ PHIDUID_ENCODER_HS_4ENCODER_4INPUT,
+
+ PHIDUID_FREQUENCYCOUNTER_2INPUT,
+
+ PHIDUID_GPS,
+
+ PHIDUID_INTERFACEKIT_0_0_4_NO_ECHO,
+ PHIDUID_INTERFACEKIT_0_0_4,
+ PHIDUID_INTERFACEKIT_0_0_8,
+ PHIDUID_INTERFACEKIT_0_5_7,
+ PHIDUID_INTERFACEKIT_0_8_8_w_LCD,
+ PHIDUID_INTERFACEKIT_0_16_16_NO_ECHO,
+ PHIDUID_INTERFACEKIT_0_16_16_BITBUG,
+ PHIDUID_INTERFACEKIT_0_16_16,
+ PHIDUID_INTERFACEKIT_2_2_2,
+ PHIDUID_INTERFACEKIT_2_8_8,
+ PHIDUID_INTERFACEKIT_4_8_8,
+ PHIDUID_INTERFACEKIT_8_8_8_NO_ECHO,
+ PHIDUID_INTERFACEKIT_8_8_8,
+ PHIDUID_INTERFACEKIT_8_8_8_FAST,
+ PHIDUID_INTERFACEKIT_8_8_8_w_LCD_NO_ECHO,
+ PHIDUID_INTERFACEKIT_8_8_8_w_LCD,
+ PHIDUID_INTERFACEKIT_8_8_8_w_LCD_FAST,
+ PHIDUID_INTERFACEKIT_TOUCH_SLIDER,
+ PHIDUID_INTERFACEKIT_TOUCH_ROTARY,
+
+ PHIDUID_IR,
+
+ PHIDUID_LED_64,
+ PHIDUID_LED_64_ADV,
+ PHIDUID_LED_64_ADV_M3,
+
+ PHIDUID_MOTORCONTROL_1MOTOR,
+ PHIDUID_MOTORCONTROL_HC_2MOTOR,
+ PHIDUID_MOTORCONTROL_LV_2MOTOR_4INPUT,
+
+ PHIDUID_PHSENSOR,
+
+ PHIDUID_RFID_OLD,
+ PHIDUID_RFID,
+ PHIDUID_RFID_2OUTPUT_NO_ECHO,
+ PHIDUID_RFID_2OUTPUT,
+ PHIDUID_RFID_2OUTPUT_ADVANCED,
+
+ PHIDUID_SERVO_1MOTOR_OLD,
+ PHIDUID_SERVO_4MOTOR_OLD,
+ PHIDUID_SERVO_1MOTOR_NO_ECHO,
+ PHIDUID_SERVO_1MOTOR,
+ PHIDUID_SERVO_4MOTOR_NO_ECHO,
+ PHIDUID_SERVO_4MOTOR,
+
+ PHIDUID_SPATIAL_ACCEL_3AXIS_1049,
+ PHIDUID_SPATIAL_ACCEL_3AXIS_1041,
+ PHIDUID_SPATIAL_ACCEL_3AXIS_1043,
+ PHIDUID_SPATIAL_ACCEL_GYRO_COMPASS_1056,
+ PHIDUID_SPATIAL_ACCEL_GYRO_COMPASS_1056_NEG_GAIN,
+ PHIDUID_SPATIAL_ACCEL_GYRO_COMPASS_1042,
+ PHIDUID_SPATIAL_ACCEL_GYRO_COMPASS_1044,
+
+ PHIDUID_STEPPER_BIPOLAR_1MOTOR,
+ PHIDUID_STEPPER_BIPOLAR_1MOTOR_M3,
+ PHIDUID_STEPPER_UNIPOLAR_4MOTOR,
+
+ PHIDUID_TEMPERATURESENSOR_OLD,
+ PHIDUID_TEMPERATURESENSOR,
+ PHIDUID_TEMPERATURESENSOR_AD22100,
+ PHIDUID_TEMPERATURESENSOR_TERMINAL_BLOCKS,
+ PHIDUID_TEMPERATURESENSOR_4,
+ PHIDUID_TEMPERATURESENSOR_IR,
+
+ PHIDUID_TEXTLCD_2x20,
+ PHIDUID_TEXTLCD_2x20_w_8_8_8,
+ PHIDUID_TEXTLCD_2x20_w_8_8_8_BRIGHTNESS,
+ PHIDUID_TEXTLCD_ADAPTER,
+
+ PHIDUID_TEXTLED_1x8,
+ PHIDUID_TEXTLED_4x8,
+
+ PHIDUID_WEIGHTSENSOR,
+
+ PHIDUID_GENERIC,
+ PHIDUID_FIRMWARE_UPGRADE
+} CPhidget_DeviceUID;
 
 //Regular Versions
 
@@ -370,7 +480,7 @@ __declspec (dllimport)
 /** @} */
 
 /** \defgroup phiddict Phidget Dictionary 
- * Calls specific to the Phidget Dictionary.
+ * These calls are specific to the Phidget Dictionary.
  * @{
  */
 
@@ -514,7 +624,7 @@ __declspec (dllimport)
 /** @} */
 
 /** \defgroup phidmanager Phidget Manager 
- * Calls specific to the Phidget Manager. The Phidget Manager allows enumeration of all connected devices and notification of device
+ * These calls are specific to the Phidget Manager. The Phidget Manager allows enumeration of all connected devices and notification of device
  * attach and detach events.
  * @{
  */
@@ -758,7 +868,7 @@ __declspec (dllimport)
 
 /** \defgroup phidaccel Phidget Accelerometer 
  * \ingroup phidgets
- * Calls specific to the Phidget Accelerometer. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Accelerometer object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -828,7 +938,7 @@ __declspec (dllimport)
 
 /** \defgroup phidadvservo Phidget Advanced Servo 
  * \ingroup phidgets
- * Calls specific to the Phidget Advanced Servo. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Advanced Servo object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1109,7 +1219,7 @@ __declspec (dllimport)
 
 /** \defgroup phidanalog Phidget Analog 
  * \ingroup phidgets
- * Calls specific to the Phidget Analog. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Analog object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1177,7 +1287,7 @@ __declspec (dllimport)
 
 /** \defgroup phidbridge Phidget Bridge 
  * \ingroup phidgets
- * Calls specific to the Phidget Bridge. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Bridge object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1303,7 +1413,7 @@ __declspec (dllimport)
 
 /** \defgroup phidenc Phidget Encoder 
  * \ingroup phidgets
- * Calls specific to the Phidget Encoder. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Encoder object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1368,6 +1478,15 @@ __declspec (dllimport)
      int __stdcall CPhidgetEncoder_set_OnPositionChange_Handler (CPhidgetEncoderHandle phid,
 								 int (__stdcall * fptr) (CPhidgetEncoderHandle phid, void *userPtr, int index, int time, int positionChange), void *userPtr);
 /**
+ * Sets an encoder index handler. This is called when there is a pulse on the index pin.
+ * @param phid An attached phidget encoder handle
+ * @param fptr Callback function pointer. This returns the encoder position at which the index pulse occured.
+ * @param userPtr A pointer for use by the user - this value is passed back into the callback function.
+ */
+__declspec (dllimport)
+     int __stdcall CPhidgetEncoder_set_OnIndexChange_Handler (CPhidgetEncoderHandle phid, int (__stdcall * fptr) (CPhidgetEncoderHandle phid, void *userPtr, int index, int indexPosition),
+							      void *userPtr);
+/**
  * Gets the position of the last index pulse, as referenced to \ref CPhidgetEncoder_getPosition.
  * This will return EPHIDGET_UNKNOWN if there hasn't been an index event, or if the encoder doesn't support index.
  * @param phid An attached phidget encoder handle
@@ -1397,7 +1516,7 @@ __declspec (dllimport)
 
 /** \defgroup phidfreq Phidget Frequency Counter
  * \ingroup phidgets
- * Calls specific to the Phidget Frequency Counter. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Frequency Counter object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  *
  * @{
  */
@@ -1516,7 +1635,7 @@ __declspec (dllimport)
 
 /** \defgroup phidgps Phidget GPS 
  * \ingroup phidgets
- * Calls specific to the Phidget GPS. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget GPS object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1730,7 +1849,7 @@ __declspec (dllimport)
 
 /** \defgroup phidifkit Phidget InterfaceKit 
  * \ingroup phidgets
- * Calls specific to the Phidget InterfaceKit. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget InterfaceKit object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -1898,7 +2017,7 @@ __declspec (dllimport)
 
 /** \defgroup phidIR Phidget IR 
  * \ingroup phidgets
- * Calls specific to the Phidget IR. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget IR object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2040,7 +2159,7 @@ __declspec (dllimport)
 
 /** \defgroup phidled Phidget LED 
  * \ingroup phidgets
- * Calls specific to the Phidget LED. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget LED object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2121,11 +2240,13 @@ __declspec (dllimport)
 __declspec (dllimport)
      int __stdcall CPhidgetLED_setVoltage (CPhidgetLEDHandle phid, CPhidgetLED_Voltage voltage);
 
+//Only exposed in debug library for now
+
 /** @} */
 
 /** \defgroup phidmotorcontrol Phidget Motor Control 
  * \ingroup phidgets
- * Calls specific to the Phidget Motor Control. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Motor Control object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2406,7 +2527,7 @@ __declspec (dllimport)
 
 /** \defgroup phidph Phidget PH Sensor 
  * \ingroup phidgets
- * Calls specific to the Phidget PH Sensor. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget PH Sensor object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2492,7 +2613,7 @@ __declspec (dllimport)
 
 /** \defgroup phidrfid Phidget RFID 
  * \ingroup phidgets
- * Calls specific to the Phidget RFID. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget RFID object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2598,7 +2719,7 @@ __declspec (dllimport)
 
 /** \defgroup phidservo Phidget Servo 
  * \ingroup phidgets
- * Calls specific to the Phidget Servo. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Servo object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2701,7 +2822,7 @@ __declspec (dllimport)
 
 /** \defgroup phidspatial Phidget Spatial 
  * \ingroup phidgets
- * Calls specific to the Phidget Spatial. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Spatial object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -2893,11 +3014,13 @@ __declspec (dllimport)
 							      int (__stdcall * fptr) (CPhidgetSpatialHandle phid, void *userPtr, CPhidgetSpatial_SpatialEventDataHandle * data, int dataCount),
 							      void *userPtr);
 
+//These are for a prototype device - hide until it's released
+
 /** @} */
 
 /** \defgroup phidstepper Phidget Stepper 
  * \ingroup phidgets
- * Calls specific to the Phidget Stepper. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Stepper object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -3157,7 +3280,7 @@ __declspec (dllimport)
 
 /** \defgroup phidtemp Phidget Temperature Sensor 
  * \ingroup phidgets
- * Calls specific to the Phidget Temperature Sensor. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Temperature Sensor object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  *
  * All temperatures are in degrees celcius.
  * @{
@@ -3304,7 +3427,7 @@ __declspec (dllimport)
 
 /** \defgroup phidtextlcd Phidget TextLCD 
  * \ingroup phidgets
- * Calls specific to the Phidget Text LCD. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Text LCD object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -3492,7 +3615,7 @@ __declspec (dllimport)
 
 /** \defgroup phidtextled Phidget TextLED 
  * \ingroup phidgets
- * Calls specific to the Phidget Text LED. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Text LED object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
@@ -3543,7 +3666,7 @@ __declspec (dllimport)
 
 /** \defgroup phidweight Phidget Weight Sensor 
  * \ingroup phidgets
- * Calls specific to the Phidget Weight Sensor. See the product manual for more specific API details, supported functionality, units, etc.
+ * These calls are specific to the Phidget Weight Sensor object. See your device's User Guide for more specific API details, technical information, and revision details. The User Guide, along with other resources, can be found on the product page for your device.
  * @{
  */
 
