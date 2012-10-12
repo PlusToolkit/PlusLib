@@ -39,6 +39,7 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkChRoboticsTracker.h"
+#include "vtk3dConnexionTracker.h"
 
 //----------------------------------------------------------------------------
 
@@ -51,6 +52,7 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
   TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
   TrackerTypes["ChRobotics"]=(PointerToTracker)&vtkChRoboticsTracker::New; 
+  TrackerTypes["3dConnexion"]=(PointerToTracker)&vtk3dConnexionTracker::New; 
 #ifdef PLUS_USE_OpenIGTLink
   TrackerTypes["OpenIGTLinkTracker"]=(PointerToTracker)&vtkOpenIGTLinkTracker::New; 
 #endif
