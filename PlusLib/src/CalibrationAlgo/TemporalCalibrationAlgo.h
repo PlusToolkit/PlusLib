@@ -126,9 +126,9 @@ public:
   */
   PlusStatus GetCalibrationError(double &error);
 
-  PlusStatus GetVideoPositionSignal(vtkTable* videoPositionSignal);
-  PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedTrackerPositionSignal);
-  PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal);
+  PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedvideoPositionSignal);
+	PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedvideoPositionSignal);
+  PlusStatus GetVideoPositionSignal(vtkTable* TrackerPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
 
   PlusStatus GetBestCorrelation(double &videoCorrelation);
@@ -167,6 +167,11 @@ private:
   /*! The time-offsets used to compute the correlations */
   std::vector<double> m_CorrIndices;
 
+	std::vector<double> m_CorrTimeOffsets;
+	
+	/*! The highest correlation value for the tested time-offsets */
+	double m_BestCorrelationValue;
+
   /*! Resampled tracker metric used for correlation */
   std::vector<double> m_ResampledTrackerPositionMetric;
  
@@ -181,7 +186,20 @@ private:
 
   double m_CommonRangeMin; 
   double m_CommonRangeMax;
-  
+
+	std::vector<double> m_NormalizationFactors;
+
+	std::vector<double> m_FilteredTrackerTimestamps;
+	std::vector<double> m_FilteredVideoTimestamps;
+
+	std::vector<double> m_FilteredVideoPositionMetric;
+	std::vector<double> m_FilteredTrackerPositionMetric;
+
+	std::vector<double> m_SlidingSignalTimestamps;
+  std::vector<double> m_SlidingSignalMetric;
+
+	std::vector<double> m_NormalizedTrackerPositionMetric;
+	std::vector<double> m_NormalizedTrackerTimestamps;
   std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
   
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
@@ -189,6 +207,7 @@ private:
 
   /*! Given index for the calculated best fit */
   double m_BestCorrelationLagIndex;
+	double m_BestCorrelationTimeOffset;
 
   /*! The residual error after temporal calibration of the video and tracker signals */
   double m_CalibrationError;
@@ -207,21 +226,22 @@ private:
                                                 int &MaxFromLargestAreaIndex, int &startOfMaxArea);
   PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
                                                          double &centerOfGravity);
+
+	PlusStatus ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
+																											 const std::vector<double>& origSignalTimestamps,
+																											 const std::vector<double>& origSignalValues,
+																											 std::vector<double>& resampledSignalValues);
   
-  PlusStatus ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
+  PlusStatus FilterPositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);
-  PlusStatus NormalizeMetric(std::vector<double> &metric, double &normalizationFactor);
-  PlusStatus NormalizeMetricWindow(const std::vector<double> &slidingMetric, int indexOffset,
-                                   int stationaryMetricSize, std::vector<double> &normalizedSlidingMetric);
+	PlusStatus NormalizeMetricWindow2(std::vector<double> &signal, double &normalizationFactor);
   PlusStatus ComputeVideoPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus ComputeTrackerPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
-  void ComputeCorrelationBetweenVideoAndTrackerMetrics();
-  double ComputeCrossCorrelationSumForGivenLagIndex(const std::vector<double> &m_TrackerPositionMetric,
-                                               const std::vector<double> &m_VideoPositionMetric, int indexOffset);
-  double ComputeSsdForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, 
-                                    int indexOffset);
-  double ComputeSadForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB,
-                                    int indexOffset);
+	void ComputeCorrelationBetweenVideoAndTrackerMetrics2();
+
+	double ComputeCrossCorrelationSum(const std::vector<double> &signalA, const std::vector<double> &signalB);
+	double ComputeSsd(const std::vector<double> &signalA, const std::vector<double> &signalB);
+	double ComputeSad(const std::vector<double> &signalA, const std::vector<double> &signalB);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
@@ -239,7 +259,7 @@ private:
   vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
 
   /*! Normalization factor used for the tracker metric. Used for computing calibration error. */
-  double m_TrackerPositionMetricNormalizationFactor;
+  double m_BestCorrelationNormalizationFactor;
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
   double m_VideoPositionMetricNormalizationFactor;
 
