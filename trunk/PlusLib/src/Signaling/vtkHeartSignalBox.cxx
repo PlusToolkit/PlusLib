@@ -9,17 +9,18 @@ Authors include: Chris Wedlake <cwedlake@imaging.robarts.ca>, Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
 =========================================================================*/  
 
-#include <limits.h>
-#include <float.h>
-#include <math.h>
 #include "vtkHeartSignalBox.h"
-#include "vtkObjectFactory.h"
 #include "vtkMultiThreader.h"
+#include "vtkMutexLock.h"
+#include "vtkObjectFactory.h"
 #include "vtkRecursiveCriticalSection.h"
+#include <float.h>
+#include <io.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/timeb.h>
-#include <io.h>
 
 vtkStandardNewMacro(vtkHeartSignalBox);
 

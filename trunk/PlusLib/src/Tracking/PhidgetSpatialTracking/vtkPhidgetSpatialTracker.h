@@ -11,7 +11,7 @@ See License.txt for details.
 
 #include <phidget21.h>
 
-class vtkTrackerBuffer; 
+class vtkPlusDataBuffer; 
 class AhrsAlgo;
 
 /*!
