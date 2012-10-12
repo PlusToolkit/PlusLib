@@ -67,7 +67,7 @@ TemporalCalibration::TemporalCalibration() : m_SamplingResolutionSec(DEFAULT_SAM
                                              m_SaveIntermediateImages(false),
                                              m_TrackerLagSec(0.0),
                                              m_CalibrationError(0.0),
-                                             m_TrackerPositionMetricNormalizationFactor(0.0),
+                                             m_BestCorrelationNormalizationFactor(0.0),
                                              m_VideoPositionMetricNormalizationFactor(0.0),
                                              m_BestCorrelationLagIndex(-1)
 {
@@ -227,6 +227,20 @@ PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::GetBestCorrelation( double &videoCorrelation )
+{
+  if(m_NeverUpdated)
+  {
+    LOG_ERROR("You must first call the \"Update()\" to compute the best correlation metric.");
+    return PLUS_FAIL;
+  }
+
+	videoCorrelation = m_BestCorrelationValue;
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetCalibrationError(double &error)
 {
   if(m_NeverUpdated)
@@ -253,31 +267,13 @@ PlusStatus TemporalCalibration::GetMaxCalibrationError(double &maxCalibrationErr
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkTable* videoPositionSignal)
+PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable* uncalibratedTrackerPositionSignal)
 {
-  ConstructTableSignal(m_ResampledVideoTimestamps, m_ResampledVideoPositionMetric, videoPositionSignal, 0); 
-
-  if(videoPositionSignal->GetNumberOfColumns() != 2)
-  {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
-               videoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
-    return PLUS_FAIL;
-  }
-
-  videoPositionSignal->GetColumn(0)->SetName("Time [s]");
-  videoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable *uncalibratedTrackerPositionSignal)
-{
-  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, uncalibratedTrackerPositionSignal, 0); 
+  ConstructTableSignal(m_NormalizedTrackerTimestamps, m_NormalizedTrackerPositionMetric, uncalibratedTrackerPositionSignal, 0); 
 
   if(uncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
+    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
                uncalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
@@ -291,12 +287,11 @@ PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable *u
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal)
 {
-  ConstructTableSignal(m_ResampledTrackerTimestamps, m_ResampledTrackerPositionMetric, calibratedTrackerPositionSignal, 
-                       m_TrackerLagSec); 
+  ConstructTableSignal(m_NormalizedTrackerTimestamps, m_NormalizedTrackerPositionMetric, calibratedTrackerPositionSignal, -m_TrackerLagSec); 
 
   if(calibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold calibrated tracker signal. Table has " << 
+    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
                calibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
@@ -306,11 +301,28 @@ PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* cal
 
   return PLUS_SUCCESS;
 }
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkTable *videoPositionSignal)
+{
+  ConstructTableSignal(m_SlidingSignalTimestamps, m_SlidingSignalMetric, videoPositionSignal, 0); 
+
+  if(videoPositionSignal->GetNumberOfColumns() != 2)
+  {
+    LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
+               videoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    return PLUS_FAIL;
+  }
+
+  videoPositionSignal->GetColumn(0)->SetName("Time [s]");
+  videoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
+
+  return PLUS_SUCCESS;
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetCorrelationSignal(vtkTable* correlationSignal)
 {
-  ConstructTableSignal(m_CorrIndices, m_CorrValues, correlationSignal, 0); 
+  ConstructTableSignal(m_CorrTimeOffsets, m_CorrValues, correlationSignal, 0); 
 
   if(correlationSignal->GetNumberOfColumns() != 2)
   {
@@ -356,15 +368,6 @@ PlusStatus TemporalCalibration::filterFrames()
 
   }
 
-  // DEBUG
-  std::ofstream originalVideoTimestampsFile;
-  originalVideoTimestampsFile.open("C:\\Users\\moult\\Documents\\Perk\\Summer2012\\TemporalCalibration\\Results\\OldTemporalCalibrationTests\\August_6_2012\\Frequency10\\Trial01\\OrigVideoTimes.txt");
-
-  for(int i = 0; i < m_VideoTimestamps.size(); ++i)
-  {
-    originalVideoTimestampsFile << std::setprecision(8) << m_VideoTimestamps.at(i) << ", " << m_VideoPositionMetric.at(i) << std::endl;
-  }
-  originalVideoTimestampsFile.close();
 
   //  Find the time-range that is common to both tracker and image signals
   double translationTimestampMin = m_TrackerTimestamps.at(0);
@@ -440,25 +443,9 @@ PlusStatus TemporalCalibration::ComputeTrackerPositionMetric(TEMPORAL_CALIBRATIO
     }
   }
 
-  //// Debug: Write tracker positions (x, y, z) to text file for 3-D display in MATLAB
-  //ofstream trackerPositionsFile;
- // trackerPositionsFile.open ("\\trackerPositions.txt");
-  //for(long int i = 0; i < trackerPositions.size(); ++i)
-  //{
-  //  trackerPositionsFile << trackerPositions.at(i).GetElement(0) << ", " << trackerPositions.at(i).GetElement(1)
-  //    << ", " << trackerPositions.at(i).GetElement(2) << std::endl;
-  //}
- // trackerPositionsFile.close();
-
   // Calculate the principal axis of motion (using PCA)
   itk::Point<double,3> principalAxisOfMotion;
   ComputePrincipalAxis(trackerPositions, principalAxisOfMotion, numberOfValidFrames);
-
-  //// Debug: Write principal eigenvector (x, y, z) to text file for 3-D display in MATLAB
-  //ofstream eigenvectorFile;
- // eigenvectorFile.open ("\\eigenvector.txt");
-  //eigenvectorFile << principalAxisOfMotion[0] << ", " << principalAxisOfMotion[1] << ", " << principalAxisOfMotion[2] << std::endl;
- // eigenvectorFile.close();
 
   // Compute the mean tracker poisition
   itk::Point<double, 3> meanTrackerPosition;
@@ -978,22 +965,23 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, double &normalizationFactor)
+PlusStatus TemporalCalibration::NormalizeMetricWindow2(std::vector<double> &signal, double &normalizationFactor)
 {
-  if (metric.size() == 0)
+
+  if (signal.size() == 0)
   {
-    LOG_ERROR("\"NormalizeMetric()\" failed because the metric vector is empty");
+    LOG_ERROR("\"NormalizeMetricWindow2()\" failed because the metric vector is empty");
     return PLUS_FAIL;
   }
 
-   //  Calculate the metric mean
+  //  Calculate the metric mean
   double mu = 0;
-  for(int i = 0; i < metric.size(); ++i)
+  for(int i = 0; i < signal.size(); ++i)
   {
-    mu += metric.at(i);
+    mu += signal.at(i);
   }
 
-  mu /= metric.size();
+  mu /= signal.size();
 
   // Initialize standard deviation
   double s = 0;
@@ -1008,47 +996,49 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     case STD:
     {
       // Calculate standard deviation
-      for(int i = 0; i < metric.size(); ++i)
+      for(int i = 0; i < signal.size(); ++i)
       {
-      s += (metric.at(i) - mu)*(metric.at(i) - mu);
+        s += (signal.at(i) - mu)*(signal.at(i) - mu);
       }
 
       s = std::sqrt(s);
-      s /= std::sqrt( static_cast<double>(metric.size()) - 1);
+      s /= std::sqrt( static_cast<double>(signal.size()) - 1);
       break;
     } // End "case: STD"
   }
 
+
+
   //  Subtract the metric mean from each metric value as: s' = s - mu
-  for(int i = 0; i < metric.size(); ++i)
+  for(int i = 0; i < signal.size(); ++i)
   {
-    metric.at(i) -= mu;
+    signal.at(i) -= mu;
   }
 
   //  Calculate maximum and minimum metric values
-  double maxMetricValue = metric.at(0);
-  double minMetricValue = metric.at(0);
+  double maxMetricValue = signal.at(0);
+  double minMetricValue = signal.at(0);
 
-  for(int i = 1; i < metric.size(); ++i)
+  for(int i = 1; i < signal.size(); ++i)
   {
-    if(metric.at(i) > maxMetricValue)
+    if(signal.at(i) > maxMetricValue)
     {
-      maxMetricValue = metric.at(i);
+      maxMetricValue = signal.at(i);
     }
-    else if(metric.at(i) < minMetricValue)
+    else if(signal.at(i) < minMetricValue)
     {
-      minMetricValue = metric.at(i);
+       minMetricValue = signal.at(i);
     }
-  } // End for()
+  }
 
-  // Compute the max peak-to-peak
-  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
 
   // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
   // not work for our purposes
+  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
+
   if(maxPeakToPeak < MINIMUM_SIGNAL_PEAK_TO_PEAK)
   {
-    LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant");
+    LOG_ERROR("!!Detected metric values do not vary sufficiently--i.e. signal is constant");
     return PLUS_FAIL;
   }
 
@@ -1058,9 +1048,9 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     {
       // Divide by the maximum signal amplitude
       normalizationFactor = 1.0/maxPeakToPeak;
-      for(int i = 0; i < metric.size(); ++i)
+      for(int i = 0; i < signal.size(); ++i)
       {
-        metric.at(i) *= normalizationFactor; 
+        signal.at(i) *= normalizationFactor; 
       }
       break;
     } // End "case: AMPLITUDE" 
@@ -1068,115 +1058,9 @@ PlusStatus TemporalCalibration::NormalizeMetric(std::vector<double> &metric, dou
     {
       // Divide by the standard deviation
       normalizationFactor = 1.0/s;
-      for(int i = 0; i < metric.size(); ++i)
+      for(int i = 0; i < signal.size(); ++i)
       {
-        metric.at(i) *= normalizationFactor; 
-      } 
-      break;
-    } // End "case STD"
-  }
-
-  return PLUS_SUCCESS;
-
-}// End NormalizeMetric()
-
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> &slidingMetric, int indexOffset,
-                                                      int stationaryMetricSize, std::vector<double> &normalizedSlidingMetric)
-{
-  if (slidingMetric.size() == 0 || stationaryMetricSize == 0)
-  {
-    LOG_ERROR("\"NormalizeMetric()\" failed because the metric vector is empty");
-    return PLUS_FAIL;
-  }
-
-  //  Calculate the metric mean
-  double mu = 0;
-  for(int i = 0; i < stationaryMetricSize; ++i)
-  {
-    mu += slidingMetric.at(i + indexOffset);
-  }
-
-  mu /= stationaryMetricSize;
-
-  // Initialize standard deviation
-  double s = 0;
-
-  switch (METRIC_NORMALIZATION)
-  {
-    case AMPLITUDE:
-    {
-      // Do nothing
-      break;
-    }
-    case STD:
-    {
-      // Calculate standard deviation
-      for(int i = 0; i < stationaryMetricSize; ++i)
-      {
-        s += (slidingMetric.at(i + indexOffset) - mu)*(slidingMetric.at(i + indexOffset) - mu);
-      }
-
-      s = std::sqrt(s);
-      s /= std::sqrt( static_cast<double>(stationaryMetricSize) - 1);
-      break;
-    } // End "case: STD"
-  }
-
-
-
-  //  Subtract the metric mean from each metric value as: s' = s - mu
-  for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-  {
-    normalizedSlidingMetric.at(i) -= mu;
-  }
-
-  //  Calculate maximum and minimum metric values
-  double maxMetricValue = normalizedSlidingMetric.at(indexOffset);
-  double minMetricValue = normalizedSlidingMetric.at(indexOffset);
-
-  for(int i = 1; i < stationaryMetricSize; ++i)
-  {
-    if(normalizedSlidingMetric.at(i + indexOffset) > maxMetricValue)
-    {
-      maxMetricValue = normalizedSlidingMetric.at(i + indexOffset);
-    }
-    else if(normalizedSlidingMetric.at(i + indexOffset) < minMetricValue)
-    {
-       minMetricValue = normalizedSlidingMetric.at(i + indexOffset);
-    }
-  }
-
-
-  // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
-  // not work for our purposes
-  double maxPeakToPeak = std::abs(maxMetricValue) + std::abs(minMetricValue);
-
-  if(maxPeakToPeak < MINIMUM_SIGNAL_PEAK_TO_PEAK)
-  {
-    LOG_ERROR("Detected metric values do not vary sufficiently--i.e. signal is constant");
-    return PLUS_FAIL;
-  }
-
-  switch (METRIC_NORMALIZATION)
-  {
-    case AMPLITUDE:
-    {
-      // Divide by the maximum signal amplitude
-      double normalizationFactor = 1.0/maxPeakToPeak;
-      for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-      {
-        normalizedSlidingMetric.at(i) *= normalizationFactor; 
-      }
-      break;
-    } // End "case: AMPLITUDE" 
-    case STD:
-    {
-      // Divide by the standard deviation
-      double normalizationFactor = 1.0/s;
-      for(int i = 0; i < normalizedSlidingMetric.size(); ++i)
-      {
-        normalizedSlidingMetric.at(i) *= normalizationFactor; 
+        signal.at(i) *= normalizationFactor; 
       } 
       break;
     } // End "case STD"
@@ -1187,47 +1071,33 @@ PlusStatus TemporalCalibration::NormalizeMetricWindow(const std::vector<double> 
 }// End NormalizeMetricWindow()
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERROR &error)
+PlusStatus TemporalCalibration::FilterPositionMetrics(TEMPORAL_CALIBRATION_ERROR &error)
 {
   if (m_TrackerTimestamps.size()==0)
   {
     error = TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS;
-    LOG_ERROR("ResamplePositionMetrics failed, the TrackerTimestamps vector is empty");
+    LOG_ERROR("FilterPositionMetrics failed, the TrackerTimestamps vector is empty");
     return PLUS_FAIL;
   }
 
-  //  Get resampled timestamps for the video sequence
-  long int n = 1;  
-  while(m_CommonRangeMin + n * m_SamplingResolutionSec < m_CommonRangeMax)
-  {
-    m_ResampledVideoTimestamps.push_back(m_CommonRangeMin + n * m_SamplingResolutionSec);
-    ++n;
-  }
+	// Eliminate the tracker and video timestamps + metrics that are outside of the common range
+	for(int i = 0; i < m_VideoTimestamps.size(); ++i)
+	{
+		if(m_VideoTimestamps.at(i) > m_CommonRangeMin && m_VideoTimestamps.at(i)  < m_CommonRangeMax)
+		{
+			m_FilteredVideoTimestamps.push_back(m_VideoTimestamps.at(i));
+			m_FilteredVideoPositionMetric.push_back(m_VideoPositionMetric.at(i));
+		}
+	}
 
-  //  Get resampled timestamps for the tracker sequence
-  n = 0;
-  while(m_TrackerTimestamps.at(0) + n * m_SamplingResolutionSec <= m_TrackerTimestamps.at(m_TrackerTimestamps.size() - 1))
-  {
-    m_ResampledTrackerTimestamps.push_back( (m_CommonRangeMin + m_MaxTrackerLagSec) + n * m_SamplingResolutionSec);
-    ++n;
-  }
-
-  //  Get resampled position metric for the US video data
-  LOG_DEBUG("InterpolatePositionMetric for video data");
-  InterpolatePositionMetrics(m_VideoTimestamps, m_VideoPositionMetric, m_ResampledVideoTimestamps,
-               m_ResampledVideoPositionMetric, 0.5, 0);
-
-  //  Get resampled position metric for the tracker data
-  LOG_DEBUG("InterpolatePositionMetric for tracker data");
-  InterpolatePositionMetrics(m_TrackerTimestamps, m_TrackerPositionMetric, m_ResampledTrackerTimestamps,
-               m_ResampledTrackerPositionMetric, 0.5, 0);
-
-  // Normalize the calculated translations
-  if(NormalizeMetric(m_ResampledTrackerPositionMetric, m_TrackerPositionMetricNormalizationFactor) != PLUS_SUCCESS)
-  {
-    error = TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC;
-    return PLUS_FAIL;
-  }
+	for(int i = 0; i < m_TrackerTimestamps.size(); ++i)
+	{
+		if(m_TrackerTimestamps.at(i) > m_CommonRangeMin && m_TrackerTimestamps.at(i)  < m_CommonRangeMax)
+		{
+			m_FilteredTrackerTimestamps.push_back(m_TrackerTimestamps.at(i));
+			m_FilteredTrackerPositionMetric.push_back(m_TrackerPositionMetric.at(i));
+		}
+	}
 
 
   return PLUS_SUCCESS;
@@ -1235,6 +1105,21 @@ PlusStatus TemporalCalibration::ResamplePositionMetrics(TEMPORAL_CALIBRATION_ERR
 
 
 //-----------------------------------------------------------------------------
+
+PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
+																											 const std::vector<double>& origSignalTimestamps,
+																											 const std::vector<double>& origSignalValues,
+																											 std::vector<double>& resampledSignalValues)
+{
+	
+	InterpolatePositionMetrics(origSignalTimestamps, origSignalValues, templateSignalTimestamps, resampledSignalValues, 0.5, 0);
+
+	return PLUS_SUCCESS;
+
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
                                              const std::vector<double> &originalMetricValues,
                                              const std::vector<double> &resampledTimestamps,
@@ -1255,98 +1140,128 @@ PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<dou
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics()
+void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics2()
 {
-  int trackerLagIndex = 0;
-  while(trackerLagIndex + (m_ResampledTrackerPositionMetric.size() - 1) < m_ResampledVideoPositionMetric.size())
-  {
-    //  Note that the tracker metric is the "stationary" metric and has already been normalized. The video metric is the "moving" metric
-    //  in the sense that is "slid" along the tracker metric by varying the time offset. The video metric is then normalized here for
-    //  the particular window of overlap with the tracker metric for a given time offset. That is, only portions of the signal within
-    //  the overlapping window are used to derive the normalization factors.
-    std::vector<double> normalizedVideoPositionMetric = m_ResampledVideoPositionMetric;
-    NormalizeMetricWindow(m_ResampledVideoPositionMetric,trackerLagIndex, m_ResampledTrackerPositionMetric.size(),
-                          normalizedVideoPositionMetric);
+	//	We will let the tracker metric be the "metric" and let the video metric be the "sliding" metric. Since we are assuming a maximum offset between the two streams.
 
-    switch (SIGNAL_ALIGNMENT_METRIC)
-    {
-    case SSD:
-      {
-        // Use sum of squared differences as signal alignment metric
-        m_CorrValues.push_back(ComputeSsdForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, trackerLagIndex));
-        break;
-      }
-    case CORRELATION:
-      {
-        // Use correlation as signal alignment metric
-        m_CorrValues.push_back(ComputeCrossCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, trackerLagIndex));
-        break;
-      }
-    case SAD:
-      {
-        // Use sum of absolute differences as signal alignment metric
-        m_CorrValues.push_back(ComputeSadForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, trackerLagIndex));
-        break;
-      }
-    }
+	m_SlidingSignalTimestamps.clear();
+	m_SlidingSignalMetric.clear();
+	for(int i = 0; i < m_FilteredVideoPositionMetric.size(); ++i)
+	{
+		if(m_FilteredVideoTimestamps.at(i) > m_CommonRangeMin + m_MaxTrackerLagSec && m_FilteredVideoTimestamps.at(i) < m_CommonRangeMax - m_MaxTrackerLagSec)
+		{
+			m_SlidingSignalTimestamps.push_back(m_FilteredVideoTimestamps.at(i));
+			m_SlidingSignalMetric.push_back(m_FilteredVideoPositionMetric.at(i));
+		}
+	}
+ 
+  NormalizeMetricWindow2(m_SlidingSignalMetric, m_VideoPositionMetricNormalizationFactor);
 
-    m_CorrIndices.push_back(m_MaxTrackerLagSec - trackerLagIndex * m_SamplingResolutionSec);
-    ++trackerLagIndex;
-  }
+	//TODO: Check divide by zero!
+	int offsetNum_max = vtkMath::Floor(m_MaxTrackerLagSec / m_SamplingResolutionSec);
+	int offsetNum_min = -offsetNum_max;
+	std::vector<double> slidingSignalTimestampsCopy(m_SlidingSignalTimestamps);
+	for(int i = 0; i < slidingSignalTimestampsCopy.size(); ++i)
+	{
+		slidingSignalTimestampsCopy.at(i) += offsetNum_min * m_SamplingResolutionSec;
+	}
+	for(int offsetNum = offsetNum_min; offsetNum <= offsetNum_max; ++offsetNum)
+	{
+		std::vector<double> resampledTrackerPositionMetric;
+		
+		
+		//ResampleTrackerPositionMetrics(slidingSignalTimestampsCopy, resampledTrackerPositionMetric);
+		ResampleSignalLinearly(slidingSignalTimestampsCopy,m_FilteredTrackerTimestamps, 
+													 m_FilteredTrackerPositionMetric,resampledTrackerPositionMetric);
+		double normalizationFactor;
+		NormalizeMetricWindow2(resampledTrackerPositionMetric, normalizationFactor);
+		m_NormalizationFactors.push_back(normalizationFactor);
+
+		switch (SIGNAL_ALIGNMENT_METRIC)
+		{
+		case SSD:
+			{
+				// Use sum of squared differences as signal alignment metric
+				m_CorrValues.push_back(ComputeSsd(m_SlidingSignalMetric, resampledTrackerPositionMetric));
+				break;
+			}
+		case CORRELATION:
+			{
+				// Use correlation as signal alignment metric
+				m_CorrValues.push_back(ComputeCrossCorrelationSum(m_SlidingSignalMetric, resampledTrackerPositionMetric));
+				break;
+			}
+		case SAD:
+			{
+				// Use sum of absolute differences as signal alignment metric
+				m_CorrValues.push_back(ComputeSad(m_SlidingSignalMetric, resampledTrackerPositionMetric));
+				break;
+			}
+		}
+
+		m_CorrTimeOffsets.push_back(offsetNum * m_SamplingResolutionSec);
+		for(int i = 0; i < slidingSignalTimestampsCopy.size(); ++i)
+		{
+			slidingSignalTimestampsCopy.at(i) += m_SamplingResolutionSec;
+		}
+
+	}
+
+		
 }
 
 //-----------------------------------------------------------------------------
-double TemporalCalibration::ComputeCrossCorrelationSumForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
+double TemporalCalibration::ComputeCrossCorrelationSum(const std::vector<double> &signalA, const std::vector<double> &signalB)
 {
-  if (metricB.size() < metricA.size() + indexOffset)
+  if (signalA.size() != signalB.size() )
   { 
-    LOG_ERROR("\"Metric B\" has too few elements (" << metricB.size() <<") for the given index offset (" << 
-              indexOffset << ") and the size of \"Metric A\" (" << metricA.size() << ").");
+		//TODO: Update this error message!
+    LOG_ERROR("");
     return 0;
   }
 
   double xCorrSum = 0;
-  for(long int i = 0; i < metricA.size(); ++i)
+  for(long int i = 0; i < signalA.size(); ++i)
   {
-    xCorrSum += metricA.at(i) * metricB.at(i + indexOffset); // XCORR
+    xCorrSum += signalA.at(i) * signalB.at(i); // XCORR
   }
   return xCorrSum;
 }
 
 //-----------------------------------------------------------------------------
-double TemporalCalibration::ComputeSsdForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
+double TemporalCalibration::ComputeSsd(const std::vector<double> &signalA, const std::vector<double> &signalB)
 {
-  if (metricB.size() < metricA.size() + indexOffset)
+  if (signalA.size() != signalB.size())
   { 
-    LOG_ERROR("\"Metric B\" has too few elements (" << metricB.size() <<") for the given index offset (" << 
-              indexOffset << ") and the size of \"Metric A\" (" << metricA.size() << ").");
+		//TODO: Update this error message!
+    LOG_ERROR("");
     return 0;
   }
 
   double ssdSum = 0;
-  for(long int i = 0; i < metricA.size(); ++i)
+  for(long int i = 0; i < signalA.size(); ++i)
   {
-    double diff = metricA.at(i) - metricB.at(i + indexOffset); //SSD
+    double diff = signalA.at(i) - signalB.at(i ); //SSD
     ssdSum -= diff*diff;
   }
   return ssdSum;
 }
 
 //-----------------------------------------------------------------------------
-double TemporalCalibration::ComputeSadForGivenLagIndex(const std::vector<double> &metricA, const std::vector<double> &metricB, int indexOffset)
+double TemporalCalibration::ComputeSad(const std::vector<double> &signalA, const std::vector<double> &signalB)
 {
 
-  if (metricB.size() < metricA.size() + indexOffset)
+  if (signalA.size() != signalB.size() )
   { 
-    LOG_ERROR("\"Metric B\" has too few elements (" << metricB.size() <<") for the given index offset (" << 
-              indexOffset << ") and the size of \"Metric A\" (" << metricA.size() << ").");
+		//TODO: Update this error message!
+    LOG_ERROR("");
     return 0;
   }
 
   double sadSum = 0;
-  for(long int i = 0; i < metricA.size(); ++i)
+  for(long int i = 0; i < signalA.size(); ++i)
   {
-    sadSum -= fabs(metricA.at(i) - metricB.at(i + indexOffset)); //SAD
+    sadSum -= fabs(signalA.at(i) - signalB.at(i)); //SAD
   }
   return sadSum;
 }
@@ -1355,27 +1270,27 @@ double TemporalCalibration::ComputeSadForGivenLagIndex(const std::vector<double>
 PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error)
 {
 
-  // Calculate the (normalized) metric for the video data
+  // Calculate the metric for the video data
   ComputeVideoPositionMetric(error);
   
   // Get the time-range for the tracker signal
   filterFrames();
 
-  // Calculate the (normalized) metric for the tracker data
+  // Calculate the metric for the tracker data
   if(ComputeTrackerPositionMetric(error) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  // Resample the image and tracker metrics; this prepares the two signals for cross correlation  
-  if(ResamplePositionMetrics(error) != PLUS_SUCCESS)
+  // Eliminate the video and tracker data that is not within the overlapping timeframe
+  if(FilterPositionMetrics(error) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
   //  Compute cross correlation with sign convention #1 
   LOG_TRACE("ComputeCorrelationBetweenVideoAndTrackerMetrics(sign convention #1)");
-  ComputeCorrelationBetweenVideoAndTrackerMetrics();
+  ComputeCorrelationBetweenVideoAndTrackerMetrics2();
   
   //  Make a copy of the correlation values for sign convention #1
   std::vector<double> corrValsCopy;
@@ -1385,10 +1300,17 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
   }
 
   //  Make a copy of the correlation offsets for sign convention #1
-  std::vector<double> corrIndicesCopy;
-  for(long int i = 0; i < m_CorrIndices.size(); ++i)
+  std::vector<double> corrTimeOffsetsCopy;
+  for(long int i = 0; i < m_CorrTimeOffsets.size(); ++i)
   {
-    corrIndicesCopy.push_back(m_CorrIndices.at(i));
+    corrTimeOffsetsCopy.push_back(m_CorrTimeOffsets.at(i));
+  }
+
+	  //  Make a copy of the normalization values for sign convention #1
+  std::vector<double> normalizationFactorsCopy;
+  for(long int i = 0; i < m_NormalizationFactors.size(); ++i)
+  {
+    normalizationFactorsCopy.push_back(m_NormalizationFactors.at(i));
   }
   
   // Find the index offset corresponding to the maximum correlation sum for sign convention #1
@@ -1400,70 +1322,68 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
   }
 
   double bestCorrelationValueSignConvention1 = m_CorrValues.at(0);
-  int bestCorrelationLagIndexSignConvention1 = 0;
+  double bestCorrelationTimeOffsetSignConvention1 = m_CorrTimeOffsets.at(0);
+	double bestCorrelationNormalizationFactorSignConvention1 = m_NormalizationFactors.at(0);
   for(int i = 1; i < m_CorrValues.size(); ++i)
   {
     if(m_CorrValues.at(i) > bestCorrelationValueSignConvention1)
     {
       bestCorrelationValueSignConvention1 = m_CorrValues.at(i);
-      bestCorrelationLagIndexSignConvention1 = i;
+      bestCorrelationTimeOffsetSignConvention1  = m_CorrTimeOffsets.at(i);
+			bestCorrelationNormalizationFactorSignConvention1 = m_NormalizationFactors.at(i);
     }
   }
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #1)
-  double trackerLagSecSignConvention1 = m_MaxTrackerLagSec - (bestCorrelationLagIndexSignConvention1)*m_SamplingResolutionSec;
+  double trackerLagSecSignConvention1 = bestCorrelationTimeOffsetSignConvention1;
   LOG_DEBUG("Time offset with sign convention #1: " << trackerLagSecSignConvention1);
 
   //  Compute cross correlation with sign convention #2
   LOG_TRACE("ComputeCorrelationBetweenVideoAndTrackerMetrics(sign convention #2)");
 
   // Mirror tracker metric signal about x-axis 
-  for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+  for(long int i = 0; i < m_FilteredTrackerPositionMetric.size(); ++i)
   {
-    m_ResampledTrackerPositionMetric.at(i) *= -1;
+    m_FilteredTrackerPositionMetric.at(i) *= -1;
   }
 
   // clear the old correlation values and indices
   m_CorrValues.clear();
-  m_CorrIndices.clear();
+  m_CorrTimeOffsets.clear();
+	m_NormalizationFactors.clear();
 
-  ComputeCorrelationBetweenVideoAndTrackerMetrics();
+  ComputeCorrelationBetweenVideoAndTrackerMetrics2();
 
   double bestCorrelationValueSignConvention2 = m_CorrValues.at(0);
-  double bestCorrelationLagIndexSignConvention2 = 0;
+  double bestCorrelationTimeOffsetSignConvention2 = m_CorrTimeOffsets.at(0);
+  double bestCorrelationNormalizationFactorSignConvention2 = m_NormalizationFactors.at(0);
   for(int i = 1; i < m_CorrValues.size(); ++i)
   {
     if(m_CorrValues.at(i) > bestCorrelationValueSignConvention2)
     {
       bestCorrelationValueSignConvention2 = m_CorrValues.at(i);
-      bestCorrelationLagIndexSignConvention2 = i;
+      bestCorrelationTimeOffsetSignConvention2 = m_CorrTimeOffsets.at(i);
+			bestCorrelationNormalizationFactorSignConvention2 = m_NormalizationFactors.at(i);
+			
     }
   }
 
   // Compute the time that the tracker data lags the video data using the maximum index( with sign convention #2)
-  double trackerLagSecSignConvention2 = m_MaxTrackerLagSec - (bestCorrelationLagIndexSignConvention2)*m_SamplingResolutionSec;
+  double trackerLagSecSignConvention2 = bestCorrelationTimeOffsetSignConvention2;
   LOG_DEBUG("Time offset with sign convention #2: " << trackerLagSecSignConvention2);
   
-  double bestCorrelationValue;
+	// Adopt the smallest tracker lag
   if(std::abs(trackerLagSecSignConvention1) < std::abs(trackerLagSecSignConvention2))
   {
     m_TrackerLagSec = trackerLagSecSignConvention1;
-    m_BestCorrelationLagIndex = bestCorrelationLagIndexSignConvention1;
-    bestCorrelationValue = bestCorrelationValueSignConvention1;
-
-    // Normalize the video metric based on the best index offset (only considering the overlap "window")
-    std::vector<double> normalizedVideoPositionMetric = m_ResampledVideoPositionMetric;
-    NormalizeMetricWindow(
-      m_ResampledVideoPositionMetric, 
-      m_BestCorrelationLagIndex, 
-      m_ResampledTrackerPositionMetric.size(),
-      normalizedVideoPositionMetric);
-    m_ResampledVideoPositionMetric = normalizedVideoPositionMetric;
+    m_BestCorrelationTimeOffset = bestCorrelationTimeOffsetSignConvention1;
+    m_BestCorrelationValue = bestCorrelationValueSignConvention1;
+		m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorSignConvention1;
 
     // Flip tracker metric signal back to correspond to sign convention #1 
-    for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+    for(long int i = 0; i < m_FilteredTrackerPositionMetric.size(); ++i)
     {
-      m_ResampledTrackerPositionMetric.at(i) *= -1;
+      m_FilteredTrackerPositionMetric.at(i) *= -1;
     }
 
     // Switch to correlation values back to correspond to sign convention #1 
@@ -1473,38 +1393,66 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
       m_CorrValues.push_back(corrValsCopy.at(i));
     }
 
-    // Switch to correlation indices back to correspond to sign convention #1 
-    m_CorrIndices.clear();
-    for(long int i = 0; i < corrIndicesCopy.size(); ++i)
+    // Switch to time offsets back to correspond to sign convention #1 
+    m_CorrTimeOffsets.clear();
+    for(long int i = 0; i < corrTimeOffsetsCopy.size(); ++i)
     {
-      m_CorrIndices.push_back(corrIndicesCopy.at(i));
+      m_CorrTimeOffsets.push_back(corrTimeOffsetsCopy.at(i));
     }
-    m_CalibrationError=sqrt(-bestCorrelationValueSignConvention1)/m_TrackerPositionMetricNormalizationFactor; // RMSE in mm
+
+		// Switch to normalization factors back to correspond to sign convention #1
+		m_NormalizationFactors.clear();
+    for(long int i = 0; i < corrTimeOffsetsCopy.size(); ++i)
+    {
+      m_NormalizationFactors.push_back(normalizationFactorsCopy.at(i));
+    }
   }
   else
   {
-    m_BestCorrelationLagIndex = bestCorrelationLagIndexSignConvention2;
-    bestCorrelationValue = bestCorrelationValueSignConvention2;
-
-    // Normalize the video metric based on the best index offset (only considering the overlap "window")
-    std::vector<double> normalizedVideoPositionMetric = m_ResampledVideoPositionMetric;
-    NormalizeMetricWindow(
-      m_ResampledVideoPositionMetric,
-      m_BestCorrelationLagIndex,
-      m_ResampledTrackerPositionMetric.size(),
-      normalizedVideoPositionMetric);
-    m_ResampledVideoPositionMetric = normalizedVideoPositionMetric;
-
+		m_BestCorrelationTimeOffset = bestCorrelationTimeOffsetSignConvention2;
+    m_BestCorrelationValue = bestCorrelationValueSignConvention2;
     m_TrackerLagSec = trackerLagSecSignConvention2;
-    m_CalibrationError=sqrt(-bestCorrelationValueSignConvention2)/m_TrackerPositionMetricNormalizationFactor; // RMSE in mm
+		m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorSignConvention2;
   }
+
+	 
+
+  // Normalize the video metric based on the best index offset (only considering the overlap "window"
+	for(int i = 0; i < m_FilteredTrackerTimestamps.size(); ++i)
+	{
+		if(m_FilteredTrackerTimestamps.at(i) > m_SlidingSignalTimestamps.at(0) + m_TrackerLagSec && m_FilteredTrackerTimestamps.at(i) < m_SlidingSignalTimestamps.at(m_SlidingSignalTimestamps.size() -1) + m_TrackerLagSec)
+		{
+			m_NormalizedTrackerPositionMetric.push_back(m_FilteredTrackerPositionMetric.at(i));
+			m_NormalizedTrackerTimestamps.push_back(m_FilteredTrackerTimestamps.at(i));
+		}
+	}
+
+	// Get a normalized tracker position metric that can be displayed
+	double unusedNormFactor;
+	NormalizeMetricWindow2(m_NormalizedTrackerPositionMetric, unusedNormFactor);
+
+	m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
+
   // Get maximum calibration error
-  for(long int i = 0; i < m_ResampledTrackerPositionMetric.size(); ++i)
+
+	//	Get the timestamps of the sliding signal (i.e. cropped video signal) shifted by the best-found offset
+	std::vector<double> shiftedSlidingSignalTimestamps;
+	for(int i = 0; i < m_SlidingSignalTimestamps.size(); ++i)
+	{
+		shiftedSlidingSignalTimestamps.push_back(m_SlidingSignalTimestamps.at(i) + m_TrackerLagSec);
+	}
+
+	//	Get the values of the tracker metric at the offset sliding signal values
+	std::vector<double> resampledNormalizedTrackerPositionMetric;
+	ResampleSignalLinearly(shiftedSlidingSignalTimestamps,m_NormalizedTrackerTimestamps,m_NormalizedTrackerPositionMetric,
+												 resampledNormalizedTrackerPositionMetric);
+
+  for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {
-    double diff = m_ResampledTrackerPositionMetric.at(i) - m_ResampledVideoPositionMetric.at(i + m_BestCorrelationLagIndex); //SSD
+    double diff = resampledNormalizedTrackerPositionMetric.at(i) - m_SlidingSignalMetric.at(i); //SSD
     m_CalibrationErrorVector.push_back(diff*diff); 
   }
 
@@ -1517,11 +1465,12 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
     }
   }
 
-  m_MaxCalibrationError = std::sqrt(m_MaxCalibrationError)/m_TrackerPositionMetricNormalizationFactor;
+  m_MaxCalibrationError = std::sqrt(m_MaxCalibrationError)/m_BestCorrelationNormalizationFactor;
+
 
   m_NeverUpdated = false;
 
-  if( bestCorrelationValue <= SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC] )
+  if( m_BestCorrelationValue <= SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC] )
   {
     error = TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD;
     LOG_ERROR("Calculated correlation exceeds threshold value. This may be an indicator of a poor calibration.");
@@ -1602,7 +1551,7 @@ PlusStatus TemporalCalibration::ConstructTableSignal(std::vector<double> &x, std
   table->SetNumberOfRows(x.size());
   for (int i = 0; i < x.size(); ++i)
   {
-    table->SetValue(i, 0, x.at(i) - timeCorrection );
+    table->SetValue(i, 0, x.at(i) + timeCorrection );
     table->SetValue(i, 1, y.at(i) );
   }
 
@@ -1731,43 +1680,3 @@ PlusStatus TemporalCalibration::ComputeLineParameters(std::vector<itk::Point<dou
 
 //-----------------------------------------------------------------------------
 
-PlusStatus TemporalCalibration::GetBestCorrelation( double &videoCorrelation )
-{
-  if(m_NeverUpdated)
-  {
-    LOG_ERROR("You must first call the \"Update()\" to compute the best correlation metric.");
-    return PLUS_FAIL;
-  }
-
-  // Normalize the video metric based on the best index offset (only considering the overlap "window")
-  std::vector<double> normalizedVideoPositionMetric = m_ResampledVideoPositionMetric;
-  NormalizeMetricWindow(
-    m_ResampledVideoPositionMetric,
-    m_BestCorrelationLagIndex,
-    m_ResampledTrackerPositionMetric.size(),
-    normalizedVideoPositionMetric);
-
-  switch (SIGNAL_ALIGNMENT_METRIC)
-  {
-  case SSD:
-    {
-      // Use sum of squared differences as signal alignment metric
-      videoCorrelation = ComputeSsdForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, m_BestCorrelationLagIndex);
-      break;
-    }
-  case CORRELATION:
-    {
-      // Use correlation as signal alignment metric
-      videoCorrelation = ComputeCrossCorrelationSumForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, m_BestCorrelationLagIndex);
-      break;
-    }
-  case SAD:
-    {
-      // Use sum of absolute differences as signal alignment metric
-      videoCorrelation = ComputeSadForGivenLagIndex(m_ResampledTrackerPositionMetric, normalizedVideoPositionMetric, m_BestCorrelationLagIndex);
-      break;
-    }
-  }
-
-  return PLUS_SUCCESS;
-}

@@ -183,6 +183,7 @@ int main(int argc, char **argv)
   myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << trackerLagSec << "\" CalibrationError=\"" << calibrationError << "\" MaxCalibrationError=\"" << maxCalibrationError<< "\" />";
   myfile.close();
 
+	
   if (plotResults)
   {
     vtkSmartPointer<vtkTable> videoPositionMetric=vtkSmartPointer<vtkTable>::New();
@@ -196,13 +197,15 @@ int main(int argc, char **argv)
     std::string xLabel = "Time [s]";
     std::string yLabel = "Position Metric";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, uncalibratedTrackerPositionMetric, xLabel, yLabel);
+
   
     // Calibrated
     vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
     filename=intermediateFileOutputDirectory + "/MetricPlotCalibrated.png";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric,  xLabel, yLabel);
-    
+
+
     // Correlation Signal
     vtkSmartPointer<vtkTable> correlationSignal = vtkSmartPointer<vtkTable>::New();
     testTemporalCalibrationObject.GetCorrelationSignal(correlationSignal);
@@ -210,6 +213,7 @@ int main(int argc, char **argv)
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
     SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignal, xLabel, yLabel);
+
 	}
 
   return EXIT_SUCCESS;
