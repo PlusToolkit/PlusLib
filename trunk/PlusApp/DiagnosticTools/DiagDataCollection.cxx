@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 		    unsigned long framenum(0); 
 		    if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
         numberOfValidFrames++;
-        if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+        if (frameUid == tool->GetBuffer()->GetOldestItemUidInBuffer())
         { 
           // no previous frame
           continue;
