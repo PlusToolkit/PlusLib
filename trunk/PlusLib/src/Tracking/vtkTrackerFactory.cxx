@@ -39,7 +39,12 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkChRoboticsTracker.h"
-#include "vtk3dConnexionTracker.h"
+#ifdef WIN32
+  // 3dConnexion tracker is supported on Windows only
+  #include "vtk3dConnexionTracker.h"
+#endif
+
+
 
 //----------------------------------------------------------------------------
 
@@ -52,7 +57,10 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
   TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
   TrackerTypes["ChRobotics"]=(PointerToTracker)&vtkChRoboticsTracker::New; 
+#ifdef WIN32
+  // 3dConnexion tracker is supported on Windows only
   TrackerTypes["3dConnexion"]=(PointerToTracker)&vtk3dConnexionTracker::New; 
+#endif
 #ifdef PLUS_USE_OpenIGTLink
   TrackerTypes["OpenIGTLinkTracker"]=(PointerToTracker)&vtkOpenIGTLinkTracker::New; 
 #endif
