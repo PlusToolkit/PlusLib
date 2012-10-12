@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSonixVideoSource.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"

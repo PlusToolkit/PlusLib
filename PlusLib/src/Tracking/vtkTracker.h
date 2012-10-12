@@ -22,7 +22,7 @@ class vtkTrackerTool;
 class vtkXMLDataElement;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
-class vtkTrackerBuffer; 
+class vtkPlusDataBuffer; 
 
 typedef std::map<std::string, vtkTrackerTool*> ToolContainerType;
 typedef ToolContainerType::const_iterator ToolIteratorType; 
@@ -32,20 +32,6 @@ enum {
   TR_LED_OFF   = 0,
   TR_LED_ON    = 1,
   TR_LED_FLASH = 2
-};
-
-/*! Flags for tool statuses */
-enum ToolStatus 
-{
-  TOOL_OK,			      /*!< Tool OK */
-  TOOL_MISSING,       /*!< Tool or tool port is not available */
-  TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
-  TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */
-  TOOL_SWITCH1_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_SWITCH2_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_SWITCH3_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_REQ_TIMEOUT,   /*!< Request timeout status */
-  TOOL_INVALID        /*!< Invalid tool status */
 };
 
 /*!
@@ -194,7 +180,7 @@ public:
   void ClearAllBuffers();
 
   /*! Copy the current state of the tracker buffer  */
-  virtual PlusStatus CopyBuffer( vtkTrackerBuffer* trackerBuffer, const char* aToolName);
+  virtual PlusStatus CopyBuffer( vtkPlusDataBuffer* trackerBuffer, const char* aToolName);
 
   /*! Dump the current state of the tracker to metafile (with each tools and buffers) */
   virtual PlusStatus WriteToMetafile(const char* outputFolder, const char* metaFileName, bool useCompression = false );

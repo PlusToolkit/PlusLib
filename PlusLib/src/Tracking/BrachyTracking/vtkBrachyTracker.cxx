@@ -12,7 +12,7 @@ See License.txt for details.
 #include <sstream>
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
@@ -722,8 +722,8 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
     return PLUS_FAIL; 
   }
 
-  TrackerBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
+  DataBufferItem bufferItem; 
+  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
     return PLUS_FAIL; 
@@ -794,8 +794,8 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  TrackerBufferItem bufferItem; 
-  if ( probeTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
+  DataBufferItem bufferItem; 
+  if ( probeTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -861,8 +861,8 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
     return PLUS_FAIL; 
   }
 
-  TrackerBufferItem bufferItem; 
-  if ( templateTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
+  DataBufferItem bufferItem; 
+  if ( templateTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -928,8 +928,8 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  TrackerBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
+  DataBufferItem bufferItem; 
+  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
     return PLUS_FAIL;

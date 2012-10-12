@@ -16,7 +16,7 @@ Authors include: Danielle Pace
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "ConvertYuy2ToRgb.h"
 
 

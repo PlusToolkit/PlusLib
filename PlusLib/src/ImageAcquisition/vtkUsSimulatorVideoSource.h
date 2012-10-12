@@ -12,7 +12,7 @@
 #include "vtkTracker.h"
 #include "vtkTransformRepository.h"
 
-class vtkVideoBuffer; 
+class vtkPlusDataBuffer; 
 
 class VTK_EXPORT vtkUsSimulatorVideoSource;
 

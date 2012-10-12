@@ -6,22 +6,21 @@
 
 #include "PlusConfigure.h"
 
-#include "vtkPlusVideoSource.h"
-#include "vtkVideoBuffer.h"
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
-#include "vtkObjectFactory.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkWindows.h"
-#include "vtkMetaImageWriter.h"
 #include "vtkMetaImageReader.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkGnuplotExecuter.h"
-#include "vtkHTMLGenerator.h"
-#include "vtkTrackedFrameList.h"
-
+#include "vtkMetaImageWriter.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusDataBuffer.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkRfProcessor.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkWindows.h"
+#include "vtksys/SystemTools.hxx"
 
 #include <ctype.h>
 #include <time.h>
@@ -45,8 +44,8 @@ vtkPlusVideoSource::vtkPlusVideoSource()
   this->SpawnThreadForRecording = false;
   this->RecordingThreadAlive = false; 
 
-  this->CurrentVideoBufferItem = new VideoBufferItem();
-  this->Buffer = vtkVideoBuffer::New();
+  this->CurrentBufferItem = new DataBufferItem();
+  this->Buffer = vtkPlusDataBuffer::New();
 
   SetFrameBufferSize(50);
 
@@ -87,10 +86,10 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
     Disconnect();
   }
 
-  if ( this->CurrentVideoBufferItem != NULL )
+  if ( this->CurrentBufferItem != NULL )
   {
-    delete this->CurrentVideoBufferItem;
-    this->CurrentVideoBufferItem = NULL;
+    delete this->CurrentBufferItem;
+    this->CurrentBufferItem = NULL;
   }
 
   this->SetFrameBufferSize(0);
@@ -460,7 +459,7 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
 
   if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
   {
-    ItemStatus itemStatus = this->Buffer->GetVideoBufferItemFromTime(this->DesiredTimestamp, this->CurrentVideoBufferItem);
+    ItemStatus itemStatus = this->Buffer->GetDataBufferItemFromTime(this->DesiredTimestamp, this->CurrentBufferItem, vtkPlusDataBuffer::EXACT_TIME);
     if ( itemStatus != ITEM_OK )
     {
       LOG_ERROR("Unable to copy video data to the requested output!");
@@ -470,7 +469,7 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
   else
   {
     // get the most recent frame if we are not updating with the desired timestamp
-    ItemStatus itemStatus = this->Buffer->GetLatestVideoBufferItem(this->CurrentVideoBufferItem);
+    ItemStatus itemStatus = this->Buffer->GetLatestDataBufferItem(this->CurrentBufferItem);
     if ( itemStatus != ITEM_OK )
     {
       LOG_ERROR("Unable to copy video data to the requested output!");
@@ -478,11 +477,11 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
     }
   }
 
-  this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
-  this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
+  this->FrameTimeStamp = this->CurrentBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
+  this->TimestampClosestToDesired = this->CurrentBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
 
-  void* sourcePtr=this->CurrentVideoBufferItem->GetFrame().GetBufferPointer();
-  int bytesToCopy=this->CurrentVideoBufferItem->GetFrame().GetFrameSizeInBytes();
+  void* sourcePtr=this->CurrentBufferItem->GetFrame().GetBufferPointer();
+  int bytesToCopy=this->CurrentBufferItem->GetFrame().GetFrameSizeInBytes();
 
   int dimensions[3]={0,0,0};
   data->GetDimensions(dimensions);
@@ -693,7 +692,7 @@ PlusStatus vtkPlusVideoSource::InternalGrab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVideoSource::SetBuffer(vtkVideoBuffer *newBuffer)
+PlusStatus vtkPlusVideoSource::SetBuffer(vtkPlusDataBuffer *newBuffer)
 {
   if (newBuffer==this->Buffer)
   {
@@ -746,20 +745,20 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
     return PLUS_FAIL; 
   }
 
-  VideoBufferItem currentVideoBufferItem; 
-  if ( this->Buffer->GetVideoBufferItem(frameUID, &currentVideoBufferItem) != ITEM_OK )
+  DataBufferItem currentDataBufferItem; 
+  if ( this->Buffer->GetDataBufferItem(frameUID, &currentDataBufferItem) != ITEM_OK )
   {
     LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
     return PLUS_FAIL; 
   }
 
   // Copy frame 
-  PlusVideoFrame frame = currentVideoBufferItem.GetFrame(); 
+  PlusVideoFrame frame = currentDataBufferItem.GetFrame(); 
   trackedFrame->SetImageData(frame);
 
   // Copy all custom fields
-  VideoBufferItem::FieldMapType fieldMap = currentVideoBufferItem.GetCustomFrameFieldMap();
-  VideoBufferItem::FieldMapType::iterator fieldIterator;
+  DataBufferItem::FieldMapType fieldMap = currentDataBufferItem.GetCustomFrameFieldMap();
+  DataBufferItem::FieldMapType::iterator fieldIterator;
   for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
   {
     trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
@@ -767,7 +766,7 @@ PlusStatus vtkPlusVideoSource::GetTrackedFrame(double timestamp, TrackedFrame *t
 
   // Copy frame timestamp 
   trackedFrame->SetTimestamp(
-    currentVideoBufferItem.GetTimestamp(this->Buffer->GetLocalTimeOffsetSec()) );
+    currentDataBufferItem.GetTimestamp(this->Buffer->GetLocalTimeOffsetSec()) );
 
   return PLUS_SUCCESS; 
 }
@@ -789,7 +788,7 @@ void vtkPlusVideoSource::GetBrightnessFrameSize(int aDim[2])
 vtkImageData* vtkPlusVideoSource::GetBrightnessOutput()
 {  
   vtkImageData* resultImage=this->BlankImage;
-  if ( GetBuffer()->GetLatestVideoBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
+  if ( GetBuffer()->GetLatestDataBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
   {
     LOG_DEBUG("No video data available yet, return blank frame");
   }

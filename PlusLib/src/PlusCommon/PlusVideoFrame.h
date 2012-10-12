@@ -61,7 +61,7 @@ enum US_IMAGE_TYPE
   This class can store an ITK image with any pixel type and has convenient
   functions to get/set its content from ITK and VTK images and byte arrays.
   \ingroup PlusLibPlusCommon
-  \sa vtkPlusVideoBufferItem
+  \sa vtkPlusDataBufferItem
 */
 class VTK_EXPORT PlusVideoFrame
 {

@@ -17,7 +17,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 vtkStandardNewMacro(vtkAscension3DGTrackerBase);
 typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;

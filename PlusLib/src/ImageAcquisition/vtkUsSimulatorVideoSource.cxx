@@ -8,10 +8,9 @@
 #include "vtkUsSimulatorVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
@@ -74,7 +73,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
     return PLUS_FAIL; 
   }
 
-  vtkTrackerBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkPlusDataBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
   if (trackerBuffer->GetNumberOfItems()==0)
   {
     LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");

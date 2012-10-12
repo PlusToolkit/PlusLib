@@ -13,7 +13,6 @@ OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 SET (ImageAcquisition_SRCS
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
-  vtkVideoBuffer.cxx 
   vtkPlusVideoSource.cxx 
   vtkPlusVideoSourceFactory.cxx
   vtkSavedDataVideoSource.cxx
@@ -25,7 +24,6 @@ if (WIN32)
 	SET (ImageAcquisition_HDRS
     itkFcsvReader.h
     itkFcsvWriter.h
-    vtkVideoBuffer.h 
     vtkPlusVideoSource.h 
     vtkPlusVideoSourceFactory.h
     vtkSavedDataVideoSource.h
