@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkPlusVideoSource.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 #include <QFileDialog>
 #include <QTimer>

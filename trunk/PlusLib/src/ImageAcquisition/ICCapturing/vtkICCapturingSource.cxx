@@ -16,7 +16,7 @@ See License.txt for details.
 #include "vtkInformationVector.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>

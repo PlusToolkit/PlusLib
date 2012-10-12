@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "vtkTracker.h"
 
-class vtkTrackerBuffer; 
+class vtkPlusDataBuffer; 
 
 /*!
 \class vtkAscension3DGTrackerBase 
@@ -79,7 +79,7 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopTracking();
 
-  vtkTrackerBuffer* LocalTrackerBuffer; 
+  vtkPlusDataBuffer* LocalTrackerBuffer; 
 
 private:  // Definitions.
   enum {TRANSMITTER_OFF = -1};

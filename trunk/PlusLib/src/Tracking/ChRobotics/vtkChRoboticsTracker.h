@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkTracker.h"
 #include "ChrDataItem.h"
 
-class vtkTrackerBuffer;
+class vtkPlusDataBuffer;
 class SerialLine;
 class ChrSerialPacket;
 

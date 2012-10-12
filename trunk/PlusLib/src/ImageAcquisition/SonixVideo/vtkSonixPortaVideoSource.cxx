@@ -24,7 +24,7 @@ Authors include: Siddharth Vikal (Queen's University),
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkMultiThreader.h"
 #include "TrackedFrame.h" 
 

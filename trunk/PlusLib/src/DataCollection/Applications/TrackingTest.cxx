@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
 #include "vtksys/SystemTools.hxx"
@@ -285,13 +285,13 @@ int main(int argc, char **argv)
 
     LOG_DEBUG("Rendering is disabled");
 
-    TrackerBufferItem bufferItem; 
+    DataBufferItem bufferItem; 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
     while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
     {
 
-      tool->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem); 
+      tool->GetBuffer()->GetLatestDataBufferItem(&bufferItem); 
       if ( bufferItem.GetMatrix(matrix) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get matrix from buffer item!"); 

@@ -17,17 +17,15 @@ Authors include: Danielle Pace
 #define __vtkPlusVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkPlusDevice.h"
-#include "vtkImageAlgorithm.h"
-#include "vtkXMLDataElement.h"
-#include "vtkMultiThreader.h"
 #include "PlusVideoFrame.h"
-#include "vtkVideoBuffer.h"
+#include "vtkImageAlgorithm.h"
+#include "vtkMultiThreader.h"
+#include "vtkPlusDataBuffer.h"
+#include "vtkPlusDevice.h"
+#include "vtkXMLDataElement.h"
 
-class vtkVideoBuffer;
 class vtkHTMLGenerator;
 class vtkGnuplotExecuter;
-class VideoBufferItem;
 class vtkRfProcessor;
 
 /*!
@@ -36,9 +34,9 @@ class vtkRfProcessor;
 
 vtkPlusVideoSource is a superclass for video input interfaces for VTK.
 This base class records input from a noise source.  vtkPlusVideoSource uses
-vtkVideoBuffer to hold its image data. The output can be accessed while
+vtkPlusDataBuffer to hold its image data. The output can be accessed while
 recording.
-\sa vtkWin32VideoSource2 vtkMILVideoSource2 vtkVideoBuffer2
+\sa vtkWin32VideoSource2 vtkMILVideoSource2 vtkPlusDataBuffer2
 \ingroup PlusLibImageAcquisition
 */
 
@@ -169,7 +167,7 @@ public:
   virtual double GetFrameTimeStamp() { return this->FrameTimeStamp; };
 
   /*! Get the buffer that is used to hold the video frames. */
-  virtual vtkVideoBuffer *GetBuffer() { return this->Buffer; };
+  virtual vtkPlusDataBuffer *GetBuffer() { return this->Buffer; };
 
   /*! 
     Get the buffer that is used to hold the video frames
@@ -177,7 +175,7 @@ public:
 	  There must always be a valid buffer in the video source object, therefore
     the input parameter shall not be NULL.
   */
-  virtual PlusStatus SetBuffer(vtkVideoBuffer *newBuffer);
+  virtual PlusStatus SetBuffer(vtkPlusDataBuffer *newBuffer);
 
   /*!
     The result of GetOutput() will be the frame closest to DesiredTimestamp
@@ -277,8 +275,8 @@ protected:
   int OutputNeedsInitialization;
 
   /*! The buffer used to hold the last N frames */
-  vtkVideoBuffer *Buffer;
-  VideoBufferItem *CurrentVideoBufferItem; 
+  vtkPlusDataBuffer *Buffer;
+  DataBufferItem *CurrentBufferItem; 
 
   US_IMAGE_ORIENTATION DeviceImageOrientation; 
 
@@ -291,7 +289,7 @@ protected:
   /*! RF to brightness conversion */
   vtkRfProcessor* RfProcessor;
   vtkImageData* BlankImage;
-  VideoBufferItem BrightnessOutputTrackedFrame;
+  DataBufferItem BrightnessOutputTrackedFrame;
   int BrightnessFrameSize[2];
   
   /*! If true then RF processing parameters will be saved into the config file */

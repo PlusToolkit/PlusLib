@@ -20,7 +20,7 @@
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 #include "igtlMessageHeader.h"
 #include "igtlTransformMessage.h"

@@ -10,9 +10,8 @@
 #include "vtkDataCollector.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
 #include "vtkPlusVideoSource.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"

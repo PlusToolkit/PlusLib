@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 
 	LOG_INFO("Copy video buffer"); 
-	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
+	vtkPlusDataBuffer *buffer = vtkPlusDataBuffer::New(); 
   buffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer());
 
 	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);

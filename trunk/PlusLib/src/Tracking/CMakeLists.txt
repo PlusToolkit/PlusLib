@@ -14,7 +14,6 @@ SET (Tracking_SRCS
   vtkTrackerFactory.cxx
   vtkFakeTracker.cxx 
   vtkTracker.cxx 
-  vtkTrackerBuffer.cxx 
   vtkTrackerTool.cxx 
   vtkSavedDataTracker.cxx 
   SerialLine.cxx
@@ -27,7 +26,6 @@ if (WIN32)
     vtkTrackerFactory.h
     vtkFakeTracker.h
     vtkTracker.h 
-    vtkTrackerBuffer.h 
     vtkTrackerTool.h 
     vtkSavedDataTracker.h
     SerialLine.h

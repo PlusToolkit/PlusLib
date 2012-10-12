@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
 #include "vtkTracker.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkXMLUtilities.h"
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     vtksys::SystemTools::Delay(1000); 
   }
 
-  vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
+  vtkSmartPointer<vtkPlusDataBuffer> videobuffer = vtkSmartPointer<vtkPlusDataBuffer>::New(); 
   if ( dataCollector->GetVideoSource() != NULL ) 
   {
     LOG_INFO("Copy video buffer"); 
