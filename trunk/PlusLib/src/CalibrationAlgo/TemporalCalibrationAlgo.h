@@ -253,6 +253,14 @@ private:
                                         std::vector<double> &resampledPositionMetric,
                                         double midpoint, double sharpness);
 
+	PlusStatus InterpolatePositionMetrics2(const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
+																				 const std::vector<double> &templateTimestamps,
+																				 std::vector<double> &resampledPositionMetric);
+
+	PlusStatus ResampleSignalLinearly2(const std::vector<double>& templateSignalTimestamps,
+																		 const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
+																		 std::vector<double>& resampledSignalValues);
+
   /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
   vtkSmartPointer<vtkTable> m_TrackerTable;
   vtkSmartPointer<vtkTable> m_VideoTable;
