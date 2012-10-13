@@ -1120,6 +1120,19 @@ PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::vector<double>
 
 //-----------------------------------------------------------------------------
 
+PlusStatus TemporalCalibration::ResampleSignalLinearly2(const std::vector<double>& templateSignalTimestamps,
+																											 const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
+																											 std::vector<double>& resampledSignalValues)
+{
+	
+	InterpolatePositionMetrics2(trackerPositionPiecewiseSignal, templateSignalTimestamps, resampledSignalValues);
+
+	return PLUS_SUCCESS;
+
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
                                              const std::vector<double> &originalMetricValues,
                                              const std::vector<double> &resampledTimestamps,
@@ -1135,6 +1148,21 @@ PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<dou
   for(int i = 0; i < resampledTimestamps.size(); ++i)
   {
     resampledPositionMetric.push_back(piecewiseSignal->GetValue(resampledTimestamps.at(i)));
+  }
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus TemporalCalibration::InterpolatePositionMetrics2(const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
+																														const std::vector<double> &templateTimestamps,
+																														std::vector<double> &resampledPositionMetric)
+{
+
+
+  for(int i = 0; i < templateTimestamps.size(); ++i)
+  {
+    resampledPositionMetric.push_back(trackerPositionPiecewiseSignal->GetValue(templateTimestamps.at(i)));
   }
   return PLUS_SUCCESS;
 }
@@ -1165,14 +1193,22 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics2()
 	{
 		slidingSignalTimestampsCopy.at(i) += offsetNum_min * m_SamplingResolutionSec;
 	}
+
+	//	Constuct piecewise function for tracker signal
+	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	double midpoint = 0.5;
+	double sharpness = 0;
+	for(int i = 0; i < m_FilteredTrackerTimestamps.size(); ++i)
+	{
+		trackerPositionPiecewiseSignal->AddPoint(m_FilteredTrackerTimestamps.at(i), m_FilteredTrackerPositionMetric.at(i), midpoint, sharpness);
+	}
+
 	for(int offsetNum = offsetNum_min; offsetNum <= offsetNum_max; ++offsetNum)
 	{
 		std::vector<double> resampledTrackerPositionMetric;
-		
-		
-		//ResampleTrackerPositionMetrics(slidingSignalTimestampsCopy, resampledTrackerPositionMetric);
-		ResampleSignalLinearly(slidingSignalTimestampsCopy,m_FilteredTrackerTimestamps, 
-													 m_FilteredTrackerPositionMetric,resampledTrackerPositionMetric);
+
+
+		ResampleSignalLinearly2(slidingSignalTimestampsCopy,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
 		double normalizationFactor;
 		NormalizeMetricWindow2(resampledTrackerPositionMetric, normalizationFactor);
 		m_NormalizationFactors.push_back(normalizationFactor);
