@@ -965,12 +965,12 @@ PlusStatus TemporalCalibration::ComputeCenterOfGravity(std::vector<int> &intensi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::NormalizeMetricWindow2(std::vector<double> &signal, double &normalizationFactor)
+PlusStatus TemporalCalibration::NormalizeMetricWindow(std::vector<double> &signal, double &normalizationFactor)
 {
 
   if (signal.size() == 0)
   {
-    LOG_ERROR("\"NormalizeMetricWindow2()\" failed because the metric vector is empty");
+    LOG_ERROR("\"NormalizeMetricWindow()\" failed because the metric vector is empty");
     return PLUS_FAIL;
   }
 
@@ -1107,68 +1107,19 @@ PlusStatus TemporalCalibration::FilterPositionMetrics(TEMPORAL_CALIBRATION_ERROR
 //-----------------------------------------------------------------------------
 
 PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
-																											 const std::vector<double>& origSignalTimestamps,
-																											 const std::vector<double>& origSignalValues,
-																											 std::vector<double>& resampledSignalValues)
-{
-	
-	InterpolatePositionMetrics(origSignalTimestamps, origSignalValues, templateSignalTimestamps, resampledSignalValues, 0.5, 0);
-
-	return PLUS_SUCCESS;
-
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus TemporalCalibration::ResampleSignalLinearly2(const std::vector<double>& templateSignalTimestamps,
 																											 const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
 																											 std::vector<double>& resampledSignalValues)
 {
-	
-	InterpolatePositionMetrics2(trackerPositionPiecewiseSignal, templateSignalTimestamps, resampledSignalValues);
-
-	return PLUS_SUCCESS;
-
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus TemporalCalibration::InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
-                                             const std::vector<double> &originalMetricValues,
-                                             const std::vector<double> &resampledTimestamps,
-                                             std::vector<double> &resampledPositionMetric,
-                                             double midpoint, double sharpness)
-{
-  vtkSmartPointer<vtkPiecewiseFunction> piecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  for(int i = 0; i < originalTimestamps.size(); ++i)
+  for(int i = 0; i < templateSignalTimestamps.size(); ++i)
   {
-    piecewiseSignal->AddPoint(originalTimestamps.at(i), originalMetricValues.at(i), midpoint, sharpness);
-  }
-
-  for(int i = 0; i < resampledTimestamps.size(); ++i)
-  {
-    resampledPositionMetric.push_back(piecewiseSignal->GetValue(resampledTimestamps.at(i)));
+    resampledSignalValues.push_back(trackerPositionPiecewiseSignal->GetValue(templateSignalTimestamps.at(i)));
   }
   return PLUS_SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
-
-PlusStatus TemporalCalibration::InterpolatePositionMetrics2(const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
-																														const std::vector<double> &templateTimestamps,
-																														std::vector<double> &resampledPositionMetric)
-{
-
-
-  for(int i = 0; i < templateTimestamps.size(); ++i)
-  {
-    resampledPositionMetric.push_back(trackerPositionPiecewiseSignal->GetValue(templateTimestamps.at(i)));
-  }
-  return PLUS_SUCCESS;
-}
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics2()
+void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics()
 {
 	//	We will let the tracker metric be the "metric" and let the video metric be the "sliding" metric. Since we are assuming a maximum offset between the two streams.
 
@@ -1183,7 +1134,7 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics2()
 		}
 	}
  
-  NormalizeMetricWindow2(m_SlidingSignalMetric, m_VideoPositionMetricNormalizationFactor);
+  NormalizeMetricWindow(m_SlidingSignalMetric, m_VideoPositionMetricNormalizationFactor);
 
 	//TODO: Check divide by zero!
 	int offsetNum_max = vtkMath::Floor(m_MaxTrackerLagSec / m_SamplingResolutionSec);
@@ -1208,9 +1159,9 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics2()
 		std::vector<double> resampledTrackerPositionMetric;
 
 
-		ResampleSignalLinearly2(slidingSignalTimestampsCopy,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
+		ResampleSignalLinearly(slidingSignalTimestampsCopy,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
 		double normalizationFactor;
-		NormalizeMetricWindow2(resampledTrackerPositionMetric, normalizationFactor);
+		NormalizeMetricWindow(resampledTrackerPositionMetric, normalizationFactor);
 		m_NormalizationFactors.push_back(normalizationFactor);
 
 		switch (SIGNAL_ALIGNMENT_METRIC)
@@ -1326,7 +1277,7 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
 
   //  Compute cross correlation with sign convention #1 
   LOG_TRACE("ComputeCorrelationBetweenVideoAndTrackerMetrics(sign convention #1)");
-  ComputeCorrelationBetweenVideoAndTrackerMetrics2();
+  ComputeCorrelationBetweenVideoAndTrackerMetrics();
   
   //  Make a copy of the correlation values for sign convention #1
   std::vector<double> corrValsCopy;
@@ -1388,7 +1339,7 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
   m_CorrTimeOffsets.clear();
 	m_NormalizationFactors.clear();
 
-  ComputeCorrelationBetweenVideoAndTrackerMetrics2();
+  ComputeCorrelationBetweenVideoAndTrackerMetrics();
 
   double bestCorrelationValueSignConvention2 = m_CorrValues.at(0);
   double bestCorrelationTimeOffsetSignConvention2 = m_CorrTimeOffsets.at(0);
@@ -1465,7 +1416,7 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
 
 	// Get a normalized tracker position metric that can be displayed
 	double unusedNormFactor;
-	NormalizeMetricWindow2(m_NormalizedTrackerPositionMetric, unusedNormFactor);
+	NormalizeMetricWindow(m_NormalizedTrackerPositionMetric, unusedNormFactor);
 
 	m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
 
@@ -1482,9 +1433,18 @@ PlusStatus TemporalCalibration::ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR 
 	}
 
 	//	Get the values of the tracker metric at the offset sliding signal values
+
+	//	Constuct piecewise function for tracker signal
+	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	double midpoint = 0.5;
+	double sharpness = 0;
+	for(int i = 0; i < m_NormalizedTrackerTimestamps.size(); ++i)
+	{
+		trackerPositionPiecewiseSignal->AddPoint(m_NormalizedTrackerTimestamps.at(i), m_NormalizedTrackerPositionMetric.at(i), midpoint, sharpness);
+	}
+
 	std::vector<double> resampledNormalizedTrackerPositionMetric;
-	ResampleSignalLinearly(shiftedSlidingSignalTimestamps,m_NormalizedTrackerTimestamps,m_NormalizedTrackerPositionMetric,
-												 resampledNormalizedTrackerPositionMetric);
+	ResampleSignalLinearly(shiftedSlidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledNormalizedTrackerPositionMetric);
 
   for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {

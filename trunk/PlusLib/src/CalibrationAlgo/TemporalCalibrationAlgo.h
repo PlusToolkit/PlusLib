@@ -227,17 +227,13 @@ private:
   PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
                                                          double &centerOfGravity);
 
-	PlusStatus ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
-																											 const std::vector<double>& origSignalTimestamps,
-																											 const std::vector<double>& origSignalValues,
-																											 std::vector<double>& resampledSignalValues);
   
   PlusStatus FilterPositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);
-	PlusStatus NormalizeMetricWindow2(std::vector<double> &signal, double &normalizationFactor);
+	PlusStatus NormalizeMetricWindow(std::vector<double> &signal, double &normalizationFactor);
   PlusStatus ComputeVideoPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus ComputeTrackerPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
-	void ComputeCorrelationBetweenVideoAndTrackerMetrics2();
+	void ComputeCorrelationBetweenVideoAndTrackerMetrics();
 
 	double ComputeCrossCorrelationSum(const std::vector<double> &signalA, const std::vector<double> &signalB);
 	double ComputeSsd(const std::vector<double> &signalA, const std::vector<double> &signalB);
@@ -245,19 +241,8 @@ private:
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
-  
-  /*! TODO */  
-  PlusStatus InterpolatePositionMetrics(const std::vector<double> &originalTimestamps,
-                                        const std::vector<double> &originalMetricValues,
-                                        const std::vector<double> &resampledTimestamps,
-                                        std::vector<double> &resampledPositionMetric,
-                                        double midpoint, double sharpness);
 
-	PlusStatus InterpolatePositionMetrics2(const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
-																				 const std::vector<double> &templateTimestamps,
-																				 std::vector<double> &resampledPositionMetric);
-
-	PlusStatus ResampleSignalLinearly2(const std::vector<double>& templateSignalTimestamps,
+	PlusStatus ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
 																		 const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
 																		 std::vector<double>& resampledSignalValues);
 
