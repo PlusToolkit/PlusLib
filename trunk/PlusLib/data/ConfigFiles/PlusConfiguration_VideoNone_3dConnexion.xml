@@ -6,7 +6,7 @@
       Description="Configuration file for 3dConnexion SpaceMouse" 
     />
 
-    <Tracker Type="3dConnexion" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" OperatingMode="JOYSTICK" TranslationScales="-0.001 -0.001 -0.001" RotationScales="0.001 0.001 0.001" >
+    <Tracker Type="3dConnexion" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" OperatingMode="JOYSTICK" TranslationScales="-0.001 0.001 -0.001" RotationScales="-0.001 0.001 -0.001" >
       <Tool Name="Navigator" PortName="SpaceNavigator" />
     </Tracker>
 
