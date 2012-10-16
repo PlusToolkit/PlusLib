@@ -213,7 +213,10 @@ protected:
   vtkPlusVideoSource();
   virtual ~vtkPlusVideoSource();
 
+  /*! Return the latest or desired image frame. This method can be overridden in subclasses */
+  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  vtkImageData* AllocateOutputData(vtkDataObject *output);
 
   static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data);
 
@@ -241,9 +244,6 @@ protected:
     actions for stopping the recording
   */
   virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
-
-  /*! Return the latest or desired image frame. This method can be overridden in subclasses */
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
   int Connected;
