@@ -10,6 +10,7 @@
 #include "ui_SegmentationParameterDialog.h"
 
 #include "PlusConfigure.h"
+#include "TrackedFrame.h"
 
 #include <QDialog>
 
@@ -323,6 +324,9 @@ protected:
 
   /*! Flag indicating if image is frozen (using Freeze button) */
   bool                      m_ImageFrozen;
+
+  /*! Tracked frame to hold the desired image to proces*/
+  TrackedFrame              m_Frame;
 
 protected:
 	Ui::SegmentationParameterDialog ui;

@@ -447,7 +447,7 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
   //LOG_TRACE("vtkPlusVideoSource::RequestData");
 
   // the output data
-  vtkImageData *data = this->AllocateOutputData(this->GetOutput());
+  vtkImageData *data = this->AllocateOutputData(vtkImageData::SafeDownCast(this->GetOutputDataObject(0)));
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
  
   if ( this->Buffer->GetNumberOfItems() < 1 )
@@ -497,6 +497,33 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
   memcpy( outPtr, sourcePtr, bytesToCopy);
 
   return 1;
+}
+
+//----------------------------------------------------------------------------
+vtkImageData *vtkPlusVideoSource::AllocateOutputData(vtkDataObject *output)
+{ 
+  // set the extent to be the update extent
+  vtkImageData *out = vtkImageData::SafeDownCast(output);
+  if (out)
+  {
+    // this needs to be fixed -Ken
+    vtkStreamingDemandDrivenPipeline *sddp = 
+      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
+    int numInfoObj = sddp->GetNumberOfOutputPorts();
+    if (sddp && numInfoObj == 1)
+    {
+      int extent[6];
+      sddp->GetOutputInformation(0)->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent);
+      out->SetExtent(extent);
+    }
+    else
+    {
+      vtkWarningMacro( "There are multiple output ports. You cannot use AllocateOutputData" );
+      return NULL;
+    }
+    out->AllocateScalars();
+  }
+  return out;
 }
 
 //-----------------------------------------------------------------------------

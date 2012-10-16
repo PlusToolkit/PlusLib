@@ -48,7 +48,7 @@ vtkCxxSetObjectMacro(vtkDataCollector, VideoSource, vtkPlusVideoSource);
 
 //----------------------------------------------------------------------------
 vtkDataCollector::vtkDataCollector()
-  : vtkImageAlgorithm()
+  : vtkObject()
 {	
   this->StartupDelaySec = 0.0; 
 
@@ -117,6 +117,7 @@ PlusStatus vtkDataCollector::Connect()
   {
     this->GetVideoSource()->Connect();
 
+    /*
     if (this->GetVideoSource()->GetConnected() != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to connect to video source!"); 
@@ -126,6 +127,7 @@ PlusStatus vtkDataCollector::Connect()
     {
       this->SetInputConnection(this->GetVideoSource()->GetOutputPort());
     }
+    */
   }
 
   // Tracker can be null if the TRACKER_TYPE == TRACKER_NONE 
@@ -1223,47 +1225,6 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
 
   return PLUS_SUCCESS; 
 }
-
-//----------------------------------------------------------------------------
-int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
-{
-  //LOG_TRACE("vtkDataCollector::RequestData");
-
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  vtkImageData *outData = vtkImageData::SafeDownCast( outInfo->Get(vtkDataObject::DATA_OBJECT()) );
-
-  if (this->GetVideoSource()==NULL || this->GetVideoSource()->GetBuffer()->GetNumberOfItems() < 1 ) 
-  {
-    // The video buffer does not exist or empty
-    
-    // Create a dummy black frame and return that
-    int size[2]={10,10};
-    if (this->GetVideoSource()!=NULL)
-    {
-      this->GetVideoSource()->GetFrameSize(size);
-    }
-    outData->SetExtent( 0, size[0] -1, 0, size[1] - 1, 0, 0);
-    outData->SetScalarTypeToUnsignedChar();
-    outData->SetNumberOfScalarComponents(1); 
-    outData->AllocateScalars(); 
-    unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize();
-    memset(outData->GetScalarPointer(), 0, memorysize);
-
-    LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
-    return 1;
-  }
-
-  DataBufferItem currentDataBufferItem; 
-  if ( this->GetVideoSource()->GetBuffer()->GetLatestDataBufferItem( &currentDataBufferItem ) != ITEM_OK )
-  {
-    LOG_WARNING("Failed to get latest video buffer item!"); 
-    return 1; 
-  }
-
-  outData->DeepCopy(currentDataBufferItem.GetFrame().GetVtkImage());
-
-  return 1;
-} 
 
 //----------------------------------------------------------------------------
 vtkImageData* vtkDataCollector::GetBrightnessOutput()

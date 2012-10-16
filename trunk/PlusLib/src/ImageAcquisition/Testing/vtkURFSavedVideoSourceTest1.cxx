@@ -5,15 +5,16 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include <stdlib.h>
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSonixVideoSource.h"
-#include "vtkPlusDataBuffer.h"
-#include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
+#include "vtkImageData.h"
+#include "vtkImageViewer.h"
+#include "vtkPlusDataBuffer.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
+#include "vtkSonixVideoSource.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <stdlib.h>
 
 vtkSonixVideoSource *sonixGrabber = NULL;
 vtkImageViewer *viewer = NULL;
@@ -130,7 +131,7 @@ int main(int argc, char* argv[])
 	}
 
 	viewer = vtkImageViewer::New();
-	viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
+	viewer->SetInput(vtkImageData::SafeDownCast(sonixGrabber->GetOutputDataObject(0)));   //set image to the render and window
 	viewer->SetColorWindow(255);
 	viewer->SetColorLevel(127.5);
 	viewer->SetZSlice(0);

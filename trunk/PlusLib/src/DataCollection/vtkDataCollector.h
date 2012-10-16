@@ -7,7 +7,7 @@
 #ifndef __vtkDataCollectorHardwareDevice_h
 #define __vtkDataCollectorHardwareDevice_h
 
-#include "vtkImageAlgorithm.h" 
+#include "vtkObject.h" 
 #include "TrackedFrame.h"
 
 class vtkXMLDataElement; 
@@ -27,13 +27,13 @@ class PlusVideoFrame;
   This class collects ultrasound images synchronized with pose tracking information.
 
   \ingroup PlusLibDataCollection
-*/ 
-class VTK_EXPORT vtkDataCollector: public vtkImageAlgorithm
+*/
+class VTK_EXPORT vtkDataCollector: public vtkObject
 {
 public:
 
   static vtkDataCollector *New();
-  vtkTypeRevisionMacro(vtkDataCollector, vtkImageAlgorithm);
+  vtkTypeRevisionMacro(vtkDataCollector, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
 	typedef std::map<std::string, std::string> FieldMapType;
@@ -177,9 +177,6 @@ protected:
 
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
-
-  /*! This is called by the superclass. */
-  virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
   /*! Read image acquisition properties from xml file  */
   virtual PlusStatus ReadImageAcquisitionProperties(vtkXMLDataElement* aConfigurationData); 

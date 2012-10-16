@@ -10,13 +10,11 @@ See License.txt for details.
 #include "PlusVideoFrame.h"
 #include "SegmentationParameterDialog.h"
 #include "TrackedFrame.h"
-
 #include "vtkActor.h"
 #include "vtkActor.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkConeSource.h"
-#include "vtkSphereSource.h"
 #include "vtkDataCollector.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
@@ -32,15 +30,15 @@ See License.txt for details.
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkSphereSource.h"
+#include "vtkSphereSource.h"
+#include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-#include "vtkSphereSource.h"
 #include "vtksys/SystemTools.hxx"
-
-#include <QTimer>
 #include <QMessageBox>
+#include <QTimer>
 
 static const int HANDLE_SIZE = 8;
 
@@ -1331,27 +1329,16 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
-    m_DataCollector->Modified();
-    m_DataCollector->Update();
+    m_DataCollector->GetTrackedFrame(&m_Frame);
   }
 
-  // Get and convert currently displayed image
-  vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
-  currentImage->DeepCopy(m_DataCollector->GetOutput());
-
-  PlusVideoFrame videoFrame;
-  videoFrame.DeepCopyFrom(currentImage);
-
-  TrackedFrame trackedFrame;
-  trackedFrame.SetImageData(videoFrame);
-
   // Set image for canvas
-  m_ImageVisualizer->SetInput(currentImage);
+  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetVtkImage());
 
   // Segment image
   PatternRecognitionResult segResults;
   FidPatternRecognition::PatternRecognitionError error;
-  if( m_PatternRecognition->RecognizePattern(&trackedFrame, segResults, error) != PLUS_SUCCESS )
+  if( m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error) != PLUS_SUCCESS )
   {
     if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
@@ -1413,6 +1400,7 @@ void SegmentationParameterDialog::FreezeImage(bool aOn)
   LOG_INFO("FreezeImage turned " << (aOn?"on":"off"));
 
   m_ImageFrozen = aOn;
+
   ui.pushButton_Export->setEnabled(m_ImageFrozen);
 }
 
@@ -1422,21 +1410,11 @@ void SegmentationParameterDialog::ExportImage()
 {
   LOG_TRACE("SegmentationParameterDialog::ExportImage()");
 
-  // Get and convert currently displayed image // TODO Get TrackedFrame directly from vtkDataCollector
-  vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
-  currentImage->DeepCopy(m_DataCollector->GetOutput());
-
-  PlusVideoFrame videoFrame;
-  videoFrame.DeepCopyFrom(currentImage);
-
-  TrackedFrame trackedFrame;
-  trackedFrame.SetImageData(videoFrame);
-
   std::string metafileName = "SegmentationParameterDialog_ExportedImage_";
   metafileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  trackedFrameList->AddTrackedFrame(&trackedFrame);
+  trackedFrameList->AddTrackedFrame(&m_Frame);
 
   if (trackedFrameList->SaveToSequenceMetafile(vtkPlusConfig::GetInstance()->GetImageDirectory(), metafileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, false) == PLUS_SUCCESS)
   {

@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkPlusDevice_h
 
 #include "PlusConfigure.h"
-#include "vtkImageAlgorithm.h"
+#include "vtkAlgorithm.h"
 
 #include "vtkTrackedFrameList.h"
 
@@ -41,7 +41,7 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
+class VTK_EXPORT vtkPlusDevice : public vtkAlgorithm
 {
 public:
   void PrintSelf(ostream& os, vtkIndent indent);   
