@@ -20,7 +20,9 @@ See License.txt for details.
 #include <QFileDialog>
 #include <QTimer>
 
+#include <vtkRenderWindow.h>
 #include <vtkChartXY.h>
+#include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkPlot.h>
 #include <vtkTable.h>
@@ -394,17 +396,15 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   QApplication::processEvents();
 
-  // Do the calibration
+  // Do the calibration  
   TemporalCalibration temporalCalibrationObject;
-  temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData);
-  temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
-  temporalCalibrationObject.SetSamplingResolutionSec(0.001);
-  temporalCalibrationObject.SetSaveIntermediateImagesToOn(false);
-
   PlusTransformName probeToReferenceTransformName(m_ParentMainWindow->GetProbeCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame());
   std::string probeToReferenceTransformNameString;
   probeToReferenceTransformName.GetTransformName(probeToReferenceTransformNameString);
-  temporalCalibrationObject.SetProbeToReferenceTransformName(probeToReferenceTransformNameString);
+  temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData, probeToReferenceTransformNameString);
+  temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
+  temporalCalibrationObject.SetSamplingResolutionSec(0.001);
+  temporalCalibrationObject.SetSaveIntermediateImages(false);
 
   //  Calculate the time-offset
   TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error = TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
