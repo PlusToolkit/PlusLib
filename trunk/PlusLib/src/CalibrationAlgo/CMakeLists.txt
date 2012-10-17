@@ -2,30 +2,34 @@
 # Sources
 
 SET (CalibrationAlgo_SRCS
-	vtkProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo.cxx 
   vtkMeanShiftClustering.cxx 
-	vtkPivotCalibrationAlgo.cxx
-	vtkPhantomRegistrationAlgo.cxx
+  vtkPivotCalibrationAlgo.cxx
+  vtkPhantomRegistrationAlgo.cxx
   vtkSpacingCalibAlgo.cxx 
   vtkCenterOfRotationCalibAlgo.cxx
   vtkBrachyStepperPhantomRegistrationAlgo.cxx
   TemporalCalibrationAlgo.cxx
+  vtkLineSegmentationAlgo.cxx 
+  vtkPrincipalMotionDetectionAlgo.cxx 
   vtkSpatialCalibrationOptimizer.cxx
-	)
+  )
 
 SET (CalibrationAlgo_HDRS)	
 IF (WIN32)	
-	SET (CalibrationAlgo_HDRS
-		vtkProbeCalibrationAlgo.h
+  SET (CalibrationAlgo_HDRS
+    vtkProbeCalibrationAlgo.h
     vtkMeanShiftClustering.h
-		vtkPivotCalibrationAlgo.h
-		vtkPhantomRegistrationAlgo.h
+    vtkPivotCalibrationAlgo.h
+    vtkPhantomRegistrationAlgo.h
     vtkSpacingCalibAlgo.h 
     vtkCenterOfRotationCalibAlgo.h
     vtkBrachyStepperPhantomRegistrationAlgo.h
     TemporalCalibrationAlgo.h
-	vtkSpatialCalibrationOptimizer.h
-		)
+    vtkLineSegmentationAlgo.h
+    vtkPrincipalMotionDetectionAlgo.h
+    vtkSpatialCalibrationOptimizer.h
+    )
 ENDIF (WIN32)
 
 SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Ransac CACHE INTERNAL "" FORCE)

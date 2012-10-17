@@ -12,50 +12,11 @@
 #include <iostream>
 #include <time.h>
 
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkChartXY.h>
 #include <vtkTable.h>
-#include <vtkPlot.h>
-#include <vtkIntArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkContextView.h>
-#include <vtkContextScene.h>
-#include <vtkPen.h>
-#include <vtkDoubleArray.h>
-#include <vtkWindowToImageFilter.h>
-#include <vtkMatrix4x4.h>
-#include <vtksys/CommandLineArguments.hxx>
-#include "vtkPCAStatistics.h"
-#include <vtkWindowToImageFilter.h>
-#include <vtkRenderer.h> 
-#include <vtkPNGWriter.h>
-#include <vtkAxis.h>
-#include <vtkDelimitedTextWriter.h>
 #include <vtkPiecewiseFunction.h>
-
-#include <itkHoughTransform2DLinesImageFilter.h>
-#include <itkImageFileWriter.h>
-#include <itkImageDuplicator.h>
-#include <itkOtsuThresholdImageFilter.h>
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
-#include "itkRGBPixel.h"
-#include <itkImageFileWriter.h>
-
-#include "itkImageRegionIterator.h"
-#include "itkLineIterator.h"
-
-//#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkResampleImageFilter.h"
-//#include "itkRescaleIntensityImageFilter.h"
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-
-#include <itkCastImageFilter.h>
 
 /*!
   \class TemporalCalibration
@@ -94,20 +55,18 @@ public:
   void SetSamplingResolutionSec(double samplingResolutionSec); 
 
   /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames  */  
-  void SetTrackerFrames(vtkTrackedFrameList* trackerFrames);
+  PlusStatus SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName);
 
   /*! Sets the US video frames; frames are assumed to be the video frames */  
-  void SetVideoFrames(vtkTrackedFrameList* videoFrames);
-
-  /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */  
-  void SetProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
+  PlusStatus SetVideoFrames(vtkTrackedFrameList* videoFrames);
 
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
 
-  void SetSaveIntermediateImagesToOn(bool saveIntermediateImages);
+  /*! Enable/disable saving of intermediate images for debugging */
+  void SetSaveIntermediateImages(bool saveIntermediateImages);
 
-  void SetIntermediateFilesOutputDirectory(std::string &outputDirectory);
+  void SetIntermediateFilesOutputDirectory(const std::string &outputDirectory);
 
   /*! Compute the tracker lag */  
   PlusStatus Update(TEMPORAL_CALIBRATION_ERROR &error); 
@@ -130,77 +89,77 @@ public:
 	PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedvideoPositionSignal);
   PlusStatus GetVideoPositionSignal(vtkTable* TrackerPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
+  PlusStatus GetCorrelationSignalFine(vtkTable* correlationSignal);
 
   PlusStatus GetBestCorrelation(double &videoCorrelation);
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
 private:
-  PlusStatus filterFrames();
+  PlusStatus ComputeMovingSignalLagSec();
+  PlusStatus ComputeCommonTimeRange();
+  PlusStatus GetSignalRange(const std::deque<double> &signal, double &minValue, double &maxValue);
+  PlusStatus VerifyTrackerInput(vtkTrackedFrameList *trackerFrames, TEMPORAL_CALIBRATION_ERROR &error);
 
   double m_MaxCalibrationError;
 
-  std::vector<double> m_CalibrationErrorVector;
+  std::deque<double> m_CalibrationErrorVector;
 
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
   bool m_TrackerLagUpToDate; 
  
-  /*! If "true" then images of intermediate steps (i.e. scanlines used, detected lines) are saved in local directory */
+  /*! If "true" then images of intermediate steps are saved */
   bool m_SaveIntermediateImages;
 
   /*! Has the user ever succsfully called Update() */
   bool m_NeverUpdated;
 
-  /*!Directory where the intermediate files are written to!*/
+  /*! Directory where the intermediate files are written to */
   std::string m_IntermediateFilesOutputDirectory;
   
   /*! Resolution used for re-sampling [s]*/
   double m_SamplingResolutionSec;
-  vtkSmartPointer<vtkTrackedFrameList> m_TrackerFrames; 
-  vtkSmartPointer<vtkTrackedFrameList> m_VideoFrames; 
   
-  /*! Position metric values for the video stream (i.e. detect. line positions) */
-  std::vector<double> m_VideoPositionMetric; 
-  std::vector<double> m_VideoTimestamps; 
-  std::vector<double> m_TrackerPositionMetric; 
-  std::vector<double> m_TrackerTimestamps; 
-  
-  /*! The time-offsets used to compute the correlations */
-  std::vector<double> m_CorrIndices;
+  /*! Fixed signal metric values. Typically the video is used as fixed signal. */
+  std::deque<double> m_FixedSignalValues; 
+  /*! Fixed signal timestamps. Typically the video is used as fixed signal. */
+  std::deque<double> m_FixedSignalTimestamps; 
 
-	std::vector<double> m_CorrTimeOffsets;
+  std::deque<double> m_MovingSignalValues; 
+  std::deque<double> m_MovingSignalTimestamps; 
+  
+  /*! The computed signal correlation values (corresponding to the better sign convention) */
+  std::deque<double> m_CorrValues;
+
+  /*! The time-offsets used to compute the correlations */
+	std::deque<double> m_CorrTimeOffsets;
+
+  /*! The computed signal correlation values (corresponding to the better sign convention, in the second phase with fine resolution) */
+  std::deque<double> m_CorrValuesFine;
+
+  /*! The time-offsets used to compute the correlations (in the second phase with fine resolution) */
+	std::deque<double> m_CorrTimeOffsetsFine;
 	
 	/*! The highest correlation value for the tested time-offsets */
 	double m_BestCorrelationValue;
 
   /*! Resampled tracker metric used for correlation */
-  std::vector<double> m_ResampledTrackerPositionMetric;
+  std::deque<double> m_ResampledTrackerPositionMetric;
  
   /*! Resampled tracker time stamps used for correlation */
-  std::vector<double> m_ResampledTrackerTimestamps; 
+  std::deque<double> m_ResampledTrackerTimestamps; 
   
   /*! Resampled video metric used for correlation */
-  std::vector<double> m_ResampledVideoPositionMetric; 
+  std::deque<double> m_ResampledVideoPositionMetric; 
  
   /*! Resampled video time stamps used for correlation */
-  std::vector<double> m_ResampledVideoTimestamps;
+  std::deque<double> m_ResampledVideoTimestamps;
 
   double m_CommonRangeMin; 
   double m_CommonRangeMax;
 
-	std::vector<double> m_NormalizationFactors;
-
-	std::vector<double> m_FilteredTrackerTimestamps;
-	std::vector<double> m_FilteredVideoTimestamps;
-
-	std::vector<double> m_FilteredVideoPositionMetric;
-	std::vector<double> m_FilteredTrackerPositionMetric;
-
-	std::vector<double> m_SlidingSignalTimestamps;
-  std::vector<double> m_SlidingSignalMetric;
-
-	std::vector<double> m_NormalizedTrackerPositionMetric;
-	std::vector<double> m_NormalizedTrackerTimestamps;
-  std::vector<double> m_CorrValues; // TODO: use TimestampedValueType for this
+	std::deque<double> m_NormalizationFactors;
+	std::deque<double> m_NormalizedTrackerPositionMetric;
+	std::deque<double> m_NormalizedTrackerTimestamps;
   
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
   double m_TrackerLagSec;
@@ -213,51 +172,27 @@ private:
   double m_CalibrationError;
 
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
-  double m_MaxTrackerLagSec; 
-
-  std::string m_ProbeToReferenceTransformName;
-
-
-  void plotIntArray(std::vector<int> intensityValues);
-  void plotDoubleArray(std::vector<double> intensityValues);
-  PlusStatus FindPeakStart(std::vector<int> &intensityProfile,int MaxFromLargestArea,
-                           int startOfMaxArea, double &startOfPeak);
-  PlusStatus FindLargestPeak(std::vector<int> &intensityProfile,int &MaxFromLargestArea,
-                                                int &MaxFromLargestAreaIndex, int &startOfMaxArea);
-  PlusStatus ComputeCenterOfGravity(std::vector<int> &intensityProfile, int startOfMaxArea, 
-                                                         double &centerOfGravity);
-
-  
-  PlusStatus FilterPositionMetrics(TEMPORAL_CALIBRATION_ERROR &error);
-  PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);
-	PlusStatus NormalizeMetricWindow(std::vector<double> &signal, double &normalizationFactor);
+  double m_MaxMovingLagSec;  
+   
+  PlusStatus CropSignalsToCommonRange();
+  PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);  
+  PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, int startIndex=0, int stopIndex=-1);
+  PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, double startTime, double stopTime, const std::deque<double> &timestamps);
   PlusStatus ComputeVideoPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
   PlusStatus ComputeTrackerPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
-	void ComputeCorrelationBetweenVideoAndTrackerMetrics();
+	void ComputeCorrelationBetweenVideoAndTrackerMetrics(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues);
 
-	double ComputeCrossCorrelationSum(const std::vector<double> &signalA, const std::vector<double> &signalB);
-	double ComputeSsd(const std::vector<double> &signalA, const std::vector<double> &signalB);
-	double ComputeSad(const std::vector<double> &signalA, const std::vector<double> &signalB);
+  double ComputeAlignmentMetric(const std::deque<double> &signalA, const std::deque<double> &signalB);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
-  PlusStatus ConstructTableSignal(std::vector<double> &x, std::vector<double> &y, vtkTable* table, double timeCorrection); 
+  PlusStatus ConstructTableSignal(std::deque<double> &x, std::deque<double> &y, vtkTable* table, double timeCorrection); 
 
-	PlusStatus ResampleSignalLinearly(const std::vector<double>& templateSignalTimestamps,
-																		 const vtkSmartPointer<vtkPiecewiseFunction>& trackerPositionPiecewiseSignal,
-																		 std::vector<double>& resampledSignalValues);
-
-  /* TODO: Switching to VTK table data structure, maybe just use the vtkDoubleArray instead std::vector */
-  vtkSmartPointer<vtkTable> m_TrackerTable;
-  vtkSmartPointer<vtkTable> m_VideoTable;
-  vtkSmartPointer<vtkTable> m_TrackerTimestampedMetric;
+	PlusStatus ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps, const vtkSmartPointer<vtkPiecewiseFunction>& signalFunction, std::deque<double>& resampledSignalValues);
 
   /*! Normalization factor used for the tracker metric. Used for computing calibration error. */
   double m_BestCorrelationNormalizationFactor;
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
-  double m_VideoPositionMetricNormalizationFactor;
-
-  void ComputePrincipalAxis(std::vector<itk::Point<double, 3> > &trackerPositions, 
-                                               itk::Point<double,3> &principalAxis,  int numValidFrames);
+  double m_FixedSignalValuesNormalizationFactor;
 
 };
 

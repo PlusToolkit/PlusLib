@@ -38,7 +38,6 @@
   Constant value used for indicating that a timestamp has an unknown value.
   It can be used to indicate that the timestamp has to be generated from the current time.
 */
-#define UNDEFINED_TIMESTAMP DBL_MAX
 
 enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, ITEM_UNKNOWN_ERROR };
 
