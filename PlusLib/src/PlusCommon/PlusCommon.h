@@ -19,6 +19,7 @@ enum PlusStatus
   PLUS_SUCCESS=1
 };
 
+#define UNDEFINED_TIMESTAMP DBL_MAX
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
