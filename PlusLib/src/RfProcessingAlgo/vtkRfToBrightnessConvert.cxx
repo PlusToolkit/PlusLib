@@ -27,7 +27,7 @@ vtkRfToBrightnessConvert::vtkRfToBrightnessConvert()
 {
   this->ImageType=US_IMG_TYPE_XX;
   this->BrightnessScale=10.0;
-  this->NumberOfHilberFilterCoeffs=64;
+  this->NumberOfHilbertFilterCoeffs=64;
 }
 
 //----------------------------------------------------------------------------
@@ -276,10 +276,10 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBr
     return PLUS_FAIL;
   }  
 
-  int numberOfHilberFilterCoeffs=0;
-  if ( rfToBrightnessElement->GetScalarAttribute("NumberOfHilberFilterCoeffs", numberOfHilberFilterCoeffs)) 
+  int numberOfHilbertFilterCoeffs=0;
+  if ( rfToBrightnessElement->GetScalarAttribute("NumberOfHilbertFilterCoeffs", numberOfHilbertFilterCoeffs)) 
   {
-    this->NumberOfHilberFilterCoeffs=numberOfHilberFilterCoeffs; 
+    this->NumberOfHilbertFilterCoeffs=numberOfHilbertFilterCoeffs; 
   }
 
   double brightnessScale=0;
@@ -306,7 +306,7 @@ PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToB
     return PLUS_FAIL;
   }  
 
-  rfToBrightnessElement->SetDoubleAttribute("NumberOfHilberFilterCoeffs", this->NumberOfHilberFilterCoeffs);
+  rfToBrightnessElement->SetDoubleAttribute("NumberOfHilbertFilterCoeffs", this->NumberOfHilbertFilterCoeffs);
   rfToBrightnessElement->SetDoubleAttribute("BrightnessScale", this->BrightnessScale);
 
   return PLUS_SUCCESS;
@@ -315,27 +315,27 @@ PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToB
 //-----------------------------------------------------------------------------
 void vtkRfToBrightnessConvert::ComputeHilbertTransformCoeffs()
 {
-  if (this->HilbertTransformCoeffs.size()==this->NumberOfHilberFilterCoeffs+1)
+  if (this->HilbertTransformCoeffs.size()==this->NumberOfHilbertFilterCoeffs+1)
   {
     // already computed the requested number of Hilbert transform coefficients
     return;
   }
 
-  this->HilbertTransformCoeffs.resize(this->NumberOfHilberFilterCoeffs+1);
-  for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
+  this->HilbertTransformCoeffs.resize(this->NumberOfHilbertFilterCoeffs+1);
+  for (int i=1; i<=this->NumberOfHilbertFilterCoeffs; i++)
   {
     // From http://www.vbforums.com/archive/index.php/t-639223.html
-    this->HilbertTransformCoeffs[i]=1/((i-this->NumberOfHilberFilterCoeffs/2)-0.5)/vtkMath::Pi();
+    this->HilbertTransformCoeffs[i]=1/((i-this->NumberOfHilbertFilterCoeffs/2)-0.5)/vtkMath::Pi();
   }
   
   bool debugOutput=false; // print Hilbert transform coefficients in Matlab format
   if (debugOutput)
   {
     std::cout << "hc = [ ";
-    for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++)
+    for (int i=1; i<=this->NumberOfHilbertFilterCoeffs; i++)
     {
       std::cout << this->HilbertTransformCoeffs[i];
-      if (i<this->NumberOfHilberFilterCoeffs)
+      if (i<this->NumberOfHilbertFilterCoeffs)
       {
         std::cout << ";";
       }
@@ -352,35 +352,35 @@ PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTrans
 {
   ComputeHilbertTransformCoeffs(); // update the transform coefficients if needed
 
-  if (npt < this->NumberOfHilberFilterCoeffs)
+  if (npt < this->NumberOfHilbertFilterCoeffs)
   {
     LOG_ERROR("Insufficient data for performing Hilbert transform");
     return PLUS_FAIL;
   }
 
   // Compute Hilbert transform by convolution
-  for (int l=1; l<=npt-this->NumberOfHilberFilterCoeffs+1; l++) 
+  for (int l=1; l<=npt-this->NumberOfHilbertFilterCoeffs+1; l++) 
   {
     double yt = 0.0;
-    for (int i=1; i<=this->NumberOfHilberFilterCoeffs; i++) 
+    for (int i=1; i<=this->NumberOfHilbertFilterCoeffs; i++) 
     {
-      yt += input[l+i-1]*this->HilbertTransformCoeffs[this->NumberOfHilberFilterCoeffs+1-i];
+      yt += input[l+i-1]*this->HilbertTransformCoeffs[this->NumberOfHilbertFilterCoeffs+1-i];
     }
     hilbertTransformOutput[l] = yt;
   }
 
-  // Shift this->NumberOfHilberFilterCoeffs/1+1/2 points
-  for (int i=1; i<=npt-this->NumberOfHilberFilterCoeffs; i++) 
+  // Shift this->NumberOfHilbertFilterCoeffs/1+1/2 points
+  for (int i=1; i<=npt-this->NumberOfHilbertFilterCoeffs; i++) 
   {
     hilbertTransformOutput[i] = 0.5*(hilbertTransformOutput[i]+hilbertTransformOutput[i+1]);
   }
-  for (int i=npt-this->NumberOfHilberFilterCoeffs; i>=1; i--)
+  for (int i=npt-this->NumberOfHilbertFilterCoeffs; i>=1; i--)
   {
-    hilbertTransformOutput[i+this->NumberOfHilberFilterCoeffs/2]=hilbertTransformOutput[i];
+    hilbertTransformOutput[i+this->NumberOfHilbertFilterCoeffs/2]=hilbertTransformOutput[i];
   }
 
   // Pad by zeros 
-  for (int i=1; i<=this->NumberOfHilberFilterCoeffs/2; i++) 
+  for (int i=1; i<=this->NumberOfHilbertFilterCoeffs/2; i++) 
   {
     hilbertTransformOutput[i] = 0.0;
     hilbertTransformOutput[npt+1-i] = 0.0;
@@ -391,11 +391,11 @@ PlusStatus vtkRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTrans
 
 void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
 {
-  for (int i=0; i<this->NumberOfHilberFilterCoeffs/2+1; i++)
+  for (int i=0; i<this->NumberOfHilbertFilterCoeffs/2+1; i++)
   {
     ampl[i]=0;
   }
-  for (int i=this->NumberOfHilberFilterCoeffs/2+1; i<=npt-this->NumberOfHilberFilterCoeffs/2; i++) 
+  for (int i=this->NumberOfHilbertFilterCoeffs/2+1; i<=npt-this->NumberOfHilbertFilterCoeffs/2; i++) 
   {
     double xt = inputSignal[i];
     double xht = inputSignalHilbertTransformed[i];
@@ -413,7 +413,7 @@ void vtkRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, s
     }
     */
   }
-  for (int i=npt-this->NumberOfHilberFilterCoeffs/2+1; i<npt; i++)
+  for (int i=npt-this->NumberOfHilbertFilterCoeffs/2+1; i<npt; i++)
   {
     ampl[i]=0;
   }
