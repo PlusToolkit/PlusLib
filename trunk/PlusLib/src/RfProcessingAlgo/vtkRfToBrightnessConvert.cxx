@@ -270,7 +270,7 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBr
     LOG_DEBUG("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion")!=NULL)
+  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion") != 0)
   {
     LOG_ERROR("Cannot read vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
     return PLUS_FAIL;
@@ -300,7 +300,7 @@ PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToB
     LOG_DEBUG("Unable to write vtkRfToBrightnessConvert: XML data element is NULL"); 
     return PLUS_FAIL; 
   }
-  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion")!=NULL)
+  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion") != 0)
   {
     LOG_ERROR("Cannot write vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
     return PLUS_FAIL;
@@ -315,7 +315,7 @@ PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToB
 //-----------------------------------------------------------------------------
 void vtkRfToBrightnessConvert::ComputeHilbertTransformCoeffs()
 {
-  if (this->HilbertTransformCoeffs.size()==this->NumberOfHilbertFilterCoeffs+1)
+  if ((int)(this->HilbertTransformCoeffs.size())==this->NumberOfHilbertFilterCoeffs+1)
   {
     // already computed the requested number of Hilbert transform coefficients
     return;
