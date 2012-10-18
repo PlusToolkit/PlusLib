@@ -59,7 +59,7 @@ ELSE(VTK_DIR)
     BINARY_DIR "${PLUS_VTK_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
-    GIT_TAG "v5.8.0"
+    GIT_TAG "v5.10.0"
     #--Configure step-------------
     CMAKE_ARGS 
         -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
