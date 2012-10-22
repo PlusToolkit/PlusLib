@@ -431,21 +431,20 @@ protected:
   /* Is device connected */
   int Connected;
 
-  /*! Tracker tools */
-  ToolContainerType ToolContainer; 
-
-  /*! Reference name of the tools */
-  char* ToolReferenceFrameName; 
-
   /*! Thread used for acquisition */
   vtkMultiThreader* Threader;
 
   /*! Recording thread id */
   int ThreadId;
 
+  // TODO : convert this to a vector of streams (output)
   /*! The buffer used to hold the last N frames */
   vtkPlusStreamBuffer *Buffer;
   StreamBufferItem* CurrentDataBufferItem; 
+  /*! Tracker tools */
+  ToolContainerType ToolContainer; 
+  /*! Reference name of the tools */
+  char* ToolReferenceFrameName; 
 
   /*! Id of the device */
   char* DeviceId;
