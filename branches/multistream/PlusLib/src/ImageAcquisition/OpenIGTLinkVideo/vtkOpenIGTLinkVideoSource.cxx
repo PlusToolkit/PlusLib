@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
 

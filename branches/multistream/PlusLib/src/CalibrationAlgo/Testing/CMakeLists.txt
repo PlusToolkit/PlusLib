@@ -155,7 +155,7 @@ ADD_TEST(TemporalCalibrationAlgoTest1
     ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
     --tracker-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
     --video-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-    --sampling-resolution-sec=0.01
+    --sampling-resolution-sec=0.001
     --verbose=2
     )
 SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

@@ -9,7 +9,7 @@
 #include "vtkTrackerTool.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 
@@ -32,7 +32,7 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
 
-	this->Buffer = vtkTrackerBuffer::New();
+	this->Buffer = vtkPlusDataBuffer::New();
 	  
 	this->FrameNumber = 0;
 }

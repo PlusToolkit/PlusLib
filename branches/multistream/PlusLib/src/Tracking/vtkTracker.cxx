@@ -5,28 +5,28 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include <limits.h>
-#include <float.h>
-#include <math.h>
-#include <sstream>
+#include "TrackedFrame.h"
+#include "vtkAccurateTimer.h"
 #include "vtkCharArray.h"
-#include "vtkRecursiveCriticalSection.h"
 #include "vtkDoubleArray.h"
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMultiThreader.h"
 #include "vtkObjectFactory.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkSocketCommunicator.h" // VTK_PARALLEL support has to be enabled
-#include "vtkTracker.h"
-#include "vtkTransform.h"
 #include "vtkTimerLog.h"
-#include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkAccurateTimer.h"
-#include "vtkGnuplotExecuter.h"
-#include "vtkHTMLGenerator.h"
 #include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
+#include "vtkTracker.h"
+#include "vtkPlusDataBuffer.h"
+#include "vtkTrackerTool.h"
+#include "vtkTransform.h"
+#include "vtksys/SystemTools.hxx"
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <sstream>
 
 vtkStandardNewMacro(vtkTracker);
 
@@ -310,7 +310,7 @@ PlusStatus vtkTracker::ToolTimeStampedUpdateWithoutFiltering(const char* aToolNa
   
   // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-  vtkTrackerBuffer *buffer = tool->GetBuffer();
+  vtkPlusDataBuffer *buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
@@ -333,7 +333,7 @@ PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4
     return PLUS_FAIL; 
   }
 
-  vtkTrackerBuffer *buffer = tool->GetBuffer();
+  vtkPlusDataBuffer *buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
@@ -665,8 +665,8 @@ PlusStatus vtkTracker::GetTrackedFrame(double timestamp, TrackedFrame *aTrackedF
       continue; 
     }
     
-    TrackerBufferItem bufferItem; 
-    if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED ) != ITEM_OK )
+    DataBufferItem bufferItem; 
+    if ( it->second->GetBuffer()->GetDataBufferItemFromTime(timestamp, &bufferItem, vtkPlusDataBuffer::INTERPOLATED ) != ITEM_OK )
     {
       double latestTimestamp(0); 
       if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
@@ -790,7 +790,7 @@ void vtkTracker::ClearAllBuffers()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::CopyBuffer( vtkTrackerBuffer* aTrackerBuffer, const char* aToolName )
+PlusStatus vtkTracker::CopyBuffer( vtkPlusDataBuffer* aTrackerBuffer, const char* aToolName )
 {
   LOG_TRACE("vtkTracker::CopyBuffer"); 
 
@@ -872,10 +872,10 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     TrackedFrame trackedFrame; 
     trackedFrame.GetImageData()->SetITKImageBase(frame);
 
-    TrackerBufferItem bufferItem; 
+    DataBufferItem bufferItem; 
     BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
 
-    if ( firstActiveTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem) != ITEM_OK )
+    if ( firstActiveTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
       continue; 
@@ -902,8 +902,8 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     // Add transforms
     for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
     {
-      TrackerBufferItem toolBufferItem; 
-      if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkTrackerBuffer::EXACT_TIME ) != ITEM_OK )
+      DataBufferItem toolBufferItem; 
+      if ( it->second->GetBuffer()->GetDataBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusDataBuffer::EXACT_TIME ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
         continue; 

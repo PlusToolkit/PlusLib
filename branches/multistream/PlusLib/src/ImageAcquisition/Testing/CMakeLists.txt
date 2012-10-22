@@ -45,8 +45,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkImageAcquisition vtkCharts)
 	ADD_TEST(vtkSonixVideoSourceTest1 
 	${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
-	 --rendering-off
-     --sonix-ip=130.15.7.20
+	  --rendering-off
+    --sonix-ip=130.15.7.20
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
@@ -55,21 +55,23 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
 	ADD_EXECUTABLE(vtkBkProFocusVideoSourceTest vtkBkProFocusVideoSourceTest.cxx )
 	TARGET_LINK_LIBRARIES(vtkBkProFocusVideoSourceTest vtkImageAcquisition vtkCharts)
-	ADD_TEST(vtkBkProFocusVideoSourceTest 
-	${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusVideoSourceTest
-	 --rendering-off
-	)
-	SET_TESTS_PROPERTIES( vtkBkProFocusVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  # Hardware device is needed to make the test pass, so disable the test
+	# ADD_TEST(vtkBkProFocusVideoSourceTest 
+	#   ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusVideoSourceTest
+	#   --rendering-off
+	#   )
+	# SET_TESTS_PROPERTIES( vtkBkProFocusVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
 IF (PLUS_USE_ICCAPTURING_VIDEO)
 ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
 	TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkImageAcquisition )
-	# ADD_TEST(vtkICCapturingSourceTest1 
-	# ${EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
-	 # --rendering-off
-	# )
+	# Hardware device is needed to make the test pass, so disable the test
+  # ADD_TEST(vtkICCapturingSourceTest1 
+	#   ${EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
+	#   --rendering-off
+	#   )
 	#SET_TESTS_PROPERTIES( vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 

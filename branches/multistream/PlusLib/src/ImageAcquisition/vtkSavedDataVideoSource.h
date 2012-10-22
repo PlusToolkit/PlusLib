@@ -9,7 +9,7 @@
 
 #include "vtkPlusVideoSource.h"
 
-class vtkVideoBuffer; 
+class vtkPlusDataBuffer; 
 
 class VTK_EXPORT vtkSavedDataVideoSource;
 
@@ -67,7 +67,7 @@ public:
 	vtkBooleanMacro(UseOriginalTimestamps, bool);
   
   /*! Get local video buffer */
-  vtkGetObjectMacro(LocalVideoBuffer, vtkVideoBuffer); 
+  vtkGetObjectMacro(LocalVideoBuffer, vtkPlusDataBuffer); 
 	
 protected:
 	/*! Constructor */
@@ -105,7 +105,7 @@ protected:
   double LoopTime; 
 
   /*! Local video buffer */
-	vtkVideoBuffer* LocalVideoBuffer; 
+	vtkPlusDataBuffer* LocalVideoBuffer; 
 
   /*! Read all the frame fields from the file and provide them in the output */
   bool UseAllFrameFields;

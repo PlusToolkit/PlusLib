@@ -17,7 +17,7 @@
 #include "vtkObject.h"
 #include "vtkTracker.h"
 
-class vtkTrackerBuffer;
+class vtkPlusDataBuffer;
 
 /*!
 \class vtkTrackerTool 
@@ -48,7 +48,7 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Get the tracked tool buffer */
-  vtkGetObjectMacro(Buffer,vtkTrackerBuffer);
+  vtkGetObjectMacro(Buffer,vtkPlusDataBuffer);
 
   /*! Get the tracker which owns this tool. */
   vtkGetObjectMacro(Tracker,vtkTracker);
@@ -126,7 +126,7 @@ protected:
   char *ToolManufacturer;
   char *ToolName; 
 
-  vtkTrackerBuffer *Buffer;
+  vtkPlusDataBuffer *Buffer;
 
 private:
   vtkTrackerTool(const vtkTrackerTool&);

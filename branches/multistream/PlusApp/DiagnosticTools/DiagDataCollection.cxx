@@ -10,9 +10,8 @@
 #include "vtkDataCollector.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
 #include "vtkPlusVideoSource.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
@@ -217,7 +216,7 @@ int main(int argc, char **argv)
 		    unsigned long framenum(0); 
 		    if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
         numberOfValidFrames++;
-        if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+        if (frameUid == tool->GetBuffer()->GetOldestItemUidInBuffer())
         { 
           // no previous frame
           continue;

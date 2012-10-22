@@ -4,26 +4,21 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
-
-#include "vtkChRoboticsTracker.h"
-#include "SerialLine.h"
 #include "ChrSerialPacket.h"
-
-#include <sstream>
-#include <deque>
-
+#include "PlusConfigure.h"
+#include "SerialLine.h"
+#include "vtkChRoboticsTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusDataBuffer.h"
+#include "vtkTracker.h"
+#include "vtkTrackerTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtksys/SystemTools.hxx"
+#include <deque>
+#include <sstream>
 
 #include <math.h>
 

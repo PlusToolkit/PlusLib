@@ -9,7 +9,7 @@
 
 #include "vtkTracker.h"
 
-class vtkTrackerBuffer; 
+class vtkPlusDataBuffer; 
 
 /*!
 \class vtkSavedDataTracker 
@@ -73,7 +73,7 @@ public:
 	vtkBooleanMacro(RepeatEnabled, bool);
 
   /*! Get local tracker buffer */
-  vtkTrackerBuffer* GetLocalTrackerBuffer(); 
+  vtkPlusDataBuffer* GetLocalTrackerBuffer(); 
 
 protected:
 	vtkSavedDataTracker();
@@ -94,7 +94,7 @@ protected:
 	bool RepeatEnabled; 
 
   /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
-  std::map<std::string, vtkTrackerBuffer*> LocalTrackerBuffers; 
+  std::map<std::string, vtkPlusDataBuffer*> LocalTrackerBuffers; 
 	
   /*! Flag used for storing initialization state */
 	bool Initialized;

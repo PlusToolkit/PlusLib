@@ -265,7 +265,7 @@ ENDIF()
 IF ( NOT ITK_DIR )
   # ITK_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
   SET(ITK_DEPENDENCIES)
-  LIST(APPEND PlusLib_DEPENDENCIES vtk)   
+  LIST(APPEND PlusLib_DEPENDENCIES itk)   
 ENDIF()
   
 IF(PLUSBUILD_USE_OpenIGTLink AND NOT OpenIGTLink_DIR)

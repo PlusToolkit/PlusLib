@@ -80,9 +80,9 @@ protected:
   double BrightnessScale;
 
   /*! Number of the Hilbert transform convolution filter coefficients. Higher number results in better approximation but longer computation time. */
-  int NumberOfHilberFilterCoeffs;
+  int NumberOfHilbertFilterCoeffs;
 
-  /*! Coefficients of the Hilbert transform, computed from the NumberOfHilberFilterCoeffs */
+  /*! Coefficients of the Hilbert transform, computed from the NumberOfHilbertFilterCoeffs */
   std::vector<double> HilbertTransformCoeffs;
 
   /*! Image type (RF_IQ_LINE, RF_I_LINE_Q_LINE, ...) */

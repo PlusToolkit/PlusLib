@@ -10,7 +10,7 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "epiphan/frmgrab.h"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
@@ -185,7 +185,7 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
   case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
   case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
   default:
-    LOG_ERROR("Unkonwn video format: "<<this->VideoFormat);
+    LOG_ERROR("Unknown video format: "<<this->VideoFormat);
     return PLUS_FAIL;
   }
 

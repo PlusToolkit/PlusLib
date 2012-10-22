@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSonixPortaVideoSource.h"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
     // Show the live ultrasound image in a VTK renderer window
 
     vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-    viewer->SetInput(portaGrabber->GetOutput());   //set image to the render and window
+    viewer->SetInput(vtkImageData::SafeDownCast(portaGrabber->GetOutputDataObject(0)));   //set image to the render and window
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
     viewer->SetZSlice(0);

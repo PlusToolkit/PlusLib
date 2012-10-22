@@ -14,7 +14,6 @@ SET (Tracking_SRCS
   vtkTrackerFactory.cxx
   vtkFakeTracker.cxx 
   vtkTracker.cxx 
-  vtkTrackerBuffer.cxx 
   vtkTrackerTool.cxx 
   vtkSavedDataTracker.cxx 
   SerialLine.cxx
@@ -27,7 +26,6 @@ if (WIN32)
     vtkTrackerFactory.h
     vtkFakeTracker.h
     vtkTracker.h 
-    vtkTrackerBuffer.h 
     vtkTrackerTool.h 
     vtkSavedDataTracker.h
     SerialLine.h
@@ -287,6 +285,21 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
     )
           
 ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
+
+#--------------------------------------------------------------------------
+# 3dConnexion SpaceNavigator and similar 3D mouse devices
+
+if (WIN32)  # the 3D mouse is currently supported on Windows only
+  SET (Tracking_SRCS ${Tracking_SRCS} 
+    3dConnexionTracking/vtk3dConnexionTracker.cxx
+    )
+  if (WIN32)  
+    SET (Tracking_HDRS ${Tracking_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
+  endif (WIN32)  
+  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
+    CACHE INTERNAL "" FORCE)
+endif (WIN32)
 
 #--------------------------------------------------------------------------
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)

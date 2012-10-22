@@ -5,18 +5,18 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkSavedDataTracker.h"
+#include "TrackedFrame.h"
+#include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include <sstream>
+#include "vtkPlusDataBuffer.h"
+#include "vtkSavedDataTracker.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
-#include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
+#include "vtksys/SystemTools.hxx"
+#include <sstream>
 
 vtkStandardNewMacro(vtkSavedDataTracker);
 
@@ -44,7 +44,7 @@ vtkSavedDataTracker::~vtkSavedDataTracker()
 //----------------------------------------------------------------------------
 void vtkSavedDataTracker::DeleteLocalTrackerBuffers()
 {
-  for (std::map<std::string, vtkTrackerBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
+  for (std::map<std::string, vtkPlusDataBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
   {    
     if ( (*it).second != NULL )
     {
@@ -123,10 +123,10 @@ PlusStatus vtkSavedDataTracker::Connect()
     // a transform with the same name as the tool name has been found in the savedDataBuffer
     tool->GetBuffer()->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
 
-    vtkTrackerBuffer* buffer=vtkTrackerBuffer::New();
+    vtkPlusDataBuffer* buffer=vtkPlusDataBuffer::New();
     // Copy all the settings from the default tool buffer 
     buffer->DeepCopy( tool->GetBuffer() ); 
-    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkTrackerBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
+    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusDataBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetToolName());
       return PLUS_FAIL;
@@ -230,8 +230,8 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   {
     vtkTrackerTool* tool=it->second;
 
-    TrackerBufferItem bufferItem;  
-    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetTrackerBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED); 
+    DataBufferItem bufferItem;  
+    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetDataBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusDataBuffer::INTERPOLATED); 
     if ( itemStatus != ITEM_OK )
     {
       if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
@@ -382,7 +382,7 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
 }
 
 //----------------------------------------------------------------------------
-vtkTrackerBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
+vtkPlusDataBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
   vtkTrackerTool* firstActiveTool = NULL; 

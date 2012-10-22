@@ -24,7 +24,7 @@
       ImagingMode="RfMode"
       >
       <RfProcessing>
-        <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+        <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
         <ScanConversion TransducerName="BK_8848-axial"
           TransducerGeometry="CURVILINEAR"
           RadiusStartMm="10.0"

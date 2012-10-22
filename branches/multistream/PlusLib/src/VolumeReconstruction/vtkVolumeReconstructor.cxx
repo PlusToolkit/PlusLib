@@ -753,6 +753,8 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
                                        volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
                                        scalarType, 1, volumeToSave->GetScalarPointer());
+  metaImage.Origin(volumeToSave->GetOrigin());
+  metaImage.AnatomicalOrientation("LPS");
   metaImage.BinaryData(true);
   metaImage.CompressedData(useCompression);
   metaImage.ElementDataFileName("LOCAL");

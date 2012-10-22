@@ -11,7 +11,7 @@ See License.txt for details.
 // Tracker devices
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkTracker.h" 
 #endif
@@ -39,6 +39,12 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkChRoboticsTracker.h"
+#ifdef WIN32
+  // 3dConnexion tracker is supported on Windows only
+  #include "vtk3dConnexionTracker.h"
+#endif
+
+
 
 //----------------------------------------------------------------------------
 
@@ -51,6 +57,10 @@ vtkTrackerFactory::vtkTrackerFactory()
   TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
   TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
   TrackerTypes["ChRobotics"]=(PointerToTracker)&vtkChRoboticsTracker::New; 
+#ifdef WIN32
+  // 3dConnexion tracker is supported on Windows only
+  TrackerTypes["3dConnexion"]=(PointerToTracker)&vtk3dConnexionTracker::New; 
+#endif
 #ifdef PLUS_USE_OpenIGTLink
   TrackerTypes["OpenIGTLinkTracker"]=(PointerToTracker)&vtkOpenIGTLinkTracker::New; 
 #endif

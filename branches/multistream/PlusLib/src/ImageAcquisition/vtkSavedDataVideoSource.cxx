@@ -9,7 +9,7 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkTrackedFrameList.h"
 
 
@@ -140,8 +140,8 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
       status=PLUS_FAIL;
       continue;
     }
-    VideoBufferItem videoBufferItemToBeAdded; 
-    if (this->LocalVideoBuffer->GetVideoBufferItem( uidOfFrameToBeAdded, &videoBufferItemToBeAdded) != ITEM_OK )
+    DataBufferItem DataBufferItemToBeAdded; 
+    if (this->LocalVideoBuffer->GetDataBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
     {
       LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
       status=PLUS_FAIL;
@@ -153,17 +153,17 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
     if (this->UseOriginalTimestamps)
     {    
       // Read the timestamp without any local time offset. Offset will be applied when it is copied to the video buffer.
-      filteredTimestamp=videoBufferItemToBeAdded.GetFilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;
-      unfilteredTimestamp=videoBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;    
+      filteredTimestamp=DataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;
+      unfilteredTimestamp=DataBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;    
     }
 
-    VideoBufferItem::FieldMapType fieldMap;
+    DataBufferItem::FieldMapType fieldMap;
     if (this->UseAllFrameFields)
     {
-      fieldMap = videoBufferItemToBeAdded.GetCustomFrameFieldMap();    
+      fieldMap = DataBufferItemToBeAdded.GetCustomFrameFieldMap();    
     }
 
-    if (this->Buffer->AddItem(&(videoBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+    if (this->Buffer->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
     {
       status=PLUS_FAIL;
     }  
@@ -242,13 +242,13 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     this->LocalVideoBuffer->Delete();
   }
 
-  this->LocalVideoBuffer = vtkVideoBuffer::New(); 
+  this->LocalVideoBuffer = vtkPlusDataBuffer::New(); 
   // Copy all the settings from the video buffer 
   this->LocalVideoBuffer->DeepCopy( this->Buffer );
 
   // Fill local video buffer
 
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusDataBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 
   this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);

@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkPlusDevice_h
 
 #include "PlusConfigure.h"
-#include "vtkImageAlgorithm.h"
+#include "vtkAlgorithm.h"
 
 #include "vtkTrackedFrameList.h"
 
@@ -16,6 +16,20 @@ See License.txt for details.
 
 class vtkMultiThreader;
 class vtkXMLDataElement;
+
+/*! Flags for tool statuses */
+enum ToolStatus 
+{
+  TOOL_OK,			      /*!< Tool OK */
+  TOOL_MISSING,       /*!< Tool or tool port is not available */
+  TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
+  TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */
+  TOOL_SWITCH1_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_SWITCH2_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_SWITCH3_IS_ON, /*!< Various buttons/switches on tool */
+  TOOL_REQ_TIMEOUT,   /*!< Request timeout status */
+  TOOL_INVALID        /*!< Invalid tool status */
+};
 
 /*!
 \class vtkPlusDevice 
@@ -27,7 +41,7 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
+class VTK_EXPORT vtkPlusDevice : public vtkAlgorithm
 {
 public:
   void PrintSelf(ostream& os, vtkIndent indent);   

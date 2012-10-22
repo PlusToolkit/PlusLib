@@ -23,7 +23,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>

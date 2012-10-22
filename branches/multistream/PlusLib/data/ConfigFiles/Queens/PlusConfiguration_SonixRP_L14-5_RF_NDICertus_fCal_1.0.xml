@@ -33,7 +33,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       CompressionStatus="0" 
       >
       <RfProcessing>
-        <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+        <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
         <ScanConversion TransducerName="Ultrasonix_L9-4/38"
           TransducerGeometry="LINEAR"
           ImagingDepthMm="55.0"

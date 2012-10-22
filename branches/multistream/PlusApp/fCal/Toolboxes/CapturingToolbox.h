@@ -77,7 +77,14 @@ protected:
   * Actual clearing of frames
   */
   void ClearRecordedFramesInternal();
+  /*!
+  * Save data to file
+  */
+  void WriteToFile(QString& aFilename);
 
+  /*! Get the sampling period length in msec */
+  double GetSamplingPeriodMsec();
+  
 protected slots:
   /*!
   * Take snapshot (record the current frame only)
@@ -100,9 +107,14 @@ protected slots:
   void ClearRecordedFrames();
 
   /*!
-  * Slot handling open save button click
+  * Slot handling Save button click
   */
   void Save();
+
+  /*!
+  * Slot handling Save As button click
+  */
+  void SaveAs();
 
   /*!
   * Slot handling value change of sampling rate slider
@@ -133,9 +145,14 @@ protected:
 
   /*! Actual frame rate (frames per second) */
   double m_ActualFrameRate;
-
-  /*! Queue storing the number of recorded frames in each round in the last two seconds */
-  std::deque<int> m_RecordedFrameNumberQueue;
+  
+  /*!
+    Frame index of the first frame that is recorded in this segment (since pressed the record button).
+    It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,
+    those that were acquired in a different recording segment) will not be taken into account in the actual
+    frame rate computation.
+  */
+  int m_FirstRecordedFrameIndexInThisSegment;
 
   /*! String to hold the last location of data saved */
   QString m_LastSaveLocation;

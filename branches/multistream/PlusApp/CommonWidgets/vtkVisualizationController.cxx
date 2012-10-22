@@ -18,7 +18,7 @@ See License.txt for details.
 #include "vtkTrackedFrameList.h"
 #include "vtkTracker.h" // Only for dumping buffers
 #include "vtkTransform.h"
-#include "vtkVideoBuffer.h" // Only for dumping buffers
+#include "vtkPlusDataBuffer.h" // Only for dumping buffers
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
 
