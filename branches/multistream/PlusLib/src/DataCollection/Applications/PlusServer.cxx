@@ -230,7 +230,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     vtkSmartPointer<vtkOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkOpenIGTLinkVideoSource>::New(); 
     client->SetServerAddress("localhost"); 
     client->SetServerPort(listeningPort); 
-    client->SetFrameBufferSize( 10 ); 
+    client->SetBufferSize( 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
     client->SetDeviceImageOrientation( US_IMG_ORIENT_MF ); 
 

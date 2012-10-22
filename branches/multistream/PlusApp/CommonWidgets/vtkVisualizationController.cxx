@@ -223,7 +223,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->DataCollector->GetVideoEnabled() == false)
+    if (this->DataCollector->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
@@ -368,24 +368,10 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
     return PLUS_FAIL;
   }
 
-  // Assemble file names
-  std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
-  std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
-  outputVideoBufferSequenceFileName.append(dateAndTime);
-  std::string outputTrackerBufferSequenceFileName = "BufferDump_Tracker_";
-  outputTrackerBufferSequenceFileName.append(dateAndTime);
-
-  // Dump buffers to file 
-  if ( this->DataCollector->GetVideoSource() != NULL )
+  if( this->DataCollector->DumpBuffersToDirectory(aDirectory) != PLUS_SUCCESS )
   {
-    LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
-  }
-
-  if ( this->DataCollector->GetTracker() != NULL )
-  {
-    LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
+    LOG_ERROR("Unable to dump data buffers to file.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

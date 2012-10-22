@@ -11,7 +11,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkTrackedFrameList.h"
@@ -82,10 +82,10 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  vtkSmartPointer<vtkPlusDataBuffer> trackerBuffer = vtkSmartPointer<vtkPlusDataBuffer>::New(); 
+  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
   trackerBuffer->SetTimeStampReporting(true);
   // compute filtered timestamps now to test the filtering
-  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusDataBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusStreamBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
   double maxTimestampDifference(0); 
   for ( BufferItemUidType item = trackerBuffer->GetOldestItemUidInBuffer(); item <= trackerBuffer->GetLatestItemUidInBuffer(); ++item )
   {
-    DataBufferItem bufferItem; 
+    StreamBufferItem bufferItem; 
     if ( trackerBuffer->GetDataBufferItem(item, &bufferItem) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item ); 
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
   int i = 0; 
   for ( BufferItemUidType item = trackerBuffer->GetOldestItemUidInBuffer(); item < trackerBuffer->GetLatestItemUidInBuffer(); ++item )
   {
-    DataBufferItem bufferItem_1; 
+    StreamBufferItem bufferItem_1; 
     if ( trackerBuffer->GetDataBufferItem(item, &bufferItem_1) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item ); 
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
       continue; 
     }
 
-    DataBufferItem bufferItem_2; 
+    StreamBufferItem bufferItem_2; 
     if ( trackerBuffer->GetDataBufferItem(item + 1, &bufferItem_2) != ITEM_OK )
     {
       LOG_WARNING("Failed to get buffer item with UID: " << item + 1 ); 

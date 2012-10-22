@@ -88,20 +88,51 @@ int main(int argc, char **argv)
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
 	dataCollector->ReadConfiguration(configRootElement);
-	if ( dataCollector->Connect() != PLUS_SUCCESS )
+
+  vtkDataCollector::DeviceCollection coll;
+  dataCollector->GetTrackedFrameProducers(coll);
+  if( coll.size() != 1 )
+  {
+    LOG_ERROR("Multiple tracked frame producers defined when only 1 expected. Please review configuration file.");
+    exit(EXIT_FAILURE);
+  }
+
+  if ( dataCollector->Connect(std::string(coll.at(0)->GetDeviceId())) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize data collector!"); 
     exit(EXIT_FAILURE); 
   }
+
+  vtkPlusDevice* videoDevice = NULL;
+  vtkPlusVideoSource* videoSource = NULL;
+  dataCollector->GetDevice(videoDevice, "VideoSource");
+  videoSource = dynamic_cast<vtkPlusVideoSource*>(videoDevice);
+
+  if( videoSource == NULL )
+  {
+    LOG_ERROR("No device found with ID \"VideoSource\". Please define your video source device.");
+    exit(EXIT_FAILURE);
+  }
+
+  vtkPlusDevice* trackerDevice = NULL;
+  vtkTracker* tracker = NULL;
+  dataCollector->GetDevice(trackerDevice, "Tracker");
+  tracker = dynamic_cast<vtkTracker*>(trackerDevice);
+
+  if( tracker == NULL )
+  {
+    LOG_ERROR("No device found with ID \"Tracker\". Please define your tracker device.");
+    exit(EXIT_FAILURE);
+  }
   
   // Enable timestamp reporting for video and all tools
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if (videoSource != NULL ) 
 	{
-		dataCollector->GetVideoSource()->GetBuffer()->SetTimeStampReporting(true);
+		videoSource->GetBuffer()->SetTimeStampReporting(true);
 	}
-	if ( dataCollector->GetTracker() != NULL )
+	if ( tracker != NULL )
 	{
-    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIteratorType it = tracker->GetToolIteratorBegin(); it != tracker->GetToolIteratorEnd(); ++it)
 		{
       vtkTrackerTool* tool = it->second;
 		  tool->GetBuffer()->SetTimeStampReporting(true);
@@ -126,21 +157,20 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Stop recording
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( videoSource != NULL ) 
 	{
 		LOG_INFO("Stop video recording ..."); 
-		dataCollector->GetVideoSource()->StopRecording(); 
+		videoSource->StopRecording(); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( tracker != NULL )
 	{
 		LOG_INFO("Stop tracking ..."); 
-		dataCollector->GetTracker()->StopTracking(); 
+		tracker->StopTracking(); 
 	}
 
 	//************************************************************************************
 	// Print statistics
-  vtkPlusVideoSource* videoSource=dataCollector->GetVideoSource();
 	if ( videoSource != NULL ) 
 	{    
     double realVideoFramePeriodStdevSec=0;
@@ -189,9 +219,9 @@ int main(int argc, char **argv)
 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( tracker != NULL )
 	{
-    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIteratorType it = tracker->GetToolIteratorBegin(); it != tracker->GetToolIteratorEnd(); ++it)
 		{
       vtkTrackerTool* tool = it->second;
 
@@ -252,15 +282,15 @@ int main(int argc, char **argv)
   plotter->SetHideWindow(true); 
 
   // Generate tracking data acq report
-  if ( dataCollector->GetTracker() != NULL )
+  if ( tracker != NULL )
   {
-    dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
+    tracker->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
   }
 
   // Generate video data acq report
-  if ( dataCollector->GetVideoSource() != NULL ) 
+  if ( videoSource != NULL ) 
   {
-    dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
+    videoSource->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
   }
 
   std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 
@@ -268,16 +298,16 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Dump buffers to file 
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( videoSource != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		videoSource->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( tracker != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->GetTracker()->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		tracker->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
 	dataCollector->Disconnect(); 

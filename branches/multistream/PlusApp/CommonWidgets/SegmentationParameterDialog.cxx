@@ -962,7 +962,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
     return PLUS_FAIL;
   }
 
-  if (!m_DataCollector->GetVideoEnabled()) 
+  if (!m_DataCollector->GetVideoDataAvailable()) 
   {
     LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
   }

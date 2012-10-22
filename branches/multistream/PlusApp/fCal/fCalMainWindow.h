@@ -13,6 +13,7 @@ See License.txt for details.
 #include <QtGui/QMainWindow>
 
 class vtkVisualizationController;
+class vtkPlusDevice;
 class AbstractToolbox;
 class StatusIcon;
 
@@ -180,6 +181,11 @@ protected:
   void SetupStatusBar();
 
   /*!
+  * Dynamically build the devices menu based on the values returned from the data collector
+  */
+  void BuildDevicesMenu();
+
+  /*!
   * Filters events if this object has been installed as an event filter for the watched object
   * \param obj object
   * \param ev event
@@ -214,6 +220,11 @@ protected:
     * Slot handling show phantom
     */
     void ShowPhantomToggled();
+
+    /*!
+    * Activate a certain device
+    */
+    void DeviceSelected(vtkPlusDevice* aDevice);
 
     /*!
     * Resize event handler

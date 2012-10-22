@@ -126,18 +126,12 @@ void vtkRfProcessor::SetTransducerWidthMm(double tw)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElement)
 {
-  if ( config == NULL )
-  {
-    LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
+  if ( rfProcessingElement == NULL )
   {
     LOG_DEBUG("Unable to find RfProcessing element in XML tree, will use default values!");    
-    return PLUS_FAIL;
+    return PLUS_FAIL; 
   }
 
   PlusStatus status=PLUS_SUCCESS;
@@ -193,9 +187,9 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfProcessingElement)
 {
-  if ( config == NULL )
+  if ( rfProcessingElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
     return PLUS_FAIL; 
@@ -204,11 +198,6 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
   // RfProcessing
   //  - BrightnessConversion
   //  - ScanConversion
-  vtkXMLDataElement* rfProcessingElement = PlusXmlUtils::GetNestedElementWithName(config, "RfProcessing"); 
-  if (rfProcessingElement == NULL) 
-  {  
-    return PLUS_FAIL;
-  }
   vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "RfToBrightnessConversion"); 
   if (brightnessConversionElement == NULL) 
   {  
