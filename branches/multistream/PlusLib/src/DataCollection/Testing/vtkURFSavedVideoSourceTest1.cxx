@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 	}
 
 	viewer = vtkImageViewer::New();
-  viewer->SetInput(vtkImageData::SafeDownCast(sonixGrabber->GetOutputDataObject(0)));   //set image to the render and window
+  viewer->SetInput(sonixGrabber->GetOutput());
 	viewer->SetColorWindow(255);
 	viewer->SetColorLevel(127.5);
 	viewer->SetZSlice(0);

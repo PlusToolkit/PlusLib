@@ -9,9 +9,9 @@
 
 #include "PlusConfigure.h"
 #include "vtkDataObject.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusDevice.h"
 
-#include <vector>
+class vtkPlusDevice;
 
 /*!
   \class vtkPlusStream 
@@ -22,17 +22,25 @@
 class VTK_EXPORT vtkPlusStream : public vtkDataObject
 {
 public:
-  typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
-  typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
-  typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
-
   static vtkPlusStream *New();
   vtkTypeRevisionMacro(vtkPlusStream, vtkObject);
 
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
 
+  PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
+  PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
+
+  vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
+  vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
+
+  vtkSetStringMacro(StreamId);
+  vtkGetStringMacro(StreamId);
+
 protected:
   StreamBufferContainer   StreamBuffers;
+  ToolContainerType       Tools;
+  vtkPlusDevice*          OwnerDevice;
+  char *                  StreamId;
 
   vtkPlusStream(void);
   virtual ~vtkPlusStream(void);

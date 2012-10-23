@@ -39,6 +39,7 @@ if (WIN32)
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
 		vtkPlusDevice.h
+		vtkPlusDeviceTypes.h 
 		vtkPlusStream.h
 		vtkPlusDeviceFactory.h
 		vtkPlusStreamTool.h

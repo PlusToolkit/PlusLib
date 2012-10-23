@@ -43,7 +43,7 @@ protected:
   virtual ~vtkVirtualStreamMixer();
 
 protected:
-  vtkPlusStream::StreamBufferContainer InStreams;
+  StreamBufferContainer InStreams;
 
 private:
   vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.

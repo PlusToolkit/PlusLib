@@ -116,11 +116,6 @@ public:
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
   PlusStatus DumpBuffersToDirectory( const char * aDirectory );
-  
-  /*!
-    Pass on an update to all the connected devices
-  */
-  PlusStatus Update();
 
   /*
   * Functions to manage the currently active tracked frame producer
@@ -157,7 +152,7 @@ protected:
   /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double StartupDelaySec; 
 
-  vtkPlusDevice::DeviceCollection Devices;
+  DeviceCollection Devices;
 
   vtkVirtualStreamMixer* SelectedStreamMixer;
 

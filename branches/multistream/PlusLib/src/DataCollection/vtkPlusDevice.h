@@ -11,41 +11,18 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
-#include "vtkPlusStream.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusDeviceTypes.h"
 #include "vtkTrackedFrameList.h"
 
 #include <string>
 
-class vtkRfProcessor;
-class vtkPlusStreamTool;
-class vtkXMLDataElement;
-class vtkHTMLGenerator;
 class vtkGnuplotExecuter;
-
-/*! Flags for tool LEDs (specifically for the POLARIS) */
-enum {
-  TR_LED_OFF   = 0,
-  TR_LED_ON    = 1,
-  TR_LED_FLASH = 2
-};
-
-/*! Flags for tool statuses */
-enum ToolStatus 
-{
-  TOOL_OK,			      /*!< Tool OK */
-  TOOL_MISSING,       /*!< Tool or tool port is not available */
-  TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
-  TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */
-  TOOL_SWITCH1_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_SWITCH2_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_SWITCH3_IS_ON, /*!< Various buttons/switches on tool */
-  TOOL_REQ_TIMEOUT,   /*!< Request timeout status */
-  TOOL_INVALID        /*!< Invalid tool status */
-};
-
-typedef std::map<std::string, vtkPlusStreamTool*> ToolContainerType;
-typedef ToolContainerType::const_iterator ToolContainerConstIteratorType;
+class vtkHTMLGenerator;
+class vtkPlusStream;
+class vtkPlusStreamBuffer;
+class vtkPlusStreamTool;
+class vtkRfProcessor;
+class vtkXMLDataElement;
 
 /*!
 \class vtkPlusDevice 
@@ -57,16 +34,11 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusDevice : public vtkAlgorithm
+class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
-  // For quick and clean changing of underlying data type
-  typedef std::vector<vtkPlusDevice*> DeviceCollection;
-  typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
-  typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
-
   static vtkPlusDevice *New();
-  vtkTypeRevisionMacro(vtkPlusDevice, vtkObject);
+  vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! 
@@ -362,6 +334,12 @@ public:
   /*! Get the image pixel type (B-mode, RF, ...) */
   virtual US_IMAGE_TYPE GetImageType();
 
+  /*! Access the available output streams */
+  PlusStatus GetStreamByName(vtkPlusStream*& aStream, const char * aStreamName);
+
+  /*! Add an input stream */
+  PlusStatus AddInputStream(vtkPlusStream* aStream);
+
   /*! 
     Return the latest or desired image frame. This method can be overridden in subclasses 
     Part of the vtkAlgorithm pipeline
@@ -376,9 +354,6 @@ public:
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
-
-  // TODO : temporary until pipeline is reworked
-  virtual vtkImageData *AllocateOutputData(vtkDataObject *out);
 
   /*! 
     This method should be overridden for devices that have one or more LEDs on the tracked tools. 
@@ -437,9 +412,12 @@ protected:
   /*! Recording thread id */
   int ThreadId;
 
-  // TODO : convert this to a vector of streams (output)
+  StreamContainer OutputStreams;
+  StreamContainer InputStreams;
+  vtkPlusStream* CurrentStream;
+
   /*! The buffer used to hold the last N frames */
-  vtkPlusStreamBuffer *Buffer;
+  vtkPlusStreamBuffer* Buffer;
   StreamBufferItem* CurrentDataBufferItem; 
   /*! Tracker tools */
   ToolContainerType ToolContainer; 

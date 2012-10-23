@@ -15,50 +15,12 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #define __vtkPlusDataBuffer_h
 
 #include "PlusConfigure.h"
-#include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
-#include "vtkMatrix4x4.h"
 #include "vtkObject.h"
-#include "vtkTimestampedCircularBuffer.h"
+#include "vtkPlusDeviceTypes.h"
 
 class vtkPlusDevice;
 enum ToolStatus;
-
-/*!
-  \class DataBufferItem 
-  \brief Stores a single video frame OR a single transform
-  \ingroup PlusLibDataCollection
-*/
-class VTK_EXPORT StreamBufferItem : public TimestampedBufferItem
-{
-public:
-
-  StreamBufferItem();
-  virtual ~StreamBufferItem();
-
-  StreamBufferItem(const StreamBufferItem& dataItem); 
-  StreamBufferItem& operator=(StreamBufferItem const& dataItem); 
-
-  /*! Copy video buffer item */
-  PlusStatus DeepCopy(StreamBufferItem* dataItem); 
-  
-  PlusVideoFrame& GetFrame() { return this->Frame; };
-
-  /*! Set tracker matrix */
-  PlusStatus SetMatrix(vtkMatrix4x4* matrix); 
-  /*! Get tracker matrix */
-  PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
-
-  /*! Set tracker item status */
-  void SetStatus(ToolStatus status);
-  /*! Get tracker item status */
-  ToolStatus GetStatus() const;
-
-private:
-  PlusVideoFrame Frame;
-  vtkSmartPointer<vtkMatrix4x4> Matrix;
-  ToolStatus Status;
-};
 
 class vtkTrackedFrameList;
 

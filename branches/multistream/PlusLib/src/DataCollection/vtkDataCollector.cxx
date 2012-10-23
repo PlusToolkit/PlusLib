@@ -103,7 +103,40 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     }
   }
 
-  // TODO : connect these devices based on input/output streams
+  for ( int i = 0; i < dataCollectionElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* deviceElement = dataCollectionElement->GetNestedElement(i); 
+
+    if (STRCASECMP(deviceElement->GetName(), "Device") == 0 )
+    {
+      vtkPlusDevice* thisDevice = NULL;
+      if( this->GetDevice(thisDevice, deviceElement->GetAttribute("Id")) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " doesn't exist.");
+        continue;
+      }
+
+      for ( int i = 0; i < deviceElement->GetNumberOfNestedElements(); ++i )
+      {
+        vtkXMLDataElement* streamElement = deviceElement->GetNestedElement(i); 
+        if( STRCASECMP(streamElement->GetName(), "InputStream") == 0 )
+        {
+          // We have an input stream, lets find it
+          for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+          {
+            vtkPlusDevice* device = (*it);
+            vtkPlusStream* aStream = NULL;
+            if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
+            {
+              // Found it!
+              device->AddInputStream(aStream);
+              continue;
+            }
+          }
+        }
+      }
+    }
+  }
 
   return PLUS_SUCCESS;
 }
@@ -125,7 +158,7 @@ PlusStatus vtkDataCollector::WriteConfiguration( vtkXMLDataElement* aConfig )
 
   PlusStatus status = PLUS_SUCCESS;
 
-  for( vtkPlusDevice::DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
 
@@ -149,7 +182,7 @@ PlusStatus vtkDataCollector::Start()
 
   const double startTime = vtkAccurateTimer::GetSystemTime(); 
 
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
   {
     vtkPlusDevice* device = *it;
     
@@ -188,7 +221,7 @@ PlusStatus vtkDataCollector::Connect()
 
   PlusStatus status = PLUS_SUCCESS;
   
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
   {
     vtkPlusDevice* device = *it;
 
@@ -217,7 +250,7 @@ PlusStatus vtkDataCollector::Disconnect()
 
   PlusStatus status = PLUS_SUCCESS;
 
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
   {
     vtkPlusDevice* device = *it;
 
@@ -271,7 +304,7 @@ void vtkDataCollector::PrintSelf( ostream& os, vtkIndent indent )
 
   this->Superclass::PrintSelf(os,indent);
 
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++ it )
   {
     os << indent << "Device: " << std::endl; 
     (*it)->PrintSelf(os, indent); 
@@ -284,7 +317,7 @@ PlusStatus vtkDataCollector::GetDevice( vtkPlusDevice* &aDevice, const std::stri
 {
   LOG_TRACE("vtkDataCollector::GetDevice( aDevice, " << aDeviceId << ")");
 
-  for( vtkPlusDevice::DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
 
@@ -306,7 +339,7 @@ bool vtkDataCollector::GetTrackingEnabled() const
 
   // For now, scan the list of devices to see if we have a subtype of tracker
   // This will not work after vtkTracker is destroyed... perhaps each device can answer the question IsTracker... not sure what will be best
-  for( vtkPlusDevice::DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     if( (*it)->IsTracker() )
       return true;
@@ -336,7 +369,7 @@ PlusStatus vtkDataCollector::SetSelectedTrackedFrameProducer( const std::string 
 {
   LOG_TRACE("vtkDataCollector::SetSelectedTrackedFrameProducer(" << aDeviceId << ")");
 
-  for( vtkPlusDevice::DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
     if( dynamic_cast<vtkVirtualStreamMixer*>(device) != NULL && aDeviceId.compare(device->GetDeviceId()) == 0 )
@@ -357,7 +390,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameProducers( std::vector<vtkVirtualStr
 
   OutVector.clear();
 
-  for( vtkPlusDevice::DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
     if( dynamic_cast<vtkVirtualStreamMixer*>(device) != NULL )
@@ -421,18 +454,6 @@ bool vtkDataCollector::GetVideoDataAvailable() const
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::Update()
-{
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
-  {
-    (*it)->Update();
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
 PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
 {
   LOG_TRACE("vtkDataCollector::DumpBuffersToDirectory(" << aDirectory << ")");
@@ -440,7 +461,7 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
   // Assemble file names
   std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
 
-  for( vtkPlusDevice::DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = *it;
 

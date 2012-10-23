@@ -15,13 +15,14 @@ See License.txt for details.
 #include "vtkMultiThreader.h" 
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
+#include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkWindows.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkRfProcessor.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkPlusStreamTool.h"
-#include "vtkWindows.h"
 #include "vtksys\SystemTools.hxx"
 #include <ctype.h>
 #include <time.h>
@@ -55,9 +56,9 @@ vtkPlusDevice::vtkPlusDevice()
 , SaveRfProcessingParameters(false)
 , RfProcessor(vtkRfProcessor::New())
 , BlankImage(vtkImageData::New())
-, Buffer(vtkPlusStreamBuffer::New())
 , CurrentDataBufferItem(new StreamBufferItem())
 , FrameTimeStamp(0)
+, CurrentStream(NULL)
 , FrameNumber(0)
 , OutputNeedsInitialization(1)
 , NumberOfOutputFrames(1)
@@ -65,8 +66,6 @@ vtkPlusDevice::vtkPlusDevice()
 , DesiredTimestamp(-1)
 , TimestampClosestToDesired(-1)
 {
-  SetBufferSize(50);
-
   this->SetNumberOfInputPorts(0);
 
   this->SetToolReferenceFrameName("Tracker");
@@ -553,45 +552,15 @@ std::string vtkPlusDevice::ConvertToolStatusToString(ToolStatus status)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
 {
-  // TODO : Create output streams
-  //        each device creates its own output streams
-  //        data collector will setinput/setouput and connect the pipeline as necessary
-  //        each devices requestdata function will pull a stream from the input(s) and use it
-
   LOG_TRACE("vtkPlusDevice::ReadConfiguration");
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* deviceXMLElement = NULL;
-  for ( int device = 0; device < dataCollectionConfig->GetNumberOfNestedElements(); device++ )
-  {
-    vtkXMLDataElement* deviceXMLElement = dataCollectionConfig->GetNestedElement(device);
-    if( STRCASECMP(deviceXMLElement->GetName(), "Device") == 0 && STRCASECMP(deviceXMLElement->GetAttribute("Id"), this->GetDeviceId()) )
-    {
-      break;
-    }
-  }
 
   if( deviceXMLElement == NULL )
   {
     LOG_ERROR("Unable to find device XML element for this device.");
     return PLUS_FAIL;
-  }
-
-  // TODO : for each OutputStream element, create a vtkplusstream, call read configuration on it with its xml element
+  }  
 
   // Read tool configurations 
   for ( int tool = 0; tool < deviceXMLElement->GetNumberOfNestedElements(); tool++ )
@@ -627,19 +596,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  int bufferSize = 0;
-  if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
-  {
-    if ( this->Buffer->SetBufferSize(bufferSize) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to set video buffer size!");
-    }
-  }
-  else if( RequireFrameBufferSizeInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find main buffer size in device element when it is required.");
-  }
-
   int acquisitionRate = 0;
   if ( deviceXMLElement->GetScalarAttribute("AcquisitionRate", acquisitionRate) )
   {
@@ -650,24 +606,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* config)
     LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
   }
 
-  int averagedItemsForFiltering = 0;
-  if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
-  {
-    this->Buffer->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-
-    for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-    {
-      it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
-    }
-  }
-  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
-  }
-  else
-  {
-    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
-  }
 
   double localTimeOffsetSec = 0;
   if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
@@ -704,6 +642,72 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* config)
   else if( RequireRfElementInDeviceSetConfiguration )
   {
     LOG_ERROR("Unable to find rf processing sub-element in device configuration when it is required.");
+  }
+
+  // Now that we have the tools, we can create the output streams and connect things as necessary
+  for ( int stream = 0; stream < deviceXMLElement->GetNumberOfNestedElements(); stream++ )
+  {
+    vtkXMLDataElement* streamElement = deviceXMLElement->GetNestedElement(stream); 
+    if ( STRCASECMP(streamElement->GetName(), "OutputStream") != 0 )
+    {
+      // if this is not a stream element, skip it
+      continue; 
+    }
+
+    vtkPlusStream* aStream = vtkPlusStream::New();
+    aStream->SetOwnerDevice(this);
+    aStream->ReadConfiguration(streamElement);
+
+    OutputStreams.push_back(aStream);
+  }
+
+  // Now that we have output streams
+  // It makes sense to set the parameters of those buffers
+  if( OutputStreams.size() > 0 )
+  {
+    vtkPlusStreamBuffer* aBuff = NULL;
+    if( OutputStreams.at(0)->GetBuffer(this->Buffer, 0) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("No default buffer created for stream. Can't set params of buffer.");
+      return PLUS_FAIL;
+    }
+
+    int bufferSize = 0;
+    if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
+    {
+      if ( this->Buffer->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to set video buffer size!");
+      }
+    }
+    else if( RequireFrameBufferSizeInDeviceSetConfiguration )
+    {
+      LOG_ERROR("Unable to find main buffer size in device element when it is required.");
+    }
+
+    int averagedItemsForFiltering = 0;
+    if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+    {
+      this->Buffer->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+
+      for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      {
+        it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
+      }
+    }
+    else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+    {
+      LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
+    }
+    else
+    {
+      LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+    }
+  }
+  else
+  {
+    LOG_ERROR("No output stream defined for device " << this->GetDeviceId() << ". Unable to output data!");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1585,28 +1589,38 @@ PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //----------------------------------------------------------------------------
-vtkImageData* vtkPlusDevice::AllocateOutputData(vtkDataObject *output)
-{ 
-  // set the extent to be the update extent
-  vtkImageData *out = vtkImageData::SafeDownCast(output);
-  if (out)
+PlusStatus vtkPlusDevice::GetStreamByName( vtkPlusStream*& aStream, const char * aStreamName )
+{
+  if( aStreamName == NULL )
   {
-    // this needs to be fixed -Ken
-    vtkStreamingDemandDrivenPipeline *sddp = 
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    int numInfoObj = sddp->GetNumberOfOutputPorts();
-    if (sddp && numInfoObj == 1)
-    {
-      int extent[6];
-      sddp->GetOutputInformation(0)->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent);
-      out->SetExtent(extent);
-    }
-    else
-    {
-      vtkWarningMacro( "There are multiple output ports. You cannot use AllocateOutputData" );
-      return NULL;
-    }
-    out->AllocateScalars();
+    LOG_ERROR("Null stream name sent to GetStreamByName.");
+    return PLUS_FAIL;
   }
-  return out;
+
+  for( StreamContainerIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = (*it);
+    if( STRCASECMP(stream->GetStreamId(), aStreamName) == 0 )
+    {
+      aStream = stream;
+      return PLUS_SUCCESS;
+    }
+  }
+
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddInputStream( vtkPlusStream* aStream )
+{
+  for( StreamContainerIterator it = InputStreams.begin(); it != InputStreams.end(); ++it)
+  {
+    if( STRCASECMP((*it)->GetStreamId(), aStream->GetStreamId()) == 0 )
+    {
+      LOG_WARNING("Duplicate addition of an input stream.");
+      return PLUS_SUCCESS;
+    }
+
+    InputStreams.push_back(aStream);
+  }
 }
