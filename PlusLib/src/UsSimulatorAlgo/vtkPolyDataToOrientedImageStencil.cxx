@@ -251,7 +251,7 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       // create a representation for the slicing plane, to make
       // cellScalar calculation simpler later on. Plane is angled, so cannot
       //just used z value
-      vtkSmartPointer<vtkPlane> slicingPlane = vtkSmartPointer<vtkPlane>::New(); 
+      vtkSmartPointer<vtkPlane> slicingPlane = vtkPlane::New(); 
       slicingPlane->SetNormal(sliceNormal); 
       slicingPlane->SetOrigin(slicePosition[0], slicePosition[1], slicePosition[2]); 
 
@@ -269,6 +269,9 @@ void vtkPolyDataToOrientedImageStencil::PolyDataCutter(
       cell->Contour(0, cellScalars, locator,
         newVerts, newLines, newPolys, NULL, NULL,
         inCD, cellId, outCD);
+
+      slicingPlane->Delete();
+
     }
   }
 
