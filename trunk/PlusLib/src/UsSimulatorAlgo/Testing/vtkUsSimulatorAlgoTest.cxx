@@ -234,9 +234,10 @@ int main(int argc, char **argv)
     renderWindowInteractorPoly->Start();
   }
 
-  //for (int i = 0; i<1; i++)
+  //for (int i = 0; i<30; i++)
   for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
+    LOG_DEBUG("Processing frame "<<i);
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
     // Update transform repository 

@@ -12,6 +12,11 @@
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 
+class vtkPolyDataNormals;
+class vtkTriangleFilter;
+class vtkStripper;
+class vtkModifiedBSPTree;
+
 /*!
   \class vtkUsSimulatorAlgo 
   \brief Class that simulates ultrasound images using an STL model and
@@ -105,6 +110,22 @@ private:
 
   /*! Name of the reference coordinate frame */
   char* ReferenceCoordinateFrame;
+
+  /*
+  struct InputDescriptor
+  {
+  vtkPolyDataNormals *ModelNormalFilter;
+  vtkTriangleFilter *ModelTriangleFilter;
+  vtkStripper *ModelStripperFilter;
+  vtkModifiedBSPTree *ModelLocalizer;
+  MaterialProperties ...;
+  }
+  std::vector<InputDescriptor> InputDescriptors;
+  */
+  vtkPolyDataNormals *ModelNormalFilter;
+  vtkTriangleFilter *ModelTriangleFilter;
+  vtkStripper *ModelStripperFilter;
+  vtkModifiedBSPTree *ModelLocalizer;
 };
 
 #endif // __vtkUsSimulatorAlgo_h
