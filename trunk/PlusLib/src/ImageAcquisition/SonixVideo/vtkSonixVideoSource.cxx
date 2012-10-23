@@ -417,6 +417,16 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       continue;
     }
+
+    if (this->AcquisitionRate<=0)
+    {
+      // AcquisitionRate has not been specified, set it to match the frame rate
+      int aFrameRate=10;
+      if ( this->Ult.getParamValue("frame rate", aFrameRate) )
+      {
+        this->AcquisitionRate=aFrameRate;        
+      }
+    }
     
     Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
 
@@ -612,6 +622,12 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( imageAcquisitionConfig->GetScalarAttribute("CompressionStatus", compressionStatus)) 
   {
     this->CompressionStatus=compressionStatus; 
+  }
+
+  int sharedMemoryStatus = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("SharedMemoryStatus", sharedMemoryStatus)) 
+  {
+    this->SharedMemoryStatus=sharedMemoryStatus; 
   }
 
   int timeout = 0; 
