@@ -28,6 +28,7 @@ See License.txt for details.
 #include "vtkMetaImageWriter.h"
 #include "vtkXMLImageDataWriter.h"
 #include "vtkSTLWriter.h"
+#include "vtkTimerLog.h"
 
 //display
 #include "vtkImageActor.h"
@@ -96,6 +97,9 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+  
+  static double startTime = vtkTimerLog::GetUniversalTime(); 
+  
   std::string inputModelFile;
   std::string inputTransformsFile;
   std::string inputConfigFile;
@@ -230,8 +234,8 @@ int main(int argc, char **argv)
     renderWindowInteractorPoly->Start();
   }
 
-  for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)
-      
+  //for (int i = 0; i<1; i++)
+  for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
@@ -312,5 +316,12 @@ int main(int argc, char **argv)
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
+
+   static double endTime = vtkTimerLog::GetUniversalTime(); 
+
+   static double timeElapsed = endTime-startTime; 
+
+   LOG_INFO(" Time: " << timeElapsed ) ; 
+
 	return EXIT_SUCCESS; 
 }
