@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#define USE_vtkPolyDataToOrientedImageStencil
-//#define USE_vtkModifiedBSPTree
+//#define USE_vtkPolyDataToOrientedImageStencil
+#define USE_vtkModifiedBSPTree
 
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
@@ -61,6 +61,18 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->ModelFileName = NULL;
   this->ImageCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
+
+  this->ModelNormalFilter=vtkPolyDataNormals::New();
+  this->ModelNormalFilter->ConsistencyOn();
+
+  this->ModelTriangleFilter=vtkTriangleFilter::New();
+  this->ModelTriangleFilter->SetInputConnection(this->ModelNormalFilter->GetOutputPort());
+
+  this->ModelStripperFilter=vtkStripper::New();
+  this->ModelStripperFilter->SetInputConnection(this->ModelTriangleFilter->GetOutputPort());  
+
+
+  this->ModelLocalizer=vtkModifiedBSPTree::New();
 }
 
 //-----------------------------------------------------------------------------
@@ -71,6 +83,21 @@ vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
   SetModelFileName(NULL); 
   SetImageCoordinateFrame(NULL); 
   SetReferenceCoordinateFrame(NULL); 
+  if (this->ModelNormalFilter!=NULL)
+  {
+    this->ModelNormalFilter->Delete();
+    this->ModelNormalFilter=NULL;
+  }
+  if (this->ModelTriangleFilter!=NULL)
+  {
+    this->ModelTriangleFilter->Delete();
+    this->ModelTriangleFilter=NULL;
+  }
+  if (this->ModelStripperFilter!=NULL)
+  {
+    this->ModelStripperFilter->Delete();
+    this->ModelStripperFilter=NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -118,14 +145,14 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
-  vtkSmartPointer<vtkPolyData> modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData* modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
   if (modelModel == NULL)
   {
     LOG_ERROR("Model specified is empty");
     return 1; 
   }
 
-  vtkSmartPointer<vtkImageData> simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+  vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
   if (simulatedUsImage == NULL)
   {
     LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
@@ -135,42 +162,34 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   simulatedUsImage->SetScalarTypeToUnsignedChar();
   simulatedUsImage->AllocateScalars();
 
-  vtkSmartPointer<vtkPolyDataNormals> normalFilter=vtkSmartPointer<vtkPolyDataNormals>::New();
-  normalFilter->SetInput(modelModel);
-  normalFilter->ConsistencyOn();
+  // Make sure that we have a clean triangle strip polydata
+  this->ModelNormalFilter->SetInput(modelModel);    
+  //this->ModelStripperFilter->Update();
 
-  // Make sure that we have a clean triangle polydata
-  vtkSmartPointer<vtkTriangleFilter> triangle=vtkSmartPointer<vtkTriangleFilter>::New();
-  triangle->SetInputConnection(normalFilter->GetOutputPort());
-
-  // Convert to triangle strip
-  vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
-  stripper->SetInputConnection(triangle->GetOutputPort());  
-
-
-
-#if defined USE_vtkModifiedBSPTree
+#if defined USE_vtkModifiedBSPTree 
 
   // create container for scan line with set length. 
   int  simulatedUsImageExtent[6] ={0,0,0,0,0,0};
   this->StencilBackgroundImage->GetExtent(simulatedUsImageExtent);
 
-
   //Generate image in the FM orientation
   int numScanLines = std::abs(simulatedUsImageExtent[3]-simulatedUsImageExtent[2])+1;
   int numPixels = std::abs(simulatedUsImageExtent[1]-simulatedUsImageExtent[0])+1;
-
 
   vtkSmartPointer<vtkMatrix4x4> imageToModelMatrix= vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Invert(this->ModelToImageMatrix, imageToModelMatrix); 
 
   //Create BSPTree
-  vtkSmartPointer<vtkModifiedBSPTree> bspTreeOfModel = vtkSmartPointer<vtkModifiedBSPTree>::New(); 
-  stripper->Update();
-  bspTreeOfModel->SetDataSet(stripper->GetOutput()); 
-  //bspTreeOfModel->SetMaxLevel(12); 
-  //bspTreeOfModel->SetNumberOfCellsPerNode(16);
-  bspTreeOfModel->BuildLocator(); 
+  
+  //bspTreeOfModel->SetTolerance(1e-5);
+  
+  //this->ModelLocalizer->SetDataSet(this->ModelStripperFilter->GetOutput()); 
+  this->ModelLocalizer->SetDataSet(modelModel); 
+
+
+  this->ModelLocalizer->SetMaxLevel(24); 
+  this->ModelLocalizer->SetNumberOfCellsPerNode(32);
+  this->ModelLocalizer->BuildLocator(); 
   vtkSmartPointer<vtkPoints> scanLineIntersectionWithModel = vtkSmartPointer<vtkPoints>::New(); 
 
   //
@@ -192,37 +211,39 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     double scanLineEndPoint_Model[4] = {0,0,0,1};
     imageToModelMatrix->MultiplyPoint(scanLineStartPoint_Image,scanLineStartPoint_Model);
     imageToModelMatrix->MultiplyPoint(scanLineEndPoint_Image,scanLineEndPoint_Model);
-    bspTreeOfModel->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model,NULL,intersectionPoints,NULL);
+    intersectionPoints->Reset();
+    
+    //const double startTime = vtkAccurateTimer::GetSystemTime(); 
+    this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model,NULL,intersectionPoints,NULL);
+    //const double stopTime = vtkAccurateTimer::GetSystemTime(); 
+    //LOG_INFO("this->ModelLocalizer->IntersectWithLine: "<<(stopTime-startTime)*1000<<" msec");
     vtkIdType numIntersectionPoints = intersectionPoints->GetNumberOfPoints(); 
 
     //vtkIdType id=bspTreeOfModel->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, tolerance, t, x, intersectionPoint, subId); 
     LOG_TRACE("scanLineIndex="<<scanLineIndex<<", numIntersectionPoints="<<numIntersectionPoints); //<<", intersectionPoint=["<<intersectionPoint[0]<<","<<intersectionPoint[1]<<","<<intersectionPoint[2]);
 
-    if (scanLineIndex>77)
-    { double *point1 = intersectionPoints->GetPoint(0); 
-    double *point2 = intersectionPoints->GetPoint(1); 
-    int i=0;
-    }
-
-
     int *scanLine= new int[numPixels]; 
     double scanLineIntersectionPoint_Image[4] = {0,0,0,1}; 
 
     // may need new container for ... ->GetPoint...  not 4 elements in array
-    const int INSIDE_OBJECT_COLOUR= 20; 
-    const int OUTSIDE_OBJECT_COLOUR= 155; 
+    const unsigned char INSIDE_OBJECT_COLOUR = 20; 
+    const unsigned char OUTSIDE_OBJECT_COLOUR = 155; 
 
-    int pixelColour = OUTSIDE_OBJECT_COLOUR; // grey
+    unsigned char pixelColour = OUTSIDE_OBJECT_COLOUR; // grey
 
     int currentPixelPos=simulatedUsImageExtent[0];
     bool isInsideObject=false;
+    int scanLineExtent[6]={simulatedUsImageExtent[0],simulatedUsImageExtent[1],scanLineIndex,scanLineIndex,simulatedUsImageExtent[4],simulatedUsImageExtent[5]};
+    unsigned char* dstPixelAddress=(unsigned char*)simulatedUsImage->GetScalarPointerForExtent(scanLineExtent);
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
       int endOfSegmentPixelPos=currentPixelPos;
       if(intersectionIndex<numIntersectionPoints)
       {
-        this->ModelToImageMatrix->MultiplyPoint(intersectionPoints->GetPoint(intersectionIndex),scanLineIntersectionPoint_Image); 
+        double *intersectionPoint=intersectionPoints->GetPoint(intersectionIndex);
+        double scanLineIntersectionPoint_Model[4]={intersectionPoint[0],intersectionPoint[1],intersectionPoint[2],1};
+        this->ModelToImageMatrix->MultiplyPoint(scanLineIntersectionPoint_Model,scanLineIntersectionPoint_Image); 
         endOfSegmentPixelPos=scanLineIntersectionPoint_Image[0];
       }
       else
@@ -232,12 +253,14 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       }
       pixelColour=isInsideObject?INSIDE_OBJECT_COLOUR:OUTSIDE_OBJECT_COLOUR;
 
-      LOG_DEBUG("Segment from "<<currentPixelPos<<" to "<<endOfSegmentPixelPos);
+      //LOG_DEBUG("Segment from "<<currentPixelPos<<" to "<<endOfSegmentPixelPos);
 
       // fill the segment with const values
       while (currentPixelPos<=endOfSegmentPixelPos)
       {
-        simulatedUsImage->SetScalarComponentFromDouble(currentPixelPos, scanLineIndex,0,0,pixelColour); 
+        //simulatedUsImage->SetScalarComponentFromDouble(currentPixelPos, scanLineIndex,0,0,pixelColour); 
+        *dstPixelAddress=pixelColour;
+        dstPixelAddress++;
         currentPixelPos++;
       }
       isInsideObject=!isInsideObject;
