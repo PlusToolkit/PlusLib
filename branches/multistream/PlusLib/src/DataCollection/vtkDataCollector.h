@@ -76,6 +76,11 @@ public:
   bool GetTrackingEnabled() const;
 
   /*
+    Does the system have a video device connected
+  */
+  bool GetVideoEnabled() const;
+
+  /*
     Is the system connected?
   */
   bool GetConnected() const;
@@ -96,6 +101,12 @@ public:
   PlusStatus GetDevice(vtkPlusDevice* &aDevice, const std::string &aDeviceId) const;
 
   /*!
+    Allow iteration over devices
+  */
+  DeviceCollectionConstIterator GetDeviceConstIteratorBegin() const;
+  DeviceCollectionConstIterator GetDeviceConstIteratorEnd() const;
+
+  /*!
     Very important function, requests the latest tracked frame from the data collector
     The data collector can only process this if a device exists that can output tracked frames.
     So far, we define this as a virtual device to perform this function specifically.
@@ -111,39 +122,56 @@ public:
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
 
   /*!
+    Pass this request on to the selected stream mixer
+  */
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
+
+  /*!
     Have each device dump their buffers to disk
     \param aDirectory directory to dump to
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
   PlusStatus DumpBuffersToDirectory( const char * aDirectory );
 
+  /*!
+    Get tracking data in a tracked frame list since time specified
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+  */
+  PlusStatus GetTrackingData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList);
+
+  /*!
+    Get video data in a tracked frame list since time specified
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+  */
+  virtual PlusStatus GetVideoData(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
+
   /*
   * Functions to manage the currently active tracked frame producer
   */
-  PlusStatus GetTrackedFrameProducers( std::vector<vtkVirtualStreamMixer*> &OutVector ) const;
-  PlusStatus SetSelectedTrackedFrameProducer( const std::string &aDeviceId );
-  PlusStatus GetSelectedTrackedFrameProducer( vtkPlusDevice* &aDevice );
+  PlusStatus GetStreamMixers( std::vector<vtkVirtualStreamMixer*> &OutVector ) const;
+  PlusStatus SetSelectedStreamMixer( const std::string &aDeviceId );
+  PlusStatus GetSelectedStreamMixer( vtkVirtualStreamMixer* &aDevice );
 
   /*
-  * Functions to pass on to the active tracked frame producer
+  * Functions to pass on to the active stream mixer
   */
   bool GetTrackingDataAvailable() const;
   bool GetVideoDataAvailable() const;
+  PlusStatus GetFrameSize(int aDim[2]);
+  PlusStatus GetFrameRate( double& frameRate ) const;
+  vtkImageData* GetBrightnessOutput();
+  PlusStatus GetBrightnessFrameSize(int aDim[2]);
+  PlusStatus SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec );
+
+  PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
+  PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);
 
   /*! Set startup delay in sec to give some time to the buffers for proper initialization */
   vtkSetMacro(StartupDelaySec, double); 
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
-
-  /*! Get the Tracking only flag */
-  //vtkGetMacro(TrackingEnabled,bool);
-  /*! Set the Tracking only flag */
-  //void SetTrackingOnly(bool);
-
-  /*! Get the Video only flag */
-  //vtkGetMacro(VideoEnabled,bool);
-  /*! Set the Video only flag */
-  //void SetVideoOnly(bool);
 
 protected:
   vtkDataCollector();
@@ -158,8 +186,6 @@ protected:
 
   bool Connected;
   bool Started;
-  bool TrackingEnabled;
-  bool VideoEnabled;
 
 private:
   vtkDataCollector(const vtkDataCollector&);

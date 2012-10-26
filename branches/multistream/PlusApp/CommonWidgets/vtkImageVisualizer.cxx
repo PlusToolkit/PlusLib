@@ -4,7 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusConfigure.h"
 #include "vtkConeSource.h"
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
@@ -14,6 +13,7 @@ See License.txt for details.
 #include "vtkRenderWindow.h"
 #include "vtkSphereSource.h"
 #include "vtkTextProperty.h"
+#include "vtkVirtualStreamMixer.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -487,7 +487,8 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    if( this->DataCollector->GetVideoSource() != NULL )
+    vtkVirtualStreamMixer* aDevice = NULL;
+    if( this->DataCollector->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS )
     {
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
     }

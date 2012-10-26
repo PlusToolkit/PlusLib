@@ -121,7 +121,7 @@ public:
   vtkImageData* GetBrightnessOutput();
 
   /*! Return the dimensions of the brightness frame size */
-  void GetBrightnessFrameSize(int aDim[2]);
+  PlusStatus GetBrightnessFrameSize(int aDim[2]);
 
   /*!
     Answer the question: are you a tracker?
@@ -188,7 +188,8 @@ public:
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
-  void SetLocalTimeOffsetSec( double aLocalTimeOffsetSec ); 
+  void SetLocalTimeOffsetSec( double aTimeOffsetSec );
+  void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -227,10 +228,8 @@ public:
   double InternalUpdateRate;  
   //ETX
 
-  /*! Get the acquisition rate */
-  vtkGetMacro(AcquisitionRate, double);
-
   /*! Set the acquisition rate */
+  virtual double GetAcquisitionRate() const;
   PlusStatus SetAcquisitionRate(double aRate);
 
   /*! Get whether recording is underway */
@@ -316,13 +315,13 @@ public:
   virtual PlusStatus SetFrameSize(int dim[2]) { return this->SetFrameSize(dim[0], dim[1]); };
 
   /*! Get the full-frame size */
-  virtual int* GetFrameSize();
+  //virtual int* GetFrameSize();
 
   /*! Get the full-frame size */
-  virtual void GetFrameSize(int &x, int &y);
+  virtual PlusStatus GetFrameSize(int &x, int &y);
 
   /*! Get the full-frame size */
-  virtual void GetFrameSize(int dim[2]);
+  virtual PlusStatus GetFrameSize(int dim[2]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType);

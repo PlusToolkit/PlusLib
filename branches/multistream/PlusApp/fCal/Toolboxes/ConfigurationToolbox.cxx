@@ -5,14 +5,13 @@
 =========================================================Plus=header=end*/ 
 
 #include "ConfigurationToolbox.h"
-
 #include "DeviceSetSelectorWidget.h"
 #include "FidPatternRecognition.h"
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
-#include "vtkTracker.h"
 #include "vtkLineSource.h"
 #include "vtkPhantomRegistrationAlgo.h"
+#include "vtkVirtualStreamMixer.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -222,11 +221,21 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->hide();
       delete connectDialog;
 
-      vtkTracker* tracker = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTracker();
-      if( tracker != NULL )
+      vtkVirtualStreamMixer* aDevice = NULL;
+      if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
       {
-        m_DeviceSetSelectorWidget->ShowResetTrackerButton(tracker->IsResettable());
+        LOG_ERROR("No selected stream mixer. Unable to determine if it has a tracker.");
       }
+      else
+      {
+        if( aDevice != NULL && aDevice->GetTrackingDataAvailable() )
+        {
+          m_DeviceSetSelectorWidget->ShowResetTrackerButton(aDevice->IsResettable());
+        }
+      }
+
+      // Rebuild the devices menu to 
+      m_ParentMainWindow->BuildDevicesMenu();
 
       // Re-enable main window
        m_ParentMainWindow->setEnabled(true);
@@ -238,6 +247,9 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
+    // Rebuild the devices menu to clear out any previous devices
+    m_ParentMainWindow->BuildDevicesMenu();
+
     m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
     m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
@@ -563,10 +575,16 @@ void ConfigurationToolbox::ResetTracker()
 {
   if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
   {
-    vtkTracker* tracker = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTracker();
-    if( tracker != NULL )
+    vtkVirtualStreamMixer* aDevice = NULL;
+    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
     {
-      tracker->Reset();
+      LOG_ERROR("No selected stream mixer. Unable to reset tracker.");
+      return;
+    }
+
+    if( aDevice != NULL )
+    {
+      aDevice->Reset();
     }
   }
 }

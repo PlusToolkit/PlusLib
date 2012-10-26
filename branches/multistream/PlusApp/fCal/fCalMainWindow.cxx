@@ -4,27 +4,24 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "fCalMainWindow.h"
-
-#include "vtkVisualizationController.h"
-#include "vtkPlusDevice.h"
-#include "ConfigurationToolbox.h"
-#include "StylusCalibrationToolbox.h"
-#include "PhantomRegistrationToolbox.h"
-#include "TemporalCalibrationToolbox.h"
-#include "SpatialCalibrationToolbox.h"
 #include "CapturingToolbox.h"
-#include "VolumeReconstructionToolbox.h"
-#include "StatusIcon.h"
 #include "ConfigFileSaverDialog.h"
-
-#include <QTimer>
-#include <QMenu>
-#include <QLabel>
-#include <QProgressBar>
-#include <QFileDialog>
-
+#include "ConfigurationToolbox.h"
+#include "PhantomRegistrationToolbox.h"
+#include "SpatialCalibrationToolbox.h"
+#include "StatusIcon.h"
+#include "StylusCalibrationToolbox.h"
+#include "TemporalCalibrationToolbox.h"
+#include "VolumeReconstructionToolbox.h"
+#include "fCalMainWindow.h"
 #include "vtkRenderWindow.h"
+#include "vtkVirtualStreamMixer.h"
+#include "vtkVisualizationController.h"
+#include <QFileDialog>
+#include <QLabel>
+#include <QMenu>
+#include <QProgressBar>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 
@@ -738,19 +735,19 @@ void fCalMainWindow::BuildDevicesMenu()
   m_3DActionList.push_back(separator);
   m_3DActionList.push_back(m_ShowPhantomModelAction);
 
-  vtkDataCollector::DeviceCollection aCollection;
-  if( this->GetVisualizationController()->GetDataCollector()->GetTrackedFrameProducers(aCollection) != PLUS_SUCCESS )
+  StreamMixerCollection aCollection;
+  if( this->GetVisualizationController()->GetDataCollector()->GetStreamMixers(aCollection) != PLUS_SUCCESS )
   {
-    LOG_ERROR("No tracked frame producers defined. Unable to select a device to visualize.");
+    // Data collector might be disconnected
     return;
   }
 
   separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
   // now add an entry for each device
-  for( vtkDataCollector::DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  for( StreamMixerCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
-    vtkPlusDevice* device = *it;
+    vtkVirtualStreamMixer* device = *it;
     QCustomAction* action = new QCustomAction(QString(device->GetDeviceId()), ui.pushButton_ShowDevices);
     connect(action, SIGNAL(triggered()), this, SLOT(DeviceSelected(device)));
     m_3DActionList.push_back(action);
@@ -763,5 +760,5 @@ void fCalMainWindow::DeviceSelected( vtkPlusDevice* aDevice )
 {
   LOG_TRACE("fCalMainWindow::DeviceSelected(" << aDevice->GetDeviceId() << ")");
 
-  aDevice->IsA("beast");
+  LOG_INFO("device selected " << aDevice->GetDeviceId() << ". complete this function.");
 }

@@ -169,6 +169,11 @@ public:
   /*! Reset show devices toggle button (on disconnect from devices) */
   void ResetShowDevices();
 
+  /*!
+  * Dynamically build the devices menu based on the values returned from the data collector
+  */
+  void BuildDevicesMenu();
+
 protected:
   /*!
   * Create toolboxes
@@ -179,11 +184,6 @@ protected:
   * Set up status bar (label and progress)
   */
   void SetupStatusBar();
-
-  /*!
-  * Dynamically build the devices menu based on the values returned from the data collector
-  */
-  void BuildDevicesMenu();
 
   /*!
   * Filters events if this object has been installed as an event filter for the watched object

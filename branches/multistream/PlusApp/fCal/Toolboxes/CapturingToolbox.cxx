@@ -5,22 +5,16 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CapturingToolbox.h"
-
-#include "fCalMainWindow.h"
-#include "vtkVisualizationController.h"
+#include "TrackedFrame.h"
 #include "VolumeReconstructionToolbox.h"
-
-#include "vtkPlusVideoSource.h" // Only to get maximum frame rate in device mode
-#include "vtkTracker.h" // Only to get maximum frequency in device mode
-
+#include "fCalMainWindow.h"
+#include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
+#include "vtkTrackedFrameList.h"
+#include "vtkVisualizationController.h"
+#include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTimer>
-
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-
-#include "vtksys/SystemTools.hxx"
 
 //-----------------------------------------------------------------------------
 

@@ -6,22 +6,19 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-
 #include "vtkDirectory.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
-#include "vtkVisualizationController.h"
-#include "vtkPlusVideoSource.h" // Only for dumping buffers
+#include "vtkPlusStreamBuffer.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTracker.h" // Only for dumping buffers
 #include "vtkTransform.h"
-#include "vtkPlusDataBuffer.h" // Only for dumping buffers
+#include "vtkVirtualStreamMixer.h"
+#include "vtkVisualizationController.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
-
 #include <QApplication>
 #include <QEvent>
 #include <QTimer>
@@ -412,7 +409,8 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL )
+  vtkVirtualStreamMixer* aDevice = NULL;
+  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS )
   {
     // Force update of the brightness image in the DataCollector,
     // because it is the image that the image actors show
@@ -601,7 +599,8 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 PlusStatus vtkVisualizationController::ConnectInput()
 {
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetVideoSource() != NULL )
+  vtkVirtualStreamMixer* aDevice = NULL;
+  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS )
   {
     this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;

@@ -223,7 +223,8 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // expected data type
   this->FrameNumber = frmnum; 
 
-  const int* frameSize = this->GetFrameSize(); 
+  int frameSize[2];
+  this->GetFrameSize(frameSize); 
   int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 

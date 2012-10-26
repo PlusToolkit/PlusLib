@@ -119,9 +119,9 @@ public:
   ItemStatus GetBufferIndexFromTime(const double time, int& bufferIndex );
 
   /*! Get buffer item unique ID */
-  virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->DataBuffer->GetOldestItemUidInBuffer(); }
-  virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->DataBuffer->GetLatestItemUidInBuffer(); }
-  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->DataBuffer->GetItemUidFromTime(time, uid); }
+  virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->StreamBuffer->GetOldestItemUidInBuffer(); }
+  virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->StreamBuffer->GetLatestItemUidInBuffer(); }
+  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->StreamBuffer->GetItemUidFromTime(time, uid); }
 
   /*! Set the local time offset in seconds (global = local + offset) */
   virtual void SetLocalTimeOffsetSec(double offsetSec);
@@ -129,7 +129,7 @@ public:
   virtual double GetLocalTimeOffsetSec();
 
   /*! Get the number of items in the buffer */
-  virtual int GetNumberOfItems() { return this->DataBuffer->GetNumberOfItems(); }
+  virtual int GetNumberOfItems() { return this->StreamBuffer->GetNumberOfItems(); }
 
   /*!
     Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
@@ -138,7 +138,7 @@ public:
     If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
     stored at the specified address.
   */
-  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL) { return this->DataBuffer->GetFrameRate(ideal, framePeriodStdevSecPtr); }
+  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL) { return this->StreamBuffer->GetFrameRate(ideal, framePeriodStdevSecPtr); }
 
   /*! Set maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   vtkSetMacro(MaxAllowedTimeDifference, double); 
@@ -183,7 +183,9 @@ public:
   /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(int frameSize[2]); 
   /*! Get the frame size in pixel  */
-  vtkGetVector2Macro(FrameSize, int); 
+  virtual int* GetFrameSize();
+  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2);
+  virtual PlusStatus GetFrameSize (int _arg[2]);
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType); 
@@ -250,9 +252,9 @@ protected:
   /*! Image orientation (MF, MN, ...) */
   US_IMAGE_ORIENTATION ImageOrientation; 
 
-  typedef vtkTimestampedCircularBuffer<StreamBufferItem> DataBufferType;
+  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamBufferType;
   /*! Timestamped circular buffer that stores the last N frames */
-  DataBufferType* DataBuffer; 
+  StreamBufferType* StreamBuffer; 
 
   /*! Maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   double MaxAllowedTimeDifference;

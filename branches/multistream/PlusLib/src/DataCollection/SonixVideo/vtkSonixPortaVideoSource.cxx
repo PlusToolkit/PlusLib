@@ -270,7 +270,8 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // AR: update the number of frames.
   this->FrameNumber++;
   // AR: borrowed from sonixvideo
-  const int* frameSize = this->GetFrameSize(); 
+  int frameSize[2];
+  this->GetFrameSize(frameSize);
   int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
   

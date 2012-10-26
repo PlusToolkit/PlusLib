@@ -307,16 +307,19 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
   }
 }
 
-//-----------------------------------------------------------------------------
-void vtkPlusDevice::SetLocalTimeOffsetSec( double aLocalTimeOffsetSec )
+//----------------------------------------------------------------------------
+void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  LOG_TRACE("vtkPlusDevice::SetToolsLocalTimeOffsetSec(" << aLocalTimeOffsetSec << ")" ); 
+  this->Buffer->SetLocalTimeOffsetSec(aTimeOffsetSec);
+}
 
-  this->Buffer->SetLocalTimeOffsetSec(aLocalTimeOffsetSec);
-
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+//----------------------------------------------------------------------------
+void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
+{
+  for( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
   {
-    it->second->GetBuffer()->SetLocalTimeOffsetSec(aLocalTimeOffsetSec); 
+    vtkPlusStreamTool* tool = it->second;
+    tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
 }
 
@@ -612,6 +615,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
   {
     LOG_INFO("Device local time offset: " << 1000*localTimeOffsetSec << "ms" );
     this->SetLocalTimeOffsetSec(localTimeOffsetSec);
+    this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
   }
   else if ( RequireLocalTimeOffsetSecInDeviceSetConfiguration )
   {
@@ -733,7 +737,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
   for ( int device = 0; device < dataCollectionConfig->GetNumberOfNestedElements(); device++ )
   {
     vtkXMLDataElement* deviceDataElement = dataCollectionConfig->GetNestedElement(device);
-    if( STRCASECMP(deviceDataElement->GetName(), "Device") == 0 && STRCASECMP(deviceDataElement->GetAttribute("Id"), this->GetDeviceId()) )
+    if( STRCASECMP(deviceDataElement->GetName(), "Device") == 0 && deviceDataElement->GetAttribute("Id") != NULL && STRCASECMP(deviceDataElement->GetAttribute("Id"), this->GetDeviceId()) )
     {
       break;
     }
@@ -1212,10 +1216,12 @@ void vtkPlusDevice::ClearAllBuffers()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
+PlusStatus vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
 {
   aDim[0]=this->BrightnessFrameSize[0];
   aDim[1]=this->BrightnessFrameSize[1];
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1534,30 +1540,36 @@ PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-int* vtkPlusDevice::GetFrameSize()
+/*int* vtkPlusDevice::GetFrameSize()
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
   return this->Buffer->GetFrameSize();
-}
+}*/
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::GetFrameSize(int &x, int &y)
+PlusStatus vtkPlusDevice::GetFrameSize(int &x, int &y)
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
   int dim[2];
-  this->GetFrameSize(dim);
+  if( this->GetFrameSize(dim) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get frame size from the device.");
+    return PLUS_FAIL;
+  }
   x = dim[0];
   y = dim[1];
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::GetFrameSize(int dim[2])
+PlusStatus vtkPlusDevice::GetFrameSize(int dim[2])
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
-  this->Buffer->GetFrameSize(dim);
+  return this->Buffer->GetFrameSize(dim);
 }
 
 //----------------------------------------------------------------------------
@@ -1620,7 +1632,14 @@ PlusStatus vtkPlusDevice::AddInputStream( vtkPlusStream* aStream )
       LOG_WARNING("Duplicate addition of an input stream.");
       return PLUS_SUCCESS;
     }
-
-    InputStreams.push_back(aStream);
   }
+
+  InputStreams.push_back(aStream);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkPlusDevice::GetAcquisitionRate() const
+{
+  return this->AcquisitionRate;
 }

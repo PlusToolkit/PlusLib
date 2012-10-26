@@ -28,6 +28,8 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
 
   PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
+  StreamBufferContainerConstIterator GetBuffersStartConstIterator() const;
+  StreamBufferContainerConstIterator GetBuffersEndConstIterator() const;
   PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
 
   vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);

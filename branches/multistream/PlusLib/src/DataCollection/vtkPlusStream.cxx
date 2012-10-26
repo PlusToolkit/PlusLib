@@ -16,7 +16,6 @@ vtkCxxRevisionMacro(vtkPlusStream, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusStream);
 
 //----------------------------------------------------------------------------
-
 vtkPlusStream::vtkPlusStream(void)
 : OwnerDevice(NULL)
 , StreamId(NULL)
@@ -27,7 +26,6 @@ vtkPlusStream::vtkPlusStream(void)
 }
 
 //----------------------------------------------------------------------------
-
 vtkPlusStream::~vtkPlusStream(void)
 {
   // A stream is only responsible for cleaning up non-tool streams
@@ -35,7 +33,6 @@ vtkPlusStream::~vtkPlusStream(void)
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 {
   // Read the stream element, build the stream
@@ -76,7 +73,6 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 {
   if( StreamBuffers.size() < port )
@@ -91,7 +87,6 @@ PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPlusStream::GetTool( vtkPlusStreamTool*& aTool, const char* toolName )
 {
   if( OwnerDevice != NULL )
@@ -101,4 +96,16 @@ PlusStatus vtkPlusStream::GetTool( vtkPlusStreamTool*& aTool, const char* toolNa
 
   LOG_ERROR("Owner device not set in stream.");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+StreamBufferContainerConstIterator vtkPlusStream::GetBuffersStartConstIterator() const
+{
+  return this->StreamBuffers.begin();
+}
+
+//----------------------------------------------------------------------------
+StreamBufferContainerConstIterator vtkPlusStream::GetBuffersEndConstIterator() const
+{
+  return this->StreamBuffers.end();
 }

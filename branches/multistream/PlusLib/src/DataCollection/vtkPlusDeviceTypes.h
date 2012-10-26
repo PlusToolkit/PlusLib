@@ -7,10 +7,11 @@ See License.txt for details.
 #ifndef __vtkPlusDeviceTypes_h
 #define __vtkPlusDeviceTypes_h
 
+class vtkPlusDevice;
 class vtkPlusStream;
 class vtkPlusStreamBuffer;
 class vtkPlusStreamTool;
-class vtkPlusDevice;
+class vtkVirtualStreamMixer;
 
 #include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"
@@ -52,6 +53,10 @@ typedef ToolContainerType::const_iterator ToolContainerConstIteratorType;
 typedef std::vector<vtkPlusDevice*> DeviceCollection;
 typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
 typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
+
+typedef std::vector<vtkVirtualStreamMixer*> StreamMixerCollection;
+typedef std::vector<vtkVirtualStreamMixer*>::iterator StreamMixerCollectionIterator;
+typedef std::vector<vtkVirtualStreamMixer*>::const_iterator StreamMixerCollectionConstIterator;
 
 /*!
   \class DataBufferItem 

@@ -154,7 +154,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif 
 
   // Virtual Devices
-  DeviceTypes["VirtualTrackedFrameProducer"]=(PointerToDevice)&vtkVirtualStreamMixer::New;
+  DeviceTypes["VirtualStreamMixer"]=(PointerToDevice)&vtkVirtualStreamMixer::New;
 }
 
 //----------------------------------------------------------------------------
