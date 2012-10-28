@@ -24,9 +24,29 @@
 
   The inputted data--video and tracker--is assumed to be collected by a US probe imaging a planar object. Furthermore,
   it is assumed that the probe is undergoing uni-dirctional periodic motion in the direction perpendicular to the
-  plane's face (E.g. moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).
+  plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).
   The inputted data is assumed to contain at least five full periods (although the algorithm may work for fewer periods
   it has not been tested under these conditions). 
+
+  The time offset is determined by computing the time offset where the correlation between the fixed signal (extracted from
+  the video) and the moving signal (extracted from the tracker) is maximized. For the correlation computation the moving
+  signal is linearly interpolated at the time positions where the fixed signal is known.
+
+  The fixed and moving signal is cropped to the common time range. The moving signal is further cropped to the common range
+  with "max tracker lag" margin.
+  
+  <PRE>
+        -------------------------------   fixed (video)
+            -----------------------       moving (tracking)
+
+        |                             |
+        ^                             ^
+                 common range          
+
+        |   |                     |   |
+        ^   ^                     ^   ^
+    max tracker lag           max tracker lag
+  </PRE>
 
   \ingroup PlusLibCalibrationAlgorithm
 */
@@ -59,6 +79,12 @@ public:
 
   /*! Sets the US video frames; frames are assumed to be the video frames */  
   PlusStatus SetVideoFrames(vtkTrackedFrameList* videoFrames);
+
+  /*! Sets the position signal that is computed externally instead of extracting it from US video frames. */  
+  PlusStatus SetFixedSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues); 
+
+  /*! Sets the position signal that is computed externally instead of extracting it from tracker frames. */  
+  PlusStatus SetMovingSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues);
 
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
