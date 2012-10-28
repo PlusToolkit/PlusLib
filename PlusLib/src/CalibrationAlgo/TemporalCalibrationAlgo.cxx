@@ -754,3 +754,39 @@ PlusStatus TemporalCalibration::ConstructTableSignal(std::deque<double> &x, std:
 
   return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::SetFixedSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues)
+{
+  if (signalTimestamps.empty() || signalValues.empty())
+  {
+    LOG_ERROR("The provided fixed signal value or timestamp array is empty");
+    return PLUS_FAIL;
+  }
+  if (signalTimestamps.size()!=signalValues.size())
+  {
+    LOG_ERROR("The provided fixed signal value and timestamp arrays have different sizes");
+    return PLUS_FAIL;
+  }
+  m_FixedSignalTimestamps=signalTimestamps;
+  m_FixedSignalValues=signalValues;
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::SetMovingSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues)
+{
+  if (signalTimestamps.empty() || signalValues.empty())
+  {
+    LOG_ERROR("The provided moving signal value or timestamp array is empty");
+    return PLUS_FAIL;
+  }
+  if (signalTimestamps.size()!=signalValues.size())
+  {
+    LOG_ERROR("The provided moving signal value and timestamp arrays have different sizes");
+    return PLUS_FAIL;
+  }
+  m_MovingSignalTimestamps=signalTimestamps;
+  m_MovingSignalValues=signalValues;
+  return PLUS_SUCCESS;
+}
