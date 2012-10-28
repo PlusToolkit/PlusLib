@@ -7,21 +7,22 @@ ______________________________________________________________
 
 How to cite Plus:
 
-Lasso, A., T. Heffter, C. Pinter, T. Ungi, T. K. Chen, A. Boucharin, and G. Fichtinger,
-"PLUS: An open-source toolkit for developing ultrasound-guided intervention systems",
-4th Image Guided Therapy Workshop, vol. 4, pp. 103, 2011.
+Lasso, A., T. Heffter, C. Pinter, T. Ungi, and G. Fichtinger,
+"Implementation of the PLUS open-source toolkit for
+translational research of ultrasound-guided intervention
+systems", Medical Image Computing and Computer-Assisted
+Intervention (MICCAI 2012) - Systems and Architectures
+for Computer Assisted Interventions, pp. 1-12, 2012
 
-@INPROCEEDINGS{Lasso2011,
-  author = {Andras Lasso and Tamas Heffter and Csaba Pinter and Ungi, Tamas and
-	Thomas K. Chen and Alexis Boucharin and Gabor Fichtinger},
-  title = {PLUS: An open-source toolkit for developing ultrasound-guided intervention
-	systems},
-  booktitle = {4th Image Guided Therapy Workshop},
-  year = {2011},
-  volume = {4},
-  pages = {103},
-  owner = {lasso},
-  timestamp = {2011.10.24}
+@INPROCEEDINGS{Lasso2012d,
+  author = {Andras Lasso and Tamas Heffter and Csaba Pinter and Ungi, Tamas and	Gabor Fichtinger},
+  title = {Implementation of the PLUS open-source toolkit for translational research of ultrasound-guided intervention systems},
+  booktitle = { Medical Image Computing and Computer-Assisted Intervention (MICCAI 2012) - Systems and Architectures for Computer Assisted Interventions },
+  year = {2012},
+  pages = {1-12},
+  address = {Nice, France},
+  month = {10/2012},
+  url = {http://hdl.handle.net/10380/3367}
 }
 ______________________________________________________________
 
