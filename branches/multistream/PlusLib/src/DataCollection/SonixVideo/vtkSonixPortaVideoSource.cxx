@@ -272,7 +272,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // AR: borrowed from sonixvideo
   int frameSize[2];
   this->GetFrameSize(frameSize);
-  int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
+  int frameBufferBytesPerPixel = this->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
   
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -301,7 +301,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str(); 
 
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = this->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
   return status;
 }

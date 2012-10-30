@@ -230,7 +230,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     vtkPlusStreamTool* tool=it->second;
 
     StreamBufferItem bufferItem;  
-    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetDataBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
+    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
     if ( itemStatus != ITEM_OK )
     {
       if ( itemStatus == ITEM_NOT_AVAILABLE_YET )

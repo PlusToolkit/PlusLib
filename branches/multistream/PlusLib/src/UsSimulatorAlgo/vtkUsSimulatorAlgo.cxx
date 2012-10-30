@@ -4,7 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#define USE_vtkPolyDataToOrientedImageStencil
+//#define USE_vtkPolyDataToOrientedImageStencil
+#define USE_vtkModifiedBSPTree
 
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
@@ -33,6 +34,10 @@ See License.txt for details.
 #include "vtkPolyDataToOrientedImageStencil.h"
 #endif
 
+#ifdef USE_vtkModifiedBSPTree
+#include "vtkModifiedBSPTree.h"
+#endif 
+
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
@@ -56,6 +61,18 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->ModelFileName = NULL;
   this->ImageCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
+
+  this->ModelNormalFilter=vtkPolyDataNormals::New();
+  this->ModelNormalFilter->ConsistencyOn();
+
+  this->ModelTriangleFilter=vtkTriangleFilter::New();
+  this->ModelTriangleFilter->SetInputConnection(this->ModelNormalFilter->GetOutputPort());
+
+  this->ModelStripperFilter=vtkStripper::New();
+  this->ModelStripperFilter->SetInputConnection(this->ModelTriangleFilter->GetOutputPort());  
+
+
+  this->ModelLocalizer=vtkModifiedBSPTree::New();
 }
 
 //-----------------------------------------------------------------------------
@@ -66,6 +83,21 @@ vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
   SetModelFileName(NULL); 
   SetImageCoordinateFrame(NULL); 
   SetReferenceCoordinateFrame(NULL); 
+  if (this->ModelNormalFilter!=NULL)
+  {
+    this->ModelNormalFilter->Delete();
+    this->ModelNormalFilter=NULL;
+  }
+  if (this->ModelTriangleFilter!=NULL)
+  {
+    this->ModelTriangleFilter->Delete();
+    this->ModelTriangleFilter=NULL;
+  }
+  if (this->ModelStripperFilter!=NULL)
+  {
+    this->ModelStripperFilter->Delete();
+    this->ModelStripperFilter=NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -85,6 +117,7 @@ int vtkUsSimulatorAlgo::FillInputPortInformation(int, vtkInformation * info)
 int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
 {
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData"); 
+
   return 1; 
 }
 
@@ -92,11 +125,11 @@ int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
 int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector** inputVector,vtkInformationVector* outputVector)
 {
   if (this->ModelFileName == NULL)
-    {
-	    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration nor is set as input!");
-      return PLUS_FAIL;     
-    }
-  
+  {
+    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration nor is set as input!");
+    return PLUS_FAIL;     
+  }
+
   if (this->ModelToImageMatrix == NULL)
   {
     LOG_ERROR(" No Model to US image transform specified " ); 
@@ -112,31 +145,136 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
 
-  vtkSmartPointer<vtkPolyData> modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData* modelModel = vtkPolyData::SafeDownCast(inInfoPort->Get(vtkDataObject::DATA_OBJECT()));
   if (modelModel == NULL)
   {
     LOG_ERROR("Model specified is empty");
     return 1; 
   }
 
-  vtkSmartPointer<vtkImageData> simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+  vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
   if (simulatedUsImage == NULL)
   {
     LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
     return 1; 
   }
+  simulatedUsImage->SetExtent(0,this->FrameSize[0]-1,0,this->FrameSize[1]-1,0,0);
+  simulatedUsImage->SetScalarTypeToUnsignedChar();
+  simulatedUsImage->AllocateScalars();
 
-  vtkSmartPointer<vtkPolyDataNormals> normalFilter=vtkSmartPointer<vtkPolyDataNormals>::New();
-  normalFilter->SetInput(modelModel);
-  normalFilter->ConsistencyOn();
+  // Make sure that we have a clean triangle strip polydata
+  this->ModelNormalFilter->SetInput(modelModel);    
+  //this->ModelStripperFilter->Update();
 
-  // Make sure that we have a clean triangle polydata
-  vtkSmartPointer<vtkTriangleFilter> triangle=vtkSmartPointer<vtkTriangleFilter>::New();
-  triangle->SetInputConnection(normalFilter->GetOutputPort());
+#if defined USE_vtkModifiedBSPTree 
 
-  // Convert to triangle strip
-  vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
-  stripper->SetInputConnection(triangle->GetOutputPort());
+  // create container for scan line with set length. 
+  int  simulatedUsImageExtent[6] ={0,0,0,0,0,0};
+  this->StencilBackgroundImage->GetExtent(simulatedUsImageExtent);
+
+  //Generate image in the FM orientation
+  int numScanLines = std::abs(simulatedUsImageExtent[3]-simulatedUsImageExtent[2])+1;
+  int numPixels = std::abs(simulatedUsImageExtent[1]-simulatedUsImageExtent[0])+1;
+
+  vtkSmartPointer<vtkMatrix4x4> imageToModelMatrix= vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Invert(this->ModelToImageMatrix, imageToModelMatrix); 
+
+  //Create BSPTree
+  
+  //bspTreeOfModel->SetTolerance(1e-5);
+  
+  //this->ModelLocalizer->SetDataSet(this->ModelStripperFilter->GetOutput()); 
+  this->ModelLocalizer->SetDataSet(modelModel); 
+
+
+  this->ModelLocalizer->SetMaxLevel(24); 
+  this->ModelLocalizer->SetNumberOfCellsPerNode(32);
+  this->ModelLocalizer->BuildLocator(); 
+  vtkSmartPointer<vtkPoints> scanLineIntersectionWithModel = vtkSmartPointer<vtkPoints>::New(); 
+
+  //
+  // double tolerance = .1;
+
+  //// Outputs
+  //double t; // Parametric coordinate of intersection (0 (corresponding to p1) to 1 (corresponding to p2))
+  //double x[3]; // The coordinate of the intersection
+  //double intersectionPoint[4]={0,0,0,1};
+  //int subId;
+
+  vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New(); 
+
+  for(int scanLineIndex=0;scanLineIndex<numScanLines; scanLineIndex++)
+  {
+    double scanLineStartPoint_Image[4] = {simulatedUsImageExtent[0],scanLineIndex,0,1}; 
+    double scanLineEndPoint_Image[4] = {simulatedUsImageExtent[1],scanLineIndex,0,1}; 
+    double scanLineStartPoint_Model[4] = {0,0,0,1};
+    double scanLineEndPoint_Model[4] = {0,0,0,1};
+    imageToModelMatrix->MultiplyPoint(scanLineStartPoint_Image,scanLineStartPoint_Model);
+    imageToModelMatrix->MultiplyPoint(scanLineEndPoint_Image,scanLineEndPoint_Model);
+    intersectionPoints->Reset();
+    
+    //const double startTime = vtkAccurateTimer::GetSystemTime(); 
+    this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model,NULL,intersectionPoints,NULL);
+    //const double stopTime = vtkAccurateTimer::GetSystemTime(); 
+    //LOG_INFO("this->ModelLocalizer->IntersectWithLine: "<<(stopTime-startTime)*1000<<" msec");
+    vtkIdType numIntersectionPoints = intersectionPoints->GetNumberOfPoints(); 
+
+    //vtkIdType id=bspTreeOfModel->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, tolerance, t, x, intersectionPoint, subId); 
+    LOG_TRACE("scanLineIndex="<<scanLineIndex<<", numIntersectionPoints="<<numIntersectionPoints); //<<", intersectionPoint=["<<intersectionPoint[0]<<","<<intersectionPoint[1]<<","<<intersectionPoint[2]);
+
+    int *scanLine= new int[numPixels]; 
+    double scanLineIntersectionPoint_Image[4] = {0,0,0,1}; 
+
+    // may need new container for ... ->GetPoint...  not 4 elements in array
+    const unsigned char INSIDE_OBJECT_COLOUR = 20; 
+    const unsigned char OUTSIDE_OBJECT_COLOUR = 155; 
+
+    unsigned char pixelColour = OUTSIDE_OBJECT_COLOUR; // grey
+
+    int currentPixelPos=simulatedUsImageExtent[0];
+    bool isInsideObject=false;
+    int scanLineExtent[6]={simulatedUsImageExtent[0],simulatedUsImageExtent[1],scanLineIndex,scanLineIndex,simulatedUsImageExtent[4],simulatedUsImageExtent[5]};
+    unsigned char* dstPixelAddress=(unsigned char*)simulatedUsImage->GetScalarPointerForExtent(scanLineExtent);
+    for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
+    {      
+      // determine end of segment position and pixel color
+      int endOfSegmentPixelPos=currentPixelPos;
+      if(intersectionIndex<numIntersectionPoints)
+      {
+        double *intersectionPoint=intersectionPoints->GetPoint(intersectionIndex);
+        double scanLineIntersectionPoint_Model[4]={intersectionPoint[0],intersectionPoint[1],intersectionPoint[2],1};
+        this->ModelToImageMatrix->MultiplyPoint(scanLineIntersectionPoint_Model,scanLineIntersectionPoint_Image); 
+        endOfSegmentPixelPos=scanLineIntersectionPoint_Image[0];
+      }
+      else
+      {
+        // last segment, after all the intersection points
+        endOfSegmentPixelPos=simulatedUsImageExtent[1];
+      }
+      pixelColour=isInsideObject?INSIDE_OBJECT_COLOUR:OUTSIDE_OBJECT_COLOUR;
+
+      //LOG_DEBUG("Segment from "<<currentPixelPos<<" to "<<endOfSegmentPixelPos);
+
+      // fill the segment with const values
+      while (currentPixelPos<=endOfSegmentPixelPos)
+      {
+        //simulatedUsImage->SetScalarComponentFromDouble(currentPixelPos, scanLineIndex,0,0,pixelColour); 
+        *dstPixelAddress=pixelColour;
+        dstPixelAddress++;
+        currentPixelPos++;
+      }
+      isInsideObject=!isInsideObject;
+    }
+  }
+
+  //int lengthYDirection = std::abs(simulatedUsImageExtent[1]-simulatedUsImageExtent[0]+1); 
+
+  //int *scanLine= new int[numPixels]; 
+
+#else
+
+
+
 
 #ifdef USE_vtkPolyDataToOrientedImageStencil
 
@@ -149,8 +287,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   modelStencil->SetVolumeVoxelToOrientedVolumeVoxel(this->ModelToImageMatrix);  
 
 #else
-
-  // Transform model points from the MODEL coordinate system to image coordinate system
+ // Transform model points from the MODEL coordinate system to image coordinate system
   vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
   modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
   vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
@@ -181,8 +318,9 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   simulatedUsImage->DeepCopy(combinedStencilOutput); 
 
-  
-   
+
+#endif
+
 
   return 1; 
 }
@@ -214,59 +352,59 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Frame size
-	int frameSize[2] = {0}; 
-	if ( usSimulatorAlgoElement->GetVectorAttribute("FrameSize", 2, frameSize) )
-	{
+  int frameSize[2] = {0}; 
+  if ( usSimulatorAlgoElement->GetVectorAttribute("FrameSize", 2, frameSize) )
+  {
     this->FrameSize[0] = frameSize[0];
     this->FrameSize[1] = frameSize[1];
-	}
+  }
   else
   {
-		LOG_WARNING("Cannot find FrameSize attribute in the configuration");
-	}
+    LOG_WARNING("Cannot find FrameSize attribute in the configuration");
+  }
 
   // Pixel spacing
-	double spacingMmPerPixel[2] = {0};
-	if ( usSimulatorAlgoElement->GetVectorAttribute("SpacingMmPerPixel", 2, spacingMmPerPixel) )
-	{
+  double spacingMmPerPixel[2] = {0};
+  if ( usSimulatorAlgoElement->GetVectorAttribute("SpacingMmPerPixel", 2, spacingMmPerPixel) )
+  {
     this->SpacingMmPerPixel[0] = spacingMmPerPixel[0];
     this->SpacingMmPerPixel[1] = spacingMmPerPixel[1];
-	}
+  }
   else
   {
-		LOG_ERROR("Cannot find SpacingMmPerPixel attribute in the configuration");
+    LOG_ERROR("Cannot find SpacingMmPerPixel attribute in the configuration");
     return PLUS_FAIL;     
-	}
+  }
 
   // Model file name
-  
-    const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
 
-    if(modelFileName)
+  const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");
+
+  if(modelFileName)
+  {
+
+    std::string foundAbsoluteImagePath;
+    if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
- 
-      std::string foundAbsoluteImagePath;
-      if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
-      {
-        LoadModel(foundAbsoluteImagePath);  
-      }
-    
-      else
-      {
-        LOG_WARNING("Cannot find input model file!");
-     // return PLUS_FAIL; comment out, because should fail later when update is called. 
-      }
+      LoadModel(foundAbsoluteImagePath);  
     }
+
     else
     {
-      LOG_WARNING("Cannot find input model file!"); 
+      LOG_WARNING("Cannot find input model file!");
+      // return PLUS_FAIL; comment out, because should fail later when update is called. 
     }
+  }
+  else
+  {
+    LOG_WARNING("Cannot find input model file!"); 
+  }
 
   // Reference coordinate frame
   const char* imageCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ImageCoordinateFrame");
   if (imageCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetImageCoordinateFrame(imageCoordinateFrame);
@@ -275,7 +413,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   const char* referenceCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-	  LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
@@ -286,38 +424,38 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 
 PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
 {
-      this->SetModelFileName(absoluteImagePath.c_str());
-        // Load Model
-  
-      std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
-      vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
- 
-  
-  
-      if (STRCASECMP(fileExt.c_str(),".stl")==0)
-      {  
-        vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
-        modelReader->SetFileName(this->ModelFileName);
-        modelReader->Update();
-        model = modelReader->GetOutput();
-      }
-  
-      else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
-      {
-        vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-        modelReader->SetFileName(this->ModelFileName);
-        modelReader->Update();
-        model = modelReader->GetOutput();
-      }
-    
-      if (model == NULL)
-      {
-        LOG_ERROR("Model specified cannot be found, check path");
-        return PLUS_FAIL;
-      }
-   
-    this->SetInput(model);
-    return PLUS_SUCCESS;
+  this->SetModelFileName(absoluteImagePath.c_str());
+  // Load Model
+
+  std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
+  vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
+
+
+
+  if (STRCASECMP(fileExt.c_str(),".stl")==0)
+  {  
+    vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
+    modelReader->SetFileName(this->ModelFileName);
+    modelReader->Update();
+    model = modelReader->GetOutput();
+  }
+
+  else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
+  {
+    vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+    modelReader->SetFileName(this->ModelFileName);
+    modelReader->Update();
+    model = modelReader->GetOutput();
+  }
+
+  if (model == NULL)
+  {
+    LOG_ERROR("Model specified cannot be found, check path");
+    return PLUS_FAIL;
+  }
+
+  this->SetInput(model);
+  return PLUS_SUCCESS;
 }
 
 

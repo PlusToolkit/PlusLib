@@ -59,7 +59,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
   //LOG_TRACE("vtkSavedDataVideoSource::InternalUpdate");
 
   // Compute elapsed time since we restarted the timer
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->Buffer->GetStartTime();
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime();
 
   double latestFrameTimestamp(0); 
   if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
@@ -95,7 +95,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
 
   // Get first and last frame index to be added
   unsigned long bufferIndexOfFirstFrameToBeAdded=0;
-  if (this->Buffer->GetNumberOfItems()>0)
+  if (this->GetBuffer()->GetNumberOfItems()>0)
   {
     // frames have been added already
     int bufferIndexOfLastAddedFrame = 0;  
@@ -140,7 +140,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
       continue;
     }
     StreamBufferItem DataBufferItemToBeAdded; 
-    if (this->LocalVideoBuffer->GetDataBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
+    if (this->LocalVideoBuffer->GetStreamBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
     {
       LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
       status=PLUS_FAIL;
@@ -162,7 +162,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
       fieldMap = DataBufferItemToBeAdded.GetCustomFrameFieldMap();    
     }
 
-    if (this->Buffer->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+    if (this->GetBuffer()->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
     {
       status=PLUS_FAIL;
     }  
@@ -214,7 +214,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   }
 
   // Set buffer parameters based on the input tracked frame list
-  if ( this->Buffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
+  if ( this->GetBuffer()->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
@@ -222,14 +222,14 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS)
   {
     // Brightness images will be imported into MF orientation
-    this->Buffer->SetImageOrientation(US_IMG_ORIENT_MF);
+    this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+    this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
   }
-  if ( this->Buffer->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
+  if ( this->GetBuffer()->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video iamge orientation"); 
     return PLUS_FAIL; 
@@ -243,7 +243,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
 
   this->LocalVideoBuffer = vtkPlusStreamBuffer::New(); 
   // Copy all the settings from the video buffer 
-  this->LocalVideoBuffer->DeepCopy( this->Buffer );
+  this->LocalVideoBuffer->DeepCopy( this->GetBuffer() );
 
   // Fill local video buffer
 
@@ -252,9 +252,9 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
 
   this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);
 
-  this->Buffer->Clear();
-  this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
+  this->GetBuffer()->Clear();
+  this->GetBuffer()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
+  this->GetBuffer()->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
 
   return PLUS_SUCCESS; 
 }

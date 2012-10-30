@@ -722,7 +722,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
   }
 
   StreamBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
     return PLUS_FAIL; 
@@ -794,7 +794,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
   }
 
   StreamBufferItem bufferItem; 
-  if ( probeTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( probeTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -861,7 +861,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
   }
 
   StreamBufferItem bufferItem; 
-  if ( templateTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( templateTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -928,7 +928,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
   }
 
   StreamBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
     return PLUS_FAIL;

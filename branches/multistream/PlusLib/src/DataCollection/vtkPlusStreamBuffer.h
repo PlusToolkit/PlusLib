@@ -89,13 +89,13 @@ public:
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP);
 
   /*! Get a frame with the specified frame uid from the buffer */
-  virtual ItemStatus GetDataBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
+  virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
   /*! Get the most recent frame from the buffer */
-  virtual ItemStatus GetLatestDataBufferItem(StreamBufferItem* bufferItem) { return this->GetDataBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetLatestStreamBufferItem(StreamBufferItem* bufferItem) { return this->GetStreamBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
   /*! Get the oldest frame from buffer */
-  virtual ItemStatus GetOldestDataBufferItem(StreamBufferItem* bufferItem) { return this->GetDataBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetOldestStreamBufferItem(StreamBufferItem* bufferItem) { return this->GetStreamBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
   /*! Get a frame that was acquired at the specified time from buffer */
-  virtual ItemStatus GetDataBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation);
+  virtual ItemStatus GetStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation);
 
   /*! Get latest timestamp in the buffer */
   virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
@@ -106,7 +106,7 @@ public:
   /*! Get video buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
 
-  /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */
+  /*! Get the index assigned by the data acquisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
 
   /*! Get frame UID from buffer index */

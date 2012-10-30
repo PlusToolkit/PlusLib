@@ -26,7 +26,7 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[1]=0;
 	this->SerialNumber = NULL;
 	this->SetBufferSize(200); 
-	this->Buffer->Modified();
+	this->GetBuffer()->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -218,7 +218,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     this->GetBuffer()->SetFrameSize( FrameSize );
   }
 
-  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
+  PlusStatus status = this->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
 	  itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
   this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);

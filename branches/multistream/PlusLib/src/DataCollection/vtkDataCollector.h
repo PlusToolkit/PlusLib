@@ -91,7 +91,7 @@ public:
   \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
   \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since aTimestamp
   */
-  PlusStatus GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1) const;
+  PlusStatus GetTrackedFrameList(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1) const;
 
   /*!
     Return the requested device
@@ -150,7 +150,7 @@ public:
   /*
   * Functions to manage the currently active tracked frame producer
   */
-  PlusStatus GetStreamMixers( std::vector<vtkVirtualStreamMixer*> &OutVector ) const;
+  PlusStatus GetStreamMixers( StreamMixerCollection &OutVector ) const;
   PlusStatus SetSelectedStreamMixer( const std::string &aDeviceId );
   PlusStatus GetSelectedStreamMixer( vtkVirtualStreamMixer* &aDevice );
 

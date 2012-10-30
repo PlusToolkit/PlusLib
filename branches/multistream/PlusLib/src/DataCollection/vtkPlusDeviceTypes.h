@@ -47,7 +47,12 @@ typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
 typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
 
+typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
+typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
+typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
+
 typedef std::map<std::string, vtkPlusStreamTool*> ToolContainerType;
+typedef ToolContainerType::iterator ToolContainerIteratorType;
 typedef ToolContainerType::const_iterator ToolContainerConstIteratorType;
 
 typedef std::vector<vtkPlusDevice*> DeviceCollection;
@@ -73,7 +78,7 @@ public:
   StreamBufferItem(const StreamBufferItem& dataItem); 
   StreamBufferItem& operator=(StreamBufferItem const& dataItem); 
 
-  /*! Copy video buffer item */
+  /*! Copy stream buffer item */
   PlusStatus DeepCopy(StreamBufferItem* dataItem); 
   
   PlusVideoFrame& GetFrame() { return this->Frame; };
@@ -88,7 +93,22 @@ public:
   /*! Get tracker item status */
   ToolStatus GetStatus() const;
 
+  bool HasValidTransformData() const { return ValidTransformData; }
+  bool HasValidVideoData() const 
+  { 
+    int frameSize[2];
+    if( Frame.GetFrameSize(frameSize) != PLUS_SUCCESS)
+    { 
+      return false;
+    }
+    else
+    {
+      return frameSize[0] > 0 && frameSize[1] > 0;
+    }
+  }
+
 private:
+  bool ValidTransformData;
   PlusVideoFrame Frame;
   vtkSmartPointer<vtkMatrix4x4> Matrix;
   ToolStatus Status;

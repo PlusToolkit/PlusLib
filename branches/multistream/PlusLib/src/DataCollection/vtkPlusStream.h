@@ -22,15 +22,23 @@ class vtkPlusDevice;
 class VTK_EXPORT vtkPlusStream : public vtkDataObject
 {
 public:
+  static int MAX_PORT;
+
   static vtkPlusStream *New();
   vtkTypeRevisionMacro(vtkPlusStream, vtkObject);
 
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
-
+  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int& outNewPort);
   PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
-  StreamBufferContainerConstIterator GetBuffersStartConstIterator() const;
-  StreamBufferContainerConstIterator GetBuffersEndConstIterator() const;
+  StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
+  StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
+  PlusStatus AddTool(vtkPlusStreamTool* aTool);
+  PlusStatus RemoveTool(const char* toolName);
   PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
+  ToolContainerConstIteratorType GetToolBuffersStartConstIterator() const;
+  ToolContainerIteratorType GetToolBuffersStartIterator();
+  ToolContainerConstIteratorType GetToolBuffersEndConstIterator() const;
+  ToolContainerIteratorType GetToolBuffersEndIterator();
 
   vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
   vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
@@ -39,10 +47,10 @@ public:
   vtkGetStringMacro(StreamId);
 
 protected:
-  StreamBufferContainer   StreamBuffers;
-  ToolContainerType       Tools;
-  vtkPlusDevice*          OwnerDevice;
-  char *                  StreamId;
+  StreamBufferMapContainer  StreamBuffers;
+  ToolContainerType         Tools;
+  vtkPlusDevice*            OwnerDevice;
+  char *                    StreamId;
 
   vtkPlusStream(void);
   virtual ~vtkPlusStream(void);

@@ -37,6 +37,10 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkPlusDevice, "$Revision: 1.1$");
 vtkStandardNewMacro(vtkPlusDevice);
 
+// If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
+// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up
+static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1; 
+
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
 : Recording(0)
@@ -56,8 +60,8 @@ vtkPlusDevice::vtkPlusDevice()
 , SaveRfProcessingParameters(false)
 , RfProcessor(vtkRfProcessor::New())
 , BlankImage(vtkImageData::New())
-, CurrentDataBufferItem(new StreamBufferItem())
 , FrameTimeStamp(0)
+, CurrentStreamBufferItem(new StreamBufferItem())
 , CurrentStream(NULL)
 , FrameNumber(0)
 , OutputNeedsInitialization(1)
@@ -98,12 +102,7 @@ vtkPlusDevice::~vtkPlusDevice()
     Disconnect();
   }
 
-  this->SetBufferSize(0);
-
-  if( this->CurrentDataBufferItem != NULL )
-  {
-    delete CurrentDataBufferItem; CurrentDataBufferItem = NULL;
-  }
+  this->OutputStreams.clear();
 
   for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
   {
@@ -111,7 +110,7 @@ vtkPlusDevice::~vtkPlusDevice()
     it->second->Delete(); 
   }
 
-  DELETE_IF_NOT_NULL(this->Buffer);
+  delete CurrentStreamBufferItem; CurrentStreamBufferItem = NULL;
 
   DELETE_IF_NOT_NULL(this->BlankImage);
 
@@ -132,8 +131,12 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AcquisitionRate: " << this->AcquisitionRate << "\n";
   os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
   os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
-  os << indent << "Buffer:\n";
-  this->Buffer->PrintSelf(os, indent.GetNextIndent());
+  
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  {
+    vtkPlusStream* str = *it;
+    str->PrintSelf(os, indent);
+  }
 
   if (this->ToolReferenceFrameName)
   {
@@ -310,7 +313,7 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  this->Buffer->SetLocalTimeOffsetSec(aTimeOffsetSec);
+  this->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
 }
 
 //----------------------------------------------------------------------------
@@ -436,7 +439,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
     StreamBufferItem bufferItem; 
     BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
 
-    if ( firstActiveTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+    if ( firstActiveTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
       continue; 
@@ -463,7 +466,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
     for ( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
     {
       StreamBufferItem toolBufferItem; 
-      if ( it->second->GetBuffer()->GetDataBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusStreamBuffer::EXACT_TIME ) != ITEM_OK )
+      if ( it->second->GetBuffer()->GetStreamBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusStreamBuffer::EXACT_TIME ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
         continue; 
@@ -665,38 +668,43 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
     OutputStreams.push_back(aStream);
   }
 
-  // Now that we have output streams
-  // It makes sense to set the parameters of those buffers
-  if( OutputStreams.size() > 0 )
+  // If they've defined a buffer size device wide, each output stream will need a buffer and have the buffer params set
+  int bufferSize = 0;
+  if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
   {
-    vtkPlusStreamBuffer* aBuff = NULL;
-    if( OutputStreams.at(0)->GetBuffer(this->Buffer, 0) != PLUS_SUCCESS )
+    for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
     {
-      LOG_ERROR("No default buffer created for stream. Can't set params of buffer.");
-      return PLUS_FAIL;
-    }
-
-    int bufferSize = 0;
-    if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
-    {
-      if ( this->Buffer->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+      vtkPlusStream* str = *it;
+      int newPort;
+      vtkPlusStreamBuffer* aBuff = vtkPlusStreamBuffer::New();
+      if( str->AddBuffer(aBuff, newPort) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to set video buffer size!");
+        LOG_ERROR("Unable to add a buffer to the stream. Can't set params of buffer.");
+        return PLUS_FAIL;
       }
-    }
-    else if( RequireFrameBufferSizeInDeviceSetConfiguration )
-    {
-      LOG_ERROR("Unable to find main buffer size in device element when it is required.");
+      // Create a buffer, set the buffer size
+      if ( aBuff->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to set buffer size!");
+      }
     }
 
     int averagedItemsForFiltering = 0;
     if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
     {
-      this->Buffer->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-
-      for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
       {
-        it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
+        vtkPlusStream* str = *it;
+        vtkPlusStreamBuffer* aBuff = NULL;
+        if( str->GetBuffer(aBuff, 0) != PLUS_SUCCESS )
+        {
+          aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+        }
+
+        for ( ToolContainerIteratorType it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
+        {
+          it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
+        }
       }
     }
     else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
@@ -708,10 +716,25 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
       LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
     }
   }
-  else
+  else if( RequireFrameBufferSizeInDeviceSetConfiguration )
   {
-    LOG_ERROR("No output stream defined for device " << this->GetDeviceId() << ". Unable to output data!");
-    return PLUS_FAIL;
+    LOG_ERROR("Unable to find main buffer size in device element when it is required.");
+  }
+
+  // For each output stream, add the tools to the output stream
+  for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
+  {
+    vtkPlusStream* str = *it;
+
+    for ( ToolContainerIteratorType it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
+    {
+      str->AddTool(it->second);
+    }
+  }
+
+  if( this->OutputStreams.size() > 0 )
+  {
+    this->CurrentStream = this->OutputStreams[0];
   }
 
   return PLUS_SUCCESS;
@@ -756,8 +779,8 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", tool->GetBuffer()->GetLocalTimeOffsetSec() ); 
   }
 
-  deviceDataElement->SetIntAttribute("BufferSize", this->Buffer->GetBufferSize());
-  deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->Buffer->GetLocalTimeOffsetSec() );
+  deviceDataElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
+  deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetBuffer()->GetLocalTimeOffsetSec() );
 
   if (this->SaveRfProcessingParameters)
   {
@@ -820,7 +843,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
 
   // Get frame UID
   BufferItemUidType frameUID = 0; 
-  ItemStatus status = this->Buffer->GetItemUidFromTime(timestamp, frameUID); 
+  ItemStatus status = this->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
   if ( status != ITEM_OK )
   {
     if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
@@ -841,19 +864,19 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     return PLUS_FAIL; 
   }
 
-  StreamBufferItem currentDataBufferItem; 
-  if ( this->Buffer->GetDataBufferItem(frameUID, &currentDataBufferItem) != ITEM_OK )
+  StreamBufferItem CurrentStreamBufferItem; 
+  if ( this->GetBuffer()->GetStreamBufferItem(frameUID, &CurrentStreamBufferItem) != ITEM_OK )
   {
     LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
     return PLUS_FAIL; 
   }
 
   // Copy frame 
-  PlusVideoFrame frame = currentDataBufferItem.GetFrame(); 
+  PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame(); 
   aTrackedFrame.SetImageData(frame);
 
   // Copy all custom fields
-  StreamBufferItem::FieldMapType fieldMap = currentDataBufferItem.GetCustomFrameFieldMap();
+  StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();
   StreamBufferItem::FieldMapType::iterator fieldIterator;
   for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
   {
@@ -876,7 +899,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     }
 
     StreamBufferItem bufferItem; 
-    if ( it->second->GetBuffer()->GetDataBufferItemFromTime(timestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
+    if ( it->second->GetBuffer()->GetStreamBufferItemFromTime(timestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
     {
       double latestTimestamp(0); 
       if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
@@ -921,9 +944,410 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   // TODO : determine who gets to timestamp this frame
   // Copy frame timestamp 
   aTrackedFrame.SetTimestamp(
-    currentDataBufferItem.GetTimestamp(this->Buffer->GetLocalTimeOffsetSec()));
+    CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec()));
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetTrackedFrame(TrackedFrame* trackedFrame)
+{
+  LOG_TRACE("vtkPlusDevice::GetTrackedFrame - TrackedFrame"); 
+
+  double mostRecentFrameTimestamp(0);
+  if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS) 
+  {
+    LOG_ERROR("Failed to get most recent timestamp from the buffer!"); 
+    return PLUS_FAIL;
+  }
+
+  return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd )
+{
+  LOG_TRACE("vtkPlusDevice::GetTrackedFrameList(" << aTimestampFrom << ", " << aMaxNumberOfFramesToAdd); 
+
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
+  if ( this->GetVideoDataAvailable() )
+  {
+    if ( this->GetBuffer()->GetNumberOfItems()==0 )
+    {
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the video buffer is empty, no items will be returned"); 
+      return PLUS_SUCCESS;
+    }
+  }
+  if ( this->GetTrackingDataAvailable() )
+  {
+    // Get the first tool
+    vtkPlusStreamTool* firstActiveTool = NULL; 
+    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get first active tool"); 
+      return PLUS_FAIL; 
+    }
+    if ( firstActiveTool->GetBuffer()->GetNumberOfItems()==0 )
+    {
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
+      return PLUS_SUCCESS;
+    }
+  }
+
+  // Get latest and oldest timestamp
+  double mostRecentTimestamp(0); 
+  if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get most recent timestamp!"); 
+    return PLUS_FAIL; 
+  }
+
+  PlusStatus status = PLUS_SUCCESS; 
+  double oldestTimestamp(0); 
+  if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  // If zero or negative starting timestamp is specified we assume that the acquisition starts from the most recent frame
+  if ( aTimestampFrom <= 0.0)
+  {
+    aTimestampFrom = mostRecentTimestamp; 
+  }
+
+  if (aTimestampFrom<oldestTimestamp)
+  {
+    LOG_ERROR("Items are requested from "<<aTimestampFrom<<", but the oldest available data is acquired at "<<oldestTimestamp);
+    return PLUS_FAIL;
+  }
+
+  if ( aMaxNumberOfFramesToAdd > 0 ) 
+  {
+    if ( this->GetVideoDataAvailable() )
+    {
+      BufferItemUidType mostRecentVideoUid = 0; 
+      if ( this->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
+        return PLUS_FAIL;
+      }
+      BufferItemUidType videoUidFrom = 0; 
+      if ( this->GetBuffer()->GetItemUidFromTime(aTimestampFrom, videoUidFrom) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer item by timestamp " << aTimestampFrom);
+        return PLUS_FAIL;
+      }
+
+      BufferItemUidType firstVideoUidToAdd = videoUidFrom;
+      if ( mostRecentVideoUid - videoUidFrom + 1 > aMaxNumberOfFramesToAdd )
+      {
+        // More frames are requested than the maximum allowed frames to add        
+        firstVideoUidToAdd = mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; // +1: because most recent is needed too
+      }
+      else
+      {
+        LOG_TRACE("Number of frames in the video buffer is less than maxNumberOfFramesToAdd (more data is allowed to be recorded than it was provided by the data sources)"); 
+      }
+
+      if ( this->GetBuffer()->GetTimeStamp(firstVideoUidToAdd, aTimestampFrom ) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer timestamp from UID: " << firstVideoUidToAdd ); 
+        return PLUS_FAIL; 
+      }
+    }
+    else if ( this->GetTrackingDataAvailable() )
+    {
+      // Get the first tool
+      vtkPlusStreamTool* firstActiveTool = NULL; 
+      if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
+        return PLUS_FAIL; 
+      }
+      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      if ( trackerBuffer == NULL )
+      {
+        LOG_ERROR("Failed to get first active tool!"); 
+        return PLUS_FAIL; 
+      }
+
+      BufferItemUidType mostRecentTrackerUid = 0; 
+      if ( trackerBuffer->GetItemUidFromTime(mostRecentTimestamp, mostRecentTrackerUid) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracked buffer item by timestamp " << mostRecentTimestamp);
+        return PLUS_FAIL;
+      }
+      BufferItemUidType trackerUidFrom = 0; 
+      if ( trackerBuffer->GetItemUidFromTime(aTimestampFrom, trackerUidFrom) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer item by timestamp " << aTimestampFrom);
+        return PLUS_FAIL;
+      }
+
+      BufferItemUidType firstTrackerUidToAdd = trackerUidFrom;
+      if ( mostRecentTrackerUid - trackerUidFrom + 1 > aMaxNumberOfFramesToAdd )
+      {
+        // More frames are requested than the maximum allowed frames to add        
+        firstTrackerUidToAdd = mostRecentTrackerUid - aMaxNumberOfFramesToAdd + 1; // +1: because most recent is needed too
+      }
+      else
+      {
+        LOG_TRACE("Number of frames in the tracker buffer is less than maxNumberOfFramesToAdd (more data is allowed to be recorded than it was provided by the data sources)"); 
+      }
+
+      if ( trackerBuffer->GetTimeStamp(firstTrackerUidToAdd, aTimestampFrom ) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << firstTrackerUidToAdd ); 
+        return PLUS_FAIL; 
+      }
+
+    }
+  }
+
+  // Check input frameTimestamp to be in a valid range 
+  if (aTimestampFrom > mostRecentTimestamp )
+  {
+    aTimestampFrom = mostRecentTimestamp; 
+  }
+  else if ( aTimestampFrom < oldestTimestamp )
+  {
+    aTimestampFrom = oldestTimestamp; 
+  }
+
+  // Determine how many frames to add
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(aTimestampFrom, mostRecentTimestamp);
+
+  int numberOfFramesToAdd = 0;
+  if (aMaxNumberOfFramesToAdd > 0)
+  {
+    numberOfFramesToAdd = std::min( aMaxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
+  }
+  else
+  {
+    numberOfFramesToAdd = numberOfFramesSinceTimestamp;
+  }
+
+  LOG_DEBUG("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
+
+  // If we couldn't find any frames (or one of the items were invalid) 
+  // set the timestamp to the most recent one
+  if ( numberOfFramesToAdd == 0 )
+  {
+    aTimestampFrom = mostRecentTimestamp; 
+  }
+
+  for (int i=0; i<numberOfFramesToAdd; ++i)
+  {
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+
+    if ( this->GetTrackedFrameByTime(aTimestampFrom, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestampFrom ); 
+      return PLUS_FAIL;
+    }
+
+    // Add tracked frame to the list 
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      return PLUS_FAIL; 
+    }
+
+    // Get next timestamp
+    if ( this->GetVideoDataAvailable() && i < numberOfFramesToAdd - 1 )
+    {
+      BufferItemUidType videoUid(0); 
+      if ( this->GetBuffer()->GetItemUidFromTime(aTimestampFrom, videoUid) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << aTimestampFrom ); 
+        return PLUS_FAIL; 
+      }
+
+      if ( videoUid >= this->GetBuffer()->GetLatestItemUidInBuffer() )
+      {
+        LOG_WARNING("Requested video uid (" << videoUid+1 << ") is not in the buffer yet!");
+        break;
+      }
+
+      // Get the timestamp of the next item in the buffer
+      if ( this->GetBuffer()->GetTimeStamp(++videoUid, aTimestampFrom) != ITEM_OK )
+      {
+        LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
+        return PLUS_FAIL;
+      }
+    }
+    else if ( this->GetTrackingDataAvailable() && i < numberOfFramesToAdd - 1 )
+    {
+      // Get the first tool
+      vtkPlusStreamTool* firstActiveTool = NULL; 
+      if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
+        return PLUS_FAIL; 
+      }
+
+      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      if ( trackerBuffer == NULL )
+      {
+        LOG_ERROR("Failed to get first active tool!"); 
+        return PLUS_FAIL;
+      }
+
+      BufferItemUidType trackerUid(0); 
+      if ( trackerBuffer->GetItemUidFromTime(aTimestampFrom, trackerUid) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer item UID from time: " << std::fixed << aTimestampFrom ); 
+        return PLUS_FAIL; 
+      }
+
+      if ( trackerUid >= trackerBuffer->GetLatestItemUidInBuffer() )
+      {
+        LOG_ERROR("Requested tracker uid (" << trackerUid+1 << ") is not in the buffer yet!");
+        break;
+      }
+
+      // Get the timestamp of the next item in the buffer
+      if ( trackerBuffer->GetTimeStamp(++trackerUid, aTimestampFrom) != ITEM_OK )
+      {
+        LOG_WARNING("Unable to get timestamp from tracker buffer by UID: " << trackerUid); 
+        return PLUS_FAIL;
+      }
+    }
+  }
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec/*=-1*/)
+{
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled(" << aTimestamp << ", " << aSamplingRateSec << ")"); 
+
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
+
+  double mostRecentTimestamp(0); 
+  if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get most recent timestamp!"); 
+    return PLUS_FAIL; 
+  }
+  // If the user provided a 0 timestamp then we just set the timestamp and not yet collect any data
+  if ( aTimestamp < 0.0001 )
+  {
+    aTimestamp = mostRecentTimestamp; 
+  }
+
+  // Check if there are less frames than it would be needed according to the sampling rate
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(aTimestamp, mostRecentTimestamp);
+  int numberOfSampledFrames = (int)((mostRecentTimestamp - aTimestamp) / aSamplingRateSec);
+
+  if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
+  {
+    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate ("<<numberOfFramesSinceTimestamp/(mostRecentTimestamp - aTimestamp)<<") is lower than the requested sampling rate ("<<1.0/aSamplingRateSec<<"fps). Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
+  }
+
+  PlusStatus status=PLUS_SUCCESS;
+  // Add frames to input trackedFrameList
+  double latestAddedTimestamp=UNDEFINED_TIMESTAMP;
+  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp && (vtkAccurateTimer::GetSystemTime() - startTimeSec)<maxTimeLimitSec; aTimestamp += aSamplingRateSec)
+  {
+    double oldestTimestamp=0;
+    if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+      return PLUS_FAIL; 
+    }
+    const double skippingMargin=ceil(SAMPLING_SKIPPING_MARGIN_SEC/aSamplingRateSec)*aSamplingRateSec;
+    if (aTimestamp<oldestTimestamp+skippingMargin)
+    {
+      // the frame will be removed from the buffer really soon, so instead of trying to retrieve from the buffer and failing skip some frames
+      double skipTime=ceil((oldestTimestamp+skippingMargin+aSamplingRateSec-aTimestamp)/aSamplingRateSec)*aSamplingRateSec;
+      aTimestamp+=skipTime;
+      LOG_WARNING("Frames are not available any more at time: " << std::fixed << aTimestamp <<". Skipping "<<skipTime<<" seconds."); 
+      continue;
+    }
+    double closestTimestamp=GetClosestTrackedFrameTimestampByTime(aTimestamp);
+    if ( latestAddedTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp <= latestAddedTimestamp )
+    {
+      // This frame has been already added.
+      // Continue to avoid running GetTrackedFrameByTime (that copies the frame pixels from the device buffer).
+      continue;
+    }
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+    if ( GetTrackedFrameByTime(closestTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Unable retrieve frame from the devices for time: " << std::fixed << aTimestamp <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
+      continue;
+    }
+    latestAddedTimestamp=trackedFrame.GetTimestamp();
+    // Add tracked frame to the list 
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      status=PLUS_FAIL; 
+    }
+  }
+
+  return status;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame)
+{
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime");
+  double synchronizedTime = 0; 
+
+  // For each in stream, get the timestamp
+  // If all streams can return a tracked frame for the timestamp, success
+  if ( this->GetVideoDataAvailable() )
+  {
+    if ( this->GetTrackedFrame(time, *trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get tracked frame from video source by time: " << std::fixed << time );
+      return PLUS_FAIL;
+    }
+
+    synchronizedTime = trackedFrame->GetTimestamp();
+  }
+
+  if ( this->GetTrackingDataAvailable() )
+  {
+    if ( !this->GetVideoDataAvailable() )
+    {
+      synchronizedTime = time;
+    }
+
+    if ( this->GetTrackedFrame(synchronizedTime, *trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get all transforms from tracker at: " << std::fixed << synchronizedTime ); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  // Save tracked frame timestamp 
+  trackedFrame->SetTimestamp(synchronizedTime); 
+
+  // Save frame timestamp
+  std::ostringstream strTimestamp; 
+  strTimestamp << std::fixed << trackedFrame->GetTimestamp(); 
+  trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -1048,9 +1472,10 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 }
 
 //----------------------------------------------------------------------------
+/*
 PlusStatus vtkPlusDevice::SetBuffer(vtkPlusStreamBuffer *newBuffer)
 {
-  if (newBuffer==this->Buffer)
+  if (newBuffer==this->GetBuffer())
   {
     // no action, the buffer has been set already
     return PLUS_SUCCESS;
@@ -1063,11 +1488,12 @@ PlusStatus vtkPlusDevice::SetBuffer(vtkPlusStreamBuffer *newBuffer)
     LOG_ERROR( "A valid buffer is required as input for vtkPlusDevice::SetBuffer" );
     return PLUS_FAIL;
   }
-  this->Buffer->UnRegister(this);
-  this->Buffer=newBuffer;
-  this->Buffer->Register(this);
+  this->GetBuffer()->UnRegister(this);
+  this->GetBuffer()=newBuffer;
+  this->GetBuffer()->Register(this);
   return PLUS_SUCCESS;
 }
+*/
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetBufferSize( int& outVal, const char * toolName /*= NULL*/ )
@@ -1076,7 +1502,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( int& outVal, const char * toolName /*= 
 
   if( toolName == NULL )
   {
-    outVal = this->Buffer->GetBufferSize();
+    outVal = this->GetBuffer()->GetBufferSize();
     return PLUS_SUCCESS;
   }
 
@@ -1110,7 +1536,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
   if( toolName == NULL )
   {
     // update the buffer size
-    if ( this->Buffer->SetBufferSize(FrameBufferSize) != PLUS_SUCCESS )
+    if ( this->GetBuffer()->SetBufferSize(FrameBufferSize) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set buffer size!");
       return PLUS_FAIL;
@@ -1131,7 +1557,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetStartTime( double startTime )
 {
-  this->Buffer->SetStartTime(startTime);
+  this->GetBuffer()->SetStartTime(startTime);
 
   for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
@@ -1228,7 +1654,7 @@ PlusStatus vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
 vtkImageData* vtkPlusDevice::GetBrightnessOutput()
 {  
   vtkImageData* resultImage=this->BlankImage;
-  if ( GetBuffer()->GetLatestDataBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
+  if ( GetBuffer()->GetLatestStreamBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
   {
     LOG_DEBUG("No video data available yet, return blank frame");
   }
@@ -1372,7 +1798,7 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlR
 
   htmlReport->AddHorizontalLine(); 
 
-  if ( this->Buffer->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  if ( this->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get timestamp report table from video buffer!");
     return PLUS_FAIL;
@@ -1436,7 +1862,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
   // Set extent
-  int extent[6] = {0, this->Buffer->GetFrameSize()[0] - 1, 0, this->Buffer->GetFrameSize()[1] - 1, 0, 0 };
+  int extent[6] = {0, this->GetBuffer()->GetFrameSize()[0] - 1, 0, this->GetBuffer()->GetFrameSize()[1] - 1, 0, 0 };
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
   // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
@@ -1446,7 +1872,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
   outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
   // set default data type - unsigned char and number of components 1
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, PlusVideoFrame::GetVTKScalarPixelType(this->Buffer->GetPixelType()), 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, PlusVideoFrame::GetVTKScalarPixelType(this->GetBuffer()->GetPixelType()), 1);
 
   return 1;
 }
@@ -1465,7 +1891,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   vtkImageData *data = vtkImageData::SafeDownCast(this->AllocateOutputData(this->GetOutputDataObject(0)));
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
 
-  if ( this->Buffer->GetNumberOfItems() < 1 )
+  if ( this->GetBuffer()->GetNumberOfItems() < 1 )
   {
     // If the video buffer is empty, we can return immediately
     LOG_DEBUG("Cannot request data from video source, the video buffer is empty!");
@@ -1474,7 +1900,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 
   if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
   {
-    ItemStatus itemStatus = this->Buffer->GetDataBufferItemFromTime(this->DesiredTimestamp, this->CurrentDataBufferItem, vtkPlusStreamBuffer::EXACT_TIME);
+    ItemStatus itemStatus = this->GetBuffer()->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusStreamBuffer::EXACT_TIME);
     if ( itemStatus != ITEM_OK )
     {
       LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1484,7 +1910,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   else
   {
     // get the most recent frame if we are not updating with the desired timestamp
-    ItemStatus itemStatus = this->Buffer->GetLatestDataBufferItem(this->CurrentDataBufferItem);
+    ItemStatus itemStatus = this->GetBuffer()->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
     if ( itemStatus != ITEM_OK )
     {
       LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1492,11 +1918,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     }
   }
 
-  this->FrameTimeStamp = this->CurrentDataBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
-  this->TimestampClosestToDesired = this->CurrentDataBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffsetSec() );
+  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( this->GetBuffer()->GetLocalTimeOffsetSec() );
+  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( this->GetBuffer()->GetLocalTimeOffsetSec() );
 
-  void* sourcePtr=this->CurrentDataBufferItem->GetFrame().GetBufferPointer();
-  int bytesToCopy=this->CurrentDataBufferItem->GetFrame().GetFrameSizeInBytes();
+  void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetBufferPointer();
+  int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
 
   int dimensions[3]={0,0,0};
   data->GetDimensions(dimensions);
@@ -1519,7 +1945,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
 {
   LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ")");
 
-  int* frameSize = this->Buffer->GetFrameSize();
+  int* frameSize = this->GetBuffer()->GetFrameSize();
 
   if (x == frameSize[0] &&
     y == frameSize[1] )
@@ -1533,7 +1959,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
     return PLUS_FAIL;
   }
 
-  this->Buffer->SetFrameSize(x,y); 
+  this->GetBuffer()->SetFrameSize(x,y); 
 
   this->Modified();
   return PLUS_SUCCESS;
@@ -1569,7 +1995,7 @@ PlusStatus vtkPlusDevice::GetFrameSize(int dim[2])
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
-  return this->Buffer->GetFrameSize(dim);
+  return this->GetBuffer()->GetFrameSize(dim);
 }
 
 //----------------------------------------------------------------------------
@@ -1577,7 +2003,7 @@ PlusStatus vtkPlusDevice::SetPixelType(PlusCommon::ITKScalarPixelType pixelType)
 {
   LOG_TRACE("vtkPlusDevice::SetPixelType");
 
-  return this->Buffer->SetPixelType(pixelType);
+  return this->GetBuffer()->SetPixelType(pixelType);
 }
 
 //----------------------------------------------------------------------------
@@ -1585,19 +2011,19 @@ PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType()
 {
   LOG_TRACE("vtkPlusDevice::GetPixelType");
 
-  return this->Buffer->GetPixelType();
+  return this->GetBuffer()->GetPixelType();
 }
 
 //----------------------------------------------------------------------------
 US_IMAGE_TYPE vtkPlusDevice::GetImageType()
 {
-  return this->Buffer->GetImageType();
+  return this->GetBuffer()->GetImageType();
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
 {
-  return this->Buffer->SetImageType(imageType);
+  return this->GetBuffer()->SetImageType(imageType);
 }
 
 //----------------------------------------------------------------------------
@@ -1642,4 +2068,394 @@ PlusStatus vtkPlusDevice::AddInputStream( vtkPlusStream* aStream )
 double vtkPlusDevice::GetAcquisitionRate() const
 {
   return this->AcquisitionRate;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
+{
+  LOG_TRACE("vtkDataCollector::GetOldestTimestamp"); 
+  ts=0;
+
+  // ********************* video timestamp **********************
+  double oldestVideoTimestamp(0); 
+  if ( this->GetVideoDataAvailable() )
+  {
+    if ( this->GetBuffer()->GetOldestTimeStamp(oldestVideoTimestamp) != ITEM_OK )
+    {
+      LOG_WARNING("Failed to get oldest timestamp from video buffer!"); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  // ********************* tracker timestamp **********************
+  double oldestTrackerTimestamp(0); 
+  if ( this->GetTrackingDataAvailable() )
+  {
+    // Get the first tool
+    vtkPlusStreamTool* firstActiveTool = NULL; 
+    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
+      return PLUS_FAIL; 
+    }
+
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+
+    if ( trackerBuffer == NULL )
+    {
+      LOG_ERROR("Failed to get first active tool!"); 
+      return PLUS_FAIL; 
+    }
+
+    BufferItemUidType uid = trackerBuffer->GetOldestItemUidInBuffer(); 
+    if ( uid + 1 < trackerBuffer->GetLatestItemUidInBuffer() )
+    {
+      // Always use the oldestItemUid + 1 to be able to interpolate transforms
+      uid = uid + 1; 
+    }
+
+    // Get the oldest valid timestamp from the tracker buffer
+    if ( trackerBuffer->GetTimeStamp(uid, oldestTrackerTimestamp ) != ITEM_OK )
+    {
+      LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+      return PLUS_FAIL;
+    }
+  }
+
+  if ( !this->GetVideoDataAvailable() )
+  {
+    oldestVideoTimestamp = oldestTrackerTimestamp; 
+  }
+
+  if ( !this->GetTrackingDataAvailable() )
+  {
+    oldestTrackerTimestamp = oldestVideoTimestamp; 
+  }
+
+  // If the video timestamp is older than the tracker timestamp, adopt to the tracker timestamp
+  while ( oldestVideoTimestamp < oldestTrackerTimestamp )
+  {
+    // Start from the oldest tracker timestamp 
+    oldestVideoTimestamp = oldestTrackerTimestamp; 
+
+    BufferItemUidType videoUid(0); 
+    if ( this->GetBuffer()->GetItemUidFromTime(oldestVideoTimestamp, videoUid) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << oldestVideoTimestamp ); 
+      return PLUS_FAIL; 
+    }
+
+    if ( videoUid + 1 <= this->GetBuffer()->GetLatestItemUidInBuffer() ) 
+    {
+      // Always use the next video UID to have an overlap between the two buffers 
+      videoUid = videoUid + 1; 
+    }
+
+    if ( this->GetBuffer()->GetTimeStamp(videoUid, oldestVideoTimestamp) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  ts = oldestVideoTimestamp; 
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
+{
+  LOG_TRACE("vtkDataCollector::GetMostRecentTimestamp"); 
+  ts=0;
+
+  double latestVideoTimestamp(0); 
+  if ( this->GetVideoDataAvailable() )
+  {
+    // Get the most recent timestamp from the buffer
+    if ( this->GetBuffer()->GetLatestTimeStamp(latestVideoTimestamp) != ITEM_OK )
+    {
+      LOG_WARNING("Unable to get latest timestamp from video buffer!"); 
+      return PLUS_FAIL;
+    }
+  }
+
+  double latestTrackerTimestamp(0); 
+  if ( this->GetTrackingDataAvailable() )
+  {
+    // Get the first tool
+    vtkPlusStreamTool* firstActiveTool = NULL; 
+    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
+      return PLUS_FAIL; 
+    }
+
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
+    if ( uid > 1 )
+    {
+      // Always use the latestItemUid - 1 to be able to interpolate transforms
+      uid = uid - 1; 
+    }
+
+    // Get the most recent valid timestamp from the tracker buffer
+    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestamp ) != ITEM_OK )
+    {
+      LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+      return PLUS_FAIL;
+    }
+  }
+
+  if ( !this->GetVideoDataAvailable() )
+  {
+    latestVideoTimestamp = latestTrackerTimestamp; 
+  }
+
+  if ( !this->GetTrackingDataAvailable() )
+  {
+    latestTrackerTimestamp = latestVideoTimestamp; 
+  }
+
+  // If the video timestamp is newer than the tracker timestamp, adopt to the tracker timestamp 
+  while ( latestVideoTimestamp > latestTrackerTimestamp )
+  {
+    // Start from the latest tracker timestamp 
+    latestVideoTimestamp = latestTrackerTimestamp; 
+
+    BufferItemUidType videoUid(0); 
+    if ( this->GetBuffer()->GetItemUidFromTime(latestVideoTimestamp, videoUid) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp ); 
+      return PLUS_FAIL; 
+    }
+
+    if ( videoUid > 1 ) 
+    {
+      // Always use the preceding video UID to have time for transform interpolation 
+      videoUid = videoUid - 1; 
+    }
+
+    if ( this->GetBuffer()->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  ts = latestVideoTimestamp; 
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkPlusDevice::GetClosestTrackedFrameTimestampByTime(double time)
+{
+
+  if ( this->GetVideoDataAvailable() )
+  {
+    BufferItemUidType uid=0;
+    if (this->GetBuffer()->GetItemUidFromTime(time, uid)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }    
+    double closestTimestamp = UNDEFINED_TIMESTAMP; 
+    if ( this->GetBuffer()->GetTimeStamp(uid, closestTimestamp)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }
+    return closestTimestamp;
+  }
+
+  if ( this->GetTrackingDataAvailable() )
+  {
+    // Get the first tool
+    vtkPlusStreamTool* firstActiveTool = NULL; 
+    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      // there is no active tool
+      return UNDEFINED_TIMESTAMP; 
+    }
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    if ( trackerBuffer == NULL )
+    {
+      // there is no buffer
+      return UNDEFINED_TIMESTAMP;
+    }
+    BufferItemUidType uid=0;
+    if (trackerBuffer->GetItemUidFromTime(time, uid)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }    
+    double closestTimestamp = UNDEFINED_TIMESTAMP; 
+    if (trackerBuffer->GetTimeStamp(uid, closestTimestamp)!=ITEM_OK)
+    {
+      return UNDEFINED_TIMESTAMP;
+    }
+    return closestTimestamp;
+  }
+
+  // neither tracker, nor video data available
+  return UNDEFINED_TIMESTAMP;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo)
+{
+  LOG_TRACE("vtkDataCollector::GetNumberOfFramesBetweenTimestamps(" << aTimestampFrom << ", " << aTimestampTo << ")");
+
+  int numberOfFrames = 0;
+
+  if ( this->GetVideoDataAvailable() )
+  {
+    StreamBufferItem vFromItem; 
+    if (this->GetBuffer()->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusStreamBuffer::EXACT_TIME) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    StreamBufferItem vToItem; 
+    if (this->GetBuffer()->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusStreamBuffer::EXACT_TIME) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    numberOfFrames = abs((int)(vToItem.GetUid() - vFromItem.GetUid()));
+  }
+  else if ( this->GetTrackingDataAvailable() )
+  {
+    // Get the first tool
+    vtkPlusStreamTool* firstActiveTool = NULL; 
+    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get number of frames between timestamps - there is no active tool!"); 
+      return PLUS_FAIL; 
+    }
+
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    if ( trackerBuffer == NULL )
+    {
+      LOG_ERROR("Failed to get first active tool!"); 
+      return 0; 
+    }
+
+    // vtkPlusStreamBuffer::INTERPOLATED will give the closest item UID  
+    StreamBufferItem tFromItem; 
+    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampFrom, &tFromItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
+    {
+      return 0;
+    } 
+
+    // vtkPlusStreamBuffer::INTERPOLATED will give the closest item UID 
+    StreamBufferItem tToItem; 
+    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampTo, &tToItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    numberOfFrames = abs((int)(tToItem.GetUid() - tFromItem.GetUid())); 
+  }
+
+  return numberOfFrames + 1;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::GetTrackingDataAvailable() const
+{
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
+    {
+      vtkPlusStreamBuffer* buffer = bufIt->second;
+      StreamBufferItem* item = NULL;
+      if( buffer->GetLatestStreamBufferItem(item) != ITEM_OK )
+      {
+        continue;
+      }
+      if( item->HasValidTransformData() )
+      {
+        return true;
+      }
+    }
+
+    // Now check any and all tool buffers
+    for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    {
+      vtkPlusStreamTool* tool = it->second;
+      StreamBufferItem* item = NULL;
+      if( tool->GetBuffer()->GetLatestStreamBufferItem(item) != ITEM_OK )
+      {
+        continue;
+      }
+      if( item->HasValidTransformData() )
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::GetVideoDataAvailable() const
+{
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
+    {
+      vtkPlusStreamBuffer* buffer = bufIt->second;
+      StreamBufferItem* item = NULL;
+      if( buffer->GetLatestStreamBufferItem(item) != ITEM_OK )
+      {
+        continue;
+      }
+      if( item->HasValidVideoData() )
+      {
+        return true;
+      }
+    }
+
+    // Now check any and all tool buffers
+    for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    {
+      vtkPlusStreamTool* tool = it->second;
+      StreamBufferItem* item = NULL;
+      if( tool->GetBuffer()->GetLatestStreamBufferItem(item) != ITEM_OK )
+      {
+        continue;
+      }
+      if( item->HasValidVideoData() )
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer()
+{
+  return this->GetBuffer(0);
+}
+
+//----------------------------------------------------------------------------
+vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer( int port )
+{
+  if( this->CurrentStream == NULL )
+  {
+    LOG_ERROR("Current stream not defined, unable to return a buffer.");
+    return NULL;
+  }
+  vtkPlusStreamBuffer* aBuff;
+  if( this->CurrentStream->GetBuffer(aBuff, port) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve selected non-tool buffer " << port << " from device " << this->GetDeviceId());
+    return NULL;
+  }
+  return aBuff;
 }

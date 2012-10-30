@@ -58,7 +58,7 @@ vtkICCapturingSource::vtkICCapturingSource()
   this->FrameGrabberListener = NULL; 
 
   this->SetBufferSize(200); 
-  this->Buffer->Modified();
+  this->GetBuffer()->Modified();
 
   this->Modified();
 }
@@ -200,12 +200,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = this->Buffer->AddItem(&(this->ClippedImageBuffer[0]), this->GetDeviceImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = this->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), this->GetDeviceImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = this->Buffer->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = this->GetBuffer()->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 

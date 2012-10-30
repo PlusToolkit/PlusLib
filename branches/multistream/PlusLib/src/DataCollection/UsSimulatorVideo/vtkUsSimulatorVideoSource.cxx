@@ -123,7 +123,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   this->UsSimulator->SetModelToImageMatrix(referenceToImageTransformMatrix);
   this->UsSimulator->Update();
 
-  PlusStatus status = this->Buffer->AddItem(
+  PlusStatus status = this->GetBuffer()->AddItem(
     this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
@@ -138,8 +138,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   // Set to default MF internal image orientation
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
-  this->Buffer->Clear();
-  this->Buffer->SetFrameSize( this->UsSimulator->GetFrameSize() ); 
+  this->GetBuffer()->Clear();
+  this->GetBuffer()->SetFrameSize( this->UsSimulator->GetFrameSize() ); 
 
   return PLUS_SUCCESS;
 }

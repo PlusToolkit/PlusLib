@@ -31,6 +31,7 @@ vtkStandardNewMacro(vtkPlusStreamBuffer);
 StreamBufferItem::StreamBufferItem()
 : Matrix(vtkSmartPointer<vtkMatrix4x4>::New())
 , Status(TOOL_OK)
+, ValidTransformData(false)
 {
 
 }
@@ -44,7 +45,7 @@ StreamBufferItem::~StreamBufferItem()
 StreamBufferItem::StreamBufferItem(const StreamBufferItem &dataItem)
 {
   this->Matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->Status = TOOL_OK; 
+  this->Status = TOOL_OK;
   *this = dataItem; 
 }
 
@@ -65,6 +66,7 @@ StreamBufferItem& StreamBufferItem::operator=(StreamBufferItem const &dataItem)
   this->CustomFrameFields = dataItem.CustomFrameFields;
   this->Status = dataItem.Status; 
   this->Matrix->DeepCopy( dataItem.Matrix ); 
+  this->ValidTransformData = dataItem.ValidTransformData;
 
   return *this;
 }
@@ -91,6 +93,8 @@ PlusStatus StreamBufferItem::SetMatrix(vtkMatrix4x4* matrix)
     LOG_ERROR("Failed to set matrix - input matrix is NULL!"); 
     return PLUS_FAIL; 
   }
+
+  ValidTransformData = true;
 
   this->Matrix->DeepCopy(matrix); 
 
@@ -548,7 +552,7 @@ PlusStatus vtkPlusStreamBuffer::GetTimeStampReportTable(vtkTable* timeStampRepor
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusStreamBuffer::GetDataBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem)
 {
   if ( bufferItem == NULL )
   {
@@ -829,7 +833,7 @@ PlusStatus vtkPlusStreamBuffer::WriteToMetafile( const char* outputFolder, const
   for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
   {
     StreamBufferItem videoItem;
-    if ( this->GetDataBufferItem(frameUid, &videoItem) != ITEM_OK )
+    if ( this->GetStreamBufferItem(frameUid, &videoItem) != ITEM_OK )
     {
       LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
       status=PLUS_FAIL;
@@ -905,7 +909,7 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
     LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
     return PLUS_FAIL;
   }
-  status = this->GetDataBufferItem(itemAuid, &itemA); 
+  status = this->GetStreamBufferItem(itemAuid, &itemA); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer item with Uid: " << itemAuid );
@@ -977,7 +981,7 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
     return PLUS_FAIL;
   }
   // Get the item
-  status = this->GetDataBufferItem(itemBuid, &itemB); 
+  status = this->GetStreamBufferItem(itemBuid, &itemB); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer item with Uid: " << itemBuid ); 
@@ -994,7 +998,7 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation)
 {
   switch (interpolation)
   {
@@ -1050,7 +1054,7 @@ ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromClosestTime( double time, S
     return status;
   }
 
-  status = this->GetDataBufferItem(itemUid, bufferItem); 
+  status = this->GetStreamBufferItem(itemUid, bufferItem); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer item with Uid: " << itemUid );

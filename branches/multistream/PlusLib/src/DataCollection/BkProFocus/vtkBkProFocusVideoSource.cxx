@@ -214,7 +214,7 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->ImagingMode=RfMode;
 
   this->SetBufferSize(200); 
-  this->Buffer->Modified();
+  this->GetBuffer()->Modified();
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
 }
@@ -450,17 +450,17 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
     else
     {
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
-      this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
     <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
       <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
       <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
-      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->Buffer->GetImageOrientation()));
+      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()));
 
   } 
 
-  this->Buffer->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  this->GetBuffer()->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 

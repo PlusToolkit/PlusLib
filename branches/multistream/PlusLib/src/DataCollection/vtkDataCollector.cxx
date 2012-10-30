@@ -136,6 +136,11 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     }
   }
 
+  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    (*it)->NotifyConfigured();
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -336,10 +341,9 @@ bool vtkDataCollector::GetTrackingEnabled() const
 {
   LOG_TRACE("vtkDataCollector::GetTrackingEnabled()");
 
-  for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
+  if( SelectedStreamMixer != NULL )
   {
-    if( (*it)->IsTracker() )
-      return true;
+    return SelectedStreamMixer->GetTrackingDataAvailable();
   }
 
   return false;
@@ -350,24 +354,7 @@ bool vtkDataCollector::GetVideoEnabled() const
 {
   if( SelectedStreamMixer != NULL )
   {
-    for( StreamBufferContainerConstIterator it = SelectedStreamMixer->GetStream()->GetBuffersStartConstIterator(); it != SelectedStreamMixer->GetStream()->GetBuffersEndConstIterator(); ++it)
-    {
-      vtkPlusStreamBuffer* buffer = *it;
-      StreamBufferItem* item = NULL;
-      if( buffer->GetLatestDataBufferItem(item) != ITEM_OK )
-      {
-        continue;
-      }
-      int frameSize[2];
-      if( item->GetFrame().GetFrameSize(frameSize) != PLUS_SUCCESS )
-      {
-        continue;
-      }
-      if( frameSize[0] > 0 && frameSize[1] > 0 )
-      {
-        return true;
-      }
-    }
+    return SelectedStreamMixer->GetVideoDataAvailable();
   }
 
   return false;
@@ -410,7 +397,7 @@ PlusStatus vtkDataCollector::SetSelectedStreamMixer( const std::string &aDeviceI
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetStreamMixers( std::vector<vtkVirtualStreamMixer*> &OutVector ) const
+PlusStatus vtkDataCollector::GetStreamMixers( StreamMixerCollection &OutVector ) const
 {
   LOG_TRACE("vtkDataCollector::GetStreamMixers()");
 
@@ -727,7 +714,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aDevice->GetTrackedFrame(itemTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracking data by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;
@@ -791,7 +778,7 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aDevice->GetTrackedFrame(itemTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;

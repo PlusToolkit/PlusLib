@@ -77,11 +77,33 @@ public:
     image(s) acquired from the device at a specific timestamp
   */
   virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame& trackedFrame);
+  virtual PlusStatus GetTrackedFrame(TrackedFrame *trackedFrame);
+
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aSamplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+    \param maxTimeLimitSec Maximum time spent in the function (in sec)
+  */
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
+
+  PlusStatus GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
+
+  /*! 
+    Get the tracked frame from devices by time with each tool transforms
+    \param time The closes frame to this timestamp will be retrieved
+    \param trackedFrame The output where the tracked frame information will be copied
+  */
+  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
 
   /*!
     Return whether or not the device can be reset
   */
   virtual bool IsResettable();
+
+  bool GetTrackingDataAvailable() const;
+  bool GetVideoDataAvailable() const;
   
   /*!
     Record incoming data at the specified acquisition rate.  The recording
@@ -93,7 +115,8 @@ public:
   virtual PlusStatus StopRecording();
 
     /*! Get the buffer that is used to hold the data. */
-  virtual vtkPlusStreamBuffer* GetBuffer() { return this->Buffer; };
+  virtual vtkPlusStreamBuffer* GetBuffer();
+  virtual vtkPlusStreamBuffer* GetBuffer(int port);
 
   /*! 
     Get the buffer that is used to hold the data
@@ -101,7 +124,7 @@ public:
 	  There must always be a valid buffer in the data object, therefore
     the input parameter shall not be NULL.
   */
-  virtual PlusStatus SetBuffer(vtkPlusStreamBuffer* newBuffer);
+  //virtual PlusStatus SetBuffer(vtkPlusStreamBuffer* newBuffer);
 
   /*! 
     Set size of the internal frame buffer, i.e. the number of most recent frames that
@@ -204,6 +227,15 @@ public:
     htmlReport and plotter arguments has to be defined by the caller function 
   */
   virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
+
+  /*! Return the most recent synchronized timestamp in the buffers */
+  virtual PlusStatus GetMostRecentTimestamp(double &ts); 
+
+  /*! Return the oldest synchronized timestamp in the buffers */
+  virtual PlusStatus GetOldestTimestamp(double &ts); 
+
+  /*! Get the closest tracked frame timestamp to the specified time */
+  double GetClosestTrackedFrameTimestampByTime(double time);
 
   /*! 
   The subclass will do all the hardware-specific update stuff
@@ -339,6 +371,11 @@ public:
   /*! Add an input stream */
   PlusStatus AddInputStream(vtkPlusStream* aStream);
 
+  /*!
+    Perform any completion tasks once configured
+  */
+  virtual PlusStatus NotifyConfigured(){ return PLUS_SUCCESS; }
+
   /*! 
     Return the latest or desired image frame. This method can be overridden in subclasses 
     Part of the vtkAlgorithm pipeline
@@ -353,6 +390,9 @@ public:
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
+
+  /*! Get number of tracked frames between two given timestamps (inclusive) */
+  int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
   /*! 
     This method should be overridden for devices that have one or more LEDs on the tracked tools. 
@@ -415,9 +455,8 @@ protected:
   StreamContainer InputStreams;
   vtkPlusStream* CurrentStream;
 
-  /*! The buffer used to hold the last N frames */
-  vtkPlusStreamBuffer* Buffer;
-  StreamBufferItem* CurrentDataBufferItem; 
+  /*! A stream buffer item to use as a temporary staging point */
+  StreamBufferItem* CurrentStreamBufferItem;
   /*! Tracker tools */
   ToolContainerType ToolContainer; 
   /*! Reference name of the tools */

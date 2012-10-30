@@ -574,7 +574,7 @@ double CapturingToolbox::GetMaximumFrameRate()
   }
 
   double frameRate = 0.0;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get frame rate from data collector!");
   }

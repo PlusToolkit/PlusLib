@@ -15,14 +15,14 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkPlusStream, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusStream);
 
+int vtkPlusStream::MAX_PORT = 500;
+
 //----------------------------------------------------------------------------
 vtkPlusStream::vtkPlusStream(void)
 : OwnerDevice(NULL)
 , StreamId(NULL)
 {
-  // Always have a default stream buffer
-  vtkPlusStreamBuffer* aBuff = vtkPlusStreamBuffer::New();
-  StreamBuffers.push_back(aBuff);
+
 }
 
 //----------------------------------------------------------------------------
@@ -30,6 +30,8 @@ vtkPlusStream::~vtkPlusStream(void)
 {
   // A stream is only responsible for cleaning up non-tool streams
   StreamBuffers.clear();
+
+  // Don't touch the tools, the devices clean those up
 }
 
 //----------------------------------------------------------------------------
@@ -75,13 +77,13 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 {
-  if( StreamBuffers.size() < port )
+  if( StreamBuffers.find(port) == StreamBuffers.end() )
   {
     LOG_ERROR("Invalid port selected.");
     return PLUS_FAIL;
   }
 
-  aBuffer = StreamBuffers.at(port);
+  aBuffer = StreamBuffers[port];
 
   return PLUS_SUCCESS;
 }
@@ -89,23 +91,132 @@ PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::GetTool( vtkPlusStreamTool*& aTool, const char* toolName )
 {
-  if( OwnerDevice != NULL )
+  if( toolName == NULL )
   {
-    return OwnerDevice->GetTool(toolName, aTool);
+    LOG_ERROR("Null toolname sent to stream tool request.");
+    return PLUS_FAIL;
   }
 
-  LOG_ERROR("Owner device not set in stream.");
+  for( ToolContainerIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    if( STRCASECMP(toolName, it->second->GetToolName()) == 0 )
+    {
+      aTool = it->second;
+      return PLUS_SUCCESS;
+    }
+  }
+
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-StreamBufferContainerConstIterator vtkPlusStream::GetBuffersStartConstIterator() const
+StreamBufferMapContainerConstIterator vtkPlusStream::GetBuffersStartConstIterator() const
 {
   return this->StreamBuffers.begin();
 }
 
 //----------------------------------------------------------------------------
-StreamBufferContainerConstIterator vtkPlusStream::GetBuffersEndConstIterator() const
+StreamBufferMapContainerConstIterator vtkPlusStream::GetBuffersEndConstIterator() const
 {
   return this->StreamBuffers.end();
+}
+
+//----------------------------------------------------------------------------
+ToolContainerConstIteratorType vtkPlusStream::GetToolBuffersStartConstIterator() const
+{
+  return this->Tools.begin();
+}
+
+//----------------------------------------------------------------------------
+ToolContainerConstIteratorType vtkPlusStream::GetToolBuffersEndConstIterator() const
+{
+  return this->Tools.end();
+}
+
+//----------------------------------------------------------------------------
+ToolContainerIteratorType vtkPlusStream::GetToolBuffersStartIterator()
+{
+  return this->Tools.begin();
+}
+
+//----------------------------------------------------------------------------
+ToolContainerIteratorType vtkPlusStream::GetToolBuffersEndIterator()
+{
+  return this->Tools.end();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::AddTool( vtkPlusStreamTool* aTool )
+{
+  if( aTool == NULL )
+  {
+    LOG_ERROR("Trying to add null tool to stream.");
+    return PLUS_FAIL;
+  }
+
+  for( ToolContainerConstIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    if( it->second == aTool )
+    {
+      // Yes, compare pointers
+      return PLUS_SUCCESS;
+    }
+  }
+
+  this->Tools[aTool->GetToolName()] = aTool;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
+{
+  if( toolName == NULL )
+  {
+    LOG_ERROR("Trying to remove null toolname from stream.");
+    return PLUS_FAIL;
+  }
+
+  for( ToolContainerIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
+    {
+      this->Tools.erase(it);      
+      return PLUS_SUCCESS;
+    }
+  }
+  
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPort )
+{
+  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  {
+    if( it->second == aBuffer )
+    {
+      return PLUS_SUCCESS;
+    }
+  }
+
+  std::vector<int> usedPorts;
+  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  {
+    usedPorts.push_back(it->first);
+  }
+
+  outNewPort = 0;
+  while( outNewPort < MAX_PORT )
+  {
+    if( std::find(usedPorts.begin(), usedPorts.end(), outNewPort) != usedPorts.end() )
+    {
+      this->StreamBuffers[outNewPort] = vtkPlusStreamBuffer::New();
+      return PLUS_SUCCESS;
+    }
+    outNewPort++;
+  }
+
+  LOG_ERROR("Unable to find a suitable port for a new buffer. How did you go over " << MAX_PORT << " ports!");
+  return PLUS_FAIL;
 }
