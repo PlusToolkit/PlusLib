@@ -141,7 +141,13 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
   this->Buffer->Clear();
-  this->Buffer->SetFrameSize( this->UsSimulator->GetFrameSize() ); 
+  int frameSize[2]={0,0};
+  if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to initialize buffer, frame size is unknown");
+    return PLUS_FAIL;
+  }
+  this->Buffer->SetFrameSize(frameSize);
 
   return PLUS_SUCCESS;
 }
@@ -186,8 +192,6 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
     LOG_ERROR("Failed to read US simulator configuration!");
     return PLUS_FAIL;
   }
-
-  this->UsSimulator->CreateStencilBackgroundImage();
 
   // Read transform repository configuration
   if ( !this->TransformRepository

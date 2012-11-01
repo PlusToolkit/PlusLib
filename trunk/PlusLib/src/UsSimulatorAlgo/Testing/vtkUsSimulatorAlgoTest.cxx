@@ -184,8 +184,6 @@ int main(int argc, char **argv)
     usSimulator->LoadModel(inputModelFile.c_str()); 
   }
 
-  usSimulator->CreateStencilBackgroundImage();
-
   PlusTransformName imageToReferenceTransformName(usSimulator->GetImageCoordinateFrame(), usSimulator->GetReferenceCoordinateFrame());
 
   // Setup Renderer to visualize surface model and ultrasound planes

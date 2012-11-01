@@ -256,3 +256,61 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
 
   return status;
 }
+
+PlusStatus vtkRfProcessor::GetOutputImageSizePixel(int imageSize[2])
+{
+  int extent[6]={0,0,0,0,0,0};
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:    
+    this->ScanConverterLinear->GetOutputImageExtent(extent);
+    break;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->GetOutputImageExtent(extent);
+    break;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
+    return PLUS_FAIL;
+  }
+  imageSize[0]=extent[1]-extent[0]+1;
+  imageSize[1]=extent[3]-extent[2]+1;
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkRfProcessor::GetImagingDepthMm(double& imagingDepthMm)
+{
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:    
+    imagingDepthMm=this->ScanConverterLinear->GetImagingDepthMm();
+    return PLUS_SUCCESS;
+  case TRANSDUCER_CURVILINEAR:
+    imagingDepthMm=fabs(this->ScanConverterCurvilinear->GetRadiusStartMm()-this->ScanConverterCurvilinear->GetRadiusStopMm());
+    return PLUS_SUCCESS;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
+    return PLUS_FAIL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkRfProcessor::GetOutputImageSpacingMm(double imageSpacing[2])
+{
+  double spacing3[3]={1.0,1.0,1.0};
+  switch (this->TransducerGeometry)
+  {
+  case TRANSDUCER_LINEAR:    
+    this->ScanConverterLinear->GetOutputImageSpacing(spacing3);
+    break;
+  case TRANSDUCER_CURVILINEAR:
+    this->ScanConverterCurvilinear->GetOutputImageSpacing(spacing3);
+    break;
+  default:
+    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
+    return PLUS_FAIL;
+  }
+  imageSpacing[0]=spacing3[0];
+  imageSpacing[1]=spacing3[1];
+  return PLUS_SUCCESS;
+}

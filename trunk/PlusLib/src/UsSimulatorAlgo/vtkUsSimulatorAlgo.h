@@ -16,6 +16,7 @@ class vtkPolyDataNormals;
 class vtkTriangleFilter;
 class vtkStripper;
 class vtkModifiedBSPTree;
+class vtkRfProcessor;
 
 /*!
   \class vtkUsSimulatorAlgo 
@@ -35,9 +36,6 @@ public:
 
   /*! Load stl or vtp model  */ 
   PlusStatus LoadModel(std::string absoluteImagePath);
-
-  /*! Create stencil background image according to the already read configuration settings */
-  PlusStatus CreateStencilBackgroundImage();
 
 public:
   // Set model to image transformation matrix
@@ -65,15 +63,13 @@ public:
   /*! Get background value */
   vtkGetMacro(BackgroundValue, int);
 
-  /*! Get frame size */
-  vtkGetVector2Macro(FrameSize, int);
+  /*! Set number of simulated scanlines */
+  vtkSetMacro(NumberOfScanlines, int); 
 
-  /*! Get pixel spacing */
-  vtkGetVector2Macro(SpacingMmPerPixel, double);
+  /*! Set the length of scanlines in pixels */
+  vtkSetMacro(NumberOfSamplesPerScanline, int); 
 
-//protected:
-  /*! Set stencil background image */
-  vtkSetObjectMacro(StencilBackgroundImage, vtkImageData); 
+  PlusStatus GetFrameSize(int frameSize[2]);
 
 protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
@@ -87,20 +83,12 @@ protected:
   ~vtkUsSimulatorAlgo(); 
 
 private:
-  /*! Stencil background image */
-  vtkImageData* StencilBackgroundImage;
 
   /*! Model to image transformation matrix */
   vtkMatrix4x4* ModelToImageMatrix;
 
   /*! Grayscale value of the background */
   int BackgroundValue;
-
-  /*! Image frame size in pixel */
-  int FrameSize[2];
-
-  /*! Pixel spacing */
-  double SpacingMmPerPixel[2];
 
   /*! Path and name of the STL model file */
   char* ModelFileName;
@@ -110,6 +98,12 @@ private:
 
   /*! Name of the reference coordinate frame */
   char* ReferenceCoordinateFrame;
+
+  /*! Number of scanlines (sensor elements in the transducer) */
+  int NumberOfScanlines;
+
+  /*! Number of samples in one scanline */
+  int NumberOfSamplesPerScanline;
 
   /*
   struct InputDescriptor
@@ -126,6 +120,8 @@ private:
   vtkTriangleFilter *ModelTriangleFilter;
   vtkStripper *ModelStripperFilter;
   vtkModifiedBSPTree *ModelLocalizer;
+
+  vtkRfProcessor *RfProcessor;
 };
 
 #endif // __vtkUsSimulatorAlgo_h

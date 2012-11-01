@@ -21,14 +21,36 @@
     BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
-    FrameSize="820 616"
-    SpacingMmPerPixel="1.0 1.0"
+
+    NumberOfScanlines="256"
+    NumberOfSamplesPerScanline="1000"
 
     ModelFileName="UsSimulatorAlgoTestModel.stl"
     ModelToReferenceTransform="
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 0 0 1"
-  />
+      0 0 0 1">
+	   <RfProcessing>
+		<ScanConversion TransducerName="Ultrasonix_L9-4/38"
+		  TransducerGeometry="LINEAR"
+		  ImagingDepthMm="616.0"
+		  TransducerWidthMm="820.0"
+		  OutputImageSizePixel="820 616"
+		  OutputImageSpacingMmPerPixel="1.0 1.0"        
+		  />
+		<xScanConversion TransducerName="BK_8848-axial"
+		  TransducerGeometry="CURVILINEAR"
+		  RadiusStartMm="10.0"
+		  RadiusStopMm="60.0"
+		  ThetaStartDeg="-70.0"
+		  ThetaStopDeg="70.0"
+		  OutputImageStartDepthMm="2.0"
+		  OutputImageSizePixel="600 400"
+		  OutputImageSpacingMmPerPixel="0.15 0.15"        
+		  /> 		  
+	  </RfProcessing>  
+	  
+	    </vtkUsSimulatorAlgo>
+ 
 </PlusConfiguration>

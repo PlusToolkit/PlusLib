@@ -36,7 +36,7 @@ public:
 
 
   /*! Set the input RF data
-    \param rfFrame frame containing RF data 
+    \param rfFrame frame containing RF data (may be B-mode data but always without scan conversion)
   */
   virtual PlusStatus SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE imageType); 
 
@@ -54,6 +54,9 @@ public:
 
   /*! Set the transducer geometry (linear or curvilinear) */
   vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
+  
+  /*! Get the transducer geometry (linear or curvilinear) */
+  vtkGetMacro(TransducerGeometry, TransducerGeometryType); 
 
   /*! Set the transducer name */
   vtkSetStringMacro(TransducerName); 
@@ -75,6 +78,14 @@ public:
 
   /*! Initialize the corresponding values in the converter classes. For linear transducer type only. */
   void SetTransducerWidthMm(double);
+
+  /*! Get the size of the output scan-converted image size in pixel */
+  PlusStatus GetOutputImageSizePixel(int imageSize[2]);
+
+  PlusStatus GetOutputImageSpacingMm(double imageSpacing[2]);
+  
+  /*! Get the imaging depth  of the scan converted image in mm */
+  PlusStatus GetImagingDepthMm(double &imagingDepthMm); 
 
 protected:
   vtkRfProcessor();
