@@ -309,29 +309,32 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 
   if(modelFileName)
   {
-
     std::string foundAbsoluteImagePath;
     if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
-      LoadModel(foundAbsoluteImagePath);  
+      if (LoadModel(foundAbsoluteImagePath)!=PLUS_SUCCESS)
+      {
+        return PLUS_FAIL;     
+      }
     }
 
     else
     {
-      LOG_WARNING("Cannot find input model file!");
-      // return PLUS_FAIL; comment out, because should fail later when update is called. 
+      LOG_ERROR("Cannot find input model file!");
+      return PLUS_FAIL;
     }
   }
   else
   {
-    LOG_WARNING("Cannot find input model file!"); 
+    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration"); 
+    return PLUS_FAIL;
   }
 
   // Reference coordinate frame
   const char* imageCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ImageCoordinateFrame");
   if (imageCoordinateFrame == NULL)
   {
-    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
     return PLUS_FAIL;     
   }
   this->SetImageCoordinateFrame(imageCoordinateFrame);
@@ -340,7 +343,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   const char* referenceCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
@@ -357,9 +360,7 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
   // Load Model
 
   std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
-  vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
-
-
+  vtkSmartPointer<vtkPolyData> model; 
 
   if (STRCASECMP(fileExt.c_str(),".stl")==0)
   {  
@@ -368,7 +369,6 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
     modelReader->Update();
     model = modelReader->GetOutput();
   }
-
   else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
@@ -377,9 +377,9 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
     model = modelReader->GetOutput();
   }
 
-  if (model == NULL)
+  if (model.GetPointer()==NULL || model->GetNumberOfPoints()==0)
   {
-    LOG_ERROR("Model specified cannot be found, check path");
+    LOG_ERROR("Model specified cannot be found: "<<absoluteImagePath);    
     return PLUS_FAIL;
   }
 

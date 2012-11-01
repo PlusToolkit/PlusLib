@@ -6,13 +6,12 @@
               -0.087    0.0       0.0        51.0
               0.0       0.0       0.087      -4.3    
               0         0         0          1"
-      Error="1.0" Date="022412_110829" />
-      
+      Error="1.0" Date="022412_110829" />      
     <Transform
       From="Phantom" To="Reference" 
-      Matrix="-0.0122295 0.0247489 -0.999619  0.661 
-              -0.0104145 0.999636  0.0248767  -37.1121 
-              0.999871   0.0107148 -0.0119673 -86.5167 
+      Matrix="-0.0217475 0.999619 0.0170018  74.7552 
+              0.005450511 -0.016888  0.999843  23.1582 
+              0.999749   0.021836 -0.00503577 36.8398 
               0          0         0          1" 
       Error="0.965947" Date="022412_105333" />
   </CoordinateDefinitions>
@@ -21,36 +20,24 @@
     BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
-
     NumberOfScanlines="256"
     NumberOfSamplesPerScanline="1000"
-
-    ModelFileName="UsSimulatorAlgoTestModel.stl"
+    ModelFileName="SpinePhantom2Model.stl"
     ModelToReferenceTransform="
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 0 0 1">
-	   <RfProcessing>
-		<ScanConversion TransducerName="Ultrasonix_L9-4/38"
-		  TransducerGeometry="LINEAR"
-		  ImagingDepthMm="616.0"
-		  TransducerWidthMm="820.0"
-		  OutputImageSizePixel="820 616"
-		  OutputImageSpacingMmPerPixel="1.0 1.0"        
-		  />
-		<xScanConversion TransducerName="BK_8848-axial"
-		  TransducerGeometry="CURVILINEAR"
-		  RadiusStartMm="10.0"
-		  RadiusStopMm="60.0"
-		  ThetaStartDeg="-70.0"
-		  ThetaStopDeg="70.0"
-		  OutputImageStartDepthMm="2.0"
-		  OutputImageSizePixel="600 400"
-		  OutputImageSpacingMmPerPixel="0.15 0.15"        
-		  /> 		  
+      0 0 0 1"
+    >
+	  <RfProcessing>
+      <ScanConversion TransducerName="Ultrasonix_L9-4/38"
+        TransducerGeometry="LINEAR"
+        ImagingDepthMm="616.0"
+        TransducerWidthMm="820.0"
+        OutputImageSizePixel="820 616"
+        OutputImageSpacingMmPerPixel="1.0 1.0"        
+        />
 	  </RfProcessing>  
-	  
-	    </vtkUsSimulatorAlgo>
- 
+  </vtkUsSimulatorAlgo>
+  
 </PlusConfiguration>

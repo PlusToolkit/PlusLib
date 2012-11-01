@@ -1384,7 +1384,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* aConfigura
     LOG_ERROR("Failed to create video source instance, ImageAcquisition Type attribute is not defined"); 
     return PLUS_FAIL; 
   }
-  if (STRCASECMP(type,"None")==NULL)
+  if (STRCASECMP(type,"None")==0)
   {
     LOG_WARNING("Tracker Type=\"None\" is deprecated (since July 19, 2012). Simply skip the Tracker element if no tracking is needed");
     return PLUS_SUCCESS;
@@ -1434,7 +1434,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
       LOG_ERROR("Failed to create video source instance, ImageAcquisition Type attribute is not defined"); 
       return PLUS_FAIL; 
     }
-    if (STRCASECMP(deviceType,"None")==NULL)
+    if (STRCASECMP(deviceType,"None")==0)
     {
       LOG_WARNING("ImageAcquisition Type=\"None\" is deprecated (since July 19, 2012). Simply skip the ImageAcquisition element if no image acquisition is needed");
       return PLUS_SUCCESS;
