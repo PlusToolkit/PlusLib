@@ -48,10 +48,14 @@ public:
   /*! Initialize the parameters used in reconstruction. These are for the cases
   when video source can obtain them from the hardware */
   vtkSetMacro(RadiusStartMm, double);
+  vtkGetMacro(RadiusStartMm, double);
   vtkSetMacro(RadiusStopMm, double);
+  vtkGetMacro(RadiusStopMm, double);
   vtkSetMacro(ThetaStartDeg, double);
   vtkSetMacro(ThetaStopDeg, double);
   vtkSetMacro(OutputImageStartDepthMm, double);
+
+  vtkGetVector6Macro(OutputImageExtent,int);
 
 protected:
   vtkUsScanConvertCurvilinear();

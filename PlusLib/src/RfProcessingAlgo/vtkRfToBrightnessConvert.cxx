@@ -54,6 +54,11 @@ int vtkRfToBrightnessConvert::RequestInformation(vtkInformation*,
   // Update the output image extent depending on the RF encoding type
   switch (this->ImageType)
   {
+  case US_IMG_BRIGHTNESS:  
+    {
+      // output is the same as the input
+    }
+    break;
   case US_IMG_RF_I_LINE_Q_LINE:  
     {
       // RF data: IIIIII..., QQQQQQ....
@@ -105,22 +110,37 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
   vtkImageData **outData,
   int outExt[6], int id)
 {  
+  if (outData[0]->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    vtkErrorMacro("Expecting VTK_UNSIGNED_CHAR output pixel type");
+    return;
+  }  
+
+/*
+  if (this->ImageType==US_IMG_BRIGHTNESS)
+  {
+    // just copy the input to the output without any changes
+    if (inData[0][0]->GetScalarType() != VTK_UNSIGNED_CHAR)
+    {
+      vtkErrorMacro("Expecting VTK_SHORT input pixel type");
+      return;
+    }
+    outData[0]->DeepCopy(inData[0][0]);
+    return;
+  }
+*/
+
   // Check input and output parameters
   if (inData[0][0]->GetNumberOfScalarComponents() != 1)
   {
     vtkErrorMacro("Expecting 1 components not " << inData[0][0]->GetNumberOfScalarComponents());
     return;
   }
-  if (inData[0][0]->GetScalarType() != VTK_SHORT)
+  if (this->ImageType!=US_IMG_BRIGHTNESS && inData[0][0]->GetScalarType() != VTK_SHORT)
   {
     vtkErrorMacro("Expecting VTK_SHORT input pixel type");
     return;
   }
-  if (outData[0]->GetScalarType() != VTK_UNSIGNED_CHAR)
-  {
-    vtkErrorMacro("Expecting VTK_UNSIGNED_CHAR output pixel type");
-    return;
-  }  
 
   int wholeExtent[6]={0};
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);  
@@ -136,6 +156,10 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
   // Get the input extent for the output extent
   switch (this->ImageType)
   {
+  case US_IMG_BRIGHTNESS:  
+    // => the output image size is the same as the input image size
+    // keep the default extent
+    break;
   case US_IMG_RF_I_LINE_Q_LINE:  
     {
       // RF data: IIIIII..., QQQQQQ....
@@ -190,7 +214,32 @@ void vtkRfToBrightnessConvert::ThreadedRequestData(
   bool imageTypeValid=true;
   unsigned long count = 0;
   // loop over all the pixels (keeping track of normalized distance to origin.
-  for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
+  if (this->ImageType==US_IMG_BRIGHTNESS)
+  {
+    // TODO: we copy the pixels, probably we could return the input image on the output in a more efficient manner
+    unsigned char* inPtrByte = static_cast<unsigned char*>(inData[0][0]->GetScalarPointerForExtent(inExt));
+    for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
+    {
+      for (int idx1 = outExt[2]; !this->AbortExecute && idx1 <= outExt[3]; ++idx1)    
+      {
+        if (id==0)
+        {
+          // it is the first thread, report progress
+          if (!(count%target))
+          {
+            this->UpdateProgress(count/(50.0*target));
+          }
+          count++;
+        }
+        memcpy(outPtr,inPtrByte,numberOfRfSamplesInScanline+inInc1);
+        inPtrByte += numberOfRfSamplesInScanline+inInc1;
+        outPtr += numberOfRfSamplesInScanline+outInc1;
+      }
+      inPtrByte += inInc2;
+      outPtr += outInc2;    
+    }
+  }
+  else for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
   {
     for (int idx1 = outExt[2]; !this->AbortExecute && idx1 <= outExt[3]; ++idx1)    
     {
