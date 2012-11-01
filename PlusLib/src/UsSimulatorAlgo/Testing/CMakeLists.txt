@@ -6,16 +6,15 @@ TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgo vtkCommon )
 ADD_TEST(vtkUsSimulatorAlgoRunTest
 	${EXECUTABLE_OUTPUT_PATH}/vtkUsSimulatorAlgoTest
 	--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_UsSimulatorAlgoTest.xml
-	--transforms-seq-file=${TestDataDir}/UsSimulatorAlgoTestTrackingData.mha  
+	--transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
 	--output-us-img-file=simulatorOutput.mha 
-
 	)
 	SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    simulatorOutput.mha 
-   ${TestDataDir}/simulatorOutputBaselineFastAlgo.mha
+   ${TestDataDir}/simulatorOutputSpinePhantom2Baseline.mha
   )
 SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTest)
 
