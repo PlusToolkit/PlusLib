@@ -143,7 +143,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   // GetScanLineEndPoints or GetDistanceBetweenScanlineSamplePointsMm methods
   scanConverter->SetInputImageExtent(scanLines->GetExtent());
 
-  double outputImageSpacingMm[2]={1.0,1.0};
+  double outputImageSpacingMm[3]={1.0,1.0,1.0};
   scanConverter->GetOutputImageSpacing(outputImageSpacingMm);
 
   double distanceBetweenScanlineSamplePointsMm=scanConverter->GetDistanceBetweenScanlineSamplePointsMm();
