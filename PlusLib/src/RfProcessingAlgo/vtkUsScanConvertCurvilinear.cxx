@@ -36,17 +36,6 @@ vtkStandardNewMacro(vtkUsScanConvertCurvilinear);
 //----------------------------------------------------------------------------
 vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
 {
-  this->OutputImageExtent[0]=0;
-  this->OutputImageExtent[1]=599;
-  this->OutputImageExtent[2]=0;
-  this->OutputImageExtent[3]=799;
-  this->OutputImageExtent[4]=0; // not used
-  this->OutputImageExtent[5]=1; // not used
-  this->OutputImageSpacing[0]=0.2;
-  this->OutputImageSpacing[1]=0.2;
-  this->OutputImageSpacing[2]=1.0; // not used
-  this->OutputImageStartDepthMm=10;
-
   this->RadiusStartMm=15.0;
   this->RadiusStopMm=70.0;
   this->ThetaStartDeg=-30.0;
@@ -313,6 +302,7 @@ void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkUsScanConvertCurvilinear::ThreadedRequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
@@ -348,15 +338,11 @@ void vtkUsScanConvertCurvilinear::ThreadedRequestData(
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkUsScanConvertCurvilinear::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "OutputImageExtent: ("
-    << this->OutputImageExtent[0] <<", "<< this->OutputImageExtent[1] <<", "
-    << this->OutputImageExtent[2] <<", "<< this->OutputImageExtent[3] <<")\n";
-  os << indent << "OutputImageSpacing: ("<< this->OutputImageSpacing[0] <<", "<< this->OutputImageSpacing[1] <<")\n";
-  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
   os << indent << "RadiusStartMm: "<< this->RadiusStartMm << "\n";
   os << indent << "RadiusStopMm: "<< this->RadiusStopMm << "\n";
   os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
@@ -419,40 +405,9 @@ int vtkUsScanConvertCurvilinear::SplitExtent(int splitExt[6], int startExt[6], i
 PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertCurvilinear::ReadConfiguration"); 
-  if ( scanConversionElement == NULL )
+  if (this->Superclass::ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
   {
-    LOG_DEBUG("Unable to configure vtkUsScanConvertCurvilinear! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
-  {
-    LOG_ERROR("Cannot read vtkUsScanConvertCurvilinear configuration: ScanConversion element is expected"); 
     return PLUS_FAIL;
-  }
-
-  double OutputImageStartDepthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
-  {
-    this->OutputImageStartDepthMm=OutputImageStartDepthMm; 
-  }
-  
-  double outputImageSpacing[2]={0};
-  if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 
-  {
-    this->OutputImageSpacing[0]=outputImageSpacing[0]; 
-    this->OutputImageSpacing[1]=outputImageSpacing[1]; 
-    this->OutputImageSpacing[2]=1; 
-  }
-
-  int outputImageSize[2]={0};
-  if ( scanConversionElement->GetVectorAttribute("OutputImageSizePixel", 2, outputImageSize)) 
-  {
-    this->OutputImageExtent[0]=0;
-    this->OutputImageExtent[1]=outputImageSize[0]-1;
-    this->OutputImageExtent[2]=0;
-    this->OutputImageExtent[3]=outputImageSize[1]-1;
-    this->OutputImageExtent[4]=0;
-    this->OutputImageExtent[5]=1;
   }
 
   double radiusStartMm=0;
@@ -484,27 +439,10 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
 PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertCurvilinear::WriteConfiguration"); 
-  if ( scanConversionElement == NULL )
+  if (this->Superclass::WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
   {
-    LOG_DEBUG("Unable to write vtkUsScanConvertCurvilinear: XML data element is NULL"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
-  {
-    LOG_ERROR("Cannot write vtkUsScanConvertCurvilinear configuration: ScanConversion element is expected"); 
     return PLUS_FAIL;
-  }  
-
-  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
-
-  scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
-
-  double outputImageSize[2]=
-  {
-    this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
-    this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
-  };
-  scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
+  }
 
   scanConversionElement->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
   scanConversionElement->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
@@ -513,4 +451,24 @@ PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* sc
   scanConversionElement->SetDoubleAttribute("ThetaStopDeg", this->ThetaStopDeg);
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsScanConvertCurvilinear::GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4])
+{
+  LOG_ERROR("vtkUsScanConvertCurvilinear::GetScanLineEndPoints is not implemented");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+double vtkUsScanConvertCurvilinear::GetDistanceBetweenScanlineSamplePointsMm()
+{
+  LOG_ERROR("vtkUsScanConvertCurvilinear::GetDistanceBetweenScanlineSamplePointsMm is not implemented");
+  return 0.0;
+}
+
+//-----------------------------------------------------------------------------
+vtkImageData* vtkUsScanConvertCurvilinear::GetOutput()
+{
+  return vtkImageAlgorithm::GetOutput(); 
 }

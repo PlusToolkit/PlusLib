@@ -19,16 +19,6 @@ vtkStandardNewMacro(vtkUsScanConvertLinear);
 //----------------------------------------------------------------------------
 vtkUsScanConvertLinear::vtkUsScanConvertLinear()
 {
-  this->OutputImageExtent[0]=0;
-  this->OutputImageExtent[1]=599;
-  this->OutputImageExtent[2]=0;
-  this->OutputImageExtent[3]=799;
-  this->OutputImageExtent[4]=0; // not used
-  this->OutputImageExtent[5]=1; // not used
-  this->OutputImageSpacing[0]=0.2;
-  this->OutputImageSpacing[1]=0.2;
-  this->OutputImageSpacing[2]=1.0; // not used
-
   this->ImagingDepthMm=50.0;
   this->TransducerWidthMm=38.0;
 
@@ -45,12 +35,6 @@ vtkUsScanConvertLinear::~vtkUsScanConvertLinear()
 void vtkUsScanConvertLinear::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
-  os << indent << "OutputImageExtent: ("
-    << this->OutputImageExtent[0] <<", "<< this->OutputImageExtent[1] <<", "
-    << this->OutputImageExtent[2] <<", "<< this->OutputImageExtent[3] <<")\n";
-  os << indent << "OutputImageSpacing: ("<< this->OutputImageSpacing[0] <<", "<< this->OutputImageSpacing[1] <<")\n";
-  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
   os << indent << "ImagingDepthMm: "<< this->ImagingDepthMm << "\n";
   os << indent << "TransducerWidthMm: "<< this->TransducerWidthMm << "\n";
 }
@@ -77,15 +61,17 @@ void vtkUsScanConvertLinear::Update()
     LOG_ERROR("vtkUsScanConvertLinear::Update failed: no input image is specified");
     return;
   }
-  int scanLineLength=inputImage->GetExtent()[1]-inputImage->GetExtent()[0]+1;
-  int numberOfScanLines=inputImage->GetExtent()[3]-inputImage->GetExtent()[2]+1;
+
+  inputImage->GetExtent(this->InputImageExtent);  
+  int scanLineLengthPixels=this->InputImageExtent[1]-this->InputImageExtent[0]+1;
+  int numberOfScanLines=this->InputImageExtent[3]-this->InputImageExtent[2]+1;
 
   // xVec: controls the width of the output image, if larger then image becomes narrower
   double inputWidthSpacing=this->TransducerWidthMm/static_cast<double>(numberOfScanLines);
   double xVec[3]={0, (this->OutputImageSpacing[0]/inputWidthSpacing), 0};
   
   // yVec: controls the height of the output image, if larger then image becomes shorter
-  double inputDepthSpacing=this->ImagingDepthMm/static_cast<double>(scanLineLength);
+  double inputDepthSpacing=this->ImagingDepthMm/static_cast<double>(scanLineLengthPixels);
   double yVec[3]={this->OutputImageSpacing[1]/inputDepthSpacing, 0, 0};
 
   double zVec[3]={0,0,1.0};
@@ -106,40 +92,10 @@ vtkImageData* vtkUsScanConvertLinear::GetOutput()
 PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertLinear::ReadConfiguration"); 
-  if ( scanConversionElement == NULL )
-  {
-    LOG_DEBUG("Unable to configure vtkUsScanConvertLinear! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
-  {
-    LOG_ERROR("Cannot read vtkUsScanConvertLinear configuration: ScanConversion element is expected"); 
-    return PLUS_FAIL;
-  }
-
-  int OutputImageStartDepthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
-  {
-    this->OutputImageStartDepthMm=OutputImageStartDepthMm; 
-  }
   
-  double outputImageSpacing[2]={0};
-  if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 
+  if (this->Superclass::ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
   {
-    this->OutputImageSpacing[0]=outputImageSpacing[0]; 
-    this->OutputImageSpacing[1]=outputImageSpacing[1]; 
-    this->OutputImageSpacing[2]=1; 
-  }
-
-  double outputImageSize[2]={0};
-  if ( scanConversionElement->GetVectorAttribute("OutputImageSizePixel", 2, outputImageSize)) 
-  {
-    this->OutputImageExtent[0]=0;
-    this->OutputImageExtent[1]=outputImageSize[0]-1;
-    this->OutputImageExtent[2]=0;
-    this->OutputImageExtent[3]=outputImageSize[1]-1;
-    this->OutputImageExtent[4]=0;
-    this->OutputImageExtent[5]=1;
+    return PLUS_FAIL;
   }
 
   double imagingDepthMm=0;
@@ -161,27 +117,11 @@ PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* scanConv
 PlusStatus vtkUsScanConvertLinear::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvertLinear::WriteConfiguration"); 
-  if ( scanConversionElement == NULL )
+
+  if (this->Superclass::WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
   {
-    LOG_DEBUG("Unable to write vtkUsScanConvertLinear: XML data element is NULL"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
-  {
-    LOG_ERROR("Cannot write vtkUsScanConvertLinear configuration: ScanConversion element is expected"); 
     return PLUS_FAIL;
-  }  
-  
-  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
-
-  scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
-
-  double outputImageSize[2]=
-  {
-    this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
-    this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
-  };
-  scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
+  }
 
   scanConversionElement->SetDoubleAttribute("ImagingDepthMm", this->ImagingDepthMm);
   scanConversionElement->SetDoubleAttribute("TransducerWidthMm", this->TransducerWidthMm);
@@ -189,3 +129,45 @@ PlusStatus vtkUsScanConvertLinear::WriteConfiguration(vtkXMLDataElement* scanCon
   return PLUS_SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsScanConvertLinear::GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4])
+{
+  int numberOfScanLines=this->InputImageExtent[3]-this->InputImageExtent[2]+1;
+  if (scanLineIndex<0 || scanLineIndex>=numberOfScanLines)
+  {
+    LOG_ERROR("GetScanLineEndPoints failed: requestd scanLine="<<scanLineIndex<<" is out of the valid range (0-"<<numberOfScanLines-1<<")");
+    return PLUS_FAIL;
+  }
+  //TODO: use start depth!
+  
+  int outputImageSizePixel[2]=
+  {
+    this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
+    this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
+  };
+
+  scanlineStartPoint_OutputImage[0] = double(scanLineIndex)/numberOfScanLines*(outputImageSizePixel[0]-1); 
+  scanlineStartPoint_OutputImage[1] = 0; 
+  scanlineStartPoint_OutputImage[2] = 0;
+  scanlineStartPoint_OutputImage[3] = 1;
+
+  scanlineEndPoint_OutputImage[0] = scanlineStartPoint_OutputImage[0];
+  scanlineEndPoint_OutputImage[1] = outputImageSizePixel[1]-1; 
+  scanlineEndPoint_OutputImage[2] = 0;
+  scanlineEndPoint_OutputImage[3] = 1;
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+double vtkUsScanConvertLinear::GetDistanceBetweenScanlineSamplePointsMm()
+{
+  int scanLineLengthPixels=this->InputImageExtent[1]-this->InputImageExtent[0]+1;
+  if (scanLineLengthPixels<1)
+  {
+    LOG_ERROR("Cannot determine DistanceBetweenScanlineSamplePointsMm because scanLineLengthPixels="<<scanLineLengthPixels<<" is invalid");
+    return 0.0;
+  }
+  double distanceBetweenScanlineSamplePointsMm=this->ImagingDepthMm/double(scanLineLengthPixels);
+  return distanceBetweenScanlineSamplePointsMm;
+}

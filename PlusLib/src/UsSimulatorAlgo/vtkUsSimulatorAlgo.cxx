@@ -27,6 +27,7 @@ See License.txt for details.
 #include "vtkXMLPolyDataReader.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkRfProcessor.h"
+#include "vtkUsScanConvert.h"
 
 #include "vtkModifiedBSPTree.h"
 
@@ -102,7 +103,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   if (this->ModelToImageMatrix == NULL)
   {
-    LOG_ERROR(" No Model to US image transform specified " ); 
+    LOG_ERROR("No Model to US image transform specified " ); 
     return 1; 
   }
 
@@ -132,61 +133,27 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   this->ModelLocalizer->BuildLocator(); 
   vtkSmartPointer<vtkPoints> scanLineIntersectionWithModel = vtkSmartPointer<vtkPoints>::New(); 
 
-  int outputImageSizePixel[2]={0,0};
-  this->RfProcessor->GetOutputImageSizePixel(outputImageSizePixel);
+  vtkUsScanConvert* scanConverter=this->RfProcessor->GetScanConverter();
+  if (scanConverter==NULL)
+  {
+    LOG_ERROR("ScanConverter is not defined");
+    return 1;
+  }
+  // The input image extent has to be set before calling the scanConverter's
+  // GetScanLineEndPoints or GetDistanceBetweenScanlineSamplePointsMm methods
+  scanConverter->SetInputImageExtent(scanLines->GetExtent());
 
   double outputImageSpacingMm[2]={1.0,1.0};
-  this->RfProcessor->GetOutputImageSpacingMm(outputImageSpacingMm);
+  scanConverter->GetOutputImageSpacing(outputImageSpacingMm);
 
-  double distanceBetweenScanlineSamplePointsMm=1.0;
-  switch (this->RfProcessor->GetTransducerGeometry())
-  {
-  case vtkRfProcessor::TRANSDUCER_LINEAR:
-    {
-    double depthMm=0;
-    this->RfProcessor->GetImagingDepthMm(depthMm);
-    distanceBetweenScanlineSamplePointsMm=depthMm/this->NumberOfSamplesPerScanline;
-    }
-    break;
-  case vtkRfProcessor::TRANSDUCER_CURVILINEAR:
-    LOG_ERROR("Not implemented yet");
-    break;
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->RfProcessor->GetTransducerGeometry());
-    return 0;
-  }
+  double distanceBetweenScanlineSamplePointsMm=scanConverter->GetDistanceBetweenScanlineSamplePointsMm();
 
   vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New(); 
   for(int scanLineIndex=0;scanLineIndex<this->NumberOfScanlines; scanLineIndex++)
   {
     double scanLineStartPoint_Image[4] = {0,0,0,1}; // scanline start position in Image coordinate system
     double scanLineEndPoint_Image[4] = {0,0,0,1}; // scanline end position in Image coordinate system
-
-    switch (this->RfProcessor->GetTransducerGeometry())
-    {
-    case vtkRfProcessor::TRANSDUCER_LINEAR:
-  
-      /*      
-      scanLineStartPoint_Image[0] = outputImageSizePixel[0]-1;; 
-      scanLineStartPoint_Image[1] = double(scanLineIndex)/this->NumberOfScanlines*(outputImageSizePixel[0]-1);
-
-      scanLineEndPoint_Image[0] = scanLineStartPoint_Image[0];
-      scanLineEndPoint_Image[1] = outputImageSizePixel[1]-1;*/
-      
-      //TODO: use start depth!
-
-      scanLineStartPoint_Image[0] = double(scanLineIndex)/this->NumberOfScanlines*(outputImageSizePixel[0]-1); 
-      scanLineStartPoint_Image[1] = 0; 
-      scanLineEndPoint_Image[0] = scanLineStartPoint_Image[0];
-      scanLineEndPoint_Image[1] = outputImageSizePixel[1]-1; 
-      break;
-    case vtkRfProcessor::TRANSDUCER_CURVILINEAR:
-      LOG_ERROR("Not implemented yet");
-      break;
-    default:
-      LOG_ERROR("Unknown transducer geometry: "<<this->RfProcessor->GetTransducerGeometry());
-      return 0;
-    }
+    scanConverter->GetScanLineEndPoints(scanLineIndex, scanLineStartPoint_Image, scanLineEndPoint_Image);
     
     double scanLineStartPoint_Model[4] = {0,0,0,1};
     double scanLineEndPoint_Model[4] = {0,0,0,1};
@@ -226,11 +193,6 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         // the index of the intersection point in the scanline buffer
         double xCoordDiffMm=(scanLineIntersectionPoint_Image[0]-scanLineStartPoint_Image[0])*outputImageSpacingMm[0];
         double yCoordDiffMm=(scanLineIntersectionPoint_Image[1]-scanLineStartPoint_Image[1])*outputImageSpacingMm[1];
-        double zCoordDiffPixel=scanLineIntersectionPoint_Image[2]-scanLineStartPoint_Image[2];
-        if (zCoordDiffPixel>1.0)
-        {
-          LOG_WARNING("zCoordDiffPixel is large: "<<zCoordDiffPixel);
-        }
         double distanceOfIntersectionPointFromScanLineStartPointMm=sqrt(xCoordDiffMm*xCoordDiffMm+yCoordDiffMm*yCoordDiffMm);
         endOfSegmentPixelIndex=distanceOfIntersectionPointFromScanLineStartPointMm/distanceBetweenScanlineSamplePointsMm;
       }
@@ -390,5 +352,12 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[2])
 {
-  return this->RfProcessor->GetOutputImageSizePixel(frameSize);
+  vtkUsScanConvert* scanConverter=this->RfProcessor->GetScanConverter();
+  if (scanConverter==NULL)
+  {
+    LOG_ERROR("Unable to determine frame size, ScanConverter is not defined");
+    return PLUS_FAIL;
+  }
+  scanConverter->GetOutputImageSizePixel(frameSize);
+  return PLUS_FAIL;
 }
