@@ -138,7 +138,6 @@ PlusStatus vtkUsScanConvertLinear::GetScanLineEndPoints(int scanLineIndex, doubl
     LOG_ERROR("GetScanLineEndPoints failed: requestd scanLine="<<scanLineIndex<<" is out of the valid range (0-"<<numberOfScanLines-1<<")");
     return PLUS_FAIL;
   }
-  //TODO: use start depth!
   
   int outputImageSizePixel[2]=
   {

@@ -36,6 +36,7 @@ vtkStandardNewMacro(vtkUsScanConvertCurvilinear);
 //----------------------------------------------------------------------------
 vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
 {
+  this->OutputImageStartDepthMm=-10;
   this->RadiusStartMm=15.0;
   this->RadiusStopMm=70.0;
   this->ThetaStartDeg=-30.0;
@@ -140,7 +141,11 @@ void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
   int numberOfLines=inputImageExtent[3]-inputImageExtent[2]+1;
   double radiusDeltaMm=(radiusStopMm-radiusStartMm)/numberOfSamples;
   double thetaStartRad=vtkMath::RadiansFromDegrees(thetaStartDeg);
-  double thetaDeltaRad=vtkMath::RadiansFromDegrees((thetaStopDeg-thetaStartDeg)/numberOfLines);
+  double thetaDeltaRad=0;
+  if (numberOfLines>1)
+  {
+    thetaDeltaRad=vtkMath::RadiansFromDegrees((thetaStopDeg-thetaStartDeg)/(numberOfLines-1));
+  }
   int outputImageSizePixelsX=outputImageExtent[1]-outputImageExtent[0]+1;
   int outputImageSizePixelsY=outputImageExtent[3]-outputImageExtent[2]+1;
 
@@ -343,6 +348,7 @@ void vtkUsScanConvertCurvilinear::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
+  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
   os << indent << "RadiusStartMm: "<< this->RadiusStartMm << "\n";
   os << indent << "RadiusStopMm: "<< this->RadiusStopMm << "\n";
   os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
@@ -410,6 +416,11 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
     return PLUS_FAIL;
   }
 
+  double outputImageStartDepthMm=0;
+  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", outputImageStartDepthMm)) 
+  {
+    this->OutputImageStartDepthMm=outputImageStartDepthMm; 
+  }
   double radiusStartMm=0;
   if ( scanConversionElement->GetScalarAttribute("RadiusStartMm", radiusStartMm)) 
   {
@@ -444,6 +455,8 @@ PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* sc
     return PLUS_FAIL;
   }
 
+  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
+
   scanConversionElement->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
   scanConversionElement->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
 
@@ -456,15 +469,45 @@ PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* sc
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsScanConvertCurvilinear::GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4])
 {
-  LOG_ERROR("vtkUsScanConvertCurvilinear::GetScanLineEndPoints is not implemented");
+  // (0,0) is in the pixel centerpoint
+  double fanOriginPosition_OutputImage[2]=
+  {
+    double(this->OutputImageExtent[1]-this->OutputImageExtent[0])/2.0, // image center
+    -this->OutputImageStartDepthMm/this->OutputImageSpacing[1] // row index of the centerpoint of the curvature circle
+  };
+  int numberOfLines=this->InputImageExtent[3]-this->InputImageExtent[2]+1;
+  
+  double thetaDeltaDeg=0; // angle between two scanlines
+  if (numberOfLines>1)
+  {
+    thetaDeltaDeg=((this->ThetaStopDeg-this->ThetaStartDeg)/(numberOfLines-1));
+  }
+  double thetaRad=vtkMath::RadiansFromDegrees(this->ThetaStartDeg+scanLineIndex*thetaDeltaDeg);
+  
+  scanlineStartPoint_OutputImage[0]=fanOriginPosition_OutputImage[0]+this->RadiusStartMm*sin(thetaRad)/this->OutputImageSpacing[0];
+  scanlineStartPoint_OutputImage[1]=fanOriginPosition_OutputImage[1]+this->RadiusStartMm*cos(thetaRad)/this->OutputImageSpacing[1];
+  scanlineStartPoint_OutputImage[2]=0;
+  scanlineStartPoint_OutputImage[3]=1;
+  
+  scanlineEndPoint_OutputImage[0]=fanOriginPosition_OutputImage[0]+this->RadiusStopMm*sin(thetaRad)/this->OutputImageSpacing[0];
+  scanlineEndPoint_OutputImage[1]=fanOriginPosition_OutputImage[1]+this->RadiusStopMm*cos(thetaRad)/this->OutputImageSpacing[1];
+  scanlineEndPoint_OutputImage[2]=0;
+  scanlineEndPoint_OutputImage[3]=1;
+  
   return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
 double vtkUsScanConvertCurvilinear::GetDistanceBetweenScanlineSamplePointsMm()
 {
-  LOG_ERROR("vtkUsScanConvertCurvilinear::GetDistanceBetweenScanlineSamplePointsMm is not implemented");
-  return 0.0;
+  int scanLineLengthPixels=this->InputImageExtent[1]-this->InputImageExtent[0]+1;
+  if (scanLineLengthPixels<1)
+  {
+    LOG_ERROR("Cannot determine DistanceBetweenScanlineSamplePointsMm because scanLineLengthPixels="<<scanLineLengthPixels<<" is invalid");
+    return 0.0;
+  }
+  double distanceBetweenScanlineSamplePointsMm=(this->RadiusStopMm-this->RadiusStartMm)/double(scanLineLengthPixels);
+  return distanceBetweenScanlineSamplePointsMm;
 }
 
 //-----------------------------------------------------------------------------
