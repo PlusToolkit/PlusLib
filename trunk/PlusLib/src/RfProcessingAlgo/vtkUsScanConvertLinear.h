@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkUsScanConvertLinear_h
 #define __vtkUsScanConvertLinear_h
 
+#include "vtkUsScanConvert.h"
+
 class vtkAlgorithmOutput;
 class vtkImageReslice;
 class vtkImageData;
@@ -16,12 +18,14 @@ class vtkImageData;
 \brief This class performs scan conversion from scan lines for curvilinear probes
 \ingroup RfProcessingAlgo
 */ 
-class VTK_EXPORT vtkUsScanConvertLinear : public vtkObject
+class VTK_EXPORT vtkUsScanConvertLinear : public vtkUsScanConvert
 {
 public:
   static vtkUsScanConvertLinear *New();
-  vtkTypeMacro(vtkUsScanConvertLinear,vtkObject);
+  vtkTypeMacro(vtkUsScanConvertLinear,vtkUsScanConvert);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual const char* GetTransducerGeometry() { return "LINEAR"; }
   
   /*! 
     Set the connection for the input image containing the brightness lines.
@@ -41,26 +45,25 @@ public:
   /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
 
-  vtkSetMacro(OutputImageStartDepthMm,double);
   vtkSetMacro(ImagingDepthMm,double);
   vtkGetMacro(ImagingDepthMm,double);
   vtkSetMacro(TransducerWidthMm,double);
 
-  vtkGetVector6Macro(OutputImageExtent,int);
-  vtkGetVector3Macro(OutputImageSpacing,double);
+  /*! 
+    Get the start and end point of the selected scanline
+    transducer surface, the end point is far from the transducer surface.
+    \param scanLineIndex Index of the scanline. Starts with 0 (the scanline closest to the marked side of the transducer)
+    \param scanlineStartPoint_OutputImage Starting point of the scanline (near the transducer surface), in output image coordinate frame (in pixels)
+    \param scanlineEndPoint_OutputImage Last point of the scanline (far from the transducer surface), in output image coordinate frame (in pixels)
+  */
+  virtual PlusStatus GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4]);
    
+  /*! Get the distance between two sample points in the scanline, in mm */
+  virtual double GetDistanceBetweenScanlineSamplePointsMm();
+
 protected:
   vtkUsScanConvertLinear();
   virtual ~vtkUsScanConvertLinear();
-
-  /*! Extent of the output image, in pixels. Only the first four values are used. */
-  int OutputImageExtent[6];
-
-  /*! Spacing of the output image, in mm/pixel. Only the first two values are used. */
-  double OutputImageSpacing[3];
-
-  /*! Depth for start of output image, in mm */
-  double OutputImageStartDepthMm;
 
   /*! Image depth covered by an RF scanline, in mm */
   double ImagingDepthMm;

@@ -5,6 +5,8 @@
 #include "vtkImageImport.h"
 #include "vtkPlusDataBuffer.h"
 #include "vtkRfProcessor.h"
+#include "vtkUsScanConvertLinear.h"
+#include "vtkUsScanConvertCurvilinear.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
@@ -109,8 +111,6 @@ public:
     std::string scanPlane = ParseResponseQuoted(value, 0);
     std::cout << "Scan plane: " << scanPlane << std::endl;
 
-    this->External->RfProcessor->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
-
     value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
     float frameRate = atof(ParseResponse(value,0).c_str());
     std::cout << "Frame rate: " << frameRate << std::endl;
@@ -147,29 +147,72 @@ public:
     startAngleDeg = -(startAngleDeg-stopAngleDeg)/2.;
     stopAngleDeg = -startAngleDeg;
 
-    // set relevant parameters on RfProcessor
+    // Update the RfProcessor with scan conversion parameters
+    
     if(transducer == "8848")
     {
       if(scanPlane == "S")
       {
-        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
-        this->External->RfProcessor->SetTransducerWidthMm(startLineXMm+stopLineXMm);
+        LOG_DEBUG("Linear transducer");
+        if (vtkUsScanConvertLinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
+        {
+          // The current scan converter is not for a linear transducer, so change it now
+          vtkSmartPointer<vtkUsScanConvertLinear> scanConverter=vtkSmartPointer<vtkUsScanConvertLinear>::New();
+          this->External->RfProcessor->SetScanConverter(scanConverter);
+        }
       }
       else if(scanPlane == "T")
       {
-        std::cout << "Transducer geometry is curvilinear" << std::endl;
-        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
+        LOG_DEBUG("Curvilinear transducer");
+        if (vtkUsScanConvertCurvilinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
+        {
+          // The current scan converter is not for a curvilinear transducer, so change it now
+          vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConverter=vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
+          this->External->RfProcessor->SetScanConverter(scanConverter);
+        }
+      }
+      else
+      {
+        LOG_WARNING("Unknown transducer scan plane ("<<scanPlane<<"). Cannot determine transducer geometry.");
+      }
+    }
+    else
+    {
+      LOG_WARNING("Unknown transducer model ("<<transducer<<"). Cannot determine transducer geometry.");
+    }
+
+    vtkUsScanConvert* scanConverter=this->External->RfProcessor->GetScanConverter();
+    if (scanConverter!=NULL)
+    {
+      vtkUsScanConvertLinear* scanConverterLinear=vtkUsScanConvertLinear::SafeDownCast(scanConverter);
+      vtkUsScanConvertCurvilinear* scanConverterCurvilinear=vtkUsScanConvertCurvilinear::SafeDownCast(scanConverter);
+      if (scanConverterLinear!=NULL)
+      {
+        scanConverterLinear->SetTransducerWidthMm(startLineXMm+stopLineXMm);
+        scanConverterLinear->SetImagingDepthMm(stopDepthMm);
+      }
+      else if (scanConverterCurvilinear!=NULL)
+      {
         // this is a predefined value for 8848 transverse array, which
         // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
         // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
-        this->External->RfProcessor->SetRadiusOfCurvatureMm(9.74);
-        this->External->RfProcessor->SetStartAngleDeg(startAngleDeg);
-        this->External->RfProcessor->SetStopAngleDeg(stopAngleDeg);
+        scanConverterCurvilinear->SetRadiusStartMm(9.74);
+        scanConverterCurvilinear->SetRadiusStopMm(stopDepthMm);
+        scanConverterCurvilinear->SetThetaStartDeg(startAngleDeg);
+        scanConverterCurvilinear->SetThetaStopDeg(stopAngleDeg);        
       }
-    }
+      else
+      {
+        LOG_WARNING("Unknown scan converter type: "<<scanConverter->GetTransducerGeometry());
+      }
 
-    this->External->RfProcessor->SetStartDepthMm(startDepthMm);
-    this->External->RfProcessor->SetStopDepthMm(stopDepthMm);
+      scanConverter->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
+      scanConverter->SetOutputImageStartDepthMm(startDepthMm);
+    }
+    else
+    {
+      LOG_WARNING("Scan converter is not defined in either manually or through the OEM interface");
+    }
 
     /* Not used in reconstruction
     std::cout << "Queried value: " << value << std::endl;

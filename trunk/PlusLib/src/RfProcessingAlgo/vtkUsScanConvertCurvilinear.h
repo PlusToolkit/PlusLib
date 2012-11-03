@@ -7,31 +7,31 @@ See License.txt for details.
 #ifndef __vtkUsScanConvertCurvilinear_h
 #define __vtkUsScanConvertCurvilinear_h
 
-#include "vtkThreadedImageAlgorithm.h"
+#include "vtkUsScanConvert.h"
 
 /*!
 \class vtkUsScanConvertCurvilinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
 \ingroup RfProcessingAlgo
 */ 
-class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkThreadedImageAlgorithm
+class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkUsScanConvert
 {
 public:
   static vtkUsScanConvertCurvilinear *New();
-  vtkTypeMacro(vtkUsScanConvertCurvilinear,vtkThreadedImageAlgorithm);
+  vtkTypeMacro(vtkUsScanConvertCurvilinear,vtkUsScanConvert);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
-  /*! Set the output image spacing (mm/pixel) */
-  vtkSetVector3Macro(OutputImageSpacing,double);
-  /*! Get the output image spacing (mm/pixel) */
-  vtkGetVector3Macro(OutputImageSpacing,double);
 
+  virtual const char* GetTransducerGeometry() { return "CURVILINEAR"; }
+  
   /*! Read configuration from xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* scanConversionElement);   
 
   /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
   
+  /*! Get the scan converted image */
+  virtual vtkImageData* GetOutput();
+
   struct InterpolatedPoint
   {
     /*! Weighting coefficients that used to construct the output pixel from 4 input pixels */
@@ -53,9 +53,18 @@ public:
   vtkGetMacro(RadiusStopMm, double);
   vtkSetMacro(ThetaStartDeg, double);
   vtkSetMacro(ThetaStopDeg, double);
-  vtkSetMacro(OutputImageStartDepthMm, double);
 
-  vtkGetVector6Macro(OutputImageExtent,int);
+  /*! 
+    Get the start and end point of the selected scanline
+    transducer surface, the end point is far from the transducer surface.
+    \param scanLineIndex Index of the scanline. Starts with 0 (the scanline closest to the marked side of the transducer)
+    \param scanlineStartPoint_OutputImage Starting point of the scanline (near the transducer surface), in output image coordinate frame (in pixels)
+    \param scanlineEndPoint_OutputImage Last point of the scanline (far from the transducer surface), in output image coordinate frame (in pixels)
+  */
+  PlusStatus GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4]);
+
+  /*! Get the distance between two sample points in the scanline, in mm */
+  virtual double GetDistanceBetweenScanlineSamplePointsMm();
 
 protected:
   vtkUsScanConvertCurvilinear();
@@ -76,15 +85,6 @@ protected:
                            vtkImageData **outData,
                            int outExt[6],
                            int id);
-
-  /*! Extent of the output image, in pixels. Only the first four values are used. */
-  int OutputImageExtent[6];
-
-  /*! Spacing of the output image, in mm/pixel. Only the first two values are used. */
-  double OutputImageSpacing[3];
-
-  /*! Depth for start of output image, in mm */
-  double OutputImageStartDepthMm;
 
   /*! Depth for start of scanline, in mm */
   double RadiusStartMm;
