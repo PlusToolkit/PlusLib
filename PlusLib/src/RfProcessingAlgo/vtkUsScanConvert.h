@@ -37,8 +37,6 @@ public:
 
   /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
-  
-  vtkSetMacro(OutputImageStartDepthMm, double);
 
   vtkGetVector6Macro(OutputImageExtent,int);
   vtkGetVector6Macro(InputImageExtent,int);
@@ -76,9 +74,6 @@ protected:
 
   /*! Spacing of the output image, in mm/pixel. Only the first two values are used. */
   double OutputImageSpacing[3];
-
-  /*! Depth for start of output image, in mm */
-  double OutputImageStartDepthMm;
 
   /*! 
     Extent of the input non-scanconverted image, in pixels. Only the first four values are used.

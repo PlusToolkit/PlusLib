@@ -130,8 +130,8 @@ public:
       vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
     // start depth is defined at the distance from the outer surface of the transducer 
     // to the surface of the crystal. stop depth is from the outer surface to the scan depth.
-    // start depth has negative depth in this coordinate system, so we take the abs.
-    float startDepthMm = fabs(atof(ParseResponse(value,3).c_str())*1000.);
+    // start depth has negative depth in this coordinate system (the transducer surface pixels are inside the image)
+    float startDepthMm = atof(ParseResponse(value,3).c_str())*1000.;
     float stopAngleDeg = 
       vtkMath::DegreesFromRadians(atof(ParseResponse(value,6).c_str()));
     float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
@@ -196,6 +196,7 @@ public:
         // this is a predefined value for 8848 transverse array, which
         // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
         // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
+        scanConverterCurvilinear->SetOutputImageStartDepthMm(startDepthMm);
         scanConverterCurvilinear->SetRadiusStartMm(9.74);
         scanConverterCurvilinear->SetRadiusStopMm(stopDepthMm);
         scanConverterCurvilinear->SetThetaStartDeg(startAngleDeg);
@@ -206,8 +207,7 @@ public:
         LOG_WARNING("Unknown scan converter type: "<<scanConverter->GetTransducerGeometry());
       }
 
-      scanConverter->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
-      scanConverter->SetOutputImageStartDepthMm(startDepthMm);
+      scanConverter->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());      
     }
     else
     {

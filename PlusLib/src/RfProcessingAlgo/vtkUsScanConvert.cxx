@@ -30,7 +30,6 @@ vtkUsScanConvert::vtkUsScanConvert()
   this->OutputImageSpacing[0]=0.2;
   this->OutputImageSpacing[1]=0.2;
   this->OutputImageSpacing[2]=1.0; // not used
-  this->OutputImageStartDepthMm=10; // TODO: set to 0
 }
 
 //----------------------------------------------------------------------------
@@ -47,7 +46,6 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
     << this->OutputImageExtent[0] <<", "<< this->OutputImageExtent[1] <<", "
     << this->OutputImageExtent[2] <<", "<< this->OutputImageExtent[3] <<")\n";
   os << indent << "OutputImageSpacing: ("<< this->OutputImageSpacing[0] <<", "<< this->OutputImageSpacing[1] <<")\n";
-  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
 }
 
 //-----------------------------------------------------------------------------
@@ -82,12 +80,6 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
   if ( transducerNameStr != NULL) 
   {
     this->SetTransducerName(transducerNameStr);
-  }
-
-  double OutputImageStartDepthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", OutputImageStartDepthMm)) 
-  {
-    this->OutputImageStartDepthMm=OutputImageStartDepthMm; 
   }
   
   double outputImageSpacing[2]={0};
@@ -130,8 +122,6 @@ PlusStatus vtkUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConversio
   scanConversionElement->SetAttribute("TransducerGeometry", GetTransducerGeometry()); 
   
   scanConversionElement->SetAttribute("TransducerName", this->TransducerName); 
-
-  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
 
   scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
 

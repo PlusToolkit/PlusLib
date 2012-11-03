@@ -45,14 +45,14 @@ public:
   /*! Retrieve the InterpolatedPointArray (used internally by the thread function) */
   const std::vector<InterpolatedPoint> & GetInterpolatedPointArray() { return this->InterpolatedPointArray; };
 
-  /*! Initialize the parameters used in reconstruction. These are for the cases
-  when video source can obtain them from the hardware */
+  /*! Initialize the parameters used in reconstruction. These are for the cases when video source can obtain them from the hardware */
   vtkSetMacro(RadiusStartMm, double);
   vtkGetMacro(RadiusStartMm, double);
   vtkSetMacro(RadiusStopMm, double);
   vtkGetMacro(RadiusStopMm, double);
   vtkSetMacro(ThetaStartDeg, double);
   vtkSetMacro(ThetaStopDeg, double);
+  vtkSetMacro(OutputImageStartDepthMm, double);
 
   /*! 
     Get the start and end point of the selected scanline
@@ -85,6 +85,9 @@ protected:
                            vtkImageData **outData,
                            int outExt[6],
                            int id);
+
+  /*! Depth for start of output image, in mm. If positive then the image fan origin (center of the transducer) is outside the output image. */
+  double OutputImageStartDepthMm;
 
   /*! Depth for start of scanline, in mm */
   double RadiusStartMm;
