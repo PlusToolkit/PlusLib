@@ -555,23 +555,22 @@ void TemporalCalibrationToolbox::DoCalibration()
   if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingData(m_LastRecordedTrackingItemTimestamp, m_TemporalCalibrationTrackingData) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to tracking data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedTrackingItemTimestamp << ")"); 
-    CancelCalibration();
-    return; 
   }
-
-  // Acquire video frames
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetVideoData(m_LastRecordedVideoItemTimestamp, m_TemporalCalibrationVideoData) != PLUS_SUCCESS )
+  else
   {
-    LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedVideoItemTimestamp << ")"); 
-    CancelCalibration();
-    return; 
+    // Acquire video frames
+    if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetVideoData(m_LastRecordedVideoItemTimestamp, m_TemporalCalibrationVideoData) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedVideoItemTimestamp << ")"); 
+    }
+    else
+    {
+      // Update progress
+      int progressPercent = (int)((currentTimeSec - m_StartTimeSec) / m_TemporalCalibrationDurationSec * 100.0);
+      m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+      LOG_DEBUG("Number of tracked frames in the calibration dataset: Tracking: " << std::setw(3) << numberOfTrackingFramesBeforeRecording << " => " << m_TemporalCalibrationTrackingData->GetNumberOfTrackedFrames() << "; Video: " << numberOfVideoFramesBeforeRecording << " => " << m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames());
+    }
   }
-
-  // Update progress
-  int progressPercent = (int)((currentTimeSec - m_StartTimeSec) / m_TemporalCalibrationDurationSec * 100.0);
-  m_ParentMainWindow->SetStatusBarProgress(progressPercent);
-
-  LOG_DEBUG("Number of tracked frames in the calibration dataset: Tracking: " << std::setw(3) << numberOfTrackingFramesBeforeRecording << " => " << m_TemporalCalibrationTrackingData->GetNumberOfTrackedFrames() << "; Video: " << numberOfVideoFramesBeforeRecording << " => " << m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames());
 
   QTimer::singleShot(m_RecordingIntervalMs, this, SLOT(DoCalibration())); 
 }
