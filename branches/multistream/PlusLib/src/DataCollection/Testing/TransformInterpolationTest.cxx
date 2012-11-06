@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   for ( double newTime = startTime; newTime < endTime; newTime += 1.0 / (frameRate * 5.0) )
   {
     StreamBufferItem bufferItem;
-    if ( trackerBuffer->GetDataBufferItemFromTime(newTime, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
+    if ( trackerBuffer->GetStreamBufferItemFromTime(newTime, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
     {
       LOG_DEBUG("Failed to get tracker buffer item from time: " << std::fixed << newTime ); 
       continue; 

@@ -61,9 +61,12 @@ vtkPlusDevice::vtkPlusDevice()
 , RfProcessor(vtkRfProcessor::New())
 , BlankImage(vtkImageData::New())
 , FrameTimeStamp(0)
+, ToolReferenceFrameName(NULL)
+, DeviceId(NULL)
 , CurrentStreamBufferItem(new StreamBufferItem())
 , CurrentStream(NULL)
 , FrameNumber(0)
+, Selectable(false)
 , OutputNeedsInitialization(1)
 , NumberOfOutputFrames(1)
 , UpdateWithDesiredTimestamp(0)
@@ -557,16 +560,78 @@ std::string vtkPlusDevice::ConvertToolStatusToString(ToolStatus status)
   return flagFieldValue; 
 }
 
+
+//----------------------------------------------------------------------------
+vtkXMLDataElement* vtkPlusDevice::FindThisDeviceElement( vtkXMLDataElement* rootXMLElement )
+{
+  if( rootXMLElement == NULL )
+  {
+    LOG_ERROR("Unable to find device XML element for this device.");
+    return NULL;
+  }
+
+  vtkXMLDataElement* dataCollectionElement = rootXMLElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionElement == NULL)
+  {
+    LOG_ERROR("Unable to find data collection element in XML tree!"); 
+    return NULL;     
+  }
+
+  vtkXMLDataElement* deviceXMLElement = NULL;
+  for ( int i = 0; i < dataCollectionElement->GetNumberOfNestedElements(); ++i )
+  {
+    deviceXMLElement = dataCollectionElement->GetNestedElement(i); 
+
+    if (deviceXMLElement->GetName() != NULL && deviceXMLElement->GetAttribute("Id") != NULL && 
+      STRCASECMP(deviceXMLElement->GetName(), "Device") == 0 && STRCASECMP(deviceXMLElement->GetAttribute("Id"), this->GetDeviceId()) == 0)
+    {
+      return deviceXMLElement;
+    }
+  }
+
+  return NULL;
+}
+
+
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
+PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 {
   LOG_TRACE("vtkPlusDevice::ReadConfiguration");
 
-  if( deviceXMLElement == NULL )
+  if( rootXMLElement == NULL )
   {
     LOG_ERROR("Unable to find device XML element for this device.");
     return PLUS_FAIL;
-  }  
+  }
+
+  vtkXMLDataElement* deviceXMLElement = this->FindThisDeviceElement(rootXMLElement);
+
+  if( deviceXMLElement == NULL )
+  {
+    LOG_ERROR("Unable to find device XML element for device " << this->GetDeviceId() );
+    return PLUS_FAIL;
+  }
+
+  const char* selectable = deviceXMLElement->GetAttribute("Selectable");
+  if( selectable == NULL )
+  {
+    LOG_ERROR("Selectable required in device configuration.");
+  }
+  SetSelectable(STRCASECMP(selectable, "true") == 0);
+
+  int averagedItemsForFiltering = 0;
+  if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  {
+  }
+  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+  }
 
   // Read tool configurations 
   for ( int tool = 0; tool < deviceXMLElement->GetNumberOfNestedElements(); tool++ )
@@ -579,6 +644,21 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
     }
 
     vtkSmartPointer<vtkPlusStreamTool> streamTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
+
+    // TODO : move this to the tool config?
+    int bufferSize = 0; 
+    if ( toolDataElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+    {
+      streamTool->GetBuffer()->SetBufferSize(bufferSize);
+    }
+    else if ( RequireToolBufferSizeInDeviceSetConfiguration )
+    {
+      LOG_ERROR("Unable to find tool \"" << streamTool->GetToolName() << "\" buffer size in device element when it is required.");
+      continue;
+    }
+
+    streamTool->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+
     if ( streamTool->ReadConfiguration(toolDataElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
@@ -588,17 +668,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
     if ( this->AddTool(streamTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tool '" << streamTool->GetToolName() << "' to tracker on port " << streamTool->GetPortName() );
-      continue; 
-    }
-
-    int bufferSize = 0; 
-    if ( toolDataElement->GetScalarAttribute("BufferSize", bufferSize) ) 
-    {
-      streamTool->GetBuffer()->SetBufferSize(bufferSize);
-    }
-    else if ( RequireToolBufferSizeInDeviceSetConfiguration )
-    {
-      LOG_ERROR("Unable to find tool \"" << streamTool->GetToolName() << "\" buffer size in device element when it is required.");
     }
   }
 
@@ -687,33 +756,8 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* deviceXMLElement)
       {
         LOG_ERROR("Failed to set buffer size!");
       }
-    }
 
-    int averagedItemsForFiltering = 0;
-    if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
-    {
-      for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
-      {
-        vtkPlusStream* str = *it;
-        vtkPlusStreamBuffer* aBuff = NULL;
-        if( str->GetBuffer(aBuff, 0) != PLUS_SUCCESS )
-        {
-          aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-        }
-
-        for ( ToolContainerIteratorType it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
-        {
-          it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
-        }
-      }
-    }
-    else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
-    {
-      LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
-    }
-    else
-    {
-      LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+      aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
     }
   }
   else if( RequireFrameBufferSizeInDeviceSetConfiguration )
@@ -2368,12 +2412,12 @@ bool vtkPlusDevice::GetTrackingDataAvailable() const
     for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
     {
       vtkPlusStreamBuffer* buffer = bufIt->second;
-      StreamBufferItem* item = NULL;
-      if( buffer->GetLatestStreamBufferItem(item) != ITEM_OK )
+      StreamBufferItem item;
+      if( buffer->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
         continue;
       }
-      if( item->HasValidTransformData() )
+      if( item.HasValidTransformData() )
       {
         return true;
       }
@@ -2383,12 +2427,12 @@ bool vtkPlusDevice::GetTrackingDataAvailable() const
     for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusStreamTool* tool = it->second;
-      StreamBufferItem* item = NULL;
-      if( tool->GetBuffer()->GetLatestStreamBufferItem(item) != ITEM_OK )
+      StreamBufferItem item;
+      if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
         continue;
       }
-      if( item->HasValidTransformData() )
+      if( item.HasValidTransformData() )
       {
         return true;
       }
@@ -2407,12 +2451,12 @@ bool vtkPlusDevice::GetVideoDataAvailable() const
     for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
     {
       vtkPlusStreamBuffer* buffer = bufIt->second;
-      StreamBufferItem* item = NULL;
-      if( buffer->GetLatestStreamBufferItem(item) != ITEM_OK )
+      StreamBufferItem item;
+      if( buffer->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
         continue;
       }
-      if( item->HasValidVideoData() )
+      if( item.HasValidVideoData() )
       {
         return true;
       }
@@ -2422,12 +2466,12 @@ bool vtkPlusDevice::GetVideoDataAvailable() const
     for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusStreamTool* tool = it->second;
-      StreamBufferItem* item = NULL;
-      if( tool->GetBuffer()->GetLatestStreamBufferItem(item) != ITEM_OK )
+      StreamBufferItem item;
+      if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
         continue;
       }
-      if( item->HasValidVideoData() )
+      if( item.HasValidVideoData() )
       {
         return true;
       }

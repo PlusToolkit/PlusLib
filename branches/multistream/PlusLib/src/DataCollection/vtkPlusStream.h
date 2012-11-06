@@ -40,6 +40,8 @@ public:
   ToolContainerConstIteratorType GetToolBuffersEndConstIterator() const;
   ToolContainerIteratorType GetToolBuffersEndIterator();
 
+  PlusStatus Clear();
+
   vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
   vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
 

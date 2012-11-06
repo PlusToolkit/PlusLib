@@ -8,10 +8,10 @@ See License.txt for details.
 #include "TemporalCalibrationToolbox.h"
 #include "TrackedFrame.h"
 #include "fCalMainWindow.h"
+#include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVirtualStreamMixer.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QTimer>
@@ -230,8 +230,8 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
       vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
       if ( dataCollector )
       {
-        vtkVirtualStreamMixer* aDevice = NULL;
-        if ( dataCollector->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL)
+        vtkPlusDevice* aDevice = NULL;
+        if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL)
         {
           videoTimeOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec();
         }
@@ -331,8 +331,8 @@ void TemporalCalibrationToolbox::StartCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkVirtualStreamMixer* aDevice;
-      if( dataCollector->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
+      vtkPlusDevice* aDevice;
+      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
       {
         LOG_ERROR("No selected stream mixer. No data available.");
       }
@@ -487,8 +487,8 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkVirtualStreamMixer* aDevice = NULL;
-      if( dataCollector->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL )
+      vtkPlusDevice* aDevice = NULL;
+      if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL )
       {
         aDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
         offsetsSuccessfullySet = true;
@@ -592,8 +592,8 @@ void TemporalCalibrationToolbox::CancelCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkVirtualStreamMixer* aDevice = NULL;
-      if( dataCollector->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
+      vtkPlusDevice* aDevice = NULL;
+      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
       {
         LOG_ERROR("No selected stream mixer. Unable to reset the local time offset to their previous value.")
       }

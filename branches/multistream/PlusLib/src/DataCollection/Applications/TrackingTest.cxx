@@ -321,7 +321,7 @@ int main(int argc, char **argv)
     while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
     {
 
-      tool->GetBuffer()->GetLatestDataBufferItem(&bufferItem); 
+      tool->GetBuffer()->GetLatestStreamBufferItem(&bufferItem); 
       if ( bufferItem.GetMatrix(matrix) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get matrix from buffer item!"); 

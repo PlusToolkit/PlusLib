@@ -59,10 +59,6 @@ typedef std::vector<vtkPlusDevice*> DeviceCollection;
 typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
 typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
 
-typedef std::vector<vtkVirtualStreamMixer*> StreamMixerCollection;
-typedef std::vector<vtkVirtualStreamMixer*>::iterator StreamMixerCollectionIterator;
-typedef std::vector<vtkVirtualStreamMixer*>::const_iterator StreamMixerCollectionConstIterator;
-
 /*!
   \class DataBufferItem 
   \brief Stores a single video frame OR a single transform

@@ -10,12 +10,12 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
+#include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVirtualStreamMixer.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -28,7 +28,7 @@ vtkStandardNewMacro(vtkDataCollector);
 
 vtkDataCollector::vtkDataCollector()
 : vtkObject()
-, SelectedStreamMixer(NULL)
+, SelectedDevice(NULL)
 , Connected(false)
 , Started(false)
 , StartupDelaySec(0.0) 
@@ -88,16 +88,43 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     if (STRCASECMP(deviceElement->GetName(), "Device") == 0 )
     {
       vtkPlusDevice* device = NULL;
+      if( deviceElement->GetAttribute("Id") == NULL )
+      {
+        LOG_ERROR("Device of type " << deviceElement->GetAttribute("Type") << " with no ID. Unable to continue operating with an incomplete device configuration.");
+        continue;
+      }
       if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
       {    
         LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
       }
       else
       {
-        device->ReadConfiguration(deviceElement);
+        device->ReadConfiguration(aConfig);
         Devices.push_back(device);
       }
     }
+  }
+
+  if( Devices.size() == 0 )
+  {
+    LOG_ERROR("No devices created. Please verify configuration file and any error produced.");
+    return PLUS_FAIL;
+  }
+
+  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+  {
+    if( (*it)->GetSelectable() )
+    {
+      this->SetSelectedDevice((*it)->GetDeviceId());
+      break;
+    }
+  }
+
+  vtkPlusDevice* aDevice;
+  if( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("No selectable devices defined. Unable to locate any for data collection.");
+    return PLUS_FAIL;
   }
 
   // Connect any and all input streams to their corresponding output streams
@@ -265,7 +292,7 @@ PlusStatus vtkDataCollector::Disconnect()
   }
 
   Connected = false;
-  this->SelectedStreamMixer = NULL;
+  this->SelectedDevice = NULL;
 
   return status;
 }
@@ -276,9 +303,9 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp( double &ts ) const
 {
   LOG_TRACE("vtkDataCollector::GetMostRecentTimestamp()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetMostRecentTimestamp(ts);
+    return SelectedDevice->GetMostRecentTimestamp(ts);
   }
 
   LOG_ERROR("No selected tracked frame producer. No one to ask for most recent timestamp!");
@@ -291,9 +318,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameList( double& aTimestamp, vtkTracked
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameList(" << aTimestamp << ", aTrackedFrameList, " << aMaxNumberOfFramesToAdd << ")");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetTrackedFrameList(aTimestamp, aTrackedFrameList, aMaxNumberOfFramesToAdd);
+    return SelectedDevice->GetTrackedFrameList(aTimestamp, aTrackedFrameList, aMaxNumberOfFramesToAdd);
   }
 
   LOG_ERROR("No selected tracked frame producer. No one to ask for a tracked frame list!");
@@ -341,9 +368,9 @@ bool vtkDataCollector::GetTrackingEnabled() const
 {
   LOG_TRACE("vtkDataCollector::GetTrackingEnabled()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetTrackingDataAvailable();
+    return SelectedDevice->GetTrackingDataAvailable();
   }
 
   return false;
@@ -352,9 +379,9 @@ bool vtkDataCollector::GetTrackingEnabled() const
 //----------------------------------------------------------------------------
 bool vtkDataCollector::GetVideoEnabled() const
 {
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetVideoDataAvailable();
+    return SelectedDevice->GetVideoDataAvailable();
   }
 
   return false;
@@ -367,9 +394,9 @@ PlusStatus vtkDataCollector::GetTrackedFrame( TrackedFrame* trackedFrame )
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrame()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetTrackedFrame(trackedFrame);
+    return SelectedDevice->GetTrackedFrame(trackedFrame);
   }
 
   LOG_ERROR("No selected tracked frame producer. No one to ask for a tracked frame!");
@@ -378,16 +405,16 @@ PlusStatus vtkDataCollector::GetTrackedFrame( TrackedFrame* trackedFrame )
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::SetSelectedStreamMixer( const std::string &aDeviceId )
+PlusStatus vtkDataCollector::SetSelectedDevice( const std::string &aDeviceId )
 {
-  LOG_TRACE("vtkDataCollector::SetSelectedStreamMixer(" << aDeviceId << ")");
+  LOG_TRACE("vtkDataCollector::SetSelectedDevice(" << aDeviceId << ")");
 
   for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
-    if( dynamic_cast<vtkVirtualStreamMixer*>(device) != NULL && aDeviceId.compare(device->GetDeviceId()) == 0 )
+    if( aDeviceId.compare(device->GetDeviceId()) == 0 )
     {
-      SelectedStreamMixer = dynamic_cast<vtkVirtualStreamMixer*>(device);
+      SelectedDevice = device;
       return PLUS_SUCCESS;
     }
   }
@@ -397,18 +424,18 @@ PlusStatus vtkDataCollector::SetSelectedStreamMixer( const std::string &aDeviceI
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetStreamMixers( StreamMixerCollection &OutVector ) const
+PlusStatus vtkDataCollector::GetSelectableDevices( DeviceCollection &OutVector ) const
 {
-  LOG_TRACE("vtkDataCollector::GetStreamMixers()");
+  LOG_TRACE("vtkDataCollector::GetSelectableDevices()");
 
   OutVector.clear();
 
   for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
-    if( dynamic_cast<vtkVirtualStreamMixer*>(device) != NULL )
+    if( device->GetSelectable() )
     {
-      OutVector.push_back(dynamic_cast<vtkVirtualStreamMixer*>(device));
+      OutVector.push_back(device);
     }
   }
 
@@ -417,13 +444,13 @@ PlusStatus vtkDataCollector::GetStreamMixers( StreamMixerCollection &OutVector )
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetSelectedStreamMixer( vtkVirtualStreamMixer* &aDevice )
+PlusStatus vtkDataCollector::GetSelectedDevice( vtkPlusDevice* &aDevice )
 {
-  LOG_TRACE("vtkDataCollector::GetSelectedStreamMixer()");
+  LOG_TRACE("vtkDataCollector::GetSelectedDevice()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    aDevice = SelectedStreamMixer;
+    aDevice = SelectedDevice;
     return PLUS_SUCCESS;
   }
 
@@ -443,9 +470,9 @@ bool vtkDataCollector::GetTrackingDataAvailable() const
 {
   LOG_TRACE("vtkDataCollector::GetTrackingDataAvailable()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetTrackingDataAvailable();
+    return SelectedDevice->GetTrackingDataAvailable();
   }
 
   return false;
@@ -457,9 +484,9 @@ bool vtkDataCollector::GetVideoDataAvailable() const
 {
   LOG_TRACE("vtkDataCollector::GetVideoDataAvailable()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetVideoDataAvailable();
+    return SelectedDevice->GetVideoDataAvailable();
   }
 
   return false;
@@ -512,9 +539,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime()");
 
-  if( SelectedStreamMixer != NULL )
+  if( SelectedDevice != NULL )
   {
-    return SelectedStreamMixer->GetTrackedFrameByTime(time, trackedFrame);
+    return SelectedDevice->GetTrackedFrameByTime(time, trackedFrame);
   }
 
   LOG_ERROR("No selected stream mixer. Unable to get a tracked frame by time when no device available/selected.");
@@ -526,9 +553,9 @@ PlusStatus vtkDataCollector::GetFrameSize(int aDim[2])
 {
   LOG_TRACE("vtkDataCollector::GetFrameSize");
 
-  if( this->SelectedStreamMixer != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return this->SelectedStreamMixer->GetFrameSize(aDim);
+    return this->SelectedDevice->GetFrameSize(aDim);
   }
 
   LOG_ERROR("No selected stream mixer. Unable to GetFrameSize() when no device available/selected.");
@@ -540,9 +567,9 @@ PlusStatus vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
 {
   LOG_TRACE("vtkDataCollector::GetFrameSize");
 
-  if( this->SelectedStreamMixer != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return this->SelectedStreamMixer->GetBrightnessFrameSize(aDim);
+    return this->SelectedDevice->GetBrightnessFrameSize(aDim);
   }
 
   LOG_ERROR("No selected stream mixer. Unable to GetBrightnessFrameSize() when no device available/selected.");
@@ -554,9 +581,9 @@ vtkImageData* vtkDataCollector::GetBrightnessOutput()
 {
   LOG_TRACE("vtkDataCollector::GetBrightnessOutput");
 
-  if( this->SelectedStreamMixer != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return this->SelectedStreamMixer->GetBrightnessOutput();
+    return this->SelectedDevice->GetBrightnessOutput();
   }
 
   LOG_ERROR("No selected stream mixer. Unable to GetBrightnessOutput() when no device available/selected.");
@@ -581,9 +608,9 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrame(std::string &aToolRefe
   LOG_TRACE("vtkDataCollector::GetTrackerToolReferenceFrame");
 
   // If there is a physical tracker device then get the info from there
-  if (this->SelectedStreamMixer != NULL)
+  if (this->SelectedDevice != NULL)
   {
-    aToolReferenceFrameName = std::string(this->SelectedStreamMixer->GetToolReferenceFrameName());
+    aToolReferenceFrameName = std::string(this->SelectedDevice->GetToolReferenceFrameName());
     return PLUS_SUCCESS;
   }
 
@@ -634,14 +661,14 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrameFromTrackedFrame(std::s
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec )
 {
-  if( SelectedStreamMixer == NULL )
+  if( SelectedDevice == NULL )
   {
     LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
     return PLUS_FAIL;
   }
 
-  SelectedStreamMixer->SetLocalTimeOffsetSec(videoLagSec);
-  SelectedStreamMixer->SetToolLocalTimeOffsetSec(trackerLagSec);
+  SelectedDevice->SetLocalTimeOffsetSec(videoLagSec);
+  SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
   return PLUS_SUCCESS;
 }
 
@@ -662,7 +689,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     LOG_ERROR("Unable to get tracked frame list - Tracking is not enabled"); 
     return PLUS_FAIL; 
   }
-  if ( this->SelectedStreamMixer == NULL )
+  if ( this->SelectedDevice == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - stream mixer is invalid"); 
     return PLUS_FAIL; 
@@ -670,8 +697,8 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
 
   // Get the first tool
   vtkPlusStreamTool* firstActiveTool = NULL; 
-  vtkVirtualStreamMixer* aDevice = NULL;
-  if ( this->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
+  vtkPlusDevice* aDevice = NULL;
+  if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
   {
     LOG_ERROR("No selected stream mixer. Unable to search for tools.");
     return PLUS_FAIL;
@@ -747,8 +774,8 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     LOG_ERROR("Unable to get tracked frame list - video is not enabled"); 
     return PLUS_FAIL; 
   }
-  vtkVirtualStreamMixer* aDevice = NULL;
-  if ( this->GetSelectedStreamMixer(aDevice) != PLUS_SUCCESS )
+  vtkPlusDevice* aDevice = NULL;
+  if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
   {
     LOG_ERROR("Selected stream mixer is invalid. No video source present."); 
     return PLUS_FAIL; 
@@ -797,9 +824,9 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetFrameRate( double& frameRate ) const
 {
-  if( this->SelectedStreamMixer != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    frameRate = this->SelectedStreamMixer->GetAcquisitionRate();
+    frameRate = this->SelectedDevice->GetAcquisitionRate();
     return PLUS_SUCCESS;
   }
 
@@ -810,9 +837,9 @@ PlusStatus vtkDataCollector::GetFrameRate( double& frameRate ) const
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetTrackedFrameListSampled( double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec/*=-1*/ )
 {
-  if( this->SelectedStreamMixer != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return this->SelectedStreamMixer->GetTrackedFrameListSampled(aTimestamp, aTrackedFrameList, aSamplingRateSec, maxTimeLimitSec);
+    return this->SelectedDevice->GetTrackedFrameListSampled(aTimestamp, aTrackedFrameList, aSamplingRateSec, maxTimeLimitSec);
   }
 
   LOG_ERROR("No selected mixer when GetTrackedFrameListSampled(). Nothing to poll!");

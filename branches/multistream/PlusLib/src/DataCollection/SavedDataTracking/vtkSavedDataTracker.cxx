@@ -288,14 +288,7 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

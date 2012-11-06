@@ -93,7 +93,7 @@ vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
-  DeviceTypes["SavedDataset"]=(PointerToDevice)&vtkSavedDataTracker::New; 
+  DeviceTypes["SavedTrackerDataset"]=(PointerToDevice)&vtkSavedDataTracker::New; 
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
 #ifdef PLUS_USE_OpenIGTLink
@@ -124,7 +124,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["PhidgetSpatial"]=(PointerToDevice)&vtkPhidgetSpatialTracker::New; 
 #endif
 
-  DeviceTypes["SavedDataset"]=(PointerToDevice)&vtkSavedDataVideoSource::New; 
+  DeviceTypes["SavedVideoDataset"]=(PointerToDevice)&vtkSavedDataVideoSource::New; 
   DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New; 
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink

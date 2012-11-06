@@ -272,6 +272,8 @@ public:
   // Set the device Id
   vtkSetStringMacro(DeviceId);
 
+  vtkGetMacro(Selectable, bool);
+
   /*! Set the native ultrasound image orientation that the device acquires */
   vtkSetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION); 
   /*! Get the native ultrasound image orientation that the device acquires */
@@ -389,6 +391,8 @@ public:
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
+  vtkSetMacro(Selectable, bool);
+
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
   /*! Get number of tracked frames between two given timestamps (inclusive) */
@@ -434,6 +438,11 @@ protected:
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
   PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
+
+  /*!
+    Helper function used during configuration to locate the correct XML element
+  */
+  vtkXMLDataElement* FindThisDeviceElement(vtkXMLDataElement* rootXMLElement);
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
@@ -496,6 +505,8 @@ protected:
 
   /*! Set if output needs to be cleared to be cleared before being written */
   int OutputNeedsInitialization;
+
+  bool Selectable;
 
 protected:
   /*

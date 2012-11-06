@@ -42,22 +42,9 @@ vtkPlusStream* vtkVirtualStreamMixer::GetStream() const
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualStreamMixer::InternalUpdate()
 {
-  // verify that the buffers in the output stream match the merged buffers in the input streams
+  // TODO : verify that the buffers in the output stream match the merged buffers in the input streams
   // if an input stream changes, it will re-map it
-  for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
-  {
-    vtkPlusStream* str = *it;
-    // for buffers
-    //    can be many buffers
-    // for tool buffers
-    //    always only 1 buffer per tool
-    //    check tool name conflict (maintain temporary list of taken tool names)
-    //    assume tools in a stream all belong to the same device
 
-    // TODO : how to resolve tool name collisions... error or rename?
-    // TODO : initial thoughts -> error, another virtual device should be responsible for performing whatever name resolution is necessary
-    //          that will enable case by case resolving
-  }
   return PLUS_SUCCESS;
 }
 
@@ -81,37 +68,50 @@ PlusStatus vtkVirtualStreamMixer::Reset()
 //----------------------------------------------------------------------------
 double vtkVirtualStreamMixer::GetAcquisitionRate() const
 {
-  // TODO : Which device to choose from...
+  vtkPlusStreamBuffer* aBuff = NULL;
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  {
+    aBuff = NULL;
+    vtkPlusStream* anInputStream = (*it);
+    if( anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
+    {
+      StreamBufferItem item;
+      if( aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
+      {
+        return anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+      }
+    }
+  }
+
   return this->AcquisitionRate;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 {
-  // TODO : take input streams, check for name conflicts/image conflicts, copy pointer to output stream[0]
-  // buffers are empty, capturing hasn't started
-  // how to determine valid image data in an input stream?
+  // First, empty whatever is there, because this can be called at any point after a configuration
+  this->OutputStreams[0]->Clear();
+
+  // take input streams, check for name conflicts, copy pointer to output stream[0]
   for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
     for( StreamBufferMapContainerConstIterator bufIt = anInputStream->GetBuffersStartConstIterator(); bufIt != anInputStream->GetBuffersEndConstIterator(); ++bufIt )
     {
-      vtkPlusStreamBuffer* buffer = bufIt->second;
-      bool found = false;
+      vtkPlusStreamBuffer* inputBuffer = bufIt->second;
+
       for(StreamBufferMapContainerConstIterator outputBufferIt = this->OutputStreams[0]->GetBuffersStartConstIterator(); outputBufferIt != this->OutputStreams[0]->GetBuffersEndConstIterator(); ++it)
       {
-        if( outputBufferIt->second == buffer )
+        if( outputBufferIt->second == inputBuffer )
         {
-          found = true;
+          LOG_ERROR("Buffer already found in the output stream. Trying to add the same inputBuffer twice.");
           break;
         }
       }
-      if(!found)
-      {
-        // This input buffer is not in the output stream, put it in!
-        int port;
-        this->OutputStreams[0]->AddBuffer(buffer, port);
-      }
+
+      // This input inputBuffer is not in the output stream, put it in!
+      int port;
+      this->OutputStreams[0]->AddBuffer(inputBuffer, port);
     }
 
     for( ToolContainerConstIteratorType inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )

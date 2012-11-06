@@ -8,12 +8,12 @@ See License.txt for details.
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusDevice.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkSphereSource.h"
 #include "vtkTextProperty.h"
-#include "vtkVirtualStreamMixer.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -487,8 +487,8 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    vtkVirtualStreamMixer* aDevice = NULL;
-    if( this->DataCollector->GetSelectedStreamMixer(aDevice) == PLUS_SUCCESS )
+    vtkPlusDevice* aDevice = NULL;
+    if( this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
     {
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
     }

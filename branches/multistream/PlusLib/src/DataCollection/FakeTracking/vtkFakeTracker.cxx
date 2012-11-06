@@ -526,7 +526,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
   if ( !this->Recording )
   {
     // Read mode
-    vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+    vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
     if (trackerConfig == NULL) 
     {
       LOG_ERROR("Cannot find Tracker element in XML tree!");

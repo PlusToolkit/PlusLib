@@ -719,6 +719,7 @@ void fCalMainWindow::BuildDevicesMenu()
   {
     QCustomAction* action = *it;
     disconnect(action, SIGNAL(triggered()));
+    delete(action);
   }
   m_3DActionList.clear();
 
@@ -735,8 +736,9 @@ void fCalMainWindow::BuildDevicesMenu()
   m_3DActionList.push_back(separator);
   m_3DActionList.push_back(m_ShowPhantomModelAction);
 
-  StreamMixerCollection aCollection;
-  if( this->GetVisualizationController()->GetDataCollector()->GetStreamMixers(aCollection) != PLUS_SUCCESS )
+  DeviceCollection aCollection;
+  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL && 
+   this->GetVisualizationController()->GetDataCollector()->GetSelectableDevices(aCollection) != PLUS_SUCCESS )
   {
     // Data collector might be disconnected
     return;
@@ -745,10 +747,17 @@ void fCalMainWindow::BuildDevicesMenu()
   separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
   // now add an entry for each device
-  for( StreamMixerCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
-    vtkVirtualStreamMixer* device = *it;
+    vtkPlusDevice* device = *it;
+    vtkPlusDevice* aDevice = NULL;
+
     QCustomAction* action = new QCustomAction(QString(device->GetDeviceId()), ui.pushButton_ShowDevices);
+    action->setCheckable(true);
+    if( this->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+    {
+      action->setChecked(aDevice == device);
+    }
     connect(action, SIGNAL(triggered()), this, SLOT(DeviceSelected(device)));
     m_3DActionList.push_back(action);
   }
@@ -760,5 +769,8 @@ void fCalMainWindow::DeviceSelected( vtkPlusDevice* aDevice )
 {
   LOG_TRACE("fCalMainWindow::DeviceSelected(" << aDevice->GetDeviceId() << ")");
 
-  LOG_INFO("device selected " << aDevice->GetDeviceId() << ". complete this function.");
+  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
+  {
+    this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(aDevice->GetDeviceId());
+  }
 }

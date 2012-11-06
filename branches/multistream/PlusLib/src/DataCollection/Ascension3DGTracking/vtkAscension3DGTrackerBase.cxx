@@ -391,14 +391,7 @@ PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* root
   // Read superclass configuration first
   Superclass::ReadConfiguration(rootConfigElement); 
 
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

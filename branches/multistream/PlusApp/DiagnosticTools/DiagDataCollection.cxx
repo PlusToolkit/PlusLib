@@ -87,9 +87,9 @@ int main(int argc, char **argv)
 
 	dataCollector->ReadConfiguration(configRootElement);
 
-  std::vector<vtkVirtualStreamMixer*> mixers;
-  dataCollector->GetStreamMixers(mixers);
-  if( mixers.size() != 1 )
+  DeviceCollection devices;
+  dataCollector->GetSelectableDevices(devices);
+  if( devices.size() != 1 )
   {
     LOG_ERROR("Multiple tracked frame producers defined when only 1 expected. Please review configuration file.");
     exit(EXIT_FAILURE);

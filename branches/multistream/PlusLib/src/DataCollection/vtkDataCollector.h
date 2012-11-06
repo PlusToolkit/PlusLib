@@ -148,11 +148,11 @@ public:
   virtual PlusStatus GetVideoData(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
 
   /*
-  * Functions to manage the currently active tracked frame producer
+  * Functions to manage the currently active stream mixers
   */
-  PlusStatus GetStreamMixers( StreamMixerCollection &OutVector ) const;
-  PlusStatus SetSelectedStreamMixer( const std::string &aDeviceId );
-  PlusStatus GetSelectedStreamMixer( vtkVirtualStreamMixer* &aDevice );
+  PlusStatus GetSelectableDevices( DeviceCollection &OutVector ) const;
+  PlusStatus SetSelectedDevice( const std::string &aDeviceId );
+  PlusStatus GetSelectedDevice( vtkPlusDevice* &aDevice );
 
   /*
   * Functions to pass on to the active stream mixer
@@ -182,7 +182,7 @@ protected:
 
   DeviceCollection Devices;
 
-  vtkVirtualStreamMixer* SelectedStreamMixer;
+  vtkPlusDevice* SelectedDevice;
 
   bool Connected;
   bool Started;

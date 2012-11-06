@@ -209,9 +209,9 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPo
   outNewPort = 0;
   while( outNewPort < MAX_PORT )
   {
-    if( std::find(usedPorts.begin(), usedPorts.end(), outNewPort) != usedPorts.end() )
+    if( std::find(usedPorts.begin(), usedPorts.end(), outNewPort) == usedPorts.end() )
     {
-      this->StreamBuffers[outNewPort] = vtkPlusStreamBuffer::New();
+      this->StreamBuffers[outNewPort] = aBuffer;
       return PLUS_SUCCESS;
     }
     outNewPort++;
@@ -219,4 +219,20 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPo
 
   LOG_ERROR("Unable to find a suitable port for a new buffer. How did you go over " << MAX_PORT << " ports!");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::Clear()
+{
+  // TODO : Verify that this does not delete pointers, just empties vector
+  this->Tools.clear();
+
+  // TODO : Verify that this DOES delete buffers AND empties map
+  for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  {
+    it->second->Delete();
+  }
+  this->StreamBuffers.clear();
+
+  return PLUS_SUCCESS;
 }

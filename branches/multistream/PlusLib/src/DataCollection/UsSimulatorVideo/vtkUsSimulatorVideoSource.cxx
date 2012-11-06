@@ -163,14 +163,7 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
