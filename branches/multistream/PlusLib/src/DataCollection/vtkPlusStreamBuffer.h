@@ -232,13 +232,13 @@ protected:
   The rotation is interpolated with SLERP interpolation, and the position is interpolated with linear interpolation.
   The flags correspond to the closest element.
   */
-  virtual ItemStatus GetInterpolatedDataBufferItemFromTime( double time, StreamBufferItem* bufferItem); 
+  virtual ItemStatus GetInterpolatedStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem); 
 
   /*! Get tracker buffer item from an exact timestamp */
-  virtual ItemStatus GetDataBufferItemFromExactTime( double time, StreamBufferItem* bufferItem); 
+  virtual ItemStatus GetStreamBufferItemFromExactTime( double time, StreamBufferItem* bufferItem); 
   
   /*! Get tracker buffer item from the closest timestamp */
-  virtual ItemStatus GetDataBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem);
+  virtual ItemStatus GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem);
 
   /*! Image frame size in pixel */
   int FrameSize[2]; 

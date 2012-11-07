@@ -102,8 +102,9 @@ public:
   */
   virtual bool IsResettable();
 
-  bool GetTrackingDataAvailable() const;
-  bool GetVideoDataAvailable() const;
+  bool GetTrackingDataAvailable();
+  bool GetVideoDataAvailable();
+  bool GetTrackingEnabled() const;
   
   /*!
     Record incoming data at the specified acquisition rate.  The recording
@@ -255,7 +256,7 @@ public:
   // VTK doesn't generally use 'friend' functions they are public
   // instead of protected.  Do not use them anywhere except inside
   // vtkPlusDevice.cxx.
-  vtkRecursiveCriticalSection *UpdateMutex;
+  vtkRecursiveCriticalSection* UpdateMutex;
   vtkTimeStamp UpdateTime;
   double InternalUpdateRate;  
   //ETX

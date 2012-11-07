@@ -1028,7 +1028,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
       return PLUS_SUCCESS;
     }
   }
-  if ( this->GetTrackingDataAvailable() )
+  if ( this->GetTrackingEnabled())
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -1106,7 +1106,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
         return PLUS_FAIL; 
       }
     }
-    else if ( this->GetTrackingDataAvailable() )
+    else if ( this->GetTrackingEnabled() )
     {
       // Get the first tool
       vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -1228,7 +1228,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
         return PLUS_FAIL;
       }
     }
-    else if ( this->GetTrackingDataAvailable() && i < numberOfFramesToAdd - 1 )
+    else if ( this->GetTrackingEnabled() && i < numberOfFramesToAdd - 1 )
     {
       // Get the first tool
       vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -1369,7 +1369,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameByTime(double time, TrackedFrame* track
     synchronizedTime = trackedFrame->GetTimestamp();
   }
 
-  if ( this->GetTrackingDataAvailable() )
+  if ( this->GetTrackingEnabled() )
   {
     if ( !this->GetVideoDataAvailable() )
     {
@@ -1806,7 +1806,7 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlR
 
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
 
-  if( this->ToolContainer.size() > 0 )
+  if( this->GetTrackingEnabled() )
   {
     // Use the first tool in the container to generate the report
     vtkPlusStreamTool* tool = this->GetToolIteratorBegin()->second;  
@@ -2133,7 +2133,7 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
 
   // ********************* tracker timestamp **********************
   double oldestTrackerTimestamp(0); 
-  if ( this->GetTrackingDataAvailable() )
+  if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -2171,7 +2171,7 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
     oldestVideoTimestamp = oldestTrackerTimestamp; 
   }
 
-  if ( !this->GetTrackingDataAvailable() )
+  if ( this->ToolContainer.size() == 0 )
   {
     oldestTrackerTimestamp = oldestVideoTimestamp; 
   }
@@ -2214,6 +2214,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
   ts=0;
 
   double latestVideoTimestamp(0); 
+  // This can't check for data, only if there is a video source device...
   if ( this->GetVideoDataAvailable() )
   {
     // Get the most recent timestamp from the buffer
@@ -2225,7 +2226,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
   }
 
   double latestTrackerTimestamp(0); 
-  if ( this->GetTrackingDataAvailable() )
+  if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -2256,7 +2257,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
     latestVideoTimestamp = latestTrackerTimestamp; 
   }
 
-  if ( !this->GetTrackingDataAvailable() )
+  if ( this->ToolContainer.size() == 0 )
   {
     latestTrackerTimestamp = latestVideoTimestamp; 
   }
@@ -2311,7 +2312,7 @@ double vtkPlusDevice::GetClosestTrackedFrameTimestampByTime(double time)
     return closestTimestamp;
   }
 
-  if ( this->GetTrackingDataAvailable() )
+  if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -2366,7 +2367,7 @@ int vtkPlusDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, dou
 
     numberOfFrames = abs((int)(vToItem.GetUid() - vFromItem.GetUid()));
   }
-  else if ( this->GetTrackingDataAvailable() )
+  else if ( this->GetTrackingEnabled())
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -2404,46 +2405,29 @@ int vtkPlusDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, dou
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusDevice::GetTrackingDataAvailable() const
+bool vtkPlusDevice::GetTrackingDataAvailable()
 {
-  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  TrackedFrame trackedFrame;
+  if (this->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    vtkPlusStream* stream = *it;
-    for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
-    {
-      vtkPlusStreamBuffer* buffer = bufIt->second;
-      StreamBufferItem item;
-      if( buffer->GetLatestStreamBufferItem(&item) != ITEM_OK )
-      {
-        continue;
-      }
-      if( item.HasValidTransformData() )
-      {
-        return true;
-      }
-    }
-
-    // Now check any and all tool buffers
-    for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
-    {
-      vtkPlusStreamTool* tool = it->second;
-      StreamBufferItem item;
-      if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
-      {
-        continue;
-      }
-      if( item.HasValidTransformData() )
-      {
-        return true;
-      }
-    }
+    LOG_ERROR("Cannot determine if tracking data is available, because failed to get tracked frame");
+    return false;
   }
 
-  return false;
+  std::vector<PlusTransformName> transformNames;
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  if (transformNames.size() == 0)
+  {
+    LOG_DEBUG("No transforms found in tracked frame");
+    return false;
+  }
+
+  // there are transforms in the tracked frame
+  return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusDevice::GetVideoDataAvailable() const
+bool vtkPlusDevice::GetVideoDataAvailable()
 {
   for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
@@ -2502,4 +2486,10 @@ vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer( int port )
     return NULL;
   }
   return aBuff;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::GetTrackingEnabled() const
+{
+  return this->ToolContainer.size() > 0;
 }

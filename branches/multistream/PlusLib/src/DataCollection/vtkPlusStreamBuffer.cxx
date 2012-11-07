@@ -1003,19 +1003,19 @@ ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromTime( double time, Stream
   switch (interpolation)
   {
   case EXACT_TIME:
-    return GetDataBufferItemFromExactTime(time, bufferItem); 
+    return GetStreamBufferItemFromExactTime(time, bufferItem); 
   case INTERPOLATED:
-    return GetInterpolatedDataBufferItemFromTime(time, bufferItem); 
+    return GetInterpolatedStreamBufferItemFromTime(time, bufferItem); 
   default:
     LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
-    return GetDataBufferItemFromExactTime(time, bufferItem); 
+    return GetStreamBufferItemFromExactTime(time, bufferItem); 
   }
 }
 
 //---------------------------------------------------------------------------- 
-ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromExactTime( double time, StreamBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromExactTime( double time, StreamBufferItem* bufferItem)
 {
-  ItemStatus status = GetDataBufferItemFromClosestTime(time, bufferItem);
+  ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
   if ( status != ITEM_OK )
   {
     LOG_WARNING("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<")" ); 
@@ -1042,7 +1042,7 @@ ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromExactTime( double time, Str
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem)
 {
   PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
 
@@ -1070,7 +1070,7 @@ ItemStatus vtkPlusStreamBuffer::GetDataBufferItemFromClosestTime( double time, S
 // The rotation is interpolated with SLERP interpolation, and the
 // position is interpolated with linear interpolation.
 // The flags correspond to the closest element.
-ItemStatus vtkPlusStreamBuffer::GetInterpolatedDataBufferItemFromTime( double time, StreamBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetInterpolatedStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem)
 {
   StreamBufferItem itemA; 
   StreamBufferItem itemB; 
@@ -1079,7 +1079,7 @@ ItemStatus vtkPlusStreamBuffer::GetInterpolatedDataBufferItemFromTime( double ti
   {
     // cannot get two neighbors, so cannot do interpolation
     // it may be normal (e.g., when tracker out of view), so don't return with an error   
-    ItemStatus status = GetDataBufferItemFromClosestTime(time, bufferItem);
+    ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
     if ( status != ITEM_OK )
     {
       LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ")" ); 
