@@ -235,6 +235,8 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     return PLUS_FAIL; 
   }
 
+  this->GetBuffer()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
+
   // Set local buffer 
   if ( this->LocalVideoBuffer != NULL )
   {

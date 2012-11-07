@@ -15,6 +15,8 @@ See License.txt for details.
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
+#include "vtkSavedDataTracker.h"
+#include "vtkSavedDataVideoSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -47,6 +49,11 @@ vtkDataCollector::~vtkDataCollector()
   if( Connected )
   {
     this->Disconnect();
+  }
+
+  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it)
+  {
+    (*it)->Delete();
   }
   Devices.clear();
 }
@@ -265,10 +272,16 @@ PlusStatus vtkDataCollector::Connect()
   if( status != PLUS_SUCCESS )
   {
     this->Disconnect();
-    return status;
+    status = PLUS_FAIL;
   }
 
-  Connected = true;
+  if ( this->SetLoopTimes() != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Failed to set loop times!"); 
+    status = PLUS_FAIL;
+  }
+
+  Connected = (status == PLUS_SUCCESS);
   return status;
 }
 
@@ -844,4 +857,121 @@ PlusStatus vtkDataCollector::GetTrackedFrameListSampled( double& aTimestamp, vtk
 
   LOG_ERROR("No selected mixer when GetTrackedFrameListSampled(). Nothing to poll!");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::SetLoopTimes()
+{
+  LOG_TRACE("vtkDataCollector::SetLoopTimes"); 
+
+  double oldestTrackerTimeStamp(0);
+  double latestTrackerTimeStamp(0);
+  vtkSavedDataTracker* savedDataTracker = NULL;
+
+  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(*it); 
+
+    if ( savedDataTracker != NULL )
+    {
+      if ( savedDataTracker->GetLocalTrackerBuffer() == NULL ) 
+      {
+        LOG_ERROR("Failed to get local tracker buffer!"); 
+        return PLUS_FAIL;
+      }
+
+      if ( savedDataTracker->GetLocalTrackerBuffer()->GetOldestTimeStamp(oldestTrackerTimeStamp) !=  ITEM_OK ) 
+      {
+        LOG_WARNING("Failed to get oldest timestamp from local tracker buffer!"); 
+        return PLUS_FAIL;
+      }
+
+      if ( savedDataTracker->GetLocalTrackerBuffer()->GetLatestTimeStamp(latestTrackerTimeStamp) !=  ITEM_OK ) 
+      {
+        LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
+        return PLUS_FAIL;
+      }
+    }
+  }
+
+  double oldestVideoTimeStamp(0);
+  double latestVideoTimeStamp(0);
+  vtkSavedDataVideoSource* savedDataVideoSource = NULL;
+
+  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
+    if( savedDataVideoSource != NULL)
+    {
+      if ( savedDataVideoSource->GetLocalVideoBuffer() == NULL ) 
+      {
+        LOG_ERROR("Failed to get local video buffer!"); 
+        return PLUS_FAIL;
+      }
+
+      if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
+      {
+        LOG_WARNING("Failed to get oldest timestamp from local video buffer!"); 
+        return PLUS_FAIL;
+      }
+
+      if ( savedDataVideoSource->GetLocalVideoBuffer()->GetLatestTimeStamp(latestVideoTimeStamp) !=  ITEM_OK ) 
+      {
+        LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
+        return PLUS_FAIL;
+      }
+    }
+  }
+
+  // Item timestamps should computed in the following way for saved datasets (time intersection of the two buffers)
+  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+
+  // Compute the loop start time 
+  double loopStartTime(0);
+  if ( oldestVideoTimeStamp > oldestTrackerTimeStamp )
+  {
+    loopStartTime = oldestVideoTimeStamp; 
+  }
+  else
+  {
+    loopStartTime = oldestTrackerTimeStamp; 
+  }
+
+  // Compute the loop time 
+  double loopTime(0); 
+  if ( savedDataVideoSource == NULL )
+  {
+    loopTime = latestTrackerTimeStamp - loopStartTime;
+  }
+  else if ( savedDataTracker == NULL )
+  {
+    loopTime = latestVideoTimeStamp - loopStartTime; 
+  }
+  else if ( latestVideoTimeStamp > latestTrackerTimeStamp )
+  {
+    loopTime = latestTrackerTimeStamp - loopStartTime; 
+  }
+  else
+  {
+    loopTime = latestVideoTimeStamp - loopStartTime; 
+  }
+
+  if ( loopTime < 0 )
+  {
+    LOG_ERROR("The two saved datasets don't intersect each other!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( savedDataVideoSource != NULL )
+  {
+    savedDataVideoSource->SetLoopStartTime( loopStartTime );
+    savedDataVideoSource->SetLoopTime( loopTime );
+  }
+  if ( savedDataTracker != NULL )
+  {
+    savedDataTracker->SetLoopStartTime( loopStartTime ); 
+    savedDataTracker->SetLoopTime( loopTime );
+  }
+
+  return PLUS_SUCCESS; 
 }

@@ -86,6 +86,12 @@ public:
   bool GetConnected() const;
 
   /*!
+    Compute loop times for saved datasets (time intersection of the two buffers)
+    itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
+  */
+  virtual PlusStatus SetLoopTimes(); 
+
+  /*!
   Get the tracked frame list from devices since time specified
   \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
   \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
