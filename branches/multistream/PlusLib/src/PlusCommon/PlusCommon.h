@@ -10,7 +10,7 @@
 #include "itkImageIOBase.h"
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
-
+#include "vtkPlusMacro.h"
 #include <strstream>
 
 enum PlusStatus

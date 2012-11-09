@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkVirtualStreamMixer_h
 
 #include "vtkPlusDevice.h"
+#include "vtkPlusStream.h"
 #include <string>
 
 /*!
@@ -25,10 +26,11 @@ public:
 
   virtual bool IsTracker() const { return false; }
 
+  /*! Read main configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
+
   // Virtual stream mixers output only one stream
   vtkPlusStream* GetStream() const;
-
-  virtual PlusStatus Reset();
 
   virtual PlusStatus NotifyConfigured();
 
@@ -38,6 +40,11 @@ protected:
 
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();
+
+  vtkGetObjectConstMacro(OutputStream, vtkPlusStream);
+  vtkSetObjectMacro(OutputStream, vtkPlusStream);
+
+  vtkPlusStream*  OutputStream;
 
 private:
   vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.

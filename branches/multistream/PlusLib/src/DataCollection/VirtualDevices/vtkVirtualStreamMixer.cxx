@@ -5,7 +5,6 @@
 =========================================================Plus=header=end*/
 
 #include "vtkObjectFactory.h"
-#include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
 #include "vtkVirtualStreamMixer.h"
@@ -15,9 +14,12 @@
 vtkCxxRevisionMacro(vtkVirtualStreamMixer, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualStreamMixer);
 
+const double HUGE_DOUBLE = 1.7e308;
+
 //----------------------------------------------------------------------------
 vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 : vtkPlusDevice()
+, OutputStream(NULL)
 {
 }
 
@@ -36,38 +38,34 @@ void vtkVirtualStreamMixer::PrintSelf(ostream& os, vtkIndent indent)
 vtkPlusStream* vtkVirtualStreamMixer::GetStream() const
 {
   // Virtual stream mixers always have exactly one output stream
-  return this->OutputStreams[0];
+  return this->GetOutputStream();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::InternalUpdate()
+PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
 {
-  // TODO : verify that the buffers in the output stream match the merged buffers in the input streams
-  // if an input stream changes, it will re-map it
+  if( Superclass::ReadConfiguration(element) == PLUS_FAIL )
+  {
+    return PLUS_FAIL;
+  }
+
+  SetOutputStream(this->OutputStreams[0]);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::Reset()
+PlusStatus vtkVirtualStreamMixer::InternalUpdate()
 {
-  Superclass::Reset();
-
-  for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
-  {
-    vtkPlusStream* str = (*it);
-    if( str->GetOwnerDevice()->IsTracker() )
-    {
-      str->GetOwnerDevice()->Reset();
-    }
-  }
-
+  // TODO : 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 double vtkVirtualStreamMixer::GetAcquisitionRate() const
 {
+  double lowestRate(HUGE_DOUBLE);
+
   vtkPlusStreamBuffer* aBuff = NULL;
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
@@ -76,23 +74,27 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
     if( anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
     {
       StreamBufferItem item;
-      if( aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
+      if( aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() && anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )
       {
-        return anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
       }
     }
   }
 
-  return this->AcquisitionRate;
+  if( lowestRate == HUGE_DOUBLE )
+  {
+    lowestRate = this->AcquisitionRate;
+  }
+  return lowestRate;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 {
   // First, empty whatever is there, because this can be called at any point after a configuration
-  this->OutputStreams[0]->Clear();
+  this->GetOutputStream()->Clear();
 
-  // take input streams, check for name conflicts, copy pointer to output stream[0]
+  // take input streams, check for name conflicts, copy pointer to output stream
   for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
@@ -100,7 +102,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
     {
       vtkPlusStreamBuffer* inputBuffer = bufIt->second;
 
-      for(StreamBufferMapContainerConstIterator outputBufferIt = this->OutputStreams[0]->GetBuffersStartConstIterator(); outputBufferIt != this->OutputStreams[0]->GetBuffersEndConstIterator(); ++it)
+      for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++it)
       {
         if( outputBufferIt->second == inputBuffer )
         {
@@ -111,7 +113,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
       // This input inputBuffer is not in the output stream, put it in!
       int port;
-      this->OutputStreams[0]->AddBuffer(inputBuffer, port);
+      this->GetOutputStream()->AddBuffer(inputBuffer, port);
     }
 
     for( ToolContainerConstIteratorType inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
@@ -119,7 +121,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
       vtkPlusStreamTool* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( ToolContainerConstIteratorType outputToolIt = this->OutputStreams[0]->GetToolBuffersStartConstIterator(); outputToolIt != this->OutputStreams[0]->GetToolBuffersEndConstIterator(); ++outputToolIt )
+      for( ToolContainerConstIteratorType outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
       {
         vtkPlusStreamTool* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -139,7 +141,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
       if( !found )
       {
-        this->OutputStreams[0]->AddTool(anInputTool);
+        this->GetOutputStream()->AddTool(anInputTool);
       }
     }
   }

@@ -224,10 +224,8 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPo
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::Clear()
 {
-  // TODO : Verify that this does not delete pointers, just empties vector
   this->Tools.clear();
 
-  // TODO : Verify that this DOES delete buffers AND empties map
   for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
   {
     it->second->Delete();
