@@ -31,6 +31,8 @@ See License.txt for details.
 
 #include "vtkModifiedBSPTree.h"
 
+#define CONSTANT_INTENSITY
+
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
@@ -55,6 +57,27 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->NumberOfSamplesPerScanline=1000;
 
   this->RfProcessor=vtkRfProcessor::New();
+
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+//  this->InsideObjectReflection.push_back(0.0);
+// this->OutsideObjectReflection.push_back(0.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -179,6 +202,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     bool isInsideObject=false;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
+    double beamIntensity=1000; // TODO: magic number
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
@@ -205,12 +229,40 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
       //LOG_DEBUG("Segment from "<<currentPixelIndex<<" to "<<endOfSegmentPixelIndex);
 
-      // fill the segment with const values
       int numberOfFilledPixels=endOfSegmentPixelIndex-currentPixelIndex+1;
+
+#ifdef CONSTANT_INTENSITY
+      // fill the segment with const values
+      
       memset(dstPixelAddress,pixelColour,numberOfFilledPixels);
       dstPixelAddress+=numberOfFilledPixels;
+#else
+      std::vector<double> *reflectionVector;
+      if (isInsideObject)
+      {
+        reflectionVector=&(this->InsideObjectReflection);
+      }
+      else
+      {
+        reflectionVector=&(this->OutsideObjectReflection);
+      }
+
+      int pixelIndex=0;
+      for (; pixelIndex<reflectionVector->size() && pixelIndex<numberOfFilledPixels; pixelIndex++)
+      {
+        double reflectionFactor=(*reflectionVector)[pixelIndex];
+        unsigned char pixelIntensity=beamIntensity*reflectionFactor;
+        (*dstPixelAddress++)=pixelIntensity;
+        //(*dstPixelAddress++)=190;
+        //LOG_INFO("Pixel: "<<pixelIntensity);
+        beamIntensity*=(1.0-reflectionFactor);
+      }
+      memset(dstPixelAddress,0,numberOfFilledPixels-pixelIndex);
+      dstPixelAddress+=(numberOfFilledPixels-pixelIndex);
+#endif
       currentPixelIndex+=numberOfFilledPixels;
       isInsideObject=!isInsideObject;
+
     }
   }
 
@@ -359,5 +411,5 @@ PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[2])
     return PLUS_FAIL;
   }
   scanConverter->GetOutputImageSizePixel(frameSize);
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
