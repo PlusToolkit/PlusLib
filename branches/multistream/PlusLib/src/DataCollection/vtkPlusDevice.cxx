@@ -898,11 +898,11 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     else if ( status == ITEM_NOT_AVAILABLE_YET )
     {
       LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
-        ") - item not available yet!"); 
+        ") - item not available yet!");
     }
     else
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp << ")!"); 
+      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp << ")!");
     }
 
     return PLUS_FAIL; 
@@ -948,13 +948,15 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
       double latestTimestamp(0); 
       if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get latest timestamp!"); 
+        LOG_ERROR("Failed to get latest timestamp!");
+        numberOfErrors++;
       }
 
       double oldestTimestamp(0); 
       if ( it->second->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get oldest timestamp!"); 
+        LOG_ERROR("Failed to get oldest timestamp!");
+        numberOfErrors++; 
       }
 
       LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
@@ -963,7 +965,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     }
 
     vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    if (bufferItem.GetMatrix(dMatrix)!=PLUS_SUCCESS)
+    if (bufferItem.GetMatrix(dMatrix) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get matrix from buffer item for tool " << it->second->GetToolName() ); 
       numberOfErrors++; 
@@ -983,9 +985,16 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
       numberOfErrors++; 
       continue; 
     }
+
+    // Copy all custom fields
+    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType::iterator fieldIterator;
+    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    {
+      aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+    }
   }
 
-  // TODO : determine who gets to timestamp this frame
   // Copy frame timestamp 
   aTrackedFrame.SetTimestamp(
     CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec()));
@@ -1011,7 +1020,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd )
 {
-  LOG_TRACE("vtkPlusDevice::GetTrackedFrameList(" << aTimestampFrom << ", " << aMaxNumberOfFramesToAdd); 
+  LOG_TRACE("vtkPlusDevice::GetTrackedFrameList(" << aTimestampFrom << ", " << aMaxNumberOfFramesToAdd << ")"); 
 
   if ( aTrackedFrameList == NULL )
   {
@@ -1022,13 +1031,14 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
   // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
   if ( this->GetVideoDataAvailable() )
   {
-    if ( this->GetBuffer()->GetNumberOfItems()==0 )
+    if ( this->GetBuffer()->GetNumberOfItems() == 0 )
     {
       LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the video buffer is empty, no items will be returned"); 
       return PLUS_SUCCESS;
     }
   }
-  if ( this->GetTrackingEnabled())
+
+  if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
     vtkPlusStreamTool* firstActiveTool = NULL; 
@@ -1037,7 +1047,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
       LOG_ERROR("Failed to get first active tool"); 
       return PLUS_FAIL; 
     }
-    if ( firstActiveTool->GetBuffer()->GetNumberOfItems()==0 )
+    if ( firstActiveTool->GetBuffer()->GetNumberOfItems() == 0 )
     {
       LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
       return PLUS_SUCCESS;
@@ -1277,7 +1287,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrac
 
   if ( aTrackedFrameList == NULL )
   {
-    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    LOG_ERROR("Unable to get tracked frame list - output tracked frame list is NULL!"); 
     return PLUS_FAIL; 
   }
 
@@ -1354,37 +1364,12 @@ PlusStatus vtkPlusDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrac
 PlusStatus vtkPlusDevice::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame)
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime");
-  double synchronizedTime = 0; 
 
-  // For each in stream, get the timestamp
-  // If all streams can return a tracked frame for the timestamp, success
-  if ( this->GetVideoDataAvailable() )
+  if ( this->GetTrackedFrame(time, *trackedFrame) != PLUS_SUCCESS )
   {
-    if ( this->GetTrackedFrame(time, *trackedFrame) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get tracked frame from video source by time: " << std::fixed << time );
-      return PLUS_FAIL;
-    }
-
-    synchronizedTime = trackedFrame->GetTimestamp();
+    LOG_ERROR("Failed to get tracked frame from device " << this->GetDeviceId() << " for timestamp time: " << std::fixed << time );
+    return PLUS_FAIL;
   }
-
-  if ( this->GetTrackingEnabled() )
-  {
-    if ( !this->GetVideoDataAvailable() )
-    {
-      synchronizedTime = time;
-    }
-
-    if ( this->GetTrackedFrame(synchronizedTime, *trackedFrame) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get all transforms from tracker at: " << std::fixed << synchronizedTime ); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  // Save tracked frame timestamp 
-  trackedFrame->SetTimestamp(synchronizedTime); 
 
   // Save frame timestamp
   std::ostringstream strTimestamp; 
@@ -1409,14 +1394,14 @@ PlusStatus vtkPlusDevice::StartRecording()
 
   if (!this->Connected)
   {
-    if (this->Connect()!=PLUS_SUCCESS)
+    if (this->Connect() != PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot start recording, connection failed");
       return PLUS_FAIL;
     }
   }
 
-  if (this->InternalStartRecording()!=PLUS_SUCCESS)
+  if (this->InternalStartRecording() != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot start recording, internal StartRecording failed");
     return PLUS_FAIL;
@@ -2171,7 +2156,7 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
     oldestVideoTimestamp = oldestTrackerTimestamp; 
   }
 
-  if ( this->ToolContainer.size() == 0 )
+  if ( !this->GetTrackingEnabled() )
   {
     oldestTrackerTimestamp = oldestVideoTimestamp; 
   }
@@ -2257,7 +2242,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
     latestVideoTimestamp = latestTrackerTimestamp; 
   }
 
-  if ( this->ToolContainer.size() == 0 )
+  if ( !this->GetTrackingEnabled() )
   {
     latestTrackerTimestamp = latestVideoTimestamp; 
   }

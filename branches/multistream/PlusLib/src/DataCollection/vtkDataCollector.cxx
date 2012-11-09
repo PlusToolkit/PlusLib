@@ -557,7 +557,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
     return SelectedDevice->GetTrackedFrameByTime(time, trackedFrame);
   }
 
-  LOG_ERROR("No selected stream mixer. Unable to get a tracked frame by time when no device available/selected.");
+  LOG_ERROR("No selected device. Unable to get a tracked frame by time when no device available/selected.");
   return PLUS_FAIL;
 }
 
@@ -571,7 +571,7 @@ PlusStatus vtkDataCollector::GetFrameSize(int aDim[2])
     return this->SelectedDevice->GetFrameSize(aDim);
   }
 
-  LOG_ERROR("No selected stream mixer. Unable to GetFrameSize() when no device available/selected.");
+  LOG_ERROR("No selected device. Unable to GetFrameSize() when no device available/selected.");
   return PLUS_FAIL;
 }
 
@@ -585,7 +585,7 @@ PlusStatus vtkDataCollector::GetBrightnessFrameSize(int aDim[2])
     return this->SelectedDevice->GetBrightnessFrameSize(aDim);
   }
 
-  LOG_ERROR("No selected stream mixer. Unable to GetBrightnessFrameSize() when no device available/selected.");
+  LOG_ERROR("No selected device. Unable to GetBrightnessFrameSize() when no device available/selected.");
   return PLUS_FAIL;
 }
 
@@ -599,7 +599,7 @@ vtkImageData* vtkDataCollector::GetBrightnessOutput()
     return this->SelectedDevice->GetBrightnessOutput();
   }
 
-  LOG_ERROR("No selected stream mixer. Unable to GetBrightnessOutput() when no device available/selected.");
+  LOG_ERROR("No selected device. Unable to GetBrightnessOutput() when no device available/selected.");
   return NULL;
 }
 
