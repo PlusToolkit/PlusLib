@@ -122,6 +122,9 @@ private:
   vtkModifiedBSPTree *ModelLocalizer;
 
   vtkRfProcessor *RfProcessor;
+
+  std::vector<double> InsideObjectReflection;
+  std::vector<double> OutsideObjectReflection;
 };
 
 #endif // __vtkUsSimulatorAlgo_h
