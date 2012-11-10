@@ -83,7 +83,7 @@ PlusStatus TemporalCalibration::SetTrackerFrames(vtkTrackedFrameList* trackerFra
   // not work for our purposes
   double minValue=0;
   double maxValue=0;
-  GetSignalRange(m_MovingSignalValues, minValue, maxValue);
+  GetSignalRange(m_MovingSignalValues, 0, m_MovingSignalValues.size() -1, minValue, maxValue);
   double maxPeakToPeak = std::abs(maxValue-minValue);
   if(maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
   {
@@ -112,7 +112,7 @@ PlusStatus TemporalCalibration::SetVideoFrames(vtkTrackedFrameList* videoFrames)
   // not work for our purposes
   double minValue=0;
   double maxValue=0;
-  GetSignalRange(m_FixedSignalValues, minValue, maxValue);
+  GetSignalRange(m_FixedSignalValues,0, m_FixedSignalValues.size() -1, minValue, maxValue);
   double maxPeakToPeak = std::abs(maxValue-minValue);
   if(maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
   {
@@ -270,7 +270,7 @@ PlusStatus TemporalCalibration::GetCorrelationSignalFine(vtkTable* correlationSi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetSignalRange(const std::deque<double> &signal, double &minValue, double &maxValue)
+PlusStatus TemporalCalibration::GetSignalRange(const std::deque<double> &signal, int startIndex, int stopIndex,  double &minValue, double &maxValue)
 {
   if (signal.empty())
   {
@@ -278,9 +278,23 @@ PlusStatus TemporalCalibration::GetSignalRange(const std::deque<double> &signal,
     return PLUS_FAIL;
   }
   //  Calculate maximum and minimum metric values
-  maxValue = *(std::max_element(signal.begin(), signal.end()));
-  minValue = *(std::min_element(signal.begin(), signal.end()));
-  
+  //maxValue = *(std::max_element(signal.begin() + startIndex, signal + stopIndex);
+  //minValue = *(std::min_element(signal.begin(), signal.end()));
+	maxValue = signal.at(startIndex);
+	minValue = signal.at(startIndex);
+
+	for(int i = startIndex + 1; i <= stopIndex; ++i)
+	{
+		if(signal.at(i) > maxValue)
+		{
+			maxValue = signal.at(i);
+		}
+		else if(signal.at(i) < minValue)
+		{
+			minValue = signal.at(i);
+		}
+	}
+
   return PLUS_SUCCESS;
 }
 
@@ -305,7 +319,7 @@ PlusStatus TemporalCalibration::NormalizeMetricValues(std::deque<double> &signal
   {
     mu += signal.at(i);
   }
-  mu /= stopIndex-startIndex+1;
+  mu /= (stopIndex-startIndex+1);
 
   // Calculate the signal "amplitude" and use its inverse as normalizationFactor
   normalizationFactor = 1.0;
@@ -316,7 +330,7 @@ PlusStatus TemporalCalibration::NormalizeMetricValues(std::deque<double> &signal
       // Divide by the maximum signal amplitude
       double minValue=0;
       double maxValue=0;
-      GetSignalRange(signal, minValue, maxValue);
+      GetSignalRange(signal,startIndex, stopIndex, minValue, maxValue);
       double maxPeakToPeak=fabs(maxValue-minValue);
       if (maxPeakToPeak<1e-10)
       {
@@ -465,8 +479,8 @@ PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::deque<double>&
 //-----------------------------------------------------------------------------
 void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues)
 {
-  //	We will let the tracker metric be the "metric" and let the video metric be the "sliding" metric. Since we are assuming a maximum offset between the two streams.
-  //  NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor);
+  //	We will let the tracker metric be the "sliding" metric and let the video metric be the "fixed" metric. Since we are assuming a maximum offset between the two streams.
+  //NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor);
 
 	//	Constuct piecewise function for tracker signal
 	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -502,7 +516,8 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics(double
 		NormalizeMetricValues(resampledTrackerPositionMetric, normalizationFactor);
 		normalizationFactors.push_back(normalizationFactor);
 
-    corrValues.push_back(ComputeAlignmentMetric(m_FixedSignalValues, resampledTrackerPositionMetric));    
+    corrValues.push_back(ComputeAlignmentMetric(m_FixedSignalValues, resampledTrackerPositionMetric));
+		
 	}
 
   // Find the time offset that has the best alignment metric value
@@ -651,7 +666,7 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
     m_CorrValuesFine=corrValuesInvertedTrackerFine;
   }
 	   
-  NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignalTimestamps.front()-m_TrackerLagSec, m_MovingSignalTimestamps.back()-m_TrackerLagSec, m_FixedSignalTimestamps);
+  //NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignalTimestamps.front()-m_TrackerLagSec, m_MovingSignalTimestamps.back()-m_TrackerLagSec, m_FixedSignalTimestamps);
 
   // Normalize the tracker metric based on the best index offset (only considering the overlap "window"
 	for(int i = 0; i < m_MovingSignalTimestamps.size(); ++i)
@@ -664,8 +679,8 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 	}
 
 	// Get a normalized tracker position metric that can be displayed
-	double unusedNormFactor=1.0;
-	NormalizeMetricValues(m_NormalizedTrackerPositionMetric, unusedNormFactor);
+	 double unusedNormFactor=1.0;
+	 NormalizeMetricValues(m_NormalizedTrackerPositionMetric, unusedNormFactor);
 
 	m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
 
