@@ -123,7 +123,7 @@ public:
 private:
   PlusStatus ComputeMovingSignalLagSec();
   PlusStatus ComputeCommonTimeRange();
-  PlusStatus GetSignalRange(const std::deque<double> &signal, double &minValue, double &maxValue);
+  PlusStatus GetSignalRange(const std::deque<double> &signal, int startIndex, int stopIndex, double &minValue, double &maxValue);
   PlusStatus VerifyTrackerInput(vtkTrackedFrameList *trackerFrames, TEMPORAL_CALIBRATION_ERROR &error);
 
   double m_MaxCalibrationError;

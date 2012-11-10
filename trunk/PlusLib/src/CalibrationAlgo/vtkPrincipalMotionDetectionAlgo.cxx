@@ -93,7 +93,7 @@ PlusStatus vtkPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
 
-    m_SignalTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
+    
     vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     bool valid = false;
     transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
@@ -115,6 +115,8 @@ PlusStatus vtkPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
     trackerPositionSum[1] = trackerPositionSum[1] + probeToReferenceTransform->GetElement(1, 3);
     trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
     ++numberOfValidFrames;
+
+		m_SignalTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
   }
 
   // Calculate the principal axis of motion (using PCA)
