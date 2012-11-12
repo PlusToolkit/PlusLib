@@ -258,6 +258,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     {
       // No client connected, wait for a while 
       vtkAccurateTimer::Delay(0.2);
+      self->LastSentTrackedFrameTimestamp=0; // next time start sending from the most recent timestamp
       continue; 
     }
 
@@ -279,6 +280,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
       self->KeepAlive(); 
       elapsedTimeSinceLastPacketSentSec = 0; 
+      self->LastSentTrackedFrameTimestamp = 0; // next time start from the most recent timestamp
       vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
       continue; 
     }
@@ -510,6 +512,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
       clientIterator = this->IgtlClients.erase(clientIterator);
+      LOG_INFO( "Number of connected clients: " << GetNumberOfConnectedClients() ); 
       clientDisconnected = false; 
       continue; 
     }
@@ -567,6 +570,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
       clientIterator = this->IgtlClients.erase(clientIterator);
+      LOG_INFO( "Number of connected clients: " << GetNumberOfConnectedClients() ); 
       clientDisconnected = false; 
       continue; 
     }

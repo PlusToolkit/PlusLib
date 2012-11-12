@@ -91,7 +91,7 @@ int main(int argc, char **argv)
   dataCollector->GetSelectableDevices(devices);
   if( devices.size() != 1 )
   {
-    LOG_ERROR("Multiple tracked frame producers defined when only 1 expected. Please review configuration file.");
+    LOG_ERROR("Multiple selectable devices defined when only 1 expected. Please review configuration file.");
     exit(EXIT_FAILURE);
   }
 

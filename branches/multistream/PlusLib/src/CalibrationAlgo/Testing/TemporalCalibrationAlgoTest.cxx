@@ -59,7 +59,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   // Render plot and save it to file
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(view->GetRenderer());
-  renderWindow->SetSize(8000,4000);
+  renderWindow->SetSize(1600,1200);
   renderWindow->OffScreenRenderingOn(); 
 
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -159,13 +159,13 @@ int main(int argc, char **argv)
   
   //  Create temporal calibration object; Set pertinent parameters
   TemporalCalibration testTemporalCalibrationObject;
-  testTemporalCalibrationObject.SetTrackerFrames(trackerFrames, probeToReferenceTransformNameStr);
-  testTemporalCalibrationObject.SetVideoFrames(videoFrames);
   testTemporalCalibrationObject.SetSamplingResolutionSec(samplingResolutionSec);
   testTemporalCalibrationObject.SetSaveIntermediateImages(saveIntermediateImages);
   testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
+  testTemporalCalibrationObject.SetTrackerFrames(trackerFrames, probeToReferenceTransformNameStr);
+  testTemporalCalibrationObject.SetVideoFrames(videoFrames);
 
-  TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error;
+  TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error=TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
 
   //  Calculate the time-offset
   if (testTemporalCalibrationObject.Update(error)!=PLUS_SUCCESS)

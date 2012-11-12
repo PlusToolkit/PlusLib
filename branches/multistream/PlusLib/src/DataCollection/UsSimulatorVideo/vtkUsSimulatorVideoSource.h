@@ -8,11 +8,10 @@
 #define __vtkUsSimulatorVideoSource_h
 
 #include "vtkPlusDevice.h"
-#include "vtkUsSimulatorAlgo.h"
-#include "vtkPlusDevice.h"
 #include "vtkTransformRepository.h"
+#include "vtkUsSimulatorAlgo.h"
 
-class vtkPlusStreamBuffer; 
+class vtkPlusDataBuffer; 
 
 class VTK_EXPORT vtkUsSimulatorVideoSource;
 
@@ -28,12 +27,8 @@ public:
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	static vtkUsSimulatorVideoSource* New();
 
-  virtual bool IsTracker() const { return false; }
-
   /*! Read configuration from xml data */
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-  /*! Write configuration to xml data */
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Get ultrasound simulator */
   vtkGetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
@@ -63,7 +58,7 @@ protected:
 	virtual PlusStatus InternalDisconnect();
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalUpdate();
+	PlusStatus InternalGrab();
 
 protected:
   /*! Ultrasound simulator */

@@ -20,33 +20,16 @@ vtkStandardNewMacro(vtkRfProcessor);
 //----------------------------------------------------------------------------
 vtkRfProcessor::vtkRfProcessor()
 {
-  this->TransducerGeometry=TRANSDUCER_UNKNOWN;
   this->RfToBrightnessConverter=vtkRfToBrightnessConvert::New();
-  this->ScanConverterLinear=vtkUsScanConvertLinear::New();  
-  this->ScanConverterCurvilinear=vtkUsScanConvertCurvilinear::New();  
-
-  // Set the brightness input to both scan converters.
-  // Only that will actually perform the scan conversion computation that will be asked for output.
-  this->ScanConverterLinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
-  this->ScanConverterCurvilinear->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());  
-
-  this->TransducerName = NULL;
+  this->ScanConverter=NULL;  
 }
 
 //----------------------------------------------------------------------------
 vtkRfProcessor::~vtkRfProcessor()
 {
-  this->ScanConverterCurvilinear->Delete();
-  this->ScanConverterCurvilinear=NULL;
-  this->ScanConverterLinear->Delete();
-  this->ScanConverterLinear=NULL;
+  SetScanConverter(NULL);
   this->RfToBrightnessConverter->Delete();
   this->RfToBrightnessConverter=NULL;  
-  if(this->TransducerName)
-  {
-    delete [] this->TransducerName;
-    this->TransducerName = NULL;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -73,56 +56,33 @@ vtkImageData* vtkRfProcessor::GetBrightessConvertedImage()
 //-----------------------------------------------------------------------------
 vtkImageData* vtkRfProcessor::GetBrightessScanConvertedImage()
 {
-  switch (this->TransducerGeometry)
+  if (this->ScanConverter==NULL)
   {
-  case TRANSDUCER_LINEAR:
-    this->ScanConverterLinear->Update();
-    return this->ScanConverterLinear->GetOutput();
-  case TRANSDUCER_CURVILINEAR:
-    this->ScanConverterCurvilinear->Update();
-    return this->ScanConverterCurvilinear->GetOutput();
-  default:
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry<<", skipping scan conversion");
+    LOG_ERROR("Scan converter is not defined, skipping scan conversion");
     return GetBrightessConvertedImage();
   }
+  this->ScanConverter->Update();
+  return this->ScanConverter->GetOutput();
 }
 
 //-----------------------------------------------------------------------------
-void vtkRfProcessor::SetStartDepthMm(double startDepth)
+void vtkRfProcessor::SetScanConverter(vtkUsScanConvert* scanConverter)
 {
-  this->ScanConverterLinear->SetOutputImageStartDepthMm(startDepth);
-  this->ScanConverterCurvilinear->SetOutputImageStartDepthMm(startDepth);
-}
-
-//-----------------------------------------------------------------------------
-void vtkRfProcessor::SetStopDepthMm(double stopDepth)
-{
-  this->ScanConverterLinear->SetImagingDepthMm(stopDepth);
-  this->ScanConverterCurvilinear->SetRadiusStopMm(stopDepth);
-}
-
-//-----------------------------------------------------------------------------
-void vtkRfProcessor::SetStartAngleDeg(double startAngle) 
-{
-  this->ScanConverterCurvilinear->SetThetaStartDeg(startAngle);
-}
-
-//-----------------------------------------------------------------------------
-void vtkRfProcessor::SetStopAngleDeg(double stopAngle)
-{
-  this->ScanConverterCurvilinear->SetThetaStopDeg(stopAngle);
-}
-
-//-----------------------------------------------------------------------------
-void vtkRfProcessor::SetRadiusOfCurvatureMm(double roc)
-{
-  this->ScanConverterCurvilinear->SetRadiusStartMm(roc);
-}
-
-//-----------------------------------------------------------------------------
-void vtkRfProcessor::SetTransducerWidthMm(double tw)
-{
-  this->ScanConverterLinear->SetTransducerWidthMm(tw);
+  if (scanConverter==this->ScanConverter)
+  {
+    return;
+  }
+  if (this->ScanConverter!=NULL)
+  {
+    this->ScanConverter->UnRegister(this);
+    this->ScanConverter=NULL;
+  }    
+  this->ScanConverter=scanConverter;
+  if (scanConverter!=NULL)
+  {
+    this->ScanConverter->Register(this);
+    this->ScanConverter->SetInputConnection(this->RfToBrightnessConverter->GetOutputPort());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -145,43 +105,54 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElem
     }
   }
 
+  // Create a UsScanConversion object of the subclass that corresponds to the TransducerGeometry element
   vtkXMLDataElement* scanConversionElement = rfProcessingElement->FindNestedElementWithName("ScanConversion"); 
   if (scanConversionElement != NULL)
   {
     const char* transducerGeometryStr = scanConversionElement->GetAttribute("TransducerGeometry"); 
     if ( transducerGeometryStr != NULL) 
     {
-      if (STRCASECMP(transducerGeometryStr, "LINEAR")==0)
+      if (this->ScanConverter!=NULL && STRCASECMP(transducerGeometryStr, this->ScanConverter->GetTransducerGeometry())==0)
       {
-        LOG_DEBUG("Transducer geometry set: Linear"); 
-        SetTransducerGeometry(TRANSDUCER_LINEAR); 
-        if (this->ScanConverterLinear->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
-        {
-          status=PLUS_FAIL;
-        }
-      }
-      else if (STRCASECMP(transducerGeometryStr, "CURVILINEAR")==0)
-      {
-        LOG_DEBUG("Transducer geometry set: Curvilinear"); 
-        SetTransducerGeometry(TRANSDUCER_CURVILINEAR); 
-        if (this->ScanConverterCurvilinear->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
-        {
-          status=PLUS_FAIL;
-        }
+        // we already have a scan converter object of the correct type
       }
       else
       {
-        LOG_ERROR("Unsupported transducer geometry requested: "<<transducerGeometryStr);
-        SetTransducerGeometry(TRANSDUCER_UNKNOWN); 
+        // need to create a new scan converter object
+        vtkSmartPointer<vtkUsScanConvertLinear> scanConvertLinear=vtkSmartPointer<vtkUsScanConvertLinear>::New();
+        vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConvertCurvilinear=vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
+        if (STRCASECMP(transducerGeometryStr, scanConvertLinear->GetTransducerGeometry())==0)
+        {
+          SetScanConverter(scanConvertLinear);
+        }
+        else if (STRCASECMP(transducerGeometryStr, scanConvertCurvilinear->GetTransducerGeometry())==0)
+        {
+          SetScanConverter(scanConvertCurvilinear);
+        }
+        else
+        {
+          LOG_ERROR("Failed to create scan converter for geometry: "<<transducerGeometryStr);
+          SetScanConverter(NULL);
+          status=PLUS_FAIL;
+        }
+      }
+      if (this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+      {
+        status=PLUS_FAIL;
       }
     }
-
-    const char* transducerNameStr = scanConversionElement->GetAttribute("TransducerName"); 
-    if ( transducerNameStr != NULL) 
+    else
     {
-      this->SetTransducerName(transducerNameStr);
+      LOG_ERROR("TransducerGeometry attribute of scan conversion is missing, no scan conversion will be performed");
+      SetScanConverter(NULL);
+      status=PLUS_FAIL;
     }
   }  
+  else
+  {
+    LOG_WARNING("ScanConversion element is missing, no scan conversion will be performed");
+    SetScanConverter(NULL);
+  }
 
   return status;
 }
@@ -216,32 +187,19 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfProcessingEle
     status=PLUS_FAIL;
   }  
 
-  switch (this->TransducerGeometry)
+  if (this->ScanConverter!=NULL)
   {
-  case TRANSDUCER_LINEAR:
-    scanConversionElement->SetAttribute("TransducerGeometry", "LINEAR"); 
-    if (this->ScanConverterLinear->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+    if (this->ScanConverter->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
     }
-    break;
-  case TRANSDUCER_CURVILINEAR:
-    scanConversionElement->SetAttribute("TransducerGeometry", "CURVILINEAR"); 
-    if (this->ScanConverterCurvilinear->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
-    {
-      status=PLUS_FAIL;
-    }
-    break;
-  case TRANSDUCER_UNKNOWN:
+  }
+  else
+  {
     scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
-    break;
-  default:
-    scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
-    LOG_ERROR("Unknown transducer geometry: "<<this->TransducerGeometry);
+    LOG_ERROR("Unknown transducer geometry");
     status=PLUS_FAIL;
   }
-
-  scanConversionElement->SetAttribute("TransducerName", this->TransducerName);
 
   return status;
 }

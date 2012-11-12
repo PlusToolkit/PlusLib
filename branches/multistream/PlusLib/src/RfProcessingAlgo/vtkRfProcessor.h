@@ -11,8 +11,7 @@
 #include "PlusVideoFrame.h"
 
 class vtkRfToBrightnessConvert;
-class vtkUsScanConvertLinear;
-class vtkUsScanConvertCurvilinear;
+class vtkUsScanConvert;
 class vtkImageCast;
 
 /*!
@@ -27,16 +26,8 @@ public:
   vtkTypeRevisionMacro(vtkRfProcessor , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-  enum TransducerGeometryType
-  {
-    TRANSDUCER_UNKNOWN,
-    TRANSDUCER_LINEAR,
-    TRANSDUCER_CURVILINEAR
-  };
-
-
   /*! Set the input RF data
-    \param rfFrame frame containing RF data 
+    \param rfFrame frame containing RF data (may be B-mode data but always without scan conversion)
   */
   virtual PlusStatus SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE imageType); 
 
@@ -51,44 +42,23 @@ public:
 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  
+  /*! Set the scan converter object. The class will keep a reference to this object. */
+  virtual void SetScanConverter(vtkUsScanConvert* scanConverter);
 
-  /*! Set the transducer geometry (linear or curvilinear) */
-  vtkSetMacro(TransducerGeometry, TransducerGeometryType); 
-
-  /*! Set the transducer name */
-  vtkSetStringMacro(TransducerName); 
-
-  /*! Initialize the corresponding values in the converter classes. For all transducer types. */
-  void SetStartDepthMm(double); 
-
-  /*! Initialize the corresponding values in the converter classes. For all transducer types. */
-  void SetStopDepthMm(double); 
-
-  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
-  void SetStartAngleDeg(double); 
-
-  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
-  void SetStopAngleDeg(double); 
-
-  /*! Initialize the corresponding values in the converter classes. For curvilinear transducer type only. */
-  void SetRadiusOfCurvatureMm(double);
-
-  /*! Initialize the corresponding values in the converter classes. For linear transducer type only. */
-  void SetTransducerWidthMm(double);
+  /*! Get the scan converter object */
+  vtkGetMacro(ScanConverter, vtkUsScanConvert*);
 
 protected:
   vtkRfProcessor();
   virtual ~vtkRfProcessor(); 
 
   vtkRfToBrightnessConvert* RfToBrightnessConverter;
-  vtkUsScanConvertLinear* ScanConverterLinear;  
-  vtkUsScanConvertCurvilinear* ScanConverterCurvilinear;  
-  vtkImageCast* ImageCaster;
 
-  /*! Transducer name */
-  char* TransducerName;
-  /*! Type of the transducer (linear or curvilinear) */
-  TransducerGeometryType TransducerGeometry;
+  vtkUsScanConvert* ScanConverter;  
+  std::vector<vtkUsScanConvert*> AvailableScanConverters;  
+
+  vtkImageCast* ImageCaster;
 }; 
 
 #endif

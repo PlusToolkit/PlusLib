@@ -19,6 +19,7 @@ SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" 
 
 SET (UsSimulatorAlgo_LIBS
   vtkPlusCommon
+  vtkRfProcessingAlgo 
   )     
 
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )

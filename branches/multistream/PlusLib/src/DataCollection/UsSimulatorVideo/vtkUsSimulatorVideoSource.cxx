@@ -5,12 +5,12 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkUsSimulatorVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkPlusStreamTool.h"
+#include "vtkUsSimulatorVideoSource.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
@@ -51,9 +51,9 @@ void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
+PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
 {
-  //LOG_TRACE("vtkUsSimulatorVideoSource::InternalUpdate");
+  //LOG_TRACE("vtkUsSimulatorVideoSource::InternalGrab");
 
   if (!this->Tracker)
   {
@@ -139,7 +139,13 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
   this->GetBuffer()->Clear();
-  this->GetBuffer()->SetFrameSize( this->UsSimulator->GetFrameSize() ); 
+  int frameSize[2]={0,0};
+  if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to initialize buffer, frame size is unknown");
+    return PLUS_FAIL;
+  }
+  this->GetBuffer()->SetFrameSize(frameSize);
 
   return PLUS_SUCCESS;
 }
@@ -166,7 +172,7 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    LOG_ERROR("Unable to find US simulator device element in configuration XML structure!");
     return PLUS_FAIL;
   }
 
@@ -178,8 +184,6 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
     return PLUS_FAIL;
   }
 
-  this->UsSimulator->CreateStencilBackgroundImage();
-
   // Read transform repository configuration
   if ( !this->TransformRepository
     || this->TransformRepository->ReadConfiguration(config) != PLUS_SUCCESS )
@@ -190,35 +194,3 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   return PLUS_SUCCESS;
 }
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorVideoSource::WriteConfiguration(vtkXMLDataElement* config)
-{
-  LOG_TRACE("vtkUsSimulatorVideoSource::WriteConfiguration"); 
-
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-

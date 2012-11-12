@@ -4,9 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-//#define USE_vtkPolyDataToOrientedImageStencil
-#define USE_vtkModifiedBSPTree
-
 #include "PlusConfigure.h"
 #include "vtkUsSimulatorAlgo.h"
 #include "vtkImageAlgorithm.h"
@@ -29,14 +26,12 @@ See License.txt for details.
 #include "vtkSTLReader.h"
 #include "vtkXMLPolyDataReader.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkRfProcessor.h"
+#include "vtkUsScanConvert.h"
 
-#ifdef USE_vtkPolyDataToOrientedImageStencil
-#include "vtkPolyDataToOrientedImageStencil.h"
-#endif
-
-#ifdef USE_vtkModifiedBSPTree
 #include "vtkModifiedBSPTree.h"
-#endif 
+
+#define CONSTANT_INTENSITY
 
 //-----------------------------------------------------------------------------
 
@@ -50,53 +45,52 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   SetNumberOfOutputPorts(1);
 
   this->BackgroundValue = 155;
-  this->StencilBackgroundImage = NULL;
   this->ModelToImageMatrix = NULL;
-
-  this->FrameSize[0] = 640;
-  this->FrameSize[1] = 480;
-
-  this->SpacingMmPerPixel[0] = this->SpacingMmPerPixel[1] = 1.0;
 
   this->ModelFileName = NULL;
   this->ImageCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
 
-  this->ModelNormalFilter=vtkPolyDataNormals::New();
-  this->ModelNormalFilter->ConsistencyOn();
-
-  this->ModelTriangleFilter=vtkTriangleFilter::New();
-  this->ModelTriangleFilter->SetInputConnection(this->ModelNormalFilter->GetOutputPort());
-
-  this->ModelStripperFilter=vtkStripper::New();
-  this->ModelStripperFilter->SetInputConnection(this->ModelTriangleFilter->GetOutputPort());  
-
-
   this->ModelLocalizer=vtkModifiedBSPTree::New();
+
+  this->NumberOfScanlines=256;
+  this->NumberOfSamplesPerScanline=1000;
+
+  this->RfProcessor=vtkRfProcessor::New();
+
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+  this->InsideObjectReflection.push_back(0.2);
+//  this->InsideObjectReflection.push_back(0.0);
+// this->OutsideObjectReflection.push_back(0.0);
 }
 
 //-----------------------------------------------------------------------------
 vtkUsSimulatorAlgo::~vtkUsSimulatorAlgo()
 {
   SetModelToImageMatrix(NULL); 
-  SetStencilBackgroundImage(NULL);
   SetModelFileName(NULL); 
   SetImageCoordinateFrame(NULL); 
   SetReferenceCoordinateFrame(NULL); 
-  if (this->ModelNormalFilter!=NULL)
+  if (this->RfProcessor!=NULL)
   {
-    this->ModelNormalFilter->Delete();
-    this->ModelNormalFilter=NULL;
-  }
-  if (this->ModelTriangleFilter!=NULL)
-  {
-    this->ModelTriangleFilter->Delete();
-    this->ModelTriangleFilter=NULL;
-  }
-  if (this->ModelStripperFilter!=NULL)
-  {
-    this->ModelStripperFilter->Delete();
-    this->ModelStripperFilter=NULL;
+    this->RfProcessor->Delete();
+    this->RfProcessor=NULL;
   }
 }
 
@@ -132,14 +126,9 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   if (this->ModelToImageMatrix == NULL)
   {
-    LOG_ERROR(" No Model to US image transform specified " ); 
+    LOG_ERROR("No Model to US image transform specified " ); 
     return 1; 
   }
-  if (this->StencilBackgroundImage == NULL)
-  {
-    LOG_ERROR(" background image necessary for stencil creation not specified " ); 
-    return 1; 
-  } 
 
   // Get input
   vtkInformation* inInfoPort = inputVector[0]->GetInformationObject(0);
@@ -152,61 +141,43 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     return 1; 
   }
 
-  vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
-  if (simulatedUsImage == NULL)
-  {
-    LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
-    return 1; 
-  }
-  simulatedUsImage->SetExtent(0,this->FrameSize[0]-1,0,this->FrameSize[1]-1,0,0);
-  simulatedUsImage->SetScalarTypeToUnsignedChar();
-  simulatedUsImage->AllocateScalars();
-
-  // Make sure that we have a clean triangle strip polydata
-  this->ModelNormalFilter->SetInput(modelModel);    
-  //this->ModelStripperFilter->Update();
-
-#if defined USE_vtkModifiedBSPTree 
-
-  // create container for scan line with set length. 
-  int  simulatedUsImageExtent[6] ={0,0,0,0,0,0};
-  this->StencilBackgroundImage->GetExtent(simulatedUsImageExtent);
-
-  //Generate image in the FM orientation
-  int numScanLines = std::abs(simulatedUsImageExtent[3]-simulatedUsImageExtent[2])+1;
-  int numPixels = std::abs(simulatedUsImageExtent[1]-simulatedUsImageExtent[0])+1;
+  vtkSmartPointer<vtkImageData> scanLines = vtkSmartPointer<vtkImageData>::New(); // image data containing the scanlines in rows (FM orientation)
+  scanLines->SetExtent(0,this->NumberOfSamplesPerScanline-1,0,this->NumberOfScanlines-1,0,0);
+  scanLines->SetScalarTypeToUnsignedChar();
+  scanLines->AllocateScalars();
 
   vtkSmartPointer<vtkMatrix4x4> imageToModelMatrix= vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Invert(this->ModelToImageMatrix, imageToModelMatrix); 
 
-  //Create BSPTree
-  
-  //bspTreeOfModel->SetTolerance(1e-5);
-  
-  //this->ModelLocalizer->SetDataSet(this->ModelStripperFilter->GetOutput()); 
+  // Create BSPTree for fast scanline-model intersection computation
   this->ModelLocalizer->SetDataSet(modelModel); 
-
-
   this->ModelLocalizer->SetMaxLevel(24); 
   this->ModelLocalizer->SetNumberOfCellsPerNode(32);
   this->ModelLocalizer->BuildLocator(); 
   vtkSmartPointer<vtkPoints> scanLineIntersectionWithModel = vtkSmartPointer<vtkPoints>::New(); 
 
-  //
-  // double tolerance = .1;
+  vtkUsScanConvert* scanConverter=this->RfProcessor->GetScanConverter();
+  if (scanConverter==NULL)
+  {
+    LOG_ERROR("ScanConverter is not defined");
+    return 1;
+  }
+  // The input image extent has to be set before calling the scanConverter's
+  // GetScanLineEndPoints or GetDistanceBetweenScanlineSamplePointsMm methods
+  scanConverter->SetInputImageExtent(scanLines->GetExtent());
 
-  //// Outputs
-  //double t; // Parametric coordinate of intersection (0 (corresponding to p1) to 1 (corresponding to p2))
-  //double x[3]; // The coordinate of the intersection
-  //double intersectionPoint[4]={0,0,0,1};
-  //int subId;
+  double outputImageSpacingMm[3]={1.0,1.0,1.0};
+  scanConverter->GetOutputImageSpacing(outputImageSpacingMm);
+
+  double distanceBetweenScanlineSamplePointsMm=scanConverter->GetDistanceBetweenScanlineSamplePointsMm();
 
   vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New(); 
-
-  for(int scanLineIndex=0;scanLineIndex<numScanLines; scanLineIndex++)
+  for(int scanLineIndex=0;scanLineIndex<this->NumberOfScanlines; scanLineIndex++)
   {
-    double scanLineStartPoint_Image[4] = {simulatedUsImageExtent[0],scanLineIndex,0,1}; 
-    double scanLineEndPoint_Image[4] = {simulatedUsImageExtent[1],scanLineIndex,0,1}; 
+    double scanLineStartPoint_Image[4] = {0,0,0,1}; // scanline start position in Image coordinate system
+    double scanLineEndPoint_Image[4] = {0,0,0,1}; // scanline end position in Image coordinate system
+    scanConverter->GetScanLineEndPoints(scanLineIndex, scanLineStartPoint_Image, scanLineEndPoint_Image);
+    
     double scanLineStartPoint_Model[4] = {0,0,0,1};
     double scanLineEndPoint_Model[4] = {0,0,0,1};
     imageToModelMatrix->MultiplyPoint(scanLineStartPoint_Image,scanLineStartPoint_Model);
@@ -219,108 +190,91 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     //LOG_INFO("this->ModelLocalizer->IntersectWithLine: "<<(stopTime-startTime)*1000<<" msec");
     vtkIdType numIntersectionPoints = intersectionPoints->GetNumberOfPoints(); 
 
-    //vtkIdType id=bspTreeOfModel->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, tolerance, t, x, intersectionPoint, subId); 
-    LOG_TRACE("scanLineIndex="<<scanLineIndex<<", numIntersectionPoints="<<numIntersectionPoints); //<<", intersectionPoint=["<<intersectionPoint[0]<<","<<intersectionPoint[1]<<","<<intersectionPoint[2]);
-
-    int *scanLine= new int[numPixels]; 
     double scanLineIntersectionPoint_Image[4] = {0,0,0,1}; 
 
-    // may need new container for ... ->GetPoint...  not 4 elements in array
+    
     const unsigned char INSIDE_OBJECT_COLOUR = 20; 
     const unsigned char OUTSIDE_OBJECT_COLOUR = 155; 
 
     unsigned char pixelColour = OUTSIDE_OBJECT_COLOUR; // grey
 
-    int currentPixelPos=simulatedUsImageExtent[0];
+    int currentPixelIndex=0;
     bool isInsideObject=false;
-    int scanLineExtent[6]={simulatedUsImageExtent[0],simulatedUsImageExtent[1],scanLineIndex,scanLineIndex,simulatedUsImageExtent[4],simulatedUsImageExtent[5]};
-    unsigned char* dstPixelAddress=(unsigned char*)simulatedUsImage->GetScalarPointerForExtent(scanLineExtent);
+    int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
+    unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
+    double beamIntensity=1000; // TODO: magic number
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
-      int endOfSegmentPixelPos=currentPixelPos;
+      int endOfSegmentPixelIndex=currentPixelIndex;
       if(intersectionIndex<numIntersectionPoints)
       {
         double *intersectionPoint=intersectionPoints->GetPoint(intersectionIndex);
         double scanLineIntersectionPoint_Model[4]={intersectionPoint[0],intersectionPoint[1],intersectionPoint[2],1};
         this->ModelToImageMatrix->MultiplyPoint(scanLineIntersectionPoint_Model,scanLineIntersectionPoint_Image); 
-        endOfSegmentPixelPos=scanLineIntersectionPoint_Image[0];
+
+        // Compute the distance between the scanline start point and the current intersection point to determine
+        // the index of the intersection point in the scanline buffer
+        double xCoordDiffMm=(scanLineIntersectionPoint_Image[0]-scanLineStartPoint_Image[0])*outputImageSpacingMm[0];
+        double yCoordDiffMm=(scanLineIntersectionPoint_Image[1]-scanLineStartPoint_Image[1])*outputImageSpacingMm[1];
+        double distanceOfIntersectionPointFromScanLineStartPointMm=sqrt(xCoordDiffMm*xCoordDiffMm+yCoordDiffMm*yCoordDiffMm);
+        endOfSegmentPixelIndex=distanceOfIntersectionPointFromScanLineStartPointMm/distanceBetweenScanlineSamplePointsMm;
       }
       else
       {
         // last segment, after all the intersection points
-        endOfSegmentPixelPos=simulatedUsImageExtent[1];
+        endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
       }
       pixelColour=isInsideObject?INSIDE_OBJECT_COLOUR:OUTSIDE_OBJECT_COLOUR;
 
-      //LOG_DEBUG("Segment from "<<currentPixelPos<<" to "<<endOfSegmentPixelPos);
+      //LOG_DEBUG("Segment from "<<currentPixelIndex<<" to "<<endOfSegmentPixelIndex);
 
+      int numberOfFilledPixels=endOfSegmentPixelIndex-currentPixelIndex+1;
+
+#ifdef CONSTANT_INTENSITY
       // fill the segment with const values
-      while (currentPixelPos<=endOfSegmentPixelPos)
+      
+      memset(dstPixelAddress,pixelColour,numberOfFilledPixels);
+      dstPixelAddress+=numberOfFilledPixels;
+#else
+      std::vector<double> *reflectionVector;
+      if (isInsideObject)
       {
-        //simulatedUsImage->SetScalarComponentFromDouble(currentPixelPos, scanLineIndex,0,0,pixelColour); 
-        *dstPixelAddress=pixelColour;
-        dstPixelAddress++;
-        currentPixelPos++;
+        reflectionVector=&(this->InsideObjectReflection);
       }
+      else
+      {
+        reflectionVector=&(this->OutsideObjectReflection);
+      }
+
+      int pixelIndex=0;
+      for (; pixelIndex<reflectionVector->size() && pixelIndex<numberOfFilledPixels; pixelIndex++)
+      {
+        double reflectionFactor=(*reflectionVector)[pixelIndex];
+        unsigned char pixelIntensity=beamIntensity*reflectionFactor;
+        (*dstPixelAddress++)=pixelIntensity;
+        //(*dstPixelAddress++)=190;
+        //LOG_INFO("Pixel: "<<pixelIntensity);
+        beamIntensity*=(1.0-reflectionFactor);
+      }
+      memset(dstPixelAddress,0,numberOfFilledPixels-pixelIndex);
+      dstPixelAddress+=(numberOfFilledPixels-pixelIndex);
+#endif
+      currentPixelIndex+=numberOfFilledPixels;
       isInsideObject=!isInsideObject;
+
     }
   }
 
-  //int lengthYDirection = std::abs(simulatedUsImageExtent[1]-simulatedUsImageExtent[0]+1); 
-
-  //int *scanLine= new int[numPixels]; 
-
-#else
-
-
-
-
-#ifdef USE_vtkPolyDataToOrientedImageStencil
-
-  // Create PolyData to Image stencil
-  vtkSmartPointer<vtkPolyDataToOrientedImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToOrientedImageStencil>::New();
-  modelStencil->SetInputConnection(stripper->GetOutputPort());
-  // volumevoxel origin=0 and orientation=identity in the vtkImageData => VolumeVoxel = Model
-  // OrientedVolumeVoxel = Image
-  // ===> ModelToImage = VolumeVoxelToOrientedVolumeVoxel
-  modelStencil->SetVolumeVoxelToOrientedVolumeVoxel(this->ModelToImageMatrix);  
-
-#else
- // Transform model points from the MODEL coordinate system to image coordinate system
-  vtkSmartPointer<vtkTransform> modelToImageTransform = vtkSmartPointer<vtkTransform>::New(); 
-  modelToImageTransform->SetMatrix(this->ModelToImageMatrix);   
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformModelFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  transformModelFilter->SetInputConnection(stripper->GetOutputPort());
-  transformModelFilter->SetTransform(modelToImageTransform);
-  transformModelFilter->Update();
-  // Model points in the image coordinate system
-  vtkPolyData* modelImage = transformModelFilter->GetOutput();
-  // Create PolyData to Image stencil
-  vtkSmartPointer<vtkPolyDataToImageStencil> modelStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-  modelStencil->SetInput(modelImage); 
-
-#endif    
-
-  modelStencil->SetOutputSpacing(this->StencilBackgroundImage->GetSpacing()); 
-  modelStencil->SetOutputOrigin(this->StencilBackgroundImage->GetOrigin());
-  modelStencil->SetOutputWholeExtent(this->StencilBackgroundImage->GetExtent()); 
-  modelStencil->Update(); 
-
-  // Create Image stencil
-  vtkSmartPointer<vtkImageStencil> combineModelwithBackgroundStencil = vtkSmartPointer<vtkImageStencil>::New();
-  combineModelwithBackgroundStencil->SetInput(this->StencilBackgroundImage);
-  combineModelwithBackgroundStencil->SetStencil(modelStencil->GetOutput());
-  combineModelwithBackgroundStencil->ReverseStencilOff();
-  combineModelwithBackgroundStencil->SetBackgroundValue(this->BackgroundValue);
-  combineModelwithBackgroundStencil->Update();
-  vtkImageData *combinedStencilOutput = combineModelwithBackgroundStencil->GetOutput();
-
-  simulatedUsImage->DeepCopy(combinedStencilOutput); 
-
-
-#endif
-
+  vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT())); 
+  if (simulatedUsImage == NULL)
+  {
+    LOG_ERROR("vtkUsSimulatorAlgo output type is invalid");
+    return 1; 
+  }
+  this->RfProcessor->SetRfFrame(scanLines, US_IMG_BRIGHTNESS);
+  //simulatedUsImage->DeepCopy(scanLines); // TODO: check if it's enough or DeepCopy is needed  
+  simulatedUsImage->DeepCopy(this->RfProcessor->GetBrightessScanConvertedImage()); // TODO: check if it's enough or DeepCopy is needed  
 
   return 1; 
 }
@@ -351,29 +305,16 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     this->SetBackgroundValue(backgroundValue); 
   }
 
-  // Frame size
-  int frameSize[2] = {0}; 
-  if ( usSimulatorAlgoElement->GetVectorAttribute("FrameSize", 2, frameSize) )
+  int numberOfScanlines = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines", numberOfScanlines )) 
   {
-    this->FrameSize[0] = frameSize[0];
-    this->FrameSize[1] = frameSize[1];
-  }
-  else
-  {
-    LOG_WARNING("Cannot find FrameSize attribute in the configuration");
+    this->SetNumberOfScanlines(numberOfScanlines); 
   }
 
-  // Pixel spacing
-  double spacingMmPerPixel[2] = {0};
-  if ( usSimulatorAlgoElement->GetVectorAttribute("SpacingMmPerPixel", 2, spacingMmPerPixel) )
+  int numberOfSamplesPerScanline = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("NumberOfSamplesPerScanline", numberOfSamplesPerScanline )) 
   {
-    this->SpacingMmPerPixel[0] = spacingMmPerPixel[0];
-    this->SpacingMmPerPixel[1] = spacingMmPerPixel[1];
-  }
-  else
-  {
-    LOG_ERROR("Cannot find SpacingMmPerPixel attribute in the configuration");
-    return PLUS_FAIL;     
+    this->SetNumberOfSamplesPerScanline(numberOfSamplesPerScanline); 
   }
 
   // Model file name
@@ -382,29 +323,32 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 
   if(modelFileName)
   {
-
     std::string foundAbsoluteImagePath;
     if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
-      LoadModel(foundAbsoluteImagePath);  
+      if (LoadModel(foundAbsoluteImagePath)!=PLUS_SUCCESS)
+      {
+        return PLUS_FAIL;     
+      }
     }
 
     else
     {
-      LOG_WARNING("Cannot find input model file!");
-      // return PLUS_FAIL; comment out, because should fail later when update is called. 
+      LOG_ERROR("Cannot find input model file!");
+      return PLUS_FAIL;
     }
   }
   else
   {
-    LOG_WARNING("Cannot find input model file!"); 
+    LOG_ERROR("ModelFileName is not specified in vtkUsSimulatorAlgo element of the configuration"); 
+    return PLUS_FAIL;
   }
 
   // Reference coordinate frame
   const char* imageCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ImageCoordinateFrame");
   if (imageCoordinateFrame == NULL)
   {
-    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
     return PLUS_FAIL;     
   }
   this->SetImageCoordinateFrame(imageCoordinateFrame);
@@ -413,24 +357,24 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   const char* referenceCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ReferenceCoordinateFrame");
   if (referenceCoordinateFrame == NULL)
   {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration!");
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
 
+  this->RfProcessor->ReadConfiguration(usSimulatorAlgoElement);
+
   return PLUS_SUCCESS;
 }
-//-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
 {
   this->SetModelFileName(absoluteImagePath.c_str());
   // Load Model
 
   std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->ModelFileName);
-  vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New(); 
-
-
+  vtkSmartPointer<vtkPolyData> model; 
 
   if (STRCASECMP(fileExt.c_str(),".stl")==0)
   {  
@@ -439,7 +383,6 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
     modelReader->Update();
     model = modelReader->GetOutput();
   }
-
   else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
@@ -448,9 +391,9 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
     model = modelReader->GetOutput();
   }
 
-  if (model == NULL)
+  if (model.GetPointer()==NULL || model->GetNumberOfPoints()==0)
   {
-    LOG_ERROR("Model specified cannot be found, check path");
+    LOG_ERROR("Model specified cannot be found: "<<absoluteImagePath);    
     return PLUS_FAIL;
   }
 
@@ -458,26 +401,15 @@ PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
   return PLUS_SUCCESS;
 }
 
-
-
-PlusStatus vtkUsSimulatorAlgo::CreateStencilBackgroundImage()
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[2])
 {
-  vtkSmartPointer<vtkImageData> stencilBackgroundImage = vtkSmartPointer<vtkImageData>::New(); 
-  stencilBackgroundImage->SetSpacing(this->SpacingMmPerPixel[0],this->SpacingMmPerPixel[1],1);
-  stencilBackgroundImage->SetOrigin(0,0,0);
-
-  //int* frameSize = frame->GetFrameSize();
-  stencilBackgroundImage->SetExtent(0, this->FrameSize[0]-1, 0, this->FrameSize[1]-1, 0, 0);
-
-  stencilBackgroundImage->SetScalarTypeToUnsignedChar();
-  stencilBackgroundImage->SetNumberOfScalarComponents(1);
-  stencilBackgroundImage->AllocateScalars(); 
-
-  int* extent = stencilBackgroundImage->GetExtent();
-  memset(stencilBackgroundImage->GetScalarPointer(), 0,
-    ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*stencilBackgroundImage->GetScalarSize()*stencilBackgroundImage->GetNumberOfScalarComponents()));
-
-  this->SetStencilBackgroundImage(stencilBackgroundImage);
-
+  vtkUsScanConvert* scanConverter=this->RfProcessor->GetScanConverter();
+  if (scanConverter==NULL)
+  {
+    LOG_ERROR("Unable to determine frame size, ScanConverter is not defined");
+    return PLUS_FAIL;
+  }
+  scanConverter->GetOutputImageSizePixel(frameSize);
   return PLUS_SUCCESS;
 }
