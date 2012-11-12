@@ -89,7 +89,7 @@ public:
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
 
-  /*! Enable/disable saving of intermediate images for debugging */
+  /*! Enable/disable saving of intermediate images for debugging. Need to call before SetVideoFrames. */
   void SetSaveIntermediateImages(bool saveIntermediateImages);
 
   void SetIntermediateFilesOutputDirectory(const std::string &outputDirectory);
