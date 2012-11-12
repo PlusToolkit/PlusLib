@@ -13,7 +13,6 @@ See License.txt for details.
 #include "vtkMultiThreader.h"
 #include "vtkPlusDeviceTypes.h"
 #include "vtkTrackedFrameList.h"
-
 #include <string>
 
 class vtkGnuplotExecuter;
@@ -182,10 +181,10 @@ public:
   PlusStatus GetToolByPortName( const char* aPortName, vtkPlusStreamTool* &aTool); 
 
   /*! Get the beginning of the tool iterator */
-  ToolContainerConstIteratorType GetToolIteratorBegin() const; 
+  ToolContainerConstIterator GetToolIteratorBegin() const; 
 
   /*! Get the end of the tool iterator */
-  ToolContainerConstIteratorType GetToolIteratorEnd() const;
+  ToolContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the tracker */
   PlusStatus AddTool( vtkPlusStreamTool* tool ); 
@@ -449,6 +448,8 @@ protected:
   virtual ~vtkPlusDevice();
 
 protected:
+  static const int VIRTUAL_DEVICE_FRAME_RATE;
+
   /*! Flag to store recording thread state */
   bool ThreadAlive; 
 
@@ -468,7 +469,7 @@ protected:
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
   /*! Tracker tools */
-  ToolContainerType ToolContainer; 
+  ToolContainer ToolContainer; 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 
 

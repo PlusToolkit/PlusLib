@@ -96,7 +96,7 @@ PlusStatus vtkSavedDataTracker::Connect()
   
   // Enable tools that have a matching transform name in the savedDataBuffer
   double transformMatrix[16]={0};
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     vtkPlusStreamTool* tool=it->second;
     if (tool->GetToolName()==NULL)
@@ -225,7 +225,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   int numOfErrors=0;
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     vtkPlusStreamTool* tool=it->second;
 

@@ -15,6 +15,7 @@ class vtkVirtualStreamMixer;
 
 #include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"
+#include "vtkSmartPointer.h"
 #include "vtkTimestampedCircularBuffer.h"
 #include <vector>
 
@@ -51,9 +52,9 @@ typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 
-typedef std::map<std::string, vtkPlusStreamTool*> ToolContainerType;
-typedef ToolContainerType::iterator ToolContainerIteratorType;
-typedef ToolContainerType::const_iterator ToolContainerConstIteratorType;
+typedef std::map<std::string, vtkSmartPointer<vtkPlusStreamTool>> ToolContainer;
+typedef ToolContainer::iterator ToolContainerIterator;
+typedef ToolContainer::const_iterator ToolContainerConstIterator;
 
 typedef std::vector<vtkPlusDevice*> DeviceCollection;
 typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;

@@ -825,7 +825,7 @@ void vtkNDITracker::EnableToolPorts()
   // get information for all tools
   ndiCommand(this->Device,"PHSR:00");
   ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  ToolContainerConstIteratorType it;
+  ToolContainerConstIterator it;
   for ( it = this->GetToolIteratorBegin(), tool = 0; it != this->GetToolIteratorEnd(); ++it, ++tool)
   {
     ph = ndiGetPHSRHandle(this->Device,tool);

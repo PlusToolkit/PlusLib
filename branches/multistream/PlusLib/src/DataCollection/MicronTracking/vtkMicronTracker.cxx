@@ -191,7 +191,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {    
     if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
     {

@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 	}
 	if ( trackerDevice != NULL )
 	{
-    for (ToolContainerConstIteratorType it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
       vtkPlusStreamTool* tool = it->second;
 		  tool->GetBuffer()->SetTimeStampReporting(true);
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 
 	if ( trackerDevice != NULL )
 	{
-    for (ToolContainerConstIteratorType it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
       vtkPlusStreamTool* tool = it->second;
 

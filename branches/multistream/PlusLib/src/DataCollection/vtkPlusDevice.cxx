@@ -40,6 +40,7 @@ vtkStandardNewMacro(vtkPlusDevice);
 // If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
 // then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up
 static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1; 
+const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -107,10 +108,10 @@ vtkPlusDevice::~vtkPlusDevice()
 
   this->OutputStreams.clear();
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
   {
-    it->second->SetDevice(NULL); 
-    it->second->Delete(); 
+    it->second->SetDevice(NULL);
+    it->second->Delete();
   }
 
   delete CurrentStreamBufferItem; CurrentStreamBufferItem = NULL;
@@ -146,7 +147,7 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "ToolReferenceFrameName: " << this->ToolReferenceFrameName << "\n";
   }
 
-  for( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
   {
     vtkPlusStreamTool* tool = it->second;
     tool->PrintSelf(os, indent);
@@ -183,13 +184,13 @@ void vtkPlusDevice::SetToolLED(const char* portName, int led, int state)
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIteratorType vtkPlusDevice::GetToolIteratorBegin() const
+ToolContainerConstIterator vtkPlusDevice::GetToolIteratorBegin() const
 {
   return this->ToolContainer.begin(); 
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIteratorType vtkPlusDevice::GetToolIteratorEnd() const
+ToolContainerConstIterator vtkPlusDevice::GetToolIteratorEnd() const
 {
   return this->ToolContainer.end();
 }
@@ -218,7 +219,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusStreamTool* tool )
   if ( this->ToolContainer.find( tool->GetToolName() ) == this->GetToolIteratorEnd() )
   {
     // Check tool port names, it should be unique too
-    for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {
       if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
       {
@@ -265,11 +266,11 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusStreamTool* &aTo
     return PLUS_FAIL; 
   }
 
-  ToolContainerConstIteratorType tool = this->ToolContainer.find(aToolName); 
+  ToolContainerConstIterator tool = this->ToolContainer.find(aToolName); 
   if ( tool == this->GetToolIteratorEnd() )
   {
     std::ostringstream availableTools; 
-    for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
     {
       availableTools << it->first <<";"; 
     }
@@ -291,7 +292,7 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusStream
     return PLUS_FAIL; 
   }
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
@@ -307,7 +308,7 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusStream
 void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 {
   LOG_TRACE("vtkPlusDevice::SetToolsBufferSize(" << aBufferSize << ")" ); 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     it->second->GetBuffer()->SetBufferSize( aBufferSize ); 
   }
@@ -322,7 +323,7 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  for( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
   {
     vtkPlusStreamTool* tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
@@ -333,7 +334,7 @@ void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
 {
   LOG_TRACE("vtkPlusDevice::DeepCopy"); 
-  for ( ToolContainerConstIteratorType it = device->ToolContainer.begin(); it != device->ToolContainer.end(); ++it )
+  for ( ToolContainerConstIterator it = device->ToolContainer.begin(); it != device->ToolContainer.end(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
     if ( this->AddTool(it->second) != PLUS_SUCCESS )
@@ -398,7 +399,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
 
   // Get the number of items from buffers and use the lowest
   int numberOfItems(-1); 
-  for ( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+  for ( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
   {
     if ( numberOfItems < 0 || numberOfItems > it->second->GetBuffer()->GetNumberOfItems() )
     {
@@ -466,7 +467,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
     trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
 
     // Add transforms
-    for ( ToolContainerConstIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+    for ( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
     {
       StreamBufferItem toolBufferItem; 
       if ( it->second->GetBuffer()->GetStreamBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusStreamBuffer::EXACT_TIME ) != ITEM_OK )
@@ -615,7 +616,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   const char* selectable = deviceXMLElement->GetAttribute("Selectable");
   if( selectable == NULL )
   {
-    LOG_ERROR("Selectable required in device configuration.");
+    selectable = "false";
   }
   SetSelectable(STRCASECMP(selectable, "true") == 0);
 
@@ -744,9 +745,8 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
     {
       vtkPlusStream* str = *it;
-      int newPort;
       vtkPlusStreamBuffer* aBuff = vtkPlusStreamBuffer::New();
-      if( str->AddBuffer(aBuff, newPort) != PLUS_SUCCESS )
+      if( str->AddBuffer(aBuff, vtkPlusStream::FIND_PORT) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to add a buffer to the stream. Can't set params of buffer.");
         return PLUS_FAIL;
@@ -770,7 +770,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     vtkPlusStream* str = *it;
 
-    for ( ToolContainerIteratorType it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
+    for ( ToolContainerIterator it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
     {
       str->AddTool(it->second);
     }
@@ -816,7 +816,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL;
   }
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     vtkPlusStreamTool* tool = it->second; 
     deviceDataElement->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
@@ -932,7 +932,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   timestampFieldValue << std::fixed << timestamp; 
   aTrackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
 
-  for (ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for (ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 
     if ( ! toolTransformName.IsValid() )
@@ -1535,7 +1535,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( int& outVal, const char * toolName /*= 
     return PLUS_SUCCESS;
   }
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
     {
@@ -1573,7 +1573,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
     return PLUS_SUCCESS;
   }
   
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
     {
@@ -1588,7 +1588,7 @@ void vtkPlusDevice::SetStartTime( double startTime )
 {
   this->GetBuffer()->SetStartTime(startTime);
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     it->second->GetBuffer()->SetStartTime(startTime); 
   }
@@ -1602,7 +1602,7 @@ double vtkPlusDevice::GetStartTime()
 
   double sumStartTime = 0.0;
   double numberOfTools(0); 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     sumStartTime += it->second->GetBuffer()->GetStartTime(); 
     numberOfTools++; 
@@ -1664,7 +1664,7 @@ void vtkPlusDevice::ClearAllBuffers()
 {
   this->GetBuffer()->Clear();
 
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     it->second->GetBuffer()->Clear(); 
   }
@@ -2432,7 +2432,7 @@ bool vtkPlusDevice::GetVideoDataAvailable()
     }
 
     // Now check any and all tool buffers
-    for( ToolContainerConstIteratorType it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusStreamTool* tool = it->second;
       StreamBufferItem item;

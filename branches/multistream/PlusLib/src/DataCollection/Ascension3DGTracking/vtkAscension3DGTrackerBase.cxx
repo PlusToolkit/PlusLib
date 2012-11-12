@@ -149,7 +149,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
   }
 
   // Check that all tools were connected that was defined in the configuration file
-  for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     std::stringstream convert(it->second->GetPortName());
     int port(-1); 

@@ -25,6 +25,7 @@ SET (DataCollection_SRCS
   FakeTracking/vtkFakeTracker.cxx 
   SavedDataTracking/vtkSavedDataTracker.cxx 
   VirtualDevices/vtkVirtualStreamMixer.cxx
+  VirtualDevices/vtkVirtualStreamSwitcher.cxx
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
@@ -46,6 +47,7 @@ if (WIN32)
 		FakeTracking/vtkFakeTracker.h
 		SavedDataTracking/vtkSavedDataTracker.h
 		VirtualDevices/vtkVirtualStreamMixer.h
+		VirtualDevices/vtkVirtualStreamSwitcher.h
 		SerialLine.h
 		itkFcsvReader.h
 		itkFcsvWriter.h

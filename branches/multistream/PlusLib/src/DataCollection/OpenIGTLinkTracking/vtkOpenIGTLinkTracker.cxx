@@ -111,7 +111,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
 
     // We need the following tool names from the server 
-    for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
     {
       PlusTransformName tName( it->second->GetToolName(), this->GetToolReferenceFrameName() ); 
       clientInfo.TransformNames.push_back( tName ); 

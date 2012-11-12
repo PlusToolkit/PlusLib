@@ -281,7 +281,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
   case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
     {
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-      for ( ToolContainerConstIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
         ToolStatus toolStatus = TOOL_OK;
 

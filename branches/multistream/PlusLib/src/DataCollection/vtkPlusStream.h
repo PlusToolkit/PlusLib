@@ -22,25 +22,36 @@ class vtkPlusDevice;
 class VTK_EXPORT vtkPlusStream : public vtkDataObject
 {
 public:
+  static const int FIND_PORT;
   static int MAX_PORT;
 
   static vtkPlusStream *New();
   vtkTypeRevisionMacro(vtkPlusStream, vtkObject);
 
+  /*!
+    Parse the XML, read the details about the stream
+  */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
-  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int& outNewPort);
+
+  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int aPort);
   PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
   StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
   StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
-  PlusStatus AddTool(vtkPlusStreamTool* aTool);
+
+  PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool );
   PlusStatus RemoveTool(const char* toolName);
+  // How do smart pointers work when returning
   PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
-  ToolContainerConstIteratorType GetToolBuffersStartConstIterator() const;
-  ToolContainerIteratorType GetToolBuffersStartIterator();
-  ToolContainerConstIteratorType GetToolBuffersEndConstIterator() const;
-  ToolContainerIteratorType GetToolBuffersEndIterator();
+  ToolContainerConstIterator GetToolBuffersStartConstIterator() const;
+  ToolContainerIterator GetToolBuffersStartIterator();
+  ToolContainerConstIterator GetToolBuffersEndConstIterator() const;
+  ToolContainerIterator GetToolBuffersEndIterator();
 
   PlusStatus Clear();
+
+  virtual void DeepCopy(vtkPlusStream *src);
+
+  PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
   vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
   vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
@@ -49,8 +60,11 @@ public:
   vtkGetStringMacro(StreamId);
 
 protected:
+  bool IsSame(const vtkPlusStream& aStream) const;
+
   StreamBufferMapContainer  StreamBuffers;
-  ToolContainerType         Tools;
+
+  ToolContainer             Tools;
   vtkPlusDevice*            OwnerDevice;
   char *                    StreamId;
 

@@ -16,6 +16,7 @@ vtkCxxRevisionMacro(vtkPlusStream, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusStream);
 
 int vtkPlusStream::MAX_PORT = 500;
+const int vtkPlusStream::FIND_PORT = -1;
 
 //----------------------------------------------------------------------------
 vtkPlusStream::vtkPlusStream(void)
@@ -28,10 +29,14 @@ vtkPlusStream::vtkPlusStream(void)
 //----------------------------------------------------------------------------
 vtkPlusStream::~vtkPlusStream(void)
 {
-  // A stream is only responsible for cleaning up non-tool streams
-  StreamBuffers.clear();
-
-  // Don't touch the tools, the devices clean those up
+  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  {
+    it->second->Delete();
+  }
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    it->second->Delete();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -97,7 +102,7 @@ PlusStatus vtkPlusStream::GetTool( vtkPlusStreamTool*& aTool, const char* toolNa
     return PLUS_FAIL;
   }
 
-  for( ToolContainerIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if( STRCASECMP(toolName, it->second->GetToolName()) == 0 )
     {
@@ -122,31 +127,31 @@ StreamBufferMapContainerConstIterator vtkPlusStream::GetBuffersEndConstIterator(
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIteratorType vtkPlusStream::GetToolBuffersStartConstIterator() const
+ToolContainerConstIterator vtkPlusStream::GetToolBuffersStartConstIterator() const
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIteratorType vtkPlusStream::GetToolBuffersEndConstIterator() const
+ToolContainerConstIterator vtkPlusStream::GetToolBuffersEndConstIterator() const
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIteratorType vtkPlusStream::GetToolBuffersStartIterator()
+ToolContainerIterator vtkPlusStream::GetToolBuffersStartIterator()
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIteratorType vtkPlusStream::GetToolBuffersEndIterator()
+ToolContainerIterator vtkPlusStream::GetToolBuffersEndIterator()
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddTool( vtkPlusStreamTool* aTool )
+PlusStatus vtkPlusStream::AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool )
 {
   if( aTool == NULL )
   {
@@ -154,7 +159,7 @@ PlusStatus vtkPlusStream::AddTool( vtkPlusStreamTool* aTool )
     return PLUS_FAIL;
   }
 
-  for( ToolContainerConstIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if( it->second == aTool )
     {
@@ -177,10 +182,11 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
     return PLUS_FAIL;
   }
 
-  for( ToolContainerIteratorType it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
     {
+      it->second->Delete();
       this->Tools.erase(it);      
       return PLUS_SUCCESS;
     }
@@ -190,11 +196,21 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPort )
+PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int port )
 {
+  if( port != FIND_PORT )
+  {
+    if( this->StreamBuffers.find(port) != this->StreamBuffers.end() )
+    {
+      LOG_WARNING("Overwriting a buffer at port " << port );
+    }
+    this->StreamBuffers[port] = aBuffer;
+    return PLUS_SUCCESS;
+  }
+
   for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
   {
-    if( it->second == aBuffer )
+    if( it->second == aBuffer && it->first == port )
     {
       return PLUS_SUCCESS;
     }
@@ -206,15 +222,15 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPo
     usedPorts.push_back(it->first);
   }
 
-  outNewPort = 0;
-  while( outNewPort < MAX_PORT )
+  double newPort = 0;
+  while( newPort < MAX_PORT )
   {
-    if( std::find(usedPorts.begin(), usedPorts.end(), outNewPort) == usedPorts.end() )
+    if( std::find(usedPorts.begin(), usedPorts.end(), newPort) == usedPorts.end() )
     {
-      this->StreamBuffers[outNewPort] = aBuffer;
+      this->StreamBuffers[newPort] = aBuffer;
       return PLUS_SUCCESS;
     }
-    outNewPort++;
+    newPort++;
   }
 
   LOG_ERROR("Unable to find a suitable port for a new buffer. How did you go over " << MAX_PORT << " ports!");
@@ -224,6 +240,10 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int& outNewPo
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::Clear()
 {
+  for( ToolContainerConstIterator it = this->GetToolBuffersStartConstIterator(); it != this->GetToolBuffersEndConstIterator(); ++it)
+  {
+    it->second->Delete();
+  }
   this->Tools.clear();
 
   for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
@@ -233,4 +253,123 @@ PlusStatus vtkPlusStream::Clear()
   this->StreamBuffers.clear();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
+{
+  aTimestamp = 0;
+
+  for( StreamBufferMapContainerConstIterator it = this->GetBuffersStartConstIterator(); it != this->GetBuffersEndConstIterator(); ++it )
+  {
+    vtkPlusStreamBuffer* aBuf = it->second;
+    double timestamp;
+    if( aBuf->GetLatestTimeStamp(timestamp) == ITEM_OK )
+    {
+      if( timestamp > aTimestamp )
+      {
+        aTimestamp = timestamp;
+      }
+    }
+  }
+
+  for( ToolContainerConstIterator it = this->GetToolBuffersStartConstIterator(); it != this->GetToolBuffersEndConstIterator(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
+    if( aTool->GetBuffer() != NULL )
+    {
+      double timestamp;
+      if( aTool->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
+      {
+        if( timestamp > aTimestamp )
+        {
+          aTimestamp = timestamp;
+        }
+      }
+    }
+  }
+
+  
+  return aTimestamp != 0 ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusStream::DeepCopy( vtkPlusStream* src )
+{
+  // Make this stream look like src stream
+  bool same = this->IsSame(*src);
+
+  if( !same )
+  {
+    this->Clear();
+    for( StreamBufferMapContainerConstIterator it = src->GetBuffersStartConstIterator(); it != src->GetBuffersEndConstIterator(); ++it )
+    {
+      vtkPlusStreamBuffer* aBuff = vtkPlusStreamBuffer::New();
+      if( this->AddBuffer(aBuff, it->first) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to add a buffer to port " << it->first);
+        continue;
+      }
+    }
+    for( ToolContainerConstIterator it = src->GetToolBuffersStartConstIterator(); it != src->GetToolBuffersEndConstIterator(); ++it)
+    {
+      vtkSmartPointer<vtkPlusStreamTool> aTool = vtkSmartPointer<vtkPlusStreamTool>::New();
+      if( this->AddTool(aTool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to add a tool when deep copying a stream.");
+        continue;
+      }
+    }
+  }
+
+  // Now the streams are the same!
+  for( StreamBufferMapContainerConstIterator it = src->GetBuffersStartConstIterator(); it != src->GetBuffersEndConstIterator(); ++it )
+  {
+    // Find the buffer in this with same port, copy it
+    this->StreamBuffers[it->first]->DeepCopy(it->second);
+  }
+  for( ToolContainerConstIterator it = src->GetToolBuffersStartConstIterator(); it != src->GetToolBuffersEndConstIterator(); ++it)
+  {
+    // Find the tool with same name... copy it
+    this->Tools[it->first]->DeepCopy(it->second);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusStream::IsSame( const vtkPlusStream& aStream ) const
+{
+  // Compare all pointers, if all the same simply do data copy
+  // If not, make them match
+  if( aStream.StreamBuffers.size() != this->StreamBuffers.size() )
+  {
+    return false;
+  }
+  if( this->Tools.size() != aStream.Tools.size() )
+  {
+    return false;
+  }
+
+  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
+  {
+    int bufferPort = it->first;
+    vtkPlusStreamBuffer* aBuff = it->second;
+    StreamBufferMapContainerConstIterator aBufferIterator = this->StreamBuffers.find(bufferPort);
+    if( aBufferIterator == this->StreamBuffers.end() || aBufferIterator->second != aBuff )
+    {
+      return false;
+    }
+  }
+
+  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
+  {
+    std::string toolName = it->first;
+    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
+    ToolContainerConstIterator aToolIterator = this->Tools.find(toolName);
+    if( aToolIterator == this->Tools.end() || aToolIterator->second->GetToolName() != aTool->GetToolName() )
+    {
+      return false;
+    }
+  }
+
+  return true;
 }

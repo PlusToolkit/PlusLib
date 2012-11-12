@@ -36,7 +36,6 @@ public:
 
   virtual double GetAcquisitionRate() const;
 protected:
-  virtual PlusStatus InternalUpdate();
 
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();

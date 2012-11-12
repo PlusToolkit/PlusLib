@@ -21,6 +21,7 @@ vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 : vtkPlusDevice()
 , OutputStream(NULL)
 {
+  this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 }
 
 //----------------------------------------------------------------------------
@@ -51,13 +52,6 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
 
   SetOutputStream(this->OutputStreams[0]);
 
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::InternalUpdate()
-{
-  // TODO : 
   return PLUS_SUCCESS;
 }
 
@@ -112,18 +106,17 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
       }
 
       // This input inputBuffer is not in the output stream, put it in!
-      int port;
-      this->GetOutputStream()->AddBuffer(inputBuffer, port);
+      this->GetOutputStream()->AddBuffer(inputBuffer, vtkPlusStream::FIND_PORT);
     }
 
-    for( ToolContainerConstIteratorType inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
+    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
     {
       vtkPlusStreamTool* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( ToolContainerConstIteratorType outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
+      for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
       {
-        vtkPlusStreamTool* anOutputTool = outputToolIt->second;
+        vtkSmartPointer<vtkPlusStreamTool> anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
         if( anInputTool == anOutputTool )
         {
