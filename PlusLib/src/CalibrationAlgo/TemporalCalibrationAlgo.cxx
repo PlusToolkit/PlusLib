@@ -68,6 +68,7 @@ void TemporalCalibration::SetSaveIntermediateImages(bool saveIntermediateImages)
 PlusStatus TemporalCalibration::SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName)
 {
   vtkSmartPointer<vtkPrincipalMotionDetectionAlgo> trackerDataMetricExtractor=vtkSmartPointer<vtkPrincipalMotionDetectionAlgo>::New();
+
   trackerDataMetricExtractor->SetTrackerFrames(trackerFrames);
   trackerDataMetricExtractor->SetProbeToReferenceTransformName(probeToReferenceTransformName);
 
@@ -99,6 +100,7 @@ PlusStatus TemporalCalibration::SetVideoFrames(vtkTrackedFrameList* videoFrames)
 {
   vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
   lineSegmenter->SetVideoFrames(videoFrames);
+  lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
   lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
   if (lineSegmenter->Update()!=PLUS_SUCCESS)
   {
@@ -278,22 +280,8 @@ PlusStatus TemporalCalibration::GetSignalRange(const std::deque<double> &signal,
     return PLUS_FAIL;
   }
   //  Calculate maximum and minimum metric values
-  //maxValue = *(std::max_element(signal.begin() + startIndex, signal + stopIndex);
-  //minValue = *(std::min_element(signal.begin(), signal.end()));
-	maxValue = signal.at(startIndex);
-	minValue = signal.at(startIndex);
-
-	for(int i = startIndex + 1; i <= stopIndex; ++i)
-	{
-		if(signal.at(i) > maxValue)
-		{
-			maxValue = signal.at(i);
-		}
-		else if(signal.at(i) < minValue)
-		{
-			minValue = signal.at(i);
-		}
-	}
+  maxValue = *(std::max_element(signal.begin() + startIndex, signal.begin() + stopIndex));
+  minValue = *(std::min_element(signal.begin() + startIndex, signal.begin() + stopIndex));
 
   return PLUS_SUCCESS;
 }
