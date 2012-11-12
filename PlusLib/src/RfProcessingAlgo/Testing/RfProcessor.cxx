@@ -123,6 +123,7 @@ int main(int argc, char **argv)
       // Update the pixel data in the frame
       rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
       rfFrame->GetImageData()->SetImageOrientation(US_IMG_ORIENT_MF); 
+      rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
     }
     else
     {
