@@ -33,15 +33,14 @@ public:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
 
-  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int aPort);
-  PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
+  PlusStatus AddBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int aPort);
+  PlusStatus GetBuffer(vtkSmartPointer<vtkPlusStreamBuffer>& aBuffer, int port);
   StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
   StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
 
   PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool );
   PlusStatus RemoveTool(const char* toolName);
-  // How do smart pointers work when returning
-  PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
+  PlusStatus GetTool(vtkSmartPointer<vtkPlusStreamTool>& aTool, const char* toolName);
   ToolContainerConstIterator GetToolBuffersStartConstIterator() const;
   ToolContainerIterator GetToolBuffersStartIterator();
   ToolContainerConstIterator GetToolBuffersEndConstIterator() const;
@@ -49,7 +48,8 @@ public:
 
   PlusStatus Clear();
 
-  virtual void DeepCopy(vtkPlusStream *src);
+  virtual void DeepCopy(const vtkPlusStream& aStream);
+  virtual void ShallowCopy(const vtkPlusStream& aStream);
 
   PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
@@ -60,8 +60,6 @@ public:
   vtkGetStringMacro(StreamId);
 
 protected:
-  bool IsSame(const vtkPlusStream& aStream) const;
-
   StreamBufferMapContainer  StreamBuffers;
 
   ToolContainer             Tools;

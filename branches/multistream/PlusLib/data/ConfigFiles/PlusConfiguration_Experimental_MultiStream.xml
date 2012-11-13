@@ -17,10 +17,6 @@
 				<Tool Id="Reference"/>
 				<Tool Id="Stylus"/>
 			</OutputStream>
-		
-			<OutputStream Id="AscensionTrackerProbeOnly">
-				<Tool Id="Probe"/>
-			</OutputStream>
 		</Device>
 	
 		<!-- if smart device: will poll hardware to see if parameters have changed, if so, will output on the stream that
@@ -61,12 +57,12 @@
 			<OutputStream Id="SonixVideoSagittalPlaneBMode" />
 		</Device>
 
-		<Device Id="AxialMixer" Type="VirtualStreamMixer">
+		<Device Id="AxialMixer" Type="VirtualStreamMixer" Selectable="true">
 			<OutputStream Id="TrackedFrameOutputAxial" />
 			<InputStream Id="SonixVideoAxialPlaneBMode" />
 			<InputStream Id="AscensionTrackerAllTools" />
 		</Device>
-		<Device Id="SagittalMixer" Type="VirtualStreamMixer">
+		<Device Id="SagittalMixer" Type="VirtualStreamMixer" Selectable="true">
 			<OutputStream Id="TrackedFrameOutputSagittal" />
 			<InputStream Id="SonixVideoSagittalPlaneBMode" />
 			<InputStream Id="AscensionTrackerAllTools" />
@@ -75,11 +71,11 @@
 		<!-- Is this the device to add context awareness? -->
 		<Device Id="SaveDataTargetSwitcher" Type="VirtualStreamSwitcher">
 			<OutputStream Id="SaveDataOutputAll"
-				<!-- this device will need to broadcast stream switches -->
+				<!-- this device will need to broadcast stream switches
 				Image from TrackedFrameOutputAxial / TrackedFrameOutputSagittal
 				Transforms:
 				ImageToReference: from ImageToReference_Axial / ImageToReference_Sagittal
-				NeedleToReference: from NeedleToReference_Axial / NeedleToReference_Sagittal
+				NeedleToReference: from NeedleToReference_Axial / NeedleToReference_Sagittal -->
 			/>
 			<!-- device also needs to be able to be polled for current postfix, as data collector will need to know which set of transforms to access... -->
 			<!-- this means that this device has to be known by the data collector... all devices of type switcher? -->

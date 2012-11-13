@@ -115,8 +115,8 @@ public:
   virtual PlusStatus StopRecording();
 
     /*! Get the buffer that is used to hold the data. */
-  virtual vtkPlusStreamBuffer* GetBuffer();
-  virtual vtkPlusStreamBuffer* GetBuffer(int port);
+  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer();
+  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer(int port);
 
   /*! 
     Get the buffer that is used to hold the data
@@ -155,9 +155,6 @@ public:
     Reset the device
   */
   virtual PlusStatus Reset();
-
-  /*! Copy the current state of the tool's buffer  */
-  virtual PlusStatus CopyBuffer( vtkPlusStreamBuffer* aStreamBuffer, const char* aToolName = NULL);
 
   /*! Clear all tool buffers */
   void ClearAllBuffers();

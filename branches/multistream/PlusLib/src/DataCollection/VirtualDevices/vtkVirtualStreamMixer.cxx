@@ -60,7 +60,7 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
 {
   double lowestRate(HUGE_DOUBLE);
 
-  vtkPlusStreamBuffer* aBuff = NULL;
+  vtkSmartPointer<vtkPlusStreamBuffer> aBuff = NULL;
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     aBuff = NULL;

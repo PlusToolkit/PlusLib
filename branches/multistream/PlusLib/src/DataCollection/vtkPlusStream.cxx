@@ -80,7 +80,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
+PlusStatus vtkPlusStream::GetBuffer( vtkSmartPointer<vtkPlusStreamBuffer>& aBuffer, int port )
 {
   if( StreamBuffers.find(port) == StreamBuffers.end() )
   {
@@ -94,7 +94,7 @@ PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetTool( vtkPlusStreamTool*& aTool, const char* toolName )
+PlusStatus vtkPlusStream::GetTool( vtkSmartPointer<vtkPlusStreamTool>& aTool, const char* toolName )
 {
   if( toolName == NULL )
   {
@@ -196,7 +196,7 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int port )
+PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port )
 {
   if( port != FIND_PORT )
   {
@@ -210,7 +210,7 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int port )
 
   for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
   {
-    if( it->second == aBuffer && it->first == port )
+    if( it->second.GetPointer() == aBuffer.GetPointer() && it->first == port )
     {
       return PLUS_SUCCESS;
     }
@@ -240,16 +240,9 @@ PlusStatus vtkPlusStream::AddBuffer( vtkPlusStreamBuffer* aBuffer, int port )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::Clear()
 {
-  for( ToolContainerConstIterator it = this->GetToolBuffersStartConstIterator(); it != this->GetToolBuffersEndConstIterator(); ++it)
-  {
-    it->second->Delete();
-  }
+  // Smart pointer will automatically dereference when deconstructed
+  // TODO : verify this
   this->Tools.clear();
-
-  for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
-  {
-    it->second->Delete();
-  }
   this->StreamBuffers.clear();
 
   return PLUS_SUCCESS;
@@ -262,7 +255,7 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 
   for( StreamBufferMapContainerConstIterator it = this->GetBuffersStartConstIterator(); it != this->GetBuffersEndConstIterator(); ++it )
   {
-    vtkPlusStreamBuffer* aBuf = it->second;
+    vtkSmartPointer<vtkPlusStreamBuffer> aBuf = it->second;
     double timestamp;
     if( aBuf->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
@@ -288,47 +281,41 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
       }
     }
   }
-
   
   return aTimestamp != 0 ? PLUS_SUCCESS : PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStream::DeepCopy( vtkPlusStream* src )
+void vtkPlusStream::DeepCopy( const vtkPlusStream& aStream )
 {
-  // Make this stream look like src stream
-  bool same = this->IsSame(*src);
-
-  if( !same )
+  // Make this stream look like aStream
+  this->Clear();
+  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
   {
-    this->Clear();
-    for( StreamBufferMapContainerConstIterator it = src->GetBuffersStartConstIterator(); it != src->GetBuffersEndConstIterator(); ++it )
+    vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+    if( this->AddBuffer(aBuff, it->first) != PLUS_SUCCESS )
     {
-      vtkPlusStreamBuffer* aBuff = vtkPlusStreamBuffer::New();
-      if( this->AddBuffer(aBuff, it->first) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to add a buffer to port " << it->first);
-        continue;
-      }
+      LOG_ERROR("Unable to add a buffer to port " << it->first);
+      continue;
     }
-    for( ToolContainerConstIterator it = src->GetToolBuffersStartConstIterator(); it != src->GetToolBuffersEndConstIterator(); ++it)
+  }
+  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStreamTool> aTool = vtkSmartPointer<vtkPlusStreamTool>::New();
+    if( this->AddTool(aTool) != PLUS_SUCCESS )
     {
-      vtkSmartPointer<vtkPlusStreamTool> aTool = vtkSmartPointer<vtkPlusStreamTool>::New();
-      if( this->AddTool(aTool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to add a tool when deep copying a stream.");
-        continue;
-      }
+      LOG_ERROR("Unable to add a tool when deep copying a stream.");
+      continue;
     }
   }
 
   // Now the streams are the same!
-  for( StreamBufferMapContainerConstIterator it = src->GetBuffersStartConstIterator(); it != src->GetBuffersEndConstIterator(); ++it )
+  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
   {
     // Find the buffer in this with same port, copy it
     this->StreamBuffers[it->first]->DeepCopy(it->second);
   }
-  for( ToolContainerConstIterator it = src->GetToolBuffersStartConstIterator(); it != src->GetToolBuffersEndConstIterator(); ++it)
+  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
   {
     // Find the tool with same name... copy it
     this->Tools[it->first]->DeepCopy(it->second);
@@ -336,40 +323,23 @@ void vtkPlusStream::DeepCopy( vtkPlusStream* src )
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusStream::IsSame( const vtkPlusStream& aStream ) const
+void vtkPlusStream::ShallowCopy( const vtkPlusStream& aStream )
 {
-  // Compare all pointers, if all the same simply do data copy
-  // If not, make them match
-  if( aStream.StreamBuffers.size() != this->StreamBuffers.size() )
-  {
-    return false;
-  }
-  if( this->Tools.size() != aStream.Tools.size() )
-  {
-    return false;
-  }
-
+  this->Clear();
   for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
   {
-    int bufferPort = it->first;
-    vtkPlusStreamBuffer* aBuff = it->second;
-    StreamBufferMapContainerConstIterator aBufferIterator = this->StreamBuffers.find(bufferPort);
-    if( aBufferIterator == this->StreamBuffers.end() || aBufferIterator->second != aBuff )
+    if( this->AddBuffer(it->second, it->first) != PLUS_SUCCESS )
     {
-      return false;
+      LOG_ERROR("Unable to add a buffer to port " << it->first);
+      continue;
     }
   }
-
   for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
   {
-    std::string toolName = it->first;
-    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
-    ToolContainerConstIterator aToolIterator = this->Tools.find(toolName);
-    if( aToolIterator == this->Tools.end() || aToolIterator->second->GetToolName() != aTool->GetToolName() )
+    if( this->AddTool(it->second) != PLUS_SUCCESS )
     {
-      return false;
+      LOG_ERROR("Unable to add a tool when deep copying a stream.");
+      continue;
     }
   }
-
-  return true;
 }

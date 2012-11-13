@@ -188,7 +188,8 @@ PlusStatus vtkVirtualStreamSwitcher::CopyInputStreamToOutputStream()
   // Only destroy if things have to change
   if( this->CurrentActiveInputStream != NULL )
   {
-    this->OutputStream->DeepCopy(this->CurrentActiveInputStream);
+    // no need to do a deep copy, iterators are used to access data anyways
+    this->OutputStream->ShallowCopy(*this->CurrentActiveInputStream);
   }
 
   return PLUS_SUCCESS;

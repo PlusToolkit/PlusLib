@@ -32,7 +32,7 @@ vtkPlusStreamTool::vtkPlusStreamTool()
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
 
-	this->Buffer = vtkPlusStreamBuffer::New();
+	this->Buffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
 	  
 	this->FrameNumber = 0;
 }

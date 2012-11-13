@@ -44,11 +44,11 @@ typedef std::vector<vtkPlusStream*> StreamContainer;
 typedef StreamContainer::const_iterator StreamContainerConstIterator;
 typedef StreamContainer::iterator StreamContainerIterator;
 
-typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
+typedef std::vector<vtkSmartPointer<vtkPlusStreamBuffer>> StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
 typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
 
-typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
+typedef std::map<int, vtkSmartPointer<vtkPlusStreamBuffer>> StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 

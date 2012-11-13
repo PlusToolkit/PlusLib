@@ -161,7 +161,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
             if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
             {
               // Found it!
-              device->AddInputStream(aStream);
+              thisDevice->AddInputStream(aStream);
               continue;
             }
           }
@@ -891,6 +891,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
         LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
         return PLUS_FAIL;
       }
+      break;
     }
   }
 
@@ -920,6 +921,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
         LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
         return PLUS_FAIL;
       }
+      break;
     }
   }
 

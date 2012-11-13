@@ -12,9 +12,13 @@
 			BufferSize="100"
 			UseOriginalTimestamps="TRUE"
 			RepeatEnabled="TRUE"
-			Selectable="TRUE"
 		>
 			<OutputStream Id="Data" />
+		</Device>
+		
+		<Device Id="Mixer" Type="VirtualStreamMixer" Selectable="true">
+			<OutputStream Id="MixerStream" />
+			<InputStream Id="Data" />
 		</Device>
 	</DataCollection>
 

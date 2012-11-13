@@ -16,8 +16,7 @@
 
 #include "vtkObject.h"
 #include "vtkPlusDevice.h"
-
-class vtkPlusStreamBuffer;
+#include "vtkPlusStreamBuffer.h"
 
 /*!
 \class vtkPlusStreamTool 
@@ -48,7 +47,7 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Get the tracked tool buffer */
-  vtkGetObjectMacro(Buffer,vtkPlusStreamBuffer);
+  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer() const { return this->Buffer; }
 
   /*! Get the tracker which owns this tool. */
   vtkGetObjectMacro(Device,vtkPlusDevice);
@@ -126,7 +125,7 @@ protected:
   char *ToolManufacturer;
   char *ToolName; 
 
-  vtkPlusStreamBuffer *Buffer;
+  vtkSmartPointer<vtkPlusStreamBuffer> Buffer;
 
 private:
   vtkPlusStreamTool(const vtkPlusStreamTool&);
