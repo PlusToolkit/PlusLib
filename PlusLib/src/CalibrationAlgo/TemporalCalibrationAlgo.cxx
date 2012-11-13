@@ -44,8 +44,24 @@ TemporalCalibration::TemporalCalibration() :
   m_FixedSignalValuesNormalizationFactor(0.0),
   m_BestCorrelationLagIndex(-1)
 {
+  m_FixedSignal.frameList=NULL;
+  m_MovingSignal.frameList=NULL;
 }
 
+//-----------------------------------------------------------------------------
+TemporalCalibration::~TemporalCalibration()
+{
+  if (m_FixedSignal.frameList!=NULL)
+  {
+    m_FixedSignal.frameList->UnRegister(NULL);
+    m_FixedSignal.frameList=NULL;
+  }
+  if (m_MovingSignal.frameList!=NULL)
+  {
+    m_MovingSignal.frameList->UnRegister(NULL);
+    m_MovingSignal.frameList=NULL;
+  }
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::Update(TEMPORAL_CALIBRATION_ERROR &error)
@@ -65,64 +81,60 @@ void TemporalCalibration::SetSaveIntermediateImages(bool saveIntermediateImages)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName)
+void TemporalCalibration::SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName)
 {
-  vtkSmartPointer<vtkPrincipalMotionDetectionAlgo> trackerDataMetricExtractor=vtkSmartPointer<vtkPrincipalMotionDetectionAlgo>::New();
-
-  trackerDataMetricExtractor->SetTrackerFrames(trackerFrames);
-  trackerDataMetricExtractor->SetProbeToReferenceTransformName(probeToReferenceTransformName);
-
-  if (trackerDataMetricExtractor->Update()!=PLUS_SUCCESS)
-  {
-    LOG_ERROR("Failed to get line positions from video frames");
-    return PLUS_FAIL;
-  }
-  trackerDataMetricExtractor->GetDetectedTimestamps(m_MovingSignalTimestamps);
-  trackerDataMetricExtractor->GetDetectedPositions(m_MovingSignalValues);
-
-  // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
-  // not work for our purposes
-  double minValue=0;
-  double maxValue=0;
-  GetSignalRange(m_MovingSignalValues, 0, m_MovingSignalValues.size() -1, minValue, maxValue);
-  double maxPeakToPeak = std::abs(maxValue-minValue);
-  if(maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
-  {
-    LOG_ERROR("Detected metric values do not vary sufficiently (i.e. tracking signal is constant). Actual peak-to-peak variation: "<<maxPeakToPeak<<", expected minimum: "<<MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM);
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  SetMovingFrames(trackerFrames, TRACKER_FRAME);
+  SetMovingProbeToReferenceTransformName(probeToReferenceTransformName);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::SetVideoFrames(vtkTrackedFrameList* videoFrames)
+void TemporalCalibration::SetVideoFrames(vtkTrackedFrameList* videoFrames)
 {
-  vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
-  lineSegmenter->SetVideoFrames(videoFrames);
-  lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
-  lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
-  if (lineSegmenter->Update()!=PLUS_SUCCESS)
-  {
-    LOG_ERROR("Failed to get line positions from video frames");
-    return PLUS_FAIL;
-  }
-  lineSegmenter->GetDetectedTimestamps(m_FixedSignalTimestamps);
-  lineSegmenter->GetDetectedPositions(m_FixedSignalValues);
+  SetFixedFrames(videoFrames, PLANE_VIDEO_FRAME);
+}
 
-  // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
-  // not work for our purposes
-  double minValue=0;
-  double maxValue=0;
-  GetSignalRange(m_FixedSignalValues,0, m_FixedSignalValues.size() -1, minValue, maxValue);
-  double maxPeakToPeak = std::abs(maxValue-minValue);
-  if(maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetFixedFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType)
+{
+  if (frameList!=m_FixedSignal.frameList)
   {
-    LOG_ERROR("Detected metric values do not vary sufficiently (i.e. video signal is constant)");
-    return PLUS_FAIL;
+    if (m_FixedSignal.frameList!=NULL)
+    {
+      m_FixedSignal.frameList->UnRegister(NULL);
+      m_FixedSignal.frameList=NULL;
+    }
+    m_FixedSignal.frameList=frameList;
+    m_FixedSignal.frameList->Register(NULL);
   }
+  m_FixedSignal.frameType=frameType;
+}
 
-  return PLUS_SUCCESS;
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetFixedProbeToReferenceTransformName(const std::string &probeToReferenceTransformName)
+{
+  m_FixedSignal.probeToReferenceTransformName=probeToReferenceTransformName;
+}
+
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetMovingFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType)
+{
+  if (frameList!=m_MovingSignal.frameList)
+  {
+    if (m_MovingSignal.frameList!=NULL)
+    {
+      m_MovingSignal.frameList->UnRegister(NULL);
+      m_MovingSignal.frameList=NULL;
+    }
+    m_MovingSignal.frameList=frameList;
+    m_MovingSignal.frameList->Register(NULL);
+  }
+  m_MovingSignal.frameType=frameType;
+}
+
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetMovingProbeToReferenceTransformName(const std::string &probeToReferenceTransformName)
+{
+  m_MovingSignal.probeToReferenceTransformName=probeToReferenceTransformName;
 }
 
 //-----------------------------------------------------------------------------
@@ -199,7 +211,7 @@ PlusStatus TemporalCalibration::GetMaxCalibrationError(double &maxCalibrationErr
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable* uncalibratedTrackerPositionSignal)
 {
-  ConstructTableSignal(m_NormalizedTrackerTimestamps, m_NormalizedTrackerPositionMetric, uncalibratedTrackerPositionSignal, 0); 
+  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, uncalibratedTrackerPositionSignal, 0); 
   if(uncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
@@ -214,7 +226,7 @@ PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable* u
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal)
 {
-  ConstructTableSignal(m_NormalizedTrackerTimestamps, m_NormalizedTrackerPositionMetric, calibratedTrackerPositionSignal, -m_TrackerLagSec); 
+  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, calibratedTrackerPositionSignal, -m_TrackerLagSec); 
   if(calibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
@@ -229,7 +241,7 @@ PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* cal
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkTable *videoPositionSignal)
 {
-  ConstructTableSignal(m_FixedSignalTimestamps, m_FixedSignalValues, videoPositionSignal, 0); 
+  ConstructTableSignal(m_FixedSignal.signalTimestamps, m_FixedSignal.signalValues, videoPositionSignal, 0); 
   if(videoPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
@@ -396,61 +408,6 @@ PlusStatus TemporalCalibration::NormalizeMetricValues(std::deque<double> &signal
   return NormalizeMetricValues(signal, normalizationFactor, startIndex, stopIndex);
 }
 
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::CropSignalsToCommonRange()
-{
-  if (m_MovingSignalTimestamps.empty())
-  {
-    LOG_ERROR("CropMovingSignalToCommonRange failed, the m_MovingSignalTimestamps vector is empty");
-    return PLUS_FAIL;
-  }
-  if (m_FixedSignalTimestamps.empty())
-  {
-    LOG_ERROR("CropMovingSignalToCommonRange failed, the m_FixedSignalTimestamps vector is empty");
-    return PLUS_FAIL;
-  }
-
-  //  Find the time range that is common to both fixed and moving signals
-  double movingTimestampMin = m_MovingSignalTimestamps.at(0);
-  double movingTimestampMax = m_MovingSignalTimestamps.at(m_MovingSignalTimestamps.size() - 1);
-  double fixedTimestampMin = m_FixedSignalTimestamps.at(0);
-  double fixedTimestampMax = m_FixedSignalTimestamps.at(m_FixedSignalTimestamps.size() - 1);
-
-  m_CommonRangeMin = std::max(fixedTimestampMin, movingTimestampMin); 
-  m_CommonRangeMax = std::min(fixedTimestampMax, movingTimestampMax);
-
-  if (m_CommonRangeMin + m_MaxMovingLagSec >= m_CommonRangeMax - m_MaxMovingLagSec)
-  {
-    LOG_ERROR("Insufficient overlap between tracking data and image data to compute time offset"); 
-    return PLUS_FAIL;
-  }
-
-	// Eliminate the tracker and video timestamps + metrics that are outside of the common range
-  while (!m_FixedSignalTimestamps.empty() && m_FixedSignalTimestamps.front()<m_CommonRangeMin)
-  {
-    m_FixedSignalTimestamps.pop_front();
-    m_FixedSignalValues.pop_front();
-  }
-  while (!m_FixedSignalTimestamps.empty() && m_FixedSignalTimestamps.back()>m_CommonRangeMax)
-  {
-    m_FixedSignalTimestamps.pop_back();
-    m_FixedSignalValues.pop_back();
-  }
-
-  while (!m_MovingSignalTimestamps.empty() && m_MovingSignalTimestamps.front()<m_CommonRangeMin+m_MaxMovingLagSec)
-  {
-    m_MovingSignalTimestamps.pop_front();
-    m_MovingSignalValues.pop_front();
-  }
-  while (!m_MovingSignalTimestamps.empty() && m_MovingSignalTimestamps.back()>m_CommonRangeMax-m_MaxMovingLagSec)
-  {
-    m_MovingSignalTimestamps.pop_back();
-    m_MovingSignalValues.pop_back();
-  }
-
-  return PLUS_SUCCESS;
-}
-
 
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps,
@@ -465,18 +422,18 @@ PlusStatus TemporalCalibration::ResampleSignalLinearly(const std::deque<double>&
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues)
+void TemporalCalibration::ComputeCorrelationBetweenFixedAndMovingSignal(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues)
 {
-  //	We will let the tracker metric be the "sliding" metric and let the video metric be the "fixed" metric. Since we are assuming a maximum offset between the two streams.
-  //NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor);
+  // We will let the tracker metric be the "sliding" metric and let the video metric be the "fixed" metric. Since we are assuming a maximum offset between the two streams.
+  // NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor);
 
 	//	Constuct piecewise function for tracker signal
 	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	double midpoint = 0.5;
 	double sharpness = 0;
-	for(int i = 0; i < m_MovingSignalTimestamps.size(); ++i)
+	for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
 	{
-		trackerPositionPiecewiseSignal->AddPoint(m_MovingSignalTimestamps.at(i), m_MovingSignalValues.at(i), midpoint, sharpness);
+		trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.signalTimestamps.at(i), m_MovingSignal.signalValues.at(i), midpoint, sharpness);
 	}
 
   // Compute alignment metric for each offset
@@ -486,7 +443,7 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics(double
     LOG_ERROR("Sampling resolution is too small: "<<stepSizeSec<<" sec");
     return;
   }
-  std::deque<double> slidingSignalTimestamps(m_FixedSignalTimestamps.size()); 
+  std::deque<double> slidingSignalTimestamps(m_FixedSignal.signalTimestamps.size()); 
   std::deque<double> resampledTrackerPositionMetric;
 	for(double offsetValueSec = minTrackerLagSec; offsetValueSec <= maxTrackerLagSec; offsetValueSec+=stepSizeSec)
 	{
@@ -494,17 +451,17 @@ void TemporalCalibration::ComputeCorrelationBetweenVideoAndTrackerMetrics(double
     corrTimeOffsets.push_back(offsetValueSec);
 		for(int i = 0; i < slidingSignalTimestamps.size(); ++i)
 		{
-			slidingSignalTimestamps.at(i) =  m_FixedSignalTimestamps.at(i)+offsetValueSec;
+			slidingSignalTimestamps.at(i) =  m_FixedSignal.signalTimestamps.at(i)+offsetValueSec;
 		}
 
-    NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor, slidingSignalTimestamps.front(), slidingSignalTimestamps.back(), m_FixedSignalTimestamps);
+    NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, slidingSignalTimestamps.front(), slidingSignalTimestamps.back(), m_FixedSignal.signalTimestamps);
 
 		ResampleSignalLinearly(slidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
 		double normalizationFactor=1.0;
 		NormalizeMetricValues(resampledTrackerPositionMetric, normalizationFactor);
 		normalizationFactors.push_back(normalizationFactor);
 
-    corrValues.push_back(ComputeAlignmentMetric(m_FixedSignalValues, resampledTrackerPositionMetric));
+    corrValues.push_back(ComputeAlignmentMetric(m_FixedSignal.signalValues, resampledTrackerPositionMetric));
 		
 	}
 
@@ -573,55 +530,175 @@ double TemporalCalibration::ComputeAlignmentMetric(const std::deque<double> &sig
   return 0;
 }
 
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
+{
+  switch (signal.frameType)
+  {
+  case TRACKER_FRAME:
+    {
+      vtkSmartPointer<vtkPrincipalMotionDetectionAlgo> trackerDataMetricExtractor=vtkSmartPointer<vtkPrincipalMotionDetectionAlgo>::New();
+
+      trackerDataMetricExtractor->SetTrackerFrames(signal.frameList);
+      trackerDataMetricExtractor->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
+      trackerDataMetricExtractor->SetProbeToReferenceTransformName(signal.probeToReferenceTransformName);      
+
+      if (trackerDataMetricExtractor->Update()!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get line positions from video frames");
+        return PLUS_FAIL;
+      }
+      trackerDataMetricExtractor->GetDetectedTimestamps(signal.signalTimestamps);
+      trackerDataMetricExtractor->GetDetectedPositions(signal.signalValues);
+
+      // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
+      // not work for our purposes
+      double minValue=0;
+      double maxValue=0;
+      GetSignalRange(signal.signalValues, 0, signal.signalValues.size() -1, minValue, maxValue);
+      double maxPeakToPeak = std::abs(maxValue-minValue);
+      if(maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
+      {
+        LOG_ERROR("Detected metric values do not vary sufficiently (i.e. tracking signal is constant). Actual peak-to-peak variation: "<<maxPeakToPeak<<", expected minimum: "<<MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM);
+        return PLUS_FAIL;
+      }
+      return PLUS_SUCCESS;
+    }
+  case PLANE_VIDEO_FRAME:
+    {
+      vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
+      lineSegmenter->SetVideoFrames(signal.frameList);
+      lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
+      lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
+      lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
+      if (lineSegmenter->Update()!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get line positions from video frames");
+        return PLUS_FAIL;
+      }
+      lineSegmenter->GetDetectedTimestamps(signal.signalTimestamps);
+      lineSegmenter->GetDetectedPositions(signal.signalValues);
+
+      // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
+      // not work for our purposes
+      double minValue=0;
+      double maxValue=0;
+      GetSignalRange(signal.signalValues,0, signal.signalValues.size() -1, minValue, maxValue);
+      double maxPeakToPeak = std::abs(maxValue-minValue);
+      if(maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
+      {
+        LOG_ERROR("Detected metric values do not vary sufficiently (i.e. video signal is constant)");
+        return PLUS_FAIL;
+      }
+      return PLUS_SUCCESS;
+    }
+  default:
+    LOG_ERROR("Compute position signal value failed. Unknown frame type: "<<signal.frameType);
+    return PLUS_FAIL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus TemporalCalibration::ComputeCommonTimeRange()
+{
+  if (m_FixedSignal.frameList->GetNumberOfTrackedFrames()<1)
+  {
+    LOG_ERROR("Fixed signal frame list are empty");
+    return PLUS_FAIL;
+  }
+  if (m_MovingSignal.frameList->GetNumberOfTrackedFrames()<1)
+  {
+    LOG_ERROR("Moving signal frame list are empty");
+    return PLUS_FAIL;
+  }
+
+  double fixedTimestampMin = m_FixedSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
+  double fixedTimestampMax = m_FixedSignal.frameList->GetTrackedFrame(m_FixedSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
+  double movingTimestampMin = m_MovingSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
+  double movingTimestampMax = m_MovingSignal.frameList->GetTrackedFrame(m_MovingSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
+  
+  double commonRangeMin = std::max(fixedTimestampMin, movingTimestampMin); 
+  double commonRangeMax = std::min(fixedTimestampMax, movingTimestampMax);
+  if (commonRangeMin + m_MaxMovingLagSec >= commonRangeMax - m_MaxMovingLagSec)
+  {
+    LOG_ERROR("Insufficient overlap between fixed and moving frames timestamps to compute time offset"); 
+    return PLUS_FAIL;
+  }
+  
+  m_FixedSignal.signalTimeRangeMin=commonRangeMin;
+  m_FixedSignal.signalTimeRangeMax=commonRangeMax;
+  m_MovingSignal.signalTimeRangeMin=commonRangeMin+m_MaxMovingLagSec;
+  m_MovingSignal.signalTimeRangeMax=commonRangeMax-m_MaxMovingLagSec;
+  
+  return PLUS_SUCCESS;
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 {
-  if (CropSignalsToCommonRange() != PLUS_SUCCESS)
+
+  // Need to determine the common signal range before extracting signals from the frames,
+  // because normalization, PCA, etc. must be performed only by taking into account
+  // the frames in the common range.
+  if (ComputeCommonTimeRange()!=PLUS_SUCCESS)
   {
+    return PLUS_FAIL;
+  }
+
+  // Compute the position signal values from the input frames
+  if (ComputePositionSignalValues(m_FixedSignal)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to compute position signal from fixed frames");
+    return PLUS_FAIL;
+  }
+  if (ComputePositionSignalValues(m_MovingSignal)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to compute position signal from moving frames");
     return PLUS_FAIL;
   }
 
   // Compute approximage image frame period. We will use this frame period as a step size in the coarse optimum search phase.
-  double fixedTimestampMin = m_FixedSignalTimestamps.at(0);
-  double fixedTimestampMax = m_FixedSignalTimestamps.at(m_FixedSignalTimestamps.size() - 1);  
-  if (m_FixedSignalTimestamps.size()<2)
+  double fixedTimestampMin = m_FixedSignal.signalTimestamps.at(0);
+  double fixedTimestampMax = m_FixedSignal.signalTimestamps.at(m_FixedSignal.signalTimestamps.size() - 1);  
+  if (m_FixedSignal.signalTimestamps.size()<2)
   {
     LOG_ERROR("Not enough video frames are available");
     return PLUS_FAIL;
   }
-  double imageFramePeriodSec=(fixedTimestampMax-fixedTimestampMin)/(m_FixedSignalTimestamps.size()-1);
+  double imageFramePeriodSec=(fixedTimestampMax-fixedTimestampMin)/(m_FixedSignal.signalTimestamps.size()-1);
 
   double searchRangeFineStep=imageFramePeriodSec*3;
 
   //  Compute cross correlation with sign convention #1 
-  LOG_DEBUG("ComputeCorrelationBetweenVideoAndTrackerMetrics(sign convention #1)");
+  LOG_DEBUG("ComputeCorrelationBetweenFixedAndMovingSignal(sign convention #1)");
   double bestCorrelationValue=0;
   double bestCorrelationTimeOffset=0;
   double bestCorrelationNormalizationFactor=1.0;
   std::deque<double> corrTimeOffsets;
   std::deque<double> corrValues;
-  ComputeCorrelationBetweenVideoAndTrackerMetrics(-m_MaxMovingLagSec,m_MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsets, corrValues);
+  ComputeCorrelationBetweenFixedAndMovingSignal(-m_MaxMovingLagSec,m_MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsets, corrValues);
   std::deque<double> corrTimeOffsetsFine;
   std::deque<double> corrValuesFine;
-  ComputeCorrelationBetweenVideoAndTrackerMetrics(bestCorrelationTimeOffset-searchRangeFineStep,bestCorrelationTimeOffset+searchRangeFineStep,m_SamplingResolutionSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsetsFine, corrValuesFine);
+  ComputeCorrelationBetweenFixedAndMovingSignal(bestCorrelationTimeOffset-searchRangeFineStep,bestCorrelationTimeOffset+searchRangeFineStep,m_SamplingResolutionSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsetsFine, corrValuesFine);
   LOG_DEBUG("Time offset with sign convention #1: " << bestCorrelationTimeOffset);
   
   //  Compute cross correlation with sign convention #2
-  LOG_DEBUG("ComputeCorrelationBetweenVideoAndTrackerMetrics(sign convention #2)");
+  LOG_DEBUG("ComputeCorrelationBetweenFixedAndMovingSignal(sign convention #2)");
   // Mirror tracker metric signal about x-axis 
-  for(long int i = 0; i < m_MovingSignalValues.size(); ++i)
+  for(long int i = 0; i < m_MovingSignal.signalValues.size(); ++i)
   {
-    m_MovingSignalValues.at(i) *= -1;
+    m_MovingSignal.signalValues.at(i) *= -1;
   }
   double bestCorrelationValueInvertedTracker=0;
   double bestCorrelationTimeOffsetInvertedTracker=0;
   double bestCorrelationNormalizationFactorInvertedTracker=1.0;
   std::deque<double> corrTimeOffsetsInvertedTracker;
   std::deque<double> corrValuesInvertedTracker;
-  ComputeCorrelationBetweenVideoAndTrackerMetrics(-m_MaxMovingLagSec,m_MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValueInvertedTracker,bestCorrelationTimeOffsetInvertedTracker,bestCorrelationNormalizationFactorInvertedTracker, corrTimeOffsetsInvertedTracker, corrValuesInvertedTracker);
+  ComputeCorrelationBetweenFixedAndMovingSignal(-m_MaxMovingLagSec,m_MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValueInvertedTracker,bestCorrelationTimeOffsetInvertedTracker,bestCorrelationNormalizationFactorInvertedTracker, corrTimeOffsetsInvertedTracker, corrValuesInvertedTracker);
   std::deque<double> corrTimeOffsetsInvertedTrackerFine;
   std::deque<double> corrValuesInvertedTrackerFine;
-  ComputeCorrelationBetweenVideoAndTrackerMetrics(bestCorrelationTimeOffsetInvertedTracker-searchRangeFineStep,bestCorrelationTimeOffsetInvertedTracker+searchRangeFineStep,m_SamplingResolutionSec,bestCorrelationValueInvertedTracker,bestCorrelationTimeOffsetInvertedTracker,bestCorrelationNormalizationFactorInvertedTracker, corrTimeOffsetsInvertedTrackerFine, corrValuesInvertedTrackerFine);  
+  ComputeCorrelationBetweenFixedAndMovingSignal(bestCorrelationTimeOffsetInvertedTracker-searchRangeFineStep,bestCorrelationTimeOffsetInvertedTracker+searchRangeFineStep,m_SamplingResolutionSec,bestCorrelationValueInvertedTracker,bestCorrelationTimeOffsetInvertedTracker,bestCorrelationNormalizationFactorInvertedTracker, corrTimeOffsetsInvertedTrackerFine, corrValuesInvertedTrackerFine);  
   LOG_DEBUG("Time offset with sign convention #2: " << bestCorrelationTimeOffsetInvertedTracker);
   
 	// Adopt the smallest tracker lag
@@ -637,9 +714,9 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
     m_CorrValuesFine=corrValuesFine;
 
     // Flip tracker metric signal back to correspond to sign convention #1 
-    for(long int i = 0; i < m_MovingSignalValues.size(); ++i)
+    for(long int i = 0; i < m_MovingSignal.signalValues.size(); ++i)
     {
-      m_MovingSignalValues.at(i) *= -1;
+      m_MovingSignal.signalValues.at(i) *= -1;
     }
   }
   else
@@ -654,21 +731,21 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
     m_CorrValuesFine=corrValuesInvertedTrackerFine;
   }
 	   
-  //NormalizeMetricValues(m_FixedSignalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignalTimestamps.front()-m_TrackerLagSec, m_MovingSignalTimestamps.back()-m_TrackerLagSec, m_FixedSignalTimestamps);
+  //NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignal.signalTimestamps.front()-m_TrackerLagSec, m_MovingSignal.signalTimestamps.back()-m_TrackerLagSec, m_FixedSignal.signalTimestamps);
 
   // Normalize the tracker metric based on the best index offset (only considering the overlap "window"
-	for(int i = 0; i < m_MovingSignalTimestamps.size(); ++i)
+	for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
 	{
-    if(m_MovingSignalTimestamps.at(i) > m_FixedSignalTimestamps.at(0) + m_TrackerLagSec && m_MovingSignalTimestamps.at(i) < m_FixedSignalTimestamps.at(m_FixedSignalTimestamps.size() -1) + m_TrackerLagSec)
+    if(m_MovingSignal.signalTimestamps.at(i) > m_FixedSignal.signalTimestamps.at(0) + m_TrackerLagSec && m_MovingSignal.signalTimestamps.at(i) < m_FixedSignal.signalTimestamps.at(m_FixedSignal.signalTimestamps.size() -1) + m_TrackerLagSec)
 		{
-			m_NormalizedTrackerPositionMetric.push_back(m_MovingSignalValues.at(i));
-			m_NormalizedTrackerTimestamps.push_back(m_MovingSignalTimestamps.at(i));
+      m_MovingSignal.normalizedSignalValues.push_back(m_MovingSignal.signalValues.at(i));
+			m_MovingSignal.normalizedSignalTimestamps.push_back(m_MovingSignal.signalTimestamps.at(i));
 		}
 	}
 
 	// Get a normalized tracker position metric that can be displayed
 	 double unusedNormFactor=1.0;
-	 NormalizeMetricValues(m_NormalizedTrackerPositionMetric, unusedNormFactor);
+	 NormalizeMetricValues(m_MovingSignal.normalizedSignalValues, unusedNormFactor);
 
 	m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
 
@@ -679,9 +756,9 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 
 	//	Get the timestamps of the sliding signal (i.e. cropped video signal) shifted by the best-found offset
 	std::deque<double> shiftedSlidingSignalTimestamps;
-	for(int i = 0; i < m_FixedSignalTimestamps.size(); ++i)
+	for(int i = 0; i < m_FixedSignal.signalTimestamps.size(); ++i)
 	{
-		shiftedSlidingSignalTimestamps.push_back(m_FixedSignalTimestamps.at(i) + m_TrackerLagSec); // TODO: check this
+		shiftedSlidingSignalTimestamps.push_back(m_FixedSignal.signalTimestamps.at(i) + m_TrackerLagSec); // TODO: check this
 	}
 
 	//	Get the values of the tracker metric at the offset sliding signal values
@@ -690,9 +767,9 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	double midpoint = 0.5;
 	double sharpness = 0;
-	for(int i = 0; i < m_NormalizedTrackerTimestamps.size(); ++i)
+	for(int i = 0; i < m_MovingSignal.normalizedSignalTimestamps.size(); ++i)
 	{
-		trackerPositionPiecewiseSignal->AddPoint(m_NormalizedTrackerTimestamps.at(i), m_NormalizedTrackerPositionMetric.at(i), midpoint, sharpness);
+		trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.normalizedSignalTimestamps.at(i), m_MovingSignal.normalizedSignalValues.at(i), midpoint, sharpness);
 	}
 
 	std::deque<double> resampledNormalizedTrackerPositionMetric;
@@ -700,7 +777,7 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 
   for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {
-    double diff = resampledNormalizedTrackerPositionMetric.at(i) - m_FixedSignalValues.at(i); //SSD
+    double diff = resampledNormalizedTrackerPositionMetric.at(i) - m_FixedSignal.signalValues.at(i); //SSD
     m_CalibrationErrorVector.push_back(diff*diff); 
   }
 
@@ -755,41 +832,5 @@ PlusStatus TemporalCalibration::ConstructTableSignal(std::deque<double> &x, std:
     table->SetValue(i, 1, y.at(i) );
   }
 
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::SetFixedSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues)
-{
-  if (signalTimestamps.empty() || signalValues.empty())
-  {
-    LOG_ERROR("The provided fixed signal value or timestamp array is empty");
-    return PLUS_FAIL;
-  }
-  if (signalTimestamps.size()!=signalValues.size())
-  {
-    LOG_ERROR("The provided fixed signal value and timestamp arrays have different sizes");
-    return PLUS_FAIL;
-  }
-  m_FixedSignalTimestamps=signalTimestamps;
-  m_FixedSignalValues=signalValues;
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::SetMovingSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues)
-{
-  if (signalTimestamps.empty() || signalValues.empty())
-  {
-    LOG_ERROR("The provided moving signal value or timestamp array is empty");
-    return PLUS_FAIL;
-  }
-  if (signalTimestamps.size()!=signalValues.size())
-  {
-    LOG_ERROR("The provided moving signal value and timestamp arrays have different sizes");
-    return PLUS_FAIL;
-  }
-  m_MovingSignalTimestamps=signalTimestamps;
-  m_MovingSignalValues=signalValues;
   return PLUS_SUCCESS;
 }

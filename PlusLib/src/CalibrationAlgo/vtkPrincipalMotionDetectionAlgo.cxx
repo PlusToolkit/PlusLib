@@ -25,6 +25,8 @@ vtkStandardNewMacro(vtkPrincipalMotionDetectionAlgo);
 //-----------------------------------------------------------------------------
 vtkPrincipalMotionDetectionAlgo::vtkPrincipalMotionDetectionAlgo()
 {
+  m_SignalTimeRangeMin=0.0;
+  m_SignalTimeRangeMax=-1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -42,6 +44,13 @@ void vtkPrincipalMotionDetectionAlgo::PrintSelf(ostream& os, vtkIndent indent)
 void vtkPrincipalMotionDetectionAlgo::SetTrackerFrames(vtkTrackedFrameList* trackerFrames)
 {
   m_TrackerFrames = trackerFrames;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPrincipalMotionDetectionAlgo::SetSignalTimeRange(double rangeMin, double rangeMax)
+{
+  m_SignalTimeRangeMin=rangeMin;
+  m_SignalTimeRangeMax=rangeMax;
 }
 
 //-----------------------------------------------------------------------------
@@ -88,9 +97,17 @@ PlusStatus vtkPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
   trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
   std::deque<itk::Point<double, 3> > trackerPositions;
   int numberOfValidFrames = 0;
+  bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   for(int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame *trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
+
+    if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
+    {
+      // frame is out of the specified signal range
+      continue;
+    }
+
     transformRepository->SetTransforms(*trackedFrame);
 
     
