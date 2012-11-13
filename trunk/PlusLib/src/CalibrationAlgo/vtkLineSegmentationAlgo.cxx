@@ -65,6 +65,8 @@ void vtkLineSegmentationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() :
   m_SaveIntermediateImages(false)
 {  
+  m_SignalTimeRangeMin=0.0;
+  m_SignalTimeRangeMax=-1.0;
 }
 
 //----------------------------------------------------------------------------
@@ -76,6 +78,13 @@ vtkLineSegmentationAlgo::~vtkLineSegmentationAlgo()
 void vtkLineSegmentationAlgo::SetVideoFrames(vtkTrackedFrameList* videoFrames)
 {
   m_VideoFrames = videoFrames;
+}
+
+//-----------------------------------------------------------------------------
+void vtkLineSegmentationAlgo::SetSignalTimeRange(double rangeMin, double rangeMax)
+{
+  m_SignalTimeRangeMin=rangeMin;
+  m_SignalTimeRangeMax=rangeMax;
 }
 
 //-----------------------------------------------------------------------------
@@ -119,9 +128,16 @@ PlusStatus vtkLineSegmentationAlgo::VerifyVideoInput()
   int totalNumberOfInvalidVideoFrames = 0;
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
+  bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   for(int i = 0 ; i < m_VideoFrames->GetNumberOfTrackedFrames(); ++i)
   {
-    if(!m_VideoFrames->GetTrackedFrame(i)->GetImageData()->IsImageValid())
+    TrackedFrame* trackedFrame=m_VideoFrames->GetTrackedFrame(i);
+    if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
+    {
+      // frame is out of the specified signal range
+      continue;
+    }
+    if(!trackedFrame->GetImageData()->IsImageValid())
     {
       ++totalNumberOfInvalidVideoFrames;
       ++currentNumberOfConsecutiveInvalidVideoFrames;
@@ -161,14 +177,22 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
   m_SignalTimestamps.clear();
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
+  bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   for(int frameNumber = 0; frameNumber < m_VideoFrames->GetNumberOfTrackedFrames(); ++frameNumber)
   {
     LOG_TRACE("Calculating video position metric for frame " << frameNumber);
+    TrackedFrame* trackedFrame=m_VideoFrames->GetTrackedFrame(frameNumber);
+    if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
+    {
+      // frame is out of the specified signal range
+      LOG_TRACE("Skip frame, it is out of the valid signal range");
+      continue;
+    }
     
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
     
     // Get curent image
-    CharImageType::Pointer localImage = m_VideoFrames->GetTrackedFrame(frameNumber)->GetImageData()->GetImage<CharPixelType>();
+    CharImageType::Pointer localImage = trackedFrame->GetImageData()->GetImage<CharPixelType>();
 
     if(localImage.IsNull())
     {

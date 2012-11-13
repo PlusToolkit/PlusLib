@@ -30,6 +30,9 @@ public:
   /*! Sets the input US video frames */  
   void SetVideoFrames(vtkTrackedFrameList* videoFrames);
 
+  /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
+  void SetSignalTimeRange(double rangeMin, double rangeMax);
+
   /*!
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
@@ -81,6 +84,9 @@ protected:
 
   /*! Directory where the intermediate files are written to */
   std::string m_IntermediateFilesOutputDirectory;
+
+  double m_SignalTimeRangeMin;
+  double m_SignalTimeRangeMax;
 
 private:
   vtkLineSegmentationAlgo(const vtkLineSegmentationAlgo&);

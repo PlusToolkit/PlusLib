@@ -69,22 +69,57 @@ public:
     TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL,
   };
 
+  enum FRAME_TYPE {
+    TRACKER_FRAME,     /*!< The tracked frame list contains tracker data */
+    PLANE_VIDEO_FRAME  /*!< The tracked frame list contains US video data of a plane (e.g., bottom of water tank) */
+  };
+
+  struct SignalType
+  {
+    vtkTrackedFrameList* frameList;
+    FRAME_TYPE frameType;
+    std::string probeToReferenceTransformName;
+    /*! Signal metric values that is computed from the frameList */
+    std::deque<double> signalValues;     
+    /*! Signal timestamps corresponding to the metric values in the frameList */
+    std::deque<double> signalTimestamps; 
+    /*! Normalized signal metric values that is computed from the frameList (recomputed for each offset) */
+    std::deque<double> normalizedSignalValues; 
+    /*! Normalized signal timestamps that is computed from the frameList (recomputed for each offset) */
+    std::deque<double> normalizedSignalTimestamps; 
+    /*! Start of the time range that contains the frames that should be used for signal generation */
+    double signalTimeRangeMin;
+    /*! End of the time range that contains the frames that should be used for signal generation */
+    double signalTimeRangeMax;
+  };
+
   TemporalCalibration();
+  ~TemporalCalibration();
 
   /*! Sets sampling resolution [s]. Default is 0.001 seconds. */  
   void SetSamplingResolutionSec(double samplingResolutionSec); 
 
-  /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames  */  
-  PlusStatus SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName);
+  /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames. Convenience function that calls SetMovingFrames.  */  
+  void SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName);
 
-  /*! Sets the US video frames; frames are assumed to be the video frames */  
-  PlusStatus SetVideoFrames(vtkTrackedFrameList* videoFrames);
+  /*! Sets the US video frames; frames are assumed to be the video frames. Convenience function that calls SetFixedFrames. */  
+  void SetVideoFrames(vtkTrackedFrameList* videoFrames);
 
-  /*! Sets the position signal that is computed externally instead of extracting it from US video frames. */  
-  PlusStatus SetFixedSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues); 
+  /*! Sets the list of frames and the type of the data set (tracking data, video data, ...) that will be used to compute the "fixed" position signal (usually the video data) */  
+  void SetFixedFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType); 
 
-  /*! Sets the position signal that is computed externally instead of extracting it from tracker frames. */  
-  PlusStatus SetMovingSignal(const std::deque<double> &signalTimestamps, const std::deque<double> &signalValues);
+  /*! Sets ProbeToReferenceTransform name (in the format of "CoordinateSystem1ToCoordinateSystem2") for the moving signal. Only used if the fixed signal type is TRACKER_FRAME. */  
+  void SetFixedProbeToReferenceTransformName(const std::string &probeToReferenceTransformName); 
+
+  /*! 
+    Sets the list of frames and the type of the data set (tracking data, video data, ...) that will be used to compute the "moving" position signal
+    (that is interpolated during the signal alignment process at each position of the fixed signal values). The moving signalat the usually the tracking data,
+    because it is more dense than the video data, so the interpolation at the less dense video timepoints is more accurate.
+  */  
+  void SetMovingFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType); 
+
+  /*! Sets ProbeToReferenceTransform name (in the format of "CoordinateSystem1ToCoordinateSystem2") for the moving signal. Only used if the moving signal type is TRACKER_FRAME. */  
+  void SetMovingProbeToReferenceTransformName(const std::string &probeToReferenceTransformName); 
 
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
@@ -120,93 +155,19 @@ public:
   PlusStatus GetBestCorrelation(double &videoCorrelation);
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
-private:
+private:   
   PlusStatus ComputeMovingSignalLagSec();
-  PlusStatus ComputeCommonTimeRange();
+  PlusStatus ComputePositionSignalValues(SignalType &signal);
   PlusStatus GetSignalRange(const std::deque<double> &signal, int startIndex, int stopIndex, double &minValue, double &maxValue);
   PlusStatus VerifyTrackerInput(vtkTrackedFrameList *trackerFrames, TEMPORAL_CALIBRATION_ERROR &error);
 
-  double m_MaxCalibrationError;
+  /*! Determine common signal time range between the fixed and moving signals  */
+  PlusStatus ComputeCommonTimeRange();
 
-  std::deque<double> m_CalibrationErrorVector;
-
-  /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
-  bool m_TrackerLagUpToDate; 
- 
-  /*! If "true" then images of intermediate steps are saved */
-  bool m_SaveIntermediateImages;
-
-  /*! Has the user ever succsfully called Update() */
-  bool m_NeverUpdated;
-
-  /*! Directory where the intermediate files are written to */
-  std::string m_IntermediateFilesOutputDirectory;
-  
-  /*! Resolution used for re-sampling [s]*/
-  double m_SamplingResolutionSec;
-  
-  /*! Fixed signal metric values. Typically the video is used as fixed signal. */
-  std::deque<double> m_FixedSignalValues; 
-  /*! Fixed signal timestamps. Typically the video is used as fixed signal. */
-  std::deque<double> m_FixedSignalTimestamps; 
-
-  std::deque<double> m_MovingSignalValues; 
-  std::deque<double> m_MovingSignalTimestamps; 
-  
-  /*! The computed signal correlation values (corresponding to the better sign convention) */
-  std::deque<double> m_CorrValues;
-
-  /*! The time-offsets used to compute the correlations */
-	std::deque<double> m_CorrTimeOffsets;
-
-  /*! The computed signal correlation values (corresponding to the better sign convention, in the second phase with fine resolution) */
-  std::deque<double> m_CorrValuesFine;
-
-  /*! The time-offsets used to compute the correlations (in the second phase with fine resolution) */
-	std::deque<double> m_CorrTimeOffsetsFine;
-	
-	/*! The highest correlation value for the tested time-offsets */
-	double m_BestCorrelationValue;
-
-  /*! Resampled tracker metric used for correlation */
-  std::deque<double> m_ResampledTrackerPositionMetric;
- 
-  /*! Resampled tracker time stamps used for correlation */
-  std::deque<double> m_ResampledTrackerTimestamps; 
-  
-  /*! Resampled video metric used for correlation */
-  std::deque<double> m_ResampledVideoPositionMetric; 
- 
-  /*! Resampled video time stamps used for correlation */
-  std::deque<double> m_ResampledVideoTimestamps;
-
-  double m_CommonRangeMin; 
-  double m_CommonRangeMax;
-
-	std::deque<double> m_NormalizationFactors;
-	std::deque<double> m_NormalizedTrackerPositionMetric;
-	std::deque<double> m_NormalizedTrackerTimestamps;
-  
-  /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
-  double m_TrackerLagSec;
-
-  /*! Given index for the calculated best fit */
-  double m_BestCorrelationLagIndex;
-	double m_BestCorrelationTimeOffset;
-
-  /*! The residual error after temporal calibration of the video and tracker signals */
-  double m_CalibrationError;
-
-  /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
-  double m_MaxMovingLagSec;  
-   
-  PlusStatus CropSignalsToCommonRange();
   PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);  
   PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, int startIndex=0, int stopIndex=-1);
   PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, double startTime, double stopTime, const std::deque<double> &timestamps);
-  PlusStatus ComputeVideoPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
-  PlusStatus ComputeTrackerPositionMetric(TEMPORAL_CALIBRATION_ERROR &error);
-	void ComputeCorrelationBetweenVideoAndTrackerMetrics(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues);
+	void ComputeCorrelationBetweenFixedAndMovingSignal(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues);
 
   double ComputeAlignmentMetric(const std::deque<double> &signalA, const std::deque<double> &signalB);
 
@@ -215,6 +176,51 @@ private:
 
 	PlusStatus ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps, const vtkSmartPointer<vtkPiecewiseFunction>& signalFunction, std::deque<double>& resampledSignalValues);
 
+  SignalType m_FixedSignal;
+  SignalType m_MovingSignal;
+
+  /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
+  bool m_TrackerLagUpToDate;  
+  /*! Has the user ever succsfully called Update() */
+  bool m_NeverUpdated;
+
+  /*! If "true" then images of intermediate steps are saved */
+  bool m_SaveIntermediateImages;
+  /*! Directory where the intermediate files are written to */
+  std::string m_IntermediateFilesOutputDirectory;
+  
+  /*! Resolution used for re-sampling [s]*/
+  double m_SamplingResolutionSec;
+    
+  /*! The computed signal correlation values (corresponding to the better sign convention) */
+  std::deque<double> m_CorrValues;
+  /*! The time-offsets used to compute the correlations */
+	std::deque<double> m_CorrTimeOffsets;
+
+  /*! The computed signal correlation values (corresponding to the better sign convention, in the second phase with fine resolution) */
+  std::deque<double> m_CorrValuesFine;
+  /*! The time-offsets used to compute the correlations (in the second phase with fine resolution) */
+	std::deque<double> m_CorrTimeOffsetsFine;
+	
+	/*! The highest correlation value for the tested time-offsets */
+	double m_BestCorrelationValue;
+  /*! Given index for the calculated best fit */
+  double m_BestCorrelationLagIndex;
+  /*! Given time offset for the calculated best fit */
+	double m_BestCorrelationTimeOffset;
+  
+  std::deque<double> m_CalibrationErrorVector;
+
+  /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
+  double m_TrackerLagSec;
+
+  /*! The residual error after temporal calibration of the video and tracker signals */
+  double m_CalibrationError;
+  double m_MaxCalibrationError;
+
+  /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
+  double m_MaxMovingLagSec;  
+   
   /*! Normalization factor used for the tracker metric. Used for computing calibration error. */
   double m_BestCorrelationNormalizationFactor;
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
