@@ -85,6 +85,7 @@ int main(int argc, char **argv)
   double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [s]
   std::string probeToReferenceTransformNameStr;
   const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME="ProbeToReference";
+  double maxTimeOffsetSec=2.0;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -93,6 +94,7 @@ int main(int argc, char **argv)
   args.AddArgument("--video-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoSequenceMetafile, "Input US image sequence metafile name with path");
   args.AddArgument("--tracker-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerSequenceMetafile, "Input tracker sequence metafile name with path");
   args.AddArgument("--probe-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &probeToReferenceTransformNameStr, "Transform name that describes the probe pose relative to a static reference (default: ProbeToReference)");  
+  args.AddArgument("--max-time-offset-sec", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxTimeOffsetSec, "Maximum time offset between the signals, in seconds (default: 2 seconds)");  
   args.AddArgument("--plot-results",vtksys::CommandLineArguments::NO_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
   args.AddArgument("--verbose",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
@@ -164,6 +166,7 @@ int main(int argc, char **argv)
   testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
   testTemporalCalibrationObject.SetTrackerFrames(trackerFrames, probeToReferenceTransformNameStr);
   testTemporalCalibrationObject.SetVideoFrames(videoFrames);
+  testTemporalCalibrationObject.SetMaximumVideoTrackerLagSec(maxTimeOffsetSec);
 
   TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error=TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
 
