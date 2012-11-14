@@ -62,9 +62,9 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::Connect()
+PlusStatus vtkSavedDataTracker::InternalConnect()
 {
-  LOG_TRACE("vtkSavedDataTracker::Connect"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalConnect"); 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   if ( this->Probe()!=PLUS_SUCCESS )
@@ -143,7 +143,7 @@ PlusStatus vtkSavedDataTracker::Connect()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::Disconnect()
+PlusStatus vtkSavedDataTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkSavedDataTracker::Disconnect"); 
   return this->StopRecording(); 

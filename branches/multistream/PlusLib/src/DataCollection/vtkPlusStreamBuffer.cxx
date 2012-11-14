@@ -596,7 +596,10 @@ void vtkPlusStreamBuffer::DeepCopy(vtkPlusStreamBuffer* buffer)
   LOG_TRACE("vtkPlusDataBuffer::DeepCopy");
 
   this->StreamBuffer->DeepCopy( buffer->StreamBuffer ); 
-  this->SetFrameSize(buffer->GetFrameSize()); 
+  if( buffer->GetFrameSize()[0] != -1 && buffer->GetFrameSize()[1] != -1 )
+  {
+    this->SetFrameSize(buffer->GetFrameSize()); 
+  }
   this->SetPixelType(buffer->GetPixelType());
   this->SetImageType(buffer->GetImageType());
   this->SetImageOrientation(buffer->GetImageOrientation());

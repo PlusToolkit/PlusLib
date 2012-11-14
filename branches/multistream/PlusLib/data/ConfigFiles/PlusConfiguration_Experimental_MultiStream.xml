@@ -13,9 +13,9 @@
 			AveragedItemsForFiltering="20"
 			FilterAcWideNotch="1"
 		>
-			<Tool Id="Probe" BufferSize="500" PortName="0"/>
-			<Tool Id="Reference" BufferSize="500" PortName="1"/>
-			<Tool Id="Stylus" BufferSize="500" PortName="2"/>
+			<Tool Id="Probe" Name="Probe" BufferSize="500" PortName="0"/>
+			<Tool Id="Reference" Name="Reference" BufferSize="500" PortName="1"/>
+			<Tool Id="Stylus" Name="Stylus" BufferSize="500" PortName="2"/>
 		
 			<OutputStream Id="AscensionTrackerAllTools">
 				<Tool Id="Probe"/>

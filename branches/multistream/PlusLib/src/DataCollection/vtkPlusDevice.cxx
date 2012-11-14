@@ -312,7 +312,10 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  this->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+  if( this->GetBuffer() != NULL )
+  {
+    this->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -1557,7 +1560,14 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetStartTime( double startTime )
 {
-  this->GetBuffer()->SetStartTime(startTime);
+  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  {
+    vtkPlusStream* aStream = *it;
+    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter)
+    {
+      buffIter->second->SetStartTime(startTime);
+    }
+  }
 
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
@@ -1603,7 +1613,15 @@ PlusStatus vtkPlusDevice::Probe()
 //-----------------------------------------------------------------------------
 void vtkPlusDevice::ClearAllBuffers()
 {
-  this->GetBuffer()->Clear();
+  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  {
+    vtkPlusStream* aStream = *it;
+    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter )
+    {
+      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = buffIter->second;
+      aBuff->Clear();
+    }
+  }
 
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
@@ -2398,7 +2416,6 @@ vtkSmartPointer<vtkPlusStreamBuffer> vtkPlusDevice::GetBuffer( int port )
 {
   if( this->CurrentStream == NULL )
   {
-    LOG_ERROR("Current stream not defined, unable to return a buffer.");
     return NULL;
   }
 
@@ -2415,4 +2432,35 @@ vtkSmartPointer<vtkPlusStreamBuffer> vtkPlusDevice::GetBuffer( int port )
 bool vtkPlusDevice::GetTrackingEnabled() const
 {
   return this->ToolContainer.size() > 0;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddDefaultBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port )
+{
+  if( this->OutputStreams.size() == 0 )
+  {
+    vtkPlusStream* aStream = vtkPlusStream::New();
+    this->AddDefaultStream(aStream);
+  }
+
+  return this->CurrentStream->AddBuffer(aBuffer, port);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddDefaultStream( vtkPlusStream* aStream )
+{
+  if( aStream == NULL )
+  {
+    LOG_ERROR("Null stream sent to AddDefaultStream");
+    return PLUS_FAIL;
+  }
+  if( this->OutputStreams.size() != 0 )
+  {
+    LOG_ERROR("Adding a default stream when streams are defined.");
+    return PLUS_FAIL;
+  }
+
+  this->OutputStreams.push_back(aStream);
+  this->CurrentStream = this->OutputStreams[0];
+  return PLUS_SUCCESS;
 }

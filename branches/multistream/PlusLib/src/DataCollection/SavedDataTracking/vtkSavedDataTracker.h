@@ -29,12 +29,6 @@ public:
 
   virtual bool IsTracker() const { return true; }
 
-  /*! Connect to device */
-  PlusStatus Connect();
-
-  /*! Disconnect from device */
-  virtual PlusStatus Disconnect();
-
   /*! Probe to see if the tracking system is present on the specified serial port. */
   PlusStatus Probe();
 
@@ -82,6 +76,12 @@ protected:
   ~vtkSavedDataTracker();
 
   void DeleteLocalTrackerBuffers(); 
+
+  /*! Connect to device */
+  virtual PlusStatus InternalConnect();
+
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
 
   /*! Start the tracking system. */
   PlusStatus InternalStartRecording();
