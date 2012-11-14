@@ -27,6 +27,9 @@ public:
   /*! Sets the input US video frames */  
   void SetTrackerFrames(vtkTrackedFrameList* trackerFrames);
 
+  /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
+  void SetSignalTimeRange(double rangeMin, double rangeMax);
+
   /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */  
   void SetProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
 
@@ -56,6 +59,9 @@ protected:
 
   std::deque<double> m_SignalValues; 
   std::deque<double> m_SignalTimestamps; 
+
+  double m_SignalTimeRangeMin;
+  double m_SignalTimeRangeMax;
 
 private:
   vtkPrincipalMotionDetectionAlgo(const vtkPrincipalMotionDetectionAlgo&);
