@@ -7,11 +7,21 @@
 vtkPhantomRegistrationTest uses this configuration" 
     />
 
-    <Device Id="FakeTracker" Type="FakeTracker" BufferSize="1000" AcquisitionRate="20" LocalTimeOffsetSec="0.0" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0" /> 
-			<Tool Name="Stylus" PortName="1" />
+    <Device
+		Id="FakeTracker"
+		Type="FakeTracker" 
+		AcquisitionRate="20"
+		LocalTimeOffsetSec="0.0"
+		Mode="RecordPhantomLandmarks"
+		AveragedItemsForFiltering="20"
+		Selectable="True" >
+		<Tool Id="Reference" Name="Reference" BufferSize="1000" PortName="0" /> 
+		<Tool Id="Stylus" Name="Stylus" BufferSize="1000" PortName="1" />
+		<OutputStream Id="Output">
+			<Tool Id="Reference" />
+			<Tool Id="Stylus" />
+		</OutputStream>
     </Device>
-
   </DataCollection> 
 
 

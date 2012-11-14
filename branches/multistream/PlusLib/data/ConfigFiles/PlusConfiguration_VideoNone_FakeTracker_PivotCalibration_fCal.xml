@@ -7,10 +7,21 @@
 vtkStylusCalibrationTest uses this configuration" 
     />
 
-    <Tracker Type="FakeTracker" BufferSize="1000" AcquisitionRate="50" LocalTimeOffsetSec="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
-      <Tool Name="Reference" PortName="0" />
-      <Tool Name="Stylus" PortName="1" Model="Example" />
-    </Tracker>
+    <Device
+		Id="FakeTracker"
+		Type="FakeTracker"
+		AcquisitionRate="50"
+		LocalTimeOffsetSec="0.0"
+		Mode="PivotCalibration"
+		AveragedItemsForFiltering="20"
+		Selectable="true" >
+		<Tool Id="Reference" Name="Reference" BufferSize="1000" PortName="0" />
+		<Tool Id="Stylus" Name="Stylus" BufferSize="1000" PortName="1" Model="Example" />
+		<OutputStream Id="Output">
+			<Tool Id="Reference" />
+			<Tool Id="Stylus" />
+		</OutputStream>
+    </Device>
 
   </DataCollection>
 

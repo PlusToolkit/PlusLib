@@ -33,6 +33,7 @@ public:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
 
+  int BufferCount() const { return this->StreamBuffers.size(); }
   PlusStatus AddBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int aPort);
   PlusStatus GetBuffer(vtkSmartPointer<vtkPlusStreamBuffer>& aBuffer, int port);
   StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;

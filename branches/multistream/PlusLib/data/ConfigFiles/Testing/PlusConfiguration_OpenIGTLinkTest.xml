@@ -6,13 +6,17 @@
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
     />
       
-    <ImageAcquisition
-      Type="SavedDataset"
-      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
-      UseData="IMAGE_AND_TRANSFORM"
-      UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      />
+    <Device
+		Id="SomeVideoDevice"
+		Type="SavedVideoDataset"
+		SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+		UseData="IMAGE_AND_TRANSFORM"
+		UseOriginalTimestamps="TRUE"
+		RepeatEnabled="TRUE"
+		Selectable="true"
+		BufferSize="100">
+		<OutputStream Id="Output" />
+	</Device>
 
   </DataCollection>
 

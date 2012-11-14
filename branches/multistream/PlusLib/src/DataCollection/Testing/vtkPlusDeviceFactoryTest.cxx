@@ -80,7 +80,7 @@ int main (int argc, char* argv[])
   // device type: SavedDataset
 
   LOG_INFO("Testing device factory create instance function with SavedDataset device type..."); 
-  if ( deviceFactory->CreateInstance("SavedDataset", device, "SavedDatasetDevice") != PLUS_SUCCESS )
+  if ( deviceFactory->CreateInstance("SavedTrackerDataset", device, "SavedDatasetDevice") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create SavedDataset device instance!"); 
     return EXIT_FAILURE; 
@@ -94,8 +94,8 @@ int main (int argc, char* argv[])
    ////////////////////////////////////////////////////////
   // device type: Fakedevice
 
-  LOG_INFO("Testing device factory create instance function with Fakedevice device type..."); 
-  if ( deviceFactory->CreateInstance("Fakedevice", device, "Fakedevice") != PLUS_SUCCESS )
+  LOG_INFO("Testing device factory create instance function with FakeTracker device type..."); 
+  if ( deviceFactory->CreateInstance("FakeTracker", device, "FakeTracker") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create Fakedevice device instance!"); 
     return EXIT_FAILURE; 
@@ -140,7 +140,7 @@ int main (int argc, char* argv[])
   // Video source type: SavedDataset
 
   LOG_INFO("Testing video source factory create instance function with SavedDataset video source type..."); 
-  if ( deviceFactory->CreateInstance("SavedDataset", device, "vidDevice") != PLUS_SUCCESS )
+  if ( deviceFactory->CreateInstance("SavedVideoDataset", device, "vidDevice") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 

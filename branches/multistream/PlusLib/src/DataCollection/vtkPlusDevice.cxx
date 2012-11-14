@@ -736,6 +736,11 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     OutputStreams.push_back(aStream);
   }
 
+  if( this->OutputStreams.size() == 0 )
+  {
+    LOG_INFO("No output streams defined for device: " << this->GetDeviceId() );
+  }
+
   // If they've defined a buffer size device wide, each output stream will need a buffer and have the buffer params set
   int bufferSize = 0;
   if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
@@ -882,47 +887,53 @@ PlusStatus vtkPlusDevice::Disconnect()
 PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrackedFrame )
 {
   int numberOfErrors(0);
+  double aTimestamp(0);
 
   // Get frame UID
-  BufferItemUidType frameUID = 0; 
-  ItemStatus status = this->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
-  if ( status != ITEM_OK )
+  if( this->CurrentStream->BufferCount() > 0 )
   {
-    if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
+    BufferItemUidType frameUID = 0; 
+    ItemStatus status = this->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
+    if ( status != ITEM_OK )
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
-        ") - item not available anymore!"); 
+      if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
+      {
+        LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
+          ") - item not available anymore!"); 
+      }
+      else if ( status == ITEM_NOT_AVAILABLE_YET )
+      {
+        LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
+          ") - item not available yet!");
+      }
+      else
+      {
+        LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp << ")!");
+      }
+
+      return PLUS_FAIL; 
     }
-    else if ( status == ITEM_NOT_AVAILABLE_YET )
+
+    StreamBufferItem CurrentStreamBufferItem; 
+    if ( this->GetBuffer()->GetStreamBufferItem(frameUID, &CurrentStreamBufferItem) != ITEM_OK )
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
-        ") - item not available yet!");
+      LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
+      return PLUS_FAIL; 
     }
-    else
+
+    // Copy frame 
+    PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame(); 
+    aTrackedFrame.SetImageData(frame);
+
+    // Copy all custom fields
+    StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType::iterator fieldIterator;
+    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp << ")!");
+      aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
-    return PLUS_FAIL; 
-  }
-
-  StreamBufferItem CurrentStreamBufferItem; 
-  if ( this->GetBuffer()->GetStreamBufferItem(frameUID, &CurrentStreamBufferItem) != ITEM_OK )
-  {
-    LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
-    return PLUS_FAIL; 
-  }
-
-  // Copy frame 
-  PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame(); 
-  aTrackedFrame.SetImageData(frame);
-
-  // Copy all custom fields
-  StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();
-  StreamBufferItem::FieldMapType::iterator fieldIterator;
-  for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
-  {
-    aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+    aTimestamp = CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec());
   }
 
   // Add main tool timestamp
@@ -991,11 +1002,12 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     {
       aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
+
+    aTimestamp = bufferItem.GetTimestamp(0);
   }
 
-  // Copy frame timestamp 
-  aTrackedFrame.SetTimestamp(
-    CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec()));
+  // Copy frame timestamp   
+  aTrackedFrame.SetTimestamp(aTimestamp);
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
