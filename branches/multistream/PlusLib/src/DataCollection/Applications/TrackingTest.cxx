@@ -75,7 +75,7 @@ public:
     {
       return;
     }
-    for ( ToolContainerConstIteratorType it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
+    for ( ToolContainerConstIterator it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
     {
       vtkPlusStreamTool* tool=it->second;
       AddNewToolActor(tool->GetToolName());

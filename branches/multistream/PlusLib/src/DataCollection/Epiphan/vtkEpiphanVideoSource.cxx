@@ -25,8 +25,6 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
 	this->SerialNumber = NULL;
-	this->SetBufferSize(200); 
-	this->GetBuffer()->Modified();
 }
 
 //----------------------------------------------------------------------------

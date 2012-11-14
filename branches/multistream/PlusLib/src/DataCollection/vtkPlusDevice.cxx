@@ -107,12 +107,7 @@ vtkPlusDevice::~vtkPlusDevice()
   }
 
   this->OutputStreams.clear();
-
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
-  {
-    it->second->SetDevice(NULL);
-    it->second->Delete();
-  }
+  this->ToolContainer.clear();
 
   delete CurrentStreamBufferItem; CurrentStreamBufferItem = NULL;
 
@@ -1727,8 +1722,6 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
-  // TODO : test this
-
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
@@ -1861,8 +1854,6 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 {
   LOG_TRACE("vtkPlusDevice::RequestData");
 
-  // TODO : re-write this to output multiple buffers in a vtkPlusStream
-  // the output data
   vtkImageData *data = vtkImageData::SafeDownCast(this->AllocateOutputData(this->GetOutputDataObject(0)));
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
 

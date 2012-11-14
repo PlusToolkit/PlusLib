@@ -183,9 +183,6 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 {
   this->Internal = new vtkWin32VideoSource2Internal;
 
-  this->GetBuffer()->SetFrameSize(640,480);
-  this->SetBufferSize(200);
-
   this->WndClassName=NULL;
 
   this->Preview = 0;

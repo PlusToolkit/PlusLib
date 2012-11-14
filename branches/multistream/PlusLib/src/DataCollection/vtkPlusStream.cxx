@@ -240,8 +240,6 @@ PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffe
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::Clear()
 {
-  // Smart pointer will automatically dereference when deconstructed
-  // TODO : verify this
   this->Tools.clear();
   this->StreamBuffers.clear();
 

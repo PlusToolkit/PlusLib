@@ -134,10 +134,6 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
 
   //initialize the frame number
   this->FrameNumber = 0;
-
-  this->SetBufferSize(200); 
-  
-
 }
 
 vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource() 

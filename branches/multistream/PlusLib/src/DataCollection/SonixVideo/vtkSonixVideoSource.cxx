@@ -103,7 +103,6 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 
   this->UlteriusConnected=false;
 
-  this->SetBufferSize(200);
   this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
 }
 
@@ -1117,6 +1116,27 @@ PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mod
     mode = RF_UNKNOWN; 
     LOG_WARNING("Unknown RF acquisition mode type: " << iMode ); 
     return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::InternalUpdate()
+{
+  if( Superclass::InternalUpdate() != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
+
+  // TODO : future fix, make this smart to detect changed mode, activate appropriate stream
+  if( this->UlteriusConnected )
+  {
+    int mode;
+    if( this->GetImagingMode(mode) != PLUS_SUCCESS )
+    {
+      return PLUS_SUCCESS;
+    }
   }
 
   return PLUS_SUCCESS;

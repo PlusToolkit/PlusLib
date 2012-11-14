@@ -286,6 +286,8 @@ protected:
   /*! Stop recording or playing */
   virtual PlusStatus InternalStopRecording();
 
+  virtual PlusStatus InternalUpdate();
+
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();
 

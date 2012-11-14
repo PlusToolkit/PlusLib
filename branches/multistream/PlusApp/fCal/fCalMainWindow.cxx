@@ -754,6 +754,7 @@ void fCalMainWindow::BuildDevicesMenu()
 
     QCustomAction* action = new QCustomAction(QString(device->GetDeviceId()), ui.pushButton_ShowDevices);
     action->setCheckable(true);
+    action->setDisabled(aCollection.size() == 1); // If there's only one device, disable action so they can't unselect it
     if( this->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
     {
       action->setChecked(aDevice == device);

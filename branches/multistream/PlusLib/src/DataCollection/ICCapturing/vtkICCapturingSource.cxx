@@ -57,9 +57,6 @@ vtkICCapturingSource::vtkICCapturingSource()
   this->FrameGrabber = NULL;
   this->FrameGrabberListener = NULL; 
 
-  this->SetBufferSize(200); 
-  this->GetBuffer()->Modified();
-
   this->Modified();
 }
 

@@ -1,5 +1,10 @@
 <PlusConfiguration version="2.0">
 	<DataCollection StartupDelaySec="1.0">
+		<DeviceSet 
+			Name="Experimental - Sonix Touch + Ascension + fCal2.0" 
+			Description="Experimental - Sonix Touch + Ascension + fCal2.0" 
+		/>
+
 		<Device
 			Id="Ascension3DG"
 			Type="Ascension3DG"
