@@ -65,7 +65,7 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
   {
     aBuff = NULL;
     vtkPlusStream* anInputStream = (*it);
-    if( anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
+    if( anInputStream->BufferCount() > 0 && anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
     {
       StreamBufferItem item;
       if( aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() && anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )

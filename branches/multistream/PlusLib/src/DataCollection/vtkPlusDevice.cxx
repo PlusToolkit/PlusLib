@@ -888,6 +888,12 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   int numberOfErrors(0);
   double synchronizedTimestamp(0);
 
+  if( this->CurrentStream == NULL )
+  {
+    LOG_ERROR("Current stream is null. There is no stream to request a tracked frame from.");
+    return PLUS_FAIL;
+  }
+
   // Get frame UID
   if( this->CurrentStream->BufferCount() > 0 )
   {
