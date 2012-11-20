@@ -886,7 +886,7 @@ PlusStatus vtkPlusDevice::Disconnect()
 PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrackedFrame )
 {
   int numberOfErrors(0);
-  double aTimestamp(0);
+  double synchronizedTimestamp(0);
 
   // Get frame UID
   if( this->CurrentStream->BufferCount() > 0 )
@@ -932,17 +932,17 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
       aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
-    aTimestamp = CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec());
+    synchronizedTimestamp = CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec());
   }
 
-  if( aTimestamp == 0 )
+  if( synchronizedTimestamp == 0 )
   {
-    aTimestamp = timestamp;
+    synchronizedTimestamp = timestamp;
   }
 
   // Add main tool timestamp
   std::ostringstream timestampFieldValue; 
-  timestampFieldValue << std::fixed << aTimestamp; 
+  timestampFieldValue << std::fixed << synchronizedTimestamp; 
   aTrackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
 
   for (ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartIterator(); it != this->CurrentStream->GetToolBuffersEndIterator(); ++it)
@@ -957,7 +957,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     }
 
     StreamBufferItem bufferItem; 
-    if ( aTool->GetBuffer()->GetStreamBufferItemFromTime(aTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
+    if ( aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
     {
       double latestTimestamp(0); 
       if ( aTool->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
@@ -973,7 +973,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
         numberOfErrors++; 
       }
 
-      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << aTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
+      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
       numberOfErrors++; 
       continue; 
     }
@@ -1008,11 +1008,11 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
       aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
-    aTimestamp = bufferItem.GetTimestamp(0);
+    synchronizedTimestamp = bufferItem.GetTimestamp(0);
   }
 
   // Copy frame timestamp   
-  aTrackedFrame.SetTimestamp(aTimestamp);
+  aTrackedFrame.SetTimestamp(synchronizedTimestamp);
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
