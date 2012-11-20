@@ -176,13 +176,13 @@ public:
   double GetInternalUpdateRate() const;
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolName, vtkPlusStreamTool* &aTool);
+  PlusStatus GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool);
 
   /*! Get the first active tool object */
-  PlusStatus GetFirstActiveTool(vtkPlusStreamTool* &aTool); 
+  PlusStatus GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> &aTool); 
 
   /*! Get the tool object for the specified tool port name */
-  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusStreamTool* &aTool); 
+  PlusStatus GetToolByPortName( const char* aPortName, vtkSmartPointer<vtkPlusStreamTool> &aTool); 
 
   /*! Get the beginning of the tool iterator */
   ToolContainerConstIterator GetToolIteratorBegin() const; 
@@ -191,7 +191,7 @@ public:
   ToolContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the tracker */
-  PlusStatus AddTool( vtkPlusStreamTool* tool ); 
+  PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> tool ); 
 
   /*! Get number of tools */
   int GetNumberOfTools() const;

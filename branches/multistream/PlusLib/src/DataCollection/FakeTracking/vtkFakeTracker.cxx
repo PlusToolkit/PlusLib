@@ -61,7 +61,7 @@ PlusStatus vtkFakeTracker::Connect()
 {
   LOG_TRACE("vtkFakeTracker::Connect"); 
 
-  vtkPlusStreamTool* tool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
   switch (this->Mode)
   {
   case (FakeTrackerMode_Default):
@@ -80,7 +80,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus
+    // Check Stylus
     if ( this->GetTool("Stylus", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
@@ -93,7 +93,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus-2
+    // Check Stlyus-2
     if ( this->GetTool("Stylus-2", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
@@ -106,7 +106,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus-3
+    // Check Stlyus-3
     if ( this->GetTool("Stylus-3", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 

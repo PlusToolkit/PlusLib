@@ -148,7 +148,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
     {
       std::ostringstream portName; 
       portName << i; 
-      vtkPlusStreamTool * tool = NULL; 
+      vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
       if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -359,7 +359,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
 
-    vtkPlusStreamTool * tool = NULL;
+    vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
     if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 
@@ -398,7 +398,11 @@ PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* root
   }
 
   // Read superclass configuration first
-  Superclass::ReadConfiguration(rootConfigElement); 
+  if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to continue configuration of Ascension tracker. Generic device configuration failed.");
+    return PLUS_FAIL;
+  }
 
   vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if (trackerConfig == NULL) 

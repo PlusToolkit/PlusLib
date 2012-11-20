@@ -98,7 +98,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
       for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++it)
       {
-        if( outputBufferIt->second.GetPointer() == inputBuffer.GetPointer() )
+        if( outputBufferIt->second == inputBuffer )
         {
           LOG_ERROR("Buffer already found in the output stream. Trying to add the same inputBuffer twice.");
           break;
@@ -118,7 +118,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
       {
         vtkSmartPointer<vtkPlusStreamTool> anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
-        if( anInputTool.GetPointer() == anOutputTool.GetPointer() )
+        if( anInputTool == anOutputTool )
         {
           found = true;
           LOG_ERROR("Tool already exists in the output stream. Somehow the same tool is part of two input streams. Consider using a virtual device to resolve them first.");

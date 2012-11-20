@@ -709,8 +709,8 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
   }
 
   // Get the first tool
-  vtkPlusStreamTool* firstActiveTool = NULL; 
   vtkPlusDevice* aDevice = NULL;
+  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
   if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
   {
     LOG_ERROR("No selected stream mixer. Unable to search for tools.");
@@ -722,7 +722,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     return PLUS_FAIL; 
   }
 
-  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
   if ( trackerBuffer == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - Failed to get first active tool!"); 
@@ -736,9 +736,9 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
   }
 
   PlusStatus status = PLUS_SUCCESS;
-  BufferItemUidType oldestItemUid=trackerBuffer->GetOldestItemUidInBuffer();
-  BufferItemUidType latestItemUid=trackerBuffer->GetLatestItemUidInBuffer();
-  for (BufferItemUidType itemUid=oldestItemUid; itemUid<=latestItemUid; ++itemUid)
+  BufferItemUidType oldestItemUid = trackerBuffer->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid = trackerBuffer->GetLatestItemUidInBuffer();
+  for (BufferItemUidType itemUid = oldestItemUid; itemUid <= latestItemUid; ++itemUid)
   {
     double itemTimestamp=0;
     if (trackerBuffer->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
@@ -746,12 +746,12 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
       // probably the buffer item is not available anymore
       continue;
     }
-    if (itemTimestamp<=aTimestampFrom)
+    if (itemTimestamp <= aTimestampFrom)
     {
       // this item has been acquired before the requested start time
       continue;
     }
-    aTimestampFrom=itemTimestamp;
+    aTimestampFrom = itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
     if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )

@@ -73,14 +73,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   // Get latest tracker timestamp
   double latestTrackerTimestamp = 0;
   
-  vtkPlusStreamTool* firstActiveTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
   if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
     return PLUS_FAIL; 
   }
 
-  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
   if (trackerBuffer->GetNumberOfItems()==0)
   {
     LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");

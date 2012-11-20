@@ -197,7 +197,7 @@ int vtkPlusDevice::GetNumberOfTools() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddTool( vtkPlusStreamTool* tool )
+PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
 {
   if ( tool == NULL )
   {
@@ -238,7 +238,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusStreamTool* tool )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool* &aTool)
+PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
   if ( this->GetToolIteratorBegin() == this->GetToolIteratorEnd() )
   {
@@ -253,7 +253,7 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool* &aTool)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusStreamTool* &aTool)
+PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
   if ( aToolName == NULL )
   {
@@ -279,7 +279,7 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusStreamTool* &aTo
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusStreamTool* &aTool)
+PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
   if ( portName == NULL )
   {
@@ -341,7 +341,7 @@ void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
       continue; 
     }
 
-    vtkPlusStreamTool* tool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
     if ( this->GetTool(it->first.c_str(), tool ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to get tool from container!"); 
@@ -1056,7 +1056,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkPlusStreamTool* firstActiveTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get first active tool"); 
@@ -1134,7 +1134,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
     else if ( this->GetTrackingEnabled() )
     {
       // Get the first tool
-      vtkPlusStreamTool* firstActiveTool = NULL; 
+      vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
@@ -1176,7 +1176,6 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
         LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << firstTrackerUidToAdd ); 
         return PLUS_FAIL; 
       }
-
     }
   }
 
@@ -1256,7 +1255,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
     else if ( this->GetTrackingEnabled() && i < numberOfFramesToAdd - 1 )
     {
       // Get the first tool
-      vtkPlusStreamTool* firstActiveTool = NULL; 
+      vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
@@ -1326,13 +1325,13 @@ PlusStatus vtkPlusDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrac
 
   if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
   {
-    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate ("<<numberOfFramesSinceTimestamp/(mostRecentTimestamp - aTimestamp)<<") is lower than the requested sampling rate ("<<1.0/aSamplingRateSec<<"fps). Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
+    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate (" << numberOfFramesSinceTimestamp / (mostRecentTimestamp - aTimestamp) << ") is lower than the requested sampling rate ("<<1.0/aSamplingRateSec<<"fps). Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
   }
 
   PlusStatus status=PLUS_SUCCESS;
   // Add frames to input trackedFrameList
   double latestAddedTimestamp=UNDEFINED_TIMESTAMP;
-  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp && (vtkAccurateTimer::GetSystemTime() - startTimeSec)<maxTimeLimitSec; aTimestamp += aSamplingRateSec)
+  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp && (vtkAccurateTimer::GetSystemTime() - startTimeSec) < maxTimeLimitSec; aTimestamp += aSamplingRateSec)
   {
     double oldestTimestamp=0;
     if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
@@ -1340,17 +1339,17 @@ PlusStatus vtkPlusDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrac
       LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
       return PLUS_FAIL; 
     }
-    const double skippingMargin=ceil(SAMPLING_SKIPPING_MARGIN_SEC/aSamplingRateSec)*aSamplingRateSec;
-    if (aTimestamp<oldestTimestamp+skippingMargin)
+    const double skippingMargin = ceil(SAMPLING_SKIPPING_MARGIN_SEC / aSamplingRateSec) * aSamplingRateSec;
+    if (aTimestamp < oldestTimestamp+skippingMargin)
     {
       // the frame will be removed from the buffer really soon, so instead of trying to retrieve from the buffer and failing skip some frames
-      double skipTime=ceil((oldestTimestamp+skippingMargin+aSamplingRateSec-aTimestamp)/aSamplingRateSec)*aSamplingRateSec;
-      aTimestamp+=skipTime;
-      LOG_WARNING("Frames are not available any more at time: " << std::fixed << aTimestamp <<". Skipping "<<skipTime<<" seconds."); 
+      double skipTime=ceil( (oldestTimestamp + skippingMargin + aSamplingRateSec - aTimestamp) / aSamplingRateSec) * aSamplingRateSec;
+      aTimestamp += skipTime;
+      LOG_WARNING("Frames are not available any more at time: " << std::fixed << aTimestamp <<". Skipping " << skipTime << " seconds."); 
       continue;
     }
-    double closestTimestamp=GetClosestTrackedFrameTimestampByTime(aTimestamp);
-    if ( latestAddedTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp!=UNDEFINED_TIMESTAMP && closestTimestamp <= latestAddedTimestamp )
+    double closestTimestamp = GetClosestTrackedFrameTimestampByTime(aTimestamp);
+    if ( latestAddedTimestamp != UNDEFINED_TIMESTAMP && closestTimestamp != UNDEFINED_TIMESTAMP && closestTimestamp <= latestAddedTimestamp )
     {
       // This frame has been already added.
       // Continue to avoid running GetTrackedFrameByTime (that copies the frame pixels from the device buffer).
@@ -1724,7 +1723,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
     return PLUS_FAIL; 
   }
 
-  vtkPlusStreamTool* tool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
@@ -1749,7 +1748,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix
     return PLUS_FAIL; 
   }
 
-  vtkPlusStreamTool* tool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
@@ -1976,14 +1975,6 @@ PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-/*int* vtkPlusDevice::GetFrameSize()
-{
-  LOG_TRACE("vtkPlusDevice::GetFrameSize");
-
-  return this->Buffer->GetFrameSize();
-}*/
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetFrameSize(int &x, int &y)
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
@@ -2102,7 +2093,7 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkPlusStreamTool* firstActiveTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
@@ -2195,7 +2186,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkPlusStreamTool* firstActiveTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
@@ -2281,7 +2272,7 @@ double vtkPlusDevice::GetClosestTrackedFrameTimestampByTime(double time)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkPlusStreamTool* firstActiveTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       // there is no active tool
@@ -2336,7 +2327,7 @@ int vtkPlusDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, dou
   else if ( this->GetTrackingEnabled())
   {
     // Get the first tool
-    vtkPlusStreamTool* firstActiveTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get number of frames between timestamps - there is no active tool!"); 

@@ -67,7 +67,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
       LOG_WARNING("No field \"Id\" defined in the OutputStream " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
-    vtkPlusStreamTool* tool = NULL;
+    vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
     if( this->OwnerDevice == NULL || this->OwnerDevice->GetTool(toolName, tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve tool from owner device.");
@@ -161,7 +161,7 @@ PlusStatus vtkPlusStream::AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool )
 
   for( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( it->second.GetPointer() == aTool.GetPointer() )
+    if( it->second == aTool )
     {
       // Yes, compare pointers
       return PLUS_SUCCESS;
@@ -210,7 +210,7 @@ PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffe
 
   for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
   {
-    if( it->second.GetPointer() == aBuffer.GetPointer() && it->first == port )
+    if( it->second == aBuffer && it->first == port )
     {
       return PLUS_SUCCESS;
     }
