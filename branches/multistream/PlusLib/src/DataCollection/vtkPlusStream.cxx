@@ -161,7 +161,7 @@ PlusStatus vtkPlusStream::AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool )
 
   for( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( it->second == aTool )
+    if( it->second.GetPointer() == aTool.GetPointer() )
     {
       // Yes, compare pointers
       return PLUS_SUCCESS;

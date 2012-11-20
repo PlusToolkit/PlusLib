@@ -935,15 +935,21 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     aTimestamp = CurrentStreamBufferItem.GetTimestamp(this->GetBuffer()->GetLocalTimeOffsetSec());
   }
 
+  if( aTimestamp == 0 )
+  {
+    aTimestamp = timestamp;
+  }
+
   // Add main tool timestamp
   std::ostringstream timestampFieldValue; 
-  timestampFieldValue << std::fixed << timestamp; 
+  timestampFieldValue << std::fixed << aTimestamp; 
   aTrackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
 
-  for (ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for (ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartIterator(); it != this->CurrentStream->GetToolBuffersEndIterator(); ++it)
   {
-    PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 
-    if ( ! toolTransformName.IsValid() )
+    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
+    PlusTransformName toolTransformName(aTool->GetToolName(), this->ToolReferenceFrameName ); 
+    if ( !toolTransformName.IsValid() )
     {
       LOG_ERROR("Tool transform name is invalid!"); 
       numberOfErrors++; 
@@ -951,45 +957,45 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     }
 
     StreamBufferItem bufferItem; 
-    if ( it->second->GetBuffer()->GetStreamBufferItemFromTime(timestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
+    if ( aTool->GetBuffer()->GetStreamBufferItemFromTime(aTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
     {
       double latestTimestamp(0); 
-      if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
+      if ( aTool->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
       {
         LOG_ERROR("Failed to get latest timestamp!");
         numberOfErrors++;
       }
 
       double oldestTimestamp(0); 
-      if ( it->second->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+      if ( aTool->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
       {
         LOG_ERROR("Failed to get oldest timestamp!");
         numberOfErrors++; 
       }
 
-      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
+      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << aTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
       numberOfErrors++; 
       continue; 
     }
 
-    vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkSmartPointer<vtkMatrix4x4> dMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     if (bufferItem.GetMatrix(dMatrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get matrix from buffer item for tool " << it->second->GetToolName() ); 
+      LOG_ERROR("Failed to get matrix from buffer item for tool " << aTool->GetToolName() ); 
       numberOfErrors++; 
       continue; 
     }
 
     if ( aTrackedFrame.SetCustomFrameTransform(toolTransformName, dMatrix) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to set transform for tool " << it->second->GetToolName() ); 
+      LOG_ERROR("Failed to set transform for tool " << aTool->GetToolName() ); 
       numberOfErrors++; 
       continue; 
     }
 
     if ( aTrackedFrame.SetCustomFrameTransformStatus(toolTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus()) ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to set transform status for tool " << it->second->GetToolName() ); 
+      LOG_ERROR("Failed to set transform status for tool " << aTool->GetToolName() ); 
       numberOfErrors++; 
       continue; 
     }

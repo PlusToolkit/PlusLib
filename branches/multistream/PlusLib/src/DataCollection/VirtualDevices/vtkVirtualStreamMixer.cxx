@@ -111,7 +111,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
     for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
     {
-      vtkPlusStreamTool* anInputTool = inputToolIter->second;
+      vtkSmartPointer<vtkPlusStreamTool> anInputTool = inputToolIter->second;
 
       bool found = false;
       for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
