@@ -714,7 +714,6 @@ void fCalMainWindow::Set3DManipulationMenuEnabled( bool aEnable)
 
 void fCalMainWindow::BuildDevicesMenu()
 {
-  // TODO : verify this deletes existing actions
   for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
   {
     QCustomAction* action = *it;

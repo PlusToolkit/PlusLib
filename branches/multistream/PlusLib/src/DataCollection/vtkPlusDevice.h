@@ -528,8 +528,6 @@ protected:
   bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;
 
-  // TODO : have every single subclass override the values
-
 private:
   vtkPlusDevice(const vtkPlusDevice&);  // Not implemented.
   void operator=(const vtkPlusDevice&);  // Not implemented. 

@@ -68,7 +68,6 @@ vtkVisualizationController::vtkVisualizationController()
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
   imageVisualizer->AssignResultPolyData(this->ResultPolyData);
-  // TODO : find a mechanism to determine when this should be shown
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 

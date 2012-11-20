@@ -187,6 +187,15 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 
   this->Preview = 0;
   this->FrameIndex = 0;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------

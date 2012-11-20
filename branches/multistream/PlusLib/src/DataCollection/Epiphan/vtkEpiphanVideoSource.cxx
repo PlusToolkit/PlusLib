@@ -25,6 +25,15 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
 	this->SerialNumber = NULL;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------

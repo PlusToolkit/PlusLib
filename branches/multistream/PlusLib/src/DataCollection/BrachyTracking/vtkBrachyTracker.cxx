@@ -69,6 +69,15 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->SetTemplateTranslationAxisOrientation(0,0,1); 
   this->SetProbeRotationAxisOrientation(0,0,1); 
   this->SetProbeRotationEncoderScale(1.0); 
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------

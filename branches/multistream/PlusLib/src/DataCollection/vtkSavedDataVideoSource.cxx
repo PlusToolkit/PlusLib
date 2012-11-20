@@ -29,6 +29,14 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->UseOriginalTimestamps = false;
   this->LastAddedFrameTimestamp=0;
   this->LastAddedFrameLoopIndex=0;
+
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
   this->RequireDeviceImageOrientationInDeviceSetConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
 }
 

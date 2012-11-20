@@ -36,6 +36,15 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->ClientSocket = igtl::ClientSocket::New(); 
   this->NumberOfRetryAttempts = 10; 
   this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------

@@ -29,6 +29,15 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->TransformRepository = NULL;
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = true;
 }
 
 //----------------------------------------------------------------------------

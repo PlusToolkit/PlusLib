@@ -94,11 +94,11 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
     vtkPlusStream* anInputStream = (*it);
     for( StreamBufferMapContainerConstIterator bufIt = anInputStream->GetBuffersStartConstIterator(); bufIt != anInputStream->GetBuffersEndConstIterator(); ++bufIt )
     {
-      vtkPlusStreamBuffer* inputBuffer = bufIt->second;
+      vtkSmartPointer<vtkPlusStreamBuffer> inputBuffer = bufIt->second;
 
       for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++it)
       {
-        if( outputBufferIt->second == inputBuffer )
+        if( outputBufferIt->second.GetPointer() == inputBuffer.GetPointer() )
         {
           LOG_ERROR("Buffer already found in the output stream. Trying to add the same inputBuffer twice.");
           break;

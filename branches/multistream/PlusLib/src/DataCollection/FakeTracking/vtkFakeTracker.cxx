@@ -26,6 +26,15 @@ vtkFakeTracker::vtkFakeTracker()
 {
   vtkSmartPointer<vtkPoints> phantomLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetPhantomLandmarks(phantomLandmarks);
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------

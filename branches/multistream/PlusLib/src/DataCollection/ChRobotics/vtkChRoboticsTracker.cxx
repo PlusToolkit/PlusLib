@@ -58,6 +58,15 @@ BaudRate(115200)
   this->OrientationSensorTool = NULL;
 
   this->FirmwareDefinition=vtkXMLDataElement::New();
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //-------------------------------------------------------------------------

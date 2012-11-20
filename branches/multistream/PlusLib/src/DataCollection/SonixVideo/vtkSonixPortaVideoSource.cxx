@@ -134,6 +134,15 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
 
   //initialize the frame number
   this->FrameNumber = 0;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource() 

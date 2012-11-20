@@ -644,7 +644,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
     vtkSmartPointer<vtkPlusStreamTool> streamTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
 
-    // TODO : move this to the tool config?
     int bufferSize = 0; 
     if ( toolDataElement->GetScalarAttribute("BufferSize", bufferSize) ) 
     {
@@ -1592,16 +1591,25 @@ double vtkPlusDevice::GetStartTime()
 {
   // TODO : should this return the buffer start time or should the buffer start time 
   //        simply be included in the average
-
   double sumStartTime = 0.0;
-  double numberOfTools(0); 
+  double numberOfBuffers(0); 
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  {
+    vtkPlusStream* aStream = *it;
+    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter )
+    {
+      sumStartTime += buffIter->second->GetStartTime();
+      numberOfBuffers++;
+    }
+  }
+  
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     sumStartTime += it->second->GetBuffer()->GetStartTime(); 
-    numberOfTools++; 
+    numberOfBuffers++; 
   }
 
-  return sumStartTime / numberOfTools;
+  return sumStartTime / numberOfBuffers;
 }
 
 //----------------------------------------------------------------------------

@@ -48,6 +48,15 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->AhrsAlgorithmGain[0]=1.5; // proportional
   this->AhrsAlgorithmGain[1]=0.0; // integral
   this->AhrsLastUpdateTime=-1;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireToolBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //-------------------------------------------------------------------------
