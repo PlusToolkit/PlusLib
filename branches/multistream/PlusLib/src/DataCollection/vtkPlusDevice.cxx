@@ -964,8 +964,11 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
       continue; 
     }
 
-    StreamBufferItem bufferItem; 
-    if ( aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED ) != ITEM_OK )
+    StreamBufferItem bufferItem;
+    // TODO : synch time is sometimes too new, and tracker doesnt have that timestamp yet...
+    // What to do?
+    ItemStatus result = aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED );
+    if ( result != ITEM_OK )
     {
       double latestTimestamp(0); 
       if ( aTool->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
@@ -981,7 +984,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
         numberOfErrors++; 
       }
 
-      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
+      LOG_ERROR(aTool->GetToolName() << ": Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
       numberOfErrors++; 
       continue; 
     }

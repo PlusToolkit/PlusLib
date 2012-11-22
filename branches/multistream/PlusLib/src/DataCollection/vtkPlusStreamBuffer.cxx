@@ -909,7 +909,15 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
   ItemStatus status = this->StreamBuffer->GetItemUidFromTime(time, itemAuid); 
   if ( status != ITEM_OK )
   {
-    LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    switch(status)
+    {
+    case ITEM_NOT_AVAILABLE_YET:
+      LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      break;
+    case ITEM_NOT_AVAILABLE_ANYMORE:
+      LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      break;
+    }
     return PLUS_FAIL;
   }
   status = this->GetStreamBufferItem(itemAuid, &itemA); 
@@ -1053,7 +1061,15 @@ ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromClosestTime( double time,
   ItemStatus status = this->StreamBuffer->GetItemUidFromTime(time, itemUid); 
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    switch(status)
+    {
+    case ITEM_NOT_AVAILABLE_YET:
+      LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      break;
+    case ITEM_NOT_AVAILABLE_ANYMORE:
+      LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      break;
+    }
     return status;
   }
 
