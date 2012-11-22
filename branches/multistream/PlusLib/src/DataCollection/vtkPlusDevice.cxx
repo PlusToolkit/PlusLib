@@ -894,6 +894,8 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     return PLUS_FAIL;
   }
 
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+
   // Get frame UID
   if( this->CurrentStream->BufferCount() > 0 )
   {
