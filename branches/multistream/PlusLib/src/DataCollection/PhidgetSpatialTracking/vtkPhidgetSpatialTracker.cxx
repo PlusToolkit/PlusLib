@@ -425,14 +425,14 @@ PlusStatus vtkPhidgetSpatialTracker::Probe()
 //-------------------------------------------------------------------------
 PlusStatus vtkPhidgetSpatialTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartRecording" ); 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPhidgetSpatialTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopTracking" );   
+  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopRecording" );   
   return PLUS_SUCCESS;
 }
 

@@ -173,7 +173,7 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
   if ( this->Recording )
   {
     return PLUS_SUCCESS;
@@ -185,7 +185,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopTracking" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
   
   return PLUS_SUCCESS;
 }

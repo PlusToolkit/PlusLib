@@ -76,10 +76,10 @@ protected:
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   vtkPlusStreamBuffer* LocalTrackerBuffer; 
 

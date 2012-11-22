@@ -192,9 +192,9 @@ PlusStatus vtkAscension3DGTrackerBase::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::InternalStartTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStartRecording()
 {
-  LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkAscension3DGTracker::InternalStartRecording" ); 
   if ( this->Recording )
   {
     return PLUS_SUCCESS;
@@ -230,9 +230,9 @@ PlusStatus vtkAscension3DGTrackerBase::InternalStartTracking()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::InternalStopTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStopRecording()
 {
-  LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
+  LOG_TRACE( "vtkAscension3DGTracker::InternalStopRecording" ); 
 
   short selectID = TRANSMITTER_OFF;
   if (this->CheckReturnStatus( SetSystemParameter( SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) )
@@ -334,6 +334,10 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     attached = ! ( status & NOT_ATTACHED );
     inMotionBox = ! ( status & OUT_OF_MOTIONBOX );
     transmitterRunning = !( status & NO_TRANSMITTER_RUNNING );
+    if( !transmitterRunning )
+    {
+      LOG_WARNING("Attempting to produce data but sensor is not running.");
+    }
     transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
     globalError = status & GLOBAL_ERROR;
 

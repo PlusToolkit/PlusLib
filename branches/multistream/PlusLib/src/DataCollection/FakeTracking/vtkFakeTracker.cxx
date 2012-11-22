@@ -254,7 +254,7 @@ PlusStatus vtkFakeTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStartRecording()
 {
-  LOG_TRACE("vtkFakeTracker::InternalStartTracking"); 
+  LOG_TRACE("vtkFakeTracker::InternalStartRecording"); 
 
   this->RandomSeed = 0;
 
@@ -264,7 +264,7 @@ PlusStatus vtkFakeTracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStopRecording()
 {
-  LOG_TRACE("vtkFakeTracker::InternalStopTracking"); 
+  LOG_TRACE("vtkFakeTracker::InternalStopRecording"); 
 
   return PLUS_SUCCESS; 
 }

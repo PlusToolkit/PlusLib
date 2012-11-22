@@ -114,7 +114,7 @@ PlusStatus vtkMicronTracker::InternalStartRecording()
 {
   if (!this->IsMicronTrackingInitialized)
   {
-    LOG_ERROR("InternalStartTracking failed: MicronTracker has not been initialized");
+    LOG_ERROR("InternalStartRecording failed: MicronTracker has not been initialized");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;

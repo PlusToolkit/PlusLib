@@ -173,7 +173,7 @@ PlusStatus vtkSavedDataTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataTracker::InternalStartRecording()
 {
-  LOG_TRACE("vtkSavedDataTracker::InternalStartTracking"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalStartRecording"); 
   if (this->Recording)
   {
     return PLUS_SUCCESS;
@@ -185,7 +185,7 @@ PlusStatus vtkSavedDataTracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataTracker::InternalStopRecording()
 {
-  LOG_TRACE("vtkSavedDataTracker::InternalStopTracking"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalStopRecording"); 
   return PLUS_SUCCESS;
 }
 

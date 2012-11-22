@@ -170,14 +170,14 @@ PlusStatus vtkChRoboticsTracker::Probe()
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkChRoboticsTracker::InternalStartRecording" ); 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::InternalStopTracking" );
+  LOG_TRACE( "vtkChRoboticsTracker::InternalStopRecording" );
   return PLUS_SUCCESS;
 }
 
