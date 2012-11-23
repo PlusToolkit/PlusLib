@@ -217,7 +217,7 @@ public:
   \param mean Computed mean
   \param stdev Computed standard deviation
   */
-  PlusStatus ComputeMeanAndStdev(const std::vector<double> &values, double &mean, double &stdev);
+  static PlusStatus ComputeMeanAndStdev(const std::vector<double> &values, double &mean, double &stdev);
   
 protected:
   PlusMath(); 

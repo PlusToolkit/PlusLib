@@ -29,6 +29,7 @@ See License.txt for details.
 #include "vtkXMLImageDataWriter.h"
 #include "vtkSTLWriter.h"
 #include "vtkTimerLog.h"
+#include "PlusMath.h"
 
 //display
 #include "vtkImageActor.h"
@@ -233,15 +234,13 @@ int main(int argc, char **argv)
   }
 
   
-  std::vector<double> timeElapsedPerFrame;
-  double totalTime =0; 
-  static double startTime = 0; 
-  static double endTime = 0; 
-  static double timeElapsed =0;
+  std::vector<double> timeElapsedPerFrameSec;
+  double startTimeSec = 0; 
+  double endTimeSec = 0;   
   //for (int i = 0; i<30; i++)
   for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
-    startTime = vtkTimerLog::GetUniversalTime(); 
+    startTimeSec = vtkTimerLog::GetUniversalTime(); 
     
     LOG_DEBUG("Processing frame "<<i);
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
@@ -318,37 +317,26 @@ int main(int argc, char **argv)
     renderWindowInteractor->SetInteractorStyle(style);
     renderWindowInteractor->SetRenderWindow(renderWindow);
 
-    endTime = vtkTimerLog::GetUniversalTime(); 
-    timeElapsed = endTime-startTime; 
-    timeElapsedPerFrame.push_back(timeElapsed); 
-    totalTime = totalTime + timeElapsed;
+    endTimeSec = vtkTimerLog::GetUniversalTime(); 
+    timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
   }
  
-
-  double meanTimeForAllFrames = totalTime/trackedFrameList->GetNumberOfTrackedFrames();
- 
-  double interimValue=0; 
-  double stdev=0;
-
-  for(int i =0; i<trackedFrameList->GetNumberOfTrackedFrames();i++)
-  {
-    interimValue = pow((timeElapsedPerFrame.at(i)- meanTimeForAllFrames),2); 
-    stdev = stdev + interimValue;
-  }
-  stdev= sqrt(stdev/trackedFrameList->GetNumberOfTrackedFrames()); 
-
-
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
 
-   
+  LOG_INFO( "Computation time for the fits frame (not included in the statistics because of BSP Tree Building, in sec): "<< timeElapsedPerFrameSec.at(0)); 
 
-   LOG_INFO(" Average Time/Frame: " << meanTimeForAllFrames ) ; 
-   LOG_INFO(" standard dev: " <<stdev ) ; 
-   LOG_INFO(" total time:  " <<totalTime ) ; 
-    LOG_INFO(" fps:  " <<1/meanTimeForAllFrames ) ; 
+  // Remove the first frame from the statistics computation because extra processing is done for the first frame
+  timeElapsedPerFrameSec.erase(timeElapsedPerFrameSec.begin());
+
+  double meanTimeElapsedPerFrameSec=0;
+  double stdevTimeElapsedPerFrameSec=0;
+  PlusMath::ComputeMeanAndStdev(timeElapsedPerFrameSec, meanTimeElapsedPerFrameSec, stdevTimeElapsedPerFrameSec);
+  LOG_INFO(" Average computation time per frame (sec): " << meanTimeElapsedPerFrameSec ) ; 
+  LOG_INFO(" Standard dev computation time per frame (sec): " << stdevTimeElapsedPerFrameSec ) ; 
+  LOG_INFO(" Average fps:  " <<1/meanTimeElapsedPerFrameSec ) ; 
 
 	return EXIT_SUCCESS; 
 }
