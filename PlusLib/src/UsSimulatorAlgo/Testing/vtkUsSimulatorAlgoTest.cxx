@@ -98,7 +98,7 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
 int main(int argc, char **argv)
 {
   
-  static double startTime = vtkTimerLog::GetUniversalTime(); 
+  
   
   std::string inputModelFile;
   std::string inputTransformsFile;
@@ -232,9 +232,17 @@ int main(int argc, char **argv)
     renderWindowInteractorPoly->Start();
   }
 
+  
+  std::vector<double> timeElapsedPerFrame;
+  double totalTime =0; 
+  static double startTime = 0; 
+  static double endTime = 0; 
+  static double timeElapsed =0;
   //for (int i = 0; i<30; i++)
   for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
+    startTime = vtkTimerLog::GetUniversalTime(); 
+    
     LOG_DEBUG("Processing frame "<<i);
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
@@ -309,18 +317,38 @@ int main(int argc, char **argv)
 
     renderWindowInteractor->SetInteractorStyle(style);
     renderWindowInteractor->SetRenderWindow(renderWindow);
+
+    endTime = vtkTimerLog::GetUniversalTime(); 
+    timeElapsed = endTime-startTime; 
+    timeElapsedPerFrame.push_back(timeElapsed); 
+    totalTime = totalTime + timeElapsed;
   }
+ 
+
+  double meanTimeForAllFrames = totalTime/trackedFrameList->GetNumberOfTrackedFrames();
+ 
+  double interimValue=0; 
+  double stdev=0;
+
+  for(int i =0; i<trackedFrameList->GetNumberOfTrackedFrames();i++)
+  {
+    interimValue = pow((timeElapsedPerFrame.at(i)- meanTimeForAllFrames),2); 
+    stdev = stdev + interimValue;
+  }
+  stdev= sqrt(stdev/trackedFrameList->GetNumberOfTrackedFrames()); 
+
 
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
   simulatedUsSequenceFileWriter->Write(); 
 
-   static double endTime = vtkTimerLog::GetUniversalTime(); 
+   
 
-   static double timeElapsed = endTime-startTime; 
-
-   LOG_INFO(" Time: " << timeElapsed ) ; 
+   LOG_INFO(" Average Time/Frame: " << meanTimeForAllFrames ) ; 
+   LOG_INFO(" standard dev: " <<stdev ) ; 
+   LOG_INFO(" total time:  " <<totalTime ) ; 
+    LOG_INFO(" fps:  " <<1/meanTimeForAllFrames ) ; 
 
 	return EXIT_SUCCESS; 
 }
