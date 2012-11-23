@@ -211,6 +211,14 @@ public:
     rnd = Round(val);
   }
 
+  /*! 
+  Convenience function to compute mean and standard deviation for a vector of doubles
+  \param values Input values
+  \param mean Computed mean
+  \param stdev Computed standard deviation
+  */
+  PlusStatus ComputeMeanAndStdev(const std::vector<double> &values, double &mean, double &stdev);
+  
 protected:
   PlusMath(); 
   ~PlusMath();
