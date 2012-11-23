@@ -176,7 +176,7 @@ void vtkPlusStreamBuffer::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStreamBuffer::AllocateMemoryForFrames()
 {
-  PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
   PlusStatus result = PLUS_SUCCESS;
 
   for ( int i = 0; i < this->StreamBuffer->GetBufferSize(); ++i )
@@ -303,7 +303,7 @@ PlusStatus vtkPlusStreamBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION
 
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
-  PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
   if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
@@ -465,7 +465,7 @@ PlusStatus vtkPlusStreamBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolSta
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
 
-  PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
   if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
@@ -895,7 +895,7 @@ bool vtkPlusStreamBuffer::GetTimeStampReporting()
 // itemA is the closest item
 PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB)
 {
-  PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
 
   // The returned item is computed by interpolation between itemA and itemB in time. The itemA is the closest item to the requested time.
   // Accept itemA (the closest item) as is if it is very close to the requested time.
@@ -928,10 +928,10 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
   }
 
   // If tracker is out of view, etc. then we don't have a valid before and after the requested time, so we cannot do interpolation
-  if (itemA.GetStatus()!=TOOL_OK)
+  if (itemA.GetStatus() != TOOL_OK)
   {
     // tracker is out of view, ...
-    LOG_DEBUG("vtkPlusDataBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time <<", uid: "<<itemAuid<<") is invalid.");
+    LOG_DEBUG("vtkPlusDataBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time << ", uid: " << itemAuid << ") is invalid.");
     return PLUS_FAIL;
   }
 
@@ -939,12 +939,12 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
   status = this->StreamBuffer->GetTimeStamp(itemAuid, itemAtime); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemAuid<<")" ); 
+    LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time << ", uid: " << itemAuid << ")" ); 
     return PLUS_FAIL;
   }
 
   // If the time difference is negligible then don't interpolate, just return the closest item
-  if (fabs(itemAtime-time)<NEGLIGIBLE_TIME_DIFFERENCE)
+  if (fabs(itemAtime - time) < NEGLIGIBLE_TIME_DIFFERENCE)
   {
     //No need for interpolation, it's very close to the closest element
     itemB.DeepCopy(&itemA);
@@ -952,9 +952,9 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
   }  
 
   // If the closest item is too far, then we don't do interpolation 
-  if ( fabs(itemAtime-time)>this->GetMaxAllowedTimeDifference() )
+  if ( fabs(itemAtime - time) > this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime-time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
+    LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime - time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
   }
 
@@ -963,15 +963,14 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
   if (time < itemAtime)
   {
     // itemBtime < time <itemAtime
-    itemBuid=itemAuid-1;
+    itemBuid = itemAuid - 1;
   }
   else
   {
     // itemAtime < time <itemBtime
-    itemBuid=itemAuid+1;
+    itemBuid = itemAuid + 1;
   }
-  if (itemBuid<this->GetOldestItemUidInBuffer()
-    || itemBuid>this->GetLatestItemUidInBuffer())
+  if (itemBuid < this->GetOldestItemUidInBuffer() || itemBuid > this->GetLatestItemUidInBuffer())
   {
     // itemB is not available
     LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, itemB is not available " << std::fixed << " ( itemBuid: " << itemBuid << ", oldest UID: " << this->GetOldestItemUidInBuffer() << ", latest UID: " << this->GetLatestItemUidInBuffer() );
@@ -986,7 +985,7 @@ PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, Strea
     return PLUS_FAIL;
   }
   // If the next closest item is too far, then we don't do interpolation 
-  if ( fabs(itemBtime-time)>this->GetMaxAllowedTimeDifference() )
+  if ( fabs(itemBtime - time) > this->GetMaxAllowedTimeDifference() )
   {
     LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemB is too big " << std::fixed << fabs(itemBtime-time) << " ( itemBtime: " << itemBtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
@@ -1055,7 +1054,7 @@ ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromExactTime( double time, S
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem)
 {
-  PlusLockGuard<StreamBufferType> dataBufferGuardedLock(this->StreamBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
 
   BufferItemUidType itemUid(0); 
   ItemStatus status = this->StreamBuffer->GetItemUidFromTime(time, itemUid); 

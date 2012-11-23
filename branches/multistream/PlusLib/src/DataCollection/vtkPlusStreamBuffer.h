@@ -252,9 +252,9 @@ protected:
   /*! Image orientation (MF, MN, ...) */
   US_IMAGE_ORIENTATION ImageOrientation; 
 
-  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamBufferType;
+  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamItemCircularBuffer;
   /*! Timestamped circular buffer that stores the last N frames */
-  StreamBufferType* StreamBuffer; 
+  StreamItemCircularBuffer* StreamBuffer; 
 
   /*! Maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   double MaxAllowedTimeDifference;
