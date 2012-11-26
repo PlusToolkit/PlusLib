@@ -39,6 +39,7 @@ public:
   StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
   StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
 
+  int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool );
   PlusStatus RemoveTool(const char* toolName);
   PlusStatus GetTool(vtkSmartPointer<vtkPlusStreamTool>& aTool, const char* toolName);

@@ -240,14 +240,20 @@ PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
-  if ( this->GetToolIteratorBegin() == this->GetToolIteratorEnd() )
+  if( this->CurrentStream == NULL )
+  {
+    LOG_ERROR("Current stream is null. Unable to get first active tool.");
+    return PLUS_FAIL;
+  }
+
+  if ( this->CurrentStream->GetToolBuffersStartConstIterator() == this->CurrentStream->GetToolBuffersEndConstIterator() )
   {
     LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
     return PLUS_FAIL; 
   }
 
   // Get the first tool
-  aTool = this->GetToolIteratorBegin()->second; 
+  aTool = this->CurrentStream->GetToolBuffersStartIterator()->second; 
 
   return PLUS_SUCCESS; 
 }
@@ -255,25 +261,17 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
-  if ( aToolName == NULL )
+  if ( aToolName == NULL || CurrentStream == NULL)
   {
-    LOG_ERROR("Failed to get tool, tool name is NULL!"); 
+    LOG_ERROR("Failed to get tool, tool name is NULL or CurrentStream is NULL"); 
     return PLUS_FAIL; 
   }
 
-  ToolContainerConstIterator tool = this->ToolContainer.find(aToolName); 
-  if ( tool == this->GetToolIteratorEnd() )
+  if( this->CurrentStream->GetTool(aTool, aToolName) != PLUS_SUCCESS )
   {
-    std::ostringstream availableTools; 
-    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
-    {
-      availableTools << it->first <<";"; 
-    }
-    LOG_ERROR("Unable to find tool '"<< aToolName <<"' in the list, please check the configuration file first (available tools: " << availableTools.str() << ")." ); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to find tool '"<< aToolName <<"' in the list, please check the configuration file first." ); 
+    return PLUS_FAIL;
   }
-
-  aTool = tool->second; 
 
   return PLUS_SUCCESS;
 }
@@ -281,13 +279,13 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlus
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
-  if ( portName == NULL )
+  if ( portName == NULL || CurrentStream == NULL)
   {
     LOG_ERROR("Failed to get tool - port name is NULL!"); 
     return PLUS_FAIL; 
   }
 
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartConstIterator(); it != this->CurrentStream->GetToolBuffersEndConstIterator(); ++it)
   {
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
@@ -321,9 +319,9 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  for( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for( ToolContainerIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
   {
-    vtkPlusStreamTool* tool = it->second;
+    vtkSmartPointer<vtkPlusStreamTool> tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
 }
@@ -2459,7 +2457,13 @@ vtkSmartPointer<vtkPlusStreamBuffer> vtkPlusDevice::GetBuffer( int port )
 //----------------------------------------------------------------------------
 bool vtkPlusDevice::GetTrackingEnabled() const
 {
-  return this->ToolContainer.size() > 0;
+  if( this->CurrentStream != NULL )
+  {
+    return this->CurrentStream->ToolCount() > 0;
+  }
+
+  LOG_ERROR("Current stream is null. Unable to ansser GetTrackingEnabled()");
+  return false;
 }
 
 //----------------------------------------------------------------------------
