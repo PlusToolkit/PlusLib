@@ -261,10 +261,22 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
-  if ( aToolName == NULL || CurrentStream == NULL)
+  if ( aToolName == NULL )
   {
-    LOG_ERROR("Failed to get tool, tool name is NULL or CurrentStream is NULL"); 
+    LOG_ERROR("Failed to get tool, tool name is NULL"); 
     return PLUS_FAIL; 
+  }
+
+  if( this->ToolContainer.find(aToolName) != this->ToolContainer.end() )
+  {
+    aTool = this->ToolContainer.find(aToolName)->second;
+    return PLUS_SUCCESS;
+  }
+
+  if( CurrentStream == NULL )
+  {
+    LOG_ERROR("Failed to get tool, CurrentStream is NULL"); 
+    return PLUS_FAIL;
   }
 
   if( this->CurrentStream->GetTool(aTool, aToolName) != PLUS_SUCCESS )
@@ -279,10 +291,25 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlus
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
 {
-  if ( portName == NULL || CurrentStream == NULL)
+  if ( portName == NULL )
   {
     LOG_ERROR("Failed to get tool - port name is NULL!"); 
     return PLUS_FAIL; 
+  }
+
+  for ( ToolContainerIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+  {
+    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
+    {
+      aTool = it->second; 
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  if( CurrentStream == NULL )
+  {
+    LOG_ERROR("Failed to get tool, CurrentStream is NULL"); 
+    return PLUS_FAIL;
   }
 
   for ( ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartConstIterator(); it != this->CurrentStream->GetToolBuffersEndConstIterator(); ++it)
@@ -963,8 +990,6 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
     }
 
     StreamBufferItem bufferItem;
-    // TODO : synch time is sometimes too new, and tracker doesnt have that timestamp yet...
-    // What to do?
     ItemStatus result = aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED );
     if ( result != ITEM_OK )
     {
@@ -2461,8 +2486,8 @@ bool vtkPlusDevice::GetTrackingEnabled() const
   {
     return this->CurrentStream->ToolCount() > 0;
   }
-
-  LOG_ERROR("Current stream is null. Unable to ansser GetTrackingEnabled()");
+   
+  LOG_ERROR("Current stream not defined. Unable to answer GetTrackingEnabled().");
   return false;
 }
 
