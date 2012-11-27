@@ -2,6 +2,7 @@
 SET (UsSimulatorAlgo_SRCS
     vtkUsSimulatorAlgo.cxx
 	vtkPolyDataToOrientedImageStencil.cxx
+	SpatialModel.cxx
     )
 
 SET (UsSimulatorAlgo_HDRS)
@@ -9,6 +10,7 @@ if (WIN32)
   SET (UsSimulatorAlgo_HDRS
     vtkUsSimulatorAlgo.h
 	vtkPolyDataToOrientedImageStencil.h
+	SpatialModel.h
   )
 endif (WIN32)
 
