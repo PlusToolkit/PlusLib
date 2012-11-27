@@ -336,7 +336,7 @@ int main(int argc, char **argv)
   PlusMath::ComputeMeanAndStdev(timeElapsedPerFrameSec, meanTimeElapsedPerFrameSec, stdevTimeElapsedPerFrameSec);
   LOG_INFO(" Average computation time per frame (sec): " << meanTimeElapsedPerFrameSec ) ; 
   LOG_INFO(" Standard dev computation time per frame (sec): " << stdevTimeElapsedPerFrameSec ) ; 
-  LOG_INFO(" Average fps:  " <<1/meanTimeElapsedPerFrameSec ) ; 
+  LOG_INFO(" Average fps:  " << 1/meanTimeElapsedPerFrameSec ) ; 
 
 	return EXIT_SUCCESS; 
 }
