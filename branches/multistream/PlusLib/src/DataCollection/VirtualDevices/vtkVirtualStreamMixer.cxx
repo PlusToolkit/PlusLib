@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "vtkObjectFactory.h"
@@ -140,4 +140,32 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkVirtualStreamMixer::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElement )
+{
+  // Do not call parent function, this replaces the parent call
+  LOG_TRACE("vtkVirtualStreamMixer::InternalWriteOutputStreams( " << rootXMLElement->GetName() << ")");
+
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindOutputStreamElement(rootXMLElement, aStream->GetStreamId());
+    aStream->WriteCompactConfiguration(streamElement);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkVirtualStreamMixer::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement )
+{
+  // Do not call parent function, this replaces the parent call
+  LOG_TRACE("vtkVirtualStreamMixer::InternalWriteInputStreams( " << rootXMLElement->GetName() << ")");
+
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
+    aStream->WriteCompactConfiguration(streamElement);
+  }
 }

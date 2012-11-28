@@ -36,6 +36,10 @@ public:
     Write the details about the stream to XML
   */
   PlusStatus WriteConfiguration(vtkXMLDataElement* aStreamElement);
+  /*!
+    Write select details about the stream to XML
+  */
+  PlusStatus WriteCompactConfiguration(vtkXMLDataElement* aStreamElement);
 
   int BufferCount() const { return this->StreamBuffers.size(); }
   PlusStatus AddBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int aPort);

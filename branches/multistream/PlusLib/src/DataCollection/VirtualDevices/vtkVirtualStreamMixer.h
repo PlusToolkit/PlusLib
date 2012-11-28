@@ -36,6 +36,8 @@ public:
 
   virtual double GetAcquisitionRate() const;
 protected:
+  virtual void InternalWriteOutputStreams(vtkXMLDataElement* rootXMLElement);
+  virtual void InternalWriteInputStreams(vtkXMLDataElement* rootXMLElement);
 
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();

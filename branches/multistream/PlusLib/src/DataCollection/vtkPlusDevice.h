@@ -444,11 +444,25 @@ protected:
   PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
 
   /*!
-    Helper function used during configuration to locate the correct XML element
+    Helper function used during configuration to locate the correct XML element for a device
   */
   vtkXMLDataElement* FindThisDeviceElement(vtkXMLDataElement* rootXMLElement);
+  /*!
+    Helper function used during configuration to locate the correct XML element for an output stream
+  */
   vtkXMLDataElement* FindOutputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
+  /*!
+    Helper function used during configuration to locate the correct XML element for an input stream
+  */
   vtkXMLDataElement* FindInputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
+  /*!
+    Method that writes output streams to XML
+  */
+  virtual void InternalWriteOutputStreams(vtkXMLDataElement* rootXMLElement);
+  /*!
+    Method that writes output streams to XML
+  */
+  virtual void InternalWriteInputStreams(vtkXMLDataElement* rootXMLElement);
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();

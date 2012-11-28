@@ -124,12 +124,36 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
 {
   aStreamElement->SetAttribute("Id", this->GetStreamId());
 
-  // TODO : virtual stream mixer doesn't want to write out buffersize, even though the stream buffers isn' technically empty
   if( this->StreamBuffers.size() > 0 )
   {
     // TODO : extend this to support multiple buffers per stream
     aStreamElement->SetIntAttribute("BufferSize", this->StreamBuffers[0]->GetBufferSize());
   }
+
+  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  {
+    vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
+    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a tool element, skip it
+      continue; 
+    }
+    vtkSmartPointer<vtkPlusStreamTool> aTool;
+    if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve tool when saving config.");
+      return PLUS_FAIL;
+    }
+    aTool->WriteCompactConfiguration(toolElement);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::WriteCompactConfiguration( vtkXMLDataElement* aStreamElement )
+{
+  aStreamElement->SetAttribute("Id", this->GetStreamId());
 
   for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
   {

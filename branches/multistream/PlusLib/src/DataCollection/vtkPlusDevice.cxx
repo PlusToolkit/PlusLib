@@ -895,18 +895,9 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     this->RfProcessor->WriteConfiguration(rfElement);
   }
 
-  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
-  {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
-    vtkXMLDataElement* streamElement = this->FindOutputStreamElement(config, aStream->GetStreamId());
-    aStream->WriteConfiguration(streamElement);
-  }
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
-  {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
-    vtkXMLDataElement* streamElement = this->FindInputStreamElement(config, aStream->GetStreamId());
-    aStream->WriteConfiguration(streamElement);
-  }
+  this->InternalWriteOutputStreams(config);
+
+  this->InternalWriteInputStreams(config);
 
   return PLUS_SUCCESS;
 }
@@ -2569,4 +2560,30 @@ PlusStatus vtkPlusDevice::AddDefaultStream( vtkPlusStream* aStream )
   this->OutputStreams.push_back(aStream);
   this->CurrentStream = this->OutputStreams[0];
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDevice::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElement )
+{
+  LOG_TRACE("vtkPlusDevice::InternalWriteOutputStreams( " << rootXMLElement->GetName() << ")");
+
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindOutputStreamElement(rootXMLElement, aStream->GetStreamId());
+    aStream->WriteConfiguration(streamElement);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDevice::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement )
+{
+  LOG_TRACE("vtkPlusDevice::InternalWriteInputStreams( " << rootXMLElement->GetName() << ")");
+
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
+    aStream->WriteConfiguration(streamElement);
+  }
 }
