@@ -385,14 +385,7 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");

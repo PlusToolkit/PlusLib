@@ -543,15 +543,7 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
