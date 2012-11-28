@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Experimenal - SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus + Phantom 2.0"
+      Name="Experimental - SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus + Phantom 2.0"
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
 
@@ -21,10 +21,8 @@
     <Device
       Id="SonixVideo"
       Type="SonixVideo" 
-      BufferSize="500" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
-      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
       ImagingMode="BMode"
@@ -37,7 +35,7 @@
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <OutputStream Id="SonixOutput" />
+      <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20"  />
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">

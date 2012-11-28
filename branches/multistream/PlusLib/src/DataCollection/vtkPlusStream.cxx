@@ -40,7 +40,7 @@ vtkPlusStream::~vtkPlusStream(void)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
+PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, bool RequireFrameBufferSizeInDeviceSetConfiguration, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -52,6 +52,46 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
   }
   this->SetStreamId(id);
 
+  // TODO : come up with a way to define multiple buffers per stream... stereo image devices will require it
+  int bufferSize = 0;
+  if ( aStreamElement->GetScalarAttribute("BufferSize", bufferSize) )
+  {
+    vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+    if( this->AddBuffer(aBuff, vtkPlusStream::FIND_PORT) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add a buffer to the stream. Can't set params of buffer.");
+      return PLUS_FAIL;
+    }
+    // Set the buffer size
+    if ( aBuff->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set buffer size!");
+    }
+  }
+  else if( RequireFrameBufferSizeInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find main buffer size in device element when it is required.");
+  }
+
+  int averagedItemsForFiltering = 0;
+  if ( aStreamElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  {
+    for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+    {
+      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = it->second;
+      aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+    }
+  }
+  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find averaged items for filtering in stream configuration when it is required.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+  }
+
   for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
   {
     vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
@@ -61,10 +101,10 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
       continue; 
     }
 
-    const char* toolName = toolElement->GetAttribute("Id");
+    const char* toolName = toolElement->GetAttribute("Name");
     if( toolName == NULL )
     {
-      LOG_WARNING("No field \"Id\" defined in the OutputStream " << this->GetStreamId() << ". Unable to add it to the output stream.");
+      LOG_WARNING("No field \"Name\" defined in the OutputStream " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
     vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
@@ -74,6 +114,38 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
       continue;
     }
     this->Tools[toolName] = tool;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement )
+{
+  aStreamElement->SetAttribute("Id", this->GetStreamId());
+
+  // TODO : virtual stream mixer doesn't want to write out buffersize, even though the stream buffers isn' technically empty
+  if( this->StreamBuffers.size() > 0 )
+  {
+    // TODO : extend this to support multiple buffers per stream
+    aStreamElement->SetIntAttribute("BufferSize", this->StreamBuffers[0]->GetBufferSize());
+  }
+
+  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  {
+    vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
+    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a tool element, skip it
+      continue; 
+    }
+    vtkSmartPointer<vtkPlusStreamTool> aTool;
+    if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve tool when saving config.");
+      return PLUS_FAIL;
+    }
+    aTool->WriteCompactConfiguration(toolElement);
   }
 
   return PLUS_SUCCESS;

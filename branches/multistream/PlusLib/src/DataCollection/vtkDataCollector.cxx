@@ -157,7 +157,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
           for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
           {
             vtkPlusDevice* device = (*it);
-            vtkPlusStream* aStream = NULL;
+            vtkSmartPointer<vtkPlusStream> aStream = NULL;
             if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
             {
               // Found it!

@@ -36,7 +36,9 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
+  virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 
   /*! Set tool name. Tool name is used to identify the tool among all the tools provided by the tracker device 
   therefore it must be unique and can be set only once */

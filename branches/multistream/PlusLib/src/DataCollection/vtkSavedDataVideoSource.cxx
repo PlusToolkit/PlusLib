@@ -31,7 +31,6 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->LastAddedFrameLoopIndex=0;
 
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
-  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

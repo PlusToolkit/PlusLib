@@ -9,11 +9,10 @@
 			Type="SavedVideoDataset"
 			SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
 			UseData="IMAGE_AND_TRANSFORM"
-			BufferSize="100"
 			UseOriginalTimestamps="TRUE"
 			RepeatEnabled="TRUE"
 		>
-			<OutputStream Id="Data" />
+			<OutputStream Id="Data" BufferSize="100"/>
 		</Device>
 		
 		<Device Id="Mixer" Type="VirtualStreamMixer" Selectable="true">

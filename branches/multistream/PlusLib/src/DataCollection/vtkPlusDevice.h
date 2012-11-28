@@ -372,10 +372,10 @@ public:
   virtual US_IMAGE_TYPE GetImageType();
 
   /*! Access the available output streams */
-  PlusStatus GetStreamByName(vtkPlusStream*& aStream, const char * aStreamName);
+  PlusStatus GetStreamByName(vtkSmartPointer<vtkPlusStream>& aStream, const char * aStreamName);
 
   /*! Add an input stream */
-  PlusStatus AddInputStream(vtkPlusStream* aStream);
+  PlusStatus AddInputStream(vtkSmartPointer<vtkPlusStream> aStream);
 
   /*!
     Perform any completion tasks once configured
@@ -447,6 +447,8 @@ protected:
     Helper function used during configuration to locate the correct XML element
   */
   vtkXMLDataElement* FindThisDeviceElement(vtkXMLDataElement* rootXMLElement);
+  vtkXMLDataElement* FindOutputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
+  vtkXMLDataElement* FindInputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
@@ -468,7 +470,7 @@ protected:
 
   StreamContainer OutputStreams;
   StreamContainer InputStreams;
-  vtkPlusStream* CurrentStream;
+  vtkSmartPointer<vtkPlusStream> CurrentStream;
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
@@ -521,7 +523,6 @@ protected:
   */
   bool RequireDeviceImageOrientationInDeviceSetConfiguration;
   bool RequireFrameBufferSizeInDeviceSetConfiguration;
-  bool RequireToolBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
   bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;

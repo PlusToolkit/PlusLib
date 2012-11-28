@@ -31,7 +31,11 @@ public:
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement, bool RequireFrameBufferSizeInDeviceSetConfiguration = false, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false);
+  /*!
+    Write the details about the stream to XML
+  */
+  PlusStatus WriteConfiguration(vtkXMLDataElement* aStreamElement);
 
   int BufferCount() const { return this->StreamBuffers.size(); }
   PlusStatus AddBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int aPort);

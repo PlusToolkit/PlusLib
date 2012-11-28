@@ -232,18 +232,17 @@ void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
 {
 	LOG_TRACE("vtkPlusStreamTool::ReadConfiguration"); 
 
-  // Parameter XMLDataElement is the Tool data element, not the root!
-	if ( config == NULL )
+	if ( toolElement == NULL )
 	{
-		LOG_ERROR("Unable to configure tracker tool! (XML data element is NULL)"); 
+		LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
 		return PLUS_FAIL; 
 	}
 
-	const char* toolName = config->GetAttribute("Name"); 
+	const char* toolName = toolElement->GetAttribute("Name"); 
 	if ( toolName != NULL ) 
 	{
 		this->SetToolName(toolName); 
@@ -254,7 +253,7 @@ PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  const char* portName = config->GetAttribute("PortName"); 
+  const char* portName = toolElement->GetAttribute("PortName"); 
 	if ( portName != NULL ) 
 	{
 		this->SetPortName(portName); 
@@ -265,6 +264,66 @@ PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
+  int bufferSize = 0; 
+  if ( toolElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+  {
+    this->GetBuffer()->SetBufferSize(bufferSize);
+  }
+  else
+  {
+    LOG_ERROR("Unable to find tool \"" << this->GetToolName() << "\" buffer size in device element when it is required.");
+    return PLUS_FAIL;
+  }
+
+  int averagedItemsForFiltering = 0;
+  if ( toolElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  {
+    this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+  }
+  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+  }
+
 	return PLUS_SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement )
+{
+  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+
+  if ( toolElement == NULL )
+  {
+    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  toolElement->SetAttribute("Name", this->GetToolName());
+  toolElement->SetAttribute("PortName", this->GetPortName());
+  toolElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamTool::WriteCompactConfiguration( vtkXMLDataElement* toolElement )
+{
+  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+
+  if ( toolElement == NULL )
+  {
+    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  toolElement->SetAttribute("Name", this->GetToolName());
+  toolElement->SetAttribute("PortName", this->GetPortName());
+
+  return PLUS_SUCCESS;
+}

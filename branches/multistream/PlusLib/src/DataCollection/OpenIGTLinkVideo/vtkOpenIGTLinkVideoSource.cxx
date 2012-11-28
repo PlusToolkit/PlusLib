@@ -39,7 +39,6 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
 
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
-  this->RequireToolBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

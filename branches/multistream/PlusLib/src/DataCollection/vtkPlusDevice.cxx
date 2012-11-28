@@ -56,7 +56,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
-, RequireToolBufferSizeInDeviceSetConfiguration(false)
 , DeviceImageOrientation(US_IMG_ORIENT_XX)
 , SaveRfProcessingParameters(false)
 , RfProcessor(vtkRfProcessor::New())
@@ -337,9 +336,14 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  if( this->GetBuffer() != NULL )
+  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
-    this->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    for( StreamBufferMapContainerConstIterator bufIter = aStream->GetBuffersStartConstIterator(); bufIter != aStream->GetBuffersEndConstIterator(); ++bufIter)
+    {
+      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = bufIter->second;
+      aBuff->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    }
   }
 }
 
@@ -616,6 +620,55 @@ vtkXMLDataElement* vtkPlusDevice::FindThisDeviceElement( vtkXMLDataElement* root
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+vtkXMLDataElement* vtkPlusDevice::FindOutputStreamElement( vtkXMLDataElement* rootXMLElement, const char* aStreamId )
+{
+  if( rootXMLElement == NULL || aStreamId == NULL)
+  {
+    LOG_ERROR("Unable to find XML element for this stream. Bad inputs.");
+    return NULL;
+  }
+
+  vtkXMLDataElement* deviceXMLElement = this->FindThisDeviceElement(rootXMLElement);
+
+  for ( int i = 0; i < deviceXMLElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* streamXMLElement = deviceXMLElement->GetNestedElement(i); 
+
+    if (streamXMLElement->GetName() != NULL && streamXMLElement->GetAttribute("Id") != NULL && 
+      STRCASECMP(streamXMLElement->GetName(), "OutputStream") == 0 && STRCASECMP(streamXMLElement->GetAttribute("Id"), aStreamId) == 0)
+    {
+      return streamXMLElement;
+    }
+  }
+
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
+vtkXMLDataElement* vtkPlusDevice::FindInputStreamElement( vtkXMLDataElement* rootXMLElement, const char* aStreamId )
+{
+  if( rootXMLElement == NULL || aStreamId == NULL)
+  {
+    LOG_ERROR("Unable to find XML element for this stream. Bad inputs.");
+    return NULL;
+  }
+
+  vtkXMLDataElement* deviceXMLElement = this->FindThisDeviceElement(rootXMLElement);
+
+  for ( int i = 0; i < deviceXMLElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* streamXMLElement = deviceXMLElement->GetNestedElement(i); 
+
+    if (streamXMLElement->GetName() != NULL && streamXMLElement->GetAttribute("Id") != NULL && 
+      STRCASECMP(streamXMLElement->GetName(), "InputStream") == 0 && STRCASECMP(streamXMLElement->GetAttribute("Id"), aStreamId) == 0)
+    {
+      return streamXMLElement;
+    }
+  }
+
+  return NULL;
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
@@ -643,20 +696,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
   SetSelectable(STRCASECMP(selectable, "true") == 0);
 
-  int averagedItemsForFiltering = 0;
-  if ( deviceXMLElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
-  {
-  }
-  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
-  }
-
   // Read tool configurations 
   for ( int tool = 0; tool < deviceXMLElement->GetNumberOfNestedElements(); tool++ )
   {
@@ -668,21 +707,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     }
 
     vtkSmartPointer<vtkPlusStreamTool> streamTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
-
-    int bufferSize = 0; 
-    if ( toolDataElement->GetScalarAttribute("BufferSize", bufferSize) ) 
-    {
-      streamTool->GetBuffer()->SetBufferSize(bufferSize);
-    }
-    else if ( RequireToolBufferSizeInDeviceSetConfiguration )
-    {
-      LOG_ERROR("Unable to find tool \"" << streamTool->GetToolName() << "\" buffer size in device element when it is required.");
-      continue;
-    }
-
-    streamTool->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-
-    if ( streamTool->ReadConfiguration(toolDataElement) != PLUS_SUCCESS )
+    if ( streamTool->ReadConfiguration(toolDataElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
       continue; 
@@ -702,19 +727,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   else if( RequireAcquisitionRateInDeviceSetConfiguration )
   {
     LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
-  }
-
-
-  double localTimeOffsetSec = 0;
-  if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
-  {
-    LOG_INFO("Device local time offset: " << 1000*localTimeOffsetSec << "ms" );
-    this->SetLocalTimeOffsetSec(localTimeOffsetSec);
-    this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
-  }
-  else if ( RequireLocalTimeOffsetSecInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
   }
 
   const char* usImageOrientation = deviceXMLElement->GetAttribute("UsImageOrientation");
@@ -753,11 +765,23 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       continue; 
     }
 
-    vtkPlusStream* aStream = vtkPlusStream::New();
+    vtkSmartPointer<vtkPlusStream> aStream = vtkSmartPointer<vtkPlusStream>::New();
     aStream->SetOwnerDevice(this);
-    aStream->ReadConfiguration(streamElement);
+    aStream->ReadConfiguration(streamElement, RequireFrameBufferSizeInDeviceSetConfiguration, RequireAveragedItemsForFilteringInDeviceSetConfiguration);
 
     OutputStreams.push_back(aStream);
+  }
+
+  double localTimeOffsetSec = 0;
+  if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
+  {
+    LOG_INFO("Device local time offset: " << 1000*localTimeOffsetSec << "ms" );
+    this->SetLocalTimeOffsetSec(localTimeOffsetSec);
+    this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
+  }
+  else if ( RequireLocalTimeOffsetSecInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
   }
 
   if( this->OutputStreams.size() == 0 )
@@ -765,41 +789,42 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_INFO("No output streams defined for device: " << this->GetDeviceId() );
   }
 
-  // If they've defined a buffer size device wide, each output stream will need a buffer and have the buffer params set
-  int bufferSize = 0;
-  if ( deviceXMLElement->GetScalarAttribute("BufferSize", bufferSize) )
+  // For each output stream, add the tools to the output stream
+  // Now that we have the tools, we can create the output streams and connect things as necessary
+  for ( int stream = 0; stream < deviceXMLElement->GetNumberOfNestedElements(); stream++ )
   {
-    for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
+    vtkXMLDataElement* streamElement = deviceXMLElement->GetNestedElement(stream); 
+    if ( STRCASECMP(streamElement->GetName(), "OutputStream") != 0 )
     {
-      vtkPlusStream* str = *it;
-      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
-      if( str->AddBuffer(aBuff, vtkPlusStream::FIND_PORT) != PLUS_SUCCESS )
+      // if this is not a stream element, skip it
+      continue; 
+    }
+    
+    const char * id = streamElement->GetAttribute("Id");  // Can't make it to this point if an ID is incorrectly defined
+    vtkSmartPointer<vtkPlusStream> aStream;
+    if( this->GetStreamByName(aStream, id) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Error while trying to find stream by name.");
+      return PLUS_FAIL;
+    }
+
+    for ( int tool = 0; tool < streamElement->GetNumberOfNestedElements(); tool++ )
+    {
+      vtkXMLDataElement* toolDataElement = streamElement->GetNestedElement(tool); 
+      if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
       {
-        LOG_ERROR("Unable to add a buffer to the stream. Can't set params of buffer.");
+        continue;
+      }
+      
+      const char* toolName = toolDataElement->GetAttribute("Id");
+      vtkSmartPointer<vtkPlusStreamTool> aTool;
+      if( this->GetTool(toolName, aTool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve tool.");
         return PLUS_FAIL;
       }
-      // Create a buffer, set the buffer size
-      if ( aBuff->SetBufferSize(bufferSize) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to set buffer size!");
-      }
 
-      aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-    }
-  }
-  else if( RequireFrameBufferSizeInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find main buffer size in device element when it is required.");
-  }
-
-  // For each output stream, add the tools to the output stream
-  for(StreamContainerConstIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
-  {
-    vtkPlusStream* str = *it;
-
-    for ( ToolContainerIterator it = str->GetToolBuffersStartIterator(); it != str->GetToolBuffersEndIterator(); ++it)
-    {
-      str->AddTool(it->second);
+      aStream->AddTool(aTool);
     }
   }
 
@@ -830,9 +855,10 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
   vtkXMLDataElement* deviceDataElement = NULL;
   for ( int device = 0; device < dataCollectionConfig->GetNumberOfNestedElements(); device++ )
   {
-    vtkXMLDataElement* deviceDataElement = dataCollectionConfig->GetNestedElement(device);
-    if( STRCASECMP(deviceDataElement->GetName(), "Device") == 0 && deviceDataElement->GetAttribute("Id") != NULL && STRCASECMP(deviceDataElement->GetAttribute("Id"), this->GetDeviceId()) )
+    vtkXMLDataElement* anElement = dataCollectionConfig->GetNestedElement(device);
+    if( STRCASECMP(anElement->GetName(), "Device") == 0 && anElement->GetAttribute("Id") != NULL && STRCASECMP(anElement->GetAttribute("Id"), this->GetDeviceId()) == 0 )
     {
+      deviceDataElement = anElement;
       break;
     }
   }
@@ -843,20 +869,43 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL;
   }
 
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-  {
-    vtkPlusStreamTool* tool = it->second; 
-    deviceDataElement->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
-    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", tool->GetBuffer()->GetLocalTimeOffsetSec() ); 
-  }
+  deviceDataElement->SetAttribute("Selectable", this->GetSelectable() ? "true" : "false");
 
-  deviceDataElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
-  deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetBuffer()->GetLocalTimeOffsetSec() );
+  for ( int i = 0; i < deviceDataElement->GetNumberOfNestedElements(); i++ )
+  {
+    vtkXMLDataElement* toolElement = deviceDataElement->GetNestedElement(i); 
+    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a tool element, skip it
+      continue; 
+    }
+    vtkSmartPointer<vtkPlusStreamTool> aTool;
+    
+    if( toolElement->GetAttribute("Name") == NULL || this->GetTool(toolElement->GetAttribute("Name"), aTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve tool when saving config.");
+      return PLUS_FAIL;
+    }
+    aTool->WriteConfiguration(toolElement);
+  }
 
   if (this->SaveRfProcessingParameters)
   {
     vtkXMLDataElement* rfElement = deviceDataElement->FindNestedElementWithName("RfProcessing");
     this->RfProcessor->WriteConfiguration(rfElement);
+  }
+
+  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindOutputStreamElement(config, aStream->GetStreamId());
+    aStream->WriteConfiguration(streamElement);
+  }
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkXMLDataElement* streamElement = this->FindInputStreamElement(config, aStream->GetStreamId());
+    aStream->WriteConfiguration(streamElement);
   }
 
   return PLUS_SUCCESS;
@@ -2062,7 +2111,7 @@ PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetStreamByName( vtkPlusStream*& aStream, const char * aStreamName )
+PlusStatus vtkPlusDevice::GetStreamByName( vtkSmartPointer<vtkPlusStream>& aStream, const char * aStreamName )
 {
   if( aStreamName == NULL )
   {
@@ -2072,7 +2121,7 @@ PlusStatus vtkPlusDevice::GetStreamByName( vtkPlusStream*& aStream, const char *
 
   for( StreamContainerIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
   {
-    vtkPlusStream* stream = (*it);
+    vtkSmartPointer<vtkPlusStream> stream = (*it);
     if( STRCASECMP(stream->GetStreamId(), aStreamName) == 0 )
     {
       aStream = stream;
@@ -2084,7 +2133,7 @@ PlusStatus vtkPlusDevice::GetStreamByName( vtkPlusStream*& aStream, const char *
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddInputStream( vtkPlusStream* aStream )
+PlusStatus vtkPlusDevice::AddInputStream( vtkSmartPointer<vtkPlusStream> aStream )
 {
   for( StreamContainerIterator it = InputStreams.begin(); it != InputStreams.end(); ++it)
   {

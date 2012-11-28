@@ -40,7 +40,7 @@ enum ToolStatus
   TOOL_INVALID        /*!< Invalid tool status */
 };
 
-typedef std::vector<vtkPlusStream*> StreamContainer;
+typedef std::vector<vtkSmartPointer<vtkPlusStream>> StreamContainer;
 typedef StreamContainer::const_iterator StreamContainerConstIterator;
 typedef StreamContainer::iterator StreamContainerIterator;
 
