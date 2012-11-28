@@ -5,18 +5,21 @@
 =========================================================Plus=header=end*/
 #include "PlusConfigure.h"
 #include "SpatialModel.h"
-
-
+#include "vtkObjectFactory.h"
+const double NEPERTODECIBELCONVERSIONCONSTANT = 8.686;
 
 SpatialModel::SpatialModel()
 {
   this->Name = NULL; 
   this->ModelFileName = NULL; 
-  this->DensityKGPerM3 = 0; 
+  this->ModelFileToSpatialModelMatrix =NULL; 
+  this->DensityKgPerM3 = 0; 
   this->SoundVelocityMPerSec = 0; 
   this->AttenuationCoefficientNpPerCm = 0; 
-  this->ScatterCoeffcientNpPerCm = 0; 
+  this->ScatterCoefficientNpPerCm = 0; 
   this->SpecularReflectionRatio = 0; 
+  this->FrequencyMHz = 0; 
+  this->MaxIntensityWattsPerCm2 = 0;
 }
 
 PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
@@ -43,10 +46,17 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
     this->Name = sceneDescriptionElement->GetAttribute("Name"); 
     this->ModelFileName = sceneDescriptionElement->GetAttribute("ModelFileName");; 
     
-    double densityKGPerM3 = 0; 
-    if(sceneDescriptionElement->GetScalarAttribute("DensityKGPerM3",densityKGPerM3))
+   
+    double vectorModelFileToSpatialModelMatrix[16]={0}; 
+    if ( spatialModelElement->GetVectorAttribute("ModelFileToSpatialModelTransform", 16, vectorModelFileToSpatialModelMatrix) )
     {
-      this->DensityKGPerM3 = densityKGPerM3;  
+      this->ModelFileToSpatialModelMatrix->DeepCopy(vectorModelFileToSpatialModelMatrix); 
+    }
+    
+    double densityKGPerM3 = 0; 
+    if(sceneDescriptionElement->GetScalarAttribute("DensityKgPerM3",densityKGPerM3))
+    {
+      this->DensityKgPerM3 = densityKGPerM3;  
     }
     
     double soundVelocityMperSec = 0;
@@ -61,10 +71,10 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
       this->AttenuationCoefficientNpPerCm = attenuationCoefficientNpPerCm;
     }
     
-    double scatterCoeffcientNpPerCm = 0;
-    if(sceneDescriptionElement->GetScalarAttribute("ScatterCoeffcientNpPerCm",scatterCoeffcientNpPerCm)) 
+    double scatterCoefficientNpPerCm = 0;
+    if(sceneDescriptionElement->GetScalarAttribute("ScatterCoefficientNpPerCm",scatterCoefficientNpPerCm)) 
     {
-      this->ScatterCoeffcientNpPerCm = scatterCoeffcientNpPerCm;
+      this->ScatterCoefficientNpPerCm = scatterCoefficientNpPerCm;
     }
   
     double specularReflectionRatio = 0;
@@ -77,4 +87,40 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   return status;
+}
+
+void SpatialModel::setFrequencyMHz(double frequencyMHz)
+{
+  this->FrequencyMHz = frequencyMHz; 
+}
+
+
+void SpatialModel::setMaxIntensityWattsPerCm2(double maxIntensityWattsPerCm2)
+{
+  this->MaxIntensityWattsPerCm2 = maxIntensityWattsPerCm2; 
+}
+
+double SpatialModel::getMaxIntensityWattsPerCm2()
+{
+  return this->MaxIntensityWattsPerCm2;
+}
+
+double SpatialModel::calculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
+{
+  double intensityAttenuationCoefficientNpPerCmPerHz = 0;
+  intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
+  // convert to intensityAttentuationCoefficient... TODO: check math, this method may be too naive ( equations in Ultrasound Physics and INstrumentation pg 25 may
+  // have been misinterpreted)
+  
+  double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
+  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientdBPerCmPerHz * NEPERTODECIBELCONVERSIONCONSTANT; 
+  
+  double intensityLossDuringWaveTransmissionDecibels = 0; 
+ return intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->FrequencyMHz*distanceUSWaveTravelledCm;
+
+  double totalIntensityLoss = 0; 
+
+ // if(acousticImpedenceNeighbouringMaterial= this->
+
+
 }
