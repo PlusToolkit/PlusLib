@@ -53,6 +53,7 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
 , RequireAveragedItemsForFilteringInDeviceSetConfiguration(false)
+, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration(false)
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
@@ -707,7 +708,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     }
 
     vtkSmartPointer<vtkPlusStreamTool> streamTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
-    if ( streamTool->ReadConfiguration(toolDataElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration) != PLUS_SUCCESS )
+    if ( streamTool->ReadConfiguration(toolDataElement, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
       continue; 
@@ -816,7 +817,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
         continue;
       }
       
-      const char* toolName = toolDataElement->GetAttribute("Id");
+      const char* toolName = toolDataElement->GetAttribute("Name");
       vtkSmartPointer<vtkPlusStreamTool> aTool;
       if( this->GetTool(toolName, aTool) != PLUS_SUCCESS )
       {

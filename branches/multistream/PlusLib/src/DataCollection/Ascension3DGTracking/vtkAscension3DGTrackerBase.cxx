@@ -35,7 +35,8 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = true;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = true;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
@@ -459,15 +460,7 @@ PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* roo
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

@@ -539,6 +539,7 @@ protected:
   bool RequireFrameBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
+  bool RequireToolAveragedItemsForFilteringInDeviceSetConfiguration;
   bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
   bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;
