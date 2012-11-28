@@ -11,13 +11,25 @@
 #include "vtkMatrix4x4.h"
 #include "vtkModifiedBSPTree.h"
 
-class  SpatialModel
+
+class VTK_EXPORT SpatialModel
 {
 
 public:
   SpatialModel(); 
   ~SpatialModel(); 
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+   /*! Set US frequency for generated image */
+ 
+  void setFrequencyMHz(double frequencyMHz); 
+
+  void setMaxIntensityWattsPerCm2(double maxIntensityWattsPerCm2); 
+
+  double getMaxIntensityWattsPerCm2(); 
+
+  
+  // acousticImpedenceNeighbouringMaterial-> perform check to see if it is the same
+  double calculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm);
 
 private:
 
@@ -29,8 +41,15 @@ private:
 
   //TODO: /*! ModelToReferenceTransform */ ... is not read in previously, probably not needed, keep an eye on it
 
+  
+  /*! Ultrasound frequency */
+  double FrequencyMHz; 
+
+   /*! Max Intensity*/
+  double MaxIntensityWattsPerCm2;
+  
   /*! Density in kg/m^3 of the material the model is comprised of */
-  double DensityKGPerM3; 
+  double DensityKgPerM3; 
 
   /*! Velocity of sound in the model material ( m/s) */
   double SoundVelocityMPerSec; 
@@ -39,10 +58,12 @@ private:
   double AttenuationCoefficientNpPerCm; 
 
   /*! Scattering coefficient of the model material (nepers/cm)*/
-  double ScatterCoeffcientNpPerCm; 
+  double ScatterCoefficientNpPerCm; 
 
   /*! Specular Reflection Ratio of model material*/
   double SpecularReflectionRatio; 
+
+  vtkMatrix4x4* ModelFileToSpatialModelMatrix; 
 
 
 };
