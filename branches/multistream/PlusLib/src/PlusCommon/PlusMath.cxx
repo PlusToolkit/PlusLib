@@ -528,3 +528,26 @@ double PlusMath::ComputeDistanceLinePoint( const double x[3], // linepoint 1
 
   return sqrt(vtkMath::Dot(w,w));
 }
+
+//----------------------------------------------------------------------------
+PlusStatus PlusMath::ComputeMeanAndStdev(const std::vector<double> &values, double &mean, double &stdev)
+{
+  if (values.empty())
+  {
+    LOG_ERROR("PlusMath::ComputeMeanAndStdev failed, the input vector is empty");
+    return PLUS_FAIL;
+  }
+  double sum=0;
+  for (std::vector<double>::const_iterator it=values.begin(); it!=values.end(); ++it)
+  {
+    sum+=*it;
+  }
+  mean=sum/double(values.size());
+  double variance=0;
+  for (std::vector<double>::const_iterator it=values.begin(); it!=values.end(); ++it)
+  {
+    variance+=(*it-mean)*(*it-mean);
+  }
+  stdev=sqrt(variance/double(values.size())); 
+  return PLUS_SUCCESS;
+}
