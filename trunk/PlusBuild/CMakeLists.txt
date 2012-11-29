@@ -76,10 +76,25 @@ OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
 # Imaging hardware
 
+# determine current OS
+if("$ENV{PROCESSOR_ARCHITEW6432}" STREQUAL "")
+  if("$ENV{PROCESSOR_ARCHITECTURE}" STREQUAL "x86")
+    SET( TEMP_OS_ARCH "x86" )
+  else()
+    SET( TEMP_OS_ARCH "x64" )
+  endif()
+else()
+  SET( TEMP_OS_ARCH "x64" )
+endif()
+
 OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" OFF)
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 1 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
+IF ( (NOT ${CMAKE_GENERATOR} MATCHES "Win64") AND TEMP_OS_ARCH MATCHES "x64" AND PLUS_USE_BKPROFOCUS_VIDEO)
+	# warning regarding cross compilation of bkprofocus
+	message( "Enabling BK Pro Focus for a 32bit build on a 64 bit OS will not work." )
+ENDIF ()
 OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound systems" OFF)
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
