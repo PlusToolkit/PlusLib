@@ -12,6 +12,13 @@ See License.txt for details.
 
 typedef unsigned char PixelType;
 
+enum PatternRecognitionError
+{
+  PATTERN_RECOGNITION_ERROR_NO_ERROR,
+  PATTERN_RECOGNITION_ERROR_UNKNOWN,
+  PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES
+};
+
 /*!
 \class Dot
 \brief This class defines a single dot made obtained from the segmentation part of the algorithm.
@@ -29,25 +36,25 @@ public:
   static bool PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 );
 
   /*! Set the x coordinate of the dot */
-  void	SetX(double value) { m_X = value; };
+  void SetX(double value) { m_X = value; };
 
   /*! Get the x coordinate of the dot */
-  double	GetX() { return m_X; };
+  double GetX() const { return m_X; };
 
   /*! Set the y coordinate of the dot */
   void	SetY(double value) { m_Y = value; };
 
   /*! Get the y coordinate of the dot */
-  double	GetY() { return m_Y; };
+  double GetY() const { return m_Y; };
 
   /*! Set the intensity of the dot */
-  void	SetDotIntensity(double value) { m_DotIntensity = value; };
+  void SetDotIntensity(double value) { m_DotIntensity = value; };
 
   /*! Get the intensity of the dot */
-  double	GetDotIntensity() const { return m_DotIntensity; };
+  double GetDotIntensity() const { return m_DotIntensity; };
 
   /*! Get Euclidean distance from another point */
-  double	GetDistanceFrom(Dot &d);
+  double GetDistanceFrom(Dot &d);
 
   /*! Compare two dots, coordinate-wise */
   bool operator== (const Dot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
@@ -70,69 +77,72 @@ class Line
 {
 public:
   /*! Compare the intensity of 2 lines */
-  static bool lessThan( const Line &line1, const Line &line2 );
+  static bool lessThan( const Line& line1, const Line& line2 );
 
   /*! Compare 2 lines to know if they are the same */
-  static bool compareLines( Line line1, Line line2 );
+  static bool compareLines( const Line& line1, const Line& line2 );
 
   /*! Compute the angle in radians between the line and the positive x-axis, value between -Pi and +Pi */
-  static double ComputeAngleRad(Line &line1);
+  static double ComputeAngleRad(const Line& line1);
 
   /*! Compute the angle difference in radians between two lines, the result value is between 0 and Pi/2 */
-  static double ComputeAngleRad(Line &line1, Line &line2);
+  static double ComputeAngleRad( const Line& line1, const Line& line2 );
 
   /*! Set the point of line
-  \param aIndex is the index in the dots vector fo the line
+  \param aIndex is the index in the dots vector of the line
   \param aValue is the index of the dot in the general vector of dots
   */
-  void	SetPoint(int aIndex, int aValue) { m_Points[aIndex] = aValue; };
+  void SetPoint(int aIndex, int aValue) { m_Points[aIndex] = aValue; };
 
   /*! Get the point of the line that has index aIndex */
-  int	GetPoint(int aIndex) const{ return m_Points[aIndex]; };
+  int	GetPoint(int aIndex) const { return m_Points[aIndex]; };
 
   /*! Get the vector of dots making the line */
-  std::vector<int>*	GetPoints() { return &m_Points; };
+  const std::vector<int>&	GetPoints() const { return m_Points; };
 
   /*! Set the intensity of the line, which is the sum of its dots intensity */
-  void	SetIntensity(double value) { m_Intensity = value; };
+  void SetIntensity(double value) { m_Intensity = value; };
 
   /*! Get the intensity of the line, which is the sum of its dots intensity */
-  double	GetIntensity() const { return m_Intensity; };
+  double GetIntensity() const { return m_Intensity; };
 
   /*! Set the length of the line */
   void SetLength(double value) { m_Length = value; };
 
   /*! Get the length of the line */
-  double	GetLength() { return m_Length; };
+  double GetLength() const { return m_Length; };
 
   /*! Set the direction vector that defines the line */
-  void	SetDirectionVector(int aIndex, double aValue) { m_DirectionVector[aIndex] = aValue; };
+  void SetDirectionVector(int aIndex, double aValue) { m_DirectionVector[aIndex] = aValue; };
 
   /*! Get the direction vector that defines the line */
-  const double*	GetDirectionVector() const{ return &(m_DirectionVector[0]); };
+  const double*	GetDirectionVector() const { return m_DirectionVector; };
 
   /*! Set the start point index of the line. It is an index in the m_DotsVector */
   void  SetStartPointIndex(int index) { m_StartPointIndex = index; };
 
   /*! Get the start point index of the line. It is an index in the m_DotsVector */
-  int   GetStartPointIndex() { return m_StartPointIndex; };
+  int GetStartPointIndex() const { return m_StartPointIndex; };
 
-  /*! Set the other end point of the line. It is the index of the end poin in the m_DotsVector */
-  void  SetEndPointIndex(int index) { m_EndPointIndex = index; };
+  /*! Set the other end point of the line. It is the index of the end point in the m_DotsVector */
+  void SetEndPointIndex(int index) { m_EndPointIndex = index; };
 
-  /*! Get the other end point of the line. It is the index of the end poin in the m_DotsVector */
-  int   GetEndPointIndex() { return m_EndPointIndex; };
+  /*! Get the other end point of the line. It is the index of the end point in the m_DotsVector */
+  int GetEndPointIndex() const { return m_EndPointIndex; };
 
+  /*! Resize the points vector */
+  void ResizePoints( int aNewSize ) { m_Points.resize(aNewSize); }
+
+  /*! Add a point to the line */
+  void AddPoint( int aPoint ) { m_Points.push_back(aPoint); }
 
 protected:
-  std::vector<int>	m_Points; // indices of points that make up the line
-  double				m_Intensity;
-  double				m_Length;
-  double       m_DirectionVector[2];
-  int         m_StartPointIndex;//index of startpoint of the line, all the other line points are towards the positive m_DirectionVector direction from this point
-  int         m_EndPointIndex;//Index of the endpoint of the line
-
-
+  std::vector<int>  m_Points; // indices of points that make up the line
+  double            m_Intensity;
+  double            m_Length;
+  double            m_DirectionVector[2];
+  int               m_StartPointIndex;//index of startpoint of the line, all the other line points are towards the positive m_DirectionVector direction from this point
+  int               m_EndPointIndex;//Index of the endpoint of the line
 };
 
 //-----------------------------------------------------------------------------
@@ -164,32 +174,6 @@ public:
   std::vector<Wire> Wires;
   std::vector<double> DistanceToOriginMm; //These distances are in mm.
   std::vector<double> DistanceToOriginToleranceMm; //These tolerances are in mm.
-
-  //unused iterator to iterate only through one type of Patterns.
-  /*
-  template<class T> class iterator
-  {
-  public:
-  iterator(std::vector<Pattern>* ptr) : m_Pointer(ptr) {}
-  iterator operator++() 
-  {
-  do
-  {
-  T* t = dynamic_cast<T*>(m_Pointer);
-  if(t)//belongs to the type T
-  {
-  iterator i = *this;
-  m_Pointer++;
-  return i;
-  }
-  m_Pointer++;
-  }while(m_Pointer != NULL);
-  return *this;
-  }
-  protected:
-  std::vector<Pattern> * m_Pointer;
-  };
-  */
 };
 
 //-----------------------------------------------------------------------------
@@ -237,34 +221,34 @@ public:
   void Clear();
 
   /*! Set the m_DotsFound to true if the algorithm found the corresponding dots, to false otherwise */
-  void	SetDotsFound(bool value) { m_DotsFound = value; };
+  void SetDotsFound(bool value) { m_DotsFound = value; };
 
   /*! Get m_DotsFound */
-  bool	GetDotsFound() { return m_DotsFound; };
+  bool GetDotsFound() { return m_DotsFound; };
 
   /*! Set the coordinates of the found dots */
-  void	SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
+  void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
 
   /*! Get the coordinates of the found dots */
-  std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+  std::vector< std::vector<double> >&	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
   /*! Set the cumulate intensity of all dots in the pattern */
-  void	SetIntensity(double value) { m_Intensity = value; };
+  void SetIntensity(double value) { m_Intensity = value; };
 
   /*! Get the cumulate intensity of all dots in the pattern */
-  double	GetIntensity() { return m_Intensity; };
+  double GetIntensity() const { return m_Intensity; };
 
   /*! Set the number of candidate points that have been found */
-  void	SetNumDots(double value) { m_NumDots = value; };
+  void SetNumDots(double value) { m_NumDots = value; };
 
   /*! Get the number of candidate points that have been found */
-  double GetNumDots() { return m_NumDots; };
+  double GetNumDots() const { return m_NumDots; };
 
   /*! Set the dots that are considered candidates */
   void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
 
   /*! Get the dots that are considered candidates */
-  std::vector<Dot>	GetCandidateFidValues() { return m_CandidateFidValues; };
+  const std::vector<Dot>& GetCandidateFidValues() const { return m_CandidateFidValues; };
 
 protected:
   /*! True if the dots are found, false otherwise. */
@@ -279,7 +263,7 @@ protected:
   valid) is below 25. */
   double m_Intensity;
 
-  /*! number of possibel fiducial points */
+  /*! number of possible fiducial points */
   double m_NumDots; 
 
   /*! pointer to the fiducial candidates coordinates */

@@ -17,15 +17,17 @@ PatternRecognitionResult::PatternRecognitionResult()
 }
 
 //-----------------------------------------------------------------------------
-double Line::ComputeAngleRad(Line &line)
+
+double Line::ComputeAngleRad(const Line& line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
   double angleRad = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
   return angleRad;
 }
 
+//-----------------------------------------------------------------------------
 
-double Line::ComputeAngleRad(Line &line1, Line &line2)
+double Line::ComputeAngleRad(const Line& line1, const Line& line2)
 {
   // a * b = |a| * |b| * cos(alpha)
   const double* a=line1.GetDirectionVector();
@@ -69,7 +71,7 @@ double	Dot::GetDistanceFrom(Dot &d)
 
 //-----------------------------------------------------------------------------
 
-bool Line::lessThan( const Line &line1, const Line &line2 )
+bool Line::lessThan(const Line& line1, const Line& line2)
 {
 	/* Use > to get descending. */
 	return line1.GetIntensity() > line2.GetIntensity();
@@ -77,10 +79,10 @@ bool Line::lessThan( const Line &line1, const Line &line2 )
 
 //-----------------------------------------------------------------------------
 
-bool Line::compareLines(Line line1, Line line2 )
+bool Line::compareLines(const Line& line1, const Line& line2)
 {
   //make sure the lines are not the same, dot-wise
-  for (unsigned int i=0; i<line1.GetPoints()->size(); i++)
+  for (unsigned int i=0; i<line1.GetPoints().size(); i++)
 	{
 		if ( line1.GetPoint(i) < line2.GetPoint(i) )
 		{

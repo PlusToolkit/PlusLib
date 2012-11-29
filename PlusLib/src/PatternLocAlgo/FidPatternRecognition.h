@@ -27,13 +27,6 @@ lines and then find the pattern and label the dots.
 
 class FidPatternRecognition
 {
-public:
-  enum PatternRecognitionError
-  {
-    PATTERN_RECOGNITION_ERROR_NO_ERROR,
-    PATTERN_RECOGNITION_ERROR_UNKNOWN,
-    PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES
-  };
 
 public:
   FidPatternRecognition();
@@ -82,7 +75,7 @@ public:
   void SetMaxLineLengthToleranceMm(double value);
 
   /*! Set the maximum number of candidates to consider */
-  void SetMaxNumberOfCandidates(int aMax);
+  void SetNumberOfMaximumFiducialPointCandidates(int aMax);
 
   /*! Reads the phantom definition and computes the NWires intersection if needed */
   PlusStatus        ReadPhantomDefinition(vtkXMLDataElement* rootConfigElement);
@@ -94,8 +87,6 @@ protected:
   FidLabeling             m_FidLabeling;
 
   double                  m_MaxLineLengthToleranceMm;
-
-  int                     m_MaxNumberOfCandidates;
 
   int                     m_CurrentFrame;
 };

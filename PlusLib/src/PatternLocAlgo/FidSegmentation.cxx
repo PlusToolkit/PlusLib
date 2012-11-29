@@ -21,18 +21,18 @@ static const short BLACK            = 0;
 static const short MIN_WINDOW_DIST  = 8;
 static const short MAX_CLUSTER_VALS = 16384;
 
+const int FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES = 20;
+
 //-----------------------------------------------------------------------------
 
 FidSegmentation::FidSegmentation() :
     m_ThresholdImagePercent( -1.0 ),
-    
     m_MorphologicalOpeningBarSizeMm(-1.0), 
     m_MorphologicalOpeningCircleRadiusMm(-1.0), 
     m_ApproximateSpacingMmPerPixel(-1.0), 
-
     m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
-
-    m_UseOriginalImageIntensityForDotIntensityScore (false)
+    m_UseOriginalImageIntensityForDotIntensityScore(false),
+    m_NumberOfMaximumFiducialPointCandidates(20)
 {
   //Initialization of member variables
   m_FrameSize[0] = -1;
@@ -261,6 +261,13 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     }
     delete [] imageNormalVectorInPhantomFrameEstimation;
   }
+
+  int maxCandidates(DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES); 
+  if ( !segmentationParameters->GetScalarAttribute("NumberOfMaximumFiducialPointCandidates", maxCandidates) )
+  {
+    LOG_INFO("Could not read NumberOfMaximumFiducialPointCandidates from segmentation tag. Default of " << DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES << " selected.");
+  }
+  m_NumberOfMaximumFiducialPointCandidates = maxCandidates;
 
   UpdateParameters();
 
@@ -1020,7 +1027,7 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-bool FidSegmentation::ShapeContains( std::vector<Coordinate2D> &shape, Coordinate2D point )
+bool FidSegmentation::ShapeContains( std::vector<Coordinate2D>& shape, Coordinate2D point )
 {
   //LOG_TRACE("FidSegmentation::ShapeContains");
 
@@ -1100,7 +1107,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
@@ -1187,7 +1194,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   std::vector<Dot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)
@@ -1305,7 +1312,7 @@ inline bool FidSegmentation::AcceptDot( Dot &dot )
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Cluster()
+void FidSegmentation::Cluster(PatternRecognitionError& patternRecognitionError)
 {
   LOG_TRACE("FidSegmentation::Cluster");
   
@@ -1392,6 +1399,14 @@ void FidSegmentation::Cluster()
   }
 
   std::sort(m_DotsVector.begin(), m_DotsVector.end(), Dot::IntensityLessThan);
+  if( m_DotsVector.size() > m_NumberOfMaximumFiducialPointCandidates )
+  {
+    LOG_WARNING("Too many candidates found in segmentation. Consider reducing ROI. " << m_DotsVector.size() << " > " << m_NumberOfMaximumFiducialPointCandidates);
+    m_DotsVector.erase(m_DotsVector.begin() + m_NumberOfMaximumFiducialPointCandidates, m_DotsVector.begin() + m_DotsVector.size());
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
+    return;
+  }
+  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
 }
 
 //-----------------------------------------------------------------------------
@@ -1543,4 +1558,11 @@ void FidSegmentation::ValidateRegionOfInterest()
   {
     m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::SetNumberOfMaximumFiducialPointCandidates( int aValue )
+{
+  m_NumberOfMaximumFiducialPointCandidates = aValue;
 }
