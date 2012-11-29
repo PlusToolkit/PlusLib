@@ -56,7 +56,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
 
     PatternRecognitionResult segResults;
-    FidPatternRecognition::PatternRecognitionError error;
+    PatternRecognitionError error;
 
     if ( trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
     {

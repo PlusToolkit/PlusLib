@@ -82,7 +82,7 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   FidPatternRecognition patternRecognition;
-  FidPatternRecognition::PatternRecognitionError error;
+  PatternRecognitionError error;
 	patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
