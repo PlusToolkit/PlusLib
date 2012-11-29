@@ -30,13 +30,13 @@ public:
   void SetFrameSize( int frameSize[2] );
 
   /*! Set the values of the candidate fiducials */
-  void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+  void SetCandidateFidValues(const std::vector<Dot>& value) { m_CandidateFidValues = value; };
 
   /*! Set the vector of dots that have been found by FidSegmentation */
-  void SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
+  void SetDotsVector(const std::vector<Dot>& value) { m_DotsVector = value; };
 
   /*! Set the pattern structure vector, this defines the patterns that the algorthm finds */
-  void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
+  void SetPatterns( const std::vector<Pattern*>& value ) { m_Patterns = value; };
 
   /*! Set the approximate spacing in Mm per pixel */
   void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
@@ -51,13 +51,13 @@ public:
   void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
 
   /*! Read the configuration file from a vtk XML data element */
-  PlusStatus  ReadConfiguration( vtkXMLDataElement* rootConfigElement );
+  PlusStatus ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
   /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
   void FindLines();
 
   /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
-  std::vector<std::vector<Line> >  GetLinesVector() { return m_LinesVector; };
+  std::vector<std::vector<Line> >&  GetLinesVector() { return m_LinesVector; };
 
   /*! Get the maximum angle allowed for a line, in radians */
   double GetMaxThetaRad() { return m_MaxThetaRad; };
@@ -66,7 +66,7 @@ public:
   double GetMinThetaRad() { return m_MinThetaRad; };
 
   /*! Get the pattern structure vector, this defines the patterns that the algorthm finds */
-  std::vector<Pattern*> GetPatterns() { return m_Patterns; };
+  std::vector<Pattern*>& GetPatterns() { return m_Patterns; };
 
   /*! Get the NWires vector, these NWires are extracted from the pattern vector */
   std::vector<NWire> GetNWires();
@@ -86,20 +86,20 @@ protected:
   void FindLines2Points();
 
   /*! Compute the length of the segment between 2 dots */
-  double SegmentLength( Dot *dot1, Dot *dot2 );
+  static double SegmentLength( const Dot& dot1, const Dot& dot2 );
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  double ComputeDistancePointLine(Dot dot, Line line);
+  double ComputeDistancePointLine(const Dot& dot, const Line& line);
 
   /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
   the direction vector, the endpoint */
-  void ComputeLine( Line &line );
+  void ComputeLine( Line& line );
 
   /*! Compute the angle between thee lin formed by 2 dots and the x-axis, in radian */
-  static double ComputeAngleRad( Dot *dot1, Dot *dot2 );
+  static double ComputeAngleRad( const Dot& dot1, const Dot& dot2 );
 
   /*! Return true if a line matches the requirements, false otherwise */
-  bool AcceptLine( Line &line );  
+  bool AcceptLine( Line& line );  
 
   /*! Return true if an angle is in the allowed angle range, false otherwise */
   bool AcceptAngleRad(double angleRad);

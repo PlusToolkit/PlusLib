@@ -38,6 +38,7 @@ struct Coordinate2D
 class FidSegmentation
 {
   public:
+    static const int DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES;
 
     /*! The different types of phantom the algorithm covers */
     enum FiducialGeometryType
@@ -93,7 +94,7 @@ class FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
+    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
 
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
@@ -102,7 +103,7 @@ class FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
+    void WritePossibleFiducialOverlayImage(std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
 
     /*! Perform the morphological operations on the image */
     void MorphologicalOperations();  
@@ -114,13 +115,13 @@ class FidSegmentation
     inline bool AcceptDot( Dot &dot );
 
     /*! Cluster the dots */
-    void Cluster();
+    void Cluster(PatternRecognitionError& patternRecognitionError);
 
     /*! Utility function to write image to file */
     static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
 
     /*! Check if shape (structuring element) contains the new element (a point) */
-    bool ShapeContains( std::vector<Coordinate2D> &shape, Coordinate2D point );
+    bool ShapeContains( std::vector<Coordinate2D>& shape, Coordinate2D point );
 
     /*! Add neighbors to the cluster */
     inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
@@ -146,13 +147,16 @@ class FidSegmentation
     int* GetFrameSize() { return m_FrameSize; };
 
     /*! Get the vector that contains all the dots that have been segmented */
-    std::vector<Dot> GetDotsVector() {return m_DotsVector; };  
+    std::vector<Dot>& GetDotsVector() {return m_DotsVector; };  
 
     /*! Get the dots that are considered candidates */
-    void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+    void SetCandidateFidValues(const std::vector<Dot>& value) { m_CandidateFidValues = value; };
 
     /*! Set the dots that are considered candidates */
-    std::vector<Dot> GetCandidateFidValues() { return m_CandidateFidValues; };
+    std::vector<Dot>& GetCandidateFidValues() { return m_CandidateFidValues; };
+
+    /*! Set the maximum number of candidates to generate */
+    void SetNumberOfMaximumFiducialPointCandidates( int aValue );
 
     /*! Get the geometry type of the phantom, so far only the 6 points NWires and the CIRS phantom model 45 are supported */
     FiducialGeometryType  GetFiducialGeometry() { return m_FiducialGeometry; };
@@ -185,6 +189,8 @@ class FidSegmentation
     int                   m_FrameSize[2];
     int                   m_RegionOfInterest[4];
     bool                  m_UseOriginalImageIntensityForDotIntensityScore;
+
+    int                   m_NumberOfMaximumFiducialPointCandidates;
 
     /*! Segmentation threshold (in percentage, minimum is 0, maximum is 100) */
     double                m_ThresholdImagePercent;  

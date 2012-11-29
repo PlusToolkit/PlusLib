@@ -14,8 +14,7 @@
   </CoordinateDefinitions> 
 
   <Segmentation
-	MaxCandidates="80"
-    ApproximateSpacingMmPerPixel="0.19"
+    NumberOfMaximumFiducialPointCandidates="50"    ApproximateSpacingMmPerPixel="0.19"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
     RegionOfInterest="50 40 600 340" 

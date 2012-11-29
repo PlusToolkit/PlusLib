@@ -1139,12 +1139,14 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read UseOriginalImageIntensityForDotIntensityScore from configuration");
   }
 
-  double maxCandidates(20.0); 
-  if ( segmentationParameters->GetScalarAttribute("MaxCandidates", maxCandidates) )
+  double maxCandidates(FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES); 
+  if ( segmentationParameters->GetScalarAttribute("NumberOfMaximumFiducialPointCandidates", maxCandidates) )
   {
     ui.doubleSpinBox_MaxCandidates->setValue(maxCandidates);
-  } else {
-    LOG_WARNING("Could not read MaxCandidates from configuration");
+  }
+  else
+  {
+    LOG_INFO("Could not read NumberOfMaximumFiducialPointCandidates from configuration.");
   }
 
   return PLUS_SUCCESS;
@@ -1236,7 +1238,10 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
 
-  segmentationParameters->SetIntAttribute("MaxCandidates", ui.doubleSpinBox_MaxCandidates->value());
+  if( ui.doubleSpinBox_MaxCandidates->value() != FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  {
+    segmentationParameters->SetIntAttribute("NumberOfMaximumFiducialPointCandidates", ui.doubleSpinBox_MaxCandidates->value());
+  }
 
   return PLUS_SUCCESS;
 }
@@ -1337,15 +1342,16 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   // Segment image
   PatternRecognitionResult segResults;
-  FidPatternRecognition::PatternRecognitionError error;
-  if( m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error) != PLUS_SUCCESS )
+  PatternRecognitionError error(PATTERN_RECOGNITION_ERROR_NO_ERROR);
+  m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error);
+  if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
   {
-    if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
-    {
-      ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
-      ui.label_Feedback->setStyleSheet("QLabel { color : red; }");
-    }
-    return PLUS_FAIL;
+    ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
+    ui.label_Feedback->setStyleSheet("QLabel { color : orange; }");
+  }
+  else
+  {
+    ui.label_Feedback->setText("");
   }
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
@@ -1387,8 +1393,6 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   m_SegmentedPointsPolyData->Initialize();
   m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
-
-  ui.label_Feedback->setText("");
 
   return PLUS_SUCCESS;
 }
@@ -1793,7 +1797,7 @@ void SegmentationParameterDialog::MaxCandidatesChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxCandidatesChanged(" << aValue << ")");
 
-  m_PatternRecognition->SetMaxNumberOfCandidates(aValue);
+  m_PatternRecognition->SetNumberOfMaximumFiducialPointCandidates(aValue);
 }
 
 //-----------------------------------------------------------------------------
