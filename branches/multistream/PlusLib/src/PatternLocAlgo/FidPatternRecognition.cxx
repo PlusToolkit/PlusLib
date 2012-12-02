@@ -19,7 +19,6 @@ static const double DOT_RADIUS = 6.0;
 
 FidPatternRecognition::FidPatternRecognition()
 : m_CurrentFrame(0)
-, m_MaxNumberOfCandidates(20)
 {
 
 }
@@ -47,13 +46,6 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
   m_FidLineFinder.ReadConfiguration(rootConfigElement);
   m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinThetaRad(), m_FidLineFinder.GetMaxThetaRad());
 
-  vtkXMLDataElement* segmentationParameters = rootConfigElement->FindNestedElementWithName("Segmentation");
-  double maxCandidates;
-  if ( segmentationParameters != NULL && segmentationParameters->GetScalarAttribute("MaxCandidates", maxCandidates) )
-  {
-    m_MaxNumberOfCandidates = maxCandidates;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -62,6 +54,8 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
 PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError& patternRecognitionError)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
+
+  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
 
   if (RecognizePattern(trackedFrame, patternRecognitionError) != PLUS_SUCCESS)
   {
@@ -85,6 +79,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
+  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
+
   m_FidSegmentation.Clear();
   m_FidLineFinder.Clear();
   m_FidLabeling.Clear();
@@ -104,23 +100,10 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   //Start of the segmentation
   m_FidSegmentation.MorphologicalOperations();
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
-  m_FidSegmentation.Cluster();
+  m_FidSegmentation.Cluster(patternRecognitionError);
   //End of the segmentation
 
   m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
-
-  // If the number of candidates is arbitrarily high, return with an error code that will tell the system
-  // to warn the user that the number of candidates is too high
-  if( m_FidSegmentation.GetDotsVector().size() > m_MaxNumberOfCandidates )
-  {
-    patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
-    // Set the FiducialPointsCoordinatePx to _non_ NULL
-    // fiducialPoints->GetNumberOfPoints() == NULL means not yet segmented
-    // fiducialPoints->GetNumberOfPoints() == 0 means segmentation failed 
-    vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
-    trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
-    return PLUS_FAIL;
-  }
 
   m_FidLineFinder.SetCandidateFidValues(m_FidSegmentation.GetCandidateFidValues());
   m_FidLineFinder.SetDotsVector(m_FidSegmentation.GetDotsVector());
@@ -155,7 +138,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
   trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
 
-  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
   return PLUS_SUCCESS;
 }
 
@@ -164,6 +146,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
+
   patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
@@ -534,7 +517,16 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
 //----------------------------------------------------------------------------
 
-void FidPatternRecognition::SetMaxNumberOfCandidates( int aMax )
+void FidPatternRecognition::SetNumberOfMaximumFiducialPointCandidates( int aValue )
 {
-  m_MaxNumberOfCandidates = aMax;
+  int numWires(0);
+  for( std::vector<Pattern*>::iterator it = m_FidLabeling.GetPatterns().begin(); it != m_FidLabeling.GetPatterns().end(); ++it )
+  {
+    numWires += (*it)->Wires.size();
+  }
+  if( aValue < numWires )
+  {
+    LOG_WARNING("Number of maximum fiducial point candidates is smaller than the number of wires contained in the pattern.");
+  }
+  this->m_FidSegmentation.SetNumberOfMaximumFiducialPointCandidates(aValue);
 }

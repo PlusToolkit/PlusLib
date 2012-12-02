@@ -12,14 +12,13 @@ vtkStylusCalibrationTest uses this configuration"
 		Type="FakeTracker"
 		AcquisitionRate="50"
 		LocalTimeOffsetSec="0.0"
-		Mode="PivotCalibration"
-		AveragedItemsForFiltering="20"
+		Mode="PivotCalibration"		
 		Selectable="true" >
-		<Tool Id="Reference" Name="Reference" BufferSize="1000" PortName="0" />
-		<Tool Id="Stylus" Name="Stylus" BufferSize="1000" PortName="1" Model="Example" />
+		<Tool Name="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
+		<Tool Name="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />
 		<OutputStream Id="Output">
-			<Tool Id="Reference" />
-			<Tool Id="Stylus" />
+			<Tool Name="Reference" />
+			<Tool Name="Stylus" />
 		</OutputStream>
     </Device>
 

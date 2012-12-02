@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
   freehandCalibration->ReadConfiguration(configRootElement);
 
   FidPatternRecognition patternRecognition;
-  FidPatternRecognition::PatternRecognitionError error;
+  PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   // Load and segment calibration image

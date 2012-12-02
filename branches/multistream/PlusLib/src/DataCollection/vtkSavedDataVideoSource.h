@@ -71,6 +71,11 @@ public:
   /*! Get local video buffer */
   vtkGetObjectMacro(LocalVideoBuffer, vtkPlusStreamBuffer); 
 
+  /*!
+    Perform any completion tasks once configured
+  */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   /*! Constructor */
   vtkSavedDataVideoSource();

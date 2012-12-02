@@ -79,7 +79,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
 
   <Segmentation
-    MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1.0"

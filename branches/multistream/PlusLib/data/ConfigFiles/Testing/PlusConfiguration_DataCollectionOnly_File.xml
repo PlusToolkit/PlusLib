@@ -13,9 +13,8 @@
 		UseData="IMAGE_AND_TRANSFORM"
 		UseOriginalTimestamps="TRUE"
 		RepeatEnabled="TRUE"
-		Selectable="true"
-		BufferSize="100" >
-		<OutputStream Id="Output" />
+		Selectable="true" >
+		<OutputStream Id="Output" BufferSize="100" />
 	</Device>
 
   </DataCollection>

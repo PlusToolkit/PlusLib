@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing image data segmentation...");
   int numberOfSuccessfullySegmentedImages = 0;
-  FidPatternRecognition::PatternRecognitionError error;
+  PatternRecognitionError error;
   patternRecognition.RecognizePattern(trackedFrameList, error, &numberOfSuccessfullySegmentedImages);
   LOG_INFO("Segmentation success rate: " << numberOfSuccessfullySegmentedImages << " out of " << trackedFrameList->GetNumberOfTrackedFrames()
     << " (" << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%)");

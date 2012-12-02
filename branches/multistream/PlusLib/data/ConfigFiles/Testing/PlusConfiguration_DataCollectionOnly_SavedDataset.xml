@@ -13,12 +13,10 @@
 		LocalTimeOffsetSec="0.0"
 		DefaultToolName="Probe"
 		SequenceMetafile="NwirePhantomFreehand.mha"
-		AveragedItemsForFiltering="20"
 		Selectable="true" >
-
-		<Tool BufferSize="200" Id="Tool" Name="Tool" PortName="0" />
+		<Tool BufferSize="200" AveragedItemsForFiltering="20" Name="Tool" PortName="0" />
 		<OutputStream Id="SavedDataTrackerOutput">
-			<Tool Id="Tool"/>
+			<Tool Name="Tool"/>
 		</OutputStream>
     </Device>
 
@@ -26,15 +24,12 @@
 		Id="SavedDataVideo"
 		Type="SavedVideoDataset" 
 		UseData="IMAGE"
-		BufferSize="200" 
 		AcquisitionRate="10" 
-		AveragedItemsForFiltering="20" 
 		LocalTimeOffsetSec="0.0" 
 		UsImageOrientation="MF"
 		SequenceMetafile="NwirePhantomFreehand.mha"
 		Selectable="true" >
-
-		<OutputStream Id="SavedDataVideoOutput" />
+		<OutputStream Id="SavedDataVideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
 	</Device>
   </DataCollection>
 

@@ -14,8 +14,8 @@
 		UseOriginalTimestamps="TRUE"
 		RepeatEnabled="TRUE"
 		Selectable="true"
-		BufferSize="100">
-		<OutputStream Id="Output" />
+		>
+		<OutputStream Id="Output" BufferSize="100"/>
 	</Device>
 
   </DataCollection>
@@ -92,7 +92,6 @@
 
 
   <Segmentation
-	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
     MorphologicalOpeningBarSizeMm="1.0"

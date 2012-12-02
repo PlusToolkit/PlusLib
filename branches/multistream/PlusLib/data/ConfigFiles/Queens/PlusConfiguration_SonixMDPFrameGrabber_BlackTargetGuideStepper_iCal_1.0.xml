@@ -84,7 +84,6 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
 
   <Segmentation
-	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.3"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"

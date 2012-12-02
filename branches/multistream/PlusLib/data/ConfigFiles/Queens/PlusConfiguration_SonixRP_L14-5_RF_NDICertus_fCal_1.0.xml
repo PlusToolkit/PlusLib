@@ -88,7 +88,6 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
   
 
   <Segmentation
-	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.098"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"

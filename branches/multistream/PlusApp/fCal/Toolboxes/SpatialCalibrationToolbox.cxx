@@ -687,12 +687,16 @@ void SpatialCalibrationToolbox::DoCalibration()
 
   // Segment last recorded images
   int numberOfNewlySegmentedImages = 0;
-  FidPatternRecognition::PatternRecognitionError error;
+  PatternRecognitionError error;
   if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to segment tracked frame list!"); 
     CancelCalibration();
     return; 
+  }
+  if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+  {
+    LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
   }
 
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)

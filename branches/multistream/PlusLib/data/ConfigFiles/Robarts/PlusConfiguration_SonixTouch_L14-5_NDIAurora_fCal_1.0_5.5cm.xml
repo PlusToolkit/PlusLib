@@ -97,7 +97,6 @@
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
   <Segmentation
-	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.0964686"
     MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="1"

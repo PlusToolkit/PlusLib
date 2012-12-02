@@ -423,3 +423,15 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
 
   return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkSavedDataVideoSource::NotifyConfigured()
+{
+  if( this->GetBuffer() == NULL )
+  {
+    LOG_ERROR("Buffer not created for vtkSavedDataVideoSource but it is required. Check configuration.");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

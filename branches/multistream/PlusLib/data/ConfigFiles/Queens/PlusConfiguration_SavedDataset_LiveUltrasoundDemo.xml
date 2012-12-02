@@ -86,7 +86,6 @@ The desired file name with path needs to be added to this XML file as values Seq
   
 
   <Segmentation
-	MaxCandidates="80"
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="1.0"
