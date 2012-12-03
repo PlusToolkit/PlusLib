@@ -29,14 +29,8 @@ vtkPlusStream::vtkPlusStream(void)
 //----------------------------------------------------------------------------
 vtkPlusStream::~vtkPlusStream(void)
 {
-  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
-  {
-    it->second->Delete();
-  }
-  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
-  {
-    it->second->Delete();
-  }
+  StreamBuffers.clear();
+  Tools.clear();
 }
 
 //----------------------------------------------------------------------------

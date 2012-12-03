@@ -9,6 +9,7 @@
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer.h"
+#include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
@@ -73,6 +74,8 @@ int main(int argc, char* argv[])
 	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
 	sonixGrabber->SetImagingMode(0);
 	sonixGrabber->SetAcquisitionDataType(0x00000005);
+  vtkSmartPointer<vtkPlusStreamBuffer> aBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+  sonixGrabber->AddDefaultBuffer(aBuffer, 0);
 	if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to set video buffer size!"); 

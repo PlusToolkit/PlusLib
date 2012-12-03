@@ -122,7 +122,7 @@ public:
     These functions exist to allow automatic tests to pass
     Not used in the traditional stream, these items should be initialized via a config file
   */
-  virtual PlusStatus AddDefaultStream(vtkPlusStream* aStream);
+  virtual PlusStatus AddDefaultStream(vtkSmartPointer<vtkPlusStream> aStream);
   virtual PlusStatus AddDefaultBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port);
 
   /*! 
@@ -489,7 +489,7 @@ protected:
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
   /*! Tracker tools */
-  ToolContainer ToolContainer; 
+  ToolContainer Tools; 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 
 

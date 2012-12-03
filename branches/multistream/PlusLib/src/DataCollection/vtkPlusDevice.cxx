@@ -107,7 +107,7 @@ vtkPlusDevice::~vtkPlusDevice()
   }
 
   this->OutputStreams.clear();
-  this->ToolContainer.clear();
+  this->Tools.clear();
 
   delete CurrentStreamBufferItem; CurrentStreamBufferItem = NULL;
 
@@ -142,7 +142,7 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "ToolReferenceFrameName: " << this->ToolReferenceFrameName << "\n";
   }
 
-  for( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkPlusStreamTool* tool = it->second;
     tool->PrintSelf(os, indent);
@@ -181,19 +181,19 @@ void vtkPlusDevice::SetToolLED(const char* portName, int led, int state)
 //----------------------------------------------------------------------------
 ToolContainerConstIterator vtkPlusDevice::GetToolIteratorBegin() const
 {
-  return this->ToolContainer.begin(); 
+  return this->Tools.begin(); 
 }
 
 //----------------------------------------------------------------------------
 ToolContainerConstIterator vtkPlusDevice::GetToolIteratorEnd() const
 {
-  return this->ToolContainer.end();
+  return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
 int vtkPlusDevice::GetNumberOfTools() const
 {
-  return this->ToolContainer.size(); 
+  return this->Tools.size(); 
 }
 
 //----------------------------------------------------------------------------
@@ -211,7 +211,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
     return PLUS_FAIL; 
   }
 
-  if ( this->ToolContainer.find( tool->GetToolName() ) == this->GetToolIteratorEnd() )
+  if ( this->Tools.find( tool->GetToolName() ) == this->GetToolIteratorEnd() )
   {
     // Check tool port names, it should be unique too
     for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
@@ -226,7 +226,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
 
     tool->Register(this); 
     tool->SetDevice(this); 
-    this->ToolContainer[tool->GetToolName()] = tool; 
+    this->Tools[tool->GetToolName()] = tool; 
   }
   else
   {
@@ -267,9 +267,9 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlus
     return PLUS_FAIL; 
   }
 
-  if( this->ToolContainer.find(aToolName) != this->ToolContainer.end() )
+  if( this->Tools.find(aToolName) != this->Tools.end() )
   {
-    aTool = this->ToolContainer.find(aToolName)->second;
+    aTool = this->Tools.find(aToolName)->second;
     return PLUS_SUCCESS;
   }
 
@@ -297,7 +297,7 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkSmartPoint
     return PLUS_FAIL; 
   }
 
-  for ( ToolContainerIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+  for ( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
@@ -351,7 +351,7 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  for( ToolContainerIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkSmartPointer<vtkPlusStreamTool> tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
@@ -362,7 +362,7 @@ void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
 {
   LOG_TRACE("vtkPlusDevice::DeepCopy"); 
-  for ( ToolContainerConstIterator it = device->ToolContainer.begin(); it != device->ToolContainer.end(); ++it )
+  for ( ToolContainerConstIterator it = device->Tools.begin(); it != device->Tools.end(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
     if ( this->AddTool(it->second) != PLUS_SUCCESS )
@@ -427,7 +427,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
 
   // Get the number of items from buffers and use the lowest
   int numberOfItems(-1); 
-  for ( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+  for ( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if ( numberOfItems < 0 || numberOfItems > it->second->GetBuffer()->GetNumberOfItems() )
     {
@@ -440,7 +440,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
   PlusStatus status=PLUS_SUCCESS;
 
   // Get the first tool
-  vtkPlusStreamTool* firstActiveTool = this->ToolContainer.begin()->second; 
+  vtkPlusStreamTool* firstActiveTool = this->Tools.begin()->second; 
 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
@@ -495,7 +495,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
     trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
 
     // Add transforms
-    for ( ToolContainerConstIterator it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+    for ( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
     {
       StreamBufferItem toolBufferItem; 
       if ( it->second->GetBuffer()->GetStreamBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusStreamBuffer::EXACT_TIME ) != ITEM_OK )
@@ -2537,7 +2537,7 @@ PlusStatus vtkPlusDevice::AddDefaultBuffer( vtkSmartPointer<vtkPlusStreamBuffer>
 {
   if( this->OutputStreams.size() == 0 )
   {
-    vtkPlusStream* aStream = vtkPlusStream::New();
+    vtkSmartPointer<vtkPlusStream> aStream = vtkSmartPointer<vtkPlusStream>::New();
     this->AddDefaultStream(aStream);
   }
 
@@ -2545,7 +2545,7 @@ PlusStatus vtkPlusDevice::AddDefaultBuffer( vtkSmartPointer<vtkPlusStreamBuffer>
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddDefaultStream( vtkPlusStream* aStream )
+PlusStatus vtkPlusDevice::AddDefaultStream( vtkSmartPointer<vtkPlusStream> aStream )
 {
   if( aStream == NULL )
   {
