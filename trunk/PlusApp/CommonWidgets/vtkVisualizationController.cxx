@@ -426,7 +426,7 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL )
+  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL && this->DataCollector->GetConnected() )
   {
     // Force update of the brightness image in the DataCollector,
     // because it is the image that the image actors show
