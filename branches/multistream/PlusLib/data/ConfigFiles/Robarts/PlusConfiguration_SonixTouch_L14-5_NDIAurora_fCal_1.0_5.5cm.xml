@@ -1,25 +1,32 @@
 <PlusConfiguration version="1.4" BufferSize="2500" LocalTimeOffsetSec="0" PlusRevision="1.5.3.1738">
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet Name="SonixTouch L14-5 + NDI Aurora 5.5cm depth" Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"/>
-    <Tracker
+    
+    <Device
       Type="AuroraTracker"
+      Id="DeviceAuroraTracker"
       SerialPort="7"
       BaudRate="115200"
-      BufferSize="2500"
       AcquisitionRate="50"
-      AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0.0">
-      <Tool Name="Probe" PortName="0" Model="L14-5_38"/>
-      <Tool Name="Reference" PortName="1"/>
-      <Tool Name="Stylus" PortName="2" Model="Example"/>
-      <Tool Name="Needle" PortName="3" Model="Example"/>
-    </Tracker>
-    <ImageAcquisition
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      
+      <OutputStream Id="OutputAuroraTracker" >
+        <Tool Name="Probe"/>
+        <Tool Name="Reference"/>
+        <Tool Name="Stylus"/>
+        <Tool Name="Needle"/>
+      </OutputStream>
+    </Device>
+
+    <Device
       Type="SonixVideo"
-      BufferSize="500"
+      Id="DeviceSonixVideo"
       UsImageOrientation="UF"
       AcquisitionRate="30"
-      AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0.008"
       IP="127.0.0.1"
       ImagingMode="BMode"
@@ -33,43 +40,51 @@
       Timeout="-1"
       CompressionStatus="0"
       RfAcquisitionMode="RfOnly"
-      ConnectionSetupDelayMs="3000"/>
+      ConnectionSetupDelayMs="3000" >
+        <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20"/>
+    </Device>
+    
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="Output3DG" />
+      <InputStream Id="SonixVideoOutput" />
+    </Device>
   </DataCollection>
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
-        -0.0799459	-0.00627382	0.048951	20.9053
-        0.0498028	0.00510111	0.0783751	-29.5388
-        -0.00981088	0.0897609	-0.00103263	51.0217
-        0	0	0	1"
+        -0.0799459  -0.00627382  0.048951  20.9053
+        0.0498028  0.00510111  0.0783751  -29.5388
+        -0.00981088  0.0897609  -0.00103263  51.0217
+        0  0  0  1"
        Error="0.508814" Date="060612_162217"/>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
-        1	0	0	-410
-        0	1	0	5
-        0	0	1	0
-        0	0	0	1"
+        1  0  0  -410
+        0  1  0  5
+        0  0  1  0
+        0  0  0  1"
        Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
-        -0.359623	0.933081	0.00556339	-4.68825
-        0.932589	0.359617	-0.0308616	-94.9536
-        -0.0307971	-0.00591018	-0.999508	13.3682
-        0	0	0	1"
+        -0.359623  0.933081  0.00556339  -4.68825
+        0.932589  0.359617  -0.0308616  -94.9536
+        -0.0307971  -0.00591018  -0.999508  13.3682
+        0  0  0  1"
        Error="0.447335" Date="060612_161952"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.0398017	0.000418443	-0.999208	1.7268
-        -0.0105126	0.999945	0	-0.456091
-        0.999152	0.0105043	0.0398039	43.3483
-        0	0	0	1"
+        0.0398017  0.000418443  -0.999208  1.7268
+        -0.0105126  0.999945  0  -0.456091
+        0.999152  0.0105043  0.0398039  43.3483
+        0  0  0  1"
        Error="0.191584" Date="060612_161836"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
-        0.0947946	0	0	0
-        0	0.0900239	0	0
-        0	0	0.0924118	0
-        0	0	0	1"
+        0.0947946  0  0  0
+        0  0.0900239  0  0
+        0  0  0.0924118  0
+        0  0  0  1"
        Date="060612_162219"/>
   </CoordinateDefinitions>
   <Rendering WorldCoordinateFrame="Reference">
@@ -82,17 +97,17 @@
       />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
-        1	0	0	-210
-        0	1	0	0
-        0	0	1	0
-        0	0	0	1"
+        1  0  0  -210
+        0  1  0  0
+        0  0  1  0
+        0  0  0  1"
       />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
       ModelToObjectTransform="
-        1	0	0	-15
-        0	1	0	10
-        0	0	1	-5
-        0	0	0	1"
+        1  0  0  -15
+        0  1  0  10
+        0  0  1  -5
+        0  0  0  1"
       />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
@@ -144,9 +159,9 @@
     FillHoles="Off"/>
   <fCal
     PhantomModelId="PhantomModel"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

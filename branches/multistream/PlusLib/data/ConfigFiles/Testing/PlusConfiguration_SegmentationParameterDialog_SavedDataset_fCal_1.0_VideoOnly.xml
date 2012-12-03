@@ -6,16 +6,18 @@
       Description="Saved dataset for video only" 
     />
 
-    <ImageAcquisition Type="SavedDataset"
+    <Device
+      Type="SavedVideoDataset"
+      Id="DeviceSavedDataset"
       UseData="IMAGE"    
-      BufferSize="200" 
       AcquisitionRate="10" 
-      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="0.12" 
       SequenceMetafile="AllSegmentablefCal.mha"
       UsImageOrientation="MF"
-      RepeatEnabled="TRUE"
-    />
+      RepeatEnabled="TRUE" 
+      Selectable="true" >
+        <OutputStream Id="SavedDatasetOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+    </Device>
   </DataCollection>
 
 

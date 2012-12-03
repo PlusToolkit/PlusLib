@@ -6,13 +6,16 @@
       Description="Data collector in file mode providing sequence for freehand calibration" 
     />
     
-    <ImageAcquisition
-      Type="SavedDataset"
+    <Device
+      Type="SavedVideoDataset"
+      Id="DeviceSavedDataset"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      />
+      RepeatEnabled="TRUE" 
+      Selectable="true">
+        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+    </Device>
     
   </DataCollection>
 
@@ -51,7 +54,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -135,10 +138,10 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
-	ReconstructedVolumeId="Volume"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
+  ReconstructedVolumeId="Volume"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

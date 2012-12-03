@@ -6,14 +6,29 @@
       Description="Configuration file for No video + Phidget Spatial accelerometer. Keep the device stationary for 2 seconds after connect." 
     />
 
-    <Tracker Type="PhidgetSpatial" AhrsAlgorithm="MADGWICK_MARG" AhrsAlgorithmGain="1.5" TiltSensorWestAxisIndex="1" BufferSize="2500" AcquisitionRate="125" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="OrientationSensor" PortName="OrientationSensor" />    
-      <xTool Name="TiltSensor" PortName="TiltSensor" />
-      <xTool Name="Accelerometer" PortName="Accelerometer" />
-      <xTool Name="Gyroscope" PortName="Gyroscope" />
-      <xTool Name="Magnetometer" PortName="Magnetometer" />     
-    </Tracker>
-
+    <Device
+      Type="PhidgetSpatial"
+      Id="DevicePhidgetSpatial"
+      AhrsAlgorithm="MADGWICK_MARG"
+      AhrsAlgorithmGain="1.5"
+      TiltSensorWestAxisIndex="1"
+      AcquisitionRate="125"
+      LocalTimeOffsetSec="0.0" 
+      Selectable="true">
+      <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
+      <xTool Name="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <xTool Name="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <xTool Name="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <xTool Name="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>     
+      
+      <OutputStream Id="OutputPhidgetSpatial" >
+        <Tool Name="OrientationSensor"/>
+        <xTool Name="TiltSensor"/>
+        <xTool Name="Accelerometer"/>
+        <xTool Name="Gyroscope"/>
+        <xTool Name="Magnetometer"/>
+      </OutputStream>
+    </Device>
   </DataCollection>
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 

@@ -7,16 +7,15 @@
     />
       
     <Device
-		Id="SavedData"
-		Type="SavedVideoDataset"
-		SequenceMetafile="fCal_Test_Calibration.mha"
-		UseData="IMAGE_AND_TRANSFORM"
-		UseOriginalTimestamps="TRUE"
-		RepeatEnabled="TRUE"
-		Selectable="true" >
-		<OutputStream Id="Output" BufferSize="100" />
-	</Device>
-
+      Id="SavedData"
+      Type="SavedVideoDataset"
+      SequenceMetafile="fCal_Test_Calibration.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      Selectable="true" >
+      <OutputStream Id="Output" BufferSize="100" />
+    </Device>
   </DataCollection>
 
 </PlusConfiguration>
