@@ -308,6 +308,11 @@ PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement
   toolElement->SetAttribute("PortName", this->GetPortName());
   toolElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
 
+  if( toolElement->GetAttribute("AveragedItemsForFiltering") != NULL )
+  {
+    toolElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
+  }
+
   return PLUS_SUCCESS;
 }
 

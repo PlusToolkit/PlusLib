@@ -534,6 +534,12 @@ void vtkPlusStreamBuffer::SetAveragedItemsForFiltering( int averagedItemsForFilt
 }
 
 //----------------------------------------------------------------------------
+int vtkPlusStreamBuffer::GetAveragedItemsForFiltering()
+{
+  return this->StreamBuffer->GetAveragedItemsForFiltering();
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusStreamBuffer::SetStartTime( double startTime)
 {
   this->StreamBuffer->SetStartTime(startTime); 

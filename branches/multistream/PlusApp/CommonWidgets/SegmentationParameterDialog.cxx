@@ -1235,7 +1235,11 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
 
-  if( ui.doubleSpinBox_MaxCandidates->value() != FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  {
+    segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+  }
+  else if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL )
   {
     segmentationParameters->SetIntAttribute("NumberOfMaximumFiducialPointCandidates", ui.doubleSpinBox_MaxCandidates->value());
   }

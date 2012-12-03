@@ -128,6 +128,10 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
   {
     // TODO : extend this to support multiple buffers per stream
     aStreamElement->SetIntAttribute("BufferSize", this->StreamBuffers[0]->GetBufferSize());
+    if( aStreamElement->GetAttribute("AveragedItemsForFiltering") != NULL )
+    {
+      aStreamElement->SetIntAttribute("AveragedItemsForFiltering", this->StreamBuffers[0]->GetAveragedItemsForFiltering());
+    }
   }
 
   for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )

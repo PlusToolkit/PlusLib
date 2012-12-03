@@ -165,6 +165,8 @@ public:
   /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
   virtual void SetAveragedItemsForFiltering(int averagedItemsForFiltering); 
 
+  virtual int GetAveragedItemsForFiltering();
+
   /*! Set recording start time */
   virtual void SetStartTime( double startTime ); 
   /*! Get recording start time */
