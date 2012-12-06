@@ -6,10 +6,20 @@
       Description="Configuration file for No video + CHRobotics CHR-UM6 MARG sensor" 
     />
 
-    <Tracker Type="ChRobotics" SerialPort="5" BaudRate="115200" FirmwareDirectory="ChRoboticsFirmware" BufferSize="2500" AcquisitionRate="20" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="OrientationSensor" PortName="OrientationSensor" />
-    </Tracker>
-
+    <Device 
+      Type="ChRobotics"
+      Id="DeviceChRobotics"
+      SerialPort="5"
+      BaudRate="115200"
+      FirmwareDirectory="ChRoboticsFirmware"
+      AcquisitionRate="20"
+      LocalTimeOffsetSec="0.0" 
+      Selectable="true">
+      <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <OutputStream Id="Output">
+        <Tool Name="OrientationSensor"/>
+      </OutputStream>
+    </Device>
   </DataCollection>
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 

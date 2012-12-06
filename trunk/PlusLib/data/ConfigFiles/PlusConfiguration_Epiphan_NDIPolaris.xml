@@ -6,19 +6,37 @@
       Description="Epiphan framegrabber image acquisition + NDI Polaris for tracking"
     />
 
-    <Tracker Type="PolarisTracker" SerialPort="3" BaudRate="115200" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" />
-      <Tool Name="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" />
-      <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" />
-    </Tracker>
+    <Device
+      Type="PolarisTracker"
+      Id="DevicePolarisTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0" >
+        <Tool Name="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <Tool Name="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        
+        <OutputStream Id="TrackerOutput" >
+          <Tool Name="Tool"/>
+          <Tool Name="Reference"/>
+          <Tool Name="Stylus"/>
+      </OutputStream>
+    </Device>
 
-    <ImageAcquisition Type="Epiphan" 
-      BufferSize="100" 
+    <Device
+      Type="Epiphan"
+      Id="DeviceEpiphan" 
       AcquisitionRate="30" 
-      UsImageOrientation="MF"
-      AveragedItemsForFiltering="20"
-    />
+      UsImageOrientation="MF" >
+      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+    </Device>
 
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="EpiphanOutput" />
+    </Device>
   </DataCollection>
 
 

@@ -582,14 +582,19 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+  
   if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
-    if (fakeTracker != NULL)
+    for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      fakeTracker->SetCounter(m_CurrentLandmarkIndex);
-      fakeTracker->SetTransformRepository(m_ParentMainWindow->GetVisualizationController()->GetTransformRepository());
-      vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
+      if (fakeTracker != NULL)
+      {
+        fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+        fakeTracker->SetTransformRepository(m_ParentMainWindow->GetVisualizationController()->GetTransformRepository());
+        vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+        break;
+      }
     }
   }
 
@@ -699,10 +704,15 @@ void PhantomRegistrationToolbox::Undo()
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
-    if (fakeTracker != NULL)
+    for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
+
+      if (fakeTracker != NULL)
+      {
+        fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+        break;
+      }
     }
   }
 
@@ -748,10 +758,15 @@ void PhantomRegistrationToolbox::Reset()
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   if (dataCollector)
   {
-    vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
-    if (fakeTracker != NULL)
+    for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
+
+      if (fakeTracker != NULL)
+      {
+        fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+        break;
+      }
     }
   }
 

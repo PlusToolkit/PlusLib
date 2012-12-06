@@ -5,21 +5,13 @@
       Name="BK ProFocus scanner and OpenIGTLink tracker connection"
       Description="BK ProFocus ultrasound scanner and OpenIGTLink TRANSFORM messages + fCal 1.2. Plus must be built in 64-bit if the operating system is 64-bit." 
     />
-	
-    <Tracker Type="OpenIGTLinkTracker"  MessageType="TRANSFORM" ServerAddress="127.0.0.1" ServerPort="18944" IgtlMessageCrcCheckEnabled="true"
-      BufferSize="500" AcquisitionRate="30" LocalTimeOffset="0.0" AveragedItemsForFiltering="20" >
 
-      <Tool Name="Probe" PortName="0" />
-      <Tool Name="Reference" PortName="1" />
-    </Tracker>
-
-    <ImageAcquisition
-      Type="BkProFocus"
+    <!-- Bk pro focus must come first for automated tests to pass -->
+    <Device Type="BkProFocus"
+      Id="DeviceBkProFocus"
       IniFileName="BkSettings/IniFile.ini"
-      BufferSize="100"
       UsImageOrientation="FM"
       AcquisitionRate="30"
-      AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0"
       ImagingMode="RfMode"
       >
@@ -35,13 +27,38 @@
           OutputImageSizePixel="600 400"
           OutputImageSpacingMmPerPixel="0.15 0.15"        
           /> 
-      </RfProcessing>  
-    </ImageAcquisition>
+      </RfProcessing>
+      <OutputStream BufferSize="100" AveragedItemsForFiltering="20" Id="VideoOutput" />
+    </Device>
+
+    <Device
+    Type="OpenIGTLinkTracker"
+    Id="DeviceOpenIGTLinkTracker"
+    MessageType="TRANSFORM"
+    ServerAddress="127.0.0.1"
+    ServerPort="18944"
+    IgtlMessageCrcCheckEnabled="true"
+    AcquisitionRate="30"
+    LocalTimeOffset="0.0" >
+      <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+    
+      <OutputStream Id="TrackerOutput">
+        <Tool Name="Probe" />
+        <Tool Name="Reference" />
+      </OutputStream>
+    </Device>
+    
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoOutput" />
+    </Device>
 
   </DataCollection>
 
   <CoordinateDefinitions>
-	<Transform From="Phantom" To="Reference"
+  <Transform From="Phantom" To="Reference"
       Matrix="0.9968 0.0075 -0.0795 -35.6089
               0.0794 0.0055 0.9968 -124.9852
               0.0079 -1.0000 0.0049 -16.7
@@ -83,7 +100,7 @@
         0 0 1 0
         0 0 0 1"
     />
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.2.stl"
