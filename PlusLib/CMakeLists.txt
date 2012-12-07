@@ -7,8 +7,8 @@ endif(COMMAND cmake_policy)
 
 # ------------------------------------------------------------------------
 # Set project version number 
-SET(PLUSLIB_VERSION_MAJOR "1")
-SET(PLUSLIB_VERSION_MINOR "8")
+SET(PLUSLIB_VERSION_MAJOR "2")
+SET(PLUSLIB_VERSION_MINOR "0")
 SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
@@ -27,6 +27,7 @@ OPTION(BUILD_TESTING
 
 SET (PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 SET (PLUSLIB_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools)
+SET (PLUSLIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # Need subversion for the automatic update of the repository
 find_package(Subversion)
 IF(Subversion_FOUND)

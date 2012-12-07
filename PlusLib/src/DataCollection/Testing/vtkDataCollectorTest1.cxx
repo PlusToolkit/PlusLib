@@ -20,12 +20,12 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamTool.h"
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkRfProcessor.h"
@@ -157,11 +157,22 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
-  dataCollector->ReadConfiguration( configRootElement );
+  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Configuration incorrect for vtkDataCollectorTest1.");
+    exit( EXIT_FAILURE );
+  }
+  vtkPlusDevice* videoDevice = NULL;
+  vtkPlusDevice* trackerDevice = NULL;
 
   if ( ! inputVideoBufferMetafile.empty() )
   {
-    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+    if( dataCollector->GetDevice(videoDevice, "SavedDataVideo") != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to locate the device with Id=\"SavedDataVideo\". Check config file.");
+      exit(EXIT_FAILURE);
+    }
+    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(videoDevice); 
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
@@ -173,7 +184,12 @@ int main(int argc, char **argv)
 
   if ( ! inputTrackerBufferMetafile.empty() )
   {
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+    if( dataCollector->GetDevice(trackerDevice, "SavedDataTracker") != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to locate the device with Id=\"SavedDataTracker\". Check config file.");
+      exit(EXIT_FAILURE);
+    }
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(trackerDevice); 
     if ( tracker == NULL )
     {
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
