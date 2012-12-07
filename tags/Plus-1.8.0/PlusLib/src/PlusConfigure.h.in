@@ -1,0 +1,110 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
+/* 
+ * Here is where system computed values get stored.
+ * These values should only change when the target compile platform changes.
+ */
+
+
+#ifndef __PlusConfigure_h
+#define __PlusConfigure_h
+
+// disable warnings for sprintf
+#define _CRT_SECURE_NO_WARNINGS
+// disable warnings for std::copy
+#define _SCL_SECURE_NO_WARNINGS
+
+#if defined(WIN32) && !defined(VTKSLICER_STATIC)
+  #pragma warning ( disable : 4275 )
+#endif
+
+#if defined(_MSC_VER)
+  #pragma warning ( disable : 4786 )
+#endif
+
+#cmakedefine PLUS_USE_OpenIGTLink
+
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifndef BUILD_SHARED_LIBS
+	
+  #define VTKSLICER_STATIC
+
+#endif
+
+#include <strstream>
+#include <iostream>
+#include "vtkSmartPointer.h"
+#include "vtkAccurateTimer.h"
+#include "PlusCommon.h"
+#include "vtkPlusLogger.h"
+#include "vtkPlusConfig.h"
+
+#define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
+#define PLUSLIB_VERSION_MAJOR @PLUSLIB_VERSION_MAJOR@
+#define PLUSLIB_VERSION_MINOR @PLUSLIB_VERSION_MINOR@
+#define DATA_PATH "${DATA_PATH}"
+#define PLUS_OPENIGTLINK_VERSION "@PLUS_OPENIGTLINK_VERSION"
+#define PLUS_OPENIGTLINK_VERSION_MAJOR @OpenIGTLink_VERSION_MAJOR@
+#define PLUS_OPENIGTLINK_VERSION_MINOR @OpenIGTLink_VERSION_MINOR@
+#define PLUS_OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
+
+#cmakedefine PLUS_USE_FAKE_TRACKER
+#cmakedefine PLUS_USE_POLARIS
+#cmakedefine PLUS_USE_CERTUS	
+#cmakedefine PLUS_USE_MICRONTRACKER
+#cmakedefine PLUS_USE_BRACHY_TRACKER
+#cmakedefine PLUS_USE_Ascension3DG
+#cmakedefine PLUS_USE_Ascension3DGm
+#cmakedefine PLUS_USE_PHIDGET_SPATIAL_TRACKER
+#cmakedefine PLUS_USE_EPIPHAN
+
+#cmakedefine PLUS_USE_MATROX_IMAGING
+#cmakedefine PLUS_USE_VFW_VIDEO
+#cmakedefine PLUS_USE_ULTRASONIX_VIDEO
+#cmakedefine PLUS_USE_VIDEO_LINUX
+#cmakedefine PLUS_USE_ICCAPTURING_VIDEO
+#cmakedefine PLUS_USE_BKPROFOCUS_VIDEO
+#define PLUS_ULTRASONIX_SDK_MAJOR_VERSION @PLUS_ULTRASONIX_SDK_MAJOR_VERSION@
+#define PLUS_ULTRASONIX_SDK_MINOR_VERSION @PLUS_ULTRASONIX_SDK_MINOR_VERSION@
+#define PLUS_ULTRASONIX_SDK_PATCH_VERSION @PLUS_ULTRASONIX_SDK_PATCH_VERSION@
+#cmakedefine PLUS_USE_EPIPHAN
+
+#cmakedefine PLUS_USE_HEARTSIGNALBOX
+#cmakedefine PLUS_USE_USBECGBOX 
+
+#undef DO_CALIBRATION_FILE_CALCULATIONS
+
+//High tolerance defined for to use in calibration tests in order to pass under linux (see #590)
+#define LINUXTOLERANCE 0.5
+#define LINUXTOLERANCEPERCENT 8
+
+#define DATACOLLECTOR 1
+#define DATAPROCESSOR 2
+#define DATASENDER 3
+
+//Data Collector
+#define ERRORCOLLECTOR
+#define DEBUGCOLLECTOR
+#define TIMINGCOLLECTOR
+
+//Data Processor
+#define ERRORPROCESSOR
+#define DEBUGPROCESSOR
+#define TIMINGPROCESSOR
+
+//Data Sender
+#define ERRORSENDER
+#define DEBUGSENDER
+#define TIMINGSENDER
+
+//Instrument Tracker
+//#define ERROR_INST_TRACKER
+//#define DEBUG_INST_TRACKER
+//#define TIMING_INST_TRACKER
+ 
+#endif // __PlusConfigure_h
