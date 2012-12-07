@@ -93,7 +93,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkDataCollection )
+TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkImageAcquisition )
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
     ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -121,7 +121,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULA
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkDataCollection )
+TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkImageAcquisition )
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
     ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
@@ -149,7 +149,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRE
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(TemporalCalibrationAlgoTest TemporalCalibrationAlgoTest.cxx)
-TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkDataCollection vtkCharts)
+TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkImageAcquisition vtkCharts)
 
 ADD_TEST(TemporalCalibrationAlgoTest1 
     ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
