@@ -6,7 +6,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusRevision.h"
-#include "vtkPlusDeviceFactory.h"
+#include "vtkTrackerFactory.h"
+#include "vtkPlusVideoSourceFactory.h"
 
 int main(int argc, char **argv)
 {
@@ -21,10 +22,15 @@ int main(int argc, char **argv)
   LOG_INFO("Build mode: other");
 #endif
 
-  vtkSmartPointer<vtkPlusDeviceFactory> deviceFactory = vtkSmartPointer<vtkPlusDeviceFactory>::New(); 
-  std::ostringstream supportedDevices; 
-  deviceFactory->PrintAvailableDevices(supportedDevices, vtkIndent()); 
-  LOG_INFO(supportedDevices.str()); 
+  vtkSmartPointer<vtkTrackerFactory> trackerFactory = vtkSmartPointer<vtkTrackerFactory>::New(); 
+  std::ostringstream supportedTrackers; 
+  trackerFactory->PrintAvailableTrackers(supportedTrackers, vtkIndent()); 
+  LOG_INFO(supportedTrackers.str()); 
+  
+  vtkSmartPointer<vtkPlusVideoSourceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusVideoSourceFactory>::New(); 
+  std::ostringstream supportedVideoSources; 
+  videoSourceFactory->PrintAvailableVideoSources(supportedVideoSources, vtkIndent()); 
+  LOG_INFO(supportedVideoSources.str());
 
   return EXIT_SUCCESS; 
 }
