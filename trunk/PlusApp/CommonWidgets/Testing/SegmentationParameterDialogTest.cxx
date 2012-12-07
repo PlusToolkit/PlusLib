@@ -4,14 +4,16 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "ConfigFileSaverDialog.h"
+#include "SegmentationParameterDialogTest.h"
+
+#include "vtkXMLUtilities.h"
+
+#include "vtkTracker.h"
+#include "vtkDataCollector.h"
 #include "DeviceSetSelectorWidget.h"
 #include "SegmentationParameterDialog.h"
-#include "SegmentationParameterDialogTest.h"
+#include "ConfigFileSaverDialog.h"
 #include "StatusIcon.h"
-#include "vtkDataCollector.h"
-#include "vtkPlusDevice.h"
-#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 

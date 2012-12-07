@@ -5,16 +5,22 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CapturingToolbox.h"
-#include "TrackedFrame.h"
-#include "VolumeReconstructionToolbox.h"
+
 #include "fCalMainWindow.h"
-#include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
-#include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
-#include "vtksys/SystemTools.hxx"
+#include "VolumeReconstructionToolbox.h"
+
+#include "vtkPlusVideoSource.h" // Only to get maximum frame rate in device mode
+#include "vtkTracker.h" // Only to get maximum frequency in device mode
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTimer>
+
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
+
+#include "vtksys/SystemTools.hxx"
 
 //-----------------------------------------------------------------------------
 
@@ -574,7 +580,7 @@ double CapturingToolbox::GetMaximumFrameRate()
   }
 
   double frameRate = 0.0;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate)  != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get frame rate from data collector!");
   }

@@ -6,29 +6,18 @@
       Description="MicronTracker" 
     />
 
-    <Device
-      Type="MicronTracker"
-      Id="DeviceMicronTracker"
-      AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0"
-      TemplateDirectory="Markers"
-      IniFile="MicronTracker.ini" >
-      <Tool Name="Probe" PortName="1b" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="OutputMicronTracker" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
-    </Device>
+    <Tracker Type="MicronTracker" BufferSize="500" AcquisitionRate="20" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" TemplateDirectory="Markers" IniFile="MicronTracker.ini">
+      <Tool Name="Probe" PortName="1b" />
+      <Tool Name="Reference"  PortName="TTblock" />
+      <Tool Name="Stylus" PortName="2b" />
+    </Tracker>
 
-    <Device
-      Id="SonixVideo"
+    <ImageAcquisition
       Type="SonixVideo" 
+      BufferSize="500" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
+      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
       ImagingMode="BMode"
@@ -40,15 +29,8 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" >
-      <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20"  />
-    </Device>
-
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="OutputMicronTracker" />
-      <InputStream Id="SonixOutput" />
-    </Device>
+      CompressionStatus="0" 
+    />
     
   </DataCollection>
 
@@ -73,7 +55,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="

@@ -6,26 +6,18 @@
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
 
-    <Device
-      Type="Ascension3DG"
-      Id="DeviceAscension3DG"
-      AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
-      FilterAcWideNotch="1" >
-      <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="Output3DG" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
-    </Device>
+    <Tracker Type="Ascension3DG" BufferSize="500" AcquisitionRate="50" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" FilterAcWideNotch="1">
+      <Tool Name="Probe" PortName="0" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" />
+    </Tracker>
 
-    <Device Type="SonixVideo" Id="DeviceSonixVideo" 
+    <ImageAcquisition
+      Type="SonixVideo" 
+      BufferSize="500" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
+      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
       ImagingMode="BMode"
@@ -37,15 +29,9 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" >
-        <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-    </Device>
+      CompressionStatus="0" 
+    />
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="Output3DG" />
-      <InputStream Id="SonixOutput" />
-    </Device>
   </DataCollection>
 
 
@@ -69,7 +55,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="

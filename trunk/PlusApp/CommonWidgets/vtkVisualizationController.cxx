@@ -6,19 +6,22 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
+
 #include "vtkDirectory.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
-#include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h" // Only for dumping buffers
+#include "vtkVisualizationController.h"
+#include "vtkPlusVideoSource.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTracker.h" // Only for dumping buffers
 #include "vtkTransform.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusDataBuffer.h" // Only for dumping buffers
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
+
 #include <QApplication>
 #include <QEvent>
 #include <QTimer>
@@ -68,6 +71,7 @@ vtkVisualizationController::vtkVisualizationController()
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
   imageVisualizer->AssignResultPolyData(this->ResultPolyData);
+  // TODO : find a mechanism to determine when this should be shown
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
@@ -219,7 +223,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->DataCollector->GetVideoDataAvailable() == false)
+    if (this->DataCollector->GetVideoEnabled() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
@@ -364,10 +368,24 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
     return PLUS_FAIL;
   }
 
-  if( this->DataCollector->DumpBuffersToDirectory(aDirectory) != PLUS_SUCCESS )
+  // Assemble file names
+  std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
+  std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
+  outputVideoBufferSequenceFileName.append(dateAndTime);
+  std::string outputTrackerBufferSequenceFileName = "BufferDump_Tracker_";
+  outputTrackerBufferSequenceFileName.append(dateAndTime);
+
+  // Dump buffers to file 
+  if ( this->DataCollector->GetVideoSource() != NULL )
   {
-    LOG_ERROR("Unable to dump data buffers to file.");
-    return PLUS_FAIL;
+    LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
+    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
+  }
+
+  if ( this->DataCollector->GetTracker() != NULL )
+  {
+    LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
+    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
   }
 
   return PLUS_SUCCESS;
@@ -408,8 +426,7 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  vtkPlusDevice* aDevice = NULL;
-  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL && this->DataCollector->GetConnected() )
   {
     // Force update of the brightness image in the DataCollector,
     // because it is the image that the image actors show
@@ -598,8 +615,7 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 PlusStatus vtkVisualizationController::ConnectInput()
 {
-  vtkPlusDevice* aDevice = NULL;
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetVideoSource() != NULL )
   {
     this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;

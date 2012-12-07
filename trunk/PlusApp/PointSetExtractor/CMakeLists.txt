@@ -3,6 +3,8 @@ SET (PSEXT_LIBS
 #     vtkFiltering
 #     vtkHybrid
 #     vtkDataCollection 
+#     vtkImageAcquisition
+#     vtkTracking
      vtkPlusCommon
     )
 

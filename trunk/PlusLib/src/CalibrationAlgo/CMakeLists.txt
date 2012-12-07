@@ -44,7 +44,7 @@ SET (CalibrationAlgo_LIBS
   itkvnl_algo 
   PatternLocAlgo 
   vtkPlusCommon
-  vtkDataCollection
+  vtkTracking
   )
 
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
