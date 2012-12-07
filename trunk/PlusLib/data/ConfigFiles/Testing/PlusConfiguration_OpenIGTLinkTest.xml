@@ -6,14 +6,16 @@
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
     />
       
-    <ImageAcquisition
-      Type="SavedDataset"
+    <Device
+      Id="SomeVideoDevice"
+      Type="SavedVideoDataset"
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
-      />
-
+      Selectable="true" >
+      <OutputStream Id="Output" BufferSize="100"/>
+    </Device>
   </DataCollection>
 
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
@@ -25,11 +27,11 @@
       <TransformNames> 
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" /> 
-		<Transform Name="ProbeToReference" />
+    <Transform Name="ProbeToReference" />
       </TransformNames>
-	  <ImageNames>
-	    <Image Name="Image" EmbeddedTransformToFrame="Reference" />
-	  </ImageNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
   
@@ -46,11 +48,11 @@
       Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
       Error="0.582721" Date="012712_152030"
     />
-	<Transform From="Image" To="Probe"
+  <Transform From="Image" To="Probe"
       Matrix=" 0    0.08 0    11
-         	  -0.08 0    0    50
-		 	   0    0    0.08  0
-			   0    0    0     1"
+             -0.08 0    0    50
+          0    0    0.08  0
+         0    0    0     1"
       Error="0.582721" Date="012712_152030"
     />
   </CoordinateDefinitions> 
@@ -65,7 +67,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -154,10 +156,10 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-	ReconstructedVolumeId="Volume"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+  ReconstructedVolumeId="Volume"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="140"
     NumberOfValidationImagesToAcquire="70"
     NumberOfStylusCalibrationPointsToAcquire="200"

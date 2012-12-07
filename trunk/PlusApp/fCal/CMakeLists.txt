@@ -13,7 +13,7 @@ SET (fCal_SRCS
 	Toolboxes/ConfigurationToolbox.cxx
 	Toolboxes/CapturingToolbox.cxx
 	Toolboxes/SpatialCalibrationToolbox.cxx
-  Toolboxes/TemporalCalibrationToolbox.cxx
+	Toolboxes/TemporalCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
 	Toolboxes/VolumeReconstructionToolbox.cxx
@@ -27,11 +27,11 @@ endif (WIN32)
 
 SET (fCal_UI_HDRS
 		fCalMainWindow.h
-    Toolboxes/AbstractToolbox.h
+		Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
-    Toolboxes/CapturingToolbox.h
-    Toolboxes/SpatialCalibrationToolbox.h
-    Toolboxes/TemporalCalibrationToolbox.h
+		Toolboxes/CapturingToolbox.h
+		Toolboxes/SpatialCalibrationToolbox.h
+		Toolboxes/TemporalCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h
 		Toolboxes/VolumeReconstructionToolbox.h
@@ -42,7 +42,7 @@ SET (fCal_UI_SRCS
 	Toolboxes/ConfigurationToolbox.ui
 	Toolboxes/CapturingToolbox.ui
 	Toolboxes/SpatialCalibrationToolbox.ui
-  Toolboxes/TemporalCalibrationToolbox.ui
+	Toolboxes/TemporalCalibrationToolbox.ui
 	Toolboxes/StylusCalibrationToolbox.ui
 	Toolboxes/PhantomRegistrationToolbox.ui
 	Toolboxes/VolumeReconstructionToolbox.ui
@@ -78,7 +78,6 @@ SET (fCal_LIBS
     ${fCal_LIBS} 
     ${QT_LIBRARIES} 
     CommonWidgets
-    vtkImageAcquisition 
     vtkPlusCommon
     ITKIO
     itkvnl 
@@ -88,7 +87,6 @@ SET (fCal_LIBS
     vtkHybrid 
     vtkCharts
     vtkCalibrationAlgo 
-    vtkTracking 
     vtkDataCollection 
     vtkVolumeReconstruction
     )

@@ -7,23 +7,39 @@
 Connect the framegrabber via USB and plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel" 
     />
 
-    <Tracker Type="BrachyTracker" BufferSize="300" AcquisitionRate="20" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
-    </Tracker>
+    <Device
+      Type="BrachyTracker"
+      Id="DeviceBrachyTracker"
+      AcquisitionRate="20"
+      LocalTimeOffsetSec="0.0"
+      SerialPort="3"
+      BaudRate="19200"
+      BrachyStepperType="Burdette Medical Systems Digital Stepper"
+      ModelNumber="4012A18-a"
+      ModelVersion=""
+      ModelSerialNumber="01-50-149" >
+        <OutputStream Id="BrachyTrackerOutput" BufferSize="300" AveragedItemsForFiltering="20" />
+    </Device>
 
-    <ImageAcquisition Type="ICCapturing" 
-      BufferSize="100" 
+    <Device
+      Type="ICCapturing"
+      Id="DeviceICCapturing" 
       UsImageOrientation="MF"
       AcquisitionRate="30" 
-      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.13"
-
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
       VideoFormat="Y800 (640x480)"
       InputChannel="01 Video: SVideo"
-      ICBufferSize="50"
-    />
+      ICBufferSize="50" >
+        <OutputStream Id="ICCapturingOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+    </Device>
 
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="ICCapturingOutput" />
+      <InputStream Id="BrachyTrackerOutput" />
+    </Device>
   </DataCollection>
 
   

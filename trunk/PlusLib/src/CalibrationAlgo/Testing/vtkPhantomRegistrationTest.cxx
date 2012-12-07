@@ -79,8 +79,6 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  dataCollector->SetTrackingOnly(true);
-
   if (dataCollector->Connect() != PLUS_SUCCESS)
   {
     LOG_ERROR("Data collector was unable to connect to devices!");
@@ -126,7 +124,13 @@ int main (int argc, char* argv[])
   }
 
   // Acquire landmarks
-  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
+  vtkPlusDevice* device = NULL;
+  if( dataCollector->GetDevice(device, "FakeTracker") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate device with Id \"FakeTracker\". Check config file.");
+    exit(EXIT_FAILURE);
+  }
+  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(device);
   if (fakeTracker == NULL) {
     LOG_ERROR("Invalid tracker object!");
     exit(EXIT_FAILURE);

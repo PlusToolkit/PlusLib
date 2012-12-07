@@ -13,8 +13,8 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkPlusDataBuffer.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusDevice.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
 #include "vtksys/SystemTools.hxx"
@@ -77,8 +77,14 @@ int main(int argc, char **argv)
 
 
 	LOG_INFO("Copy video buffer"); 
-	vtkPlusDataBuffer *buffer = vtkPlusDataBuffer::New(); 
-  buffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer());
+	vtkPlusStreamBuffer* buffer = vtkPlusStreamBuffer::New(); 
+  vtkPlusDevice* device = NULL;
+  if( dataCollector->GetDevice(device, "SomeVideoSource") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate the device with Id=\"SomeVideoSource\". Check config file.");
+    exit(EXIT_FAILURE);
+  }
+  buffer->DeepCopy(device->GetBuffer());
 
 	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
 	buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
@@ -89,4 +95,3 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS; 
 
 }
-

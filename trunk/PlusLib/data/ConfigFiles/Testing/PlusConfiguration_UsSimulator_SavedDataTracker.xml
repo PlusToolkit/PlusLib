@@ -6,24 +6,38 @@
       Description="Simulated ultrasound from STL model and corresponding saved tracking data" 
     />
 
-    <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
+    <Device
+      Type="SavedTrackerDataset"
+      Id="DeviceSavedDataset"
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
       SequenceMetafile="UsSimulatorAlgoTestTrackingData.mha"
       RepeatEnabled="TRUE"
     >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
-      <Tool Name="Reference" PortName="1" />
-      <Tool Name="Stylus" PortName="2" Model="Example" />
-    </Tracker>
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      
+      <OutputStream Id="OutputSavedTrackerDataset" >
+        <Tool Name="Probe"/>
+        <Tool Name="Reference"/>
+        <Tool Name="Stylus"/>
+      </OutputStream>
+    </Device>
 
-    <ImageAcquisition Type="UsSimulator"
-      BufferSize="200"
+    <Device Type="UsSimulator" Id="DeviceUsSimulator"
       AcquisitionRate="10"
-      AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0.0"
-      UsImageOrientation="MF"
-    />
+      UsImageOrientation="MF">
+        <OutputStream Id="UsSimulatorOutput" BufferSize="200" AveragedItemsForFiltering="20"/>
+    </Device>
+    
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="UsSimulatorOutput" />
+      <InputStream Id="OutputSavedTrackerDataset" />
+    </Device>
   </DataCollection>
-
 
   <CoordinateDefinitions>
     <Transform
@@ -46,14 +60,14 @@
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
-	<DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume" />
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume" />
   </Rendering>
 
 
   <fCal
     PhantomModelId="PhantomModel"
-	ImageDisplayableObjectId="LiveImage"
-	ReconstructedVolumeId="Volume"
+  ImageDisplayableObjectId="LiveImage"
+  ReconstructedVolumeId="Volume"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

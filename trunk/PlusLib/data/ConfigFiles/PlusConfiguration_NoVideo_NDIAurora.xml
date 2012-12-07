@@ -7,9 +7,19 @@
 The computer needs to be on the same local network as Aurora SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
     />
 
-    <Tracker Type="AuroraTracker" SerialPort="4" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="Needle" PortName="0" />
-    </Tracker>
+    <Device
+      Type="AuroraTracker"
+      Id="DeviceAuroraTracker"
+      SerialPort="4"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0" 
+      Selectable="true">
+      <Tool Name="Needle" PortName="0" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      
+      <OutputStream Id="OutputAuroraTracker" >
+        <Tool Name="Needle"/>
+      </OutputStream>
+    </Device>
 
   </DataCollection>
 

@@ -17,7 +17,7 @@ TARGET_LINK_LIBRARIES( ConvertFcsvToXml
 	vtksys
 	vtkCommon
 	vtkIO
-	vtkImageAcquisition
+	vtkDataCollection
   ) 
   
 ADD_TEST(ConvertFcsvToXml
@@ -46,7 +46,7 @@ TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
 	vtksys
 	vtkCommon
 	vtkIO
-	vtkImageAcquisition
+	vtkDataCollection
   ) 
   
 ADD_TEST(ConvertXmlToFcsv
@@ -74,9 +74,8 @@ TARGET_LINK_LIBRARIES( PatternLocTest
 	vtksys
 	vtkCommon
 	vtkIO
-	vtkImageAcquisition
-	vtkCalibrationAlgo
-	vtkTracking	
+	vtkDataCollection
+	vtkCalibrationAlgo	
 	vtkDataCollection
   ) 
 
@@ -264,5 +263,5 @@ TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
 	vtksys
 	vtkCommon
 	vtkIO
-	vtkImageAcquisition
+	vtkDataCollection
   ) 

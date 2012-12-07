@@ -5,19 +5,17 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-
 #include "vtkDataCollector.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusVideoSource.h"
-#include "vtkPlusDataBuffer.h"
-
-#include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkXMLUtilities.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTimerLog.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 
 int main(int argc, char **argv)
 {
@@ -88,22 +86,49 @@ int main(int argc, char **argv)
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
 	dataCollector->ReadConfiguration(configRootElement);
-	if ( dataCollector->Connect() != PLUS_SUCCESS )
+
+  DeviceCollection devices;
+  dataCollector->GetSelectableDevices(devices);
+  if( devices.size() != 1 )
+  {
+    LOG_ERROR("Multiple selectable devices defined when only 1 expected. Please review configuration file.");
+    exit(EXIT_FAILURE);
+  }
+
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize data collector!"); 
     exit(EXIT_FAILURE); 
   }
+
+  vtkPlusDevice* videoDevice = NULL;
+  dataCollector->GetDevice(videoDevice, "VideoSource");
+
+  if( videoDevice == NULL )
+  {
+    LOG_ERROR("No device found with ID \"VideoSource\". Please define your video source device.");
+    exit(EXIT_FAILURE);
+  }
+
+  vtkPlusDevice* trackerDevice = NULL;
+  dataCollector->GetDevice(trackerDevice, "Tracker");
+
+  if( trackerDevice == NULL )
+  {
+    LOG_ERROR("No device found with ID \"Tracker\". Please define your tracker device.");
+    exit(EXIT_FAILURE);
+  }
   
   // Enable timestamp reporting for video and all tools
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if (videoDevice != NULL ) 
 	{
-		dataCollector->GetVideoSource()->GetBuffer()->SetTimeStampReporting(true);
+		videoDevice->GetBuffer()->SetTimeStampReporting(true);
 	}
-	if ( dataCollector->GetTracker() != NULL )
+	if ( trackerDevice != NULL )
 	{
-    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkTrackerTool* tool = it->second;
+      vtkPlusStreamTool* tool = it->second;
 		  tool->GetBuffer()->SetTimeStampReporting(true);
     }
 	}
@@ -126,28 +151,27 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Stop recording
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( videoDevice != NULL ) 
 	{
 		LOG_INFO("Stop video recording ..."); 
-		dataCollector->GetVideoSource()->StopRecording(); 
+		videoDevice->StopRecording(); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( trackerDevice != NULL )
 	{
 		LOG_INFO("Stop tracking ..."); 
-		dataCollector->GetTracker()->StopTracking(); 
+		trackerDevice->StopRecording(); 
 	}
 
 	//************************************************************************************
 	// Print statistics
-  vtkPlusVideoSource* videoSource=dataCollector->GetVideoSource();
-	if ( videoSource != NULL ) 
+	if ( videoDevice != NULL ) 
 	{    
     double realVideoFramePeriodStdevSec=0;
-		double realVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
-		double idealVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(true);
-		int numOfItems = videoSource->GetBuffer()->GetNumberOfItems(); 
-		int bufferSize = videoSource->GetBuffer()->GetBufferSize(); 
+		double realVideoFrameRate = videoDevice->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
+		double idealVideoFrameRate = videoDevice->GetBuffer()->GetFrameRate(true);
+		int numOfItems = videoDevice->GetBuffer()->GetNumberOfItems(); 
+		int bufferSize = videoDevice->GetBuffer()->GetBufferSize(); 
 
 		LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps"); 
     LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)"); 
@@ -157,22 +181,22 @@ int main(int argc, char **argv)
     // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
     int numberOfNonUniqueFrames=0;
     int numberOfValidFrames=0;
-    for ( BufferItemUidType frameUid = videoSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+    for ( BufferItemUidType frameUid = videoDevice->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoDevice->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
     {
       double time(0); 
-      if ( videoSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+      if ( videoDevice->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
       unsigned long framenum(0); 
-      if ( videoSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+      if ( videoDevice->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
       numberOfValidFrames++;
-      if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+      if (frameUid == videoDevice->GetBuffer()->GetOldestItemUidInBuffer())
       { 
         // no previous frame
         continue;
       }
       double prevtime(0); 
-      if ( videoSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
+      if ( videoDevice->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
       unsigned long prevframenum(0); 
-      if ( videoSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
+      if ( videoDevice->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
       if (framenum == prevframenum)
       {
         // the same frame number was set for different frame indexes; this should not happen
@@ -189,11 +213,11 @@ int main(int argc, char **argv)
 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( trackerDevice != NULL )
 	{
-    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkTrackerTool* tool = it->second;
+      vtkPlusStreamTool* tool = it->second;
 
 			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
 			int bufferSize = tool->GetBuffer()->GetBufferSize(); 
@@ -252,15 +276,15 @@ int main(int argc, char **argv)
   plotter->SetHideWindow(true); 
 
   // Generate tracking data acq report
-  if ( dataCollector->GetTracker() != NULL )
+  if ( trackerDevice != NULL )
   {
-    dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
+    trackerDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
   }
 
   // Generate video data acq report
-  if ( dataCollector->GetVideoSource() != NULL ) 
+  if ( videoDevice != NULL ) 
   {
-    dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
+    videoDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
   }
 
   std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 
@@ -268,16 +292,16 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Dump buffers to file 
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( videoDevice != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		videoDevice->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( trackerDevice != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->GetTracker()->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		trackerDevice->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
 	dataCollector->Disconnect(); 
