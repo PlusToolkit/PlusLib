@@ -262,7 +262,7 @@ void FidLabeling::SetAngleToleranceDeg(double value)
 
 //-----------------------------------------------------------------------------
 
-bool FidLabeling::SortCompare(std::vector<double>& temporaryLine1, std::vector<double>& temporaryLine2)
+bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2)
 {
   //used for SortPointsByDistanceFromOrigin
   return temporaryLine1[1] < temporaryLine2[1];

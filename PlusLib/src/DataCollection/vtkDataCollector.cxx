@@ -30,10 +30,10 @@ vtkStandardNewMacro(vtkDataCollector);
 
 vtkDataCollector::vtkDataCollector()
 : vtkObject()
+, StartupDelaySec(0.0)
 , SelectedDevice(NULL)
 , Connected(false)
 , Started(false)
-, StartupDelaySec(0.0) 
 {
 
 }

@@ -76,7 +76,7 @@ public:
   void SortRightToLeft( Line& line );
 
   /*! Sort the points of a line, used for sorting the points by distance from StartPoint */
-  static bool SortCompare(std::vector<double>& temporaryLine1, std::vector<double>& temporaryLine2);
+  static bool SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2);
 
   /*! Sort points of a line by their distance from the start point of the line */
   Line SortPointsByDistanceFromStartPoint(Line& fiducials); 

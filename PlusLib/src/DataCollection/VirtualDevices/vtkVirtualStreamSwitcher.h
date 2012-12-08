@@ -59,7 +59,7 @@ protected:
   std::map<vtkPlusStream*, double>  LastRecordedTimestampMap;
   vtkPlusStream*                    OutputStream;
 
-  unsigned __int64  FramesWhileInactive;
+  unsigned long FramesWhileInactive;
 
 private:
   vtkVirtualStreamSwitcher(const vtkVirtualStreamSwitcher&);
