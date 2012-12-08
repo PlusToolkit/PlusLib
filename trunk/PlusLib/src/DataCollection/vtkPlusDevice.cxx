@@ -23,7 +23,7 @@ See License.txt for details.
 #include "vtkRfProcessor.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTrackedFrameList.h"
-#include "vtksys\SystemTools.hxx"
+#include "vtksys/SystemTools.hxx"
 #include <ctype.h>
 #include <time.h>
 
@@ -44,11 +44,27 @@ const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
-: Recording(0)
+: ThreadAlive(false)
 , Connected(0)
-, AcquisitionRate(30)
-, ThreadAlive(false)
 , ThreadId(-1)
+, CurrentStream(NULL)
+, CurrentStreamBufferItem(new StreamBufferItem())
+, ToolReferenceFrameName(NULL)
+, DeviceId(NULL)
+, DeviceImageOrientation(US_IMG_ORIENT_XX)
+, AcquisitionRate(30)
+, Recording(0)
+, SaveRfProcessingParameters(false)
+, RfProcessor(vtkRfProcessor::New())
+, BlankImage(vtkImageData::New())
+, DesiredTimestamp(-1)
+, UpdateWithDesiredTimestamp(0)
+, TimestampClosestToDesired(-1)
+, FrameNumber(0)
+, FrameTimeStamp(0)
+, NumberOfOutputFrames(1)
+, OutputNeedsInitialization(1)
+, Selectable(false)
 , RequireDeviceImageOrientationInDeviceSetConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -57,22 +73,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
-, DeviceImageOrientation(US_IMG_ORIENT_XX)
-, SaveRfProcessingParameters(false)
-, RfProcessor(vtkRfProcessor::New())
-, BlankImage(vtkImageData::New())
-, FrameTimeStamp(0)
-, ToolReferenceFrameName(NULL)
-, DeviceId(NULL)
-, CurrentStreamBufferItem(new StreamBufferItem())
-, CurrentStream(NULL)
-, FrameNumber(0)
-, Selectable(false)
-, OutputNeedsInitialization(1)
-, NumberOfOutputFrames(1)
-, UpdateWithDesiredTimestamp(0)
-, DesiredTimestamp(-1)
-, TimestampClosestToDesired(-1)
 {
   this->SetNumberOfInputPorts(0);
 
