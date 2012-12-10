@@ -4,27 +4,22 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "TemporalCalibrationToolbox.h"
-
 #include "TemporalCalibrationAlgo.h"
+#include "TemporalCalibrationToolbox.h"
 #include "TrackedFrame.h"
 #include "fCalMainWindow.h"
-
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
-#include "vtkPlusVideoSource.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
-
 #include <QFileDialog>
 #include <QTimer>
-
-#include <vtkRenderWindow.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkPlot.h>
+#include <vtkRenderWindow.h>
 #include <vtkTable.h>
 #include <vtkXMLUtilities.h>
 
@@ -235,10 +230,10 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
       vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
       if ( dataCollector )
       {
-        if ( (dataCollector->GetVideoSource() != NULL)
-          && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
+        vtkPlusDevice* aDevice = NULL;
+        if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL)
         {
-          videoTimeOffset = dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec();
+          videoTimeOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec();
         }
       }
     }
@@ -336,16 +331,22 @@ void TemporalCalibrationToolbox::StartCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      if (dataCollector->GetTracker() == NULL)
+      vtkPlusDevice* aDevice;
+      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
       {
-        LOG_ERROR("No tracker device is available");
+        LOG_ERROR("No selected stream mixer. No data available.");
       }
-      else if ( (dataCollector->GetVideoSource() != NULL)
-        && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
+      if (!aDevice->GetTrackingDataAvailable())
       {
-        m_PreviousTrackerOffset = dataCollector->GetTracker()->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffsetSec(); 
-        dataCollector->SetLocalTimeOffsetSec(0.0, 0.0); 
+        LOG_ERROR("No tracking data is available in stream mixer. Does it include a tracking device?");
+      }
+      else if ( aDevice->GetVideoDataAvailable() )
+      {
+        m_PreviousTrackerOffset = aDevice->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec(); 
+        // TODO : verify this is the correct conversion to make
+        aDevice->SetLocalTimeOffsetSec(0.0); 
+        aDevice->SetToolLocalTimeOffsetSec(0.0);
         offsetsSuccessfullyRetrieved = true;
       }
     }
@@ -486,10 +487,10 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      if ( (dataCollector->GetVideoSource() != NULL)
-        && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
+      vtkPlusDevice* aDevice = NULL;
+      if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL )
       {
-        dataCollector->SetLocalTimeOffsetSec(trackerLagSec, 0.0); 
+        aDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
         offsetsSuccessfullySet = true;
       }
     }
@@ -590,8 +591,12 @@ void TemporalCalibrationToolbox::CancelCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      if ( (dataCollector->GetVideoSource() != NULL)
-        && (dataCollector->GetVideoSource()->GetBuffer() != NULL))
+      vtkPlusDevice* aDevice = NULL;
+      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("No selected stream mixer. Unable to reset the local time offset to their previous value.")
+      }
+      if ( aDevice != NULL && aDevice->GetBuffer() != NULL)
       {
         dataCollector->SetLocalTimeOffsetSec(m_PreviousTrackerOffset, m_PreviousVideoOffset); 
         offsetsSuccessfullySet = true;

@@ -11,7 +11,6 @@ See License.txt for details.
 #include "SegmentationParameterDialog.h"
 #include "TrackedFrame.h"
 #include "vtkActor.h"
-#include "vtkActor.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkConeSource.h"
@@ -22,15 +21,13 @@ See License.txt for details.
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkMath.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkPropPicker.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkSphereSource.h"
-#include "vtkSphereSource.h"
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
@@ -962,7 +959,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
     return PLUS_FAIL;
   }
 
-  if (!m_DataCollector->GetVideoEnabled()) 
+  if (!m_DataCollector->GetVideoDataAvailable()) 
   {
     LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
   }
@@ -1238,7 +1235,11 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
 
-  if( ui.doubleSpinBox_MaxCandidates->value() != FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  {
+    segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+  }
+  else if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL )
   {
     segmentationParameters->SetIntAttribute("NumberOfMaximumFiducialPointCandidates", ui.doubleSpinBox_MaxCandidates->value());
   }
