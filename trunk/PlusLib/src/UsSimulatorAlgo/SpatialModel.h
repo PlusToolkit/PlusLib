@@ -21,15 +21,15 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
    /*! Set US frequency for generated image */
  
-  void setFrequencyMHz(double frequencyMHz); 
+  void SetFrequencyMHz(double frequencyMHz); 
 
-  void setMaxIntensityWattsPerCm2(double maxIntensityWattsPerCm2); 
+  void SetIncomingIntensityWattsPerCm2(double incomingIntensityWattsPerCm2); 
 
-  double getMaxIntensityWattsPerCm2(); 
+  double GetIncomingIntensityWattsPerCm2(); 
 
   
   // acousticImpedenceNeighbouringMaterial-> perform check to see if it is the same
-  double calculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm);
+  double CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm);
 
 private:
 
@@ -43,10 +43,10 @@ private:
 
   
   /*! Ultrasound frequency */
-  double FrequencyMHz; 
+  double ImagingFrequencyMHz; 
 
    /*! Max Intensity*/
-  double MaxIntensityWattsPerCm2;
+  double IncomingIntensityWattsPerCm2;
   
   /*! Density in kg/m^3 of the material the model is comprised of */
   double DensityKgPerM3; 
@@ -63,6 +63,7 @@ private:
   /*! Specular Reflection Ratio of model material*/
   double SpecularReflectionRatio; 
 
+   /*! transformation matrix from the native model coordinate system to spatial model coordinate system used to display all models */
   vtkMatrix4x4* ModelFileToSpatialModelMatrix; 
 
 

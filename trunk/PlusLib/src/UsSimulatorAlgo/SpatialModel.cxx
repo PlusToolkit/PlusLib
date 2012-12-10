@@ -6,7 +6,8 @@
 #include "PlusConfigure.h"
 #include "SpatialModel.h"
 #include "vtkObjectFactory.h"
-const double NEPERTODECIBELCONVERSIONCONSTANT = 8.686;
+double DECIBEL_PER_NEPER = 8.685889638;
+double CONVERSION_TO_MEGARAYLS = 1000000;
 
 SpatialModel::SpatialModel()
 {
@@ -18,8 +19,8 @@ SpatialModel::SpatialModel()
   this->AttenuationCoefficientNpPerCm = 0; 
   this->ScatterCoefficientNpPerCm = 0; 
   this->SpecularReflectionRatio = 0; 
-  this->FrequencyMHz = 0; 
-  this->MaxIntensityWattsPerCm2 = 0;
+  this->ImagingFrequencyMHz = 0; 
+  this->IncomingIntensityWattsPerCm2 = 0;
 }
 
 PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
@@ -89,38 +90,58 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
   return status;
 }
 
-void SpatialModel::setFrequencyMHz(double frequencyMHz)
+void SpatialModel::SetFrequencyMHz(double frequencyMHz)
 {
-  this->FrequencyMHz = frequencyMHz; 
+  this->ImagingFrequencyMHz = frequencyMHz; 
 }
 
 
-void SpatialModel::setMaxIntensityWattsPerCm2(double maxIntensityWattsPerCm2)
+void SpatialModel::SetIncomingIntensityWattsPerCm2(double incomingIntensityWattsPerCm2)
 {
-  this->MaxIntensityWattsPerCm2 = maxIntensityWattsPerCm2; 
+  this->IncomingIntensityWattsPerCm2 = incomingIntensityWattsPerCm2; 
 }
 
-double SpatialModel::getMaxIntensityWattsPerCm2()
+double SpatialModel::GetIncomingIntensityWattsPerCm2()
 {
-  return this->MaxIntensityWattsPerCm2;
+  return this->IncomingIntensityWattsPerCm2;
 }
 
-double SpatialModel::calculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
+double SpatialModel::CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
 {
   double intensityAttenuationCoefficientNpPerCmPerHz = 0;
   intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
-  // convert to intensityAttentuationCoefficient... TODO: check math, this method may be too naive ( equations in Ultrasound Physics and INstrumentation pg 25 may
-  // have been misinterpreted)
   
+  // convert to intensityAttentuationCoefficient.
   double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
-  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientdBPerCmPerHz * NEPERTODECIBELCONVERSIONCONSTANT; 
+  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientdBPerCmPerHz * DECIBEL_PER_NEPER; 
   
+  // calculate intensity loss for transmitted wave( mu* frequency*distance traveled), which is equal to the loss caused by the reflected wave
   double intensityLossDuringWaveTransmissionDecibels = 0; 
- return intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->FrequencyMHz*distanceUSWaveTravelledCm;
+  intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->ImagingFrequencyMHz*distanceUSWaveTravelledCm;
 
+  //calcualte acoustic impedence from the denisty and velocity of the material 
+  double acousticImpedenceMegarayles = (this->DensityKgPerM3 * this->SoundVelocityMPerSec)/ CONVERSION_TO_MEGARAYLS; 
+ 
   double totalIntensityLoss = 0; 
 
- // if(acousticImpedenceNeighbouringMaterial= this->
+ 
+  // If the material hasn't changed from the previous pixel, do not incorporate reflection ( for now.. TODO: add reflection using phong illumination model)
+  if(acousticImpedenceNeighbouringMaterial = acousticImpedenceMegarayles)
+  {
+    totalIntensityLoss = intensityLossDuringWaveTransmissionDecibels * 2; // 2 for reflected wave... still counts as magic number?
+  }
+  else
+  {
+    // calculate reflection   
+    double reflection = pow((acousticImpedenceNeighbouringMaterial - acousticImpedenceMegarayles)/(acousticImpedenceNeighbouringMaterial + acousticImpedenceMegarayles),2)*100; 
+    double intensityLossDueToReflection = 10 * log10(100/reflection); 
+    totalIntensityLoss = (intensityLossDuringWaveTransmissionDecibels * 2) + intensityLossDueToReflection; 
 
+  }
+  //convert intensity to watts per cm^2
+  double totalIntensityLossWattsPerCm2 = 0; 
+  totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLossWattsPerCm2/10) * this->IncomingIntensityWattsPerCm2;
+  
+  return totalIntensityLossWattsPerCm2; 
 
 }

@@ -55,7 +55,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->NumberOfScanlines=256;
   this->NumberOfSamplesPerScanline=1000;
-  this->FrequencyMHz = 2.5;
+  this->ImagingFrequencyMHz = 2.5;
 
   this->RfProcessor=vtkRfProcessor::New();
 
@@ -321,13 +321,13 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   double usFrequencyMHz = -1;
   if ( usSimulatorAlgoElement->GetScalarAttribute("FrequencyMHz", usFrequencyMHz )) 
   {
-    this->SetFrequencyMHz(usFrequencyMHz); 
+    this->SetImagingFrequencyMHz(usFrequencyMHz); 
   }
 
-  double maxIntensityWpercm2 = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("MaxIntensityWattsPerCm2", maxIntensityWpercm2 )) 
+  double incomingIntensityWpercm2 = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("InitialIncomingIntensityWattsPerCm2", incomingIntensityWpercm2 )) 
   {
-    this->SetMaxIntensityWattsPerCm2(maxIntensityWpercm2); 
+    this->SetIncomingIntensityWattsPerCm2(incomingIntensityWpercm2); 
   }
   // Model file name
 
