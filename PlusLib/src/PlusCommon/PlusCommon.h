@@ -7,10 +7,10 @@
 #ifndef __PlusCommon_h
 #define __PlusCommon_h
 
+#include "itkImageIOBase.h"
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
-#include "itkImageIOBase.h"
-
+#include "vtkPlusMacro.h"
 #include <strstream>
 
 enum PlusStatus
