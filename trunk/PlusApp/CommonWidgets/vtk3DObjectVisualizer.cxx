@@ -380,7 +380,7 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
     }
 
     // Connect data collector to image actor
-    if (this->DataCollector->GetVideoDataAvailable())
+    if (this->DataCollector->GetVideoEnabled())
     {
       this->ImageActor->VisibilityOn();
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());

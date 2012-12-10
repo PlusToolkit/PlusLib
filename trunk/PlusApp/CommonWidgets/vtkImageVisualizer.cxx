@@ -4,11 +4,11 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
 #include "vtkConeSource.h"
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDevice.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
@@ -487,8 +487,7 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    vtkPlusDevice* aDevice = NULL;
-    if( this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+    if( this->DataCollector->GetVideoSource() != NULL )
     {
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
     }

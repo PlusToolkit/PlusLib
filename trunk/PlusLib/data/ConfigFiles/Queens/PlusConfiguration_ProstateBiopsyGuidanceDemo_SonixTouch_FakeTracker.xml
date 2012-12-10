@@ -6,26 +6,15 @@
       Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC"
     />
 
-    <xDevice
-      Type="FakeTracker"
-      AcquisitionRate="30"
-      LocalTimeOffsetSec="0.0"
-      DefaultToolName="Stylus"
-      Mode="PivotCalibration"
-      ReferenceToolName="Reference" >
-      <Tool Name="Reference" PortName="0" BufferSize="200" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="1" BufferSize="200" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="OutputFakeTracker" >
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
-    </xDevice>
+    <xTracker Type="FakeTracker" BufferSize="200" AcquisitionRate="30" LocalTimeOffsetSec="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
+      <Tool Name="Reference" PortName="0"></Tool> 
+      <Tool Name="Stylus" PortName="1" ></Tool>
+    </xTracker>
 
-    <Device
-      Type="SonixVideo"
-      Id="DeviceSonixVideo" 
+    <ImageAcquisition Type="SonixVideo" 
+      BufferSize="100" 
       UsImageOrientation="MF"
+      AveragedItemsForFiltering="20" 
       IP="130.15.7.20" 
       ImagingMode="BMode"
       AcquisitionDataType="BPost" 
@@ -36,22 +25,16 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" >
-        <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-    </Device>
+      CompressionStatus="0" 
+    />
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <xInputStream Id="OutputFakeTracker" />
-      <InputStream Id="SonixVideoOutput" />
-    </Device>
   </DataCollection>
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -68,38 +51,38 @@
   <xCoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
-        -0.0683412  -0.0064516  0.0417947  16.3721
-        0.0434727  0.00290642  0.0658372  -27.4971
-        -0.00553304  0.0744595  0.00105147  48.8042
-        0  0  0  1"
+        -0.0683412	-0.0064516	0.0417947	16.3721
+        0.0434727	0.00290642	0.0658372	-27.4971
+        -0.00553304	0.0744595	0.00105147	48.8042
+        0	0	0	1"
        Error="0.475259" Date="060612_154721"/>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
-        1  0  0  -410
-        0  1  0  5
-        0  0  1  0
-        0  0  0  1"
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
        Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
-        -0.339698  0.940469  0.0110627  -6.53095
-        0.939399  0.339842  -0.0451359  -94.2699
-        -0.0462085  -0.0049403  -0.99892  14.0551
-        0  0  0  1"
+        -0.339698	0.940469	0.0110627	-6.53095
+        0.939399	0.339842	-0.0451359	-94.2699
+        -0.0462085	-0.0049403	-0.99892	14.0551
+        0	0	0	1"
        Error="0.600242" Date="060612_154610"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.035089  0.000562193  -0.999384  1.52424
-        -0.0160199  0.999872  0  -0.695891
-        0.999256  0.01601  0.0350935  43.4069
-        0  0  0  1"
+        0.035089	0.000562193	-0.999384	1.52424
+        -0.0160199	0.999872	0	-0.695891
+        0.999256	0.01601	0.0350935	43.4069
+        0	0	0	1"
        Error="0.202318" Date="060612_154516"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
-        0.0813304  0  0  0
-        0  0.0746369  0  0
-        0  0  0.07799  0
-        0  0  0  1"
+        0.0813304	0	0	0
+        0	0.0746369	0	0
+        0	0	0.07799	0
+        0	0	0	1"
        Date="060612_154723"/>
   </xCoordinateDefinitions>
 

@@ -4,13 +4,16 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "ToolStateDisplayWidgetTest.h"
+
+#include "vtkTracker.h"
+#include "vtkDataCollector.h"
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
-#include "ToolStateDisplayWidgetTest.h"
-#include "vtkDataCollector.h"
-#include "vtkPlusDevice.h"
-#include "vtkXMLUtilities.h"
+
 #include <QTimer>
+
+#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 

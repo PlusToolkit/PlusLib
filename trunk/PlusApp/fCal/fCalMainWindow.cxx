@@ -4,24 +4,26 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "CapturingToolbox.h"
-#include "ConfigFileSaverDialog.h"
-#include "ConfigurationToolbox.h"
-#include "PhantomRegistrationToolbox.h"
-#include "SpatialCalibrationToolbox.h"
-#include "StatusIcon.h"
-#include "StylusCalibrationToolbox.h"
-#include "TemporalCalibrationToolbox.h"
-#include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
-#include "vtkRenderWindow.h"
-#include "vtkVirtualStreamMixer.h"
+
 #include "vtkVisualizationController.h"
-#include <QFileDialog>
-#include <QLabel>
-#include <QMenu>
-#include <QProgressBar>
+#include "ConfigurationToolbox.h"
+#include "StylusCalibrationToolbox.h"
+#include "PhantomRegistrationToolbox.h"
+#include "TemporalCalibrationToolbox.h"
+#include "SpatialCalibrationToolbox.h"
+#include "CapturingToolbox.h"
+#include "VolumeReconstructionToolbox.h"
+#include "StatusIcon.h"
+#include "ConfigFileSaverDialog.h"
+
 #include <QTimer>
+#include <QMenu>
+#include <QLabel>
+#include <QProgressBar>
+#include <QFileDialog>
+
+#include "vtkRenderWindow.h"
 
 //-----------------------------------------------------------------------------
 
@@ -134,7 +136,18 @@ void fCalMainWindow::Initialize()
   m_ShowROIAction->setCheckable(true);
   m_ImageManipulationActionList.push_back(m_ShowROIAction);
 
-  BuildDevicesMenu();
+  // Set up menu items for 3D manipulation menu
+  m_Show3DObjectsAction = new QCustomAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
+  connect(m_Show3DObjectsAction, SIGNAL(triggered()), this, SLOT(ShowDevicesToggled()));
+  m_Show3DObjectsAction->setCheckable(true);
+  m_3DActionList.push_back(m_Show3DObjectsAction);
+  separator = new QCustomAction("", NULL, true);
+  m_3DActionList.push_back(separator);
+  m_ShowPhantomModelAction = new QCustomAction("Show phantom model", ui.pushButton_ShowDevices);
+  connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomToggled()));
+  m_ShowPhantomModelAction->setCheckable(true);
+  m_ShowPhantomModelAction->setChecked(true);
+  m_3DActionList.push_back(m_ShowPhantomModelAction);
 
   // Declare this class as the event handler
   ui.pushButton_ShowDevices->installEventFilter(this);
@@ -708,69 +721,4 @@ void fCalMainWindow::Set3DManipulationMenuEnabled( bool aEnable)
   LOG_TRACE("fCalMainWindow::Set3DManipulationMenuEnabled(" << (aEnable?"true":"false") << ")");
 
   ui.pushButton_ShowDevices->setEnabled(aEnable);
-}
-
-//-----------------------------------------------------------------------------
-
-void fCalMainWindow::BuildDevicesMenu()
-{
-  for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
-  {
-    QCustomAction* action = *it;
-    disconnect(action, SIGNAL(triggered()));
-    delete(action);
-  }
-  m_3DActionList.clear();
-
-  // Set up menu items for 3D manipulation menu
-  m_Show3DObjectsAction = new QCustomAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
-  connect(m_Show3DObjectsAction, SIGNAL(triggered()), this, SLOT(ShowDevicesToggled()));
-  m_Show3DObjectsAction->setCheckable(true);
-  m_ShowPhantomModelAction = new QCustomAction("Show phantom model", ui.pushButton_ShowDevices);
-  connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomToggled()));
-  m_ShowPhantomModelAction->setCheckable(true);
-  m_ShowPhantomModelAction->setChecked(true);
-  m_3DActionList.push_back(m_Show3DObjectsAction);
-  QCustomAction* separator = new QCustomAction("", NULL, true);
-  m_3DActionList.push_back(separator);
-  m_3DActionList.push_back(m_ShowPhantomModelAction);
-
-  DeviceCollection aCollection;
-  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL && 
-   this->GetVisualizationController()->GetDataCollector()->GetSelectableDevices(aCollection) != PLUS_SUCCESS )
-  {
-    // Data collector might be disconnected
-    return;
-  }
-
-  separator = new QCustomAction("", NULL, true);
-  m_3DActionList.push_back(separator);
-  // now add an entry for each device
-  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
-  {
-    vtkPlusDevice* device = *it;
-    vtkPlusDevice* aDevice = NULL;
-
-    QCustomAction* action = new QCustomAction(QString(device->GetDeviceId()), ui.pushButton_ShowDevices);
-    action->setCheckable(true);
-    action->setDisabled(aCollection.size() == 1); // If there's only one device, disable action so they can't unselect it
-    if( this->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
-    {
-      action->setChecked(aDevice == device);
-    }
-    connect(action, SIGNAL(triggered()), this, SLOT(DeviceSelected(device)));
-    m_3DActionList.push_back(action);
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void fCalMainWindow::DeviceSelected( vtkPlusDevice* aDevice )
-{
-  LOG_TRACE("fCalMainWindow::DeviceSelected(" << aDevice->GetDeviceId() << ")");
-
-  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
-  {
-    this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(aDevice->GetDeviceId());
-  }
 }

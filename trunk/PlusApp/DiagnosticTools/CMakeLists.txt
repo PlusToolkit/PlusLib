@@ -4,6 +4,8 @@ SET (DIAGDATA_LIBS
      vtkFiltering
      vtkHybrid
      vtkDataCollection 
+     vtkImageAcquisition
+     vtkTracking
      vtkPlusCommon
     )
 
@@ -14,9 +16,6 @@ ENDIF(PLUS_USE_OpenIGTLink)
 #
 ADD_EXECUTABLE(DiagDataCollection DiagDataCollection.cxx)
 TARGET_LINK_LIBRARIES(DiagDataCollection ${DIAGDATA_LIBS} )
-
-ADD_EXECUTABLE( TrackingDataServer TrackingDataServer.cxx )
-TARGET_LINK_LIBRARIES( TrackingDataServer OpenIGTLink )
 
 # Install
 IF(PLUSAPP_INSTALL_BIN_DIR)

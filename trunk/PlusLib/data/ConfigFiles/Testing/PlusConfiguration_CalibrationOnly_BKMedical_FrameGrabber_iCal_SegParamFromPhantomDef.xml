@@ -1,7 +1,7 @@
 <PlusConfiguration version="1.4">
 
   <Segmentation
-  NumberOfMaximumFiducialPointCandidates="50"
+	NumberOfMaximumFiducialPointCandidates="50"
     ComputeSegmentationParametersFromPhantomDefinition="1"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
