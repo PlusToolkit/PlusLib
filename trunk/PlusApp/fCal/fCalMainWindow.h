@@ -13,6 +13,7 @@ See License.txt for details.
 #include <QtGui/QMainWindow>
 
 class vtkVisualizationController;
+class vtkPlusDevice;
 class AbstractToolbox;
 class StatusIcon;
 
@@ -168,6 +169,11 @@ public:
   /*! Reset show devices toggle button (on disconnect from devices) */
   void ResetShowDevices();
 
+  /*!
+  * Dynamically build the devices menu based on the values returned from the data collector
+  */
+  void BuildDevicesMenu();
+
 protected:
   /*!
   * Create toolboxes
@@ -214,6 +220,11 @@ protected:
     * Slot handling show phantom
     */
     void ShowPhantomToggled();
+
+    /*!
+    * Activate a certain device
+    */
+    void DeviceSelected(vtkPlusDevice* aDevice);
 
     /*!
     * Resize event handler

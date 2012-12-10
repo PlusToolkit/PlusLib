@@ -86,8 +86,8 @@ int main(int argc, char **argv)
     LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
   }
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition");
-  if (imageAcquisitionConfig == NULL)
+  vtkXMLDataElement* deviceConfig = dataCollectionConfig->FindNestedElementWithName("Device");
+  if (deviceConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection/ImageAcquisition element in XML tree!");
     return PLUS_FAIL;
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
   // Create converter
   vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
-  if ( rfProcessor->ReadConfiguration(imageAcquisitionConfig) != PLUS_SUCCESS )
+  if ( rfProcessor->ReadConfiguration(deviceConfig) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
     exit(EXIT_FAILURE); 

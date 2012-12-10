@@ -7,19 +7,30 @@
 The computer needs to be on the same local network as SonixRP and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
     />
 
-    <Tracker Type="CertusTracker" BufferSize="2500" AcquisitionRate="50" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
-      <Tool Name="Reference" PortName="1" />
-      <Tool Name="Stylus" PortName="2" Model="Example" />
-      <Tool Name="Needle" PortName="3" Model="Example"  />
-    </Tracker>
+    <Device
+      Type="CertusTracker"
+      Id="DeviceCertusTracker"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0" >
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      
+      <OutputStream Id="OutputCertusTracker" >
+        <Tool Name="Probe"/>
+        <Tool Name="Reference"/>
+        <Tool Name="Stylus"/>
+        <Tool Name="Needle"/>
+      </OutputStream>
+    </Device>
 
-    <ImageAcquisition Type="SonixVideo" 
+    <Device
+      Type="SonixVideo"
+      Id="DeviceSonixVideo" 
       IP="130.15.7.20" 
-      BufferSize="500" 
       UsImageOrientation="FM"
       AcquisitionRate="30" 
-      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.2126"
       ImagingMode="RfMode"
       AcquisitionDataType="RF"
@@ -30,8 +41,9 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" 
-      >
+      CompressionStatus="0" >
+      <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      
       <RfProcessing>
         <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
         <ScanConversion TransducerName="Ultrasonix_L9-4/38"
@@ -42,8 +54,13 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
           OutputImageSpacingMmPerPixel="0.1 0.1"        
           />
       </RfProcessing>  
-    </ImageAcquisition>      
+    </Device>      
 
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="OutputCertusTracker" />
+      <InputStream Id="SonixVideoOutput" />
+    </Device>
   </DataCollection>
 
   <CoordinateDefinitions>
@@ -149,9 +166,9 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
 
   <fCal
     PhantomModelId="PhantomModel"
-	TransducerModelId="ProbeModel"
-	StylusModelId="StylusModel"
-	ImageDisplayableObjectId="LiveImage"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

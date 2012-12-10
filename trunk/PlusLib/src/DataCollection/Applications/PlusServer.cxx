@@ -12,12 +12,13 @@ happens between two threads. In real life, it happens between two programs.
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkSmartPointer.h"
-#include "vtksys/CommandLineArguments.hxx"
 #include "vtkDataCollector.h"
-#include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkTransformRepository.h"
 #include "vtkOpenIGTLinkVideoSource.h"
+#include "vtkPlusOpenIGTLinkServer.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSmartPointer.h"
+#include "vtkTransformRepository.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 // For catching Ctrl-C
 #include <csignal>
@@ -228,9 +229,11 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
   for ( int i = 0; i < numberOfClientsToConnect; ++i )
   {
     vtkSmartPointer<vtkOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkOpenIGTLinkVideoSource>::New(); 
+    vtkSmartPointer<vtkPlusStreamBuffer> aBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+    client->AddDefaultBuffer(aBuffer, 0);
     client->SetServerAddress("localhost"); 
     client->SetServerPort(listeningPort); 
-    client->SetFrameBufferSize( 10 ); 
+    client->SetBufferSize( 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
     client->SetDeviceImageOrientation( US_IMG_ORIENT_MF ); 
 
