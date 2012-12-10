@@ -40,24 +40,23 @@ POSSIBILITY OF SUCH DAMAGES.
 =========================================================================*/
 
 #include "PlusConfigure.h"
-
-#include <limits.h>
-#include <float.h>
-#include <math.h>
-#include <ctype.h>
 #include "ndicapi.h"
 #include "ndicapi_math.h"
-#include "vtkMath.h"
-#include "vtkTimerLog.h"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkRecursiveCriticalSection.h"
-#include "vtkNDITracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkObjectFactory.h"
-#include "vtkSocketCommunicator.h"
-#include <string.h>
 #include "vtkCharArray.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkNDITracker.h"
+#include "vtkObjectFactory.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkSocketCommunicator.h"
+#include "vtkTimerLog.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
+#include <ctype.h>
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <string.h>
 
 vtkStandardNewMacro(vtkNDITracker);
 
@@ -103,6 +102,14 @@ vtkNDITracker::vtkNDITracker()
   {
     this->ReturnValue[i]=0.0;
   }
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -110,7 +117,7 @@ vtkNDITracker::~vtkNDITracker()
 {
   if (this->Recording)
   {
-    this->StopTracking();
+    this->StopRecording();
   }
   if (this->SendMatrix!=NULL)
   {
@@ -140,7 +147,7 @@ vtkNDITracker::~vtkNDITracker()
 //----------------------------------------------------------------------------
 void vtkNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkTracker::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "SendMatrix: " << this->SendMatrix << "\n";
   this->SendMatrix->PrintSelf(os,indent.GetNextIndent());
@@ -302,7 +309,7 @@ char *vtkNDITracker::Command(const char *command)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDITracker::InternalStartTracking()
+PlusStatus vtkNDITracker::InternalStartRecording()
 {
   int errnum, tool;
   int baud;
@@ -403,7 +410,7 @@ PlusStatus vtkNDITracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDITracker::InternalStopTracking()
+PlusStatus vtkNDITracker::InternalStopRecording()
 {
   if (this->Device == 0)
   {
@@ -605,7 +612,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkTrackerTool* trackerTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       if (flags != TOOL_MISSING)
@@ -615,7 +622,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     }
     else
     {
-      // send the matrix and status to the tool's vtkTrackerBuffer
+      // send the matrix and status to the tool's vtkPlusDataBuffer
       this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
     }
   }
@@ -826,7 +833,7 @@ void vtkNDITracker::EnableToolPorts()
   // get information for all tools
   ndiCommand(this->Device,"PHSR:00");
   ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  ToolIteratorType it;
+  ToolContainerConstIterator it;
   for ( it = this->GetToolIteratorBegin(), tool = 0; it != this->GetToolIteratorEnd(); ++it, ++tool)
   {
     ph = ndiGetPHSRHandle(this->Device,tool);
@@ -860,7 +867,7 @@ void vtkNDITracker::EnableToolPorts()
       }
     }
 
-    vtkTrackerTool* trackerTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
     if ( this->GetToolByPortName(it->second->GetPortName(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << it->second->GetPortName() ); 
@@ -1343,14 +1350,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -1360,7 +1360,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   unsigned long serialPort(0); 
   if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
   {
-    if ( !this->IsTracking() )
+    if ( !this->IsRecording() )
     {
       this->SetSerialPort(serialPort); 
     }
@@ -1428,14 +1428,7 @@ PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

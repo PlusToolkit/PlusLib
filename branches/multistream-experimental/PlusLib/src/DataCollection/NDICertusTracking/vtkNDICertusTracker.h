@@ -7,7 +7,7 @@
 #ifndef __vtkNDICertusTracker_h
 #define __vtkNDICertusTracker_h
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 #include "ndicapi.h"
 #include <map>
 
@@ -23,13 +23,15 @@ Certus (Northern Digital Inc., Waterloo, Canada)
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkNDICertusTracker : public vtkTracker
+class VTK_EXPORT vtkNDICertusTracker : public vtkPlusDevice
 {
 public:
 
 	static vtkNDICertusTracker *New();
-	vtkTypeMacro(vtkNDICertusTracker,vtkTracker);
+	vtkTypeMacro(vtkNDICertusTracker,vtkPlusDevice);
 	void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
@@ -66,16 +68,11 @@ protected:
 	  only be reset if communication cannot be established without
 	  a reset.
   */
-	PlusStatus InternalStartTracking();
+	PlusStatus InternalStartRecording();
 
-  /*! Start the tracking */
-	PlusStatus StartTracking();
 
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-	PlusStatus InternalStopTracking();
-	
-  /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus StopTracking();
+	PlusStatus InternalStopRecording();
 
 	/*! Cause the device to beep the specified number of times. */
 	PlusStatus InternalBeep(int n);

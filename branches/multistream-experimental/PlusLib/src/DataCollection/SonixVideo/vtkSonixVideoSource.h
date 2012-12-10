@@ -17,7 +17,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #define __vtkSonixVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 #include "ulterius.h"
 #include "ulterius_def.h"
 #include "ImagingModes.h" // Ulterius imaging modes
@@ -64,10 +64,10 @@ public:
 
   \ingroup PlusLibImageAcquisition
 */ 
-class VTK_EXPORT vtkSonixVideoSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusVideoSource);
+  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
@@ -99,6 +99,8 @@ public:
   */
   static vtkSonixVideoSourceCleanup Cleanup;
   //ETX
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -283,6 +285,8 @@ protected:
 
   /*! Stop recording or playing */
   virtual PlusStatus InternalStopRecording();
+
+  virtual PlusStatus InternalUpdate();
 
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();

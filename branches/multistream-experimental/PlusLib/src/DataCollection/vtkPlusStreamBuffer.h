@@ -15,52 +15,16 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #define __vtkPlusDataBuffer_h
 
 #include "PlusConfigure.h"
-#include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
-#include "vtkMatrix4x4.h"
 #include "vtkObject.h"
-#include "vtkPlusDevice.h"
-#include "vtkTimestampedCircularBuffer.h"
+#include "vtkPlusDeviceTypes.h"
 
-/*!
-  \class DataBufferItem 
-  \brief Stores a single video frame OR a single transform
-  \ingroup PlusLibDataCollection
-*/
-class VTK_EXPORT DataBufferItem : public TimestampedBufferItem
-{
-public:
-
-  DataBufferItem();
-  virtual ~DataBufferItem();
-
-  DataBufferItem(const DataBufferItem& dataItem); 
-  DataBufferItem& operator=(DataBufferItem const& dataItem); 
-
-  /*! Copy video buffer item */
-  PlusStatus DeepCopy(DataBufferItem* dataItem); 
-  
-  PlusVideoFrame& GetFrame() { return this->Frame; };
-
-  /*! Set tracker matrix */
-  PlusStatus SetMatrix(vtkMatrix4x4* matrix); 
-  /*! Get tracker matrix */
-  PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
-
-  /*! Set tracker item status */
-  void SetStatus(ToolStatus status) { this->Status = status; }  
-  /*! Get tracker item status */
-  ToolStatus GetStatus() const { return this->Status; }
-
-private:
-  PlusVideoFrame Frame;
-  vtkSmartPointer<vtkMatrix4x4> Matrix;
-  ToolStatus Status;
-};
+class vtkPlusDevice;
+enum ToolStatus;
 
 class vtkTrackedFrameList;
 
-class VTK_EXPORT vtkPlusDataBuffer : public vtkObject
+class VTK_EXPORT vtkPlusStreamBuffer : public vtkObject
 {
 public:	
   enum TIMESTAMP_FILTERING_OPTION
@@ -77,8 +41,8 @@ public:
     INTERPOLATED /*!< returns interpolated transform (requires valid transform at the requested timestamp) */
   };
 
-  static vtkPlusDataBuffer *New();
-  vtkTypeRevisionMacro(vtkPlusDataBuffer,vtkObject);
+  static vtkPlusStreamBuffer *New();
+  vtkTypeRevisionMacro(vtkPlusStreamBuffer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
@@ -125,13 +89,13 @@ public:
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP);
 
   /*! Get a frame with the specified frame uid from the buffer */
-  virtual ItemStatus GetDataBufferItem(BufferItemUidType uid, DataBufferItem* bufferItem);
+  virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
   /*! Get the most recent frame from the buffer */
-  virtual ItemStatus GetLatestDataBufferItem(DataBufferItem* bufferItem) { return this->GetDataBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetLatestStreamBufferItem(StreamBufferItem* bufferItem) { return this->GetStreamBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
   /*! Get the oldest frame from buffer */
-  virtual ItemStatus GetOldestDataBufferItem(DataBufferItem* bufferItem) { return this->GetDataBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetOldestStreamBufferItem(StreamBufferItem* bufferItem) { return this->GetStreamBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
   /*! Get a frame that was acquired at the specified time from buffer */
-  virtual ItemStatus GetDataBufferItemFromTime( double time, DataBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation);
+  virtual ItemStatus GetStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation);
 
   /*! Get latest timestamp in the buffer */
   virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
@@ -142,7 +106,7 @@ public:
   /*! Get video buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
 
-  /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */
+  /*! Get the index assigned by the data acquisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
 
   /*! Get frame UID from buffer index */
@@ -155,9 +119,9 @@ public:
   ItemStatus GetBufferIndexFromTime(const double time, int& bufferIndex );
 
   /*! Get buffer item unique ID */
-  virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->DataBuffer->GetOldestItemUidInBuffer(); }
-  virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->DataBuffer->GetLatestItemUidInBuffer(); }
-  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->DataBuffer->GetItemUidFromTime(time, uid); }
+  virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->StreamBuffer->GetOldestItemUidInBuffer(); }
+  virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->StreamBuffer->GetLatestItemUidInBuffer(); }
+  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->StreamBuffer->GetItemUidFromTime(time, uid); }
 
   /*! Set the local time offset in seconds (global = local + offset) */
   virtual void SetLocalTimeOffsetSec(double offsetSec);
@@ -165,7 +129,7 @@ public:
   virtual double GetLocalTimeOffsetSec();
 
   /*! Get the number of items in the buffer */
-  virtual int GetNumberOfItems() { return this->DataBuffer->GetNumberOfItems(); }
+  virtual int GetNumberOfItems() { return this->StreamBuffer->GetNumberOfItems(); }
 
   /*!
     Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
@@ -174,7 +138,7 @@ public:
     If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
     stored at the specified address.
   */
-  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL) { return this->DataBuffer->GetFrameRate(ideal, framePeriodStdevSecPtr); }
+  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL) { return this->StreamBuffer->GetFrameRate(ideal, framePeriodStdevSecPtr); }
 
   /*! Set maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   vtkSetMacro(MaxAllowedTimeDifference, double); 
@@ -193,13 +157,15 @@ public:
 
 
   /*! Make this buffer into a copy of another buffer.  You should Lock both of the buffers before doing this. */
-  virtual void DeepCopy(vtkPlusDataBuffer* buffer); 
+  virtual void DeepCopy(vtkPlusStreamBuffer* buffer); 
 
   /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 
 
   /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
   virtual void SetAveragedItemsForFiltering(int averagedItemsForFiltering); 
+
+  virtual int GetAveragedItemsForFiltering();
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime ); 
@@ -219,7 +185,9 @@ public:
   /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(int frameSize[2]); 
   /*! Get the frame size in pixel  */
-  vtkGetVector2Macro(FrameSize, int); 
+  virtual int* GetFrameSize();
+  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2);
+  virtual PlusStatus GetFrameSize (int _arg[2]);
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType); 
@@ -246,8 +214,8 @@ public:
   virtual PlusStatus WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
 protected:
-  vtkPlusDataBuffer();
-  ~vtkPlusDataBuffer();
+  vtkPlusStreamBuffer();
+  ~vtkPlusStreamBuffer();
 
   /*! Update video buffer by setting the frame format for each frame  */
   virtual PlusStatus AllocateMemoryForFrames(); 
@@ -259,20 +227,20 @@ protected:
   virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType );
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
-  PlusStatus GetPrevNextBufferItemFromTime(double time, DataBufferItem& itemA, DataBufferItem& itemB);
+  PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
 
   /*! 
   Interpolate the matrix for the given timestamp from the two nearest transforms in the buffer.
   The rotation is interpolated with SLERP interpolation, and the position is interpolated with linear interpolation.
   The flags correspond to the closest element.
   */
-  virtual ItemStatus GetInterpolatedDataBufferItemFromTime( double time, DataBufferItem* bufferItem); 
+  virtual ItemStatus GetInterpolatedStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem); 
 
   /*! Get tracker buffer item from an exact timestamp */
-  virtual ItemStatus GetDataBufferItemFromExactTime( double time, DataBufferItem* bufferItem); 
+  virtual ItemStatus GetStreamBufferItemFromExactTime( double time, StreamBufferItem* bufferItem); 
   
   /*! Get tracker buffer item from the closest timestamp */
-  virtual ItemStatus GetDataBufferItemFromClosestTime( double time, DataBufferItem* bufferItem);
+  virtual ItemStatus GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem);
 
   /*! Image frame size in pixel */
   int FrameSize[2]; 
@@ -286,16 +254,16 @@ protected:
   /*! Image orientation (MF, MN, ...) */
   US_IMAGE_ORIENTATION ImageOrientation; 
 
-  typedef vtkTimestampedCircularBuffer<DataBufferItem> DataBufferType;
+  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamItemCircularBuffer;
   /*! Timestamped circular buffer that stores the last N frames */
-  DataBufferType* DataBuffer; 
+  StreamItemCircularBuffer* StreamBuffer; 
 
   /*! Maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   double MaxAllowedTimeDifference;
 
 private:
-  vtkPlusDataBuffer(const vtkPlusDataBuffer&);
-  void operator=(const vtkPlusDataBuffer&);
+  vtkPlusStreamBuffer(const vtkPlusStreamBuffer&);
+  void operator=(const vtkPlusStreamBuffer&);
 };
 
 #endif

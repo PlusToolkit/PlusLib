@@ -6,8 +6,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkPlusVideoSourceFactory.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDeviceFactory.h"
+#include "vtkPlusDevice.h"
 #include "vtkSavedDataVideoSource.h"
 
 int main (int argc, char* argv[])
@@ -37,8 +37,8 @@ int main (int argc, char* argv[])
 
   }  
 
-  vtkPlusVideoSource* videoSource = NULL; 
-  vtkSmartPointer<vtkPlusVideoSourceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusVideoSourceFactory>::New(); 
+  vtkPlusDevice* videoSource = NULL; 
+  vtkSmartPointer<vtkPlusDeviceFactory> videoSourceFactory = vtkSmartPointer<vtkPlusDeviceFactory>::New(); 
 
   std::ostringstream printself; 
   videoSourceFactory->PrintSelf(printself, vtkIndent()); 
@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
   // Video source type: NULL 
 
   LOG_INFO("Testing video source factory create instance function with NULL video source type..."); 
-  if ( videoSourceFactory->CreateInstance(NULL, videoSource) == PLUS_SUCCESS )
+  if ( videoSourceFactory->CreateInstance(NULL, videoSource, "someDevice") == PLUS_SUCCESS )
   {
     LOG_ERROR("Expected failure in creating video source instance, but method call returned with success"); 
     return EXIT_FAILURE; 
@@ -63,7 +63,7 @@ int main (int argc, char* argv[])
   // Video source type: not existing device type
 
   LOG_INFO("Testing video source factory create instance function with not existing video source type..."); 
-  if ( videoSourceFactory->CreateInstance("NotExistingAbc", videoSource) == PLUS_SUCCESS )
+  if ( videoSourceFactory->CreateInstance("NotExistingAbc", videoSource, "anotherDevice") == PLUS_SUCCESS )
   {
     LOG_ERROR("Expected failure in creating not existing video source instance, but the operation was successful"); 
     return EXIT_FAILURE; 
@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
   // Video source type: SavedDataset
 
   LOG_INFO("Testing video source factory create instance function with SavedDataset video source type..."); 
-  if ( videoSourceFactory->CreateInstance("SavedDataset", videoSource) != PLUS_SUCCESS )
+  if ( videoSourceFactory->CreateInstance("SavedDataset", videoSource, "vidDevice") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 

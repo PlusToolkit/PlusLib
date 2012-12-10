@@ -7,18 +7,18 @@
 #ifndef __vtkEpiphanVideoSource_h
 #define __vtkEpiphanVideoSource_h
 
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 
 /*!
   \class vtkEpiphanVideoSource 
   \brief Class for providing video input interfaces between VTK and Epiphan frame grabber device
   \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusDevice
 {
 public:
 	static vtkEpiphanVideoSource *New();
-	vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusVideoSource);
+	vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusDevice);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 
   enum VideoFormatType
@@ -27,6 +27,8 @@ public:
     VIDEO_FORMAT_RGB8,
     VIDEO_FORMAT_Y8
   };
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Read configuration from xml data */	
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -84,7 +86,7 @@ protected:
 	virtual PlusStatus InternalStopRecording();
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalGrab();
+	PlusStatus InternalUpdate();
 
   /*! Video format (e.g. Y8) */
 	VideoFormatType VideoFormat;

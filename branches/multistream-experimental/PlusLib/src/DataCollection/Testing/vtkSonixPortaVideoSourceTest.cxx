@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSonixPortaVideoSource.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"

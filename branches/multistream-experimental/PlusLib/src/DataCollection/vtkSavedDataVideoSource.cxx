@@ -9,7 +9,7 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
 
 
@@ -25,11 +25,17 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->RepeatEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
-  this->SpawnThreadForRecording = true;
   this->UseAllFrameFields = false;
   this->UseOriginalTimestamps = false;
   this->LastAddedFrameTimestamp=0;
   this->LastAddedFrameLoopIndex=0;
+
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
   this->RequireDeviceImageOrientationInDeviceSetConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
 }
 
@@ -55,12 +61,12 @@ void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::InternalGrab()
+PlusStatus vtkSavedDataVideoSource::InternalUpdate()
 {
-  //LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");
+  //LOG_TRACE("vtkSavedDataVideoSource::InternalUpdate");
 
   // Compute elapsed time since we restarted the timer
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->Buffer->GetStartTime();
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime();
 
   double latestFrameTimestamp(0); 
   if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
@@ -96,7 +102,7 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 
   // Get first and last frame index to be added
   unsigned long bufferIndexOfFirstFrameToBeAdded=0;
-  if (this->Buffer->GetNumberOfItems()>0)
+  if (this->GetBuffer()->GetNumberOfItems()>0)
   {
     // frames have been added already
     int bufferIndexOfLastAddedFrame = 0;  
@@ -140,8 +146,8 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
       status=PLUS_FAIL;
       continue;
     }
-    DataBufferItem DataBufferItemToBeAdded; 
-    if (this->LocalVideoBuffer->GetDataBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
+    StreamBufferItem DataBufferItemToBeAdded; 
+    if (this->LocalVideoBuffer->GetStreamBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
     {
       LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
       status=PLUS_FAIL;
@@ -157,13 +163,13 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
       unfilteredTimestamp=DataBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;    
     }
 
-    DataBufferItem::FieldMapType fieldMap;
+    StreamBufferItem::FieldMapType fieldMap;
     if (this->UseAllFrameFields)
     {
       fieldMap = DataBufferItemToBeAdded.GetCustomFrameFieldMap();    
     }
 
-    if (this->Buffer->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+    if (this->GetBuffer()->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
     {
       status=PLUS_FAIL;
     }  
@@ -215,7 +221,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   }
 
   // Set buffer parameters based on the input tracked frame list
-  if ( this->Buffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
+  if ( this->GetBuffer()->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
@@ -223,18 +229,20 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS)
   {
     // Brightness images will be imported into MF orientation
-    this->Buffer->SetImageOrientation(US_IMG_ORIENT_MF);
+    this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+    this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
   }
-  if ( this->Buffer->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
+  if ( this->GetBuffer()->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video iamge orientation"); 
     return PLUS_FAIL; 
   }
+
+  this->GetBuffer()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
 
   // Set local buffer 
   if ( this->LocalVideoBuffer != NULL )
@@ -242,20 +250,20 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     this->LocalVideoBuffer->Delete();
   }
 
-  this->LocalVideoBuffer = vtkPlusDataBuffer::New(); 
+  this->LocalVideoBuffer = vtkPlusStreamBuffer::New(); 
   // Copy all the settings from the video buffer 
-  this->LocalVideoBuffer->DeepCopy( this->Buffer );
+  this->LocalVideoBuffer->DeepCopy( this->GetBuffer() );
 
   // Fill local video buffer
 
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusDataBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 
   this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);
 
-  this->Buffer->Clear();
-  this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
+  this->GetBuffer()->Clear();
+  this->GetBuffer()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
+  this->GetBuffer()->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
 
   return PLUS_SUCCESS; 
 }
@@ -284,14 +292,7 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
@@ -384,14 +385,7 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
@@ -425,6 +419,18 @@ PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config
   else
   {
     imageAcquisitionConfig->SetAttribute("UseOriginalTimestamps", "FALSE");
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkSavedDataVideoSource::NotifyConfigured()
+{
+  if( this->GetBuffer() == NULL )
+  {
+    LOG_ERROR("Buffer not created for vtkSavedDataVideoSource but it is required. Check configuration.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

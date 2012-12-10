@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 
 class vtkPlusDataBuffer; 
 
@@ -14,17 +14,19 @@ class vtkPlusDataBuffer;
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class
   VTK_EXPORT
-vtkAscension3DGTrackerBase : public vtkTracker
+vtkAscension3DGTrackerBase : public vtkPlusDevice
 {
 public:
 
   static vtkAscension3DGTrackerBase *New();
-  vtkTypeMacro( vtkAscension3DGTrackerBase,vtkTracker );
+  vtkTypeMacro( vtkAscension3DGTrackerBase,vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Connect to device */
   PlusStatus Connect();
@@ -74,12 +76,12 @@ protected:
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
-  vtkPlusDataBuffer* LocalTrackerBuffer; 
+  vtkPlusStreamBuffer* LocalTrackerBuffer; 
 
 private:  // Definitions.
   enum {TRANSMITTER_OFF = -1};

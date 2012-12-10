@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtkNDITracker_h
 #define __vtkNDITracker_h
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 #include "ndicapi.h"
 
 class vtkSocketCommunicator;
@@ -67,14 +67,16 @@ class vtkSocketCommunicator;
   \sa vtkPOLARISTracker
   \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkNDITracker : public vtkTracker
+class VTK_EXPORT vtkNDITracker : public vtkPlusDevice
 {
 public:
 
   static vtkNDITracker *New();
-  vtkTypeMacro(vtkNDITracker,vtkTracker);
+  vtkTypeMacro(vtkNDITracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
  
+  virtual bool IsTracker() const { return true; }
+
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
 
@@ -138,10 +140,10 @@ public:
   double *GetFullTX(int tool) { this->ReturnValue[0] = (double) this->GetFullTX(tool, &this->ReturnValue[1]); return this->ReturnValue; };
 
   /*! Read NDI tracker configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Read NDI tracker configuration from xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
 protected:
   vtkNDITracker();
@@ -156,13 +158,13 @@ protected:
     only be reset if communication cannot be established without
     a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*!
     Stop the tracking system and bring it back to its ground state:
     Initialized, not tracking, at 9600 Baud.
   */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! Cause the device to beep the specified number of times */
   PlusStatus InternalBeep(int n);

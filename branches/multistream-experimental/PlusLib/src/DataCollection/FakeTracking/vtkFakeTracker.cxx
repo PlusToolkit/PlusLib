@@ -6,11 +6,11 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkFakeTracker.h"
-#include "vtkObjectFactory.h"
 #include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkTrackerTool.h"
 #include "vtkMinimalStandardRandomSequence.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
 
 vtkStandardNewMacro(vtkFakeTracker);
 
@@ -26,6 +26,15 @@ vtkFakeTracker::vtkFakeTracker()
 {
   vtkSmartPointer<vtkPoints> phantomLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetPhantomLandmarks(phantomLandmarks);
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -52,7 +61,7 @@ PlusStatus vtkFakeTracker::Connect()
 {
   LOG_TRACE("vtkFakeTracker::Connect"); 
 
-  vtkTrackerTool* tool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
   switch (this->Mode)
   {
   case (FakeTrackerMode_Default):
@@ -71,7 +80,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus
+    // Check Stylus
     if ( this->GetTool("Stylus", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
@@ -84,7 +93,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus-2
+    // Check Stlyus-2
     if ( this->GetTool("Stylus-2", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
@@ -97,7 +106,7 @@ PlusStatus vtkFakeTracker::Connect()
     
 
     //*************************************************************
-    // Check Stlus-3
+    // Check Stlyus-3
     if ( this->GetTool("Stylus-3", tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
@@ -231,7 +240,7 @@ PlusStatus vtkFakeTracker::Disconnect()
 {
   LOG_TRACE("vtkFakeTracker::Disconnect"); 
 
-  return this->StopTracking(); 
+  return this->StopRecording(); 
 }
 
 //----------------------------------------------------------------------------
@@ -243,9 +252,9 @@ PlusStatus vtkFakeTracker::Probe()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::InternalStartTracking()
+PlusStatus vtkFakeTracker::InternalStartRecording()
 {
-  LOG_TRACE("vtkFakeTracker::InternalStartTracking"); 
+  LOG_TRACE("vtkFakeTracker::InternalStartRecording"); 
 
   this->RandomSeed = 0;
 
@@ -253,9 +262,9 @@ PlusStatus vtkFakeTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::InternalStopTracking()
+PlusStatus vtkFakeTracker::InternalStopRecording()
 {
-  LOG_TRACE("vtkFakeTracker::InternalStopTracking"); 
+  LOG_TRACE("vtkFakeTracker::InternalStopRecording"); 
 
   return PLUS_SUCCESS; 
 }
@@ -265,7 +274,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 {
   //LOG_TRACE("vtkFakeTracker::InternalUpdate"); 
 
-  if (!this->IsTracking())
+  if (!this->IsRecording())
   {
     LOG_TRACE("vtkFakeTracker::InternalUpdate is called while not tracking any more"); 
     return PLUS_SUCCESS;
@@ -281,7 +290,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
   case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
     {
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-      for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
         ToolStatus toolStatus = TOOL_OK;
 
@@ -526,7 +535,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
   if ( !this->Recording )
   {
     // Read mode
-    vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+    vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
     if (trackerConfig == NULL) 
     {
       LOG_ERROR("Cannot find Tracker element in XML tree!");

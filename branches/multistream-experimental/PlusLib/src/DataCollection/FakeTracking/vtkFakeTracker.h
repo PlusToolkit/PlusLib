@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef __vtkFakeTracker_h
 #define __vtkFakeTracker_h
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 #include "vtkTransformRepository.h"
 #include "vtkPoints.h"
 
@@ -34,11 +34,13 @@ a tracking system to test code that relies on having one active.
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkFakeTracker : public vtkTracker
+class VTK_EXPORT vtkFakeTracker : public vtkPlusDevice
 {
 public:
   static vtkFakeTracker *New();
-  vtkTypeMacro(vtkFakeTracker,vtkTracker);
+  vtkTypeMacro(vtkFakeTracker,vtkPlusDevice);
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Connect to device */
   PlusStatus Connect();
@@ -50,7 +52,7 @@ public:
   PlusStatus Probe();
 
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Set fake mode (tool info for fake tools) */
   void SetMode(FakeTrackerMode);
@@ -72,10 +74,10 @@ protected:
 
 protected:
   /*! Start the tracking system. */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! Get an update from the tracking system and push the new transforms to the tools. */
   PlusStatus InternalUpdate();

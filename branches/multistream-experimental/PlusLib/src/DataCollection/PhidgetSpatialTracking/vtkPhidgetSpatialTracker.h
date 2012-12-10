@@ -7,11 +7,10 @@ See License.txt for details.
 #ifndef __vtkPhidgetSpatialTracker_h
 #define __vtkPhidgetSpatialTracker_h
 
-#include "vtkTracker.h"
-
+#include "vtkPlusDevice.h"
 #include <phidget21.h>
 
-class vtkPlusDataBuffer; 
+class vtkPlusStreamBuffer; 
 class AhrsAlgo;
 
 /*!
@@ -52,13 +51,15 @@ data can be retrieved from the magnetometer. When magnetometer data is not avail
 */
 class
   VTK_EXPORT
-vtkPhidgetSpatialTracker : public vtkTracker
+vtkPhidgetSpatialTracker : public vtkPlusDevice
 {
 public:
 
   static vtkPhidgetSpatialTracker *New();
-  vtkTypeMacro( vtkPhidgetSpatialTracker,vtkTracker );
+  vtkTypeMacro( vtkPhidgetSpatialTracker,vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Connect to device */
   PlusStatus Connect();
@@ -79,10 +80,10 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*
   * Override the default resettable behavior of the device
@@ -104,18 +105,12 @@ protected:
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   static int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
-
-  /*! 
-    Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
-    The offset may slightly change as the temperature of the sensor changes.
-  */  
-  void ZeroGyroscope();
 
 private:  // Functions.
 
@@ -136,11 +131,11 @@ private:  // Variables.
   vtkMatrix4x4* LastTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
 
-  vtkTrackerTool* AccelerometerTool;
-  vtkTrackerTool* GyroscopeTool;
-  vtkTrackerTool* MagnetometerTool;
-  vtkTrackerTool* TiltSensorTool;
-  vtkTrackerTool* OrientationSensorTool;
+  vtkSmartPointer<vtkPlusStreamTool> AccelerometerTool;
+  vtkSmartPointer<vtkPlusStreamTool> GyroscopeTool;
+  vtkSmartPointer<vtkPlusStreamTool> MagnetometerTool;
+  vtkSmartPointer<vtkPlusStreamTool> TiltSensorTool;
+  vtkSmartPointer<vtkPlusStreamTool> OrientationSensorTool;
 
   enum AHRS_METHOD
   {
@@ -176,9 +171,6 @@ private:  // Variables.
   */
   int TiltSensorWestAxisIndex;
 
-  /*! Zero the gyroscope when connecting to the device */
-  bool ZeroGyroscopeOnConnect;
-  
 };
 
 #endif

@@ -5,12 +5,12 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkUsSimulatorVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkUsSimulatorVideoSource.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
@@ -18,8 +18,6 @@ vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 {
-  this->SpawnThreadForRecording = true;
-
   this->Tracker = NULL;
 
   // Create and set up US simulator
@@ -31,6 +29,14 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->TransformRepository = NULL;
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = true;
 }
 
 //----------------------------------------------------------------------------
@@ -66,14 +72,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   // Get latest tracker timestamp
   double latestTrackerTimestamp = 0;
   
-  vtkTrackerTool* firstActiveTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
   if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
     return PLUS_FAIL; 
   }
 
-  vtkPlusDataBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
   if (trackerBuffer->GetNumberOfItems()==0)
   {
     LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");
@@ -99,7 +105,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
 
   // Get image to tracker transform from the tracker
   TrackedFrame trackedFrame;
-  if (this->Tracker->GetTrackedFrame(latestTrackerTimestamp, &trackedFrame) != PLUS_SUCCESS)
+  if (this->Tracker->GetTrackedFrame(latestTrackerTimestamp, trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get tracked frame from the tracker with timestamp" << latestTrackerTimestamp);
     return PLUS_FAIL;
@@ -125,7 +131,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   this->UsSimulator->SetModelToImageMatrix(referenceToImageTransformMatrix);
   this->UsSimulator->Update();
 
-  PlusStatus status = this->Buffer->AddItem(
+  PlusStatus status = this->GetBuffer()->AddItem(
     this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
@@ -140,14 +146,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   // Set to default MF internal image orientation
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
-  this->Buffer->Clear();
+  this->GetBuffer()->Clear();
   int frameSize[2]={0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");
     return PLUS_FAIL;
   }
-  this->Buffer->SetFrameSize(frameSize);
+  this->GetBuffer()->SetFrameSize(frameSize);
 
   return PLUS_SUCCESS;
 }
@@ -171,17 +177,10 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    LOG_ERROR("Unable to find US simulator device element in configuration XML structure!");
     return PLUS_FAIL;
   }
 
@@ -203,35 +202,3 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   return PLUS_SUCCESS;
 }
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorVideoSource::WriteConfiguration(vtkXMLDataElement* config)
-{
-  LOG_TRACE("vtkUsSimulatorVideoSource::WriteConfiguration"); 
-
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-

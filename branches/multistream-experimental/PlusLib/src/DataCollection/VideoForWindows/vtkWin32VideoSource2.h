@@ -16,7 +16,7 @@ Authors include: Danielle Pace
 #ifndef __vtkWin32VideoSource2_h
 #define __vtkWin32VideoSource2_h
 
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 #include "PlusVideoFrame.h"
 
 class vtkWin32VideoSource2Internal;
@@ -28,24 +28,26 @@ class vtkWin32VideoSource2Internal;
   vtkWin32VideoSource2 grabs frames or streaming video from a
   Video for Windows compatible device on the Win32 platform.
   vtkWin32VideoSource2 is an updated version of vtkWin32VideoSource and uses
-  vtkPlusVideoSource instead of vtkVideoSource.
+  vtkPlusDevice instead of vtkVideoSource.
 
   Caveats:
   With some capture cards, if this class is leaked and ReleaseSystemResources 
   is not called, you may have to reboot before you can capture again.
-  vtkPlusVideoSource used to keep a global list and delete the video sources
+  vtkPlusDevice used to keep a global list and delete the video sources
   if your program leaked, due to exit crashes that was removed.
 
-  \sa vtkPlusVideoSource vtkMILVideoSource2 vtkWin32VideoSource
+  \sa vtkPlusDevice vtkMILVideoSource2 vtkWin32VideoSource
   \ingroup PlusLibImageAcquisition
 */ 
-class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusVideoSource
+class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusDevice
 {
 public:
   static vtkWin32VideoSource2 *New();
-  vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusVideoSource);
+  vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
  
+  virtual bool IsTracker() const { return false; }
+
   /*! Request a particular frame size */
   virtual PlusStatus SetFrameSize(int x, int y);
   
@@ -97,7 +99,7 @@ protected:
     It just requests a single frame from the hardware and the object
     will be notified when it is ready.
   */
-  virtual PlusStatus InternalGrab();
+  virtual PlusStatus InternalUpdate();
 
 
   /*! Set the capture window class name */

@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
 
@@ -34,9 +34,16 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->ServerPort = -1; 
   this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
-  this->SpawnThreadForRecording = true;
   this->NumberOfRetryAttempts = 10; 
   this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -161,7 +168,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
+PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
 {
   if (!this->Recording)
   {
@@ -235,7 +242,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalGrab()
     this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
-  PlusStatus status = this->Buffer->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
+  PlusStatus status = this->GetBuffer()->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
   this->Modified();
 
   return status;
@@ -254,14 +261,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");

@@ -6,13 +6,14 @@
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkPlusDataBuffer.h"
-#include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
-#include "vtkTrackedFrameList.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkHTMLGenerator.h"
 #include "vtkMath.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 
 int main(int argc, char **argv)
 {
@@ -76,9 +77,9 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  vtkSmartPointer<vtkPlusDataBuffer> trackerBuffer = vtkSmartPointer<vtkPlusDataBuffer>::New(); 
+  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
   // force recomputation of the filtered timestamps to test timestamp filtering as well
-  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusDataBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusStreamBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;
@@ -111,8 +112,8 @@ int main(int argc, char **argv)
 
   for ( double newTime = startTime; newTime < endTime; newTime += 1.0 / (frameRate * 5.0) )
   {
-    DataBufferItem bufferItem;
-    if ( trackerBuffer->GetDataBufferItemFromTime(newTime, &bufferItem, vtkPlusDataBuffer::INTERPOLATED) != ITEM_OK )
+    StreamBufferItem bufferItem;
+    if ( trackerBuffer->GetStreamBufferItemFromTime(newTime, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
     {
       LOG_DEBUG("Failed to get tracker buffer item from time: " << std::fixed << newTime ); 
       continue; 

@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
@@ -14,40 +14,43 @@
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkUnsignedLongLongArray.h"
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
 static const double ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG=10; // if the interpolated orientation differs from both the interpolated orientation by more than this threshold then display a warning
 
-vtkCxxRevisionMacro(vtkPlusDataBuffer, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkPlusDataBuffer);
+vtkCxxRevisionMacro(vtkPlusStreamBuffer, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkPlusStreamBuffer);
 
 //----------------------------------------------------------------------------
 //						DataBufferItem
 //----------------------------------------------------------------------------
-DataBufferItem::DataBufferItem()
+StreamBufferItem::StreamBufferItem()
 : Matrix(vtkSmartPointer<vtkMatrix4x4>::New())
 , Status(TOOL_OK)
+, ValidTransformData(false)
+{
+
+}
+
+//----------------------------------------------------------------------------
+StreamBufferItem::~StreamBufferItem()
 {
 }
 
 //----------------------------------------------------------------------------
-DataBufferItem::~DataBufferItem()
-{
-}
-
-//----------------------------------------------------------------------------
-DataBufferItem::DataBufferItem(const DataBufferItem &dataItem)
+StreamBufferItem::StreamBufferItem(const StreamBufferItem &dataItem)
 {
   this->Matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  this->Status = TOOL_OK; 
+  this->Status = TOOL_OK;
   *this = dataItem; 
 }
 
 //----------------------------------------------------------------------------
-DataBufferItem& DataBufferItem::operator=(DataBufferItem const &dataItem)
+StreamBufferItem& StreamBufferItem::operator=(StreamBufferItem const &dataItem)
 {
   // Handle self-assignment
   if (this == &dataItem)
@@ -63,12 +66,13 @@ DataBufferItem& DataBufferItem::operator=(DataBufferItem const &dataItem)
   this->CustomFrameFields = dataItem.CustomFrameFields;
   this->Status = dataItem.Status; 
   this->Matrix->DeepCopy( dataItem.Matrix ); 
+  this->ValidTransformData = dataItem.ValidTransformData;
 
   return *this;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus DataBufferItem::DeepCopy(DataBufferItem* dataItem)
+PlusStatus StreamBufferItem::DeepCopy(StreamBufferItem* dataItem)
 {
   if ( dataItem == NULL )
   {
@@ -82,7 +86,7 @@ PlusStatus DataBufferItem::DeepCopy(DataBufferItem* dataItem)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus DataBufferItem::SetMatrix(vtkMatrix4x4* matrix)
+PlusStatus StreamBufferItem::SetMatrix(vtkMatrix4x4* matrix)
 {
   if ( matrix == NULL ) 
   {
@@ -90,13 +94,15 @@ PlusStatus DataBufferItem::SetMatrix(vtkMatrix4x4* matrix)
     return PLUS_FAIL; 
   }
 
+  ValidTransformData = true;
+
   this->Matrix->DeepCopy(matrix); 
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus DataBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
+PlusStatus StreamBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
 {
   if ( outputMatrix == NULL ) 
   {
@@ -110,38 +116,49 @@ PlusStatus DataBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
 }
 
 //----------------------------------------------------------------------------
+void StreamBufferItem::SetStatus( ToolStatus status )
+{
+  this->Status = status;
+}
+
+//----------------------------------------------------------------------------
+ToolStatus StreamBufferItem::GetStatus() const
+{
+  return this->Status;
+}
+
+//----------------------------------------------------------------------------
 // vtkPlusDataBuffer
 //----------------------------------------------------------------------------
-vtkPlusDataBuffer::vtkPlusDataBuffer()
+vtkPlusStreamBuffer::vtkPlusStreamBuffer()
 : PixelType(itk::ImageIOBase::UCHAR)
 , ImageType(US_IMG_BRIGHTNESS)
 , ImageOrientation(US_IMG_ORIENT_MF)
-, DataBuffer(vtkTimestampedCircularBuffer<DataBufferItem>::New())
+, StreamBuffer(vtkTimestampedCircularBuffer<StreamBufferItem>::New())
 , MaxAllowedTimeDifference(0.5)
 {
-  this->FrameSize[0]=0; 
-  this->FrameSize[1]=0;
+  this->FrameSize[0] = this->FrameSize[1] = -1;
   this->PixelType=itk::ImageIOBase::UCHAR; 
   this->ImageType=US_IMG_BRIGHTNESS; 
   this->ImageOrientation=US_IMG_ORIENT_MF; 
 
-  this->DataBuffer = vtkTimestampedCircularBuffer<DataBufferItem>::New(); 
+  this->StreamBuffer = vtkTimestampedCircularBuffer<StreamBufferItem>::New(); 
 
   this->SetBufferSize(500); 
 }
 
 //----------------------------------------------------------------------------
-vtkPlusDataBuffer::~vtkPlusDataBuffer()
+vtkPlusStreamBuffer::~vtkPlusStreamBuffer()
 { 
-  if ( this->DataBuffer != NULL )
+  if ( this->StreamBuffer != NULL )
   {
-    this->DataBuffer->Delete(); 
-    this->DataBuffer = NULL; 
+    this->StreamBuffer->Delete(); 
+    this->StreamBuffer = NULL; 
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusStreamBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
@@ -149,22 +166,22 @@ void vtkPlusDataBuffer::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Image type: " << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) << std::endl; 
   os << indent << "Image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl; 
 
-  os << indent << "DataBuffer: " << this->DataBuffer << "\n";
-  if ( this->DataBuffer )
+  os << indent << "StreamBuffer: " << this->StreamBuffer << "\n";
+  if ( this->StreamBuffer )
   {
-    this->DataBuffer->PrintSelf(os,indent.GetNextIndent());
+    this->StreamBuffer->PrintSelf(os,indent.GetNextIndent());
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::AllocateMemoryForFrames()
+PlusStatus vtkPlusStreamBuffer::AllocateMemoryForFrames()
 {
-  PlusLockGuard<DataBufferType> dataBufferGuardedLock(this->DataBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
   PlusStatus result = PLUS_SUCCESS;
 
-  for ( int i = 0; i < this->DataBuffer->GetBufferSize(); ++i )
+  for ( int i = 0; i < this->StreamBuffer->GetBufferSize(); ++i )
   {
-    if (this->DataBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType())!=PLUS_SUCCESS)
+    if (this->StreamBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType())!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate memory for frame "<<i);
       result = PLUS_FAIL;
@@ -174,39 +191,39 @@ PlusStatus vtkPlusDataBuffer::AllocateMemoryForFrames()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::SetLocalTimeOffsetSec(double offsetSec)
+void vtkPlusStreamBuffer::SetLocalTimeOffsetSec(double offsetSec)
 {
-  this->DataBuffer->SetLocalTimeOffsetSec(offsetSec); 
+  this->StreamBuffer->SetLocalTimeOffsetSec(offsetSec); 
 }
 
 //----------------------------------------------------------------------------
-double vtkPlusDataBuffer::GetLocalTimeOffsetSec()
+double vtkPlusStreamBuffer::GetLocalTimeOffsetSec()
 {
-  return this->DataBuffer->GetLocalTimeOffsetSec(); 
+  return this->StreamBuffer->GetLocalTimeOffsetSec(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusDataBuffer::GetBufferSize()
+int vtkPlusStreamBuffer::GetBufferSize()
 {
-  return this->DataBuffer->GetBufferSize(); 
+  return this->StreamBuffer->GetBufferSize(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetBufferSize(int bufsize)
+PlusStatus vtkPlusStreamBuffer::SetBufferSize(int bufsize)
 {
   if (bufsize < 0)
   {
     LOG_ERROR("Invalid buffer size requested: "<<bufsize);
     return PLUS_FAIL;
   }
-  if (this->DataBuffer->GetBufferSize() == bufsize)
+  if (this->StreamBuffer->GetBufferSize() == bufsize)
   {
     // no change
     return PLUS_SUCCESS;
   }
-  
+
   PlusStatus result=PLUS_SUCCESS;
-  if (this->DataBuffer->SetBufferSize(bufsize) != PLUS_SUCCESS)
+  if (this->StreamBuffer->SetBufferSize(bufsize) != PLUS_SUCCESS)
   {
     result = PLUS_FAIL;
   }
@@ -219,7 +236,7 @@ PlusStatus vtkPlusDataBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusDataBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
+bool vtkPlusStreamBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
@@ -247,10 +264,10 @@ bool vtkPlusDataBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-  const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int	numberOfBytesToSkip, long frameNumber,  
-  double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+PlusStatus vtkPlusStreamBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
+                                        const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int	numberOfBytesToSkip, long frameNumber,  
+                                        double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
+                                        const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
@@ -260,7 +277,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
   if (filteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     bool filteredTimestampProbablyValid=true;
-    if ( this->DataBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
@@ -286,8 +303,8 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
 
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
-  PlusLockGuard<DataBufferType> dataBufferGuardedLock(this->DataBuffer);
-  if ( this->DataBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
+  if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
     LOG_DEBUG( "vtkPlusDataBuffer: Failed to prepare for adding new frame to video buffer!"); 
@@ -295,7 +312,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
   }
 
   // get the pointer to the correct location in the frame buffer, where this data needs to be copied
-  DataBufferItem* newObjectInBuffer = this->DataBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
+  StreamBufferItem* newObjectInBuffer = this->StreamBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
     LOG_ERROR( "vtkPlusDataBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
@@ -306,10 +323,10 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
   newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize); 
 
   if ( frameSizeInPx[0] != receivedFrameSize[0] 
-    || frameSizeInPx[1] != receivedFrameSize[1] )
+  || frameSizeInPx[1] != receivedFrameSize[1] )
   {
     LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-      << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
+    << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
     return PLUS_FAIL; 
   }
 
@@ -328,7 +345,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
   newObjectInBuffer->GetFrame().SetImageType(imageType);
-  
+
   // Add custom fields
   if ( customFields != NULL )
   {
@@ -342,8 +359,8 @@ PlusStatus vtkPlusDataBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
-                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+PlusStatus vtkPlusStreamBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                        double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -359,7 +376,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION 
   if (filteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     bool filteredTimestampProbablyValid=true;
-    if ( this->DataBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
@@ -385,8 +402,8 @@ PlusStatus vtkPlusDataBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
-                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+PlusStatus vtkPlusStreamBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                        double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -402,7 +419,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(const PlusVideoFrame* frame, long frameNum
   if (filteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     bool filteredTimestampProbablyValid=true;
-    if ( this->DataBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
@@ -422,7 +439,7 @@ PlusStatus vtkPlusDataBuffer::AddItem(const PlusVideoFrame* frame, long frameNum
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+PlusStatus vtkPlusStreamBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
   if ( matrix  == NULL )
   {
@@ -433,7 +450,7 @@ PlusStatus vtkPlusDataBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatu
   if (filteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     bool filteredTimestampProbablyValid=true;
-    if ( this->DataBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
       LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
       return PLUS_FAIL; 
@@ -448,8 +465,8 @@ PlusStatus vtkPlusDataBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatu
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
 
-  PlusLockGuard<DataBufferType> dataBufferGuardedLock(this->DataBuffer);
-  if ( this->DataBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
+  if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
     LOG_DEBUG( "vtkPlusDataBuffer: Failed to prepare for adding new frame to tracker buffer!"); 
@@ -457,7 +474,7 @@ PlusStatus vtkPlusDataBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatu
   }
 
   // get the pointer to the correct location in the tracker buffer, where this data needs to be copied
-  DataBufferItem* newObjectInBuffer = this->DataBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
+  StreamBufferItem* newObjectInBuffer = this->StreamBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
     LOG_ERROR( "vtkPlusDataBuffer: Failed to get pointer to data buffer object from the tracker buffer for the new frame!"); 
@@ -475,67 +492,73 @@ PlusStatus vtkPlusDataBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatu
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetLatestTimeStamp( double& latestTimestamp )
+ItemStatus vtkPlusStreamBuffer::GetLatestTimeStamp( double& latestTimestamp )
 {
-  return this->DataBuffer->GetLatestTimeStamp(latestTimestamp); 
+  return this->StreamBuffer->GetLatestTimeStamp(latestTimestamp); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetOldestTimeStamp( double& oldestTimestamp )
+ItemStatus vtkPlusStreamBuffer::GetOldestTimeStamp( double& oldestTimestamp )
 {
-  return this->DataBuffer->GetOldestTimeStamp(oldestTimestamp); 
+  return this->StreamBuffer->GetOldestTimeStamp(oldestTimestamp); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetTimeStamp( BufferItemUidType uid, double& timestamp)
+ItemStatus vtkPlusStreamBuffer::GetTimeStamp( BufferItemUidType uid, double& timestamp)
 {
-  return this->DataBuffer->GetTimeStamp(uid, timestamp); 
+  return this->StreamBuffer->GetTimeStamp(uid, timestamp); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetIndex( BufferItemUidType uid, unsigned long& index)
+ItemStatus vtkPlusStreamBuffer::GetIndex( BufferItemUidType uid, unsigned long& index)
 {
-  return this->DataBuffer->GetIndex(uid, index); 
+  return this->StreamBuffer->GetIndex(uid, index); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid )
+ItemStatus vtkPlusStreamBuffer::GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid )
 {
-  return this->DataBuffer->GetItemUidFromBufferIndex(bufferIndex, uid); 
+  return this->StreamBuffer->GetItemUidFromBufferIndex(bufferIndex, uid); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex )
+ItemStatus vtkPlusStreamBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex )
 {
-  return this->DataBuffer->GetBufferIndexFromTime(time, bufferIndex);
+  return this->StreamBuffer->GetBufferIndexFromTime(time, bufferIndex);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::SetAveragedItemsForFiltering( int averagedItemsForFiltering)
+void vtkPlusStreamBuffer::SetAveragedItemsForFiltering( int averagedItemsForFiltering)
 {
-  this->DataBuffer->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
+  this->StreamBuffer->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::SetStartTime( double startTime)
+int vtkPlusStreamBuffer::GetAveragedItemsForFiltering()
 {
-  this->DataBuffer->SetStartTime(startTime); 
+  return this->StreamBuffer->GetAveragedItemsForFiltering();
 }
 
 //----------------------------------------------------------------------------
-double vtkPlusDataBuffer::GetStartTime()
+void vtkPlusStreamBuffer::SetStartTime( double startTime)
 {
-  return this->DataBuffer->GetStartTime(); 
+  this->StreamBuffer->SetStartTime(startTime); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable)
+double vtkPlusStreamBuffer::GetStartTime()
 {
-  return this->DataBuffer->GetTimeStampReportTable(timeStampReportTable); 
+  return this->StreamBuffer->GetStartTime(); 
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetDataBufferItem(BufferItemUidType uid, DataBufferItem* bufferItem)
+PlusStatus vtkPlusStreamBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable)
+{
+  return this->StreamBuffer->GetTimeStampReportTable(timeStampReportTable); 
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem)
 {
   if ( bufferItem == NULL )
   {
@@ -543,7 +566,7 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItem(BufferItemUidType uid, DataBuffe
     return ITEM_UNKNOWN_ERROR; 
   }
 
-  ItemStatus status = this->DataBuffer->GetFrameStatus(uid); 
+  ItemStatus status = this->StreamBuffer->GetFrameStatus(uid); 
   if ( status != ITEM_OK )
   {
     if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
@@ -561,7 +584,7 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItem(BufferItemUidType uid, DataBuffe
     return status; 
   }
 
-  DataBufferItem* dataItem = this->DataBuffer->GetBufferItemFromUid(uid); 
+  StreamBufferItem* dataItem = this->StreamBuffer->GetBufferItemFromUid(uid); 
 
   if ( bufferItem->DeepCopy(dataItem) != PLUS_SUCCESS )
   {
@@ -570,16 +593,19 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItem(BufferItemUidType uid, DataBuffe
   }
 
   // Check the status again to make sure the writer didn't change it
-  return this->DataBuffer->GetFrameStatus(uid); 
+  return this->StreamBuffer->GetFrameStatus(uid); 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::DeepCopy(vtkPlusDataBuffer* buffer)
+void vtkPlusStreamBuffer::DeepCopy(vtkPlusStreamBuffer* buffer)
 {
   LOG_TRACE("vtkPlusDataBuffer::DeepCopy");
 
-  this->DataBuffer->DeepCopy( buffer->DataBuffer ); 
-  this->SetFrameSize(buffer->GetFrameSize()); 
+  this->StreamBuffer->DeepCopy( buffer->StreamBuffer ); 
+  if( buffer->GetFrameSize()[0] != -1 && buffer->GetFrameSize()[1] != -1 )
+  {
+    this->SetFrameSize(buffer->GetFrameSize()); 
+  }
   this->SetPixelType(buffer->GetPixelType());
   this->SetImageType(buffer->GetImageType());
   this->SetImageOrientation(buffer->GetImageOrientation());
@@ -587,17 +613,17 @@ void vtkPlusDataBuffer::DeepCopy(vtkPlusDataBuffer* buffer)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataBuffer::Clear()
+void vtkPlusStreamBuffer::Clear()
 {
-  this->DataBuffer->Clear(); 
+  this->StreamBuffer->Clear(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetFrameSize(int x, int y)
+PlusStatus vtkPlusStreamBuffer::SetFrameSize(int x, int y)
 {
   if (x<0 || y<0)
   {
-    LOG_ERROR("Invalid frame size requested: "<<x<<", "<<y);
+    LOG_ERROR("Invalid frame size requested: " << x << ", " << y);
     return PLUS_FAIL;
   }
   if (this->FrameSize[0]==x && this->FrameSize[1]==y)
@@ -611,13 +637,13 @@ PlusStatus vtkPlusDataBuffer::SetFrameSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetFrameSize(int frameSize[2])
+PlusStatus vtkPlusStreamBuffer::SetFrameSize(int frameSize[2])
 {
   return SetFrameSize(frameSize[0], frameSize[1]);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType) 
+PlusStatus vtkPlusStreamBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType) 
 {
   if (pixelType==this->PixelType)
   {
@@ -629,7 +655,7 @@ PlusStatus vtkPlusDataBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelT
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetImageType(US_IMAGE_TYPE imgType) 
+PlusStatus vtkPlusStreamBuffer::SetImageType(US_IMAGE_TYPE imgType) 
 {
   if (imgType<US_IMG_TYPE_XX || imgType>=US_IMG_TYPE_LAST)
   {
@@ -641,7 +667,7 @@ PlusStatus vtkPlusDataBuffer::SetImageType(US_IMAGE_TYPE imgType)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation) 
+PlusStatus vtkPlusStreamBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation) 
 {
   if (imgOrientation<US_IMG_ORIENT_XX || imgOrientation>=US_IMG_ORIENT_LAST)
   {
@@ -653,13 +679,13 @@ PlusStatus vtkPlusDataBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrient
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusDataBuffer::GetNumberOfBytesPerPixel()
+int vtkPlusStreamBuffer::GetNumberOfBytesPerPixel()
 {
   return PlusVideoFrame::GetNumberOfBytesPerPixel(GetPixelType());
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
+PlusStatus vtkPlusStreamBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
 {
   int numberOfErrors=0;
 
@@ -701,12 +727,12 @@ PlusStatus vtkPlusDataBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList
   LOG_INFO("Copy buffer to video buffer..."); 
   for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
   {
-    DataBufferItem::FieldMapType customFields;
+    StreamBufferItem::FieldMapType customFields;
     if (copyCustomFrameFields)
     {
       // Copy all custom fields
-      DataBufferItem::FieldMapType sourceCustomFields = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFields();
-      DataBufferItem::FieldMapType::iterator fieldIterator;
+      StreamBufferItem::FieldMapType sourceCustomFields = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFields();
+      StreamBufferItem::FieldMapType::iterator fieldIterator;
       for (fieldIterator = sourceCustomFields.begin(); fieldIterator != sourceCustomFields.end(); fieldIterator++)
       {
         // skip special fields
@@ -804,7 +830,7 @@ PlusStatus vtkPlusDataBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
+PlusStatus vtkPlusStreamBuffer::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
 {
   LOG_TRACE("vtkPlusDataBuffer::WriteToMetafile");
 
@@ -815,8 +841,8 @@ PlusStatus vtkPlusDataBuffer::WriteToMetafile( const char* outputFolder, const c
 
   for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
   {
-    DataBufferItem videoItem;
-    if ( this->GetDataBufferItem(frameUid, &videoItem) != ITEM_OK )
+    StreamBufferItem videoItem;
+    if ( this->GetStreamBufferItem(frameUid, &videoItem) != ITEM_OK )
     {
       LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
       status=PLUS_FAIL;
@@ -859,23 +885,23 @@ PlusStatus vtkPlusDataBuffer::WriteToMetafile( const char* outputFolder, const c
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusDataBuffer::SetTimeStampReporting(bool enable)
+void vtkPlusStreamBuffer::SetTimeStampReporting(bool enable)
 {
-  this->DataBuffer->SetTimeStampReporting(enable);
+  this->StreamBuffer->SetTimeStampReporting(enable);
 }
 
 //-----------------------------------------------------------------------------
-bool vtkPlusDataBuffer::GetTimeStampReporting()
+bool vtkPlusStreamBuffer::GetTimeStampReporting()
 {
-  return this->DataBuffer->GetTimeStampReporting();
+  return this->StreamBuffer->GetTimeStampReporting();
 }
 
 //----------------------------------------------------------------------------
 // Returns the two buffer items that are closest previous and next buffer items relative to the specified time.
 // itemA is the closest item
-PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBufferItem& itemA, DataBufferItem& itemB)
+PlusStatus vtkPlusStreamBuffer::GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB)
 {
-  PlusLockGuard<DataBufferType> dataBufferGuardedLock(this->DataBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
 
   // The returned item is computed by interpolation between itemA and itemB in time. The itemA is the closest item to the requested time.
   // Accept itemA (the closest item) as is if it is very close to the requested time.
@@ -886,13 +912,21 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
 
   // itemA is the item that is the closest to the requested time, get its UID and time
   BufferItemUidType itemAuid(0); 
-  ItemStatus status = this->DataBuffer->GetItemUidFromTime(time, itemAuid); 
+  ItemStatus status = this->StreamBuffer->GetItemUidFromTime(time, itemAuid); 
   if ( status != ITEM_OK )
   {
-    LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    switch(status)
+    {
+    case ITEM_NOT_AVAILABLE_YET:
+      LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      break;
+    case ITEM_NOT_AVAILABLE_ANYMORE:
+      LOG_DEBUG("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      break;
+    }
     return PLUS_FAIL;
   }
-  status = this->GetDataBufferItem(itemAuid, &itemA); 
+  status = this->GetStreamBufferItem(itemAuid, &itemA); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer item with Uid: " << itemAuid );
@@ -900,23 +934,23 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
   }
 
   // If tracker is out of view, etc. then we don't have a valid before and after the requested time, so we cannot do interpolation
-  if (itemA.GetStatus()!=TOOL_OK)
+  if (itemA.GetStatus() != TOOL_OK)
   {
     // tracker is out of view, ...
-    LOG_DEBUG("vtkPlusDataBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time <<", uid: "<<itemAuid<<") is invalid.");
+    LOG_DEBUG("vtkPlusDataBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time << ", uid: " << itemAuid << ") is invalid.");
     return PLUS_FAIL;
   }
 
   double itemAtime(0);
-  status = this->DataBuffer->GetTimeStamp(itemAuid, itemAtime); 
+  status = this->StreamBuffer->GetTimeStamp(itemAuid, itemAtime); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemAuid<<")" ); 
+    LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time << ", uid: " << itemAuid << ")" ); 
     return PLUS_FAIL;
   }
 
   // If the time difference is negligible then don't interpolate, just return the closest item
-  if (fabs(itemAtime-time)<NEGLIGIBLE_TIME_DIFFERENCE)
+  if (fabs(itemAtime - time) < NEGLIGIBLE_TIME_DIFFERENCE)
   {
     //No need for interpolation, it's very close to the closest element
     itemB.DeepCopy(&itemA);
@@ -924,9 +958,9 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
   }  
 
   // If the closest item is too far, then we don't do interpolation 
-  if ( fabs(itemAtime-time)>this->GetMaxAllowedTimeDifference() )
+  if ( fabs(itemAtime - time) > this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime-time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
+    LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime - time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
   }
 
@@ -935,15 +969,14 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
   if (time < itemAtime)
   {
     // itemBtime < time <itemAtime
-    itemBuid=itemAuid-1;
+    itemBuid = itemAuid - 1;
   }
   else
   {
     // itemAtime < time <itemBtime
-    itemBuid=itemAuid+1;
+    itemBuid = itemAuid + 1;
   }
-  if (itemBuid<this->GetOldestItemUidInBuffer()
-    || itemBuid>this->GetLatestItemUidInBuffer())
+  if (itemBuid < this->GetOldestItemUidInBuffer() || itemBuid > this->GetLatestItemUidInBuffer())
   {
     // itemB is not available
     LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, itemB is not available " << std::fixed << " ( itemBuid: " << itemBuid << ", oldest UID: " << this->GetOldestItemUidInBuffer() << ", latest UID: " << this->GetLatestItemUidInBuffer() );
@@ -951,20 +984,20 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
   }
   // Get item B details
   double itemBtime(0);
-  status = this->DataBuffer->GetTimeStamp(itemBuid, itemBtime); 
+  status = this->StreamBuffer->GetTimeStamp(itemBuid, itemBtime); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("Cannot do interpolation: Failed to get data buffer timestamp with Uid: " << itemBuid ); 
     return PLUS_FAIL;
   }
   // If the next closest item is too far, then we don't do interpolation 
-  if ( fabs(itemBtime-time)>this->GetMaxAllowedTimeDifference() )
+  if ( fabs(itemBtime - time) > this->GetMaxAllowedTimeDifference() )
   {
     LOG_ERROR("vtkPlusDataBuffer: Cannot perform interpolation, time difference compared to itemB is too big " << std::fixed << fabs(itemBtime-time) << " ( itemBtime: " << itemBtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
   }
   // Get the item
-  status = this->GetDataBufferItem(itemBuid, &itemB); 
+  status = this->GetStreamBufferItem(itemBuid, &itemB); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer item with Uid: " << itemBuid ); 
@@ -981,24 +1014,24 @@ PlusStatus vtkPlusDataBuffer::GetPrevNextBufferItemFromTime(double time, DataBuf
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromTime( double time, DataBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem, DataItemTemporalInterpolationType interpolation)
 {
   switch (interpolation)
   {
   case EXACT_TIME:
-    return GetDataBufferItemFromExactTime(time, bufferItem); 
+    return GetStreamBufferItemFromExactTime(time, bufferItem); 
   case INTERPOLATED:
-    return GetInterpolatedDataBufferItemFromTime(time, bufferItem); 
+    return GetInterpolatedStreamBufferItemFromTime(time, bufferItem); 
   default:
     LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
-    return GetDataBufferItemFromExactTime(time, bufferItem); 
+    return GetStreamBufferItemFromExactTime(time, bufferItem); 
   }
 }
 
 //---------------------------------------------------------------------------- 
-ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromExactTime( double time, DataBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromExactTime( double time, StreamBufferItem* bufferItem)
 {
-  ItemStatus status = GetDataBufferItemFromClosestTime(time, bufferItem);
+  ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
   if ( status != ITEM_OK )
   {
     LOG_WARNING("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<")" ); 
@@ -1007,7 +1040,7 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromExactTime( double time, DataB
 
   double itemTime(0);
   BufferItemUidType uid=bufferItem->GetUid();
-  status = this->DataBuffer->GetTimeStamp(uid, itemTime); 
+  status = this->StreamBuffer->GetTimeStamp(uid, itemTime); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", UID: "<<uid<<")" ); 
@@ -1025,19 +1058,27 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromExactTime( double time, DataB
 }
 
 //----------------------------------------------------------------------------
-ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromClosestTime( double time, DataBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem)
 {
-  PlusLockGuard<DataBufferType> dataBufferGuardedLock(this->DataBuffer);
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
 
   BufferItemUidType itemUid(0); 
-  ItemStatus status = this->DataBuffer->GetItemUidFromTime(time, itemUid); 
+  ItemStatus status = this->StreamBuffer->GetItemUidFromTime(time, itemUid); 
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    switch(status)
+    {
+    case ITEM_NOT_AVAILABLE_YET:
+      LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      break;
+    case ITEM_NOT_AVAILABLE_ANYMORE:
+      LOG_WARNING("vtkPlusDataBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      break;
+    }
     return status;
   }
 
-  status = this->GetDataBufferItem(itemUid, bufferItem); 
+  status = this->GetStreamBufferItem(itemUid, bufferItem); 
   if ( status != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get tracker buffer item with Uid: " << itemUid );
@@ -1053,16 +1094,16 @@ ItemStatus vtkPlusDataBuffer::GetDataBufferItemFromClosestTime( double time, Dat
 // The rotation is interpolated with SLERP interpolation, and the
 // position is interpolated with linear interpolation.
 // The flags correspond to the closest element.
-ItemStatus vtkPlusDataBuffer::GetInterpolatedDataBufferItemFromTime( double time, DataBufferItem* bufferItem)
+ItemStatus vtkPlusStreamBuffer::GetInterpolatedStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem)
 {
-  DataBufferItem itemA; 
-  DataBufferItem itemB; 
+  StreamBufferItem itemA; 
+  StreamBufferItem itemB; 
 
   if (GetPrevNextBufferItemFromTime(time, itemA, itemB)!=PLUS_SUCCESS)
   {
     // cannot get two neighbors, so cannot do interpolation
     // it may be normal (e.g., when tracker out of view), so don't return with an error   
-    ItemStatus status = GetDataBufferItemFromClosestTime(time, bufferItem);
+    ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
     if ( status != ITEM_OK )
     {
       LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ")" ); 
@@ -1082,14 +1123,14 @@ ItemStatus vtkPlusDataBuffer::GetInterpolatedDataBufferItemFromTime( double time
   //============== Get item weights ==================
 
   double itemAtime(0);
-  if ( this->DataBuffer->GetTimeStamp(itemA.GetUid(), itemAtime) != ITEM_OK )
+  if ( this->StreamBuffer->GetTimeStamp(itemA.GetUid(), itemAtime) != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemA.GetUid()<<")" ); 
     return ITEM_UNKNOWN_ERROR;
   }
 
   double itemBtime(0);   
-  if ( this->DataBuffer->GetTimeStamp(itemB.GetUid(), itemBtime) != ITEM_OK )
+  if ( this->StreamBuffer->GetTimeStamp(itemB.GetUid(), itemBtime) != ITEM_OK )
   {
     LOG_ERROR("vtkPlusDataBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemB.GetUid()<<")" ); 
     return ITEM_UNKNOWN_ERROR;
@@ -1101,7 +1142,7 @@ ItemStatus vtkPlusDataBuffer::GetInterpolatedDataBufferItemFromTime( double time
     bufferItem->DeepCopy(&itemA);
     return ITEM_OK;    
   }
-  
+
   double itemAweight=fabs(itemBtime-time)/fabs(itemAtime-itemBtime);
   double itemBweight=1-itemAweight;
 
@@ -1184,7 +1225,7 @@ ItemStatus vtkPlusDataBuffer::GetInterpolatedDataBufferItemFromTime( double time
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
+PlusStatus vtkPlusStreamBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
 {
   int numberOfErrors=0;
 
@@ -1211,7 +1252,7 @@ PlusStatus vtkPlusDataBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameL
     requireFrameStatus=true;
     requireFrameNumber=true;
   }
-  
+
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
 
@@ -1262,7 +1303,7 @@ PlusStatus vtkPlusDataBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameL
       numberOfErrors++; 
       continue; 
     }
-    
+
     // read frame number
     const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
     unsigned long frmnum(0); 
@@ -1320,4 +1361,25 @@ PlusStatus vtkPlusDataBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameL
   }
 
   return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamBuffer::GetFrameSize( int _arg[2] )
+{
+  return this->GetFrameSize(_arg[0], _arg[1]);
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamBuffer::GetFrameSize(int &_arg1, int &_arg2)
+{
+  _arg1 = this->FrameSize[0];
+  _arg2 = this->FrameSize[1];
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+int* vtkPlusStreamBuffer::GetFrameSize()
+{
+  return this->FrameSize;
 }

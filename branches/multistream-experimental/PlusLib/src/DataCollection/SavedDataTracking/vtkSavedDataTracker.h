@@ -1,15 +1,15 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #ifndef __vtkSavedDataTracker_h
 #define __vtkSavedDataTracker_h
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 
-class vtkPlusDataBuffer; 
+class vtkPlusStreamBuffer; 
 
 /*!
 \class vtkSavedDataTracker 
@@ -19,95 +19,97 @@ Simulator reads exported tracked buffer from sequence metafile and play back it
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkSavedDataTracker : public vtkTracker
+class VTK_EXPORT vtkSavedDataTracker : public vtkPlusDevice
 {
 public:
 
-	static vtkSavedDataTracker *New();
-	vtkTypeMacro(vtkSavedDataTracker,vtkTracker);
-	void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkSavedDataTracker *New();
+  vtkTypeMacro(vtkSavedDataTracker,vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-	/*! Connect to device */
-	PlusStatus Connect();
+  virtual bool IsTracker() const { return true; }
 
-	/*! Disconnect from device */
-	virtual PlusStatus Disconnect();
+  /*! Probe to see if the tracking system is present on the specified serial port. */
+  PlusStatus Probe();
 
-	/*! Probe to see if the tracking system is present on the specified serial port. */
-	PlusStatus Probe();
+  /*! Get an update from the tracking system and push the new transforms to the tools. */
+  PlusStatus InternalUpdate();
 
-	/*! Get an update from the tracking system and push the new transforms to the tools. */
-	PlusStatus InternalUpdate();
-
-	/*! Read tracker configuration from xml data */
-	PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read tracker configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write tracker configuration to xml data */
-	PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
-	/*! Set SequenceMetafile name with path with tracking buffer data */
-	vtkSetStringMacro(SequenceMetafile);
+  /*! Set SequenceMetafile name with path with tracking buffer data */
+  vtkSetStringMacro(SequenceMetafile);
 
   /*! Get SequenceMetafile name with path with tracking buffer data */
-	vtkGetStringMacro(SequenceMetafile);
+  vtkGetStringMacro(SequenceMetafile);
 
   /*! Set loop start time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
-	vtkSetMacro(LoopStartTime, double); 
-	
+  vtkSetMacro(LoopStartTime, double); 
+
   /*! Get loop start time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
   vtkGetMacro(LoopStartTime, double); 
 
   /*! Set loop time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
-	vtkSetMacro(LoopTime, double); 
+  vtkSetMacro(LoopTime, double); 
 
   /*! Get loop time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
-	vtkGetMacro(LoopTime, double); 
-
-	/*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
-	vtkGetMacro(RepeatEnabled, bool);
-  
-  /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
-	vtkSetMacro(RepeatEnabled, bool);
+  vtkGetMacro(LoopTime, double); 
 
   /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
-	vtkBooleanMacro(RepeatEnabled, bool);
+  vtkGetMacro(RepeatEnabled, bool);
+
+  /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
+  vtkSetMacro(RepeatEnabled, bool);
+
+  /*! Flag to to enable saved dataset repeating. If it's enabled, the video source will continuously play saved data */
+  vtkBooleanMacro(RepeatEnabled, bool);
 
   /*! Get local tracker buffer */
-  vtkPlusDataBuffer* GetLocalTrackerBuffer(); 
+  vtkPlusStreamBuffer* GetLocalTrackerBuffer(); 
 
 protected:
-	vtkSavedDataTracker();
-	~vtkSavedDataTracker();
+  vtkSavedDataTracker();
+  ~vtkSavedDataTracker();
 
   void DeleteLocalTrackerBuffers(); 
 
-	/*! Start the tracking system. */
-	PlusStatus InternalStartTracking();
+  /*! Connect to device */
+  virtual PlusStatus InternalConnect();
 
-	/*! Stop the tracking system */
-	PlusStatus InternalStopTracking();
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
+
+  /*! Start the tracking system. */
+  PlusStatus InternalStartRecording();
+
+  /*! Stop the tracking system */
+  PlusStatus InternalStopRecording();
 
   /*! Sequence metafile name */
-	char* SequenceMetafile; 
+  char* SequenceMetafile; 
 
   /*! Flag to enable saved dataset repeat */
-	bool RepeatEnabled; 
+  bool RepeatEnabled; 
 
   /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
-  std::map<std::string, vtkPlusDataBuffer*> LocalTrackerBuffers; 
-	
+  std::map<std::string, vtkPlusStreamBuffer*> LocalTrackerBuffers; 
+
   /*! Flag used for storing initialization state */
-	bool Initialized;
+  bool Initialized;
 
   /*! Initila loop start timestamp */
   double LoopStartTime; 
 
   /*! Length of the loop time */
   double LoopTime; 
-		
+
 private:
-	vtkSavedDataTracker(const vtkSavedDataTracker&);
-	void operator=(const vtkSavedDataTracker&);  
+  vtkSavedDataTracker(const vtkSavedDataTracker&);
+  void operator=(const vtkSavedDataTracker&);  
 };
 
 #endif

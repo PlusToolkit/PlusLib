@@ -4,40 +4,41 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkTrackerTool - interfaces VTK to a handheld 3D positioning tool
+// .NAME vtkPlusStreamTool - interfaces VTK to a handheld 3D positioning tool
 // .SECTION Description
-// The vtkTrackerTool provides an interface between a tracked object in
+// The vtkPlusStreamTool provides an interface between a tracked object in
 // the real world and a virtual object.
 // .SECTION see also
 // vtkTracker vtkPOLARISTracker vtkFlockTracker
 
-#ifndef __vtkTrackerTool_h
-#define __vtkTrackerTool_h
+#ifndef __vtkPlusStreamTool_h
+#define __vtkPlusStreamTool_h
 
 #include "vtkObject.h"
-#include "vtkTracker.h"
-
-class vtkPlusDataBuffer;
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h"
 
 /*!
-\class vtkTrackerTool 
+\class vtkPlusStreamTool 
 \brief Interface to a handheld 3D positioning tool
 
-The vtkTrackerTool provides an interface between a tracked object in
+The vtkPlusStreamTool provides an interface between a tracked object in
 the real world and a virtual object.
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkTrackerTool : public vtkObject
+class VTK_EXPORT vtkPlusStreamTool : public vtkObject
 {
 public:
 
-  static vtkTrackerTool *New();
-  vtkTypeMacro(vtkTrackerTool,vtkObject);
+  static vtkPlusStreamTool *New();
+  vtkTypeMacro(vtkPlusStreamTool,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
+  virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 
   /*! Set tool name. Tool name is used to identify the tool among all the tools provided by the tracker device 
   therefore it must be unique and can be set only once */
@@ -48,10 +49,10 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Get the tracked tool buffer */
-  vtkGetObjectMacro(Buffer,vtkPlusDataBuffer);
+  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer() const { return this->Buffer; }
 
   /*! Get the tracker which owns this tool. */
-  vtkGetObjectMacro(Tracker,vtkTracker);
+  vtkGetObjectMacro(Device,vtkPlusDevice);
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName); 
@@ -92,7 +93,7 @@ public:
   vtkGetStringMacro(ToolName); 
 
   /*! Set tracker which owns this tool */
-  void SetTracker(vtkTracker *tracker);
+  void SetDevice(vtkPlusDevice *device);
   
   /*! Set tool revision */
   vtkSetStringMacro(ToolRevision);
@@ -104,13 +105,13 @@ public:
   vtkSetStringMacro(ToolSerialNumber);
     
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
-  void DeepCopy(vtkTrackerTool *tool);
+  void DeepCopy(vtkPlusStreamTool *tool);
 
 protected:
-  vtkTrackerTool();
-  ~vtkTrackerTool();
+  vtkPlusStreamTool();
+  ~vtkPlusStreamTool();
 
-  vtkTracker *Tracker;
+  vtkPlusDevice *Device;
 
   char *PortName;
 
@@ -126,11 +127,11 @@ protected:
   char *ToolManufacturer;
   char *ToolName; 
 
-  vtkPlusDataBuffer *Buffer;
+  vtkSmartPointer<vtkPlusStreamBuffer> Buffer;
 
 private:
-  vtkTrackerTool(const vtkTrackerTool&);
-  void operator=(const vtkTrackerTool&);  
+  vtkPlusStreamTool(const vtkPlusStreamTool&);
+  void operator=(const vtkPlusStreamTool&);  
 
 };
 

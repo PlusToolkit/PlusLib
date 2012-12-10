@@ -4,27 +4,20 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
-
-#include "vtkPhidgetSpatialTracker.h"
-
-#include <sstream>
-
-#include "vtkMatrix4x4.h"
-#include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkTransform.h"
-#include "vtkXMLDataElement.h"
-
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
-
 #include "MadgwickAhrsAlgo.h"
 #include "MahonyAhrsAlgo.h"
-
+#include "PlusConfigure.h"
+#include "PlusConfigure.h"
+#include "vtkMatrix4x4.h"
+#include "vtkObjectFactory.h"
+#include "vtkPhidgetSpatialTracker.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
+#include "vtkXMLDataElement.h"
+#include "vtksys/SystemTools.hxx"
 #include <math.h>
+#include <sstream>
 
 vtkStandardNewMacro(vtkPhidgetSpatialTracker);
 
@@ -34,7 +27,6 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->SpatialDeviceHandle = 0;
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
-  this->ZeroGyroscopeOnConnect = false;
 
   this->AccelerometerTool = NULL;
   this->GyroscopeTool = NULL;
@@ -56,6 +48,14 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->AhrsAlgorithmGain[0]=1.5; // proportional
   this->AhrsAlgorithmGain[1]=0.0; // integral
   this->AhrsLastUpdateTime=-1;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //-------------------------------------------------------------------------
@@ -63,7 +63,7 @@ vtkPhidgetSpatialTracker::~vtkPhidgetSpatialTracker()
 {
   if ( this->Recording )
   {
-    this->StopTracking();
+    this->StopRecording();
   }
   this->LastAccelerometerToTrackerTransform->Delete();
   this->LastAccelerometerToTrackerTransform=NULL;
@@ -80,7 +80,7 @@ vtkPhidgetSpatialTracker::~vtkPhidgetSpatialTracker()
 //-------------------------------------------------------------------------
 void vtkPhidgetSpatialTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
-  vtkTracker::PrintSelf( os, indent );
+  Superclass::PrintSelf( os, indent );
 
   if (this->SpatialDeviceHandle!=NULL)
   {
@@ -150,7 +150,7 @@ int CCONV ErrorHandler(CPhidgetHandle spatial, void *trackerPtr, int ErrorCode, 
 int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
 {
   vtkPhidgetSpatialTracker* tracker=(vtkPhidgetSpatialTracker*)trackerPtr;
-  if ( ! tracker->IsTracking() )
+  if ( ! tracker->IsRecording() )
   {
     // Received phidget tracking data when not tracking
     return 0;
@@ -390,11 +390,6 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
   // To reset compass correction parameters:
   //  CPhidgetSpatial_resetCompassCorrectionParameters(this->SpatialDeviceHandle);
 
-  if (this->ZeroGyroscopeOnConnect)
-  {
-    ZeroGyroscope();
-  }
-
   // Initialize AHRS algorithm
   this->AhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec); // more accurate value will be set at each update step anyway
   this->AhrsAlgo->SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
@@ -406,7 +401,7 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 PlusStatus vtkPhidgetSpatialTracker::Disconnect()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::Disconnect" ); 
-  this->StopTracking();
+  this->StopRecording();
   CPhidget_close((CPhidgetHandle)this->SpatialDeviceHandle);
   CPhidget_delete((CPhidgetHandle)this->SpatialDeviceHandle);
   this->SpatialDeviceHandle = NULL;
@@ -427,16 +422,16 @@ PlusStatus vtkPhidgetSpatialTracker::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::InternalStartTracking()
+PlusStatus vtkPhidgetSpatialTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStartRecording" ); 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::InternalStopTracking()
+PlusStatus vtkPhidgetSpatialTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopTracking" );   
+  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopRecording" );   
   return PLUS_SUCCESS;
 }
 
@@ -459,32 +454,12 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
   }
-
-  const char* zeroGyroscopeOnConnect = trackerConfig->GetAttribute("ZeroGyroscopeOnConnect"); 
-  if ( zeroGyroscopeOnConnect != NULL )
-  {
-    if ( STRCASECMP(zeroGyroscopeOnConnect, "true") == 0 )
-    {
-      this->ZeroGyroscopeOnConnect=true;
-    }
-    else
-    {
-      this->ZeroGyroscopeOnConnect=false;
-    }
-  } 
 
   int tiltSensorWestAxisIndex=0; 
   if ( trackerConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
@@ -568,24 +543,11 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
-  }
-
-  if (this->ZeroGyroscopeOnConnect)
-  {
-    trackerConfig->SetAttribute("ZeroGyroscopeOnConnect","TRUE");
   }
 
   if (this->TiltSensorTool)
@@ -637,13 +599,6 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
 }
 
 //----------------------------------------------------------------------------
-void vtkPhidgetSpatialTracker::ZeroGyroscope()
-{  
-  LOG_INFO("Zeroing the gyroscope. Keep the sensor stationary for 2 seconds.");
-  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
-}
-
-//----------------------------------------------------------------------------
 bool vtkPhidgetSpatialTracker::IsResettable()
 {
   return true;
@@ -652,9 +607,10 @@ bool vtkPhidgetSpatialTracker::IsResettable()
 //----------------------------------------------------------------------------
 PlusStatus vtkPhidgetSpatialTracker::Reset()
 {
-  if( this->IsTracking() )
+  if( this->IsRecording() )
   {
-    ZeroGyroscope();
+    // Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
+    int result = CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
   }
 
   return PLUS_SUCCESS;

@@ -1,12 +1,12 @@
-#include "PlusBkProFocusReceiver.h"
 #include "PlusConfigure.h"
 #include "vtkBkProFocusVideoSource.h"
-#include "vtkImageData.h"
-#include "vtkImageImport.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
+
+#include "PlusBkProFocusReceiver.h"
 #include "vtkRfProcessor.h"
-#include "vtkUsScanConvertLinear.h"
-#include "vtkUsScanConvertCurvilinear.h"
+
+#include "vtkImageImport.h"
+#include "vtkImageData.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
@@ -111,6 +111,8 @@ public:
     std::string scanPlane = ParseResponseQuoted(value, 0);
     std::cout << "Scan plane: " << scanPlane << std::endl;
 
+    this->External->RfProcessor->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());
+
     value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
     float frameRate = atof(ParseResponse(value,0).c_str());
     std::cout << "Frame rate: " << frameRate << std::endl;
@@ -130,8 +132,8 @@ public:
       vtkMath::DegreesFromRadians(atof(ParseResponse(value,2).c_str()));
     // start depth is defined at the distance from the outer surface of the transducer 
     // to the surface of the crystal. stop depth is from the outer surface to the scan depth.
-    // start depth has negative depth in this coordinate system (the transducer surface pixels are inside the image)
-    float startDepthMm = atof(ParseResponse(value,3).c_str())*1000.;
+    // start depth has negative depth in this coordinate system, so we take the abs.
+    float startDepthMm = fabs(atof(ParseResponse(value,3).c_str())*1000.);
     float stopAngleDeg = 
       vtkMath::DegreesFromRadians(atof(ParseResponse(value,6).c_str()));
     float stopDepthMm = atof(ParseResponse(value,7).c_str())*1000.;
@@ -147,72 +149,29 @@ public:
     startAngleDeg = -(startAngleDeg-stopAngleDeg)/2.;
     stopAngleDeg = -startAngleDeg;
 
-    // Update the RfProcessor with scan conversion parameters
-    
+    // set relevant parameters on RfProcessor
     if(transducer == "8848")
     {
       if(scanPlane == "S")
       {
-        LOG_DEBUG("Linear transducer");
-        if (vtkUsScanConvertLinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
-        {
-          // The current scan converter is not for a linear transducer, so change it now
-          vtkSmartPointer<vtkUsScanConvertLinear> scanConverter=vtkSmartPointer<vtkUsScanConvertLinear>::New();
-          this->External->RfProcessor->SetScanConverter(scanConverter);
-        }
+        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_LINEAR);
+        this->External->RfProcessor->SetTransducerWidthMm(startLineXMm+stopLineXMm);
       }
       else if(scanPlane == "T")
       {
-        LOG_DEBUG("Curvilinear transducer");
-        if (vtkUsScanConvertCurvilinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
-        {
-          // The current scan converter is not for a curvilinear transducer, so change it now
-          vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConverter=vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
-          this->External->RfProcessor->SetScanConverter(scanConverter);
-        }
-      }
-      else
-      {
-        LOG_WARNING("Unknown transducer scan plane ("<<scanPlane<<"). Cannot determine transducer geometry.");
-      }
-    }
-    else
-    {
-      LOG_WARNING("Unknown transducer model ("<<transducer<<"). Cannot determine transducer geometry.");
-    }
-
-    vtkUsScanConvert* scanConverter=this->External->RfProcessor->GetScanConverter();
-    if (scanConverter!=NULL)
-    {
-      vtkUsScanConvertLinear* scanConverterLinear=vtkUsScanConvertLinear::SafeDownCast(scanConverter);
-      vtkUsScanConvertCurvilinear* scanConverterCurvilinear=vtkUsScanConvertCurvilinear::SafeDownCast(scanConverter);
-      if (scanConverterLinear!=NULL)
-      {
-        scanConverterLinear->SetTransducerWidthMm(startLineXMm+stopLineXMm);
-        scanConverterLinear->SetImagingDepthMm(stopDepthMm);
-      }
-      else if (scanConverterCurvilinear!=NULL)
-      {
+        std::cout << "Transducer geometry is curvilinear" << std::endl;
+        this->External->RfProcessor->SetTransducerGeometry(vtkRfProcessor::TRANSDUCER_CURVILINEAR);
         // this is a predefined value for 8848 transverse array, which
         // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
         // crystal surface or to the outer surface of the transducer (waiting for the response from BK).
-        scanConverterCurvilinear->SetOutputImageStartDepthMm(startDepthMm);
-        scanConverterCurvilinear->SetRadiusStartMm(9.74);
-        scanConverterCurvilinear->SetRadiusStopMm(stopDepthMm);
-        scanConverterCurvilinear->SetThetaStartDeg(startAngleDeg);
-        scanConverterCurvilinear->SetThetaStopDeg(stopAngleDeg);        
+        this->External->RfProcessor->SetRadiusOfCurvatureMm(9.74);
+        this->External->RfProcessor->SetStartAngleDeg(startAngleDeg);
+        this->External->RfProcessor->SetStopAngleDeg(stopAngleDeg);
       }
-      else
-      {
-        LOG_WARNING("Unknown scan converter type: "<<scanConverter->GetTransducerGeometry());
-      }
+    }
 
-      scanConverter->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());      
-    }
-    else
-    {
-      LOG_WARNING("Scan converter is not defined in either manually or through the OEM interface");
-    }
+    this->External->RfProcessor->SetStartDepthMm(startDepthMm);
+    this->External->RfProcessor->SetStopDepthMm(stopDepthMm);
 
     /* Not used in reconstruction
     std::cout << "Queried value: " << value << std::endl;
@@ -248,15 +207,14 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
 {
   this->Internal = new vtkInternal(this);
 
-  this->SpawnThreadForRecording=0;
   this->IniFileName=NULL;
   this->ShowSaperaWindow=false;
   this->ShowBModeWindow=false;
 
   this->ImagingMode=RfMode;
 
-  this->SetFrameBufferSize(200); 
-  this->Buffer->Modified();
+  this->SetBufferSize(200); 
+  this->GetBuffer()->Modified();
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
 }
@@ -492,17 +450,17 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
     else
     {
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
-      this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
     <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
       <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
       <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
-      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->Buffer->GetImageOrientation()));
+      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()));
 
   } 
 
-  this->Buffer->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  this->GetBuffer()->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 
@@ -522,14 +480,7 @@ PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");

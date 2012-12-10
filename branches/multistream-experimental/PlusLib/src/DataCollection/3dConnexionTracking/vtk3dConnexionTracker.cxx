@@ -5,25 +5,19 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
+#include "PlusConfigure.h"
 #include "vtk3dConnexionTracker.h"
-
-#include <sstream>
-#include <deque>
-
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
-
+#include "vtksys/SystemTools.hxx"
+#include <deque>
 #include <math.h>
+#include <sstream>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
 #pragma warning ( disable : 4311 )
@@ -49,6 +43,15 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   this->DeviceToTrackerTransform=vtkMatrix4x4::New();
   this->LatestMouseTransform=vtkMatrix4x4::New();
   
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = true;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = true;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
+
   this->TranslationScales[0]=0.001;
   this->TranslationScales[1]=0.001;
   this->TranslationScales[2]=0.001;
@@ -64,7 +67,7 @@ vtk3dConnexionTracker::~vtk3dConnexionTracker()
 {
   if ( this->Recording )
   {
-    this->StopTracking();
+    this->StopRecording();
   }
   DestroyCaptureWindow();  
   if (this->DeviceToTrackerTransform!=NULL)
@@ -77,12 +80,6 @@ vtk3dConnexionTracker::~vtk3dConnexionTracker()
     this->LatestMouseTransform->Delete();
     this->LatestMouseTransform=NULL;
   }
-}
-
-//-------------------------------------------------------------------------
-void vtk3dConnexionTracker::PrintSelf( ostream& os, vtkIndent indent )
-{
-  vtkTracker::PrintSelf( os, indent );
 }
 
 //-------------------------------------------------------------------------
@@ -396,7 +393,7 @@ PlusStatus vtk3dConnexionTracker::Connect()
   }
 
   this->SpaceNavigatorTool = NULL;
-  GetToolByPortName("SpaceNavigator", this->SpaceNavigatorTool);
+  this->GetToolByPortName("SpaceNavigator", this->SpaceNavigatorTool);
 
   return PLUS_SUCCESS; 
 }
@@ -405,7 +402,7 @@ PlusStatus vtk3dConnexionTracker::Connect()
 PlusStatus vtk3dConnexionTracker::Disconnect()
 {
   LOG_TRACE( "vtk3dConnexionTracker::Disconnect" ); 
-  this->StopTracking();
+  this->StopRecording();
 
   UnregisterDevice();
   DestroyCaptureWindow();
@@ -423,16 +420,16 @@ PlusStatus vtk3dConnexionTracker::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtk3dConnexionTracker::InternalStartTracking()
+PlusStatus vtk3dConnexionTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtk3dConnexionTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtk3dConnexionTracker::InternalStartRecording" ); 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtk3dConnexionTracker::InternalStopTracking()
+PlusStatus vtk3dConnexionTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtk3dConnexionTracker::InternalStopTracking" );
+  LOG_TRACE( "vtk3dConnexionTracker::InternalStopRecording" );
   return PLUS_SUCCESS;
 }
 
@@ -443,7 +440,7 @@ PlusStatus vtk3dConnexionTracker::InternalUpdate()
 
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
-  if (this->SpaceNavigatorTool!=NULL)
+  if (this->SpaceNavigatorTool != NULL)
   {
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -486,21 +483,14 @@ PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* config)
 
   if ( config == NULL ) 
   {
-    LOG_WARNING("Unable to find BrachyTracker XML data element");
+    LOG_WARNING("Null XML element passed to vtk3dConnexionTracker::ReadConfiguration");
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    LOG_ERROR("Cannot find 3dConnexion element in XML tree!");
     return PLUS_FAIL;
   }
 
@@ -573,15 +563,7 @@ PlusStatus vtk3dConnexionTracker::WriteConfiguration(vtkXMLDataElement* rootConf
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

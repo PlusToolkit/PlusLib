@@ -9,7 +9,8 @@
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStream.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
 #include "vtkSonixVideoSource.h"
@@ -73,6 +74,8 @@ int main(int argc, char* argv[])
 	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
 	sonixGrabber->SetImagingMode(0);
 	sonixGrabber->SetAcquisitionDataType(0x00000005);
+  vtkSmartPointer<vtkPlusStreamBuffer> aBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+  sonixGrabber->AddDefaultBuffer(aBuffer, 0);
 	if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to set video buffer size!"); 
@@ -131,7 +134,7 @@ int main(int argc, char* argv[])
 	}
 
 	viewer = vtkImageViewer::New();
-	viewer->SetInput(vtkImageData::SafeDownCast(sonixGrabber->GetOutputDataObject(0)));   //set image to the render and window
+  viewer->SetInput(sonixGrabber->GetOutput());
 	viewer->SetColorWindow(255);
 	viewer->SetColorLevel(127.5);
 	viewer->SetZSlice(0);

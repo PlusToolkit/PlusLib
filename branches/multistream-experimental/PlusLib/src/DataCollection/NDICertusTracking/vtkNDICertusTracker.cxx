@@ -28,7 +28,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkNDICertusTracker.h"
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkNDICertusTracker);
@@ -55,6 +55,14 @@ vtkNDICertusTracker::vtkNDICertusTracker()
     this->PortHandle[i] = 0;
     this->PortEnabled[i] = 0;
   }
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -62,7 +70,7 @@ vtkNDICertusTracker::~vtkNDICertusTracker()
 {
   if (this->Recording)
   {
-    this->StopTracking();
+    this->StopRecording();
   }
   this->SendMatrix->Delete();
   if (this->Version)
@@ -84,7 +92,7 @@ std::string vtkNDICertusTracker::GetSdkVersion()
 //----------------------------------------------------------------------------
 void vtkNDICertusTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkTracker::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "SendMatrix: " << this->SendMatrix << "\n";
   this->SendMatrix->PrintSelf(os,indent.GetNextIndent());
@@ -157,7 +165,7 @@ PlusStatus vtkNDICertusTracker::Connect()
 //----------------------------------------------------------------------------
 PlusStatus vtkNDICertusTracker::Disconnect()
 {
-  this->StopTracking(); 
+  this->StopRecording(); 
 
   // Shut down the system
   this->ShutdownCertusSystem();
@@ -277,21 +285,7 @@ PlusStatus vtkNDICertusTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::StartTracking()
-{
-#if VTK_CERTUS_NO_THREADING
-  if (this->InternalStartTracking()!=PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-#else
-  return this->vtkTracker::StartTracking();
-#endif    
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::InternalStartTracking()
+PlusStatus vtkNDICertusTracker::InternalStartRecording()
 {
   if (this->Recording)
   {
@@ -320,17 +314,7 @@ PlusStatus vtkNDICertusTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::StopTracking()
-{
-#if VTK_CERTUS_NO_THREADING
-  return this->InternalStopTracking();
-#else
-  return this->vtkTracker::StopTracking();
-#endif
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::InternalStopTracking()
+PlusStatus vtkNDICertusTracker::InternalStopRecording()
 {
   if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
   {
@@ -452,7 +436,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkTrackerTool* trackerTool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
@@ -677,7 +661,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
               std::ostringstream toolPortName; 
               toolPortName << port; 
-              vtkTrackerTool* trackerTool = NULL; 
+              vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
               if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
               {
                 LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -733,7 +717,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
         std::ostringstream toolPortName; 
         toolPortName << toolCounter; 
-        vtkTrackerTool* trackerTool = NULL; 
+        vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
         if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 

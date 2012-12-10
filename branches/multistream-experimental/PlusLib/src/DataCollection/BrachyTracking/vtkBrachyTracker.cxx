@@ -4,24 +4,23 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
 #include "BrachyStepper.h"
-#include "CmsBrachyStepper.h"
 #include "CivcoBrachyStepper.h"
-#include "vtkBrachyTracker.h"
-#include <sstream>
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkMath.h"
-#include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkAccurateTimer.h"
-#include "vtkXMLDataElement.h"
-#include "vtkTrackedFrameList.h"
+#include "CmsBrachyStepper.h"
+#include "PlusConfigure.h"
 #include "TrackedFrame.h"
+#include "vtkAccurateTimer.h"
+#include "vtkBrachyTracker.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
+#include "vtkXMLDataElement.h"
+#include "vtksys/SystemTools.hxx"
+#include <sstream>
 
 vtkStandardNewMacro(vtkBrachyTracker);
 
@@ -41,21 +40,21 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->SetToolReferenceFrameName("StepperHome"); 
 
   // Add tools to the tracker 
-  vtkSmartPointer<vtkTrackerTool> probeTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  vtkSmartPointer<vtkPlusStreamTool> probeTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
   probeTool->SetToolName("Probe"); 
   std::ostringstream probePortName; 
   probePortName << PROBEHOME_TO_PROBE_TRANSFORM; 
   probeTool->SetPortName(probePortName.str().c_str()); 
   this->AddTool(probeTool); 
 
-  vtkSmartPointer<vtkTrackerTool> templateTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  vtkSmartPointer<vtkPlusStreamTool> templateTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
   templateTool->SetToolName("Template"); 
   std::ostringstream templatePortName; 
   templatePortName << TEMPLATEHOME_TO_TEMPLATE_TRANSFORM; 
   templateTool->SetPortName(templatePortName.str().c_str()); 
   this->AddTool(templateTool); 
 
-  vtkSmartPointer<vtkTrackerTool> encoderTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = vtkSmartPointer<vtkPlusStreamTool>::New(); 
   encoderTool->SetToolName("StepperEncoderValues"); 
   std::ostringstream encoderPortName; 
   encoderPortName << RAW_ENCODER_VALUES; 
@@ -70,6 +69,14 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->SetTemplateTranslationAxisOrientation(0,0,1); 
   this->SetProbeRotationAxisOrientation(0,0,1); 
   this->SetProbeRotationEncoderScale(1.0); 
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -77,7 +84,7 @@ vtkBrachyTracker::~vtkBrachyTracker()
 {
   if (this->Recording)
   {
-    this->StopTracking();
+    this->StopRecording();
   }
 
   if ( this->Device != NULL )
@@ -97,7 +104,7 @@ vtkBrachyTracker::~vtkBrachyTracker()
 //----------------------------------------------------------------------------
 void vtkBrachyTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkTracker::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +123,7 @@ PlusStatus vtkBrachyTracker::Connect()
 PlusStatus vtkBrachyTracker::Disconnect()
 {
   this->Device->Disconnect(); 
-  return this->StopTracking(); 
+  return this->StopRecording(); 
 }
 
 //----------------------------------------------------------------------------
@@ -139,9 +146,9 @@ PlusStatus vtkBrachyTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::InternalStartTracking()
+PlusStatus vtkBrachyTracker::InternalStartRecording()
 {
-  if ( this->IsTracking() )
+  if ( this->IsRecording() )
   {
     return PLUS_SUCCESS;
   }
@@ -156,7 +163,7 @@ PlusStatus vtkBrachyTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::InternalStopTracking()
+PlusStatus vtkBrachyTracker::InternalStopRecording()
 {
   return PLUS_SUCCESS;
 }
@@ -168,7 +175,7 @@ std::string vtkBrachyTracker::GetBrachyToolName(BRACHY_STEPPER_TOOL tool)
 
   std::ostringstream toolPortName; 
   toolPortName << tool; 
-  vtkTrackerTool * trackerTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
   if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool by port: " << toolPortName.str() ); 
@@ -320,14 +327,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -337,7 +337,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
   unsigned long serialPort(0); 
   if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
   {
-    if ( !this->IsTracking() )
+    if ( !this->IsRecording() )
     {
       this->SetSerialPort(serialPort); 
     }
@@ -346,13 +346,13 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
   unsigned long baudRate = 0; 
   if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
   {
-    if ( !this->IsTracking() )
+    if ( !this->IsRecording() )
     {
       this->SetBaudRate(baudRate); 
     }
   }
 
-  if ( !this->IsTracking() )
+  if ( !this->IsRecording() )
   {
     const char* brachyStepperType = trackerConfig->GetAttribute("BrachyStepperType"); 
     if ( brachyStepperType != NULL )
@@ -485,15 +485,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -583,7 +575,7 @@ PlusStatus vtkBrachyTracker::GetTrackedFrame(double timestamp, TrackedFrame* aTr
   }
 
   // Convert 
-  if ( aTrackedFrame->SetCustomFrameTransformStatus(probeToReferenceTransformName, vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(probehome2probeStatus) ) != PLUS_SUCCESS )
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(probeToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(probehome2probeStatus) ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM) ); 
     return PLUS_FAIL; 
@@ -612,7 +604,7 @@ PlusStatus vtkBrachyTracker::GetTrackedFrame(double timestamp, TrackedFrame* aTr
     return PLUS_FAIL;  
   }
 
-  if ( aTrackedFrame->SetCustomFrameTransformStatus(templateToReferenceTransformName, vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(templhome2templStatus) ) != PLUS_SUCCESS )
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(templateToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(templhome2templStatus) ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM) ); 
     return PLUS_FAIL;  
@@ -641,7 +633,7 @@ PlusStatus vtkBrachyTracker::GetTrackedFrame(double timestamp, TrackedFrame* aTr
     return PLUS_FAIL; 
   }
 
-  if ( aTrackedFrame->SetCustomFrameTransformStatus(encoderToReferenceTransformName, vtkTracker::ConvertToolStatusToTrackedFrameFieldStatus(rawEncoderValuesStatus) ) != PLUS_SUCCESS )
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(encoderToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(rawEncoderValuesStatus) ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(RAW_ENCODER_VALUES) ); 
     return PLUS_FAIL; 
@@ -684,7 +676,7 @@ PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePositio
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *encoderTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -715,15 +707,15 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *encoderTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
     return PLUS_FAIL; 
   }
 
-  DataBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  StreamBufferItem bufferItem; 
+  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
     return PLUS_FAIL; 
@@ -754,7 +746,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *encoderTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -787,15 +779,15 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *probeTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> probeTool = NULL; 
   if ( this->GetTool(probeToolName.c_str(), probeTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << probeToolName ); 
     return PLUS_FAIL; 
   }
 
-  DataBufferItem bufferItem; 
-  if ( probeTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  StreamBufferItem bufferItem; 
+  if ( probeTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -821,7 +813,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtk
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *probeTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> probeTool = NULL; 
   if ( this->GetTool(probeToolName.c_str(), probeTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << probeToolName ); 
@@ -854,15 +846,15 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *templateTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> templateTool = NULL; 
   if ( this->GetTool(templateToolName.c_str(), templateTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << templateToolName ); 
     return PLUS_FAIL; 
   }
 
-  DataBufferItem bufferItem; 
-  if ( templateTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  StreamBufferItem bufferItem; 
+  if ( templateTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -888,7 +880,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestam
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *templateTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> templateTool = NULL; 
   if ( this->GetTool(templateToolName.c_str(), templateTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << templateToolName ); 
@@ -921,15 +913,15 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *encoderTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
     return PLUS_FAIL; 
   }
 
-  DataBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetDataBufferItem(uid, &bufferItem) != ITEM_OK )
+  StreamBufferItem bufferItem; 
+  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
     return PLUS_FAIL;
@@ -956,7 +948,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
     return PLUS_FAIL; 
   }
 
-  vtkTrackerTool *encoderTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 

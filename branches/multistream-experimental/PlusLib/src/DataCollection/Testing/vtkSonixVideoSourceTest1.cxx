@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSonixVideoSource.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
@@ -278,6 +278,8 @@ int main(int argc, char* argv[])
   }
 
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
+  vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
+  sonixGrabber->AddDefaultBuffer(aBuff, 0);
 
   sonixGrabber->SetSonixIP(inputSonixIP.c_str());
   sonixGrabber->SetDeviceImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)

@@ -5,19 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
-#include <sstream>
-
+#include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
-
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtksys/SystemTools.hxx"
+#include <sstream>
 
 vtkStandardNewMacro(vtkAscension3DGTrackerBase);
 typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
@@ -35,6 +31,15 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->FilterDcAdaptive = 0.0;
   this->FilterLargeChange = 0;
   this->FilterAlpha = false;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = true;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = true;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //-------------------------------------------------------------------------
@@ -42,7 +47,7 @@ vtkAscension3DGTrackerBase::~vtkAscension3DGTrackerBase()
 {
   if ( this->Recording )
   {
-    this->StopTracking();
+    this->StopRecording();
   }
 
   if ( this->AscensionRecordBuffer != NULL )
@@ -61,7 +66,7 @@ vtkAscension3DGTrackerBase::~vtkAscension3DGTrackerBase()
 //-------------------------------------------------------------------------
 void vtkAscension3DGTrackerBase::PrintSelf( ostream& os, vtkIndent indent )
 {
-  vtkTracker::PrintSelf( os, indent );
+  Superclass::PrintSelf( os, indent );
 }
 
 //-------------------------------------------------------------------------
@@ -143,7 +148,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
     {
       std::ostringstream portName; 
       portName << i; 
-      vtkTrackerTool * tool = NULL; 
+      vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
       if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -153,7 +158,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
   }
 
   // Check that all tools were connected that was defined in the configuration file
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     std::stringstream convert(it->second->GetPortName());
     int port(-1); 
@@ -175,7 +180,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
 PlusStatus vtkAscension3DGTrackerBase::Disconnect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
-  return this->StopTracking(); 
+  return this->StopRecording(); 
 }
 
 //-------------------------------------------------------------------------
@@ -187,9 +192,9 @@ PlusStatus vtkAscension3DGTrackerBase::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::InternalStartTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStartRecording()
 {
-  LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkAscension3DGTracker::InternalStartRecording" ); 
   if ( this->Recording )
   {
     return PLUS_SUCCESS;
@@ -225,9 +230,9 @@ PlusStatus vtkAscension3DGTrackerBase::InternalStartTracking()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::InternalStopTracking()
+PlusStatus vtkAscension3DGTrackerBase::InternalStopRecording()
 {
-  LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
+  LOG_TRACE( "vtkAscension3DGTracker::InternalStopRecording" ); 
 
   short selectID = TRANSMITTER_OFF;
   if (this->CheckReturnStatus( SetSystemParameter( SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) )
@@ -269,7 +274,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
   if ( this->GetNumberOfSensors() != sysConfig.numberSensors )
   {
     LOG_ERROR( "Changing sensors while tracking is not supported. Reconnect necessary." );
-    this->StopTracking();
+    this->StopRecording();
     this->Disconnect();
     return PLUS_FAIL;
   }
@@ -329,6 +334,10 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     attached = ! ( status & NOT_ATTACHED );
     inMotionBox = ! ( status & OUT_OF_MOTIONBOX );
     transmitterRunning = !( status & NO_TRANSMITTER_RUNNING );
+    if( !transmitterRunning )
+    {
+      LOG_WARNING("Attempting to produce data but sensor is not running.");
+    }
     transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
     globalError = status & GLOBAL_ERROR;
 
@@ -354,7 +363,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
 
-    vtkTrackerTool * tool = NULL;
+    vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
     if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 
@@ -393,16 +402,13 @@ PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* root
   }
 
   // Read superclass configuration first
-  Superclass::ReadConfiguration(rootConfigElement); 
-
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
+  if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    LOG_ERROR("Unable to continue configuration of Ascension tracker. Generic device configuration failed.");
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -454,15 +460,7 @@ PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* roo
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

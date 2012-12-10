@@ -4,14 +4,18 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkTrackerFactory.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusDeviceFactory.h"
 
+//----------------------------------------------------------------------------
+// Virtual devices
+#include "vtkVirtualStreamMixer.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkPlusStreamBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkTracker.h" 
 #endif
@@ -44,117 +48,192 @@ See License.txt for details.
   #include "vtk3dConnexionTracker.h"
 #endif
 
+//----------------------------------------------------------------------------
+// Video sources
+#include "vtkSavedDataVideoSource.h"
+#include "vtkUsSimulatorVideoSource.h"
 
+//#ifdef PLUS_USE_MATROX_IMAGING
+//#include "vtkMILVideoSource2.h"
+//#endif
+
+#ifdef WIN32
+#ifdef PLUS_USE_VFW_VIDEO
+#include "vtkWin32VideoSource2.h"
+#endif
+//#else
+//#ifdef USE_LINUX_VIDEO
+//#include "vtkV4L2VideoSource2.h"
+//#endif
+
+#endif
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
+#include "vtkSonixVideoSource.h"
+#include "vtkSonixPortaVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_BKPROFOCUS_VIDEO
+#include "vtkBkProFocusVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_ICCAPTURING_VIDEO
+#include "vtkICCapturingSource.h"
+#endif
+
+#ifdef PLUS_USE_OpenIGTLink
+#include "vtkOpenIGTLinkVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_EPIPHAN
+#include "vtkEpiphanVideoSource.h"
+#endif
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkTrackerFactory, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTrackerFactory);
+vtkCxxRevisionMacro(vtkPlusDeviceFactory, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 //----------------------------------------------------------------------------
-vtkTrackerFactory::vtkTrackerFactory()
-{	
-  TrackerTypes["SavedDataset"]=(PointerToTracker)&vtkSavedDataTracker::New; 
-  TrackerTypes["FakeTracker"]=(PointerToTracker)&vtkFakeTracker::New; 
-  TrackerTypes["ChRobotics"]=(PointerToTracker)&vtkChRoboticsTracker::New; 
+
+vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
+{
+  DeviceTypes["SavedTrackerDataset"]=(PointerToDevice)&vtkSavedDataTracker::New; 
+  DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
+  DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
 #ifdef WIN32
   // 3dConnexion tracker is supported on Windows only
-  TrackerTypes["3dConnexion"]=(PointerToTracker)&vtk3dConnexionTracker::New; 
+  DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
 #endif
 #ifdef PLUS_USE_OpenIGTLink
-  TrackerTypes["OpenIGTLinkTracker"]=(PointerToTracker)&vtkOpenIGTLinkTracker::New; 
+  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New; 
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
-  TrackerTypes["BrachyTracker"]=(PointerToTracker)&vtkBrachyTracker::New; 
+  DeviceTypes["BrachyTracker"]=(PointerToDevice)&vtkBrachyTracker::New; 
 #endif 
 #ifdef PLUS_USE_CERTUS
-  TrackerTypes["CertusTracker"]=(PointerToTracker)&vtkNDICertusTracker::New; 
+  DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkNDICertusTracker::New; 
 #endif
 #ifdef PLUS_USE_POLARIS
-  TrackerTypes["PolarisTracker"]=(PointerToTracker)&vtkNDITracker::New; 
+  DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkNDITracker::New; 
 #endif
 #ifdef PLUS_USE_POLARIS
-  TrackerTypes["AuroraTracker"]=(PointerToTracker)&vtkNDITracker::New; 
+  DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkNDITracker::New; 
 #endif
 #ifdef PLUS_USE_MICRONTRACKER  
-  TrackerTypes["MicronTracker"]=(PointerToTracker)&vtkMicronTracker::New; 
+  DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkMicronTracker::New; 
 #endif
 #ifdef PLUS_USE_Ascension3DG  
-  TrackerTypes["Ascension3DG"]=(PointerToTracker)&vtkAscension3DGTracker::New; 
+  DeviceTypes["Ascension3DG"]=(PointerToDevice)&vtkAscension3DGTracker::New; 
 #endif
 #ifdef PLUS_USE_Ascension3DGm  
-  TrackerTypes["Ascension3DGm"]=(PointerToTracker)&vtkAscension3DGmTracker::New; 
+  DeviceTypes["Ascension3DGm"]=(PointerToDevice)&vtkAscension3DGmTracker::New; 
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER  
-  TrackerTypes["PhidgetSpatial"]=(PointerToTracker)&vtkPhidgetSpatialTracker::New; 
+  DeviceTypes["PhidgetSpatial"]=(PointerToDevice)&vtkPhidgetSpatialTracker::New; 
 #endif
 
+  DeviceTypes["SavedVideoDataset"]=(PointerToDevice)&vtkSavedDataVideoSource::New; 
+  DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New; 
+  DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
+#ifdef PLUS_USE_OpenIGTLink
+  DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
+#endif
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
+  DeviceTypes["SonixVideo"]=(PointerToDevice)&vtkSonixVideoSource::New; 
+  DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkSonixPortaVideoSource::New; 
+#endif 
+#ifdef PLUS_USE_BKPROFOCUS_VIDEO
+  DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+#endif 
+#ifdef PLUS_USE_MATROX_IMAGING
+  DeviceTypes["MatroxImaging"]=(PointerToDevice)&vtkMILVideoSource2::New; 
+#endif 
+#ifdef PLUS_USE_VFW_VIDEO
+  DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
+#endif 
+#ifdef PLUS_USE_ICCAPTURING_VIDEO
+  DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
+#endif 
+#ifdef PLUS_USE_LINUX_VIDEO
+  DeviceTypes["LinuxVideo"]=(PointerToDevice)&vtkV4L2LinuxSource2::New; 
+#endif 
+#ifdef PLUS_USE_EPIPHAN
+  DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
+#endif 
+
+  // Virtual Devices
+  DeviceTypes["VirtualStreamMixer"]=(PointerToDevice)&vtkVirtualStreamMixer::New;
 }
 
 //----------------------------------------------------------------------------
-vtkTrackerFactory::~vtkTrackerFactory()
+
+vtkPlusDeviceFactory::~vtkPlusDeviceFactory(void)
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerFactory::PrintSelf(ostream& os, vtkIndent indent)
+
+void vtkPlusDeviceFactory::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os,indent);
-  this->PrintAvailableTrackers(os, indent); 
-
+  this->PrintAvailableDevices(os, indent); 
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerFactory::PrintAvailableTrackers(ostream& os, vtkIndent indent)
+
+void vtkPlusDeviceFactory::PrintAvailableDevices( ostream& os, vtkIndent indent )
 {
-  os << indent << "Supported tracker devices: " << std::endl; 
-  std::map<std::string,PointerToTracker>::iterator it; 
-  for ( it = TrackerTypes.begin(); it != TrackerTypes.end(); ++it)
+  os << indent << "Supported devices: " << std::endl; 
+  std::map<std::string,PointerToDevice>::iterator it; 
+  for ( it = DeviceTypes.begin(); it != DeviceTypes.end(); ++it)
   {
     if ( it->second != NULL )
     {
-      vtkTracker* tracker = (*it->second)(); 
-      os << indent.GetNextIndent() << "- " << it->first << " (ver: " << tracker->GetSdkVersion() << ")" << std::endl; 
-      tracker->Delete();
-      tracker=NULL;
+      vtkPlusDevice* device = (*it->second)(); 
+      os << indent.GetNextIndent() << "- " << it->first << " (ver: " << device->GetSdkVersion() << ")" << std::endl; 
+      device->Delete();
+      device = NULL;
     }
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerFactory::CreateInstance(const char* aTrackerType, vtkTracker* &aTracker)
+
+PlusStatus vtkPlusDeviceFactory::CreateInstance( const char* aDeviceType, vtkPlusDevice* &aDevice, const std::string &aDeviceId )
 {
-  if ( aTracker != NULL )
+  if ( aDevice != NULL )
   {
-    aTracker->Delete(); 
-    aTracker = NULL; 
+    aDevice->Delete(); 
+    aDevice = NULL; 
   }
-  
-  if ( aTrackerType == NULL ) 
+
+  if ( aDeviceType == NULL ) 
   {
     LOG_ERROR("Tracker type is undefined"); 
     return PLUS_FAIL;
   }
 
-  if ( TrackerTypes.find(aTrackerType) == TrackerTypes.end() )
+  if ( DeviceTypes.find(aDeviceType) == DeviceTypes.end() )
   {
-    LOG_ERROR("Unknown tracker type: " << aTrackerType);
+    LOG_ERROR("Unknown tracker type: " << aDeviceType);
     return PLUS_FAIL; 
   }
- 
-  if ( TrackerTypes[aTrackerType] == NULL )
+
+  if ( DeviceTypes[aDeviceType] == NULL )
   { 
-    LOG_ERROR("Invalid factory method for tracker type: " << aTrackerType);
+    LOG_ERROR("Invalid factory method for tracker type: " << aDeviceType);
     return PLUS_FAIL; 
   }
-    
+
   // Call tracker New() function
-  aTracker = (*TrackerTypes[aTrackerType])(); 
-  if (aTracker==NULL)
+  aDevice = (*DeviceTypes[aDeviceType])(); 
+  if (aDevice==NULL)
   {
-    LOG_ERROR("Invalid video source created for tracker type: " << aTrackerType);
+    LOG_ERROR("Invalid video source created for tracker type: " << aDeviceType);
     return PLUS_FAIL; 
   }
+
+  aDevice->SetDeviceId(aDeviceId.c_str());
 
   return PLUS_SUCCESS; 
 }

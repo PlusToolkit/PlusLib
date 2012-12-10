@@ -7,10 +7,10 @@ See License.txt for details.
 #ifndef __vtkBrachyTracker_h
 #define __vtkBrachyTracker_h
 
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
 #include "BrachyStepper.h" 
-#include "vtkTracker.h"
+#include "PlusConfigure.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusDevice.h"
 #include "vtkTimestampedCircularBuffer.h"
 
 class TrackedFrame; 
@@ -23,7 +23,7 @@ This class talks with CMS and CIVCO brachy steppers
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkBrachyTracker : public vtkTracker
+class VTK_EXPORT vtkBrachyTracker : public vtkPlusDevice
 {
 public:
 
@@ -45,8 +45,10 @@ public:
   }; 
 
   static vtkBrachyTracker *New();
-  vtkTypeMacro(vtkBrachyTracker,vtkTracker);
+  vtkTypeMacro(vtkBrachyTracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Connect to device */
   PlusStatus Connect();
@@ -172,10 +174,10 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read BrachyStepper configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write BrachyStepper configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
 protected:
   vtkBrachyTracker();
@@ -197,10 +199,10 @@ protected:
   only be reset if communication cannot be established without
   a reset. 
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! Initialize the tracking device */
   PlusStatus InitBrachyTracker();

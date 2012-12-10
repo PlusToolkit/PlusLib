@@ -16,7 +16,7 @@ Authors include: Elvis Chen (Queen's University)
 #define __VTKSONIXPORTAVIDEOSOURCE_H__
 
 #include "PlusConfigure.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 
 // porta includes
 #include <porta_params_def.h>
@@ -70,9 +70,9 @@ public:
 
   \ingroup PlusLibImageAcquisition
 */ 
-class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
+class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
 
-  vtkTypeRevisionMacro( vtkSonixPortaVideoSource, vtkPlusVideoSource );
+  vtkTypeRevisionMacro( vtkSonixPortaVideoSource, vtkPlusDevice );
   void PrintSelf( ostream &os, vtkIndent indent );
 
   /*! This is a singleton pattern New.  There will only be ONE
@@ -94,6 +94,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusVideoSource {
    will delete the Instance singleton */
   static vtkSonixPortaVideoSourceCleanup Cleanup;
   //ETX
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();

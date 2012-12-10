@@ -7,28 +7,26 @@
 #ifndef __vtkMicronTracker_h
 #define __vtkMicronTracker_h
 
-#include <limits.h>
-#include <float.h>
-#include <math.h>
-#include <ctype.h>
-#include <iomanip>
-
-#include "vtkUnsignedCharArray.h"
+#include "time.h"
+#include "vtkDoubleArray.h"
 #include "vtkImageFlip.h"
-
-#include "vtkMath.h"
-#include "vtkTimerLog.h"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkMicronTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkObjectFactory.h"
 #include "vtkImageImport.h"
-#include "vtkTracker.h"
 #include "vtkIntArray.h"
 #include "vtkLongArray.h"
-#include "vtkDoubleArray.h"
-#include "time.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkMicronTracker.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusDevice.h"
+#include "vtkTimerLog.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
+#include "vtkUnsignedCharArray.h"
+#include <ctype.h>
+#include <float.h>
+#include <iomanip>
+#include <limits.h>
+#include <math.h>
 
 class MicronTrackerInterface;
 
@@ -37,16 +35,18 @@ class MicronTrackerInterface;
   \brief Interface class to Claron MicronTracker optical trackers
   \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkMicronTracker : public vtkTracker
+class VTK_EXPORT vtkMicronTracker : public vtkPlusDevice
 {
 public:
 
   static vtkMicronTracker *New();
-  vtkTypeMacro(vtkMicronTracker,vtkTracker);
+  vtkTypeMacro(vtkMicronTracker,vtkPlusDevice);
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
  
+  virtual bool IsTracker() const { return true; }
+
   /*!
     Probe to see if the tracking system is present.
   */
@@ -67,10 +67,10 @@ public:
   vtkGetMacro(IsMicronTrackingInitialized, int);
  
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write current MicronTracker configuration settings to XML */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
   /*! Connect to the tracker hardware */
   PlusStatus Connect();
@@ -89,10 +89,10 @@ protected:
     only be reset if communication cannot be established without
     a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its initial state. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! Refresh the loaded markers by loading them from the Markers directory */
   PlusStatus RefreshMarkerTemplates();

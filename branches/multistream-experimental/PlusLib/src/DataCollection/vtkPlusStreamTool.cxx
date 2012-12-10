@@ -6,19 +6,19 @@
 
 #include "PlusConfigure.h"
 
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 
-vtkStandardNewMacro(vtkTrackerTool);
+vtkStandardNewMacro(vtkPlusStreamTool);
 
 //----------------------------------------------------------------------------
-vtkTrackerTool::vtkTrackerTool()
+vtkPlusStreamTool::vtkPlusStreamTool()
 {  
-	this->Tracker = 0;
+	this->Device = 0;
 
 	this->LED1 = 0;
 	this->LED2 = 0;
@@ -32,13 +32,13 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
 
-	this->Buffer = vtkPlusDataBuffer::New();
+	this->Buffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
 	  
 	this->FrameNumber = 0;
 }
 
 //----------------------------------------------------------------------------
-vtkTrackerTool::~vtkTrackerTool()
+vtkPlusStreamTool::~vtkPlusStreamTool()
 {
   if ( this->ToolName != NULL )
   {
@@ -65,13 +65,13 @@ vtkTrackerTool::~vtkTrackerTool()
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
 {
 	vtkObject::PrintSelf(os,indent);
 
-  if ( this->Tracker )
+  if ( this->Device )
   {
-	  os << indent << "Tracker: " << this->Tracker << "\n";
+	  os << indent << "Tracker: " << this->Device << "\n";
   }
   if ( this->ToolName )
   {
@@ -109,7 +109,7 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerTool::SetToolName(const char* toolName)
+PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
 {
   if ( this->ToolName == NULL && toolName == NULL) 
   { 
@@ -138,7 +138,7 @@ PlusStatus vtkTrackerTool::SetToolName(const char* toolName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerTool::SetPortName(const char* portName)
+PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
 {
   if ( this->PortName == NULL && portName == NULL) 
   { 
@@ -167,53 +167,53 @@ PlusStatus vtkTrackerTool::SetPortName(const char* portName)
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::SetLED1(int state)
+void vtkPlusStreamTool::SetLED1(int state)
 {
-	this->Tracker->SetToolLED(this->PortName,1,state);
+	this->Device->SetToolLED(this->PortName,1,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::SetLED2(int state)
+void vtkPlusStreamTool::SetLED2(int state)
 {
-	this->Tracker->SetToolLED(this->PortName,2,state);
+	this->Device->SetToolLED(this->PortName,2,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::SetLED3(int state)
+void vtkPlusStreamTool::SetLED3(int state)
 {
-	this->Tracker->SetToolLED(this->PortName,3,state);
+	this->Device->SetToolLED(this->PortName,3,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::SetTracker(vtkTracker *tracker)
+void vtkPlusStreamTool::SetDevice(vtkPlusDevice *device)
 {
 	// The Tracker is not reference counted, since that would cause a reference loop
-	if (tracker == this->Tracker)
+	if (device == this->Device)
 	{
 		return;
 	}
 
-	if (this->Tracker)
+	if (this->Device)
 	{
-		this->Tracker = NULL;
+		this->Device = NULL;
 	}
 
-	if (tracker)
+	if (device)
 	{
-		this->Tracker = tracker;
+		this->Device = device;
 	}
 	else
 	{
-		this->Tracker = NULL;
+		this->Device = NULL;
 	}
 
 	this->Modified();
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
+void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
 {
-	LOG_TRACE("vtkTrackerTool::DeepCopy"); 
+	LOG_TRACE("vtkPlusStreamTool::DeepCopy"); 
 
 	this->SetLED1( tool->GetLED1() );
 	this->SetLED2( tool->GetLED2() );
@@ -232,18 +232,17 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
 {
-	LOG_TRACE("vtkTrackerTool::ReadConfiguration"); 
+	LOG_TRACE("vtkPlusStreamTool::ReadConfiguration"); 
 
-  // Parameter XMLDataElement is the Tool data element, not the root!
-	if ( config == NULL )
+	if ( toolElement == NULL )
 	{
-		LOG_ERROR("Unable to configure tracker tool! (XML data element is NULL)"); 
+		LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
 		return PLUS_FAIL; 
 	}
 
-	const char* toolName = config->GetAttribute("Name"); 
+	const char* toolName = toolElement->GetAttribute("Name"); 
 	if ( toolName != NULL ) 
 	{
 		this->SetToolName(toolName); 
@@ -254,7 +253,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  const char* portName = config->GetAttribute("PortName"); 
+  const char* portName = toolElement->GetAttribute("PortName"); 
 	if ( portName != NULL ) 
 	{
 		this->SetPortName(portName); 
@@ -265,6 +264,71 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
+  int bufferSize = 0; 
+  if ( toolElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+  {
+    this->GetBuffer()->SetBufferSize(bufferSize);
+  }
+  else
+  {
+    LOG_ERROR("Unable to find tool \"" << this->GetToolName() << "\" buffer size in device element when it is required.");
+    return PLUS_FAIL;
+  }
+
+  int averagedItemsForFiltering = 0;
+  if ( toolElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  {
+    this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+  }
+  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+  }
+
 	return PLUS_SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement )
+{
+  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+
+  if ( toolElement == NULL )
+  {
+    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  toolElement->SetAttribute("Name", this->GetToolName());
+  toolElement->SetAttribute("PortName", this->GetPortName());
+  toolElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
+
+  if( toolElement->GetAttribute("AveragedItemsForFiltering") != NULL )
+  {
+    toolElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamTool::WriteCompactConfiguration( vtkXMLDataElement* toolElement )
+{
+  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+
+  if ( toolElement == NULL )
+  {
+    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
+
+  toolElement->SetAttribute("Name", this->GetToolName());
+  toolElement->SetAttribute("PortName", this->GetPortName());
+
+  return PLUS_SUCCESS;
+}

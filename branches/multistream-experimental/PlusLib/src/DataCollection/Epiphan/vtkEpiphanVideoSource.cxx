@@ -10,7 +10,7 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "epiphan/frmgrab.h"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
@@ -25,9 +25,14 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
 	this->SerialNumber = NULL;
-	this->SpawnThreadForRecording = true;
-	this->SetFrameBufferSize(200); 
-	this->Buffer->Modified();
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -168,7 +173,7 @@ PlusStatus vtkEpiphanVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkEpiphanVideoSource::InternalGrab()
+PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 {
 
   if (!this->Recording)
@@ -185,7 +190,7 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
   case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
   case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
   default:
-    LOG_ERROR("Unknown video format: "<<this->VideoFormat);
+    LOG_ERROR("Unkonwn video format: "<<this->VideoFormat);
     return PLUS_FAIL;
   }
 
@@ -219,7 +224,7 @@ PlusStatus vtkEpiphanVideoSource::InternalGrab()
     this->GetBuffer()->SetFrameSize( FrameSize );
   }
 
-  PlusStatus status = this->Buffer->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
+  PlusStatus status = this->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
 	  itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
   this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
@@ -239,14 +244,7 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
 	Superclass::ReadConfiguration(config); 
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-	{
-		LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+	vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
 	if (imageAcquisitionConfig == NULL) 
 	{
 		LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
@@ -309,14 +307,7 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");

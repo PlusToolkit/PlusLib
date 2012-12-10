@@ -8,7 +8,7 @@
 #define __vtkOpenIGTLinkVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
 
 class VTK_EXPORT vtkOpenIGTLinkVideoSource;
@@ -21,11 +21,11 @@ class VTK_EXPORT vtkOpenIGTLinkVideoSource;
 
   \ingroup PlusLibImageAcquisition
 */ 
-class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusDevice
 {
 public:
   static vtkOpenIGTLinkVideoSource *New();
-  vtkTypeRevisionMacro(vtkOpenIGTLinkVideoSource,vtkPlusVideoSource);
+  vtkTypeRevisionMacro(vtkOpenIGTLinkVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
@@ -33,6 +33,8 @@ public:
 
   /*! Read/write main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
@@ -73,7 +75,7 @@ protected:
   virtual PlusStatus InternalStartRecording(); 
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalGrab();
+	PlusStatus InternalUpdate();
 
   /*! OpenIGTLink message type */
   char* MessageType; 

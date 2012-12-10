@@ -23,7 +23,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>
@@ -103,8 +103,15 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 
   this->UlteriusConnected=false;
 
-  this->SetFrameBufferSize(200);
   this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -223,8 +230,9 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // expected data type
   this->FrameNumber = frmnum; 
 
-  const int* frameSize = this->GetFrameSize(); 
-  int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
+  int frameSize[2];
+  this->GetFrameSize(frameSize); 
+  int frameBufferBytesPerPixel = this->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -274,7 +282,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = this->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -384,13 +392,13 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     case 8:
       this->SetPixelType( itk::ImageIOBase::UCHAR );
       this->SetImageType( US_IMG_BRIGHTNESS );
-      this->Buffer->SetImageOrientation(US_IMG_ORIENT_MF);
+      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
       break;
     case 16:
       this->SetPixelType( itk::ImageIOBase::SHORT );
       this->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
       // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-      this->Buffer->SetImageOrientation(US_IMG_ORIENT_FM);
+      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
       // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
       {
         int tmp=this->DataDescriptor.h;
@@ -416,16 +424,6 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if ( this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
     {
       continue;
-    }
-
-    if (this->AcquisitionRate<=0)
-    {
-      // AcquisitionRate has not been specified, set it to match the frame rate
-      int aFrameRate=10;
-      if ( this->Ult.getParamValue("frame rate", aFrameRate) )
-      {
-        this->AcquisitionRate=aFrameRate;        
-      }
     }
     
     Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
@@ -486,14 +484,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
@@ -624,12 +615,6 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     this->CompressionStatus=compressionStatus; 
   }
 
-  int sharedMemoryStatus = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("SharedMemoryStatus", sharedMemoryStatus)) 
-  {
-    this->SharedMemoryStatus=sharedMemoryStatus; 
-  }
-
   int timeout = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
   {
@@ -663,14 +648,7 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
@@ -1139,6 +1117,27 @@ PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mod
     mode = RF_UNKNOWN; 
     LOG_WARNING("Unknown RF acquisition mode type: " << iMode ); 
     return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::InternalUpdate()
+{
+  if( Superclass::InternalUpdate() != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
+
+  // TODO : future fix, make this smart to detect changed mode, activate appropriate stream
+  if( this->UlteriusConnected )
+  {
+    int mode;
+    if( this->GetImagingMode(mode) != PLUS_SUCCESS )
+    {
+      return PLUS_SUCCESS;
+    }
   }
 
   return PLUS_SUCCESS;

@@ -8,7 +8,7 @@
 #define __vtkOpenIGTLinkTracker_h
 
 #include "PlusConfigure.h"
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
 
 /*!
@@ -17,12 +17,12 @@
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkTracker
+class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkPlusDevice
 {
 public:
 
 	static vtkOpenIGTLinkTracker *New();
-	vtkTypeMacro( vtkOpenIGTLinkTracker,vtkTracker );
+	vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
 	void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! OpenIGTLink version. */
@@ -41,7 +41,9 @@ public:
 	PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-	PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+
+  virtual bool IsTracker() const { return true; }
 	
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
@@ -72,10 +74,10 @@ protected:
     Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
     The device will only be reset if communication cannot be established without a reset.
   */
-	PlusStatus InternalStartTracking();
+	PlusStatus InternalStartRecording();
 
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
-	PlusStatus InternalStopTracking();
+	PlusStatus InternalStopRecording();
 
   /*! OpenIGTLink message type */
   char* MessageType; 

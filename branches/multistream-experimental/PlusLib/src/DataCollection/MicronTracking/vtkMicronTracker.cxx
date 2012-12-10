@@ -9,17 +9,14 @@ See License.txt for details.
 // E.g., it could be checked by performing temporal calibration.
 // #define USE_MICRONTRACKER_TIMESTAMPS
 
+#include "MicronTrackerInterface.h"
 #include "PlusConfigure.h"
-
+#include "PlusVideoFrame.h"
+#include "vtkImageData.h"
 #include "vtkMicronTracker.h"
 #include <fstream>
 #include <iostream>
 #include <set>
-
-#include "vtkImageData.h"
-#include "PlusVideoFrame.h"
-
-#include "MicronTrackerInterface.h"
 
 // Note that "MTC.h" is not included directly, as it causes compilation warnings
 // and unnecessary coupling to lower-level MTC functions.
@@ -42,6 +39,14 @@ vtkMicronTracker::vtkMicronTracker()
 
   // for accurate timing
   this->FrameNumber = 0;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -104,18 +109,18 @@ PlusStatus vtkMicronTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::InternalStartTracking()
+PlusStatus vtkMicronTracker::InternalStartRecording()
 {
   if (!this->IsMicronTrackingInitialized)
   {
-    LOG_ERROR("InternalStartTracking failed: MicronTracker has not been initialized");
+    LOG_ERROR("InternalStartRecording failed: MicronTracker has not been initialized");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::InternalStopTracking()
+PlusStatus vtkMicronTracker::InternalStopRecording()
 {
   // No need to do anything here, as the MicronTracker only performs grabbing on request
   return PLUS_SUCCESS;
@@ -175,7 +180,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-    vtkTrackerTool* tool = NULL; 
+    vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
     if ( this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS )
     {
       LOG_DEBUG("Marker " << identifiedTemplateName << " has no associated tool"); 
@@ -194,7 +199,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {    
     if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
     {
@@ -317,14 +322,7 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -358,15 +356,7 @@ PlusStatus vtkMicronTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

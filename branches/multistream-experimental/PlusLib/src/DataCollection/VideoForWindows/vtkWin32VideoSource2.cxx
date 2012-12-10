@@ -16,7 +16,7 @@ Authors include: Danielle Pace
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "ConvertYuy2ToRgb.h"
 
 
@@ -183,13 +183,18 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 {
   this->Internal = new vtkWin32VideoSource2Internal;
 
-  this->Buffer->SetFrameSize(640,480);
-  this->SetFrameBufferSize(200);
-
   this->WndClassName=NULL;
 
   this->Preview = 0;
   this->FrameIndex = 0;
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -337,7 +342,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
 
   // set up the parent window, but don't show it
   int frameSize[2]={0,0};
-  this->Buffer->GetFrameSize(frameSize);
+  this->GetBuffer()->GetFrameSize(frameSize);
 
   this->Internal->ParentWnd = CreateWindow(this->WndClassName,"Plus video capture window", style, 0, 0, 
     frameSize[0]+2*GetSystemMetrics(SM_CXFIXEDFRAME),
@@ -606,16 +611,16 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   }
   
   this->FrameIndex++;
-  double indexTime = this->Buffer->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
+  double indexTime = this->GetBuffer()->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
   //PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex, indexTime, indexTime); 
-  PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex); 
+  PlusStatus status = this->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex); 
 
   this->Modified();
   return status;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkWin32VideoSource2::InternalGrab()
+PlusStatus vtkWin32VideoSource2::InternalUpdate()
 {
   // just request the grab, the callback does the rest
   if (!capGrabFrameNoStop(this->Internal->CapWnd))
@@ -726,7 +731,7 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
     // set up the video capture format
     this->Internal->GetBitmapInfoFromCaptureDevice();
     int frameSize[2]={0,0};
-    this->Buffer->GetFrameSize(frameSize);
+    this->GetBuffer()->GetFrameSize(frameSize);
     this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
     this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
     if (this->Internal->SetBitmapInfoInCaptureDevice()!=PLUS_SUCCESS)
@@ -795,7 +800,7 @@ PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
     return PLUS_FAIL;
   }
 
-  this->Buffer->SetPixelType(itk::ImageIOBase::UCHAR);
+  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
 
   if (this->GetConnected())
   {
@@ -821,8 +826,8 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
   PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
   
-  this->Buffer->SetFrameSize(width, height);
-  this->Buffer->SetPixelType(pixelType); 
+  this->GetBuffer()->SetFrameSize(width, height);
+  this->GetBuffer()->SetPixelType(pixelType); 
 
   int frameSize[2]={width, height};
   this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType);

@@ -7,9 +7,10 @@ See License.txt for details.
 #ifndef __vtk3dConnexionTracker_h
 #define __vtk3dConnexionTracker_h
 
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 
-class vtkTrackerBuffer;
+class vtkPlusStreamBuffer;
+class vtkPlusStreamTool;
 class vtkMatrix4x4;
 
 /*!
@@ -18,15 +19,14 @@ class vtkMatrix4x4;
 
 This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope device
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtk3dConnexionTracker : public vtkTracker
+class VTK_EXPORT vtk3dConnexionTracker : public vtkPlusDevice
 {
 public:
 
   static vtk3dConnexionTracker *New();
-  vtkTypeMacro( vtk3dConnexionTracker,vtkTracker );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro( vtk3dConnexionTracker,vtkPlusDevice );
 
   /*! Connect to device */
   PlusStatus Connect();
@@ -70,10 +70,10 @@ protected:
   ~vtk3dConnexionTracker();
 
   /*! Start processing data received from the device */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop processing data received from the device */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! Register callback to get notifications from the device */
   PlusStatus RegisterDevice();
@@ -94,7 +94,7 @@ private:  // Functions.
 
 private:  // Variables.
 
-  vtkTrackerTool* SpaceNavigatorTool;
+  vtkSmartPointer<vtkPlusStreamTool> SpaceNavigatorTool;
   vtkMatrix4x4* LatestMouseTransform;
   vtkMatrix4x4* DeviceToTrackerTransform;
   double TranslationScales[3];

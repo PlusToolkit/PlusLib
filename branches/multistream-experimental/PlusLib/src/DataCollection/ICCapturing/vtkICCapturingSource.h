@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef __vtkICCapturingSource_h
 #define __vtkICCapturingSource_h
 
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 class ICCapturingListener; 
 
 class VTK_EXPORT vtkICCapturingSource;
@@ -29,10 +29,10 @@ public:
 \brief Class for providing video input interfaces between VTK and ICCapturing frame grabber device
 \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkICCapturingSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkICCapturingSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkICCapturingSource,vtkPlusVideoSource);
+  vtkTypeRevisionMacro(vtkICCapturingSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
   /*! This is a singleton pattern New.  There will only be ONE
   reference to a vtkOutputWindow object per process.  Clients that
@@ -54,6 +54,8 @@ public:
   */
   static vtkICCapturingSourceCleanup Cleanup;
   //ETX
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();

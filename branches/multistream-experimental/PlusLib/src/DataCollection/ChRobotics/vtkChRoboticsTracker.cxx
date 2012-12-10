@@ -6,13 +6,13 @@ See License.txt for details.
 
 #include "ChrSerialPacket.h"
 #include "PlusConfigure.h"
+#include "PlusConfigure.h"
 #include "SerialLine.h"
 #include "vtkChRoboticsTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDataBuffer.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -58,6 +58,14 @@ BaudRate(115200)
   this->OrientationSensorTool = NULL;
 
   this->FirmwareDefinition=vtkXMLDataElement::New();
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //-------------------------------------------------------------------------
@@ -65,7 +73,7 @@ vtkChRoboticsTracker::~vtkChRoboticsTracker()
 {
   if ( this->Recording )
   {
-    this->StopTracking();
+    this->StopRecording();
   }
 
   if (this->Serial->IsHandleAlive())
@@ -82,8 +90,7 @@ vtkChRoboticsTracker::~vtkChRoboticsTracker()
 //-------------------------------------------------------------------------
 void vtkChRoboticsTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
-  vtkTracker::PrintSelf( os, indent );
-
+  Superclass::PrintSelf( os, indent );
 }
 
 //-------------------------------------------------------------------------
@@ -141,7 +148,7 @@ PlusStatus vtkChRoboticsTracker::Connect()
 PlusStatus vtkChRoboticsTracker::Disconnect()
 {
   LOG_TRACE( "vtkChRoboticsTracker::Disconnect" ); 
-  this->StopTracking();
+  this->StopRecording();
 
   this->Serial->Close();
 
@@ -160,16 +167,16 @@ PlusStatus vtkChRoboticsTracker::Probe()
 } 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::InternalStartTracking()
+PlusStatus vtkChRoboticsTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkChRoboticsTracker::InternalStartRecording" ); 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::InternalStopTracking()
+PlusStatus vtkChRoboticsTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkChRoboticsTracker::InternalStopTracking" );
+  LOG_TRACE( "vtkChRoboticsTracker::InternalStopRecording" );
   return PLUS_SUCCESS;
 }
 
@@ -599,14 +606,7 @@ PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -646,15 +646,7 @@ PlusStatus vtkChRoboticsTracker::WriteConfiguration(vtkXMLDataElement* rootConfi
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  // Get data collection and then Tracker configuration element
-  vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

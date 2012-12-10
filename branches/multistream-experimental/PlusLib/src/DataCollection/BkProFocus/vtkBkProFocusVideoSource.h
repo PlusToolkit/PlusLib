@@ -9,7 +9,7 @@
 
 // PLUS Includes
 #include "PlusConfigure.h"
-#include "vtkPlusVideoSource.h"
+#include "vtkPlusDevice.h"
 
 class PlusBkProFocusReceiver;
 
@@ -18,7 +18,7 @@ class PlusBkProFocusReceiver;
 \brief Class for acquiring ultrasound images from BK ProFocus scanners
 \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkBkProFocusVideoSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkBkProFocusVideoSource : public vtkPlusDevice
 {
 public:  
   enum ImagingModeType
@@ -27,10 +27,12 @@ public:
     RfMode
   };
 
-  vtkTypeRevisionMacro(vtkBkProFocusVideoSource,vtkPlusVideoSource);
+  vtkTypeRevisionMacro(vtkBkProFocusVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   static vtkBkProFocusVideoSource* New();
+
+  virtual bool IsTracker() const { return false; }
 
   /*! Set the name of the BK ini file that stores connection and acquisition settings */
   vtkSetStringMacro(IniFileName);

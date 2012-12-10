@@ -7,10 +7,9 @@
 #ifndef __vtkUsSimulatorVideoSource_h
 #define __vtkUsSimulatorVideoSource_h
 
-#include "vtkPlusVideoSource.h"
-#include "vtkUsSimulatorAlgo.h"
-#include "vtkTracker.h"
+#include "vtkPlusDevice.h"
 #include "vtkTransformRepository.h"
+#include "vtkUsSimulatorAlgo.h"
 
 class vtkPlusDataBuffer; 
 
@@ -21,25 +20,23 @@ class VTK_EXPORT vtkUsSimulatorVideoSource;
   \brief Class for providing VTK video input interface from simulated ultrasound
   \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkUsSimulatorVideoSource : public vtkPlusVideoSource
+class VTK_EXPORT vtkUsSimulatorVideoSource : public vtkPlusDevice
 {
 public:
-	vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusVideoSource);
+	vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	static vtkUsSimulatorVideoSource* New();
 
   /*! Read configuration from xml data */
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-  /*! Write configuration to xml data */
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Get ultrasound simulator */
   vtkGetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
 
   /*! Set ultrasound simulator */
-  vtkSetObjectMacro(Tracker, vtkTracker); 
+  vtkSetObjectMacro(Tracker, vtkPlusDevice); 
   /*! Get ultrasound simulator */
-  vtkGetObjectMacro(Tracker, vtkTracker); 
+  vtkGetObjectMacro(Tracker, vtkPlusDevice); 
 
 protected:
   /*! Set ultrasound simulator */
@@ -68,7 +65,7 @@ protected:
   vtkUsSimulatorAlgo* UsSimulator;
 
   /*! Tracker used in the simulator */
-  vtkTracker* Tracker;
+  vtkPlusDevice* Tracker;
 
   /* Transform repository */
   vtkTransformRepository* TransformRepository;

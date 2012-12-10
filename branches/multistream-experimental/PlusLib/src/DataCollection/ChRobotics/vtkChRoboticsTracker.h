@@ -7,10 +7,10 @@ See License.txt for details.
 #ifndef __vtkChRoboticsTracker_h
 #define __vtkChRoboticsTracker_h
 
-#include "vtkTracker.h"
 #include "ChrDataItem.h"
+#include "vtkPlusDevice.h"
 
-class vtkPlusDataBuffer;
+class vtkPlusStreamBuffer;
 class SerialLine;
 class ChrSerialPacket;
 
@@ -22,12 +22,12 @@ This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope d
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkChRoboticsTracker : public vtkTracker
+class VTK_EXPORT vtkChRoboticsTracker : public vtkPlusDevice
 {
 public:
 
   static vtkChRoboticsTracker *New();
-  vtkTypeMacro( vtkChRoboticsTracker,vtkTracker );
+  vtkTypeMacro( vtkChRoboticsTracker,vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Connect to device */
@@ -48,11 +48,13 @@ public:
   */
   PlusStatus InternalUpdate();
 
+  virtual bool IsTracker() const { return true; }
+
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
 
 protected:
 
@@ -63,10 +65,10 @@ protected:
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
-  PlusStatus InternalStartTracking();
+  PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopTracking();
+  PlusStatus InternalStopRecording();
 
   /*! 
     Find the firmware definition with the specified id among the firmware definition the XML files.
@@ -120,7 +122,7 @@ private:  // Variables.
   */
   std::string FirmwareDirectory;
 
-  vtkTrackerTool* OrientationSensorTool;
+  vtkSmartPointer<vtkPlusStreamTool> OrientationSensorTool;
 
   vtkXMLDataElement* FirmwareDefinition;
   std::string FirmwareVersionId;

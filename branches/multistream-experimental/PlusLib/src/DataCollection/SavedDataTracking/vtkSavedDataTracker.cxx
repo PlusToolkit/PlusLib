@@ -8,11 +8,10 @@
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDataBuffer.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -28,6 +27,15 @@ vtkSavedDataTracker::vtkSavedDataTracker()
   this->RepeatEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -35,7 +43,7 @@ vtkSavedDataTracker::~vtkSavedDataTracker()
 {
   if (this->Recording)
   {
-    this->StopTracking();
+    this->StopRecording();
   }
 
   this->DeleteLocalTrackerBuffers(); 
@@ -44,7 +52,7 @@ vtkSavedDataTracker::~vtkSavedDataTracker()
 //----------------------------------------------------------------------------
 void vtkSavedDataTracker::DeleteLocalTrackerBuffers()
 {
-  for (std::map<std::string, vtkPlusDataBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
+  for (std::map<std::string, vtkPlusStreamBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
   {    
     if ( (*it).second != NULL )
     {
@@ -59,13 +67,13 @@ void vtkSavedDataTracker::DeleteLocalTrackerBuffers()
 //----------------------------------------------------------------------------
 void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkTracker::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::Connect()
+PlusStatus vtkSavedDataTracker::InternalConnect()
 {
-  LOG_TRACE("vtkSavedDataTracker::Connect"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalConnect"); 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   if ( this->Probe()!=PLUS_SUCCESS )
@@ -97,9 +105,9 @@ PlusStatus vtkSavedDataTracker::Connect()
   
   // Enable tools that have a matching transform name in the savedDataBuffer
   double transformMatrix[16]={0};
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    vtkTrackerTool* tool=it->second;
+    vtkPlusStreamTool* tool=it->second;
     if (tool->GetToolName()==NULL)
     {
       // no tool name is available, don't connect it to any transform in the savedDataBuffer
@@ -123,10 +131,10 @@ PlusStatus vtkSavedDataTracker::Connect()
     // a transform with the same name as the tool name has been found in the savedDataBuffer
     tool->GetBuffer()->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
 
-    vtkPlusDataBuffer* buffer=vtkPlusDataBuffer::New();
+    vtkPlusStreamBuffer* buffer=vtkPlusStreamBuffer::New();
     // Copy all the settings from the default tool buffer 
     buffer->DeepCopy( tool->GetBuffer() ); 
-    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusDataBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
+    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetToolName());
       return PLUS_FAIL;
@@ -144,10 +152,10 @@ PlusStatus vtkSavedDataTracker::Connect()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::Disconnect()
+PlusStatus vtkSavedDataTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkSavedDataTracker::Disconnect"); 
-  return this->StopTracking(); 
+  return this->StopRecording(); 
 }
 
 //----------------------------------------------------------------------------
@@ -163,9 +171,9 @@ PlusStatus vtkSavedDataTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::InternalStartTracking()
+PlusStatus vtkSavedDataTracker::InternalStartRecording()
 {
-  LOG_TRACE("vtkSavedDataTracker::InternalStartTracking"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalStartRecording"); 
   if (this->Recording)
   {
     return PLUS_SUCCESS;
@@ -175,9 +183,9 @@ PlusStatus vtkSavedDataTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataTracker::InternalStopTracking()
+PlusStatus vtkSavedDataTracker::InternalStopRecording()
 {
-  LOG_TRACE("vtkSavedDataTracker::InternalStopTracking"); 
+  LOG_TRACE("vtkSavedDataTracker::InternalStopRecording"); 
   return PLUS_SUCCESS;
 }
 
@@ -192,7 +200,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   }
 
   // Get the first tool - the first active tool determines the timestamp
-  vtkTrackerTool* firstActiveTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Internal update failed - there is no active tool!"); 
@@ -226,12 +234,12 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   int numOfErrors=0;
-  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    vtkTrackerTool* tool=it->second;
+    vtkPlusStreamTool* tool=it->second;
 
-    DataBufferItem bufferItem;  
-    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetDataBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusDataBuffer::INTERPOLATED); 
+    StreamBufferItem bufferItem;  
+    ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
     if ( itemStatus != ITEM_OK )
     {
       if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
@@ -289,14 +297,7 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -353,14 +354,7 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
   // Write superclass configuration
   Superclass::WriteConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -382,10 +376,10 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusDataBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
+vtkPlusStreamBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
-  vtkTrackerTool* firstActiveTool = NULL; 
+  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 

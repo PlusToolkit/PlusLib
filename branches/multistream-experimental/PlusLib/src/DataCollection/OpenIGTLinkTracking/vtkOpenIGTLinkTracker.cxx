@@ -5,27 +5,21 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
-#include "vtkOpenIGTLinkTracker.h"
-#include "vtkPlusIgtlMessageCommon.h"
-
-#include <sstream>
-
+#include "PlusConfigure.h"
+#include "igtlMessageHeader.h"
+#include "igtlPlusClientInfoMessage.h"
+#include "igtlPositionMessage.h"
+#include "igtlTransformMessage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkOpenIGTLinkTracker.h"
+#include "vtkPlusIgtlMessageCommon.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
-
-#include "PlusConfigure.h"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-#include "vtkPlusDataBuffer.h"
-
-#include "igtlMessageHeader.h"
-#include "igtlTransformMessage.h"
-#include "igtlPositionMessage.h"
-#include "igtlPlusClientInfoMessage.h"
+#include "vtksys/SystemTools.hxx"
+#include <sstream>
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
@@ -41,6 +35,14 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
   this->IgtlMessageCrcCheckEnabled = 0; 
   this->ClientSocket = igtl::ClientSocket::New(); 
+
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -48,14 +50,14 @@ vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker()
 {
   if ( this->Recording )
   {
-    this->StopTracking();
+    this->StopRecording();
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkOpenIGTLinkTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
-  vtkTracker::PrintSelf( os, indent );
+  Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
@@ -117,7 +119,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
 
     // We need the following tool names from the server 
-    for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
     {
       PlusTransformName tName( it->second->GetToolName(), this->GetToolReferenceFrameName() ); 
       clientInfo.TransformNames.push_back( tName ); 
@@ -149,7 +151,7 @@ PlusStatus vtkOpenIGTLinkTracker::Disconnect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Disconnect" ); 
   this->ClientSocket->CloseSocket(); 
-  return this->StopTracking(); 
+  return this->StopRecording(); 
 }
 
 //----------------------------------------------------------------------------
@@ -168,9 +170,9 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::InternalStartTracking()
+PlusStatus vtkOpenIGTLinkTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStartTracking" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
   if ( this->Recording )
   {
     return PLUS_SUCCESS;
@@ -180,9 +182,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::InternalStopTracking()
+PlusStatus vtkOpenIGTLinkTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopTracking" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
   
   return PLUS_SUCCESS;
 }
@@ -294,14 +296,7 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

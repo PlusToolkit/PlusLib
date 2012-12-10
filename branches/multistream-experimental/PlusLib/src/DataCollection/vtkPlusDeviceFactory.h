@@ -4,50 +4,47 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkTrackerFactory_h
-#define __vtkTrackerFactory_h
+#ifndef __vtkPlusDeviceFactory_h
+#define __vtkPlusDeviceFactory_h
 
-#include "PlusConfigure.h"
-#include "vtkObject.h" 
+#include "vtkObject.h"
+#include "PlusCommon.h"
 
-class vtkTracker; 
-class vtkXMLDataElement; 
+class vtkPlusDevice;
 
 /*!
-  \class vtkTrackerFactory 
-  \brief Factory class of supported trackers
+  \class vtkPlusDeviceFactory 
+  \brief Factory class of supported devices
 
-  This class is a factory class of supported trackers to localize the object creation code.
+  This class is a factory class of supported trackers and video sources to localize the object creation code.
 
-  \ingroup PlusLibTracking
-*/ 
-class VTK_EXPORT vtkTrackerFactory: public vtkObject
+  \ingroup PlusLibPlusCommon
+*/
+class VTK_EXPORT vtkPlusDeviceFactory : public vtkObject
 {
 public:
-  
-  static vtkTrackerFactory *New();
-  vtkTypeRevisionMacro(vtkTrackerFactory,vtkObject);
+  static vtkPlusDeviceFactory *New();
+  vtkTypeRevisionMacro(vtkPlusDeviceFactory, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  /*! Print all supported trackers with SDK version number */
-  virtual void PrintAvailableTrackers(ostream& os, vtkIndent indent);
+  /*! Print all supported devices with SDK version number */
+  virtual void PrintAvailableDevices(ostream& os, vtkIndent indent);
 
-  /*! Create a new tracker instance from tracker type, delete previous tracker if's not NULL */ 
-  PlusStatus CreateInstance(const char* aTrackerType, vtkTracker* &aTracker);
+  /*! Create a new device instance from device type, delete previous device if's not NULL */ 
+  PlusStatus CreateInstance(const char* aDeviceType, vtkPlusDevice* &aDevice, const std::string &aDeviceId);
 
 protected:
-  vtkTrackerFactory();
-  virtual ~vtkTrackerFactory();
+  vtkPlusDeviceFactory(void);
+  virtual ~vtkPlusDeviceFactory(void);
 
-  /*! Function pointer for storing New() static methods of vtkTracker classes */ 
-  typedef vtkTracker* (*PointerToTracker)(); 
-  /*! Map tracker types and the New() static methods of vtkTracker classes */ 
-  std::map<std::string,PointerToTracker> TrackerTypes; 
+  /*! Function pointer for storing New() static methods of vtkPlusDevice classes */ 
+  typedef vtkPlusDevice* (*PointerToDevice)(); 
+  /*! Map tracker types and the New() static methods of vtkPlusDevice classes */ 
+  std::map<std::string,PointerToDevice> DeviceTypes; 
 
 private:
-  vtkTrackerFactory(const vtkTrackerFactory&);
-  void operator=(const vtkTrackerFactory&);
+  vtkPlusDeviceFactory(const vtkPlusDeviceFactory&);
+  void operator=(const vtkPlusDeviceFactory&);
+};
 
-}; 
-
-#endif 
+#endif
