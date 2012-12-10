@@ -6,14 +6,22 @@
       Description="SonixTouch and GPStracker. The SonixTouch US device should be in research mode. Used at UBC" 
     />
 
-    <Tracker Type="Ascension3DG" BufferSize="500" AcquisitionRate="50" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" FilterAcWideNotch="1">
-      <Tool Name="Probe" PortName="0" />
-    </Tracker>
+    <Device
+      Type="Ascension3DG"
+      Id="DeviceAscension3DG"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      FilterAcWideNotch="1" >
+      <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <OutputStream Id="Output3DG" >
+        <Tool Name="Probe"/>
+      </OutputStream>
+    </Device>
 
-    <ImageAcquisition Type="SonixVideo" 
-      BufferSize="400" 
+    <Device
+      Type="SonixVideo"
+      Id="DeviceSonixVideo" 
       UsImageOrientation="MF"
-      AveragedItemsForFiltering="20" 
       IP="137.82.56.185" 
       ImagingMode="BMode"
       AcquisitionDataType="BPost" 
@@ -24,9 +32,15 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" 
-    />
+      CompressionStatus="0" >
+        <OutputStream Id="SonixVideoOutput" BufferSize="400" AveragedItemsForFiltering="20" />
+    </Device>
 
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="Output3DG" />
+      <InputStream Id="SonixVideoOutput" />
+    </Device>
   </DataCollection>
 
   <ProstateBiopsy AcquisitionTime="3" />

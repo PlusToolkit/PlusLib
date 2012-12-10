@@ -1,7 +1,7 @@
 <PlusConfiguration version="1.4">
 
   <Segmentation
-	NumberOfMaximumFiducialPointCandidates="50"    ApproximateSpacingMmPerPixel="0.21"
+  NumberOfMaximumFiducialPointCandidates="50"    ApproximateSpacingMmPerPixel="0.21"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
     RegionOfInterest="68 145 458 445"

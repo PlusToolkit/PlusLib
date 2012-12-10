@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.4">
   <DataCollection>  
-    <ImageAcquisition>
+    <Device>
       <RfProcessing>
         <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
         <ScanConversion TransducerName="Ultrasonix_L9-4/38"
@@ -11,6 +11,6 @@
           OutputImageSpacingMmPerPixel="0.2 0.2"        
           />
       </RfProcessing> 
-    </ImageAcquisition>
+    </Device>
   </DataCollection>        
 </PlusConfiguration>

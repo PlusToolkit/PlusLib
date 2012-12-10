@@ -6,44 +6,47 @@
       Description="Data collector in file mode providing sequence for freehand calibration" 
     />
 
-    <ImageAcquisition
-      Type="SavedDataset"
+    <Device
+      Type="SavedVideoDataset"
+      Id="DeviceSavedDataset"
       SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
-      />
+      Selectable="true" >
+        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+    </Device>
   </DataCollection>
 
 
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
-        1	0	0	-410
-        0	1	0	5
-        0	0	1	0
-        0	0	0	1"
+        1  0  0  -410
+        0  1  0  5
+        0  0  1  0
+        0  0  0  1"
        Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
-        -0.0167397	-0.0153548	-0.999742	15.6642
-        -0.999834	0.0075107	0.0166258	-25.3628
-        0.00725347	0.999854	-0.015478	-40.7799
-        0	0	0	1"
+        -0.0167397  -0.0153548  -0.999742  15.6642
+        -0.999834  0.0075107  0.0166258  -25.3628
+        0.00725347  0.999854  -0.015478  -40.7799
+        0  0  0  1"
        Error="0.660751" Date="091112_152716"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.997221	0.0675365	0.0314631	194.844
-        -0.06757	0.997715	0	-13.2023
-        -0.0313912	-0.00212596	0.999505	-6.13342
-        0	0	0	1"
+        0.997221  0.0675365  0.0314631  194.844
+        -0.06757  0.997715  0  -13.2023
+        -0.0313912  -0.00212596  0.999505  -6.13342
+        0  0  0  1"
        Error="0.450335" Date="091112_150057"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
-        0.0796446	0	0	0
-        0	0.0744856	0	0
-        0	0	0.0770651	0
-        0	0	0	1"
+        0.0796446  0  0  0
+        0  0.0744856  0  0
+        0  0  0.0770651  0
+        0  0  0  1"
        Date="091112_160011"/>
   </CoordinateDefinitions>
   
