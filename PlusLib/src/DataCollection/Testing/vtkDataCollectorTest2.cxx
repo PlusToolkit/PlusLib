@@ -10,15 +10,15 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkTracker.h"
+#include "vtkPlusDataBuffer.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
-#include "vtkSmartPointer.h"
-#include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
+#include "vtkTimerLog.h"
 #include "vtksys/SystemTools.hxx"
 
 int main(int argc, char **argv)
@@ -78,20 +78,13 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
   dataCollector->ReadConfiguration( configRootElement );  
-  vtkPlusDevice* videoDevice = NULL;
-  vtkPlusDevice* trackerDevice = NULL;
 
-  if ( !inputVideoBufferMetafile.empty() )
+  if ( ! inputVideoBufferMetafile.empty() )
   {
-    if( dataCollector->GetDevice(videoDevice, "SavedDataVideo") != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to locate the device with Id=\"SavedDataVideo\". Check config file.");
-      exit(EXIT_FAILURE);
-    }
-    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(videoDevice); 
+    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
     if ( videoSource == NULL )
     {
-      LOG_ERROR( "Unable to cast device to vtkSavedDataVideoSource." );
+      LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
       exit( EXIT_FAILURE );
     }
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
@@ -99,12 +92,7 @@ int main(int argc, char **argv)
 
   if ( !inputTrackerBufferMetafile.empty() )
   {
-    if( dataCollector->GetDevice(trackerDevice, "SavedDataTracker") != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to locate the device with Id=\"SavedDataTracker\". Check config file.");
-      exit(EXIT_FAILURE);
-    }
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(trackerDevice); 
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
     if ( tracker == NULL )
     {
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
@@ -133,34 +121,34 @@ int main(int argc, char **argv)
     vtksys::SystemTools::Delay(1000); 
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> videobuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
-  if ( videoDevice != NULL ) 
+  vtkSmartPointer<vtkPlusDataBuffer> videobuffer = vtkSmartPointer<vtkPlusDataBuffer>::New(); 
+  if ( dataCollector->GetVideoSource() != NULL ) 
   {
     LOG_INFO("Copy video buffer"); 
-    videobuffer->DeepCopy(videoDevice->GetBuffer());
+    videobuffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer());
   }
 
-  vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New(); 
-  if ( trackerDevice != NULL )
+  vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
+  if ( dataCollector->GetTracker() != NULL )
   {
     LOG_INFO("Copy tracker"); 
-    tracker->DeepCopy(trackerDevice);
+    tracker->DeepCopy(dataCollector->GetTracker());
   }
 
-  if ( videoDevice != NULL ) 
+  if ( dataCollector->GetVideoSource() != NULL ) 
   {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
     videobuffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
   }
 
-  if ( trackerDevice != NULL )
+  if ( dataCollector->GetTracker() != NULL )
   {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
     tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
   }
 
 
-  if ( videoDevice != NULL )
+  if ( dataCollector->GetVideoSource() != NULL )
   {
     std::ostringstream filepath; 
     filepath << outputFolder << "/" << outputVideoBufferSequenceFileName << ".mha"; 
@@ -181,7 +169,7 @@ int main(int argc, char **argv)
     }
   }
 
-  if ( trackerDevice != NULL )
+  if ( dataCollector->GetTracker() != NULL )
   {
     std::ostringstream filepath; 
     filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName << ".mha"; 
@@ -218,3 +206,4 @@ int main(int argc, char **argv)
   return EXIT_SUCCESS; 
 
 }
+

@@ -120,9 +120,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   if(m_FidSegmentation.GetDebugOutput()) 
   {
     //Displays the result dots
-    int currentFrame = m_CurrentFrame;
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), "foundFiducials", currentFrame);
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), "candidateFiducials", currentFrame);//Display all candidates dots
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), "foundFiducials", m_CurrentFrame);
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), "candidateFiducials", m_CurrentFrame);//Display all candidates dots
   }
 
   // Set results

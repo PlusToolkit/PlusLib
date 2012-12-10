@@ -1107,7 +1107,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
@@ -1194,7 +1194,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   std::vector<Dot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)
