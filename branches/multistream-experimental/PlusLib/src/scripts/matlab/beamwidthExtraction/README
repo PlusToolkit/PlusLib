@@ -1,0 +1,33 @@
+README
+
+== 1. Converting the images to a usable format for the algorithm: ==
+
+To run, place the files found on the image server in the local directory. 
+Depending on which dataset is being used, run either ConvertImages1.m (for 
+the GEv730_LinearArray folder) or ConvertImages2.m (for the 
+SonixRP_LinearArray folder). Change the 'Path' variable to point to the 
+directory containing the images to be modified. Run.
+
+For reference, here are the directories on the image server:
+/data/shared/data/BeamwidthData/GEv730_LinearArray
+/data/shared/data/BeamwidthData/SonixRP_LinearArray
+
+== 2. Running the algorithm: ==
+
+Open houghAlgo1.m (for GEv730_LinearArray) or houghAlgo2.m (for 
+SonixRP_LinearArray). Change the Path variable to match the directory 
+where the images are stored (should be the same as above). Run. 
+A figure window should be displaying segmented lines and selected lines.
+
+
+
+== Known Issues/Notes: ==
+- It is difficult to test this algorithm with noisy data, since no 
+  ground truth is known
+- the SonixRP_LinearArray line detector will occasionally pick up 
+  vertical lines perpendicular to what is expected. The cause for 
+  this is currently unknown. It should be noted that segmentations 
+  for this especially noisy data seem to be generally not very 
+  reliable.
+
+

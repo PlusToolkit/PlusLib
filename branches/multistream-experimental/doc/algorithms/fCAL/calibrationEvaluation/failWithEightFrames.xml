@@ -1,0 +1,147 @@
+<PlusConfiguration version="1.4" BufferSize="500" LocalTimeOffsetSec="0" PlusRevision="1.7.0.2146">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="SonixTouch Ascension3DG(GPS) C5-2 + failWithEightFrames" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus."/>
+    <ImageAcquisition Type="SavedDataset" SequenceMetafile="failWithEightFrames.mha" UseData="IMAGE_AND_TRANSFORM" UseOriginalTimestamps="TRUE" RepeatEnabled="TRUE"/>
+  </DataCollection>
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        -0.00200784	0.18453	-0.00448427	17.3981
+        -0.190824	0.000649889	-0.00648634	77.4616
+        -0.00664576	0.00443332	0.187601	1.52845
+        0	0	0	1"
+       Error="0.930197" Date="101212_185316"/>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="
+        -0.02273	-0.0116171	-0.999674	16.4391
+        -0.999579	-0.0177864	0.0229345	-24.35
+        -0.018047	0.999774	-0.011208	-39.5941
+        0	0	0	1"
+       Error="0.429703" Date="101212_162027"/>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.99127	0.104646	-0.0802114	91.252
+        -0.104984	0.994474	0	-9.66437
+        0.0797682	0.00842092	0.996778	7.34311
+        0	0	0	1"
+       Error="0.513242" Date="101212_161934"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.191238	0	0	0
+        0	0.184286	0	0
+        0	0	0.187767	0
+        0	0	0	1"
+       Date="101212_185322"/>
+  </CoordinateDefinitions>
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        1	0	0	-29.7
+        0	-1	0	1.5
+        0	0	-1	14
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1	0	0	-210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_2.0.stl"
+      ModelToObjectTransform="
+        1	0	0	-35
+        0	1	0	-10
+        0	0	1	-5
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image"/>
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Stylus"/>
+  </Rendering>
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.285254"
+    MorphologicalOpeningCircleRadiusMm="0.41"
+    MorphologicalOpeningBarSizeMm="3.51"
+    RegionOfInterest="221 132 617 455"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    ThresholdImagePercent="23.1"
+    CollinearPointsMaxDistanceFromLineMm="3.1"
+    UseOriginalImageIntensityForDotIntensityScore="1"
+    MaxLineShiftMm="10"
+    MaxCandidates="41"/>
+  <PhantomDefinition>
+    <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0"/>
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0"/>
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0"/>
+        <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0"/>
+        <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0"/>
+        <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0"/>
+        <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0"/>
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="104.0 15.0 25.0"/>
+        <Landmark Name="#2" Position="104.0 55.0 25.0"/>
+        <Landmark Name="#3" Position="104.0 55.0 5.0"/>
+        <Landmark Name="#4" Position="104.0 5.0 5.0"/>
+        <Landmark Name="#5" Position="-34.0 55.0 20.0"/>
+        <Landmark Name="#6" Position="-34.0 5.0 25.0"/>
+        <Landmark Name="#7" Position="-34.0 5.0 5.0"/>
+        <Landmark Name="#8" Position="-34.0 55.0 5.0"/>
+      </Landmarks>
+    </Geometry>
+  </PhantomDefinition>
+  <VolumeReconstruction
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0"
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR"
+    Optimization="FULL"
+    Compounding="On"
+    FillHoles="Off"/>
+  <vtkSpatialCalibrationOptimizer
+    OptimizerMinimizationMethod="ITK_LEVENBERG_MARQUARD"
+    OptimizerCostFunction="DISTANCE_TO_WIRES"
+    AmoebaMinimizerScales="0.01 0.1 0.005"
+    AmoebaMaxIterations="2000"
+    AmoebaTolerance="1e-9"
+    LevenbergMarquardTolerances="1e-10 1e-5 1e-8"
+    LevenbergMarquardStep="1e-11"
+    LevenbergMarquardMaxIterations="1200"
+    LMMinimizerScales="1 0.005 1"
+    NumberOfParameters="7"/>
+  <fCal
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"/>
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
+  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
+</PlusConfiguration>

@@ -1,0 +1,34 @@
+<PlusConfiguration version="1.4">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="SonixTouch with GPS tracker (UBC)" 
+      Description="SonixTouch and GPStracker. The SonixTouch US device should be in research mode. Used at UBC" 
+    />
+
+    <Tracker Type="Ascension3DG" BufferSize="500" AcquisitionRate="50" LocalTimeOffsetSec="0.0" AveragedItemsForFiltering="20" FilterAcWideNotch="1">
+      <Tool Name="Probe" PortName="0" />
+    </Tracker>
+
+    <ImageAcquisition Type="SonixVideo" 
+      BufferSize="400" 
+      UsImageOrientation="MF"
+      AveragedItemsForFiltering="20" 
+      IP="137.82.56.185" 
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" 
+    />
+
+  </DataCollection>
+
+  <ProstateBiopsy AcquisitionTime="3" />
+
+</PlusConfiguration>
