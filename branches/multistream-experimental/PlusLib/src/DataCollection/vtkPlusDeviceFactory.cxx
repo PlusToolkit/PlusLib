@@ -209,7 +209,7 @@ PlusStatus vtkPlusDeviceFactory::CreateInstance( const char* aDeviceType, vtkPlu
 
   if ( aDeviceType == NULL ) 
   {
-    LOG_ERROR("Tracker type is undefined"); 
+    LOG_ERROR("Device type is undefined"); 
     return PLUS_FAIL;
   }
 
