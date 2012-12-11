@@ -40,19 +40,19 @@ enum ToolStatus
   TOOL_INVALID        /*!< Invalid tool status */
 };
 
-typedef std::vector<vtkSmartPointer<vtkPlusStream>> StreamContainer;
+typedef std::vector<vtkSmartPointer<vtkPlusStream> > StreamContainer;
 typedef StreamContainer::const_iterator StreamContainerConstIterator;
 typedef StreamContainer::iterator StreamContainerIterator;
 
-typedef std::vector<vtkSmartPointer<vtkPlusStreamBuffer>> StreamBufferContainer;
+typedef std::vector<vtkSmartPointer<vtkPlusStreamBuffer> > StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
 typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
 
-typedef std::map<int, vtkSmartPointer<vtkPlusStreamBuffer>> StreamBufferMapContainer;
+typedef std::map<int, vtkSmartPointer<vtkPlusStreamBuffer> > StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 
-typedef std::map<std::string, vtkSmartPointer<vtkPlusStreamTool>> ToolContainer;
+typedef std::map<std::string, vtkSmartPointer<vtkPlusStreamTool> > ToolContainer;
 typedef ToolContainer::iterator ToolContainerIterator;
 typedef ToolContainer::const_iterator ToolContainerConstIterator;
 
