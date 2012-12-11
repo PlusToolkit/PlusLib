@@ -88,6 +88,8 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
+  dataCollector->SetTrackingOnly(true);
+
   if (dataCollector->Connect() != PLUS_SUCCESS) {
     LOG_ERROR("Unable to initialize data collection!");
     exit(EXIT_FAILURE);

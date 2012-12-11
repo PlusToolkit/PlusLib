@@ -5,19 +5,19 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+
 #include "PlusMath.h"
 #include "vtkDataCollectorSynchronizer.h"
-#include "vtkGnuplotExecuter.h"
-#include "vtkHTMLGenerator.h"
+#include "vtkObjectFactory.h"
 #include "vtkImageDifference.h"
 #include "vtkImageExtractComponents.h"
+#include "vtkSmartPointer.h"
 #include "vtkImageImport.h"
 #include "vtkImageResample.h"
-#include "vtkObjectFactory.h"
-#include "vtkPlusDevice.h"
-#include "vtkSmartPointer.h"
-#include "vtkVariantArray.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkVariantArray.h"
 
 #include <algorithm>
 
@@ -300,8 +300,8 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
     this->SetBaseFrame(NULL); 
     this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
 
-    StreamBufferItem videoItem; 
-    if ( this->VideoBuffer->GetStreamBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
+    DataBufferItem videoItem; 
+    if ( this->VideoBuffer->GetDataBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
       continue; 
@@ -333,7 +333,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
         continue; 
       }
 
-      if ( this->VideoBuffer->GetStreamBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
+      if ( this->VideoBuffer->GetDataBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
       {
         LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
         continue; 
@@ -436,8 +436,8 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   std::vector< vtkSmartPointer<vtkTransform> > avgTransforms; 
   for ( bufferIndex; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
   {
-    StreamBufferItem bufferItem; 
-    if ( this->GetTrackerBuffer()->GetStreamBufferItem(bufferIndex, &bufferItem) != ITEM_OK ) 
+    DataBufferItem bufferItem; 
+    if ( this->GetTrackerBuffer()->GetDataBufferItem(bufferIndex, &bufferItem) != ITEM_OK ) 
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       return PLUS_FAIL; 
@@ -538,8 +538,8 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
 
   while ( !diffFound && bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() )
   {
-    StreamBufferItem bufferItem;
-    if ( this->GetTrackerBuffer()->GetStreamBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
+    DataBufferItem bufferItem;
+    if ( this->GetTrackerBuffer()->GetDataBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       bufferIndex++; 
@@ -587,8 +587,8 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
   while ( currentIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer() && baseIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer() && baseIndex != currentIndex )
   {
 
-    StreamBufferItem baseItem; 
-    if ( this->GetTrackerBuffer()->GetStreamBufferItem(baseIndex, &baseItem) != ITEM_OK )
+    DataBufferItem baseItem; 
+    if ( this->GetTrackerBuffer()->GetDataBufferItem(baseIndex, &baseItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << baseIndex ); 
       baseIndex = baseIndex + 1; 
@@ -604,8 +604,8 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       continue; 
     }
 
-    StreamBufferItem currentItem; 
-    if ( this->GetTrackerBuffer()->GetStreamBufferItem(currentIndex, &currentItem) != ITEM_OK )
+    DataBufferItem currentItem; 
+    if ( this->GetTrackerBuffer()->GetDataBufferItem(currentIndex, &currentItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << currentIndex ); 
       baseIndex = baseIndex + 1; 
@@ -747,7 +747,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 {
   LOG_TRACE("vtkDataCollectorSynchronizer::FindStillFrame"); 
   const BufferItemUidType latestFrameUid = this->VideoBuffer->GetLatestItemUidInBuffer(); 
-  StreamBufferItem videoItem; 
+  DataBufferItem videoItem; 
   while ( currentIndex <= latestFrameUid && baseIndex <= latestFrameUid && baseIndex != currentIndex )
   {
     if ( this->ProgressBarUpdateCallbackFunction != NULL )
@@ -758,7 +758,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 
     if ( this->GetBaseFrame() == NULL ) 
     {
-      if ( this->VideoBuffer->GetStreamBufferItem(baseIndex, &videoItem) != ITEM_OK )
+      if ( this->VideoBuffer->GetDataBufferItem(baseIndex, &videoItem) != ITEM_OK )
       {
         LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
         baseIndex = baseIndex + 1; 
@@ -784,7 +784,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
     }
 
 
-    if ( this->VideoBuffer->GetStreamBufferItem(currentIndex, &videoItem) != ITEM_OK )
+    if ( this->VideoBuffer->GetDataBufferItem(currentIndex, &videoItem) != ITEM_OK )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer (Uid: " << currentIndex << ")."); 
       baseIndex = baseIndex + 1; 
@@ -835,8 +835,8 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
   LOG_TRACE("vtkDataCollectorSynchronizer::FindFrameTimestamp"); 
 
   const double localTimeOffset(0); 
-  StreamBufferItem videoItem; 
-  if ( this->GetVideoBuffer()->GetStreamBufferItem(bufferIndex, &videoItem) == ITEM_OK )
+  DataBufferItem videoItem; 
+  if ( this->GetVideoBuffer()->GetDataBufferItem(bufferIndex, &videoItem) == ITEM_OK )
   {
     LOG_DEBUG("Start to find next frame movement at: " << std::fixed << videoItem.GetTimestamp(localTimeOffset)); 
   }
@@ -851,7 +851,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
       (*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
     }
 
-    if ( this->GetVideoBuffer()->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
+    if ( this->GetVideoBuffer()->GetDataBufferItem(bufferIndex, &videoItem) != ITEM_OK )
     {	
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from frame UID: " << bufferIndex); 
       bufferIndex++; 
@@ -935,12 +935,12 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
   LOG_TRACE("vtkDataCollectorSynchronizer::ComputeFrameThreshold"); 
   // Compute frame average 
   int sizeOfAvgFrames(0); 
-  StreamBufferItem videoItem; 
+  DataBufferItem videoItem; 
   const double localTimeOffset(0); 
   std::vector<double> avgFrames; 
   for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
   {
-    if ( this->VideoBuffer->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
+    if ( this->VideoBuffer->GetDataBufferItem(bufferIndex, &videoItem) != ITEM_OK )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video item for frame threshold computation from frame UID: " << bufferIndex); 
       continue; 
@@ -990,12 +990,12 @@ double vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate(double& mean, 
 {
   LOG_TRACE("vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate"); 
   std::vector<double> frameTimestamps; 
-  StreamBufferItem videoItem; 
+  DataBufferItem videoItem; 
   const double localTimeOffset(0); 
 
   for ( BufferItemUidType frameUid = this->GetVideoBuffer()->GetOldestItemUidInBuffer(); frameUid <= this->GetVideoBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
   {
-    if ( this->GetVideoBuffer()->GetStreamBufferItem(frameUid,&videoItem) != ITEM_OK )
+    if ( this->GetVideoBuffer()->GetDataBufferItem(frameUid,&videoItem) != ITEM_OK )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video item for image acquisition computation from frame UID: " << frameUid); 
       continue; 
@@ -1037,8 +1037,8 @@ double vtkDataCollectorSynchronizer::GetPositionAcquisitionFrameRate(double& mea
   std::vector<double> trackerTimestamps; 
   for ( BufferItemUidType bufferIndex = this->GetTrackerBuffer()->GetOldestItemUidInBuffer() ; bufferIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer(); ++bufferIndex )
   {
-    StreamBufferItem bufferItem; 
-    if ( this->GetTrackerBuffer()->GetStreamBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
+    DataBufferItem bufferItem; 
+    if ( this->GetTrackerBuffer()->GetDataBufferItem(bufferIndex, &bufferItem ) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
       continue; 

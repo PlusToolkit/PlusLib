@@ -14,6 +14,8 @@ SET (PlusCommon_SRCS
   vtkTrackedFrameList.cxx
   TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
+  vtkPlusDevice.cxx
+  vtkPlusDataBuffer.cxx
   vtkRecursiveCriticalSection.cxx
   vtkToolAxesActor.cxx
   )
@@ -30,13 +32,14 @@ if (WIN32)
     vtkTimestampedCircularBuffer.h
     vtkTimestampedCircularBuffer.txx
     vtkPlusConfig.h
-	vtkPlusMacro.h
+	vtkPlusDataBuffer.h
     PlusMath.h
     vtkTransformRepository.h
     vtkTrackedFrameList.h
     TrackedFrame.h
     PlusVideoFrame.h
     vtkMetaImageSequenceIO.h
+    vtkPlusDevice.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h
     )
