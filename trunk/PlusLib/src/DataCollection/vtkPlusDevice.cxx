@@ -41,6 +41,7 @@ vtkStandardNewMacro(vtkPlusDevice);
 // then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up
 static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1; 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
+static const int FRAME_RATE_AVERAGING = 10;
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -1549,7 +1550,7 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 
   double rate = self->GetAcquisitionRate();
   unsigned long frame = 0;
-  double currtime[10]={0};
+  double currtime[FRAME_RATE_AVERAGING]={0};
   unsigned long updatecount = 0;
   self->ThreadAlive = true; 
 
@@ -1558,10 +1559,10 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
     double newtime = vtkAccurateTimer::GetSystemTime();
     // get current tracking rate over last 10 updates
     double difftime = newtime - currtime[updatecount%10];
-    currtime[updatecount%10] = newtime;
-    if (updatecount > 10 && difftime != 0)
+    currtime[updatecount%FRAME_RATE_AVERAGING] = newtime;
+    if (updatecount > FRAME_RATE_AVERAGING && difftime != 0)
     {
-      self->InternalUpdateRate = (10.0/difftime);
+      self->InternalUpdateRate = (FRAME_RATE_AVERAGING/difftime);
     }
 
     {
