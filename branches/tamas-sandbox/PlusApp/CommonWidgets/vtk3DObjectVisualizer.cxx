@@ -332,6 +332,8 @@ PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkTransformReposito
 
   if( aTransformRepository != NULL )
   {
+    this->SetTransformRepository(aTransformRepository);
+
     if( this->DataCollector == NULL )
     {
       LOG_ERROR("Data collector not initialized. Data collection must be present before transform repository is set.");
@@ -356,7 +358,6 @@ PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkTransformReposito
       LOG_WARNING("No tracking data is available");
     }
 
-    this->SetTransformRepository(aTransformRepository);
     this->TransformRepository->SetTransforms(trackedFrame);
   }
 
