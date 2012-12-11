@@ -7,49 +7,24 @@
 Connect the framegrabber via USB. Plug in the US Digital ED2 digital display through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel (0 will search for the device)." 
     />
 
-    <Device
-      Type="BrachyTracker"
-      Id="DeviceBrachyTracker"
-      AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0"
-      SerialPort="0"
-      BaudRate="19200"
-      BrachyStepperType="Civco"
-      ModelNumber="4012A18-a"
-      ModelVersion=""
-      ModelSerialNumber="01-50-149" >
-      <OutputStream Id="BrachyTrackerOutput" BufferSize="300" AveragedItemsForFiltering="20"  />
-      <StepperCalibration 
-        AlgorithmVersion="1.0.0"
-        Date=""
-        ProbeTranslationAxisOrientation="0.004635 -0.053440 1"
-        TemplateTranslationAxisOrientation="-0.003557 0.031474 1"
-        Rx=""
-        Ry=""
-        Rx0=""
-        Ry0=""
-        ProbeRotationEncoderScale="1.0" />
-    </Device>
+    <Tracker Type="BrachyTracker" BufferSize="300" AcquisitionRate="20" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0" SerialPort="0" BaudRate="19200" BrachyStepperType="Civco" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
 
-    <Device
-      Type="ICCapturing"
-      Id="DeviceICCapturing" 
+      <StepperCalibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
+    </Tracker>
+
+    <ImageAcquisition Type="ICCapturing" 
+      BufferSize="100" 
       UsImageOrientation="MF"
       AcquisitionRate="30" 
+      AveragedItemsForFiltering="20" 
       LocalTimeOffsetSec="-0.13"
+
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
       VideoFormat="Y800 (640x480)"
       InputChannel="01 Video: SVideo"
-      ICBufferSize="50">
-      <OutputStream Id="ICCapturingOutput" BufferSize="100" AveragedItemsForFiltering="20"  />
-    </Device>
-    
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="BrachyTrackerOutput" />
-      <InputStream Id="ICCapturingOutput" />
-    </Device>
+      ICBufferSize="50"
+    />
   </DataCollection>
 
 

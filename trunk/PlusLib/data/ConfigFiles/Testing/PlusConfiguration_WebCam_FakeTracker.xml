@@ -6,35 +6,18 @@
       Description="Test mode for vtkDataCollectorTest with WebCam and Fake tracker" 
     />
 
-    <Device
-      Type="FakeTracker"
-      Id="DeviceFakeTracker"
-      AcquisitionRate="20"
-      LocalTimeOffset="0.0"
-      Mode="SmoothMove" >
-      <Tool Name="Probe" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/> 
-      <Tool Name="Reference" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20"/>
-      <Tool Name="MissingTool" PortName="2" BufferSize="1000" AveragedItemsForFiltering="20"/> 
-      
-      <OutputStream Id="OutputFakeTracker" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="MissingTool"/>
-      </OutputStream>
-    </Device>
+    <Tracker Type="FakeTracker" BufferSize="1000" AcquisitionRate="20" LocalTimeOffset="0.0" Mode="SmoothMove" AveragedItemsForFiltering="20" >
+      <Tool Name="Probe" PortName="0" /> 
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="MissingTool" PortName="2" /> 
+    </Tracker>
 
-    <Device
-      Type="VFWVideo"
-      Id="DeviceVFWVideo" 
-      UsImageOrientation="MF" >
-        <OutputStream Id="VFWVideoOutput" BufferSize="100" AveragedItemsForFiltering="20"/>
-    </Device>
+    <ImageAcquisition Type="VFWVideo" 
+      BufferSize="100" 
+      UsImageOrientation="MF"
+      AveragedItemsForFiltering="20"
+    />
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="VFWVideoOutput" />
-      <InputStream Id="OutputFakeTracker" />
-    </Device>
   </DataCollection>
 
  <CoordinateDefinitions>
@@ -62,9 +45,9 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"

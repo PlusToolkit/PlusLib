@@ -7,24 +7,16 @@
 The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
     />
 
-    <Device
-      Type="SavedTrackerDataset"
-      Id="DeviceSavedDataset"
-      AcquisitionRate="10"
-      LocalTimeOffsetSec="0.0"
-      SequenceMetafile=""
-      RepeatEnabled="TRUE" >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="OutputSavedTrackerDataset" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
-    </Device>
+    <Tracker Type="SavedDataset" BufferSize="2500" AcquisitionRate="10" AveragedItemsForFiltering="20" LocalTimeOffsetSec="0.0"
+        SequenceMetafile=""
+        RepeatEnabled="TRUE"
+    >
+      <Tool Name="Probe" PortName="0" Model="L14-5_38" />
+      <Tool Name="Reference" PortName="1" />
+      <Tool Name="Stylus" PortName="2" Model="Example" />
+    </Tracker>
 
-    <Device Type="SavedVideoDataset" Id="DeviceSavedDataset" 
+    <ImageAcquisition Type="SavedDataset" 
       UseData="IMAGE"
       BufferSize="200" 
       AcquisitionRate="10" 
@@ -32,15 +24,9 @@ The desired file name with path needs to be added to this XML file as values Seq
       LocalTimeOffsetSec="-0.1908" 
       SequenceMetafile=""
       UsImageOrientation="MF"
-      RepeatEnabled="TRUE" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
-    </Device>
+      RepeatEnabled="TRUE"
+    />
     
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="SavedDatasetOutput" />
-      <InputStream Id="OutputSavedTrackerDataset" />
-    </Device>
   </DataCollection>
 
 
@@ -160,9 +146,9 @@ The desired file name with path needs to be added to this XML file as values Seq
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

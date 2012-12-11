@@ -80,7 +80,7 @@ public:
   virtual ~PlusVideoFrame();
 
   /*! Copy constructor */
-  PlusVideoFrame(const PlusVideoFrame& DataBufferItem);
+  PlusVideoFrame(const PlusVideoFrame& videoBufferItem);
 
   /*! Equality operator */
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
@@ -160,7 +160,7 @@ public:
   vtkImageData* GetVtkImage();
 
   /*! Copy pixel data from another PlusVideoFrame object, same as operator= */
-  PlusStatus DeepCopy(PlusVideoFrame* DataBufferItem); 
+  PlusStatus DeepCopy(PlusVideoFrame* videoBufferItem); 
 
   /*! Sets the pixel buffer content by copying pixel data from a vtkImageData object.*/
   PlusStatus DeepCopyFrom(vtkImageData* frame); 

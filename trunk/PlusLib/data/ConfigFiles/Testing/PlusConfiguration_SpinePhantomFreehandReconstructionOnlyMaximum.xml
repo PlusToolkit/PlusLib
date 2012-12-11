@@ -9,8 +9,8 @@
       Error="1.68149" Date="022312_110631"
     />
     <Transform From="Phantom" To="Reference"
-      Matrix="-0.0263954   0.0123051   -0.999576    11.9823 
-             0.0167829   0.999789     0.0118645  -37.1153 
+	    Matrix="-0.0263954   0.0123051   -0.999576    11.9823 
+		         0.0167829   0.999789     0.0118645  -37.1153 
              0.999511   -0.0164626   -0.0265963  -85.3543 
              0           0            0            1" 
       Error="1.87619" Date="022312_110322"
@@ -23,7 +23,7 @@
     Compounding="On" FillHoles="Off" NumberOfThreads="1">
     <HoleFilling>
       <HoleFillingElement
-        Type="STICK"     
+        Type="STICK" 	  
         StickLengthLimit="9" />
     </HoleFilling>
   </VolumeReconstruction>

@@ -1,150 +1,84 @@
 /*=Plus=header=begin======================================================
-Program: Plus
-Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-See License.txt for details.
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkDataCollector_h
-#define __vtkDataCollector_h
+#ifndef __vtkDataCollectorHardwareDevice_h
+#define __vtkDataCollectorHardwareDevice_h
 
-#include "PlusCommon.h"
-#include "vtkObject.h"
-#include "vtkPlusDevice.h"
-#include <vector>
+#include "vtkObject.h" 
+#include "TrackedFrame.h"
 
-class TrackedFrame;
-class vtkTrackedFrameList;
-class vtkVirtualStreamMixer;
-class vtkXMLDataElement;
+class vtkXMLDataElement; 
+class vtkTrackedFrameList; 
+class TrackedFrame; 
+class vtkMatrix4x4;
+
+class vtkImageData; 
+class vtkTracker;
+class vtkPlusVideoSource;
+class PlusVideoFrame;
 
 /*!
-\class vtkDataCollector 
-\brief Manages devices that record image or positional data.
+  \class vtkDataCollector 
+  \brief Collects tracked ultrasound data (images synchronized with tracking information)
 
-Provides an interface for clients to connect to a device set, and request data to the currently active devices.
+  This class collects ultrasound images synchronized with pose tracking information.
 
-\ingroup PlusLibDataCollection
+  \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkDataCollector : public vtkObject
+class VTK_EXPORT vtkDataCollector: public vtkObject
 {
 public:
+
   static vtkDataCollector *New();
   vtkTypeRevisionMacro(vtkDataCollector, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  /*! 
-  Read main configuration from xml data 
-  */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
-  /*! 
-  Write main configuration to xml data 
-  */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
+	typedef std::map<std::string, std::string> FieldMapType;
 
-  /*! 
-  Start the devices. The device is brought from
-  its ground state (i.e. on but not necessarily initialized) into
-  full active mode.  This method calls start on the current connected device(s)
-  */
-  PlusStatus Start();
+  /*! Read the configuration file in XML format and set up the devices */
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
-  /*! 
-  Stop the tracking system and bring it back to its ground state. This method calls Stop on the current connected device(s)
-  */
-  PlusStatus Stop();
+  /*! Write the device set configuration to XML format */
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
-  /*! 
-  Connect to device(s). Connection is needed for recording or single frame grabbing 
-  */
-  PlusStatus Connect();
+  /*! Disconnect from devices */
+  virtual PlusStatus Disconnect(); 
 
-  /*!
-  Disconnect from active device(s).
-  This method must be called before application exit, or else the
-  application might hang during exit.
-  */
-  PlusStatus Disconnect();
+  /*! Connect to devices */
+  virtual PlusStatus Connect(); 
 
-  /*! 
-  Return the most recent synchronized timestamp in the buffers 
-  */
-  PlusStatus GetMostRecentTimestamp(double &ts) const;
+  /*! Stop data collection */
+  virtual PlusStatus Stop(); 
 
-  /*
-    Does the system have a tracker connected
-  */
-  bool GetTrackingEnabled() const;
+  /*! Start data collection  */
+  virtual PlusStatus Start(); 
 
-  /*
-    Does the system have a video device connected
-  */
-  bool GetVideoEnabled() const;
+  /*! Return the most recent synchronized timestamp in the buffers */
+  virtual PlusStatus GetMostRecentTimestamp(double &ts); 
 
-  /*
-    Is the system connected?
-  */
-  bool GetConnected() const;
+  /*! Return the oldest synchronized timestamp in the buffers */
+  virtual PlusStatus GetOldestTimestamp(double &ts); 
+
+  /*! Get the most recent tracked frame from devices with each tool transforms */
+  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame); 
 
   /*!
-    Compute loop times for saved datasets (time intersection of the two buffers)
-    itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
+    Get the tracked frame list from devices since time specified
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since aTimestamp
   */
-  virtual PlusStatus SetLoopTimes(); 
-
-  /*!
-  Get the tracked frame list from devices since time specified
-  \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-  \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-  \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since aTimestamp
-  */
-  PlusStatus GetTrackedFrameList(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1) const;
-
-  /*!
-    Return the requested device
-    \param aDevice the device pointer to fill
-    \param aDeviceId the ID of the requested device
-  */
-  PlusStatus GetDevice(vtkPlusDevice* &aDevice, const std::string &aDeviceId) const;
-
-  /*!
-    Allow iteration over devices
-  */
-  DeviceCollectionConstIterator GetDeviceConstIteratorBegin() const;
-  DeviceCollectionConstIterator GetDeviceConstIteratorEnd() const;
-
-  /*!
-    Very important function, requests the latest tracked frame from the data collector
-    The data collector can only process this if a device exists that can output tracked frames.
-    So far, we define this as a virtual device to perform this function specifically.
-    \param trackedFrame the frame to fill
-    */
-  PlusStatus GetTrackedFrame( TrackedFrame* trackedFrame );
-
-  /*! 
-    Get the tracked frame from devices by time with each tool transforms
-    \param time The closes frame to this timestamp will be retrieved
-    \param trackedFrame The output where the tracked frame information will be copied
-  */
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
-
-  /*!
-    Pass this request on to the selected stream mixer
-  */
-  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
-
-  /*!
-    Have each device dump their buffers to disk
-    \param aDirectory directory to dump to
-    \param maxTimeLimitSec Maximum time spent in the function (in sec)
-  */
-  PlusStatus DumpBuffersToDirectory( const char * aDirectory );
+  virtual PlusStatus GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1); 
 
   /*!
     Get tracking data in a tracked frame list since time specified
     \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
   */
-  PlusStatus GetTrackingData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList);
+  virtual PlusStatus GetTrackingData(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
 
   /*!
     Get video data in a tracked frame list since time specified
@@ -153,49 +87,150 @@ public:
   */
   virtual PlusStatus GetVideoData(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
 
-  /*
-  * Functions to manage the currently active stream mixers
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aSamplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+    \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
-  PlusStatus GetSelectableDevices( DeviceCollection &OutVector ) const;
-  PlusStatus SetSelectedDevice( const std::string &aDeviceId );
-  PlusStatus GetSelectedDevice( vtkPlusDevice* &aDevice );
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
 
-  /*
-  * Functions to pass on to the active stream mixer
+  /*! Get the closest tracked frame timestamp to the specified time */
+  double GetClosestTrackedFrameTimestampByTime(double time);
+
+  /*! 
+    Get the tracked frame from devices by time with each tool transforms
+    \param time The closes frame to this timestamp will be retrieved
+    \param trackedFrame The output where the tracked frame information will be copied
   */
-  bool GetTrackingDataAvailable() const;
-  bool GetVideoDataAvailable() const;
-  PlusStatus GetFrameSize(int aDim[2]);
-  PlusStatus GetFrameRate( double& frameRate ) const;
-  vtkImageData* GetBrightnessOutput();
-  PlusStatus GetBrightnessFrameSize(int aDim[2]);
-  PlusStatus SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec );
+  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
 
-  PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
-  PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);
+  /*! Set video and tracker local time offset */
+  virtual void SetLocalTimeOffsetSec(double videoOffsetSec, double trackerOffsetSec); 
+
+  /*! Get tracker tool reference frame name (eg. "Tracker")  */
+  virtual PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
+
+  /*! Get frame rate - from video if enabled, else from tracker */
+  virtual PlusStatus GetFrameRate(double &aFrameRate);
+
+public:
+  /*! Set video source of ultrasound */
+  virtual void SetVideoSource(vtkPlusVideoSource* videoSource); 
+  /*! Get video source of ultrasound */
+  vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
+
+  /*! Get frame size */
+  virtual PlusStatus GetFrameSize(int aDim[2]);
+
+  /*! Get frame size */
+  virtual PlusStatus GetBrightnessFrameSize(int aDim[2]);
+
+  /*! Set tracker  */
+  virtual void SetTracker(vtkTracker* tracker); 
+  /*! Get tracker  */
+  vtkGetObjectMacro(Tracker,vtkTracker);
+  
+  /*! Get the Tracking only flag */
+  vtkGetMacro(TrackingEnabled,bool);
+  /*! Set the Tracking only flag */
+  void SetTrackingOnly(bool);
+
+  /*! Get the Video only flag */
+  vtkGetMacro(VideoEnabled,bool);
+  /*! Set the Video only flag */
+  void SetVideoOnly(bool);
 
   /*! Set startup delay in sec to give some time to the buffers for proper initialization */
   vtkSetMacro(StartupDelaySec, double); 
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
 
+  /*! Returns a brightness image as output. If RF data is collected then it is converted. */
+  vtkImageData* GetBrightnessOutput();
+
+    /*! Get the Connected flag  */
+  vtkGetMacro(Connected,bool);
+  
+  /*!
+    Check if tracking data is available. It may come from any device, therefore tracking data may be
+    available even when a dedicated tracking device is not available.
+  */
+  bool GetTrackingDataAvailable();
+
+
+protected:
+
+  /*! Set the Connected flag  */
+  vtkSetMacro(Connected,bool);  
+  /*! Set the Connected flag  */
+  vtkBooleanMacro(Connected, bool); 
+
+  /*!
+    Verifies if the specified configuration data is valid (e.g., configuration version
+    is specified and supported by the current software version).
+    If any of the checks fails then it logs the error and returns PLUS_FAIL.
+    If all the checks pass then it returns PLUS_SUCCESS.
+  */  
+  static PlusStatus VerifyDeviceSetConfigurationData(vtkXMLDataElement* rootElement);
+
+  /*! Get number of tracked frames between two given timestamps (inclusive) */
+  int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
+
+  /*! Read image acquisition properties from xml file  */
+  virtual PlusStatus ReadImageAcquisitionProperties(vtkXMLDataElement* aConfigurationData); 
+
+  /*! Read tracker properties from xml file  */
+  virtual PlusStatus ReadTrackerProperties(vtkXMLDataElement* aConfigurationData); 
+
+  /*!
+    Compute loop times for saved datasets (time intersection of the two buffers)
+    itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
+  */
+  virtual PlusStatus SetLoopTimes(); 
+
+  /*!
+    Helper function to find out the Tracker system reference frame name from the transform names
+    stored in the latest tracked frame. Actually the method looks for a common "To" reference frame name,
+    as normally the transform names are ImageToTracker, ReferenceToTracker, etc. and returns
+    that common reference frame name ("Tracker").
+  */
+  PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);
+
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
 
+protected:
+
   /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double StartupDelaySec; 
 
-  DeviceCollection Devices;
+  /*! Successfully connected to devices */
+  bool Connected; 
 
-  vtkPlusDevice* SelectedDevice;
+  /*! Collecting tracking data is enabled */
+  bool TrackingEnabled;
 
-  bool Connected;
-  bool Started;
+  /*! Collecting image data is enabled */
+  bool VideoEnabled;
+
+  /*! Ultrasound image data source */
+  vtkPlusVideoSource* VideoSource; 
+  /*! Tracking data source */
+  vtkTracker* Tracker; 
+
+  /*!
+    A blank image, to be returned when video data is requested but not available, to avoid potential crashes due to 
+    NULL pointers.
+  */
+  vtkImageData* BlankImage;
 
 private:
   vtkDataCollector(const vtkDataCollector&);
   void operator=(const vtkDataCollector&);
+
 };
 
 #endif

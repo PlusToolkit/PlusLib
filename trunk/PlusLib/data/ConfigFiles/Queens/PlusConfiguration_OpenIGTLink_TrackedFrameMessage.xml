@@ -5,25 +5,24 @@
       Name="OpenIGTLink TRACKEDFRAME message connection"
       Description="OpenIGTLink configuration file for TRACKEDFRAME messages + fCal 1.2" 
     />
-  
-    <Device
+	
+    <ImageAcquisition
       Type="OpenIGTLinkVideo"
-      Id="DeviceOpenIGTLinkVideo"
       MessageType="TRACKEDFRAME"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
       IgtlMessageCrcCheckEnabled="false"
+      BufferSize="500"
       UsImageOrientation="MF"
       AcquisitionRate="30"
+      AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0"
-      Selectable="true" >
-        <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="500" AveragedItemsForFiltering="20"/>
-    </Device>
+    />
   </DataCollection>
 
 
   <CoordinateDefinitions>
-  <Transform From="Phantom" To="Reference"
+	<Transform From="Phantom" To="Reference"
       Matrix="0.9968 0.0075 -0.0795 -35.6089
               0.0794 0.0055 0.9968 -124.9852
               0.0079 -1.0000 0.0049 -16.7
@@ -146,9 +145,9 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+	TransducerModelId="ProbeModel"
+	StylusModelId="StylusModel"
+	ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"

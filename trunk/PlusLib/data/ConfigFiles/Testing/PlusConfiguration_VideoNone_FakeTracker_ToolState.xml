@@ -1,21 +1,15 @@
 <PlusConfiguration version="1.4">
+
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST No Video with Fake tracker in Tool state mode" 
       Description="ToolStateDisplayWidgetTest uses this configuration" 
     />
 
-    <Device
-      Type="FakeTracker"
-      Id="DeviceFakeTracker"
-      AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
-      Mode="ToolState"
-      Selectable="true" >
-      <Tool Name="Test" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/>
-      <OutputStream Id="OutputFakeTracker" >
-        <Tool Name="Test"/>
-      </OutputStream>
-    </Device>
+    <Tracker Type="FakeTracker" BufferSize="1000" AcquisitionRate="50" LocalTimeOffsetSec="0.0" Mode="ToolState" AveragedItemsForFiltering="20" >
+      <Tool Name="Test" PortName="0"></Tool>
+    </Tracker>
+
   </DataCollection> 
+
 </PlusConfiguration>
