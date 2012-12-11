@@ -94,7 +94,7 @@ class FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
+    void WritePossibleFiducialOverlayImage(std::vector< std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
 
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)

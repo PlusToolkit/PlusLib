@@ -1194,7 +1194,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot>& fiduci
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector< std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   std::vector<Dot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)
