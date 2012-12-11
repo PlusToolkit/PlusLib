@@ -4,6 +4,8 @@ SET (DIAGDATA_LIBS
      vtkFiltering
      vtkHybrid
      vtkDataCollection 
+     vtkImageAcquisition
+     vtkTracking
      vtkPlusCommon
     )
 
