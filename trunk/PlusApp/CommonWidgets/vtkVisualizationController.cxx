@@ -6,22 +6,19 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-
 #include "vtkDirectory.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
-#include "vtkVisualizationController.h"
-#include "vtkPlusVideoSource.h" // Only for dumping buffers
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTracker.h" // Only for dumping buffers
 #include "vtkTransform.h"
-#include "vtkPlusDataBuffer.h" // Only for dumping buffers
+#include "vtkVisualizationController.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
-
 #include <QApplication>
 #include <QEvent>
 #include <QTimer>
@@ -71,7 +68,6 @@ vtkVisualizationController::vtkVisualizationController()
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
   imageVisualizer->AssignResultPolyData(this->ResultPolyData);
-  // TODO : find a mechanism to determine when this should be shown
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
@@ -223,7 +219,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->DataCollector->GetVideoEnabled() == false)
+    if (this->DataCollector->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
@@ -368,24 +364,10 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
     return PLUS_FAIL;
   }
 
-  // Assemble file names
-  std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
-  std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
-  outputVideoBufferSequenceFileName.append(dateAndTime);
-  std::string outputTrackerBufferSequenceFileName = "BufferDump_Tracker_";
-  outputTrackerBufferSequenceFileName.append(dateAndTime);
-
-  // Dump buffers to file 
-  if ( this->DataCollector->GetVideoSource() != NULL )
+  if( this->DataCollector->DumpBuffersToDirectory(aDirectory) != PLUS_SUCCESS )
   {
-    LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
-  }
-
-  if ( this->DataCollector->GetTracker() != NULL )
-  {
-    LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
+    LOG_ERROR("Unable to dump data buffers to file.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -426,7 +408,8 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetVideoSource() != NULL && this->DataCollector->GetConnected() )
+  vtkPlusDevice* aDevice = NULL;
+  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
   {
     // Force update of the brightness image in the DataCollector,
     // because it is the image that the image actors show
@@ -615,7 +598,8 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 PlusStatus vtkVisualizationController::ConnectInput()
 {
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetVideoSource() != NULL )
+  vtkPlusDevice* aDevice = NULL;
+  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
   {
     this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;
@@ -910,4 +894,18 @@ PlusStatus vtkVisualizationController::Reset()
   }
 
   return (perspective == PLUS_SUCCESS && image == PLUS_SUCCESS) ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkSmartPointer<vtkTransformRepository> vtkVisualizationController::GetTransformRepository()
+{
+  return this->TransformRepository;
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkVisualizationController::SetTransformRepository( vtkSmartPointer<vtkTransformRepository> aRepo )
+{
+  this->TransformRepository = aRepo;
 }

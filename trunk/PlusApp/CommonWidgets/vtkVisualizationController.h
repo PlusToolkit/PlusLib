@@ -254,7 +254,7 @@ public:
   vtkGetObjectMacro(DataCollector, vtkDataCollector);
   vtkGetObjectMacro(InputPolyData, vtkPolyData);
   vtkGetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+  virtual vtkSmartPointer<vtkTransformRepository> GetTransformRepository();
 
   vtkSetObjectMacro(DataCollector, vtkDataCollector);   
 
@@ -272,7 +272,7 @@ protected:
   vtkSetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  virtual void SetTransformRepository(vtkSmartPointer<vtkTransformRepository> aRepo);
 
   vtkImageActor* GetImageActor();
 
@@ -318,7 +318,7 @@ protected:
   int AcquisitionFrameRate;
 
   /*! Transform repository to store and handle all transforms */
-  vtkTransformRepository* TransformRepository;
+  vtkSmartPointer<vtkTransformRepository> TransformRepository;
 };
 
 #endif  // __vtkVisualizationController_h

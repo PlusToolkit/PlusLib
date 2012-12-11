@@ -108,7 +108,7 @@ public:
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector); 
   vtkGetObjectMacro(ImageActor, vtkImageActor);
-  vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+  virtual vtkSmartPointer<vtkTransformRepository> GetTransformRepository();
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
@@ -118,7 +118,7 @@ public:
   PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
   PlusStatus AssignInputPolyData(vtkPolyData* aInputPolyData);
   PlusStatus AssignResultPolyData(vtkPolyData* aResultPolyData);
-  PlusStatus AssignTransformRepository(vtkTransformRepository* aTransformRepository);
+  PlusStatus AssignTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository);
 
 protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);
@@ -126,7 +126,7 @@ protected:
   vtkSetObjectMacro(ResultActor, vtkActor);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  virtual void SetTransformRepository(vtkSmartPointer<vtkTransformRepository> aRepository);
   vtkSetObjectMacro(DataCollector, vtkDataCollector);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkSetObjectMacro(InputGlyph, vtkGlyph3D);
@@ -183,7 +183,7 @@ protected:
   char* VolumeID;
 
   /*! Reference to Transform repository that stores and handles all transforms */
-  vtkTransformRepository* TransformRepository;
+  vtkSmartPointer<vtkTransformRepository> TransformRepository;
 };
 
 #endif  //__vtk3DObjectVisualizer_h

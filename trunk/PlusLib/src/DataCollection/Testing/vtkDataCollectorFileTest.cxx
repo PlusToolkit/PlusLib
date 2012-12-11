@@ -90,7 +90,11 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
-  dataCollector->ReadConfiguration( configRootElement );
+  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Reading configuration file failed " << inputConfigFileName );
+    exit( EXIT_FAILURE );
+  }
 
   LOG_DEBUG( "Initializing data collector... " );
   dataCollector->Connect();

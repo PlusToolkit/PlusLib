@@ -5,35 +5,32 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file TrackingTest.cxx 
-  \brief This a simple test program to acquire a tracking data and optionally 
-  writes the buffer to a metafile and displays the live transform in a 3D view.
+\file TrackingTest.cxx 
+\brief This a simple test program to acquire a tracking data and optionally 
+writes the buffer to a metafile and displays the live transform in a 3D view.
 */ 
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkSmartPointer.h"
-#include "vtkDataCollector.h"
-#include "vtkPlusDataBuffer.h"
-#include "vtkXMLUtilities.h"
-#include "vtkTimerLog.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkTracker.h"
-#include "vtkTrackerTool.h"
-
-
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
 #include "vtkCallbackCommand.h"
+#include "vtkCamera.h"
 #include "vtkCommand.h"
+#include "vtkDataCollector.h"
+#include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkPlusDevice.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkTextProperty.h"
+#include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
+#include "vtkTextProperty.h"
+#include "vtkTimerLog.h"
 #include "vtkToolAxesActor.h" 
-#include "vtkOrientationMarkerWidget.h" 
-#include "vtkInteractorStyleTrackballCamera.h"
-#include "vtkCamera.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 
 class vtkMyCallback : public vtkCommand
 {
@@ -61,7 +58,6 @@ public:
 
   void Init()
   {        
-
     // Create a text actor for tracking information
     vtkTextProperty* textprop = this->StepperTextActor->GetTextProperty();
     textprop->SetColor(1,0,0);
@@ -73,9 +69,15 @@ public:
     this->StepperTextActor->SetDisplayPosition(20,65); 
     this->Renderer->AddActor(this->StepperTextActor); 
 
-    for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    vtkPlusDevice* aDevice = NULL;
+    this->DataCollector->GetDevice(aDevice, DeviceId);
+    if( aDevice == NULL )
     {
-      vtkTrackerTool* tool=it->second;
+      return;
+    }
+    for ( ToolContainerConstIterator it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
+    {
+      vtkPlusStreamTool* tool=it->second;
       AddNewToolActor(tool->GetToolName());
       SetToolVisible(tool->GetToolName(),true);        
     }
@@ -103,11 +105,11 @@ public:
 
   void SetToolToTrackerTransform(const char * aToolName, vtkMatrix4x4*  toolToTrackerTransform)
   {
-	vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
-	normalizedTransform->SetMatrix(toolToTrackerTransform);	
-	this->ToolActors[aToolName]->SetUserTransform(normalizedTransform);
+    vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
+    normalizedTransform->SetMatrix(toolToTrackerTransform);	
+    this->ToolActors[aToolName]->SetUserTransform(normalizedTransform);
   }
-  
+
 
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {       
@@ -121,14 +123,21 @@ public:
       return; 
     }
 
+    vtkPlusDevice* aDevice = NULL;
+    this->DataCollector->GetDevice(aDevice, DeviceId);
+    if( aDevice == NULL )
+    {
+      return;
+    }
+
     std::vector<PlusTransformName> transformNameList; 
     trackedFrame.GetCustomFrameTransformNameList(transformNameList); 
     for ( std::vector<PlusTransformName>::iterator it = transformNameList.begin(); it != transformNameList.end(); ++it)
     { 
       PlusTransformName transformName = *it; 
 
-      vtkTrackerTool* tool=NULL; 
-      if ( this->DataCollector->GetTracker()->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
+      vtkSmartPointer<vtkPlusStreamTool> tool;
+      if ( aDevice->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: " << transformName.From() ); 
         continue; 
@@ -138,7 +147,7 @@ public:
       transformName.GetTransformName(strTransformName); 
       // Transform name
       ss << strTransformName << ": ";
-      
+
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
       if ( trackedFrame.GetCustomFrameTransform(transformName, toolToTrackerTransform) != PLUS_SUCCESS )
       {
@@ -184,6 +193,7 @@ public:
   }
 
   vtkDataCollector* DataCollector; 
+  std::string DeviceId;
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
@@ -193,57 +203,69 @@ public:
 
 int main(int argc, char **argv)
 {
-	std::string inputConfigFileName;
+  std::string inputConfigFileName;
   std::string inputToolName; 
-	double inputAcqTimeLength(60);
-	std::string outputTrackerBufferSequenceFileName; 
-	std::string outputFolder("./");
+  double inputAcqTimeLength(60);
+  std::string outputTrackerBufferSequenceFileName; 
+  std::string outputFolder("./");
   bool renderingOff(false);
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
 
-	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-	args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");	
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
+  args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");	
   args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
-	args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
-	args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
+  args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
+  args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if (inputConfigFileName.empty())
-	{
-		std::cerr << "--config-file is required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if (inputConfigFileName.empty())
+  {
+    std::cerr << "--config-file is required" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-	///////////////
+  ///////////////
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str()<< std::endl;
-		exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  dataCollector->ReadConfiguration( configRootElement );
-	dataCollector->Connect(); 
-	dataCollector->Start();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to parse data collection XML tag.");
+    return EXIT_FAILURE;
+  }
+  std::string deviceId;
+  vtkXMLDataElement* dataCollectionElement = configRootElement->FindNestedElementWithName("DataCollection");
+  vtkXMLDataElement* deviceElement = dataCollectionElement->FindNestedElementWithName("Device");
+  if( deviceElement != NULL )
+  {
+    deviceId = std::string(deviceElement->GetAttribute("Id"));
+  }
 
-	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
+  dataCollector->Connect(); 
+  dataCollector->Start();
+
+  const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
   if ( !dataCollector->GetTrackingEnabled() )
   {
@@ -252,10 +274,18 @@ int main(int argc, char **argv)
   }
 
 
-  vtkTrackerTool* tool = NULL; 
+  vtkPlusDevice* aDevice = NULL;
+  dataCollector->GetDevice(aDevice, deviceId);
+  if( aDevice == NULL )
+  {
+    LOG_ERROR("Unable to retrieve device.");
+    return EXIT_FAILURE;
+  }
+
+  vtkSmartPointer<vtkPlusStreamTool> tool;
   if ( !inputToolName.empty() )
   {
-    if ( dataCollector->GetTracker()->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )
+    if ( aDevice->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )
     { 
       LOG_ERROR("Failed to get tool with name: " << inputToolName ); 
       return EXIT_FAILURE; 
@@ -263,14 +293,14 @@ int main(int argc, char **argv)
   }
   else
   {
-    if ( dataCollector->GetTracker()->GetToolIteratorBegin() == dataCollector->GetTracker()->GetToolIteratorEnd() )
+    if ( aDevice->GetToolIteratorBegin() == aDevice->GetToolIteratorEnd() )
     {
       LOG_ERROR("There is no active tool!"); 
       return EXIT_FAILURE; 
     }
 
     // Use the first active tool 
-    tool = dataCollector->GetTracker()->GetToolIteratorBegin()->second; 
+    tool = aDevice->GetToolIteratorBegin()->second; 
   }
 
   if ( tool == NULL )
@@ -285,13 +315,13 @@ int main(int argc, char **argv)
 
     LOG_DEBUG("Rendering is disabled");
 
-    DataBufferItem bufferItem; 
+    StreamBufferItem bufferItem; 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
     while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
     {
 
-      tool->GetBuffer()->GetLatestDataBufferItem(&bufferItem); 
+      tool->GetBuffer()->GetLatestStreamBufferItem(&bufferItem); 
       if ( bufferItem.GetMatrix(matrix) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get matrix from buffer item!"); 
@@ -299,7 +329,7 @@ int main(int argc, char **argv)
       }
 
       std::string transformParameters = PlusMath::GetTransformParametersString(matrix); 
-      std::string status = vtkTracker::ConvertToolStatusToString(bufferItem.GetStatus()); 
+      std::string status = vtkPlusDevice::ConvertToolStatusToString(bufferItem.GetStatus()); 
 
       std::ostringstream message;
       message << "Tool name: " << tool->GetToolName() << "Transform:  "; 
@@ -345,6 +375,7 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkMyCallback> transformDisplayUpdater = vtkSmartPointer<vtkMyCallback>::New();
     transformDisplayUpdater->DataCollector=dataCollector; 
     transformDisplayUpdater->Renderer=renderer;
+    transformDisplayUpdater->DeviceId=deviceId;
     transformDisplayUpdater->Iren=iren;
     transformDisplayUpdater->Init();
 
@@ -352,7 +383,7 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkToolAxesActor> originActor=vtkSmartPointer<vtkToolAxesActor>::New();
     originActor->SetName("origin");
     renderer->AddActor(originActor);
-   
+
     // Set projection to parallel to enable estimate distances
     renderer->GetActiveCamera()->ParallelProjectionOn();
 
@@ -365,14 +396,14 @@ int main(int argc, char **argv)
   if (!outputTrackerBufferSequenceFileName.empty())
   {
     LOG_INFO("Copy tracker..."); 
-    vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-    tracker->DeepCopy(dataCollector->GetTracker());
+    vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New(); 
+    tracker->DeepCopy(aDevice);
     LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
     tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
   }
 
-	std::cout << "Test completed successfully!" << std::endl;
-	return EXIT_SUCCESS; 
+  std::cout << "Test completed successfully!" << std::endl;
+  return EXIT_SUCCESS; 
 
 }
 

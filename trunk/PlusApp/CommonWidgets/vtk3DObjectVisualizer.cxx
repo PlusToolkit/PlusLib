@@ -34,7 +34,7 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 , ResultGlyph(NULL)
 , WorldCoordinateFrame(NULL)
 , VolumeID(NULL)
-, TransformRepository(NULL)
+, TransformRepository(vtkSmartPointer<vtkTransformRepository>::New())
 {
   // Set up canvas renderer
   vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -326,12 +326,14 @@ PlusStatus vtk3DObjectVisualizer::AssignResultPolyData(vtkPolyData* aResultPolyD
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkTransformRepository* aTransformRepository )
+PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository )
 {
   LOG_TRACE("vtk3DObjectVisualizer::SetTransformRepository");
 
   if( aTransformRepository != NULL )
   {
+    this->SetTransformRepository(aTransformRepository);
+
     if( this->DataCollector == NULL )
     {
       LOG_ERROR("Data collector not initialized. Data collection must be present before transform repository is set.");
@@ -356,7 +358,6 @@ PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkTransformReposito
       LOG_WARNING("No tracking data is available");
     }
 
-    this->SetTransformRepository(aTransformRepository);
     this->TransformRepository->SetTransforms(trackedFrame);
   }
 
@@ -380,7 +381,7 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
     }
 
     // Connect data collector to image actor
-    if (this->DataCollector->GetVideoEnabled())
+    if (this->DataCollector->GetVideoDataAvailable())
     {
       this->ImageActor->VisibilityOn();
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
@@ -620,4 +621,18 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
 PlusStatus vtk3DObjectVisualizer::Reset()
 {
   return this->ClearDisplayableObjects();
+}
+
+//-----------------------------------------------------------------------------
+
+void vtk3DObjectVisualizer::SetTransformRepository( vtkSmartPointer<vtkTransformRepository> aRepository )
+{
+  this->TransformRepository = aRepository;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkSmartPointer<vtkTransformRepository> vtk3DObjectVisualizer::GetTransformRepository()
+{
+  return this->TransformRepository;
 }
