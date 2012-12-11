@@ -1557,8 +1557,8 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
   while ( self->IsRecording() )
   {
     double newtime = vtkAccurateTimer::GetSystemTime();
-    // get current tracking rate over last 10 updates
-    double difftime = newtime - currtime[updatecount%10];
+    // get current tracking rate over last few updates
+    double difftime = newtime - currtime[updatecount%FRAME_RATE_AVERAGING];
     currtime[updatecount%FRAME_RATE_AVERAGING] = newtime;
     if (updatecount > FRAME_RATE_AVERAGING && difftime != 0)
     {
