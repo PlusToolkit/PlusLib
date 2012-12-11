@@ -1,4 +1,4 @@
-<PlusConfiguration version="1.4">
+<PlusConfiguration version="2.0">
   <CoordinateDefinitions>
     <Transform
       From="Image" To="Probe"

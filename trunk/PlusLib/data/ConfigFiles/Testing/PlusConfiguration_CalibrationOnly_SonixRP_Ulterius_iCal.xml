@@ -1,4 +1,4 @@
-<PlusConfiguration version="1.4">
+<PlusConfiguration version="2.0">
 
   <Segmentation
     NumberOfMaximumFiducialPointCandidates="30"    
