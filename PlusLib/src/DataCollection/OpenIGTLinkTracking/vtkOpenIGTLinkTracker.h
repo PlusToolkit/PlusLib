@@ -80,7 +80,7 @@ protected:
 	PlusStatus InternalStopRecording();
 
   /*! Set the ReconnectOnNoData flag */
-  vtkSetMacro(ReconnectOnNoData, bool);
+  vtkSetMacro(ReconnectOnReceiveTimeout, bool);
 
   /*! OpenIGTLink message type */
   char* MessageType; 
