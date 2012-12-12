@@ -27,15 +27,15 @@ vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
+: MessageType(NULL)
+, ServerAddress(NULL)
+, ServerPort(-1)
+, NumberOfRetryAttempts(10)
+, DelayBetweenRetryAttemptsSec(0.100) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+, IgtlMessageCrcCheckEnabled(0)
+, ClientSocket(igtl::ClientSocket::New())
+, ReconnectOnNoData(true)
 {
-  this->MessageType = NULL; 
-  this->ServerAddress = NULL; 
-  this->ServerPort = -1; 
-  this->NumberOfRetryAttempts = 10; 
-  this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
-  this->IgtlMessageCrcCheckEnabled = 0; 
-  this->ClientSocket = igtl::ClientSocket::New(); 
-
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
@@ -211,10 +211,14 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
    
   if ( numOfBytesReceived == 0 ) 
   {
-	// No message received - server disconnected
-    LOG_ERROR("OpenIGTLink tracker connection lost with server - try to reconnect!");
-    this->ClientSocket->CloseSocket(); 
-    return this->Connect(); 
+    // No message received - data has not been sent yet
+    LOG_WARNING("No data coming from OpenIGTLink Tracker!");
+    if( this->GetReconnectOnNoData() )
+    {
+      this->ClientSocket->CloseSocket(); 
+      return this->Connect(); 
+    }
+    return PLUS_FAIL;
   }
 
   // Received data is not as we expected
@@ -329,7 +333,13 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     LOG_ERROR("Unable to find ServerPort attribute!"); 
     return PLUS_FAIL; 
-  } 
+  }
+
+  const char* reconnect = trackerConfig->GetAttribute("ReconnectOnNoData"); 
+  if ( reconnect != NULL )
+  {
+    this->SetReconnectOnNoData(STRCASECMP(reconnect, "true") == 0 ? true : false);
+  }
 
   const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
   if ( igtlMessageCrcCheckEnabled != NULL )

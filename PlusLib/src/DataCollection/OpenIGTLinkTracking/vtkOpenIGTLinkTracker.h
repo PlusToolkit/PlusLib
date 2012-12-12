@@ -62,9 +62,11 @@ public:
   vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
-   
+
+  /*! Get the ReconnectOnNoData flag */
+  vtkGetMacro(ReconnectOnNoData, bool);
+
 protected:
-  
 	vtkOpenIGTLinkTracker();
 	~vtkOpenIGTLinkTracker();
 
@@ -76,6 +78,9 @@ protected:
 
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
 	PlusStatus InternalStopRecording();
+
+  /*! Set the ReconnectOnNoData flag */
+  vtkSetMacro(ReconnectOnNoData, bool);
 
   /*! OpenIGTLink message type */
   char* MessageType; 
@@ -97,6 +102,9 @@ protected:
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
+
+  /*! Attempt a reconnection if no data is received */
+  bool ReconnectOnNoData;
 
 private:  
   
