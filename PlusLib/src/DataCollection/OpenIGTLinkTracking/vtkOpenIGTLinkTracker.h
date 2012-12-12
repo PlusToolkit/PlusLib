@@ -64,7 +64,7 @@ public:
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
 
   /*! Get the ReconnectOnNoData flag */
-  vtkGetMacro(ReconnectOnNoData, bool);
+  vtkGetMacro(ReconnectOnReceiveTimeout, bool);
 
 protected:
 	vtkOpenIGTLinkTracker();
@@ -104,7 +104,7 @@ protected:
   igtl::ClientSocket::Pointer ClientSocket;
 
   /*! Attempt a reconnection if no data is received */
-  bool ReconnectOnNoData;
+  bool ReconnectOnReceiveTimeout;
 
 private:  
   
