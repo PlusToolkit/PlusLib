@@ -3,6 +3,8 @@
 #include "vtkPlusStreamBuffer.h"
 #include "PlusBkProFocusReceiver.h"
 #include "vtkRfProcessor.h"
+#include "vtkUsScanConvertLinear.h"
+#include "vtkUsScanConvertCurvilinear.h"
 #include "vtkImageImport.h"
 #include "vtkImageData.h"
 
