@@ -34,7 +34,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 , DelayBetweenRetryAttemptsSec(0.100) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
 , IgtlMessageCrcCheckEnabled(0)
 , ClientSocket(igtl::ClientSocket::New())
-, ReconnectOnNoData(true)
+, ReconnectOnReceiveTimeout(true)
 {
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
@@ -255,7 +255,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   {
     // No message received - data has not been sent yet
     LOG_WARNING("No data coming from OpenIGTLink Tracker!");
-    if( this->GetReconnectOnNoData() )
+    if( this->GetReconnectOnReceiveTimeout() )
     {
       this->ClientSocket->CloseSocket(); 
       return this->Connect(); 
@@ -431,10 +431,10 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-  const char* reconnect = trackerConfig->GetAttribute("ReconnectOnNoData"); 
+  const char* reconnect = trackerConfig->GetAttribute("ReconnectOnReceiveTimeout"); 
   if ( reconnect != NULL )
   {
-    this->SetReconnectOnNoData(STRCASECMP(reconnect, "true") == 0 ? true : false);
+    this->SetReconnectOnReceiveTimeout(STRCASECMP(reconnect, "true") == 0 ? true : false);
   }
 
   const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
