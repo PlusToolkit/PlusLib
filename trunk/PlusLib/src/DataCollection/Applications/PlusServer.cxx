@@ -26,7 +26,7 @@ happens between two threads. In real life, it happens between two programs.
 #include <cstdio>
 
 // Connect/disconnect clients to server for testing purposes
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect ); 
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement ); 
 PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList );
 
 // Forward declare signal handler
@@ -107,6 +107,12 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }
 
+  // change xDevice to Device, this will allow the openigtlink clients to read configuration
+  // but the device won't be autocreated at datacollector creation
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionElement = configRootElement->FindNestedElementWithName("DataCollection");
+  vtkSmartPointer<vtkXMLDataElement> element = dataCollectionElement->FindNestedElementWithName("xDevice");
+  element->SetName("Device");
+
   // Create Plus OpenIGTLink server.
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
@@ -132,7 +138,7 @@ int main( int argc, char** argv )
   if ( testing ) 
   {
     // Connect clients to server 
-    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect ) != PLUS_SUCCESS )
+    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to connect clients to PlusServer!"); 
       DisconnectClients( testClientList );
@@ -219,7 +225,7 @@ int main( int argc, char** argv )
 }
 
 // -------------------------------------------------
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect )
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement )
 {
   int numberOfErrors = 0; 
 
@@ -229,13 +235,13 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
   for ( int i = 0; i < numberOfClientsToConnect; ++i )
   {
     vtkSmartPointer<vtkOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkOpenIGTLinkVideoSource>::New(); 
-    vtkSmartPointer<vtkPlusStreamBuffer> aBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New();
-    client->AddDefaultBuffer(aBuffer, 0);
-    client->SetServerAddress("localhost"); 
+    client->SetDeviceId("DeviceOpenIGTLinkVideo");
+    client->ReadConfiguration(configRootElement);
+    client->SetServerAddress("localhost");
     client->SetServerPort(listeningPort); 
     client->SetBufferSize( 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    client->SetDeviceImageOrientation( US_IMG_ORIENT_MF ); 
+    client->SetDeviceImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {

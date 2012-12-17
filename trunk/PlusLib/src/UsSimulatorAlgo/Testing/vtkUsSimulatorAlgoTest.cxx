@@ -5,31 +5,29 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-
-#include <iomanip>
-#include <iostream>
-
-#include "vtkXMLUtilities.h"
-#include "vtkSmartPointer.h"
+#include "PlusMath.h"
+#include "TrackedFrame.h"
+#include "vtkAppendPolyData.h"
+#include "vtkCubeSource.h"
+#include "vtkImageData.h" 
 #include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
-#include "TrackedFrame.h"
-#include "vtkTransform.h"
-#include "vtkUsSimulatorAlgo.h"
-#include "vtkImageData.h" 
+#include "vtkMetaImageWriter.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
-#include "vtkAppendPolyData.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkCubeSource.h"
-#include "vtkMetaImageWriter.h"
-#include "vtkXMLImageDataWriter.h"
 #include "vtkSTLWriter.h"
+#include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
-#include "PlusMath.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkTransformRepository.h"
+#include "vtkUsSimulatorAlgo.h"
+#include "vtkXMLImageDataWriter.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <iomanip>
+#include <iostream>
 
 //display
 #include "vtkImageActor.h"

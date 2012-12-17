@@ -1,0 +1,24 @@
+<PlusConfiguration version="2.0">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="SonixVideo"
+      Type="SonixVideo" 
+      UsImageOrientation="UF"
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" 
+      Selectable="true" >
+      <OutputStream Id="SonixOutput" BufferSize="30" AveragedItemsForFiltering="20"  />
+    </Device>
+  </DataCollection>
+</PlusConfiguration>

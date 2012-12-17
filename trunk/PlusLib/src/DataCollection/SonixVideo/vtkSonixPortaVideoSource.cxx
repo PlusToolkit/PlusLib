@@ -52,8 +52,6 @@ vtkInstantiatorNewMacro(vtkSonixPortaVideoSource);
 vtkSonixPortaVideoSource* vtkSonixPortaVideoSource::Instance = 0;
 vtkSonixPortaVideoSourceCleanup vtkSonixPortaVideoSource::Cleanup;
 
-
-// AR: Copied from vtkSonixVideoSource by Abtin, not sure if these values are valid for porta as well
 #define VARID_FREQ 414
 #define VARID_DEPTH 206
 #define VARID_GAIN  15
@@ -271,9 +269,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
       return PLUS_SUCCESS;
     }
  
-  // AR: update the number of frames.
   this->FrameNumber++;
-  // AR: borrowed from sonixvideo
   int frameSize[2] = {0,0};
   this->GetFrameSize(frameSize);
   int frameBufferBytesPerPixel = this->GetBuffer()->GetNumberOfBytesPerPixel(); 

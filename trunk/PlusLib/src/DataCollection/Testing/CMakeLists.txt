@@ -132,8 +132,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkDataCollection vtkCharts)
 	ADD_TEST(vtkSonixVideoSourceTest1 
 	${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
-	 --rendering-off
-     --sonix-ip=130.15.7.20
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SonixVideoSourceTest.xml
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
