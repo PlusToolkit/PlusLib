@@ -17,37 +17,36 @@
 */
 
 #include "PlusConfigure.h"
+#include "vtkCallbackCommand.h"
+#include "vtkChartXY.h"
+#include "vtkCommand.h"
+#include "vtkContextScene.h"
+#include "vtkContextView.h"
+#include "vtkFloatArray.h"
+#include "vtkImageData.h"
+#include "vtkImageViewer.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkPlot.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include "vtkSmartPointer.h"
+#include "vtkSonixVideoSource.h"
+#include "vtkTable.h"
+#include "vtkTableAlgorithm.h"
+#include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSonixVideoSource.h"
-#include "vtkPlusStreamBuffer.h"
-#include "vtkImageViewer.h"
-#include "vtkCallbackCommand.h"
-#include "vtkCommand.h"
-#include "vtkSmartPointer.h"
+
+//----------------------------------------------------------------------------
 
 enum DisplayMode
 {
   SHOW_IMAGE,
   SHOW_PLOT
 };
-
-/*=========================================================================*/
-
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkChartXY.h"
-#include "vtkPlot.h"
-#include "vtkTable.h"
-#include "vtkFloatArray.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkTableAlgorithm.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkImageData.h"
-
 
 //----------------------------------------------------------------------------
 
@@ -247,7 +246,7 @@ int main(int argc, char* argv[])
   bool printHelp(false); 
   bool renderingOff(false);
   bool printParams(false);
-  std::string inputSonixIP("130.15.7.212");
+  std::string inputConfigFile;
   std::string acqMode("B");
 
   vtksys::CommandLineArguments args;
@@ -256,7 +255,7 @@ int main(int argc, char* argv[])
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
   args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
@@ -277,12 +276,14 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
-  vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
-  sonixGrabber->AddDefaultBuffer(aBuff, 0);
+  // Read config file
+  LOG_DEBUG("Reading config file...");
+  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  LOG_DEBUG("Reading config file finished.");
 
-  sonixGrabber->SetSonixIP(inputSonixIP.c_str());
-  sonixGrabber->SetDeviceImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)
+  vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
+  sonixGrabber->SetDeviceId("SonixVideo");
+  sonixGrabber->ReadConfiguration(configRead);
 
   DisplayMode displayMode=SHOW_IMAGE;
   
@@ -318,7 +319,7 @@ int main(int argc, char* argv[])
 
   if ( sonixGrabber->Connect()!=PLUS_SUCCESS ) 
   {
-    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
+    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << sonixGrabber->GetSonixIP() ); 
     exit(EXIT_FAILURE); 
   }
 

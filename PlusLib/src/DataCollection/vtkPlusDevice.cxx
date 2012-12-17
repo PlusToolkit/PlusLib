@@ -2527,37 +2527,6 @@ bool vtkPlusDevice::GetTrackingEnabled() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddDefaultBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port )
-{
-  if( this->OutputStreams.size() == 0 )
-  {
-    vtkSmartPointer<vtkPlusStream> aStream = vtkSmartPointer<vtkPlusStream>::New();
-    this->AddDefaultStream(aStream);
-  }
-
-  return this->CurrentStream->AddBuffer(aBuffer, port);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddDefaultStream( vtkSmartPointer<vtkPlusStream> aStream )
-{
-  if( aStream == NULL )
-  {
-    LOG_ERROR("Null stream sent to AddDefaultStream");
-    return PLUS_FAIL;
-  }
-  if( this->OutputStreams.size() != 0 )
-  {
-    LOG_ERROR("Adding a default stream when streams are defined.");
-    return PLUS_FAIL;
-  }
-
-  this->OutputStreams.push_back(aStream);
-  this->CurrentStream = this->OutputStreams[0];
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusDevice::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElement )
 {
   LOG_TRACE("vtkPlusDevice::InternalWriteOutputStreams( " << rootXMLElement->GetName() << ")");

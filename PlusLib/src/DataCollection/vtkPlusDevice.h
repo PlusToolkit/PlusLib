@@ -118,13 +118,6 @@ public:
   virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer();
   virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer(int port);
 
-  /*!
-    These functions exist to allow automatic tests to pass
-    Not used in the traditional stream, these items should be initialized via a config file
-  */
-  virtual PlusStatus AddDefaultStream(vtkSmartPointer<vtkPlusStream> aStream);
-  virtual PlusStatus AddDefaultBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port);
-
   /*! 
     Get the buffer that is used to hold the data
 	  There are cases when multiple externally controlled buffers are needed.
