@@ -1027,7 +1027,7 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-bool FidSegmentation::ShapeContains( std::vector<Coordinate2D>& shape, Coordinate2D point )
+bool FidSegmentation::ShapeContains( const std::vector<Coordinate2D>& shape, Coordinate2D point )
 {
   //LOG_TRACE("FidSegmentation::ShapeContains");
 
@@ -1107,7 +1107,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
@@ -1194,7 +1194,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot>& fiduci
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   std::vector<Dot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)

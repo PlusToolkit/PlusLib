@@ -94,7 +94,7 @@ class FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
+    void WritePossibleFiducialOverlayImage(const std::vector<std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
 
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
@@ -103,7 +103,7 @@ class FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
+    void WritePossibleFiducialOverlayImage(const std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
 
     /*! Perform the morphological operations on the image */
     void MorphologicalOperations();  
@@ -121,7 +121,7 @@ class FidSegmentation
     static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
 
     /*! Check if shape (structuring element) contains the new element (a point) */
-    bool ShapeContains( std::vector<Coordinate2D>& shape, Coordinate2D point );
+    bool ShapeContains( const std::vector<Coordinate2D>& shape, Coordinate2D point );
 
     /*! Add neighbors to the cluster */
     inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
