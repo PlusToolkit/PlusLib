@@ -29,6 +29,22 @@
   timestamp = {2012.02.07}
 }
 
+@INPROCEEDINGS{Hellier2008,
+  author = {Pierre Hellier and Pierrick Coup{\'e} and Pierre Meyer and Xavier
+	Morandi and D. Louis Collins},
+  title = {Acoustic shadows detection, application to accurate reconstruction
+	of 3D intraoperative ultrasound},
+  booktitle = {ISBI},
+  year = {2008},
+  pages = {1569-1572},
+  bibsource = {DBLP, http://dblp.uni-trier.de},
+  crossref = {DBLP:conf/isbi/2008},
+  ee = {http://dx.doi.org/10.1109/ISBI.2008.4541310},
+  file = {:Hellier2008.pdf:PDF},
+  owner = {lasso},
+  timestamp = {2012.12.29}
+}
+
 @INPROCEEDINGS{Khamene2005,
   author = {Ali Khamene and Frank Sauer},
   title = {A Novel Phantom-Less Spatial and Temporal Ultrasound Calibration
@@ -162,6 +178,44 @@
   timestamp = {2012.10.19}
 }
 
+@INPROCEEDINGS{Askeland2011,
+  author = {Christian Askeland and Frank Lindseth and Ole Vegard Solberg and
+	Janne Beate and Lervik Bakeng and Geir Arne Tangen},
+  title = {CustusX: A Research Application for Image-Guided Therapy},
+  booktitle = {MICCAI 2011, International Workshop on Systems and Architectures
+	for Computer Assisted Interventions},
+  year = {2011},
+  pages = {1-8},
+  month = {08},
+  abstract = {Four-dimensional imaging is a necessary step in computer-assisted
+	interventions (CAI) performed on moving surgical targets, such as
+	those located within the beating heart or influenced by respiratory
+	motion. Ultrasound (US) is often the best imaging modality for this
+	application, as it provides good contrast and spatial resolution
+	while remaining simple to integrate into the operating room. However,
+	conventional 2D US imaging is often insufficient for preoperative
+	planning and surgical guidance, real-time 3D ultrasound imaging using
+	matrix array probes has a smaller field of view and lower spatial
+	resolution, and 3D volumes created using 3D US reconstruction suffer
+	from motion artifacts. As an alternative, gated 4D ultrasound reconstruction
+	using a tracked 2D US probe is a promising technology. In this paper,
+	we present SynchroGrab4D to the open-source community. SynchroGrab4D
+	performs 3D and 4D US reconstruction in real-time while visualizing
+	the output volume(s) within an OpenIGTLink-compliant CAI system,
+	such as 3D Slicer. Also included are VTK classes that perform ECG-gating
+	and that interface with several commercial tracking systems, as well
+	as a 4D Imaging module in 3D Slicer. Our open-source imaging system
+	can be used to collect the 4D image data required for computer-assisted
+	surgical planning and intraoperative guidance for a variety of moving
+	organs.},
+  file = {:Askeland2011.pdf:PDF},
+  howpublished = {\url{http://hdl.handle.net/10380/3083}},
+  institution = {Imaging Research Laboratories, Robarts Research Institute, London,
+	ON, Canada},
+  owner = {lasso},
+  timestamp = {2012.02.02}
+}
+
 @ARTICLE{Barry19971209,
   author = {C.D. Barry and C.P. Allott and N.W. John and P.M. Mellor and P.A.
 	Arundel and D.S. Thomson and J.C. Waterton},
@@ -203,6 +257,20 @@
   owner = {Tom},
   timestamp = {2012.05.16},
   url = {http://www.sciencedirect.com/science/article/pii/S0301562997001233}
+}
+
+@INPROCEEDINGS{Boisvert2008,
+  author = {Jonathan Boisvert and David Gobbi and Siddharth Vikal and Robert
+	Rohling and Gabor Fichtinger and Purang Abolmaesumi},
+  title = {An Open-Source Solution for Interactive Acquisition, Processing and
+	Transfer of Interventional Ultrasound Images},
+  booktitle = {MICCAI 2008, International Workshop on Systems and Architectures
+	for Computer Assisted Interventions},
+  year = {2008},
+  pages = {1--8},
+  file = {:Boisvert2008.pdf:PDF},
+  owner = {lasso},
+  timestamp = {2011.11.03}
 }
 
 @ARTICLE{1539054,
@@ -342,6 +410,23 @@
   pmid = {18829150},
   timestamp = {2012.10.27},
   url = {http://dx.doi.org/10.1016/j.ultrasmedbio.2008.07.004}
+}
+
+@ARTICLE{Coupe2007,
+  author = {Pierrick Coupe and Pierre Hellier and Xavier Morandi and Christian
+	Barillot},
+  title = {Probe trajectory interpolation for 3D reconstruction of freehand
+	ultrasound},
+  journal = {Medical Image Analysis},
+  year = {2007},
+  volume = {11},
+  pages = {604-615},
+  number = {6},
+  bibsource = {DBLP, http://dblp.uni-trier.de},
+  ee = {http://dx.doi.org/10.1016/j.media.2007.05.002},
+  file = {:Coupe2007.pdf:PDF},
+  owner = {lasso},
+  timestamp = {2012.12.29}
 }
 
 @ARTICLE{759114,
@@ -1199,6 +1284,29 @@
   url = {http://dx.doi.org/10.1002/uog.1119}
 }
 
+@ARTICLE{McCormick2010,
+  author = {M. McCormick},
+  title = {An Open Source, Fast Ultrasound B-Mode Implementation for Commodity
+	Hardware},
+  year = {2010},
+  month = {05},
+  abstract = {This document describes an open source, high performance ultrasound
+	B-Mode implementation based on the Insight Toolkit (ITK). ITK extensions
+	are presented to calculate the radio-frequency (RF) signal envelope.
+	A variety of 1D Fast Fourier Transform options are introduced including
+	VNL, FFTW, and an OpenCL solution. Scan conversion is implemented
+	for phased array or curvilinear transducers. The entire image processing
+	pipeline is streamable to limit memory consumption during multi-frame
+	or 3D acquisitions with the introduction of an itk::StreamingResampleImageFilter.},
+  file = {:McCormick2010.pdf:PDF},
+  howpublished = {\url{http://hdl.handle.net/10380/3159}},
+  institution = {University of Wisconsin-Madison},
+  keywords = {Ultrasound, B-Mode, FFT, Streaming, OpenCL},
+  owner = {lasso},
+  timestamp = {2012.12.29},
+  url = {http://hdl.handle.net/10380/3159}
+}
+
 @ARTICLE{Meairs2000,
   author = {Stephen Meairs and Jens Beyer and Michael Hennerici},
   title = {Reconstruction and visualization of irregularly sampled three- and
@@ -1336,6 +1444,48 @@
   pmid = {12808678},
   timestamp = {2012.10.19},
   url = {http://dx.doi.org/10.1002/uog.124}
+}
+
+@INPROCEEDINGS{Pace2009,
+  author = {D. Pace and D. Gobbi and C. Wedlake and J. Gumprecht and J. Boisvert
+	and J. Tokuda and N. Hata and T. Peters},
+  title = {An open-source real-time ultrasound reconstruction system for four-dimensional
+	imaging of moving organs},
+  booktitle = {MICCAI 2009, International Workshop on Systems and Architectures
+	for Computer Assisted Interventions},
+  year = {2009},
+  pages = {1-8},
+  month = {08},
+  abstract = {Four-dimensional imaging is a necessary step in computer-assisted
+	interventions (CAI) performed on moving surgical targets, such as
+	those located within the beating heart or influenced by respiratory
+	motion. Ultrasound (US) is often the best imaging modality for this
+	application, as it provides good contrast and spatial resolution
+	while remaining simple to integrate into the operating room. However,
+	conventional 2D US imaging is often insufficient for preoperative
+	planning and surgical guidance, real-time 3D ultrasound imaging using
+	matrix array probes has a smaller field of view and lower spatial
+	resolution, and 3D volumes created using 3D US reconstruction suffer
+	from motion artifacts. As an alternative, gated 4D ultrasound reconstruction
+	using a tracked 2D US probe is a promising technology. In this paper,
+	we present SynchroGrab4D to the open-source community. SynchroGrab4D
+	performs 3D and 4D US reconstruction in real-time while visualizing
+	the output volume(s) within an OpenIGTLink-compliant CAI system,
+	such as 3D Slicer. Also included are VTK classes that perform ECG-gating
+	and that interface with several commercial tracking systems, as well
+	as a 4D Imaging module in 3D Slicer. Our open-source imaging system
+	can be used to collect the 4D image data required for computer-assisted
+	surgical planning and intraoperative guidance for a variety of moving
+	organs.},
+  file = {:Pace2009.pdf:PDF},
+  howpublished = {\url{http://hdl.handle.net/10380/3083}},
+  institution = {Imaging Research Laboratories, Robarts Research Institute, London,
+	ON, Canada},
+  keywords = {Four-dimensional imaging, Ultrasound reconstruction, Gating, Intraoperative
+	imaging, Computer assisted interventions, Image-guided therapy, Cardiac
+	procedures, Respiratory motion},
+  owner = {lasso},
+  timestamp = {2012.02.02}
 }
 
 @ARTICLE{Persoon2010,
@@ -1846,6 +1996,37 @@
   url = {http://www.sciencedirect.com/science/article/pii/0895611194900027}
 }
 
+@ARTICLE{Ungi2012b,
+  author = {Ungi, T. and Purang Abolmaesumi and Rayhan Jalal and Mattea Welch
+	and Irene Ayukawa and Simrin Nagpal and Andras Lasso and Melanie
+	Jaeger and Daniel P. Borschneck and Gabor Fichtinger and Parvin Mousavi},
+  title = {Spinal Needle Navigation by Tracked Ultrasound Snapshots},
+  journal = {IEEE Trans Biomed Eng},
+  year = {2012},
+  volume = {59},
+  pages = {2766-2772},
+  month = {10/2012},
+  owner = {lasso},
+  timestamp = {2012.12.29}
+}
+
+@ARTICLE{Ungi2012c,
+  author = {Ungi, Tamas and Sargent, D. and E. Moult and Andras Lasso and Csaba
+	Pinter and McGraw, Robert C and Gabor Fichtinger},
+  title = {Perk Tutor: An open-source training platform for ultrasound-guided
+	needle insertions},
+  journal = {IEEE Trans Biomed Eng},
+  year = {2012},
+  volume = {59},
+  pages = {3475-3481},
+  month = {12/2012},
+  doi = {10.1109/TBME.2012.2219307},
+  issn = {0018-9294},
+  owner = {lasso},
+  timestamp = {2012.12.29},
+  url = {http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6304910}
+}
+
 @MISC{Vaughan2012,
   author = {T. Vaughan},
   title = {CISC 499 Report},
@@ -1979,6 +2160,23 @@
   timestamp = {2012.10.19}
 }
 
+@ARTICLE{Zhang2006,
+  author = {Zhang, Hui},
+  title = {Freehand 3D ultrasound calibration using an electromagnetically tracked
+	needle},
+  journal = {Proceedings of SPIE},
+  year = {2006},
+  volume = {6141},
+  pages = {61412M--61412M-9},
+  number = {1},
+  editor = {Cleary, Kevin R and Galloway, Robert L and Jr.Editors},
+  file = {:Zhang2006.pdf:PDF},
+  owner = {lasso},
+  publisher = {Spie},
+  timestamp = {2012.12.29},
+  url = {http://link.aip.org/link/PSISDG/v6141/i1/p61412M/s1&Agg=doi}
+}
+
 @ARTICLE{Zhu2011,
   author = {Mengchen Zhu and Septimiu E. Salcudean},
   title = {Real-Time Image-Based B-Mode Ultrasound Image Simulation of Needles
@@ -2007,12 +2205,12 @@
 @comment{jabref-meta: groupstree:
 0 AllEntriesGroup:;
 1 ExplicitGroup:Volume reconstruction\;0\;1350978019970101\;1539054\;3
-41081\;4145\;5417235\;759114\;Barry19971209\;Detmer1994923\;Franke1982
-\;Gobbi2002\;Hernandez1996229\;Karamalis2009\;Lasso2012d\;Leotta199759
-7\;Leotta2000509\;Meairs2000\;Obuchi1992\;Prager1999129\;Rohling199717
-7\;Rohling1998\;Rohling1998841\;Rohling1999\;SanJose2003a\;SanJose2003
-b\;Sanches2000917\;Solberg2007\;Solberg2011\;Trobaugh1994315\;Vaughan2
-012\;;
+41081\;4145\;5417235\;759114\;Barry19971209\;Coupe2007\;Detmer1994923\
+;Franke1982\;Gobbi2002\;Hellier2008\;Hernandez1996229\;Karamalis2009\;
+Lasso2012d\;Leotta1997597\;Leotta2000509\;Meairs2000\;Obuchi1992\;Prag
+er1999129\;Rohling1997177\;Rohling1998\;Rohling1998841\;Rohling1999\;S
+anJose2003a\;SanJose2003b\;Sanches2000917\;Solberg2007\;Solberg2011\;T
+robaugh1994315\;Vaughan2012\;;
 1 ExplicitGroup:Ultrasound simulation\;0\;Boe2010\;Dauliganac2006\;Ehr
 icke1998\;Gill2012\;Goksel2009\;Gore1977\;Henry1996\;Jensen1991\;Jense
 n1992\;Jensen1996\;Jensen2002\;Karamalis2009\;Kaufman2008\;Magee2007\;
@@ -2025,5 +2223,7 @@ reece2003\;;
 1 ExplicitGroup:Spatial calibration\;0\;Chen2006\;Chen2009\;Hsu2006\;H
 su2007\;Hsu2008\;Khamene2005\;Khamene2005a\;Lasso2012d\;Mercier2005\;P
 rager1998\;Prager1999\;Rousseau2002\;Rousseau2005\;Treece2003\;;
+1 ExplicitGroup:Ultrasound image processing\;0\;McCormick2010\;;
+1 ExplicitGroup:Applications of Plus\;0\;Ungi2012b\;Ungi2012c\;;
 }
 
