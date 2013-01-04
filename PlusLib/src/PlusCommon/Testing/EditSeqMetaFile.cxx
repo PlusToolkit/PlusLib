@@ -30,7 +30,8 @@ enum OperationType
   DELETE_FIELD, 
   ADD_TRANSFORM,
   TRIM, 
-  MERGE, 
+  MERGE,
+  FILL_IMAGE_RECTANGLE,
   NO_OPERATION
 }; 
 
@@ -63,6 +64,7 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate );
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
 PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
+PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
 
 const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
 const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
@@ -105,6 +107,10 @@ int main(int argc, char **argv)
   std::string transformNameToAdd;  // Name of the transform to add to each frame
   std::string deviceSetConfigurationFileName; // Used device set configuration file path and name
 
+  std::vector<int> fillRectOriginPix; // Fill rectangle top-left corner position in MF coordinate frame, in pixels
+  std::vector<int> fillRectSizePix; // Fil rectangle size in MF coordinate frame, in pixels
+  int fillGrayLevel=0; // Rectangle fill color
+
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -113,10 +119,10 @@ int main(int argc, char **argv)
   args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");	
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");	
 
-  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE)." );	
+  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE, FILL_IMAGE_RECTANGLE)." );	
 
   // Trimming parameters 
-  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile.");	
+  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");	
   args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");	
 
   args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");	
@@ -137,6 +143,10 @@ int main(int argc, char **argv)
 
   args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");	
+
+  args.AddArgument("--fill-rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &fillRectOriginPix, "Fill rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE operation.");
+  args.AddArgument("--fill-rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &fillRectSizePix, "Fill rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE operation.");
+  args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");	
 
   if ( !args.Parse() )
   {
@@ -163,6 +173,9 @@ int main(int argc, char **argv)
 
     std::cout << "- TRIM: Trim sequence metafile." << std::endl; 
     std::cout << "- MERGE: Merge multiple sequence metafiles into one." << std::endl; 
+    
+    std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
+    std::cout << "  Requires specification of the rectangle (e.g., --fill-rect-origin 12 34 --fill-rect-size 56 78)" << std::endl;
 
     return EXIT_SUCCESS; 
 
@@ -223,6 +236,10 @@ int main(int argc, char **argv)
   else if ( STRCASECMP(strOperation.c_str(), "MERGE" ) == 0 )
   {
     operation = MERGE; 
+  }
+  else if ( STRCASECMP(strOperation.c_str(), "FILL_IMAGE_RECTANGLE" ) == 0 )
+  {
+    operation = FILL_IMAGE_RECTANGLE; 
   }
   else
   {
@@ -407,6 +424,16 @@ int main(int argc, char **argv)
       }
     }
     break; 
+  case FILL_IMAGE_RECTANGLE: 
+    {
+      // Fill a rectangular region in the image with a solid color
+      if (FillRectangle(trackedFrameList,fillRectOriginPix,fillRectSizePix,fillGrayLevel)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to fill rectangle");
+        return EXIT_FAILURE;
+      }
+    }
+    break;     
   default: 
     {
       LOG_WARNING("Selected operation not yet implemented!"); 
@@ -757,5 +784,69 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
     trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
   }
 
+  return PLUS_SUCCESS; 
+}
+
+//-------------------------------------------------------
+PlusStatus FillRectangle(vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel)
+{
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+  if (fillRectOrigin.size()!=2 || fillRectSize.size()!=2)
+  {
+    LOG_ERROR("Fill rectangle origin or size is not specified correctly");
+    return PLUS_FAIL;
+  }
+
+  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  {
+    TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
+    PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
+    int frameSize[2]={0,0};
+    if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to retrieve pixel data from frame "<<i<<". Fill rectangle failed.");
+      continue;
+    }       
+    if (fillRectOrigin[0]<0 || fillRectOrigin[0]>=frameSize[0] ||
+      fillRectOrigin[1]<0 || fillRectOrigin[1]>=frameSize[1])
+    {
+      LOG_ERROR("Invalid fill rectangle origin is specified ("<<fillRectOrigin[0]<<", "<<fillRectOrigin[1]<<"). The image size is ("
+        <<frameSize[0]<<", "<<frameSize[1]<<").");
+      continue;
+    }
+    if (fillRectSize[0]<=0 || fillRectOrigin[0]+fillRectSize[0]>frameSize[0] ||
+      fillRectSize[1]<=0 || fillRectOrigin[1]+fillRectSize[1]>frameSize[1])
+    {
+      LOG_ERROR("Invalid fill rectangle size is specified ("<<fillRectSize[0]<<", "<<fillRectSize[1]<<"). The specified fill rectangle origin is ("
+        <<fillRectOrigin[0]<<", "<<fillRectOrigin[1]<<") and the image size is ("<<frameSize[0]<<", "<<frameSize[1]<<").");
+      continue;
+    }
+    if (videoFrame->GetVTKScalarPixelType()!=VTK_UNSIGNED_CHAR)
+    {
+      LOG_ERROR("Fill rectangle is supported only for B-mode images (unsigned char type)");
+      continue;
+    }
+    unsigned char fillData=0;
+    if (fillGrayLevel<0)
+    {
+      fillData=0;
+    }
+    else if (fillGrayLevel>255)
+    {
+      fillData=255;
+    }
+    else
+    {
+      fillData=fillGrayLevel;
+    }          
+    for (int y=0; y<fillRectSize[1]; y++)
+    {
+      memset(static_cast<unsigned char*>(videoFrame->GetBufferPointer())+(fillRectOrigin[1]+y)*frameSize[0]+fillRectOrigin[0],fillData,fillRectSize[0]);     
+    }    
+  }
   return PLUS_SUCCESS; 
 }

@@ -59,10 +59,47 @@ ADD_TEST(vtkTransformRepositoryTest
 ADD_EXECUTABLE(EditSeqMetaFile EditSeqMetaFile.cxx )
 TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
 
-# ADD_TEST(EditSeqMetaFile 
-  # ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
-  # --verbose=3
-  # )
+#--------------------------------------------------------------------------------------------
+ADD_TEST(EditSeqMetaFileTrim
+  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+  --operation=TRIM
+  --first-frame-index=0
+  --last-frame-index=5
+  --source-seq-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2.mha 
+  --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
+  --use-compression
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+
+ADD_TEST(EditSeqMetaFileTrimCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
+   ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileTrim )
+
+#--------------------------------------------------------------------------------------------
+ADD_TEST(EditSeqMetaFileFillImageRectangle
+  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+  --operation=FILL_IMAGE_RECTANGLE
+  --fill-rect-origin 52 25
+  --fill-rect-size 260 25
+  --fill-gray-level=20
+  --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
+  --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha 
+  --use-compression
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangle PROPERTIES DEPENDS EditSeqMetaFileTrim)
+
+ADD_TEST(EditSeqMetaFileFillImageRectangleCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+   ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileFillImageRectangle )
 
 # --------------------------------------------------------------------------
 # Install
