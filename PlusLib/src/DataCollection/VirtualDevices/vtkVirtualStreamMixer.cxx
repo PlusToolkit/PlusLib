@@ -96,7 +96,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
     {
       vtkSmartPointer<vtkPlusStreamBuffer> inputBuffer = bufIt->second;
 
-      for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++it)
+      for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++outputBufferIt)
       {
         if( outputBufferIt->second == inputBuffer )
         {

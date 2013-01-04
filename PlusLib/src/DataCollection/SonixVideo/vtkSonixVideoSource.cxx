@@ -505,8 +505,12 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( ipAddress != NULL) 
   {
     this->SetSonixIP(ipAddress); 
+    LOG_DEBUG("Sonix Video IP: " << ipAddress); 
   }
-  LOG_DEBUG("Sonix Video IP: " << ipAddress); 
+  else
+  {
+    LOG_WARNING("Ultrasonix IP address is not defined");
+  }  
 
   const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
   if ( imagingMode != NULL) 
