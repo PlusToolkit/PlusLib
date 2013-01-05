@@ -2,49 +2,52 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Saved dataset for both (fCal) - LiveUltrasoundDemo" 
-      Description="Configuration file for Saved dataset + fCal 1.0 - used in live ultrasound demo
-The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
+      Name="LiveUltrasoundDemo" 
+      Description="Simulates an US-guided in-plane facet joint injection." 
     />
-
+    
     <Device
-      Type="SavedTrackerDataset"
       Id="DeviceSavedDataset"
-      AcquisitionRate="10"
-      LocalTimeOffsetSec="0.0"
-      SequenceMetafile=""
-      RepeatEnabled="TRUE" >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="OutputSavedTrackerDataset" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
-    </Device>
-
-    <Device Type="SavedVideoDataset" Id="DeviceSavedDataset" 
-      UseData="IMAGE"
-      BufferSize="200" 
-      AcquisitionRate="10" 
-      AveragedItemsForFiltering="20" 
-      LocalTimeOffsetSec="-0.1908" 
-      SequenceMetafile=""
-      UsImageOrientation="MF"
-      RepeatEnabled="TRUE" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+      Type="SavedVideoDataset"
+      SequenceMetafile="FacetInPlaneInsertion.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="FALSE"
+      RepeatEnabled="TRUE"
+      Selectable="true" >
+        <OutputStream Id="Output" BufferSize="100" />
     </Device>
     
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="SavedDatasetOutput" />
-      <InputStream Id="OutputSavedTrackerDataset" />
-    </Device>
   </DataCollection>
-
+  
+  
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToReference" /> 
+        <Transform Name="StylusTipToReference" /> 
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
 
   <CoordinateDefinitions>
+    
+    <Transform From="Image" To="Probe"
+      Matrix="
+         0.000796231 0.0854272   0.000850194 12.74
+        -0.0853999   0.000772721 0.00233653  50.76
+         0.00232863 -0.000871617 0.0853992   -0.5
+         0           0           0            1"
+      Error="0.582721" Date="2012.02.06 17:57:00"
+    />
+    
     <Transform From="Phantom" To="Reference"
       Matrix="0.9968 0.0075 -0.0795 -35.6089
               0.0794 0.0055 0.9968 -124.9852
@@ -52,13 +55,15 @@ The desired file name with path needs to be added to this XML file as values Seq
               0 0 0 1"
       Date="2011.12.01 17:57:00" Error="0.0"
     />
+    
     <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
+      Matrix="1 0 0 5.7
               0 1 0 0
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.01 17:22:12"
+      Date="2011.12.01 17:22:12" Error="0.0"
     /> 
+    
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
