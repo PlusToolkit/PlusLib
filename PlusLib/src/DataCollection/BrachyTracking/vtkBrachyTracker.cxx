@@ -506,14 +506,15 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   trackerConfig->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
 
   // Save stepper calibration results to file
-  vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+  vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
   if ( calibration == NULL) 
   {
     // create new element and add to trackerTool 
-    calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    calibration->SetName("StepperCalibrationResult"); 
-    calibration->SetParent(trackerConfig); 
-    trackerConfig->AddNestedElement(calibration);
+    vtkSmartPointer<vtkXMLDataElement> newCalibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    newCalibration->SetName("StepperCalibrationResult"); 
+    newCalibration->SetParent(trackerConfig); 
+    trackerConfig->AddNestedElement(newCalibration);
+    calibration=newCalibration;
   } 
 
   calibration->SetAttribute("Date", this->GetCalibrationDate());

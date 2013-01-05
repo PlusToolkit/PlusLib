@@ -563,7 +563,7 @@ PlusStatus vtk3dConnexionTracker::WriteConfiguration(vtkXMLDataElement* rootConf
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->FindThisDeviceElement(rootConfigElement);
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");

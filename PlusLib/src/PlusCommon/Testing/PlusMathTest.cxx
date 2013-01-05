@@ -282,10 +282,11 @@ PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData
   vtkXMLDataElement* xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
   if ( xmlLinearEquation == NULL )
   {
-    xmlLinearEquation = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    xmlLinearEquation->SetName("LinearEquation"); 
-    xmlLinearEquation->SetParent(xmlLSQRMinimize); 
-    xmlLSQRMinimize->AddNestedElement(xmlLinearEquation); 
+    vtkSmartPointer<vtkXMLDataElement> newXmlLinearEquation = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    newXmlLinearEquation->SetName("LinearEquation"); 
+    newXmlLinearEquation->SetParent(xmlLSQRMinimize); 
+    xmlLSQRMinimize->AddNestedElement(newXmlLinearEquation); 
+    xmlLinearEquation=newXmlLinearEquation;
   }
 
   xmlLinearEquation->SetIntAttribute("NumberOfUnknowns", numberOfUnknowns); 

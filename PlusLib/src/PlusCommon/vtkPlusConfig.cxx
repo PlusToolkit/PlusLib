@@ -196,8 +196,11 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   vtkXMLDataElement* applicationConfigurationRoot = this->ApplicationConfigurationData;
 	if (applicationConfigurationRoot == NULL)
   {
-    applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
-    applicationConfigurationRoot->SetName("PlusConfig");
+    // Configuration root does not exist yet, create it now
+    vtkSmartPointer<vtkXMLDataElement> newApplicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
+    newApplicationConfigurationRoot->SetName("PlusConfig");
+    this->SetApplicationConfigurationData(newApplicationConfigurationRoot);
+    applicationConfigurationRoot=newApplicationConfigurationRoot;
 	}
 
   // Verify root element name
@@ -236,9 +239,6 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 
   // Save scripts directory path
   applicationConfigurationRoot->SetAttribute("ScriptsDirectory", this->ScriptsDirectory);
-
-  // Save configuration
-  this->SetApplicationConfigurationData(applicationConfigurationRoot);
 
   return PLUS_SUCCESS;
 }
@@ -502,12 +502,13 @@ PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFrom
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> coordinateDefinitions = deviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  vtkXMLDataElement* coordinateDefinitions = deviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
   if ( coordinateDefinitions == NULL )
   {
-    coordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    coordinateDefinitions->SetName("CoordinateDefinitions"); 
-    deviceSetConfigRootElement->AddNestedElement(coordinateDefinitions); 
+    vtkSmartPointer<vtkXMLDataElement> newCoordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    newCoordinateDefinitions->SetName("CoordinateDefinitions"); 
+    deviceSetConfigRootElement->AddNestedElement(newCoordinateDefinitions); 
+    coordinateDefinitions=newCoordinateDefinitions;
   }
 
   // Check if we already have this entry in the config file 

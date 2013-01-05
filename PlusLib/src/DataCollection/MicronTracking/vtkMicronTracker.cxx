@@ -322,7 +322,7 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->FindThisDeviceElement(config);
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
