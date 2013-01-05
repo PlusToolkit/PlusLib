@@ -148,7 +148,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
     {
       std::ostringstream portName; 
       portName << i; 
-      vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+      vtkPlusStreamTool* tool = NULL; 
       if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -363,7 +363,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
 
-    vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
+    vtkPlusStreamTool* tool = NULL;
     if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 

@@ -612,7 +612,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+    vtkPlusStreamTool* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       if (flags != TOOL_MISSING)
@@ -867,7 +867,7 @@ void vtkNDITracker::EnableToolPorts()
       }
     }
 
-    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+    vtkPlusStreamTool* trackerTool = NULL; 
     if ( this->GetToolByPortName(it->second->GetPortName(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << it->second->GetPortName() ); 

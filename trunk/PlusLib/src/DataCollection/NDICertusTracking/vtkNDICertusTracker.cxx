@@ -461,7 +461,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+    vtkPlusStreamTool* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
@@ -686,7 +686,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
               std::ostringstream toolPortName; 
               toolPortName << port; 
-              vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+              vtkPlusStreamTool* trackerTool = NULL; 
               if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
               {
                 LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -742,7 +742,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
         std::ostringstream toolPortName; 
         toolPortName << toolCounter; 
-        vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+        vtkPlusStreamTool* trackerTool = NULL; 
         if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 

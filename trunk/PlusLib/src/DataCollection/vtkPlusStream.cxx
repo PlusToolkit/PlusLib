@@ -72,7 +72,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, 
   {
     for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
     {
-      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = it->second;
+      vtkPlusStreamBuffer* aBuff = it->second;
       aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
     }
   }
@@ -101,7 +101,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, 
       LOG_WARNING("No field \"Name\" defined in the OutputStream " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
-    vtkSmartPointer<vtkPlusStreamTool> tool = NULL;
+    vtkPlusStreamTool* tool = NULL;
     if( this->OwnerDevice == NULL || this->OwnerDevice->GetTool(toolName, tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve tool from owner device.");
@@ -136,7 +136,7 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
       // if this is not a tool element, skip it
       continue; 
     }
-    vtkSmartPointer<vtkPlusStreamTool> aTool;
+    vtkPlusStreamTool* aTool=NULL;
     if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tool when saving config.");
@@ -161,7 +161,7 @@ PlusStatus vtkPlusStream::WriteCompactConfiguration( vtkXMLDataElement* aStreamE
       // if this is not a tool element, skip it
       continue; 
     }
-    vtkSmartPointer<vtkPlusStreamTool> aTool;
+    vtkPlusStreamTool* aTool=NULL;
     if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tool when saving config.");
@@ -174,7 +174,7 @@ PlusStatus vtkPlusStream::WriteCompactConfiguration( vtkXMLDataElement* aStreamE
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetBuffer( vtkSmartPointer<vtkPlusStreamBuffer>& aBuffer, int port )
+PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
 {
   if( StreamBuffers.find(port) == StreamBuffers.end() )
   {
@@ -188,7 +188,7 @@ PlusStatus vtkPlusStream::GetBuffer( vtkSmartPointer<vtkPlusStreamBuffer>& aBuff
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetTool( vtkSmartPointer<vtkPlusStreamTool>& aTool, const char* toolName )
+PlusStatus vtkPlusStream::GetTool(vtkPlusStreamTool*& aTool, const char* toolName )
 {
   if( toolName == NULL )
   {
@@ -245,7 +245,7 @@ ToolContainerIterator vtkPlusStream::GetToolBuffersEndIterator()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool )
+PlusStatus vtkPlusStream::AddTool(vtkPlusStreamTool* aTool )
 {
   if( aTool == NULL )
   {
@@ -263,6 +263,7 @@ PlusStatus vtkPlusStream::AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool )
   }
 
   this->Tools[aTool->GetToolName()] = aTool;
+  this->Tools[aTool->GetToolName()]->Register(this);
 
   return PLUS_SUCCESS;
 }
@@ -280,7 +281,7 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
   {
     if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
     {
-      it->second->Delete();
+      it->second->UnRegister(this);
       this->Tools.erase(it);      
       return PLUS_SUCCESS;
     }
@@ -290,7 +291,7 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int port )
+PlusStatus vtkPlusStream::AddBuffer(vtkPlusStreamBuffer* aBuffer, int port )
 {
   if( port != FIND_PORT )
   {
@@ -299,6 +300,7 @@ PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffe
       LOG_WARNING("Overwriting a buffer at port " << port );
     }
     this->StreamBuffers[port] = aBuffer;
+    this->StreamBuffers[port]->Register(this);
     return PLUS_SUCCESS;
   }
 
@@ -322,6 +324,7 @@ PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffe
     if( std::find(usedPorts.begin(), usedPorts.end(), newPort) == usedPorts.end() )
     {
       this->StreamBuffers[newPort] = aBuffer;
+      this->StreamBuffers[newPort]->Register(this);
       return PLUS_SUCCESS;
     }
     newPort++;
@@ -334,9 +337,17 @@ PlusStatus vtkPlusStream::AddBuffer( vtkSmartPointer<vtkPlusStreamBuffer> aBuffe
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStream::Clear()
 {
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    (it->second)->UnRegister(this);
+  }
   this->Tools.clear();
+  
+  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  {
+    (it->second)->UnRegister(this);
+  }
   this->StreamBuffers.clear();
-
   return PLUS_SUCCESS;
 }
 
@@ -347,7 +358,7 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 
   for( StreamBufferMapContainerConstIterator it = this->GetBuffersStartConstIterator(); it != this->GetBuffersEndConstIterator(); ++it )
   {
-    vtkSmartPointer<vtkPlusStreamBuffer> aBuf = it->second;
+    vtkPlusStreamBuffer* aBuf = it->second;
     double timestamp;
     if( aBuf->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
@@ -360,7 +371,7 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 
   for( ToolContainerConstIterator it = this->GetToolBuffersStartConstIterator(); it != this->GetToolBuffersEndConstIterator(); ++it)
   {
-    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
+    vtkPlusStreamTool* aTool = it->second;
     if( aTool->GetBuffer() != NULL )
     {
       double timestamp;

@@ -72,7 +72,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
   // Get latest tracker timestamp
   double latestTrackerTimestamp = 0;
   
-  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+  vtkPlusStreamTool* firstActiveTool = NULL; 
   if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 

@@ -136,7 +136,7 @@ public:
     { 
       PlusTransformName transformName = *it; 
 
-      vtkSmartPointer<vtkPlusStreamTool> tool;
+      vtkPlusStreamTool* tool=NULL;
       if ( aDevice->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: " << transformName.From() ); 
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> tool;
+  vtkPlusStreamTool* tool=NULL;
   if ( !inputToolName.empty() )
   {
     if ( aDevice->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )
