@@ -57,10 +57,10 @@
     />
     
     <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 5.7
-              0 1 0 0
-              0 0 1 0
-              0 0 0 1"
+      Matrix=" 0 0 1 5.7
+               0 1 0 0
+              -1 0 0 0
+               0 0 0 1"
       Date="2011.12.01 17:22:12" Error="0.0"
     /> 
     
