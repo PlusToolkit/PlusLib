@@ -26,7 +26,7 @@ happens between two threads. In real life, it happens between two programs.
 #include <cstdio>
 
 // Connect/disconnect clients to server for testing purposes
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement ); 
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkXMLDataElement* configRootElement ); 
 PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList );
 
 // Forward declare signal handler
@@ -228,7 +228,7 @@ int main( int argc, char** argv )
 }
 
 // -------------------------------------------------
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement )
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkXMLDataElement* configRootElement )
 {
   if (configRootElement==NULL)
   {

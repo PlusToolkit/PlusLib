@@ -123,14 +123,14 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = configData->FindNestedElementWithName("Segmentation");
+  vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
   if (segmentationParameters == NULL)
   {
     LOG_ERROR("Cannot find Segmentation element in XML tree!");
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
+  vtkXMLDataElement* phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
   if (phantomDefinition == NULL)
   {
     LOG_ERROR("No phantom definition is found in the XML tree!");
@@ -138,7 +138,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
   }
 
   // Load type
-  vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
+  vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
   if (description == NULL) 
   {
     LOG_ERROR("Phantom description not found!");
