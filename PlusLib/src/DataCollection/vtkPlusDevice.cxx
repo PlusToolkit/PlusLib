@@ -198,7 +198,7 @@ int vtkPlusDevice::GetNumberOfTools() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
+PlusStatus vtkPlusDevice::AddTool( vtkPlusStreamTool* tool )
 {
   if ( tool == NULL )
   {
@@ -239,7 +239,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkSmartPointer<vtkPlusStreamTool> tool )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> &aTool)
+PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool*& aTool)
 {
   if( this->CurrentStream == NULL )
   {
@@ -260,7 +260,7 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
+PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusStreamTool*& aTool)
 {
   if ( aToolName == NULL )
   {
@@ -290,7 +290,7 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkSmartPointer<vtkPlus
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkSmartPointer<vtkPlusStreamTool> &aTool)
+PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusStreamTool*& aTool)
 {
   if ( portName == NULL )
   {
@@ -340,10 +340,10 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
   for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkPlusStream* aStream = *it;
     for( StreamBufferMapContainerConstIterator bufIter = aStream->GetBuffersStartConstIterator(); bufIter != aStream->GetBuffersEndConstIterator(); ++bufIter)
     {
-      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = bufIter->second;
+      vtkPlusStreamBuffer* aBuff = bufIter->second;
       aBuff->SetLocalTimeOffsetSec(aTimeOffsetSec);
     }
   }
@@ -354,7 +354,7 @@ void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
   for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
-    vtkSmartPointer<vtkPlusStreamTool> tool = it->second;
+    vtkPlusStreamTool* tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
 }
@@ -372,7 +372,7 @@ void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
       continue; 
     }
 
-    vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+    vtkPlusStreamTool* tool = NULL; 
     if ( this->GetTool(it->first.c_str(), tool ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to get tool from container!"); 
@@ -771,7 +771,8 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     aStream->SetOwnerDevice(this);
     aStream->ReadConfiguration(streamElement, RequireFrameBufferSizeInDeviceSetConfiguration, RequireAveragedItemsForFilteringInDeviceSetConfiguration);
 
-    OutputStreams.push_back(aStream);
+    this->OutputStreams.push_back(aStream);
+    aStream->Register(this);
   }
 
   double localTimeOffsetSec = 0;
@@ -803,7 +804,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     }
     
     const char * id = streamElement->GetAttribute("Id");  // Can't make it to this point if an ID is incorrectly defined
-    vtkSmartPointer<vtkPlusStream> aStream;
+    vtkPlusStream* aStream=NULL;
     if( this->GetStreamByName(aStream, id) != PLUS_SUCCESS )
     {
       LOG_ERROR("Error while trying to find stream by name.");
@@ -819,7 +820,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       }
       
       const char* toolName = toolDataElement->GetAttribute("Name");
-      vtkSmartPointer<vtkPlusStreamTool> aTool;
+      vtkPlusStreamTool* aTool=NULL;
       if( this->GetTool(toolName, aTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to retrieve tool.");
@@ -881,8 +882,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
       // if this is not a tool element, skip it
       continue; 
     }
-    vtkSmartPointer<vtkPlusStreamTool> aTool;
-    
+    vtkPlusStreamTool* aTool=NULL;    
     if( toolElement->GetAttribute("Name") == NULL || this->GetTool(toolElement->GetAttribute("Name"), aTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tool when saving config.");
@@ -1022,7 +1022,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
 
   for (ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartIterator(); it != this->CurrentStream->GetToolBuffersEndIterator(); ++it)
   {
-    vtkSmartPointer<vtkPlusStreamTool> aTool = it->second;
+    vtkPlusStreamTool* aTool = it->second;
     PlusTransformName toolTransformName(aTool->GetToolName(), this->ToolReferenceFrameName ); 
     if ( !toolTransformName.IsValid() )
     {
@@ -1132,7 +1132,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+    vtkPlusStreamTool* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get first active tool"); 
@@ -1210,13 +1210,13 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
     else if ( this->GetTrackingEnabled() )
     {
       // Get the first tool
-      vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+      vtkPlusStreamTool* firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
         return PLUS_FAIL; 
       }
-      vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
         LOG_ERROR("Failed to get first active tool!"); 
@@ -1331,14 +1331,14 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
     else if ( this->GetTrackingEnabled() && i < numberOfFramesToAdd - 1 )
     {
       // Get the first tool
-      vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+      vtkPlusStreamTool* firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
         return PLUS_FAIL; 
       }
 
-      vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
         LOG_ERROR("Failed to get first active tool!"); 
@@ -1719,7 +1719,7 @@ void vtkPlusDevice::ClearAllBuffers()
     vtkPlusStream* aStream = *it;
     for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter )
     {
-      vtkSmartPointer<vtkPlusStreamBuffer> aBuff = buffIter->second;
+      vtkPlusStreamBuffer* aBuff = buffIter->second;
       aBuff->Clear();
     }
   }
@@ -1799,7 +1799,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+  vtkPlusStreamTool* tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
@@ -1808,7 +1808,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 
   // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-  vtkSmartPointer<vtkPlusStreamBuffer> buffer = tool->GetBuffer();
+  vtkPlusStreamBuffer* buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
@@ -1824,14 +1824,14 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+  vtkPlusStreamTool* tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> buffer = tool->GetBuffer();
+  vtkPlusStreamBuffer* buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
@@ -2097,7 +2097,7 @@ PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetStreamByName( vtkSmartPointer<vtkPlusStream>& aStream, const char * aStreamName )
+PlusStatus vtkPlusDevice::GetStreamByName(vtkPlusStream*& aStream, const char * aStreamName )
 {
   if( aStreamName == NULL )
   {
@@ -2105,9 +2105,9 @@ PlusStatus vtkPlusDevice::GetStreamByName( vtkSmartPointer<vtkPlusStream>& aStre
     return PLUS_FAIL;
   }
 
-  for( StreamContainerIterator it = OutputStreams.begin(); it != OutputStreams.end(); ++it)
+  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> stream = (*it);
+    vtkPlusStream* stream = (*it);
     if( STRCASECMP(stream->GetStreamId(), aStreamName) == 0 )
     {
       aStream = stream;
@@ -2119,7 +2119,7 @@ PlusStatus vtkPlusDevice::GetStreamByName( vtkSmartPointer<vtkPlusStream>& aStre
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddInputStream( vtkSmartPointer<vtkPlusStream> aStream )
+PlusStatus vtkPlusDevice::AddInputStream(vtkPlusStream* aStream )
 {
   for( StreamContainerIterator it = InputStreams.begin(); it != InputStreams.end(); ++it)
   {
@@ -2130,7 +2130,9 @@ PlusStatus vtkPlusDevice::AddInputStream( vtkSmartPointer<vtkPlusStream> aStream
     }
   }
 
-  InputStreams.push_back(aStream);
+  // aStream remains valid, as it is owned by another device (which provides it as an output)
+  // TODO: it could be safer to increase the reference counter of aStream here (and decrease the ref counter when aStream is removed from InputStreams)
+  this->InputStreams.push_back(aStream);
   return PLUS_SUCCESS;
 }
 
@@ -2162,14 +2164,14 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+    vtkPlusStreamTool* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
       return PLUS_FAIL; 
     }
 
-    vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
 
     if ( trackerBuffer == NULL )
     {
@@ -2255,14 +2257,14 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+    vtkPlusStreamTool* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
       return PLUS_FAIL; 
     }
 
-    vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
     if ( uid > 1 )
     {
@@ -2341,13 +2343,13 @@ double vtkPlusDevice::GetClosestTrackedFrameTimestampByTime(double time)
   if ( this->GetTrackingEnabled() )
   {
     // Get the first tool
-    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+    vtkPlusStreamTool* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       // there is no active tool
       return UNDEFINED_TIMESTAMP; 
     }
-    vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
       // there is no buffer
@@ -2396,14 +2398,14 @@ int vtkPlusDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, dou
   else if ( this->GetTrackingEnabled())
   {
     // Get the first tool
-    vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+    vtkPlusStreamTool* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get number of frames between timestamps - there is no active tool!"); 
       return PLUS_FAIL; 
     }
 
-    vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
       LOG_ERROR("Failed to get first active tool!"); 
@@ -2460,7 +2462,7 @@ bool vtkPlusDevice::GetVideoDataAvailable()
     vtkPlusStream* stream = *it;
     for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
     {
-      vtkSmartPointer<vtkPlusStreamBuffer> buffer = bufIt->second;
+      vtkPlusStreamBuffer* buffer = bufIt->second;
       StreamBufferItem item;
       if( buffer->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
@@ -2492,20 +2494,20 @@ bool vtkPlusDevice::GetVideoDataAvailable()
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkPlusStreamBuffer> vtkPlusDevice::GetBuffer()
+vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer()
 {
   return this->GetBuffer(0);
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkPlusStreamBuffer> vtkPlusDevice::GetBuffer( int port )
+vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer( int port )
 {
   if( this->CurrentStream == NULL )
   {
     return NULL;
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> aBuff;
+  vtkPlusStreamBuffer* aBuff=NULL;
   if( this->CurrentStream->GetBuffer(aBuff, port) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve selected non-tool buffer " << port << " from device " << this->GetDeviceId());
@@ -2533,7 +2535,7 @@ void vtkPlusDevice::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElemen
 
   for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindOutputStreamElement(rootXMLElement, aStream->GetStreamId());
     aStream->WriteConfiguration(streamElement);
   }
@@ -2546,7 +2548,7 @@ void vtkPlusDevice::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement
 
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
     aStream->WriteConfiguration(streamElement);
   }

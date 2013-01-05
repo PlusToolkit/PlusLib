@@ -42,15 +42,15 @@ public:
   PlusStatus WriteCompactConfiguration(vtkXMLDataElement* aStreamElement);
 
   int BufferCount() const { return this->StreamBuffers.size(); }
-  PlusStatus AddBuffer(vtkSmartPointer<vtkPlusStreamBuffer> aBuffer, int aPort);
-  PlusStatus GetBuffer(vtkSmartPointer<vtkPlusStreamBuffer>& aBuffer, int port);
+  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int aPort);
+  PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
   StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
   StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
 
   int ToolCount() const { return this->Tools.size(); }
-  PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> aTool );
+  PlusStatus AddTool(vtkPlusStreamTool* aTool );
   PlusStatus RemoveTool(const char* toolName);
-  PlusStatus GetTool(vtkSmartPointer<vtkPlusStreamTool>& aTool, const char* toolName);
+  PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
   ToolContainerConstIterator GetToolBuffersStartConstIterator() const;
   ToolContainerIterator GetToolBuffersStartIterator();
   ToolContainerConstIterator GetToolBuffersEndConstIterator() const;

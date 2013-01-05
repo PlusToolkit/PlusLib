@@ -180,7 +180,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-    vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+    vtkPlusStreamTool* tool = NULL; 
     if ( this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS )
     {
       LOG_DEBUG("Marker " << identifiedTemplateName << " has no associated tool"); 

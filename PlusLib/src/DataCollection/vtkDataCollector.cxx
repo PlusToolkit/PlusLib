@@ -157,7 +157,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
           for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
           {
             vtkPlusDevice* device = (*it);
-            vtkSmartPointer<vtkPlusStream> aStream = NULL;
+            vtkPlusStream* aStream = NULL;
             if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
             {
               // Found it!
@@ -331,7 +331,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList( double& aTimestamp, vtkTracked
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameList(" << aTimestamp << ", aTrackedFrameList, " << aMaxNumberOfFramesToAdd << ")");
 
-  if( SelectedDevice != NULL )
+  if( this->SelectedDevice != NULL )
   {
     return SelectedDevice->GetTrackedFrameList(aTimestamp, aTrackedFrameList, aMaxNumberOfFramesToAdd);
   }
@@ -710,7 +710,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
 
   // Get the first tool
   vtkPlusDevice* aDevice = NULL;
-  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+  vtkPlusStreamTool* firstActiveTool = NULL; 
   if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
   {
     LOG_ERROR("No selected stream mixer. Unable to search for tools.");
@@ -722,7 +722,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
   if ( trackerBuffer == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - Failed to get first active tool!"); 

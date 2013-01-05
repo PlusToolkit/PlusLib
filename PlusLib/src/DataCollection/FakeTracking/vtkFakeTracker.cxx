@@ -61,7 +61,7 @@ PlusStatus vtkFakeTracker::Connect()
 {
   LOG_TRACE("vtkFakeTracker::Connect"); 
 
-  vtkSmartPointer<vtkPlusStreamTool> tool = NULL; 
+  vtkPlusStreamTool* tool = NULL; 
   switch (this->Mode)
   {
   case (FakeTrackerMode_Default):

@@ -200,7 +200,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   }
 
   // Get the first tool - the first active tool determines the timestamp
-  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+  vtkPlusStreamTool* firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Internal update failed - there is no active tool!"); 
@@ -379,7 +379,7 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
 vtkPlusStreamBuffer* vtkSavedDataTracker::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
-  vtkSmartPointer<vtkPlusStreamTool> firstActiveTool = NULL; 
+  vtkPlusStreamTool* firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 

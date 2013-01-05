@@ -94,7 +94,7 @@ private:  // Functions.
 
 private:  // Variables.
 
-  vtkSmartPointer<vtkPlusStreamTool> SpaceNavigatorTool;
+  vtkPlusStreamTool* SpaceNavigatorTool;
   vtkMatrix4x4* LatestMouseTransform;
   vtkMatrix4x4* DeviceToTrackerTransform;
   double TranslationScales[3];

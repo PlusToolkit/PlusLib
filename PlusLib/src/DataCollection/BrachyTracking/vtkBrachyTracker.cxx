@@ -175,7 +175,7 @@ std::string vtkBrachyTracker::GetBrachyToolName(BRACHY_STEPPER_TOOL tool)
 
   std::ostringstream toolPortName; 
   toolPortName << tool; 
-  vtkSmartPointer<vtkPlusStreamTool> trackerTool = NULL; 
+  vtkPlusStreamTool* trackerTool = NULL; 
   if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool by port: " << toolPortName.str() ); 
@@ -677,7 +677,7 @@ PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePositio
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
+  vtkPlusStreamTool* encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -708,7 +708,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
+  vtkPlusStreamTool* encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -747,7 +747,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
+  vtkPlusStreamTool* encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -780,7 +780,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> probeTool = NULL; 
+  vtkPlusStreamTool* probeTool = NULL; 
   if ( this->GetTool(probeToolName.c_str(), probeTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << probeToolName ); 
@@ -814,7 +814,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtk
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> probeTool = NULL; 
+  vtkPlusStreamTool* probeTool = NULL; 
   if ( this->GetTool(probeToolName.c_str(), probeTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << probeToolName ); 
@@ -847,7 +847,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> templateTool = NULL; 
+  vtkPlusStreamTool* templateTool = NULL; 
   if ( this->GetTool(templateToolName.c_str(), templateTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << templateToolName ); 
@@ -881,7 +881,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestam
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> templateTool = NULL; 
+  vtkPlusStreamTool* templateTool = NULL; 
   if ( this->GetTool(templateToolName.c_str(), templateTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << templateToolName ); 
@@ -914,7 +914,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
+  vtkPlusStreamTool* encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 
@@ -949,7 +949,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamTool> encoderTool = NULL; 
+  vtkPlusStreamTool* encoderTool = NULL; 
   if ( this->GetTool(encoderToolName.c_str(), encoderTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tool: " << encoderToolName ); 

@@ -115,8 +115,8 @@ public:
   virtual PlusStatus StopRecording();
 
     /*! Get the buffer that is used to hold the data. */
-  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer();
-  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer(int port);
+  virtual vtkPlusStreamBuffer* GetBuffer();
+  virtual vtkPlusStreamBuffer* GetBuffer(int port);
 
   /*! 
     Get the buffer that is used to hold the data
@@ -164,13 +164,13 @@ public:
   double GetInternalUpdateRate() const;
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolName, vtkSmartPointer<vtkPlusStreamTool> &aTool);
+  PlusStatus GetTool(const char* aToolName, vtkPlusStreamTool*& aTool);
 
   /*! Get the first active tool object */
-  PlusStatus GetFirstActiveTool(vtkSmartPointer<vtkPlusStreamTool> &aTool); 
+  PlusStatus GetFirstActiveTool(vtkPlusStreamTool*& aTool); 
 
   /*! Get the tool object for the specified tool port name */
-  PlusStatus GetToolByPortName( const char* aPortName, vtkSmartPointer<vtkPlusStreamTool> &aTool); 
+  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusStreamTool*& aTool); 
 
   /*! Get the beginning of the tool iterator */
   ToolContainerConstIterator GetToolIteratorBegin() const; 
@@ -179,7 +179,7 @@ public:
   ToolContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the tracker */
-  PlusStatus AddTool( vtkSmartPointer<vtkPlusStreamTool> tool ); 
+  PlusStatus AddTool(vtkPlusStreamTool* tool ); 
 
   /*! Get number of tools */
   int GetNumberOfTools() const;
@@ -360,10 +360,10 @@ public:
   virtual US_IMAGE_TYPE GetImageType();
 
   /*! Access the available output streams */
-  PlusStatus GetStreamByName(vtkSmartPointer<vtkPlusStream>& aStream, const char * aStreamName);
+  PlusStatus GetStreamByName(vtkPlusStream*& aStream, const char * aStreamName);
 
   /*! Add an input stream */
-  PlusStatus AddInputStream(vtkSmartPointer<vtkPlusStream> aStream);
+  PlusStatus AddInputStream(vtkPlusStream* aStream);
 
   /*!
     Perform any completion tasks once configured
@@ -472,7 +472,7 @@ protected:
 
   StreamContainer OutputStreams;
   StreamContainer InputStreams;
-  vtkSmartPointer<vtkPlusStream> CurrentStream;
+  vtkPlusStream* CurrentStream;
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
