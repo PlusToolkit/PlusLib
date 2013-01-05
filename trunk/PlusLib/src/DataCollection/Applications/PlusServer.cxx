@@ -107,12 +107,6 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }
 
-  // change xDevice to Device, this will allow the openigtlink clients to read configuration
-  // but the device won't be autocreated at datacollector creation
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionElement = configRootElement->FindNestedElementWithName("DataCollection");
-  vtkSmartPointer<vtkXMLDataElement> element = dataCollectionElement->FindNestedElementWithName("xDevice");
-  element->SetName("Device");
-
   // Create Plus OpenIGTLink server.
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
@@ -137,16 +131,25 @@ int main( int argc, char** argv )
   std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
   if ( testing ) 
   {
-    // Connect clients to server 
-    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
+    // Configuration of test clients are described in the PlusServerTestClientsConfiguration element
+    vtkXMLDataElement* testClientsElement = configRootElement->FindNestedElementWithName("PlusServerTestClientsConfiguration");    
+    if (testClientsElement!=NULL)
     {
-      LOG_ERROR("Unable to connect clients to PlusServer!"); 
-      DisconnectClients( testClientList );
-      server->Stop(); 
-      exit(EXIT_FAILURE);
+      // Connect clients to server 
+      if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, testClientsElement ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to connect clients to PlusServer!"); 
+        DisconnectClients( testClientList );
+        server->Stop(); 
+        exit(EXIT_FAILURE);
+      }
+      vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
+      LOG_INFO("Clients are connected");
     }
-    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
-    LOG_INFO("Clients are connected");
+    else
+    {
+      LOG_ERROR("PlusServerTestClientsConfiguration is missing. Cannot start OpenIGTLink test clients.");
+    }
   }
   // *************************** End of testing **************************
 
@@ -227,6 +230,12 @@ int main( int argc, char** argv )
 // -------------------------------------------------
 PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement )
 {
+  if (configRootElement==NULL)
+  {
+    LOG_ERROR("PlusServer client configuration is missing");
+    return PLUS_FAIL;
+  }
+
   int numberOfErrors = 0; 
 
   // Clear test client list 

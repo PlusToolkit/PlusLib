@@ -16,23 +16,29 @@
       Selectable="true" >
       <OutputStream Id="Output" BufferSize="100"/>
     </Device>
-    
-    <!-- This device is crossed out because it is used by the openIGTLink clients, do not enable or test will fail -->
-    <xDevice
-      Type="OpenIGTLinkVideo"
-      Id="DeviceOpenIGTLinkVideo"
-      MessageType="TrackedFrame"
-      ServerAddress="127.0.0.1"
-      ServerPort="18944"
-      IgtlMessageCrcCheckEnabled="false"
-      ImageMessageEmbeddedTransformName="Image2ToTracker"
-      UsImageOrientation="MF"
-      AcquisitionRate="30"
-      LocalTimeOffsetSec="0" >
-        <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="50" AveragedItemsForFiltering="20"/>
-    </xDevice>
-  </DataCollection>
 
+  </DataCollection>
+  
+  <PlusServerTestClientsConfiguration>
+    <!-- This configuration section is used during PlusServer testing to configure OpenIGTLink clients --> 
+    <DataCollection>            
+      <Device
+        Type="OpenIGTLinkVideo"
+        Id="DeviceOpenIGTLinkVideo"
+        MessageType="TrackedFrame"
+        ServerAddress="127.0.0.1"
+        ServerPort="18944"
+        IgtlMessageCrcCheckEnabled="false"
+        ImageMessageEmbeddedTransformName="Image2ToTracker"
+        UsImageOrientation="MF"
+        AcquisitionRate="30"
+        LocalTimeOffsetSec="0" >
+          <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="50" AveragedItemsForFiltering="20"/>
+      </Device>    
+    </DataCollection>
+  </PlusServerTestClientsConfiguration>
+
+  
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
     <DefaultClientInfo> 
       <MessageTypes> 
@@ -209,5 +215,5 @@
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
   />
-
+  
 </PlusConfiguration>
