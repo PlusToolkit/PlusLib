@@ -57,9 +57,9 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::Connect()
+PlusStatus vtkFakeTracker::InternalConnect()
 {
-  LOG_TRACE("vtkFakeTracker::Connect"); 
+  LOG_TRACE("vtkFakeTracker::InternalConnect"); 
 
   vtkPlusStreamTool* tool = NULL; 
   switch (this->Mode)
@@ -236,9 +236,9 @@ PlusStatus vtkFakeTracker::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::Disconnect()
+PlusStatus vtkFakeTracker::InternalDisconnect()
 {
-  LOG_TRACE("vtkFakeTracker::Disconnect"); 
+  LOG_TRACE("vtkFakeTracker::InternalDisconnect"); 
 
   return this->StopRecording(); 
 }

@@ -29,10 +29,10 @@ public:
   virtual bool IsTracker() const { return true; }
 
   /*! Connect to device */
-  PlusStatus Connect();
+  PlusStatus InternalConnect();
 
   /*! Disconnect from device */
-  virtual PlusStatus Disconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 

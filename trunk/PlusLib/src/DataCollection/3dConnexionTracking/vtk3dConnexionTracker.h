@@ -29,10 +29,10 @@ public:
   vtkTypeMacro( vtk3dConnexionTracker,vtkPlusDevice );
 
   /*! Connect to device */
-  PlusStatus Connect();
+  PlusStatus InternalConnect();
 
   /*! Disconnect from device */
-  virtual PlusStatus Disconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! 
   Probe to see if the tracking system is present on the specified serial port.  

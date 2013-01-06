@@ -41,10 +41,10 @@ public:
   vtkTypeMacro(vtkFakeTracker,vtkPlusDevice);
 
   /*! Connect to device */
-  PlusStatus Connect();
+  PlusStatus InternalConnect();
 
   /*! Disconnect from device */
-  PlusStatus Disconnect();
+  PlusStatus InternalDisconnect();
 
   /*! Checks availability of tracker (this always returns 1) */
   PlusStatus Probe();

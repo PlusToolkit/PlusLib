@@ -281,7 +281,7 @@ PlusStatus vtkDataCollector::Connect()
     status = PLUS_FAIL;
   }
 
-  Connected = (status == PLUS_SUCCESS);
+  this->Connected = (status == PLUS_SUCCESS);
   return status;
 }
 

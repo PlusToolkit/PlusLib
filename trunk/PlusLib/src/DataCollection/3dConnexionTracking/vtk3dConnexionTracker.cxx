@@ -376,7 +376,7 @@ void vtk3dConnexionTracker::DestroyCaptureWindow()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtk3dConnexionTracker::Connect()
+PlusStatus vtk3dConnexionTracker::InternalConnect()
 {
   LOG_TRACE( "vtk3dConnexionTracker::Connect" ); 
 
@@ -399,7 +399,7 @@ PlusStatus vtk3dConnexionTracker::Connect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtk3dConnexionTracker::Disconnect()
+PlusStatus vtk3dConnexionTracker::InternalDisconnect()
 {
   LOG_TRACE( "vtk3dConnexionTracker::Disconnect" ); 
   this->StopRecording();

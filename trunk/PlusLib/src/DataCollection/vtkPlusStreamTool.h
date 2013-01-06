@@ -49,7 +49,7 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Get the tracked tool buffer */
-  virtual vtkSmartPointer<vtkPlusStreamBuffer> GetBuffer() const { return this->Buffer; }
+  virtual vtkPlusStreamBuffer* GetBuffer() const { return this->Buffer; }
 
   /*! Get the tracker which owns this tool. */
   vtkGetObjectMacro(Device,vtkPlusDevice);
@@ -127,7 +127,7 @@ protected:
   char *ToolManufacturer;
   char *ToolName; 
 
-  vtkSmartPointer<vtkPlusStreamBuffer> Buffer;
+  vtkPlusStreamBuffer* Buffer;
 
 private:
   vtkPlusStreamTool(const vtkPlusStreamTool&);

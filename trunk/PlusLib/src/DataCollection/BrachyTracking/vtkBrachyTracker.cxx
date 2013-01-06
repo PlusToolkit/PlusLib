@@ -108,7 +108,7 @@ void vtkBrachyTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::Connect()
+PlusStatus vtkBrachyTracker::InternalConnect()
 {
   if (this->Device == NULL)
   {
@@ -120,7 +120,7 @@ PlusStatus vtkBrachyTracker::Connect()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::Disconnect()
+PlusStatus vtkBrachyTracker::InternalDisconnect()
 {
   this->Device->Disconnect(); 
   return this->StopRecording(); 

@@ -323,7 +323,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::Connect()
+PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::Connect" ); 
 
@@ -405,7 +405,7 @@ PlusStatus vtkPhidgetSpatialTracker::Connect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::Disconnect()
+PlusStatus vtkPhidgetSpatialTracker::InternalDisconnect()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::Disconnect" ); 
   this->StopRecording();

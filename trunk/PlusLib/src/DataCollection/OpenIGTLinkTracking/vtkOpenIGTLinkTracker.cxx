@@ -70,9 +70,9 @@ std::string vtkOpenIGTLinkTracker::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::Connect()
+PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::Connect" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalConnect" ); 
 
   if ( this->ClientSocket->GetConnected() )
   {
@@ -169,7 +169,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::Disconnect()
+PlusStatus vtkOpenIGTLinkTracker::InternalDisconnect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Disconnect" ); 
 

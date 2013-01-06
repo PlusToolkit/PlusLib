@@ -113,7 +113,7 @@ static char vtkCertusErrorString[MAX_ERROR_STRING_LENGTH + 1];
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::Connect()
+PlusStatus vtkNDICertusTracker::InternalConnect()
 {
   // Set the NIF (Network Information File)
   if (OptotrakSetProcessingFlags(OPTO_USE_INTERNAL_NIF) != OPTO_NO_ERROR_CODE)
@@ -164,7 +164,7 @@ PlusStatus vtkNDICertusTracker::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::Disconnect()
+PlusStatus vtkNDICertusTracker::InternalDisconnect()
 {
   this->StopRecording(); 
 

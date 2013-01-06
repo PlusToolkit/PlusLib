@@ -370,7 +370,7 @@ PlusStatus vtkMicronTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::Connect()
+PlusStatus vtkMicronTracker::InternalConnect()
 { 
   if (this->IsMicronTrackingInitialized)
   {
@@ -428,7 +428,7 @@ PlusStatus vtkMicronTracker::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::Disconnect()
+PlusStatus vtkMicronTracker::InternalDisconnect()
 { 
   if (this->IsMicronTrackingInitialized)
   {

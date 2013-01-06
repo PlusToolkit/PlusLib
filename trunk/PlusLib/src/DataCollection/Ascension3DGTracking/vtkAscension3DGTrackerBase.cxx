@@ -70,7 +70,7 @@ void vtkAscension3DGTrackerBase::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::Connect()
+PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
 {
   LOG_TRACE("vtkAscension3DGTracker::Connect" );
 
@@ -177,7 +177,7 @@ PlusStatus vtkAscension3DGTrackerBase::Connect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::Disconnect()
+PlusStatus vtkAscension3DGTrackerBase::InternalDisconnect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
   return this->StopRecording(); 
