@@ -94,7 +94,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
     vtkPlusStream* anInputStream = (*it);
     for( StreamBufferMapContainerConstIterator bufIt = anInputStream->GetBuffersStartConstIterator(); bufIt != anInputStream->GetBuffersEndConstIterator(); ++bufIt )
     {
-      vtkSmartPointer<vtkPlusStreamBuffer> inputBuffer = bufIt->second;
+      vtkPlusStreamBuffer* inputBuffer = bufIt->second;
 
       for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++outputBufferIt)
       {
@@ -111,12 +111,12 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
     for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
     {
-      vtkSmartPointer<vtkPlusStreamTool> anInputTool = inputToolIter->second;
+      vtkPlusStreamTool* anInputTool = inputToolIter->second;
 
       bool found = false;
       for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
       {
-        vtkSmartPointer<vtkPlusStreamTool> anOutputTool = outputToolIt->second;
+        vtkPlusStreamTool* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
         if( anInputTool == anOutputTool )
         {
@@ -150,7 +150,7 @@ void vtkVirtualStreamMixer::InternalWriteOutputStreams( vtkXMLDataElement* rootX
 
   for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindOutputStreamElement(rootXMLElement, aStream->GetStreamId());
     aStream->WriteCompactConfiguration(streamElement);
   }
@@ -164,7 +164,7 @@ void vtkVirtualStreamMixer::InternalWriteInputStreams( vtkXMLDataElement* rootXM
 
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
   {
-    vtkSmartPointer<vtkPlusStream> aStream = *it;
+    vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
     aStream->WriteCompactConfiguration(streamElement);
   }

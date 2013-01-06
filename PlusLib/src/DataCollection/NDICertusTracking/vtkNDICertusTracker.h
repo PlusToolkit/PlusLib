@@ -35,10 +35,10 @@ public:
   virtual std::string GetSdkVersion(); 
 
 	/*! Connect to device */
-	PlusStatus Connect();
+	virtual PlusStatus InternalConnect();
 
 	/*! Disconnect from device */
-	virtual PlusStatus Disconnect();
+	virtual PlusStatus InternalDisconnect();
 
 	/*! 
     Probe to check whether there is an attached Certus system that

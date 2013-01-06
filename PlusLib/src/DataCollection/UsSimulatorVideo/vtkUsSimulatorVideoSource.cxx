@@ -79,7 +79,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
   if (trackerBuffer->GetNumberOfItems()==0)
   {
     LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");

@@ -73,9 +73,9 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
   /*! Connect to the tracker hardware */
-  PlusStatus Connect();
+  PlusStatus InternalConnect();
   /*! Disconnect from the tracker hardware */
-  PlusStatus Disconnect();
+  PlusStatus InternalDisconnect();
 
   MicronTrackerInterface* GetMicronTrackerInterface() { return this->MT; };
 

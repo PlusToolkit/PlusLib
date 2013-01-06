@@ -94,7 +94,7 @@ void vtkChRoboticsTracker::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::Connect()
+PlusStatus vtkChRoboticsTracker::InternalConnect()
 {
   LOG_TRACE( "vtkChRoboticsTracker::Connect" ); 
 
@@ -145,7 +145,7 @@ PlusStatus vtkChRoboticsTracker::Connect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::Disconnect()
+PlusStatus vtkChRoboticsTracker::InternalDisconnect()
 {
   LOG_TRACE( "vtkChRoboticsTracker::Disconnect" ); 
   this->StopRecording();
