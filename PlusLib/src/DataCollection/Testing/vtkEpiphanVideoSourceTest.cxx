@@ -41,7 +41,7 @@ protected:
 
 int main(int argc, char **argv)
 {
-  std::string serialNumber;
+  std::string grabberLocation;
   double frameRate=30;
   std::vector<int> clipRectOrigin;
   std::vector<int> clipRectSize;
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  args.AddArgument("--serial-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serialNumber, "Serial number of the Epiphan device to connect");
+  args.AddArgument("--grabber-location", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &grabberLocation, "Location of the of the Epiphan device to connect (use the format sn:SERIAL for the specification of serial number)");
   args.AddArgument("--frame-rate", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameRate, "Requested acquisition frame rate (in FPS, default = 30)");
   args.AddArgument("--clip-rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectOrigin, "Origin of the clipping rectangle");
   args.AddArgument("--clip-rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectSize, "Size of the clipping rectangle");
@@ -79,9 +79,9 @@ int main(int argc, char **argv)
 
 	vtkSmartPointer<vtkEpiphanVideoSource> frameGrabber = vtkSmartPointer<vtkEpiphanVideoSource>::New();
 
-  if (!serialNumber.empty())
+  if (!grabberLocation.empty())
   {
-    frameGrabber->SetSerialNumber(serialNumber.c_str());
+    frameGrabber->SetGrabberLocation(grabberLocation.c_str());
   }
   
   frameGrabber->SetAcquisitionRate(frameRate);

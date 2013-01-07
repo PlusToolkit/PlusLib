@@ -39,10 +39,17 @@ public:
   /*! Get the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
 	vtkGetMacro(VideoFormat,VideoFormatType);  
 
-  /*! Set the Epiphan device serial */
-	vtkSetStringMacro(SerialNumber); 
-  /*! Get the Epiphan device serial */
-	vtkGetStringMacro(SerialNumber); 
+  /*!
+    Set the Epiphan device location. If no location parameter is specified then the device is attempted to be detected automatically.
+    Format of the location string:
+    local:[SERIAL] Specifies a local frame grabber. Optionally the serial number can be specified.
+    net:[ADDRESS[:PORT]] Specifies a network frame grabber at the specified address/port. If no address is specified, then a random network frame grabber on the local subnet may be found.
+    sn:SERIAL Specifies a local or network frame grabber with the specified serial number. Checks the local framegrabbers first.
+    id:INDEX Specifies a local frame grabber with the specified index.
+  */
+	vtkSetStringMacro(GrabberLocation); 
+  /*! Get the Epiphan device location */
+	vtkGetStringMacro(GrabberLocation); 
 
   /*!
     Set the clip rectangle size to apply to the image in pixel coordinates.
@@ -98,8 +105,8 @@ protected:
   /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
 	int ClipRectangleSize[2];
 
-  /*! Serial number of the frame grabber */
-	char* SerialNumber;
+  /*! String to specify the framegrabber to connect to (auto-detection is attempted if unspecified) */
+	char* GrabberLocation;
 
   /*! Epiphan Pointer to the grabber */
 	void* FrameGrabber;
