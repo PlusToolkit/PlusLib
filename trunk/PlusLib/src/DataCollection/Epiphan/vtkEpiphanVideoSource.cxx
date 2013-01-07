@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
@@ -19,12 +19,12 @@ vtkStandardNewMacro(vtkEpiphanVideoSource);
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 {
-	this->VideoFormat = VIDEO_FORMAT_Y8; 
+  this->VideoFormat = VIDEO_FORMAT_Y8; 
   this->ClipRectangleOrigin[0]=0;
   this->ClipRectangleOrigin[1]=0;
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
-	this->SerialNumber = NULL;
+  this->GrabberLocation = NULL;
 
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -38,22 +38,22 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::~vtkEpiphanVideoSource()
 { 
-	if( !this->Connected )
-	{
-		this->Disconnect();
-	}
+  if( !this->Connected )
+  {
+    this->Disconnect();
+  }
 
-	if ( this->FrameGrabber != NULL) 
-	{
-		FrmGrab_Deinit();
-		this->FrameGrabber = NULL;
-	}
+  if ( this->FrameGrabber != NULL) 
+  {
+    FrmGrab_Deinit();
+    this->FrameGrabber = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkEpiphanVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os,indent);
 
 }
 
@@ -69,9 +69,9 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   // Initialize frmgrab library
   FrmGrabNet_Init();
 
-  if ( this->SerialNumber != NULL )
+  if ( this->GrabberLocation != NULL )
   {
-	  if ( (this->FrameGrabber = FrmGrab_Open( this->SerialNumber )) == NULL ) 
+    if ( (this->FrameGrabber = FrmGrab_Open( this->GrabberLocation )) == NULL ) 
     {      
       if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
       {
@@ -79,29 +79,29 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
         return PLUS_FAIL;
       }
       const char UNKNOWN_DEVICE[]="UNKNOWN";
-      const char* connectedTo=FrmGrab_GetSN((FrmGrabber*)this->FrameGrabber);      
+      const char* connectedTo=FrmGrab_GetLocation((FrmGrabber*)this->FrameGrabber);      
       if (connectedTo==NULL)
       {
         connectedTo=UNKNOWN_DEVICE;
       }
-      
-      LOG_WARNING("Epiphan Device with the requested serial number '"<<this->SerialNumber<<"' not found. Connected to " << connectedTo << " device instead.");
+
+      LOG_WARNING("Epiphan Device with the requested location '"<<this->GrabberLocation<<"' not found. Connected to " << connectedTo << " device instead.");
     }
   }
   else
   {
-	  LOG_DEBUG("Serial Number not specified. Looking for any available device");
-	  if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
-		{
-		  LOG_ERROR("Epiphan Device Not found");
-		  return PLUS_FAIL;
-		}
+    LOG_DEBUG("Serial Number not specified. Looking for any available device");
+    if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
+    {
+      LOG_ERROR("Epiphan Device Not found");
+      return PLUS_FAIL;
+    }
   }
-  
+
   V2U_VideoMode vm;
   if (!FrmGrab_DetectVideoMode((FrmGrabber*)this->FrameGrabber,&vm)) 
   {
-	  LOG_ERROR("No signal detected");
+    LOG_ERROR("No signal detected");
     return PLUS_FAIL;
   }
 
@@ -117,15 +117,15 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   }
   this->FrameSize[0] = vm.width;
   this->FrameSize[1] = vm.height;  
- 
+
   if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
   {
     if (this->ClipRectangleSize[0]%4!=0)
     {
       LOG_WARNING("ClipRectangleSize[0] is not a multiple of 4. Acquired image may be skewed.");
     }
-	  this->FrameSize[0] = this->ClipRectangleSize[0];
-	  this->FrameSize[1] = this->ClipRectangleSize[1];
+    this->FrameSize[0] = this->ClipRectangleSize[0];
+    this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
   this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
@@ -134,7 +134,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   return PLUS_SUCCESS;
 }
 
-    
+
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 {
@@ -143,7 +143,7 @@ PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 
   //this->Initialized = 0;
   if (this->FrameGrabber != NULL) {
-	FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
+    FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
   }
   this->FrameGrabber = NULL;
 
@@ -151,15 +151,15 @@ PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 
   return PLUS_SUCCESS;
 
-  }
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
 {
   if (!this->Recording)
-    {
-		return PLUS_SUCCESS;
-	}
+  {
+    return PLUS_SUCCESS;
+  }
   FrmGrab_Start((FrmGrabber*)this->FrameGrabber); 
 
   return this->Connect();
@@ -183,7 +183,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   }
 
   V2U_GrabFrame2 * frame = NULL;
-  
+
   V2U_UINT32 videoFormat=V2U_GRABFRAME_FORMAT_Y8;
   switch (this->VideoFormat)
   {
@@ -211,8 +211,8 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   if (frame == NULL)
   {
-	  LOG_WARNING("Frame not captured");
-	  return PLUS_FAIL;
+    LOG_WARNING("Frame not captured");
+    return PLUS_FAIL;
   }
 
   this->FrameNumber++; 
@@ -225,7 +225,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   }
 
   PlusStatus status = this->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
-	  itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
+    itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
   this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
   return status;
@@ -235,49 +235,58 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
 
-	LOG_TRACE("vtkEpiphanVideoSource::ReadConfiguration"); 
-	if ( config == NULL )
-	{
-		LOG_ERROR("Unable to configure Epiphan video source! (XML data element is NULL)"); 
-		return PLUS_FAIL; 
-	}
+  LOG_TRACE("vtkEpiphanVideoSource::ReadConfiguration"); 
+  if ( config == NULL )
+  {
+    LOG_ERROR("Unable to configure Epiphan video source! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
 
-	Superclass::ReadConfiguration(config); 
+  Superclass::ReadConfiguration(config); 
 
-	vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-	if (imageAcquisitionConfig == NULL) 
-	{
-		LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-		return PLUS_FAIL;
-	}
+  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
 
-	const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
-	if ( videoFormat != NULL) 
-	{
-		if( !strcmp(videoFormat,"RGB8") )
-		{
-			this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
-		}
-		else if ( !strcmp(videoFormat,"Y8") )
-		{
-			this->SetVideoFormat( VIDEO_FORMAT_Y8 );
-		}
-		else 
-		{
-			LOG_WARNING("Video Format unspecified/not supported. Using Y8"); 
-			this->SetVideoFormat( VIDEO_FORMAT_Y8 );
-		}
-	}
+  const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
+  if ( videoFormat != NULL) 
+  {
+    if( !strcmp(videoFormat,"RGB8") )
+    {
+      this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
+    }
+    else if ( !strcmp(videoFormat,"Y8") )
+    {
+      this->SetVideoFormat( VIDEO_FORMAT_Y8 );
+    }
+    else 
+    {
+      LOG_WARNING("Video Format unspecified/not supported. Using Y8"); 
+      this->SetVideoFormat( VIDEO_FORMAT_Y8 );
+    }
+  }
 
-	const char* serialNumber = imageAcquisitionConfig->GetAttribute("SerialNumber");
-	if( serialNumber !=NULL)
-	{
-		this->SetSerialNumber(serialNumber);
-	}
-	else
-	{
-		LOG_DEBUG("Epiphan device SerialNumber is not specified in the configuration");
-	}
+  // SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the
+  // GrabberLocation attribute.
+  const char* grabberLocation = imageAcquisitionConfig->GetAttribute("GrabberLocation");
+  const char* serialNumber = imageAcquisitionConfig->GetAttribute("SerialNumber");
+  if (grabberLocation!=NULL)
+  {
+    SetGrabberLocation(grabberLocation);
+  }
+  else if( serialNumber !=NULL)
+  {
+    std::string grabberLocationString=std::string("sn:")+serialNumber;
+    SetGrabberLocation(grabberLocationString.c_str());
+    LOG_WARNING("Epiphan SerialNumber is specified. This attribute is deprecated, please use GrabberLocation=\"sn:SERIAL\" attribute instead.");
+  }
+  else
+  {
+    LOG_DEBUG("Epiphan device location is not specified in the configuration");
+  }
 
   // clipping parameters
   int clipRectangleOrigin[2]={0,0};
@@ -291,7 +300,7 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     this->SetClipRectangleSize(clipRectangleSize);
   }
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 
 }
 
@@ -316,11 +325,11 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 
   if ( this->VideoFormat == VIDEO_FORMAT_RGB8 )
   {
-	  imageAcquisitionConfig->SetAttribute("VideoFormat", "RGB8");
+    imageAcquisitionConfig->SetAttribute("VideoFormat", "RGB8");
   }
   else if ( this->VideoFormat == VIDEO_FORMAT_Y8 )
   {
-	  imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
+    imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
   }
   else
   {
@@ -328,7 +337,17 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
     imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
   }
 
-  imageAcquisitionConfig->SetAttribute("SerialNumber", this->SerialNumber);
+  if (this->GrabberLocation!=NULL)
+  {
+    imageAcquisitionConfig->SetAttribute("GrabberLocation", this->GrabberLocation);
+  }
+  else
+  {
+    imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+  }
+
+  // SerialNumber is an obsolete attribute, the information is stored onw in GrabberLocation
+  imageAcquisitionConfig->RemoveAttribute("SerialNumber");
 
   // clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
