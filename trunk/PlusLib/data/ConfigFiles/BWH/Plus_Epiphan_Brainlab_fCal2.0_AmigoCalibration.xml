@@ -1,0 +1,181 @@
+<PlusConfiguration version="1.4" PlusRevision="1.7.1.2323">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="Brainlab fCal 2.0 Amigo Calibration Ready" Description="Tools expected from Brainlab: 0: Probe, 1: Reference, 2: Stylus."/>
+    
+    <Device
+    Type="OpenIGTLinkTracker"
+    Id="DeviceOpenIGTLinkTracker"
+    MessageType="TDATA"
+    ServerAddress="172.22.233.144"
+    ServerPort="22222"
+    IgtlMessageCrcCheckEnabled="true"
+    AcquisitionRate="30"
+	ReconnectOnReceiveTimeout="false"
+    LocalTimeOffset="0.0" >
+      <Tool Name="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+	  <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
+      
+      <OutputStream Id="TrackerOutput">
+        <Tool Name="ReferenceStar" />
+        <Tool Name="Pointer" />
+		<Tool Name="Ultrasound" />
+      </OutputStream>
+    </Device>
+    
+    <Device
+    Type="Epiphan"
+    Id="DeviceEpiphan" 
+    AcquisitionRate="10" 
+    UsImageOrientation="MF"
+    xClipRectangleOrigin="253 108" 
+    xClipRectangleSize="720 667"
+    >
+      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+    </Device>
+
+    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
+      <OutputStream Id="Final"/>
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="EpiphanOutput" />
+    </Device>
+  </DataCollection>
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="Image" To="Ultrasound"
+      Matrix="
+        0.107535	0.00094824	0.0044213	-65.9013
+        0.0044901	-0.00238041	-0.106347	-3.05698
+        -0.000844189	0.105271	-0.00244457	-17.1613
+        0	0	0	1"
+       Error="0.804961" Date="121012_223643"/>
+    <Transform From="Phantom" To="InstrumentM"
+      Matrix="
+        0.915684	0.131256	-0.379862	117.5
+        0.376059	0.0536185	0.925043	-225.234
+        0.141785	-0.989897	-0.000262574	20.8346
+        0	0	0	1"
+       Error="0.854057" Date="121012_221415"/>
+    <Transform From="PointerTip" To="Pointer"
+      Matrix="
+        -0.56512	-0.111974	-0.817374	-0.398989
+        -0.194363	0.98093	0	-0.137225
+        0.801787	0.158867	-0.576107	0.566081
+        0	0	0	1"
+       Error="0.360121" Date="121012_221057"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.107632	0	0	0
+        0	0.105302	0	0
+        0	0	0.106467	0
+        0	0	0	1"
+       Date="121012_223645"/>
+  </CoordinateDefinitions>
+  <Rendering WorldCoordinateFrame="InstrumentM">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1	0	0	29.7
+        0	-1	0	1.5
+        0	0	1	-14
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="InstrumentM" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="PointerTip" Id="StylusModel" File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1	0	0	0
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+      />
+    <DisplayableObject
+      Id="PhantomModel"
+      Type="Model"
+      ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_2.0.stl"
+      ModelToObjectTransform="
+        1	0	0	-35
+        0	1	0	-10
+        0	0	1	-5
+        0	0	0	1"/>
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+  </Rendering>
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.105164"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="1"
+    RegionOfInterest="341 239 853 638"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    MaxLineShiftMm="10"/>
+  <PhantomDefinition>
+    <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0"/>
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0"/>
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0"/>
+        <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0"/>
+        <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0"/>
+        <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0"/>
+        <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0"/>
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="104.3 5.0 20.0"/>
+        <Landmark Name="#2" Position="104.3 45.0 20.0"/>
+        <Landmark Name="#3" Position="104.3 45.0 0.0"/>
+        <Landmark Name="#4" Position="104.3 -5.0 0.0"/>
+        <Landmark Name="#5" Position="-34.3 45.0 15.0"/>
+        <Landmark Name="#6" Position="-34.3 -5.0 20.0"/>
+        <Landmark Name="#7" Position="-34.3 -5.0 0.0"/>
+        <Landmark Name="#8" Position="-34.3 45.0 0.0"/>
+      </Landmarks>
+    </Geometry>
+  </PhantomDefinition>
+  <VolumeReconstruction
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0"
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR"
+    Optimization="FULL"
+    Compounding="On"
+    FillHoles="Off"/>
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="100"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Ultrasound"
+    ReferenceCoordinateFrame="InstrumentM"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"/>
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Pointer" ReferenceCoordinateFrame="InstrumentM" ObjectPivotPointCoordinateFrame="PointerTip"/>
+  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM" StylusTipCoordinateFrame="PointerTip"/>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Ultrasound" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM"/>
+</PlusConfiguration>
