@@ -183,7 +183,11 @@ void fCalMainWindow::CreateToolboxes()
   ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
   if (configurationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_Configuration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_Configuration);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(3);
+    grid->setSpacing(0);
     grid->addWidget(configurationToolbox);
     ui.toolbox_Configuration->setLayout(grid);
   }
@@ -193,7 +197,11 @@ void fCalMainWindow::CreateToolboxes()
   CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
   if (capturingToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(5);
+    grid->setSpacing(0);
     grid->addWidget(capturingToolbox);
     ui.toolbox_Capturing->setLayout(grid);
   }
@@ -213,7 +221,11 @@ void fCalMainWindow::CreateToolboxes()
   PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
   if (phantomRegistrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_PhantomRegistration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_PhantomRegistration);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(5);
+    grid->setSpacing(0);
     grid->addWidget(phantomRegistrationToolbox);
     ui.toolbox_PhantomRegistration->setLayout(grid);
   }
@@ -223,7 +235,11 @@ void fCalMainWindow::CreateToolboxes()
   TemporalCalibrationToolbox* temporalCalibrationToolbox = new TemporalCalibrationToolbox(this);
   if (temporalCalibrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_TemporalCalibration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_TemporalCalibration);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(5);
+    grid->setSpacing(0);
     grid->addWidget(temporalCalibrationToolbox);
     ui.toolbox_TemporalCalibration->setLayout(grid);
   }
@@ -233,7 +249,12 @@ void fCalMainWindow::CreateToolboxes()
   SpatialCalibrationToolbox* spatialCalibrationToolbox = new SpatialCalibrationToolbox(this);
   if (spatialCalibrationToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_SpatialCalibration, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_SpatialCalibration);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(5);
+    grid->setSpacing(0);
+    grid->setName("");
     grid->addWidget(spatialCalibrationToolbox);
     ui.toolbox_SpatialCalibration->setLayout(grid);
   }
@@ -243,7 +264,11 @@ void fCalMainWindow::CreateToolboxes()
   VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
   if (volumeReconstructionToolbox != NULL)
   {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_VolumeReconstruction, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(ui.toolbox_VolumeReconstruction);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(5);
+    grid->setSpacing(0);
     grid->addWidget(volumeReconstructionToolbox);
     ui.toolbox_VolumeReconstruction->setLayout(grid);
   }
