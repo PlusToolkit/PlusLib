@@ -30,8 +30,6 @@ int main(int argc, char **argv)
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  int numberOfFailures(0); 
-
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
@@ -102,7 +100,7 @@ int main(int argc, char **argv)
   }
 
   // Process the frames
-  for (int i = 0; i<frameList->GetNumberOfTrackedFrames(); i++)
+  for (unsigned int i = 0; i<frameList->GetNumberOfTrackedFrames(); i++)
   {
     TrackedFrame* rfFrame = frameList->GetTrackedFrame(i);
 
