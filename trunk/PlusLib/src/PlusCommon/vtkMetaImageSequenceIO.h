@@ -152,9 +152,11 @@ private:
 
 #ifdef _WIN32
   typedef __int64 FilePositionOffsetType;
+#elif defined __APPLE_
+  typedef off_t FilePositionOffsetType;
 #else
   typedef off64_t FilePositionOffsetType;
-#endif  
+#endif
     
   /*! Custom frame fields and image data are stored in the m_FrameList for each frame */
   vtkTrackedFrameList* TrackedFrameList;
