@@ -246,6 +246,15 @@ ADD_TEST(TransformInterpolationTest
   --max-translation-difference=0.5
   )
 
+# OpenIGTLink 
+IF( PLUS_USE_OpenIGTLink )
+
+  ADD_EXECUTABLE(BrainLabTrackerSim BrainLabTrackerSim.cxx)
+  TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink)
+  
+ENDIF( PLUS_USE_OpenIGTLink )
+  
+  
 # --------------------------------------------------------------------------
 # Install
 #
