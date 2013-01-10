@@ -46,7 +46,7 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
 
   // Loop over each tracked image slice.
-  for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
+  for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
@@ -107,8 +107,6 @@ int main(int argc, char **argv)
   std::string showModel; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-
-  int numberOfFailures(0); 
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -236,7 +234,7 @@ int main(int argc, char **argv)
   double startTimeSec = 0; 
   double endTimeSec = 0;   
   //for (int i = 0; i<30; i++)
-  for (int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
+  for (unsigned int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
     startTimeSec = vtkTimerLog::GetUniversalTime(); 
     
