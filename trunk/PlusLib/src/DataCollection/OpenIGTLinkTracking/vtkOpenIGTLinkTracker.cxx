@@ -20,6 +20,7 @@
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
 #include <sstream>
+#include <set>
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
@@ -35,6 +36,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 , IgtlMessageCrcCheckEnabled(0)
 , ClientSocket(igtl::ClientSocket::New())
 , ReconnectOnReceiveTimeout(true)
+, TrackerInternalCoordinateSystemName(NULL)
 {
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
@@ -44,6 +46,8 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+  this->TrackerInternalCoordinateSystemName=NULL;
+  SetTrackerInternalCoordinateSystemName("Reference");
 }
 
 //----------------------------------------------------------------------------
@@ -53,6 +57,7 @@ vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker()
   {
     this->StopRecording();
   }
+  SetTrackerInternalCoordinateSystemName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -117,7 +122,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
     igtl::StartTrackingDataMessage::Pointer sttMsg = igtl::StartTrackingDataMessage::New();
     sttMsg->SetDeviceName("");
     sttMsg->SetResolution(50);
-    sttMsg->SetCoordinateName("Reference");
+    sttMsg->SetCoordinateName(this->TrackerInternalCoordinateSystemName);
     sttMsg->Pack();
 
     int retValue = 0;
@@ -135,7 +140,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
   // If we specified message type, try to send it to the server
   if ( this->MessageType != NULL )
   {
-    // Send clinet info request to the server
+    // Send client info request to the server
     PlusIgtlClientInfo clientInfo; 
     // Set message type
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
@@ -315,6 +320,12 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
       return PLUS_FAIL;
     }
 
+    // for now just use system time, all coordinates will be sequential.
+    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+    double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
+    // We store the list of identified tools (tools we get information about from the tracker).
+    // The tools that are missing from the tracker message are assumed to be out of view. 
+    std::set<std::string> identifiedToolNames;
     for ( int i = 0; i < tdataMsg->GetNumberOfTrackingDataElements(); ++ i )
     {
       igtl::TrackingDataElement::Pointer tdataElem = igtl::TrackingDataElement::New();
@@ -341,17 +352,30 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
       igtlTransformName = tdataElem->GetName();
 
       // Set internal transform name
-      PlusTransformName transformName(igtlTransformName.c_str(), "Reference");
-
-      // for now just use system time, all coordinates will be sequential.
-      double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-
-      double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
-      if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+      PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
+      if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
+      {
+        identifiedToolNames.insert(transformName.From());
+      }
+      else
       {
         LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.From() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
         // DO NOT return here: we want to update the other tools.
       }
+    }
+    // Set status for non-detected tools
+    vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    toolMatrix->Identity();
+    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+    {    
+      if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
+      {
+        // this tool has been found and update has been already called with the correct transform
+        LOG_TRACE("Tool "<<it->second->GetToolName()<<": found");
+        continue;
+      }
+      LOG_TRACE("Tool "<<it->second->GetToolName()<<": not found");
+      this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetToolName(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
     }
     return PLUS_SUCCESS;
   }
@@ -431,6 +455,12 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
+  const char* trackerInternalCoordinateSystemName = trackerConfig->GetAttribute("TrackerInternalCoordinateSystemName"); 
+  if ( trackerInternalCoordinateSystemName != NULL )
+  {
+    this->SetTrackerInternalCoordinateSystemName(trackerInternalCoordinateSystemName); 
+  }
+
   const char* reconnect = trackerConfig->GetAttribute("ReconnectOnReceiveTimeout"); 
   if ( reconnect != NULL )
   {
@@ -449,6 +479,35 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
       this->SetIgtlMessageCrcCheckEnabled(0);
     }
   }
+  
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+  if ( rootConfigElement == NULL )
+  {
+    LOG_ERROR("Configuration is invalid");
+    return PLUS_FAIL;
+  }
+
+  // Write configuration 
+  Superclass::WriteConfiguration(rootConfigElement); 
+
+  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
+  if ( trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+
+  trackerConfig->SetAttribute("MessageType", this->MessageType);
+  trackerConfig->SetAttribute("ServerAddress", this->ServerAddress);
+  trackerConfig->SetIntAttribute("ServerPort", this->ServerPort);
+  trackerConfig->SetAttribute("TrackerInternalCoordinateSystemName", this->TrackerInternalCoordinateSystemName);
+  trackerConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
+  trackerConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
   
   return PLUS_SUCCESS;
 }

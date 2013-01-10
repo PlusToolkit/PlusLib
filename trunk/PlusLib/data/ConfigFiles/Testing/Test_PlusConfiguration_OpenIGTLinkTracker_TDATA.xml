@@ -2,65 +2,66 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="AMIGO BrainLab OpenIGTLink with Laptop" 
-      Description="Epiphan framegrabber, BrainLab OpenIGTLink, Plus 2.0"
+      Name="BrainLabTrackerSim with video from file" 
+      Description="To be used with the BrainLabTrackerSim simulator or with a real BrainLab tracker"
     />
 
     <Device
-    Type="OpenIGTLinkTracker"
-    Id="DeviceOpenIGTLinkTracker"
-    MessageType="TDATA"
-    TrackerInternalCoordinateSystemName="Reference"
-    ServerAddress="172.22.233.144"
-    ServerPort="22222"
-    IgtlMessageCrcCheckEnabled="true"
-    AcquisitionRate="20"
-	ReconnectOnReceiveTimeout="false"
-    LocalTimeOffset="0.0" >
+      Type="OpenIGTLinkTracker"
+      Id="DeviceOpenIGTLinkTracker"
+      MessageType="TDATA"
+      TrackerInternalCoordinateSystemName="Reference"
+      ServerAddress="127.0.0.1"
+      ServerPort="22222"
+      IgtlMessageCrcCheckEnabled="true"
+      AcquisitionRate="20"
+      ReconnectOnReceiveTimeout="false"
+      LocalTimeOffset="0.0" >
+    
       <Tool Name="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
       <Tool Name="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-	  <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
       
       <OutputStream Id="TrackerOutput">
         <Tool Name="ReferenceStar" />
         <Tool Name="Pointer" />
-		<Tool Name="Ultrasound" />
-      </OutputStream>
-    </Device>
-    
-    <Device
-    Type="Epiphan"
-    Id="DeviceEpiphan" 
-    AcquisitionRate="10" 
-    UsImageOrientation="MF"
-    xClipRectangleOrigin="253 108" 
-    xClipRectangleSize="720 667"
-    >
-      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+        <Tool Name="Ultrasound" />
+      </OutputStream>    
     </Device>
 
+    <Device
+      Id="SavedData"
+      Type="SavedVideoDataset"
+      SequenceMetafile="fCal_Test_Calibration.mha"
+      UseData="IMAGE"
+      UseOriginalTimestamps="FALSE"
+      RepeatEnabled="TRUE"
+      >
+      <OutputStream Id="Output" BufferSize="100" />
+    </Device>
+    
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
       <InputStream Id="TrackerOutput" />
-      <InputStream Id="EpiphanOutput" />
+      <InputStream Id="Output" />
     </Device>
   </DataCollection>
   
   
   <PlusOpenIGTLinkServer
-  MaxNumberOfIgtlMessagesToSend="1"
-  MaxTimeSpentWithProcessingMs="10"
-  ListeningPort="18944"
-  > 
+    MaxNumberOfIgtlMessagesToSend="1"
+    MaxTimeSpentWithProcessingMs="10"
+    ListeningPort="18944"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />
         <Message Type="IMAGE" />
       </MessageTypes>
       <TransformNames> 
+        <Transform Name="ReferenceStarToTracker" />
         <Transform Name="PointerToTracker" />
-		<Transform Name="ReferenceStarToTracker" />
-		<Transform Name="UltrasoundToTracker" />
+        <Transform Name="UltrasoundToTracker" />
       </TransformNames>
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Tracker" />
@@ -75,7 +76,7 @@
         0.0044901	-0.00238041	-0.106347	-3.05698
         -0.000844189	0.105271	-0.00244457	-17.1613
         0	0	0	1"
-       Error="0.804961" Date="121012_223643"/>
+      Error="0.804961" Date="121012_223643"/>
   </CoordinateDefinitions>
 
 </PlusConfiguration>

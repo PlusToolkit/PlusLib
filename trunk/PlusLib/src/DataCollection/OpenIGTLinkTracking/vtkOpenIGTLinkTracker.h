@@ -43,6 +43,9 @@ public:
   /*! Read configuration from xml data */
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
 	
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
   /*! Get OpenIGTLink message type */ 
@@ -65,6 +68,14 @@ public:
 
   /*! Get the ReconnectOnNoData flag */
   vtkGetMacro(ReconnectOnReceiveTimeout, bool);
+
+  /*! 
+    Set the internal tracker coordinate system name that is send to the tracker
+    when tracking start is requested using an STT_TDATA message.
+  */ 
+  vtkSetStringMacro(TrackerInternalCoordinateSystemName); 
+  /*! Get the internal tracker coordinate system name */ 
+  vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
 
 protected:
 	vtkOpenIGTLinkTracker();
@@ -105,6 +116,12 @@ protected:
 
   /*! Attempt a reconnection if no data is received */
   bool ReconnectOnReceiveTimeout;
+
+  /*!
+    Internal tracker coordinate system name that is send to the tracker when tracking start is requested
+    using an STT_TDATA message.
+  */
+  char* TrackerInternalCoordinateSystemName;
 
 private:  
   
