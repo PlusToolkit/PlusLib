@@ -346,7 +346,7 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 
   vtkPlusLogger::Instance()->SetLogLevel(aLevel+1);
 
-  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() << " (" << aLevel+1 << ")" );
+  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toAscii().data() << " (" << aLevel+1 << ")" );
 
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 }
