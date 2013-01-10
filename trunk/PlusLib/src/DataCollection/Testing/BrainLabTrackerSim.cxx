@@ -242,9 +242,10 @@ int main(int argc, char* argv[])
           startTracking->SetMessageHeader(headerMsg);
           startTracking->AllocatePack();
 
-          int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
-          int c = startTracking->Unpack(1);
-          if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+          socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
+          const int enableCrcCheck=1;
+          int unpackSuccess = startTracking->Unpack(enableCrcCheck);
+          if (unpackSuccess & igtl::MessageHeader::UNPACK_BODY)
           {
             td.interval = startTracking->GetResolution();
             td.glock    = glock;
@@ -280,6 +281,3 @@ int main(int argc, char* argv[])
   // Close connection (the example code actually never reaches to this section ...)
   serverSocket->CloseSocket();
 }
-
-
-
