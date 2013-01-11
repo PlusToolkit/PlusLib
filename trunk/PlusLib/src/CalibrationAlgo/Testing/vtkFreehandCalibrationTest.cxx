@@ -5,9 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkFreehandCalibrationTest.cxx 
-  \brief This test runs a freehand calibration on a recorded data set and 
-  compares the results to a baseline
+\file vtkFreehandCalibrationTest.cxx 
+\brief This test runs a freehand calibration on a recorded data set and 
+compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"
@@ -34,9 +34,9 @@ See License.txt for details.
 #include <iostream>
 
 #ifndef _WIN32
-  const double ERROR_THRESHOLD = LINUXTOLERANCEPERCENT;
+const double ERROR_THRESHOLD = LINUXTOLERANCEPERCENT;
 #else
-  const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
+const double ERROR_THRESHOLD = 0.05;
 #endif
 
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, double translationErrorThreshold, double rotationErrorThreshold); 
@@ -82,7 +82,7 @@ int main (int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-  
+
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize"); 
@@ -188,9 +188,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 #ifndef _WIN32
   double absoluteErrorTolerance = LINUXTOLERANCE;
 #else
-  double absoluteErrorTolerance = 0;
+  double absoluteErrorTolerance = 50;
 #endif
-  
+
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(baselineFileName));
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
@@ -327,7 +327,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double blReprojectionError3DValidationMeanMm = 0.0;
       double blReprojectionError3DValidationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationMeanMm", blReprojectionError3DValidationMeanMm)
+      if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationMeanMm", blReprojectionError3DValidationMeanMm)
         || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationStdDevMm", blReprojectionError3DValidationStdDevMm) )
       {
         LOG_ERROR("Reading baseline validation ReprojectionError3DStatistics statistics failed: " << baselineFileName);
@@ -336,7 +336,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double cReprojectionError3DValidationMeanMm = 0.0;
       double cReprojectionError3DValidationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("ValidationMeanMm", cReprojectionError3DValidationMeanMm)
+      if ( ! reprojectionError3DStatistics->GetScalarAttribute("ValidationMeanMm", cReprojectionError3DValidationMeanMm)
         || ! reprojectionError3DStatistics->GetScalarAttribute("ValidationStdDevMm", cReprojectionError3DValidationStdDevMm) )
       {
         LOG_ERROR("Reading current validation ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
@@ -360,7 +360,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double blReprojectionError3DCalibrationMeanMm = 0.0;
       double blReprojectionError3DCalibrationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationMeanMm", blReprojectionError3DCalibrationMeanMm)
+      if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationMeanMm", blReprojectionError3DCalibrationMeanMm)
         || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationStdDevMm", blReprojectionError3DCalibrationStdDevMm) )
       {
         LOG_ERROR("Reading baseline calibration ReprojectionError3DStatistics statistics failed: " << baselineFileName);
@@ -369,7 +369,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double cReprojectionError3DCalibrationMeanMm = 0.0;
       double cReprojectionError3DCalibrationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationMeanMm", cReprojectionError3DCalibrationMeanMm)
+      if ( ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationMeanMm", cReprojectionError3DCalibrationMeanMm)
         || ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationStdDevMm", cReprojectionError3DCalibrationStdDevMm) )
       {
         LOG_ERROR("Reading current calibration ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
@@ -423,7 +423,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double blValidationMeanPx[2];
         double blValidationStdDevPx[2];
-	      if ( ! wireBaseline->GetVectorAttribute("ValidationMeanPx", 2, blValidationMeanPx)
+        if ( ! wireBaseline->GetVectorAttribute("ValidationMeanPx", 2, blValidationMeanPx)
           || ! wireBaseline->GetVectorAttribute("ValidationStdDevPx", 2, blValidationStdDevPx) )
         {
           LOG_ERROR("Reading baseline validation ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -433,7 +433,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double cValidationMeanPx[2];
         double cValidationStdDevPx[2];
-	      if ( ! wire->GetVectorAttribute("ValidationMeanPx", 2, cValidationMeanPx)
+        if ( ! wire->GetVectorAttribute("ValidationMeanPx", 2, cValidationMeanPx)
           || ! wire->GetVectorAttribute("ValidationStdDevPx", 2, cValidationStdDevPx) )
         {
           LOG_ERROR("Reading current validation ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -618,7 +618,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               double blErrorMm = 0.0;
               double cErrorMm = 0.0;
-	            if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+              if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
                 || ! reprojectionError3D->GetScalarAttribute("ErrorMm", cErrorMm) )
               {
                 LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");
@@ -882,7 +882,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               double blErrorMm = 0.0;
               double cErrorMm = 0.0;
-	            if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+              if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
                 || ! reprojectionError3D->GetScalarAttribute("ErrorMm", cErrorMm) )
               {
                 LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");

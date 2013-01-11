@@ -13,7 +13,8 @@ SET (CalibrationAlgo_SRCS
   vtkLineSegmentationAlgo.cxx 
   vtkPrincipalMotionDetectionAlgo.cxx 
   vtkSpatialCalibrationOptimizer.cxx
-  )
+  itkFiducialTransformComputation.cxx
+	)
 
 SET (CalibrationAlgo_HDRS)	
 IF (WIN32)	
@@ -29,6 +30,7 @@ IF (WIN32)
     vtkLineSegmentationAlgo.h
     vtkPrincipalMotionDetectionAlgo.h
     vtkSpatialCalibrationOptimizer.h
+    itkFiducialTransformComputation.h
     )
 ENDIF (WIN32)
 

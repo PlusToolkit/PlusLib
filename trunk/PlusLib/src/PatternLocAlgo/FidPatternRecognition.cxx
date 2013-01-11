@@ -131,6 +131,15 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
   fiducialPoints->SetNumberOfPoints(fiducials.size());
 
+  // Write segemnted points
+  ofstream outputFile;
+  outputFile.open("fiducialsPoints.txt",std::ios_base::app);
+  for (int i=0; i<fiducials.size(); ++i)
+  {
+	  outputFile << "Fiducial " << i << " = " << fiducials[i][0] <<  " " << fiducials[i][1] <<  " " << 0.0 << "\n";
+  }
+  outputFile.close();
+
   for (int i = 0; i<fiducials.size(); ++i)
   {
     fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
@@ -144,8 +153,13 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
+PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/, std::vector<int> *segmentedFramesIndices)
 {
+  
+  // Write the results to be easily processed
+  ofstream outputFile;
+  outputFile.open("indicesOfSegmentedFrames.txt",ios::trunc);
+  
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
   patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
@@ -189,7 +203,11 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
       if ( trackedFrame->GetFiducialPointsCoordinatePx()
         && trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() > 0 )
       {
-        *numberOfSuccessfullySegmentedImages = *numberOfSuccessfullySegmentedImages + 1;     
+        *numberOfSuccessfullySegmentedImages = *numberOfSuccessfullySegmentedImages + 1;   
+          if (segmentedFramesIndices!=NULL)
+          {
+            segmentedFramesIndices->push_back(m_CurrentFrame-1);
+          }
       }
     }
   }

@@ -14,6 +14,8 @@
 #include "vtkMath.h"
 #include "vtkTransform.h"
 
+#define MINIMUM_NUMBER_OF_CALIBRATION_EQUATIONS 8
+
 //----------------------------------------------------------------------------
 PlusMath::PlusMath()
 {
@@ -27,7 +29,7 @@ PlusMath::~PlusMath()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/,vnl_vector<double> *notOutliersIndices/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -59,11 +61,11 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
     aMatrixVnl.push_back(row); 
   }
 
-  return PlusMath::LSQRMinimize(aMatrixVnl, bVector, resultVector, mean, stdev); 
+  return PlusMath::LSQRMinimize(aMatrixVnl, bVector, resultVector, mean, stdev,notOutliersIndices); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices /*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -99,12 +101,12 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatr
     vectorRightSide.put(row, bVector[row]);
   }
 
-  return PlusMath::LSQRMinimize(sparseMatrixLeftSide, vectorRightSide, resultVector, mean, stdev); 
+  return PlusMath::LSQRMinimize(sparseMatrixLeftSide, vectorRightSide, resultVector, mean, stdev, notOutliersIndices); 
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices/*NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -115,7 +117,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
   bool outlierFound(true); 
 
-  while ( outlierFound )
+  while ( outlierFound && (bVector.size()>MINIMUM_NUMBER_OF_CALIBRATION_EQUATIONS) )
   {
     // Construct linear system defined in VNL
     vnl_sparse_matrix_linear_system<double> linearSystem( aMatrix, bVector );
@@ -172,9 +174,15 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
     const double thresholdMultiplier = 3.0; 
 
-    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev) != PLUS_SUCCESS )
+    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev , notOutliersIndices) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to remove outliers from linear equations!"); 
+      return PLUS_FAIL; 
+    }
+
+    if (bVector.size()<= MINIMUM_NUMBER_OF_CALIBRATION_EQUATIONS)
+    {
+      LOG_ERROR("It was not possible calibrate! Not enough equations!"); 
       return PLUS_FAIL; 
     }
   }
@@ -189,7 +197,8 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
                                             bool &outlierFound, 
                                             double thresholdMultiplier/* = 3.0*/, 
                                             double* mean/*=NULL*/, 
-                                            double* stdev/*=NULL*/ )
+                                            double* stdev/*=NULL*/,
+											vnl_vector<double>* nonOutlierIndices /*NULL*/)
 {
   // Set outlierFound flag to false by default 
   outlierFound = false; 
@@ -252,6 +261,7 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
   std::vector< vcl_vector<double> > matrixRowsData; 
   std::vector< vcl_vector<int> > matrixRowsIndecies; 
   std::vector<double> bVector;   
+  std::vector<double> auxiliarNonOutlierIndicesVector;   
  
   vcl_vector<double> rowData(numberOfUnknowns, 0.0); 
   vcl_vector<int> rowIndecies(numberOfUnknowns, 0); 
@@ -275,6 +285,10 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
       matrixRowsData.push_back(rowData); 
       matrixRowsIndecies.push_back(rowIndecies); 
       bVector.push_back(vectorRightSide[row]); 
+	    if (nonOutlierIndices != NULL)
+	    {
+	      auxiliarNonOutlierIndicesVector.push_back(nonOutlierIndices->get(row));
+	    }
     }
     else
     {
@@ -294,6 +308,17 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
     {
       vectorRightSide.put(i, bVector[i]); 
     }
+
+	if (nonOutlierIndices != NULL)
+	{
+	  (*nonOutlierIndices).clear();
+      (*nonOutlierIndices).set_size(auxiliarNonOutlierIndicesVector.size());
+	  for ( unsigned int i = 0; i < auxiliarNonOutlierIndicesVector.size(); ++i )
+      {
+	    (*nonOutlierIndices).put(i,auxiliarNonOutlierIndicesVector[i]);
+      }
+	}
+
 
     sparseMatrixLeftSide.resize(matrixRowsData.size(), numberOfUnknowns); 
     for ( unsigned int r = 0; r < matrixRowsData.size(); r++ )
