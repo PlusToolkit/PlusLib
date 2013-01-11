@@ -152,7 +152,7 @@ private:
 
 #ifdef _WIN32
   typedef __int64 FilePositionOffsetType;
-#elif defined __APPLE_
+#elif defined __APPLE__
   typedef off_t FilePositionOffsetType;
 #else
   typedef off64_t FilePositionOffsetType;
