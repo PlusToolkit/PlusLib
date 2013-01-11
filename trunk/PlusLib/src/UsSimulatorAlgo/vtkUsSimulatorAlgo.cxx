@@ -79,6 +79,11 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->InsideObjectReflection.push_back(0.2);
 //  this->InsideObjectReflection.push_back(0.0);
 // this->OutsideObjectReflection.push_back(0.0);
+  for (int i=0; i<5000; i++)
+  {
+    this->OutsideObjectReflection.push_back(0.004);
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -203,7 +208,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     bool isInsideObject=false;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
-    double beamIntensity=1000; // TODO: magic number
+    double beamIntensity=10000; // TODO: magic number
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
@@ -252,7 +257,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       for (; pixelIndex<reflectionVector->size() && pixelIndex<numberOfFilledPixels; pixelIndex++)
       {
         double reflectionFactor=(*reflectionVector)[pixelIndex];
-        unsigned char pixelIntensity=beamIntensity*reflectionFactor;
+        unsigned char pixelIntensity=std::min(beamIntensity*reflectionFactor,255.0);
         (*dstPixelAddress++)=pixelIntensity;
         //(*dstPixelAddress++)=190;
         //LOG_INFO("Pixel: "<<pixelIntensity);
