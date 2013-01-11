@@ -35,14 +35,15 @@ public:
   /*! Read the configuration file from a vtk XML data element */
   PlusStatus ReadConfiguration(vtkXMLDataElement* rootConfigElement);
 
-  /*!
+   /*!
   Run pattern recognition on a tracked frame list.
   It only segments the tracked frames which were not already segmented
   \param trackedFrameList Tracked frame list to segment
   \param numberOfSuccessfullySegmentedImages Out parameter holding the number of segmented images in this call (it is only equals the number of all segmented images in the tracked frame if it was not segmented at all)
+  \param segmentedFramesIndices Indices of the frames that were properly segmented
   */
-  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError &patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL );
-
+  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError &patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL, std::vector<int> *segmentedFramesIndices = NULL );
+ 
   /*! 
   Run pattern recognition on a tracked frame list.
   \param trackedFrame image to segment

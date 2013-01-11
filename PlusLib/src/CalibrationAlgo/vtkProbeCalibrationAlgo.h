@@ -16,6 +16,10 @@
 #include <string>
 #include <vector>
 
+#include "vtkSpatialCalibrationOptimizer.h"
+
+#include <set>
+
 class TrackedFrame; 
 class vtkTrackedFrameList; 
 class vtkTransformRepository;
@@ -120,6 +124,15 @@ public:
 public:
   /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
   PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
+
+
+  PlusStatus GetCalibrationReport( std::vector<double> *optimizedResults, std::vector<double> *calibError,
+                                                            std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl); 
+
+  vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
+  {
+    return SpatialCalibrationOptimizer;
+  };
 
 protected:
   /*!
@@ -286,6 +299,14 @@ protected:
 
   /*! Standard deviation of calibration 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) */
   std::vector< std::vector<double> > CalibrationReprojectionError2DStdDevs;
+
+  double CalibrationRmsError2D;
+  double CalibrationRmsError2DSD;
+  double ValidationRmsError2D;
+  double ValidationRmsError2DSD;
+
+  /*! add text */
+  vtkSpatialCalibrationOptimizer* SpatialCalibrationOptimizer;
 
 private:
   vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);

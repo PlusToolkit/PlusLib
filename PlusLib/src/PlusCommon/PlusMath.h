@@ -33,8 +33,9 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
+	\param notOutlierIndices Row that were not removed during the outliers rejection process
   */
-  static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<double>* notOutliersIndices=NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param aMatrix The coefficient matrix of size m-by-n.
@@ -42,8 +43,9 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
+	\param notOutlierIndices Row that were not removed during the outliers rejection process
   */
-  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL , vnl_vector<double>* notOutliersIndices=NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param sparseMatrixLeftSide The coefficient matrix of size m-by-n. (aMatrix)
@@ -52,7 +54,7 @@ public:
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
   */
-  static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<double>* notOutliersIndices=NULL); 
 
   /*! Returns the Euclidean distance between two 4x4 homogeneous transformation matrix */
   static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
@@ -231,7 +233,9 @@ protected:
     bool &outlierFound, 
     double thresholdMultiplier = 3.0, 
     double* mean = NULL, 
-    double* stdev = NULL ); 
+    double* stdev = NULL,
+    vnl_vector<double>* nonOutlierIndices = NULL
+	); 
 
 private: 
   PlusMath(PlusMath const&);

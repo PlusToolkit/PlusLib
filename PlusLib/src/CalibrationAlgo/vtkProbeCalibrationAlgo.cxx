@@ -25,7 +25,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkPoints.h"
 
-static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=10; // minimum number of successfully calibrated frames required for calibration
+static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=1; // minimum number of successfully calibrated frames required for calibration
 
 vtkCxxRevisionMacro(vtkProbeCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationAlgo);
@@ -77,12 +77,21 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->CalibrationReprojectionError2DStdDevs.clear();
 
   this->NWires.clear();
+
+  this->SpatialCalibrationOptimizer = NULL;
+  this->SpatialCalibrationOptimizer = vtkSpatialCalibrationOptimizer::New();
 }
 
 //----------------------------------------------------------------------------
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
   this->SetImageToProbeTransformMatrix(NULL);
+
+  if (this->SpatialCalibrationOptimizer)
+  {
+    this->SpatialCalibrationOptimizer->Delete();
+    this->SpatialCalibrationOptimizer = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -141,6 +150,23 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
 
+  
+  // optimization options
+
+  // vtkSpatialCalibrationOptimizer section
+  vtkXMLDataElement* spatialCalibrationOptimizerElement = aConfig->FindNestedElementWithName("vtkSpatialCalibrationOptimizer");   
+  
+  if (spatialCalibrationOptimizerElement != NULL)
+  {
+    if (this->SpatialCalibrationOptimizer->ReadConfiguration(aConfig) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("vtkSpatialCalibrationOptimizer is not well specified in vtkSpatialCalibrationOptimizer element of the configuration!");
+      return PLUS_FAIL;     
+    }   
+  }
+
+
+
   return PLUS_SUCCESS;
 }
 
@@ -176,7 +202,7 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     LOG_ERROR("Failed to perform calibration - calibration tracked frame list is invalid"); 
     return PLUS_FAIL; 
   }
-  
+
   int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
   if (validationEndFrame < 0 || validationEndFrame >= numberOfValidationFrames)
   {
@@ -248,27 +274,82 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   vnl_matrix<double> imageToProbeTransformMatrixVnl;
   imageToProbeTransformMatrixVnl.set_size(n, n);
   imageToProbeTransformMatrixVnl.fill(0);
-
+  std::set<int> outliers;
   for (int row = 0; row < n; ++row)
   {
     std::vector<double> probePositionRowVector(m,0);
+    vnl_vector<double> nonOutliers(m);
     for (int i=0; i < m; ++i)
     {
       probePositionRowVector[i] = this->DataPositionsInProbeFrame[i][row];
+      nonOutliers.put(i,i);
     }
 
     vnl_vector<double> resultVector(n,0);
-    if ( PlusMath::LSQRMinimize(this->DataPositionsInImageFrame, probePositionRowVector, resultVector) != PLUS_SUCCESS )
+    if ( PlusMath::LSQRMinimize(this->DataPositionsInImageFrame, probePositionRowVector, resultVector, NULL, NULL, &nonOutliers) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
+      LOG_ERROR("Failed to run LSQRMinimize!"); 
+      return PLUS_FAIL;
+    }
+
+
+    for (int i=0;i<m;i++)
+    {
+      bool found = false;
+      int index=0;
+      while(!found && (index<=nonOutliers.size()))
+      {
+        found= i==nonOutliers.get(index++);
+      }
+      if(!found)
+      {
+        outliers.insert(i);
+      }
     }
 
     imageToProbeTransformMatrixVnl.set_row(row, resultVector);
   }
 
+  LOG_INFO(outliers.size() << " outliers points were found");
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository, true );
-  
+
+  switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationOptimizationMethod)
+  {
+  case vtkSpatialCalibrationOptimizer::NO_OPTIMIZATION:
+    break;
+
+  default:
+
+    // Convert the transform to vnl
+    PlusMath::ConvertVtkMatrixToVnlMatrix(this->ImageToProbeTransformMatrix,imageToProbeTransformMatrixVnl);
+
+    switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationCostFunction)
+    {
+    case vtkSpatialCalibrationOptimizer::MINIMIZATION_2D:
+      this->SpatialCalibrationOptimizer->SetOptimizerDataUsingNWires(&this->SegmentedPointsInImageFrame,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl,&outliers);
+      break;
+    case vtkSpatialCalibrationOptimizer::MINIMIZATION_3D:
+      this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl,&outliers);
+      break;
+    }
+
+    switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationOptimizationMethod)
+    {
+    case vtkSpatialCalibrationOptimizer::FIDUCIALS_SIMILARITY:
+      this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl,&outliers);
+      break;
+    }
+
+    this->SpatialCalibrationOptimizer->Update();
+    imageToProbeTransformMatrixVnl = this->SpatialCalibrationOptimizer->GetOptimizedImageToProbeTransformMatrix();
+    SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository, false );
+    break;
+  }
+
+
+
+
   // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
   PlusMath::LogVtkMatrix(this->ImageToProbeTransformMatrix, 6);
@@ -403,6 +484,26 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
   std::vector< vnl_vector<double> > middleWirePositionsInPhantomFramePerImage;
 
+  if (!isValidation)
+  {
+      // Store all the probe to phantom transforms, used only in 2D minimization
+      PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
+      vtkSmartPointer<vtkMatrix4x4> probeToPhantomVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+      if ( (transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+      {
+        std::string transformName; 
+        probeToPhantomTransformName.GetTransformName(transformName); 
+        LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
+        return PLUS_FAIL;
+      }
+      // Get  probe to phantome transform in vnl
+      vnl_matrix<double> probeToPhantomTransformMatrix(4,4);
+      PlusMath::ConvertVtkMatrixToVnlMatrix(probeToPhantomVtkTransformMatrix, probeToPhantomTransformMatrix); 
+      this->ProbeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
+  
+  }
+ 
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
   for (int n = 0; n < this->NWires.size(); ++n)
   {
@@ -447,6 +548,13 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
       // Store into the list of positions in the image frame and the probe frame
       this->DataPositionsInImageFrame.push_back( segmentedPoints[n*3+1] );
       this->DataPositionsInProbeFrame.push_back( positionInProbeFrame );
+
+
+	     // Store all the segmented points, used only in 2D minimization
+       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3]);
+       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+1]);
+       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+2]);
+
     }
   }
 
@@ -720,6 +828,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
 
 
   bool valid = false;
+  std::vector<double>allReprojection2DErrors;
 
   for (int frameNumber = startFrame; frameNumber < endFrame; ++frameNumber)
   {
@@ -785,9 +894,43 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
       reprojectionError2D[1] = segmentedPositionInImagePlane[1] - computedPositionInImagePlane[1];
 
       reprojectionError2Ds->at(i).push_back( reprojectionError2D );
+      allReprojection2DErrors.push_back(sqrt(reprojectionError2D[0]*reprojectionError2D[0] + reprojectionError2D[1] * reprojectionError2D[1]));
     }
 
   } // For all frames
+
+  double totalRmsError2D =0 ,totalRmsError2DSD = 0;
+  int numberOfReprojections = allReprojection2DErrors.size();
+  for(int i=0;i<numberOfReprojections;i++)
+  {
+    totalRmsError2D += allReprojection2DErrors.at(i)*allReprojection2DErrors.at(i);
+  }
+  totalRmsError2D = sqrt(totalRmsError2D/numberOfReprojections);
+  
+	  // estimate the standar desviation
+  for(int i=0;i<numberOfReprojections;i++)
+  {
+	  double diff = allReprojection2DErrors.at(i) - totalRmsError2D;
+    totalRmsError2DSD += diff * diff;
+  }
+  totalRmsError2DSD = sqrt(totalRmsError2DSD/numberOfReprojections);
+
+  if (isValidation)
+  {
+    this->ValidationRmsError2D = totalRmsError2D;
+	LOG_INFO("\n Validation 2D rms error = " << totalRmsError2D << " pixels");
+	this->ValidationRmsError2DSD = totalRmsError2DSD;
+	LOG_INFO("\n Validation 2D standard desviation = " << totalRmsError2DSD << " pixels");
+  }
+  else
+  {
+	this->CalibrationRmsError2D = totalRmsError2D;
+	LOG_INFO("\n Calibration 2D rms error = " << totalRmsError2D << " pixels");
+
+    this->CalibrationRmsError2DSD = totalRmsError2DSD;
+	LOG_INFO("\n Calibration 2D standard desviation = " << totalRmsError2DSD << " pixels");
+  }
+
 
   // Create error vector containing the sum of squares of X and Y errors (so that the minimum can be searched)
   std::vector< std::vector<double> > tempReprojectionError2Ds( reprojectionError2Ds->size() );
@@ -1282,6 +1425,27 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 
   probeCalibrationResult->AddNestedElement( calibrationResults );
   probeCalibrationResult->AddNestedElement( errorReport );
+
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------------------------------
+
+PlusStatus vtkProbeCalibrationAlgo::GetCalibrationReport( std::vector<double> *optimizedResults, std::vector<double> *calibError,
+                                                            std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl) 
+{
+                                                            // Write the results to be easily processed
+ 
+  *optimizedResults = this->SpatialCalibrationOptimizer->GetOptimizationResults();
+
+  calibError->push_back(this->CalibrationRmsError2D);
+  calibError->push_back(this->CalibrationRmsError2DSD);
+  validError->push_back(this->ValidationRmsError2D);
+  validError->push_back(this->ValidationRmsError2DSD);
+  
+  //*imageToProbeTransformMatrixVnl = this->SpatialCalibrationOptimizer->GetOptimizedImageToProbeTransformMatrix();
+  // Convert the transform to vnl
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->ImageToProbeTransformMatrix,*imageToProbeTransformMatrixVnl);
 
   return PLUS_SUCCESS;
 }
