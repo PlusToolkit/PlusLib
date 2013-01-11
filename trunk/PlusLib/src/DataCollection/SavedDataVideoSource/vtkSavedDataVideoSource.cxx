@@ -230,6 +230,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   {
     // Brightness images will be imported into MF orientation
     this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    this->SetDeviceImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {

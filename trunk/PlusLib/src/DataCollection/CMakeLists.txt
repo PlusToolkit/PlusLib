@@ -27,6 +27,7 @@ SET (DataCollection_SRCS
   SavedDataVideoSource/vtkSavedDataVideoSource.cxx 
   VirtualDevices/vtkVirtualStreamMixer.cxx
   VirtualDevices/vtkVirtualStreamSwitcher.cxx
+  VirtualDevices/vtkVirtualStreamDiscCapture.cxx 
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
@@ -49,6 +50,7 @@ if (WIN32)
     SavedDataVideoSource/vtkSavedDataVideoSource.h 
     VirtualDevices/vtkVirtualStreamMixer.h
     VirtualDevices/vtkVirtualStreamSwitcher.h
+	VirtualDevices/vtkVirtualStreamDiscCapture.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h

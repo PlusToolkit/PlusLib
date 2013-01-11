@@ -689,6 +689,7 @@ PlusStatus vtkTrackedFrameList::SetGlobalTransform(vtkMatrix4x4* globalTransform
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::VerifyProperties(vtkTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType)
 {
   if (trackedFrameList == NULL)
@@ -714,4 +715,20 @@ PlusStatus vtkTrackedFrameList::VerifyProperties(vtkTrackedFrameList* trackedFra
   }
   
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkTrackedFrameList::GetMostRecentTimestamp()
+{
+  double mostRecentTimestamp = 0.0;
+
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetTimestamp() > mostRecentTimestamp )
+    {
+      mostRecentTimestamp = this->GetTrackedFrame(i)->GetTimestamp();
+    }
+  }
+
+  return mostRecentTimestamp;
 }

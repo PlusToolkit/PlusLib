@@ -79,6 +79,9 @@ public:
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
 
+  /* Retrieve the latest timestamp in the tracked frame list */
+  double GetMostRecentTimestamp();
+
   /*! Remove a tracked frame from the list and free up memory
     \param frameNumber Index of tracked frame to remove (from 0 to NumberOfFrames-1)
   */
