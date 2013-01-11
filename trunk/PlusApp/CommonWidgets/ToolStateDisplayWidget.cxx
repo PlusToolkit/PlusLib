@@ -23,7 +23,11 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFla
   m_ToolStateLabels.clear();
 
   // Create default appearance
-  QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
+  QGridLayout* grid = new QGridLayout(this);
+  grid->setColumnStretch(1, 1);
+  grid->setRowStretch(1, 1);
+  grid->setMargin(0);
+  grid->setSpacing(0);
   QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);
   uninitializedLabel->setWordWrap(true);
   grid->addWidget(uninitializedLabel);
@@ -65,7 +69,11 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
   // If connection was unsuccessful, create default appearance
   if (! aConnectionSuccessful)
   {
-    QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
+    QGridLayout* grid = new QGridLayout(this);
+    grid->setColumnStretch(1, 1);
+    grid->setRowStretch(1, 1);
+    grid->setMargin(0);
+    grid->setSpacing(0);
     QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);
     uninitializedLabel->setWordWrap(true);
     grid->addWidget(uninitializedLabel);
@@ -94,8 +102,10 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   // Set up layout
-  QGridLayout* grid = new QGridLayout(this, transformNames.size(), 2, 1);
-  grid->setHorizontalSpacing(2);
+  QGridLayout* grid = new QGridLayout(this);
+  grid->setColumnStretch(transformNames.size(), 1);
+  grid->setRowStretch(2, 1);
+  grid->setSpacing(2);
   grid->setVerticalSpacing(4);
   grid->setContentsMargins(4, 4, 4, 4);
 

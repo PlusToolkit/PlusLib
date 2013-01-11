@@ -647,7 +647,11 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     // Install event filter that is called on closing the window
     m_TemporalCalibrationPlotsWindow->installEventFilter(this);
 
-    QGridLayout* gridPlotWindow = new QGridLayout(m_TemporalCalibrationPlotsWindow, 2, 1, 0, 4, "");
+    QGridLayout* gridPlotWindow = new QGridLayout(m_TemporalCalibrationPlotsWindow);
+    gridPlotWindow->setColumnStretch(2, 1);
+    gridPlotWindow->setRowStretch(1, 1);
+    gridPlotWindow->setMargin(0);
+    gridPlotWindow->setSpacing(4);
 
     // Uncalibrted chart view
     QVTKWidget* uncalibratedPlotVtkWidget = new QVTKWidget(m_TemporalCalibrationPlotsWindow);

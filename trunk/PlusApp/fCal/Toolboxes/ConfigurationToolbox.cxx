@@ -52,12 +52,20 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   connect( ui.pushButton_SelectImageDirectory, SIGNAL( clicked() ), this, SLOT( SelectImageDirectory() ) );
 
   // Insert widgets into placeholders
-  QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
+  QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget);
+  gridDeviceSetSelection->setColumnStretch(1, 1);
+  gridDeviceSetSelection->setRowStretch(1, 1);
+  gridDeviceSetSelection->setMargin(0);
+  gridDeviceSetSelection->setSpacing(4);
   gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
   ui.deviceSetSelectionWidget->setMinimumHeight(196);
   ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
 
-  QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
+  QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
+  gridToolStateDisplay->setColumnStretch(1, 1);
+  gridToolStateDisplay->setRowStretch(1, 1);
+  gridToolStateDisplay->setMargin(0);
+  gridToolStateDisplay->setSpacing(4);
   gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
   ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
   ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -281,7 +289,11 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
     m_ToolStatePopOutWindow->setCaption(tr("Tool state display"));
     m_ToolStatePopOutWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
 
-    QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow, 1, 1, 0, 4, "");
+    QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow);
+    gridToolStateDisplay->setColumnStretch(1, 1);
+    gridToolStateDisplay->setRowStretch(1, 1);
+    gridToolStateDisplay->setMargin(0);
+    gridToolStateDisplay->setSpacing(4);
     gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
     m_ToolStatePopOutWindow->setLayout(gridToolStateDisplay);
     m_ToolStatePopOutWindow->move( mapToGlobal( QPoint( ui.pushButton_PopOut->x() + ui.pushButton_PopOut->width(), ui.pushButton_PopOut->y() ) ) );
@@ -302,7 +314,11 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
     // Insert tool state display back in toolbox
     ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
     ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-    QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
+    QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
+    gridToolStateDisplay->setColumnStretch(1, 1);
+    gridToolStateDisplay->setRowStretch(1, 1);
+    gridToolStateDisplay->setMargin(0);
+    gridToolStateDisplay->setSpacing(4);
     gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
     ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
 

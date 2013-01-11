@@ -40,7 +40,11 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   connect( m_SaveButton, SIGNAL( clicked() ), this, SLOT( SaveConfigurationClicked() ) );
 
   // Insert widgets into placeholders
-  QGridLayout* mainGrid = new QGridLayout(this, 2, 2, 4, 4, "");
+  QGridLayout* mainGrid = new QGridLayout(this);
+  mainGrid->setColumnStretch(2, 1);
+  mainGrid->setRowStretch(2, 1);
+  mainGrid->setMargin(4);
+  mainGrid->setSpacing(4);
   mainGrid->setColumnMinimumWidth(0, 296);
   mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0, 1, 2, Qt::AlignHCenter);
   mainGrid->addWidget(m_SaveButton, 1, 0, Qt::AlignRight);
