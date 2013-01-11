@@ -449,6 +449,8 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
       errorStr = "Sampling resolution too small.";
       break;
+    case TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE:
+      break;
     }
 
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
