@@ -2550,6 +2550,6 @@ void vtkPlusDevice::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement
   {
     vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
-    aStream->WriteConfiguration(streamElement);
+    aStream->WriteCompactConfiguration(streamElement);
   }
 }

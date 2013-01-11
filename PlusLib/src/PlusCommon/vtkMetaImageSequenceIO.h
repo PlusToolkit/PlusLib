@@ -64,17 +64,38 @@ public:
   /*! Read file contents into the object */
   virtual PlusStatus Read();
 
+  /*! Prepare the sequence for writing */
+  virtual PlusStatus PrepareHeader();
+
+  /*! Append the frames in tracked frame list to the header */
+  virtual PlusStatus AppendImagesToHeader();
+
+  /*! Finalize the header */
+  virtual PlusStatus FinalizeHeader();
+
+  /*! Write images to disc, compression allowed */
+  virtual PlusStatus WriteImages();
+
+  /*! Append image data to the sequence, compression not allowed */
+  virtual PlusStatus AppendImages();
+
+  /*! Close the sequence */
+  virtual PlusStatus Close();
+
   /*! Check if this class can read the specified file */
   virtual bool CanReadFile(const char*);
 
   /*! Returns a pointer to a single frame */
   virtual TrackedFrame* GetTrackedFrame(int frameNumber);
 
+  /*! Update a field in the image header with its current value */
+  PlusStatus UpdateFieldInImageHeader(const char* fieldName);
+
   /*!
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.
   */
-  vtkSetStringMacro(FileName); 
+  virtual void SetFileName(const char* aFilename);
   /*! Get input/output file name. */
 	vtkGetStringMacro(FileName); 
 
@@ -84,6 +105,9 @@ public:
 	vtkSetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
 	vtkBooleanMacro(UseCompression, bool);
+
+  /*! Return the dimensions of the sequence */
+  vtkGetMacro(Dimensions, int*);
 
 protected:
   vtkMetaImageSequenceIO();
@@ -111,10 +135,10 @@ protected:
   virtual PlusStatus ReadImagePixels();
 
   /*! Write all the fields to the metaimage file header */
-  virtual PlusStatus WriteImageHeader();
+  virtual PlusStatus OpenImageHeader();
 
   /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels();
+  virtual PlusStatus WriteImagePixels(char* aFilename, bool forceAppend = false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -130,6 +154,12 @@ protected:
   /*! Get file name for storing the pixel data */
 	vtkGetStringMacro(PixelDataFileName); 
 
+  vtkSetStringMacro(TempHeaderFileName); 
+  vtkGetStringMacro(TempHeaderFileName); 
+
+  vtkSetStringMacro(TempImageFileName); 
+  vtkGetStringMacro(TempImageFileName); 
+
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
   /*! Conversion between ITK and METAIO pixel types */
@@ -137,17 +167,16 @@ protected:
   /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr);
 
-  /*! Update a field in the image header with its current value */
-  PlusStatus UpdateFieldInImageHeader(const char* fieldName);
-
   /*! 
     Writes the compressed pixel data directly into file. 
     The compression is performed in chunks, so no excessive memory is used for the compression.
-    \param outputFileStream the file stream where the compressed pixel data willbe written to
+    \param outputFileStream the file stream where the compressed pixel data will be written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
 
+  /*! Copy from file A to B */
+  virtual PlusStatus MoveDataInFiles(const char* sourceFilename, const char* destFilename, bool append);
 private:
 
 #ifdef _WIN32
@@ -163,6 +192,10 @@ private:
 
   /*! Name of the file that contains the image header (*.MHA or *.MHD) */
   char* FileName;
+  /*! Name of the temporary file used to build up the header */
+  char* TempHeaderFileName;
+  /*! Name of the temporary file used to build up the image data */
+  char* TempImageFileName;
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
   /*! ASCII or binary */
@@ -175,6 +208,8 @@ private:
   int NumberOfDimensions;
   /*! Frame size (first two elements) and number of frames (last element) */
   int Dimensions[3];
+  /*! Current frame offset, this is used to build up frames one addition at a time */
+  int m_CurrentFrameOffset;
 
   /*! 
     Image orientation in memory is always MF for B-mode, but when reading/writing a file then

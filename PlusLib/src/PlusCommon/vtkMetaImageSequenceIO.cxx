@@ -5,15 +5,13 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
+#include "itk_zlib.h"
+#include "itksys/SystemTools.hxx"
 #include "vtkMetaImageSequenceIO.h"
-
 #include <iomanip>
 #include <iostream>
 
-#include "itk_zlib.h"
-
-  //#include <stdio.h>
+//#include <stdio.h>
   
 #ifdef _WIN32
   #define FSEEK _fseeki64
@@ -70,23 +68,25 @@ vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameLi
 
 //----------------------------------------------------------------------------
 vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
+: FileName(NULL)
+, TempHeaderFileName(NULL)
+, TempImageFileName(NULL)
+, PixelDataFileName(NULL)
+, PixelDataFileOffset(0)
+, TrackedFrameList(vtkTrackedFrameList::New())
+, UseCompression(false)
+, FileType(itk::ImageIOBase::Binary)
+, PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+, NumberOfComponents(1)
+, NumberOfDimensions(3)
+, ImageOrientationInFile(US_IMG_ORIENT_XX)
+, ImageOrientationInMemory(US_IMG_ORIENT_XX)
+, ImageType(US_IMG_TYPE_XX)
+, m_CurrentFrameOffset(0)
 { 
-  this->FileName=NULL;
-  this->PixelDataFileName=NULL;
-  this->PixelDataFileOffset=0;
-  this->TrackedFrameList=vtkTrackedFrameList::New();
-  this->UseCompression=false;
-  this->FileType=itk::ImageIOBase::Binary;
-  this->PixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
-  this->NumberOfComponents=1;
-  this->NumberOfDimensions=3;
-  this->Dimensions[0]=
-    this->Dimensions[1]=
-    this->Dimensions[2]=0;
-
-  this->ImageOrientationInFile=US_IMG_ORIENT_XX; 
-  this->ImageOrientationInMemory=US_IMG_ORIENT_XX;
-  this->ImageType=US_IMG_TYPE_XX;
+  this->Dimensions[0]=0;
+  this->Dimensions[1]=0;
+  this->Dimensions[2]=0;
 } 
 
 //----------------------------------------------------------------------------
@@ -94,6 +94,8 @@ vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
 {
   SetTrackedFrameList(NULL);
   SetFileName(NULL);
+  SetTempHeaderFileName(NULL);
+  SetTempImageFileName(NULL);
   SetPixelDataFileName(NULL);
 }
 
@@ -485,48 +487,28 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::Write() 
 {
-  if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+  if( this->PrepareHeader() != PLUS_SUCCESS )
   {
-    // No specific orientation is requested, so just use the same as in the memory
-    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-  }  
-  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
-  {
-    // Reordering of the frames is not implemented, so just save the images as they are in the memory
-    LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
-    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-  }
-
-  if (this->ImageType==US_IMG_TYPE_XX)
-  {
-    // No specific type is requested, so just use the same as in the memory
-    this->ImageType=this->TrackedFrameList->GetImageType();
-  }
-  if (this->ImageType!=this->TrackedFrameList->GetImageType())
-  {
-    // Reordering of the frames is not implemented, so just save the images as they are in the memory
-    LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
-    this->ImageType=this->TrackedFrameList->GetImageType();
-  }
-
-
-  if (WriteImageHeader()!=PLUS_SUCCESS)
-  {
+    LOG_ERROR("Unable to prepare the header.");
     return PLUS_FAIL;
   }
-  if (WriteImagePixels()!=PLUS_SUCCESS)
+  if( this->AppendImagesToHeader() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to append images to the header.");
+    return PLUS_FAIL;
+  }
+  if( this->FinalizeHeader() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to finalize the header.");
+    return PLUS_FAIL;
+  }
+
+  if (WriteImagePixels(this->TempImageFileName) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  // Update fields that are known only at the end of the processing
-  if (GetUseCompression())
-  {
-    if (UpdateFieldInImageHeader("CompressedDataSize")!=PLUS_SUCCESS)
-    {
-      return PLUS_FAIL;
-    }
-  }
+  this->Close();
 
   return PLUS_SUCCESS;
 }
@@ -615,7 +597,7 @@ PlusStatus vtkMetaImageSequenceIO::Read()
 //----------------------------------------------------------------------------
 /** Writes the spacing and dimentions of the image.
 * Assumes SetFileName has been called with a valid file name. */
-PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
+PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
 {
   // Override fields
   SetCustomString("NDims", "3");
@@ -690,7 +672,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
   if (STRCASECMP(fileExt.c_str(),".mha")==0)
   {
-    SetPixelDataFileName("LOCAL");
+    SetPixelDataFileName(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL);
   }
   else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
   {
@@ -714,9 +696,9 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
 
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen( &stream, this->FileName, "wb" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName, "wb" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
   }
 
@@ -735,17 +717,34 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
     fputs(field.c_str(), stream);
   }
 
-  // Write frame fields (Seq_Frame0000_... = ...)
-  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  fclose(stream);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
+{
+  FILE *stream=NULL;
+  // open in binary mode because we determine the start of the image buffer also during this read
+  if ( FileOpen( &stream, this->TempHeaderFileName, "ab+" ) != PLUS_SUCCESS )
   {
-    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
+    return PLUS_FAIL;
+  }
+
+  // Write frame fields (Seq_Frame0000_... = ...)
+  for (unsigned int frameNumber = m_CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + m_CurrentFrameOffset; frameNumber++)
+  {
+    unsigned int adjustedFrameNumber = frameNumber - m_CurrentFrameOffset;
+    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
     std::ostringstream frameIndexStr; 
     frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber; 
 
     std::vector<std::string> fieldNames;
     trackedFrame->GetCustomFrameFieldNameList(fieldNames);
-    
+
     for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++) 
     {
       std::string field=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
@@ -761,7 +760,22 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
     std::string imgStatusField=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQMETA_FIELD_IMG_STATUS + " = " + imageStatus + "\n";
     fputs(imgStatusField.c_str(), stream);
   }
- 
+
+  fclose(stream);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
+{
+  FILE* stream = NULL;
+  // open in binary mode because we determine the start of the image buffer also during this read
+  if ( FileOpen( &stream, this->TempHeaderFileName, "ab+" ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
+    return PLUS_FAIL;
+  }
   fputs("ElementDataFile = ", stream);
   fputs(this->PixelDataFileName, stream);
   fputs("\n", stream);
@@ -793,9 +807,8 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
+PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool forceAppend /* = false */)
 {
-
   if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
   {
     // Reordering of the frames is not implemented, so return with an error
@@ -804,16 +817,17 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
   }
 
   FILE *stream=NULL;
-  
+
   std::string fileOpenMode="wb"; // w (write, existing file is destroyed), b (binary)
-  if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName)==0)
+  if ( forceAppend )
   {
     // Pixel data is stored locally in the header file (MHA file), so we append the image data to an existing file
+    // Or this sequence is being written to in chunks
     fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
   }
-  if ( FileOpen( &stream, GetPixelDataFilePath().c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, aFilename, fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
+    LOG_ERROR("The file " << aFilename << " could not be opened for writing");
     return PLUS_FAIL;
   }
 
@@ -823,7 +837,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
     this->PixelType = itk::ImageIOBase::UCHAR; 
   }
 
-  PlusStatus result=PLUS_SUCCESS;
+  PlusStatus result = PLUS_SUCCESS;
   if (!GetUseCompression())
   {
     // Create a blank frame if we have to write an invalid frame to metafile 
@@ -853,7 +867,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
   {
     // compressed
     int compressedDataSize=0;
-    result=WriteCompressedImagePixelsToFile(stream, compressedDataSize);
+    result = WriteCompressedImagePixelsToFile(stream, compressedDataSize);
     std::ostringstream compressedDataSizeStr; 
     compressedDataSizeStr << compressedDataSize; 
     SetCustomString("CompressedDataSize", compressedDataSizeStr.str().c_str());
@@ -861,6 +875,10 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
 
   fclose(stream);
 
+  if( result == PLUS_SUCCESS )
+  {
+    m_CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
+  }
   return result;
 }
 
@@ -966,6 +984,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 TrackedFrame* vtkMetaImageSequenceIO::GetTrackedFrame(int frameNumber)
 {
   TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
@@ -1146,9 +1165,9 @@ PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldNam
 {
   FILE *stream=NULL;
   // open in read+write binary mode
-  if ( FileOpen( &stream, this->FileName, "r+b" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName, "r+b" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading and writing");
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for reading and writing");
     return PLUS_FAIL;
   }
 
@@ -1233,6 +1252,168 @@ PlusStatus vtkMetaImageSequenceIO::FileOpen(FILE **stream, const char* filename,
   if ((*stream)==0)
   {
     return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
+{
+  if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+  {
+    // No specific orientation is requested, so just use the same as in the memory
+    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+  }  
+  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  {
+    // Reordering of the frames is not implemented, so just save the images as they are in the memory
+    LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
+    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+  }
+
+  if (this->ImageType==US_IMG_TYPE_XX)
+  {
+    // No specific type is requested, so just use the same as in the memory
+    this->ImageType=this->TrackedFrameList->GetImageType();
+  }
+  if (this->ImageType!=this->TrackedFrameList->GetImageType())
+  {
+    // Reordering of the frames is not implemented, so just save the images as they are in the memory
+    LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
+    this->ImageType=this->TrackedFrameList->GetImageType();
+  }
+
+  if ( OpenImageHeader() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::WriteImages()
+{
+  if (WriteImagePixels(false) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::AppendImages()
+{
+  if( UseCompression )
+  {
+    LOG_ERROR("Unable to append images if compression is selected.");
+    return PLUS_FAIL;
+  }
+
+  if (WriteImagePixels(this->TempImageFileName, true) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::Close()
+{
+  // Update fields that are known only at the end of the processing
+  if (GetUseCompression())
+  {
+    if (UpdateFieldInImageHeader("CompressedDataSize")!=PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+  }
+
+  // Move header to final file
+  MoveDataInFiles(this->TempHeaderFileName, this->FileName, false);
+  // Copy image to final file (or data file if .mhd)
+  if( STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->GetPixelDataFileName()) == 0 )
+  {
+    MoveDataInFiles(this->TempImageFileName, this->FileName, true);
+  }
+  else
+  {
+    MoveDataInFiles(this->TempImageFileName, this->GetPixelDataFileName(), false);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
+{
+  if( this->FileName != NULL )
+  {
+    delete this->FileName;
+  }
+  if( aFilename != NULL )
+  {
+    size_t n = strlen(aFilename) + 1;
+    this->FileName = new char[n];
+    strcpy(this->FileName, aFilename);
+
+    if( this->TempHeaderFileName != NULL )
+    {
+      delete this->TempHeaderFileName;
+    }
+    n = strlen(aFilename) + 1 + 7;
+    this->TempHeaderFileName = new char[n];
+    strcpy(this->TempHeaderFileName, aFilename);
+    strcat(this->TempHeaderFileName, "_header");
+
+    if( this->TempImageFileName != NULL )
+    {
+      delete this->TempImageFileName;
+    }
+    n = strlen(aFilename) + 1 + 7;
+    this->TempImageFileName = new char[n];
+    strcpy(this->TempImageFileName, aFilename);
+    strcat(this->TempImageFileName, "_images");
+  }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, const char* destFilename, bool append )
+{
+  size_t len = 0 ;
+  const int BUFFER_SIZE = 1024;
+  char buffer[BUFFER_SIZE];
+  memset(buffer, 0, BUFFER_SIZE);
+  FILE* in = fopen( srcFilename, "rb" ) ;
+  FILE* out = NULL;
+  if( !append )
+  {
+    out = fopen( destFilename, "wb" ) ;
+  }
+  else
+  {
+    out = fopen( destFilename, "ab+");
+  }
+  if( in == NULL || out == NULL )
+  {
+    LOG_ERROR( "An error occurred while opening files!" ) ;
+    return PLUS_FAIL;
+  }
+  else
+  {
+    while( (len = fread( buffer, 1, BUFFER_SIZE, in)) > 0 )
+    {
+      fwrite( buffer, 1, BUFFER_SIZE, out ) ;
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+    fclose(in) ;
+    fclose(out) ;
+    if( !itksys::SystemTools::RemoveFile(srcFilename) )
+    {
+      LOG_WARNING("Unable to remove the file: " << srcFilename);
+    }
   }
   return PLUS_SUCCESS;
 }
