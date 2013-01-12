@@ -147,7 +147,7 @@ void ConfigFileSaverDialog::SaveClicked()
 
   // Set name and description to XML
   deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text());
-  deviceSet->SetAttribute("Description", ui.textEdit_Description->text());
+  deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText());
 
   // Display file save dialog and save XML
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
