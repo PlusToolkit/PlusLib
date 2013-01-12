@@ -1344,7 +1344,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // Segment image
   PatternRecognitionResult segResults;
   PatternRecognitionError error(PATTERN_RECOGNITION_ERROR_NO_ERROR);
-  m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error);
+  m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error, 0); // 0: the frame is not saved into a buffer, so there is no specific frame index
   if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
   {
     ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
