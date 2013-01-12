@@ -18,7 +18,6 @@ static const double DOT_RADIUS = 6.0;
 //-----------------------------------------------------------------------------
 
 FidPatternRecognition::FidPatternRecognition()
-: m_CurrentFrame(0)
 {
 
 }
@@ -51,13 +50,13 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError& patternRecognitionError)
+PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
   patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
 
-  if (RecognizePattern(trackedFrame, patternRecognitionError) != PLUS_SUCCESS)
+  if (RecognizePattern(trackedFrame, patternRecognitionError, frameIndex) != PLUS_SUCCESS)
   {
     LOG_ERROR("Recognizing pattern failed!");
     return PLUS_FAIL;
@@ -75,7 +74,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError)
+PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
@@ -84,8 +83,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   m_FidSegmentation.Clear();
   m_FidLineFinder.Clear();
   m_FidLabeling.Clear();
-
-  m_CurrentFrame++;
 
   m_FidSegmentation.SetFrameSize(trackedFrame->GetFrameSize());
   m_FidLineFinder.SetFrameSize(trackedFrame->GetFrameSize());
@@ -120,9 +117,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   if(m_FidSegmentation.GetDebugOutput()) 
   {
     //Displays the result dots
-    int currentFrame = m_CurrentFrame;
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), "foundFiducials", currentFrame);
-    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), "candidateFiducials", currentFrame);//Display all candidates dots
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), "foundFiducials", frameIndex);
+    m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), "candidateFiducials", frameIndex);//Display all candidates dots
   }
 
   // Set results
@@ -153,7 +149,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/, std::vector<int> *segmentedFramesIndices)
+PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/, std::vector<unsigned int> *segmentedFramesIndices)
 {
   
   // Write the results to be easily processed
@@ -188,7 +184,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
       continue;
     }
 
-    if (RecognizePattern(trackedFrame, patternRecognitionError) != PLUS_SUCCESS)
+    if (RecognizePattern(trackedFrame, patternRecognitionError, currentFrameIndex) != PLUS_SUCCESS)
     {
       if( patternRecognitionError != PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
       {
@@ -203,11 +199,11 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
       if ( trackedFrame->GetFiducialPointsCoordinatePx()
         && trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() > 0 )
       {
-        *numberOfSuccessfullySegmentedImages = *numberOfSuccessfullySegmentedImages + 1;   
-          if (segmentedFramesIndices!=NULL)
-          {
-            segmentedFramesIndices->push_back(m_CurrentFrame-1);
-          }
+        (*numberOfSuccessfullySegmentedImages)++;   
+        if (segmentedFramesIndices!=NULL)
+        {
+          segmentedFramesIndices->push_back(currentFrameIndex);
+        }
       }
     }
   }
