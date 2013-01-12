@@ -188,7 +188,7 @@ int main (int argc, char* argv[])
   int numberOfConfigurations = 15;
   outputFile << "Number of configurations = "  << numberOfConfigurations << "\n";
   std::vector<int> numberOfCalibrationFrames;
-  std::vector<std::vector<int>> selectedFrames;
+  std::vector< std::vector<int> > selectedFrames;
 
   if (operation==INCREMENTAL_NUMBER_OF_FRAMES)
   {
