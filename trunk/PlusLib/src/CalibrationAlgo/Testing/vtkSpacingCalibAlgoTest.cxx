@@ -87,7 +87,7 @@ int main(int argc, char **argv)
   LOG_INFO("Reading metafiles:");
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  for ( int i = 0; i < inputSequenceMetafiles.size(); ++i )
+  for ( unsigned int i = 0; i < inputSequenceMetafiles.size(); ++i )
   {
     LOG_INFO("Reading " << inputSequenceMetafiles[i] << " ..."); 
     vtkSmartPointer<vtkTrackedFrameList> tfList = vtkSmartPointer<vtkTrackedFrameList>::New(); 

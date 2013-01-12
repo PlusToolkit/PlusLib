@@ -43,8 +43,6 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 	}
 		
 	double sumFiducialNum = 0;// divide by framenum
-	double sumFiducialCandidate = 0;// divide by framenum
-
 
 	LOG_DEBUG("Number Of Points: "<< fcsvData->points.size());
 	if (fcsvData->points.size()==0)
@@ -74,9 +72,6 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 	 
 	for (int currentFrameIndex=firstFrameIndex; currentFrameIndex<=lastFrameIndex; currentFrameIndex++)
 	{
-		// Set to false if you don't want images produced after each morphological operation
-		bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG; 
-		
 		std::vector<itk::FcsvPoint>::iterator it = fcsvData->points.begin(); 
 		std::vector< std::vector<double> > foundDotsCoordinateValue;
 		int validFidNum = 0;
