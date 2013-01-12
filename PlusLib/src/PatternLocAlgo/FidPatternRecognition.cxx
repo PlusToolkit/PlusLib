@@ -130,7 +130,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   // Write segemnted points
   ofstream outputFile;
   outputFile.open("fiducialsPoints.txt",std::ios_base::app);
-  for (int i=0; i<fiducials.size(); ++i)
+  for (unsigned int i=0; i<fiducials.size(); ++i)
   {
 	  outputFile << "Fiducial " << i << " = " << fiducials[i][0] <<  " " << fiducials[i][1] <<  " " << 0.0 << "\n";
   }
@@ -174,7 +174,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
     *numberOfSuccessfullySegmentedImages = 0; 
   }
 
-  for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
+  for ( unsigned int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
     TrackedFrame * trackedFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex); 
 
@@ -217,7 +217,7 @@ void FidPatternRecognition::DrawDots( PixelType *image)
 {
   LOG_TRACE("FidPatternRecognition::DrawDots"); 
 
-  for ( int d = 0; d < m_FidLabeling.GetFoundDotsCoordinateValue().size(); d++ ) {
+  for ( unsigned int d = 0; d < m_FidLabeling.GetFoundDotsCoordinateValue().size(); d++ ) {
     double row = m_FidLabeling.GetFoundDotsCoordinateValue()[d][1];
     double col = m_FidLabeling.GetFoundDotsCoordinateValue()[d][0];
 
@@ -244,7 +244,7 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 
   LOG_TRACE("FidPatternRecognition::DrawLines"); 
 
-  for ( int l = 0; l < foundLines.size(); l++ )
+  for ( unsigned int l = 0; l < foundLines.size(); l++ )
   {
     double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetStartPointIndex()].GetY()};
     double directionVector[2] = { foundLines[l].GetDirectionVector()[0], foundLines[l].GetDirectionVector()[1]};
@@ -280,11 +280,11 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 void FidPatternRecognition::SetMaxLineLengthToleranceMm(double value)
 {
   m_MaxLineLengthToleranceMm = value;
-  for( int i=0 ; i<m_FidLabeling.GetPatterns().size() ; i++)
+  for( unsigned int i=0 ; i<m_FidLabeling.GetPatterns().size() ; i++)
   {
     m_FidLabeling.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLabeling.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
   }
-  for( int i=0 ; i<m_FidLineFinder.GetPatterns().size() ; i++)
+  for( unsigned int i=0 ; i<m_FidLineFinder.GetPatterns().size() ; i++)
   {
     m_FidLineFinder.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLineFinder.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
   }
@@ -450,18 +450,13 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
     if(nwireFlag)
     {
-      double alphaTopLayerFrontWall = -1.0;
-      double alphaTopLayerBackWall = -1.0;
-      double alphaBottomLayerFrontWall = -1.0;
-      double alphaBottomLayerBackWall = -1.0;
-
       // Read input NWires and convert them to vnl vectors to easier processing
       LOG_DEBUG("Endpoints of wires = ");
 
       // List endpoints, check wire ids and NWire geometry correctness (wire order and locations) and compute intersections
-      for (int k=0 ; k<tempPatterns.size() ; ++k) 
+      for (unsigned int k=0 ; k<tempPatterns.size() ; ++k) 
       {
-        int layer = k;
+        unsigned int layer = k;
 
         for (int i=0; i<3; ++i) 
         {

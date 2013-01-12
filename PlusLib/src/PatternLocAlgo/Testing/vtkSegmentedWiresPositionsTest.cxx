@@ -75,25 +75,6 @@ int main (int argc, char* argv[])
 
 	}	
 
-	int SearchRegionXMin(0), SearchRegionXSize(0), SearchRegionYMin(0), SearchRegionYSize(0); 
-
-	switch ( inputImageType )
-	{
-	case 1: // SonixVideo frames
-		SearchRegionXMin = 30; 
-		SearchRegionXSize = 565; 
-		SearchRegionYMin = 50; 
-		SearchRegionYSize = 370;
-
-		break; 
-	case 2: // FrameGrabber frames
-		SearchRegionXMin = 100; 
-		SearchRegionXSize = 360; 
-		SearchRegionYMin = 65; 
-		SearchRegionYSize = 280;    
-		break; 
-	}
-
 	LOG_INFO( "Reading sequence meta file");  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
@@ -107,9 +88,9 @@ int main (int argc, char* argv[])
 
 	LOG_INFO( "Segmenting frames..."); 
 
-	for ( int imgNumber = 0; imgNumber < trackedFrameList->GetNumberOfTrackedFrames(); imgNumber++ )
+	for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); frameIndex++ )
 	{
-		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / trackedFrameList->GetNumberOfTrackedFrames() ); 
+		vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
@@ -118,13 +99,13 @@ int main (int argc, char* argv[])
 		try
 		{
 			// Send the image to the Segmentation component to segment
-      if (trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+      if (trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
       {
         LOG_ERROR("patternRecognition.RecognizePattern only works on unsigned char images");
       }
       else
       {
-        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults, error, imgNumber );
+        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(frameIndex), segResults, error, frameIndex );
       }
   	}
 		catch(...)
@@ -143,9 +124,9 @@ int main (int argc, char* argv[])
     if ( segResults.GetDotsFound() )
 		{
       double defaultTransform[16]={0}; 
-      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
+      if ( trackedFrameList->GetTrackedFrame(frameIndex)->GetCustomFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to get default frame transform from tracked frame #" << imgNumber); 
+        LOG_ERROR("Failed to get default frame transform from tracked frame #" << frameIndex); 
         continue; 
       }
 
@@ -158,7 +139,7 @@ int main (int argc, char* argv[])
 			int dataType = -1; 
 			positionInfo << dataType << "\t\t" << posZ << "\t" << rotZ << "\t\t"; 
 
-			for (int i=0; i < segResults.GetFoundDotsCoordinateValue().size(); i++)
+			for (unsigned int i=0; i < segResults.GetFoundDotsCoordinateValue().size(); i++)
 			{
 				positionInfo << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t\t"; 
 			}

@@ -48,7 +48,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
   bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
-  for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
+  for (unsigned int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
     LOG_DEBUG("Frame: "<<currentFrameIndex);
 
@@ -67,7 +67,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 
     sumFiducialCandidate += segResults.GetNumDots();
     int numFid=0;
-    for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
+    for(unsigned int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
     { 
       std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
       if (currentFid[0] != 0 || currentFid[1] != 0)
@@ -85,7 +85,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
       const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("UnfilteredTimestamp"); 
 
       outFileFidPositions<< ((strFrameNumber!=NULL)?strFrameNumber:"unknown") << ", " << ((strUnfilteredTimestamp!=NULL)?strUnfilteredTimestamp:"unknown") << ", " << ((strTimestamp!=NULL)?strTimestamp:"unknown");
-      for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
+      for(unsigned int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
       { 
         std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
         outFileFidPositions << ", " << currentFid[0] << ", " << currentFid[1];
