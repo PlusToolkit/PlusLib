@@ -85,7 +85,7 @@ public:
   static double NumberOfParameters;
 
   static vnl_double_3x3 RotationVersorToRotationMatrix (const vnl_double_3 &aRotationVersor);  
-  static double vtkSpatialCalibrationOptimizer::PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2);
+  static double PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2);
   static vnl_matrix<double> TransformParametersToTransformMatrix(const vnl_vector<double> &transformParameters);
 
   vtkTypeRevisionMacro(vtkSpatialCalibrationOptimizer,vtkObject);
