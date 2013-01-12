@@ -34,7 +34,7 @@ See License.txt for details.
 #include <stdlib.h>
 #include <iostream>
 
-PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<int> selectedFrames);
+PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
 PlusStatus SetOptimizationMethod( vtkProbeCalibrationAlgo* freehandCalibration, std::string method);
 
 enum OperationType
@@ -57,11 +57,11 @@ int main (int argc, char* argv[])
   std::string strOperation;
 
 #ifndef _WIN32
-  double inputTranslationErrorThreshold(LINUXTOLERANCE);
-  double inputRotationErrorThreshold(LINUXTOLERANCE);
+  //double inputTranslationErrorThreshold(LINUXTOLERANCE);
+  //double inputRotationErrorThreshold(LINUXTOLERANCE);
 #else
-  double inputTranslationErrorThreshold(0);
-  double inputRotationErrorThreshold(0);
+  //double inputTranslationErrorThreshold(0);
+  //double inputRotationErrorThreshold(0);
 #endif
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
@@ -125,7 +125,7 @@ int main (int argc, char* argv[])
   }
 
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
-  std::vector<int> segmentedCalibrationFramesIndices;
+  std::vector<unsigned int> segmentedCalibrationFramesIndices;
   if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages, &segmentedCalibrationFramesIndices) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error occured during segmentation of calibration images!"); 
@@ -315,7 +315,7 @@ int main (int argc, char* argv[])
         outputFile << calibError.at(0) << " " << calibError.at(1) << " ";
         outputFile << validError.at(0) << " " << validError.at(1)  << " \n ";
         outputFile << "Optimization results = ";
-        for (int param=0; param<optimizedResults.size(); ++param)
+        for (unsigned int param=0; param<optimizedResults.size(); ++param)
         {
           outputFile << optimizedResults.at(param) << " ";
         }
@@ -349,12 +349,12 @@ int main (int argc, char* argv[])
 
 //-------------------------------------------------------------------------------------------------
 
-PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<int> selectedFrames)
+PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
 {
   LOG_INFO("Create a sub sequence using" << selectedFrames.size() << " frames" );
   std::sort(selectedFrames.begin(),selectedFrames.end());
-  int FirstFrameIndex = selectedFrames.at(0);
-  int LastFrameIndex = selectedFrames.at(selectedFrames.size()-1);
+  unsigned int FirstFrameIndex = selectedFrames.at(0);
+  unsigned int LastFrameIndex = selectedFrames.at(selectedFrames.size()-1);
   if ( FirstFrameIndex < 0 || LastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || FirstFrameIndex > LastFrameIndex)
   {
     LOG_ERROR("Invalid input range: (" << FirstFrameIndex << ", " << LastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")");

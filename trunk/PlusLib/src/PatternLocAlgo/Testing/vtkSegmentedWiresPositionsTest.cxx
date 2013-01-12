@@ -124,7 +124,7 @@ int main (int argc, char* argv[])
       }
       else
       {
-        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults, error );
+        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults, error, imgNumber );
       }
   	}
 		catch(...)

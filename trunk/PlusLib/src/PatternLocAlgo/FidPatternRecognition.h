@@ -42,20 +42,24 @@ public:
   \param numberOfSuccessfullySegmentedImages Out parameter holding the number of segmented images in this call (it is only equals the number of all segmented images in the tracked frame if it was not segmented at all)
   \param segmentedFramesIndices Indices of the frames that were properly segmented
   */
-  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError &patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL, std::vector<int> *segmentedFramesIndices = NULL );
+  PlusStatus RecognizePattern(vtkTrackedFrameList* trackedFrameList, PatternRecognitionError &patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL, std::vector<unsigned int> *segmentedFramesIndices = NULL );
  
   /*! 
   Run pattern recognition on a tracked frame list.
   \param trackedFrame image to segment
+  \param patternRecognitionError returns detailed information about the success of the recognition
+  \param frameIndex index of the current frame, only used for saving debug information (determine output image file name)
   */
-  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError &patternRecognitionError);
+  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionError &patternRecognitionError, unsigned int frameIndex);
 
   /*! 
   Run pattern recognition on a tracked frame list.
   \param trackedFrame image to segment
   \param patternRecognitionResult object to store the pattern recognition result
+  \param patternRecognitionError returns detailed information about the success of the recognition
+  \param frameIndex index of the current frame, only used for saving debug information (determine output image file name)
   */
-  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError &patternRecognitionError);
+  PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError &patternRecognitionError, unsigned int frameIndex);
 
   /*! Draw dots for debug purpose */
   void DrawDots(PixelType* image);
@@ -88,8 +92,6 @@ protected:
   FidLabeling             m_FidLabeling;
 
   double                  m_MaxLineLengthToleranceMm;
-
-  int                     m_CurrentFrame;
 };
 
 //-----------------------------------------------------------------------------
