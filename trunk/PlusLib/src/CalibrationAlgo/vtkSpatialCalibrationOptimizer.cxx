@@ -17,8 +17,10 @@ See License.txt for details.
 #include "vtkLine.h"
 #include "vtkPlane.h"
 
-#define EPS     2.2204e-16     //similar to matlab
-#define BIGEPS  10e+20 * EPS   //as is defines by Bouguet in matlab implementation of Rodrigues
+#include <float.h> // for DBL_MAX
+
+static const double EPS=2.2204e-16;     //similar to matlab
+static const double BIGEPS=10e+20 * EPS;   //as is defines by Bouguet in matlab implementation of Rodrigues
 
 double vtkSpatialCalibrationOptimizer::NumberOfParameters = 0;
 
@@ -1240,7 +1242,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   switch(this->CurrentImageToProbeCalibrationOptimizationMethod)
   {
   case VTK_AMOEBA_MINIMIZER:
-
+    {
     SetVtkAmoebaMinimizerInitialParameters(this->Minimizer, this->parametersVector);
 
     switch (this->CurrentImageToProbeCalibrationCostFunction)
@@ -1266,19 +1268,19 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
     this->parametersVector[7] = this->Minimizer->GetParameterValue("sy");
 
     break;
-
+    }
   case ITK_LEVENBERG_MARQUARD:
-
+    {
     //bool useGradient = false;
     itkRunLevenbergMarquardOptimization( false,this->LMFunctionTolerance,
       this->LMGradienteTolerance,this->LMParametersTolerance, 
       this->LMEpsilonFunction,this->LMMaxIterations );
 
     break;
-
+    }
   case FIDUCIALS_SIMILARITY:
-
-    std::vector<itk::Point<double,3>> fixedPoints, movingPoints;
+    {
+    std::vector< itk::Point<double,3> > fixedPoints, movingPoints;
     itk::Point<double,3> auxiliar;
     for (int i=0; i<this->DataPositionsInImageFrame.size();i++)
     {
@@ -1306,6 +1308,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
     LOG_INFO( "Without optimization: rmsError = " << rmsError << " mm \n");
     return PLUS_SUCCESS;
     break;
+    }
   }
 
 

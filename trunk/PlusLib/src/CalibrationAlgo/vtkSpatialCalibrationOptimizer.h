@@ -73,7 +73,7 @@ public:
   };
 
   /* Choose one of the optimization methods*/
-  static enum ImageToProbeCalibrationOptimizationMethodType{
+  enum ImageToProbeCalibrationOptimizationMethodType{
     NO_OPTIMIZATION, 
     VTK_AMOEBA_MINIMIZER, 
     ITK_LEVENBERG_MARQUARD,
@@ -130,7 +130,7 @@ protected:
   static void vtkOptimizationMetricFunction(void *userData);
   PlusStatus ShowTransformation(const vnl_matrix<double> &transformationMatrix);
   void StoreAndShowResults();
-  void vtkSpatialCalibrationOptimizer::SetVtkAmoebaMinimizerInitialParameters(vtkAmoebaMinimizer *minimizer, const vnl_vector<double> &parametersVector);
+  void SetVtkAmoebaMinimizerInitialParameters(vtkAmoebaMinimizer *minimizer, const vnl_vector<double> &parametersVector);
   void ComputeRmsError(const vnl_matrix<double> &transformationMatrix, double *rmsError, double *rmsErrorSD);
   
   /*! Set minimizer */
