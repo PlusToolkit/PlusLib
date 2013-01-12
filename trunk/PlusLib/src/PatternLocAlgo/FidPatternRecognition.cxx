@@ -136,7 +136,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   }
   outputFile.close();
 
-  for (int i = 0; i<fiducials.size(); ++i)
+  for (unsigned int i = 0; i<fiducials.size(); ++i)
   {
     fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
   }
