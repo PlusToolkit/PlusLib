@@ -208,6 +208,12 @@ IF (PLUS_USE_EPIPHAN)
 	TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkDataCollection )
 ENDIF (PLUS_USE_EPIPHAN)
 
+#*************************** MicronTrackerTest ***************************
+IF (PLUS_USE_MICRONTRACKER)
+    ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkDataCollection vtkPlusCommon)    
+ENDIF (PLUS_USE_MICRONTRACKER) 
+
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPlusDeviceFactoryTest vtkDataCollection vtkPlusCommon)
