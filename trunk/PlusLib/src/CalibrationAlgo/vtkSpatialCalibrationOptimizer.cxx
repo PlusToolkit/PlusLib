@@ -1444,7 +1444,6 @@ PlusStatus vtkSpatialCalibrationOptimizer::ReadConfiguration( vtkXMLDataElement*
       this->LMParametersTolerance= LM_PARAMETERS_TOLERANCE; 
       this->LMEpsilonFunction = LM_STEP;
       this->LMMaxIterations = LM_MAX_ITERATIONS;
-
     }
     else if (STRCASECMP(spatialCalibrationOptimizerElement->GetAttribute("OptimizerMinimizationMethod"), 
       GetCalibrationOptimizationMethodAsString(FIDUCIALS_SIMILARITY)) == 0)

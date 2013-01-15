@@ -94,6 +94,42 @@ ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEI_OptimizationMethod.xml
+		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
+		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEA_OptimizationMethod.xml
+		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
+		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEI_OptimizationMethod.xml
+		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
+		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEA_OptimizationMethod.xml
+		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
+		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
