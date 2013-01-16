@@ -1405,7 +1405,7 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
   {
     while( (len = fread( buffer, 1, BUFFER_SIZE, in)) > 0 )
     {
-      fwrite( buffer, 1, BUFFER_SIZE, out ) ;
+      fwrite( buffer, 1, len, out ) ;
       memset(buffer, 0, BUFFER_SIZE);
     }
     fclose(in) ;
