@@ -210,6 +210,8 @@ private:
   int Dimensions[3];
   /*! Current frame offset, this is used to build up frames one addition at a time */
   int m_CurrentFrameOffset;
+  /*! Total bytes written */
+  unsigned long long m_TotalBytesWritten;
 
   /*! 
     Image orientation in memory is always MF for B-mode, but when reading/writing a file then

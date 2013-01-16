@@ -83,6 +83,7 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 , ImageOrientationInMemory(US_IMG_ORIENT_XX)
 , ImageType(US_IMG_TYPE_XX)
 , m_CurrentFrameOffset(0)
+, m_TotalBytesWritten(0)
 { 
   this->Dimensions[0]=0;
   this->Dimensions[1]=0;
@@ -703,8 +704,12 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   }
 
   // The header shall start with these two fields
-  fputs("ObjectType = Image\n", stream);
-  fputs("NDims = 3\n", stream);
+  const char* objType = "ObjectType = Image\n";
+  fputs(objType, stream);
+  m_TotalBytesWritten += strlen(objType);
+  const char* nDims = "NDims = 3\n";
+  fputs(nDims, stream);
+  m_TotalBytesWritten += strlen(nDims);
 
   std::vector<std::string> fieldNames;
   this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
@@ -715,6 +720,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
     if (it->compare("ElementDataFile")==0) continue; // this must be the last element
     std::string field=(*it)+" = "+GetCustomString(it->c_str())+"\n";
     fputs(field.c_str(), stream);
+    m_TotalBytesWritten += field.length();
   }
 
   fclose(stream);
@@ -749,6 +755,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
     {
       std::string field=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
+      m_TotalBytesWritten += field.length();
     }
 
     // Add image status field 
@@ -759,6 +766,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
     }
     std::string imgStatusField=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQMETA_FIELD_IMG_STATUS + " = " + imageStatus + "\n";
     fputs(imgStatusField.c_str(), stream);
+    m_TotalBytesWritten += imgStatusField.length();
   }
 
   fclose(stream);
@@ -776,9 +784,13 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
   }
-  fputs("ElementDataFile = ", stream);
+  const char* elem = "ElementDataFile = ";
+  fputs(elem, stream);
+  m_TotalBytesWritten += strlen(elem);
   fputs(this->PixelDataFileName, stream);
+  m_TotalBytesWritten += strlen(this->PixelDataFileName);
   fputs("\n", stream);
+  m_TotalBytesWritten += 1;
 
   fclose(stream);
 
@@ -819,11 +831,16 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool force
   FILE *stream=NULL;
 
   std::string fileOpenMode="wb"; // w (write, existing file is destroyed), b (binary)
-  if ( forceAppend )
+  if ( forceAppend && !GetUseCompression())
   {
     // Pixel data is stored locally in the header file (MHA file), so we append the image data to an existing file
     // Or this sequence is being written to in chunks
     fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
+  }
+  else if( forceAppend && GetUseCompression())
+  {
+    LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
+    return PLUS_FAIL;
   }
   if ( FileOpen( &stream, aFilename, fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
@@ -861,6 +878,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool force
       }
 
       fwrite(videoFrame->GetBufferPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
+      m_TotalBytesWritten += videoFrame->GetFrameSizeInBytes();
     }
   }
   else
@@ -868,6 +886,10 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool force
     // compressed
     int compressedDataSize=0;
     result = WriteCompressedImagePixelsToFile(stream, compressedDataSize);
+    if( result == PLUS_SUCCESS )
+    {
+      m_TotalBytesWritten += compressedDataSize;
+    }
     std::ostringstream compressedDataSizeStr; 
     compressedDataSizeStr << compressedDataSize; 
     SetCustomString("CompressedDataSize", compressedDataSizeStr.str().c_str());
