@@ -42,11 +42,11 @@ vtkDataCollector::vtkDataCollector()
 
 vtkDataCollector::~vtkDataCollector()
 {
-  if( Started )
+  if( this->Started )
   {
     this->Stop();
   }
-  if( Connected )
+  if( this->Connected )
   {
     this->Disconnect();
   }
@@ -234,7 +234,7 @@ PlusStatus vtkDataCollector::Start()
   LOG_DEBUG("vtkDataCollector::Start -- wait " << std::fixed << this->StartupDelaySec << " sec for buffer init..."); 
   vtkAccurateTimer::Delay(this->StartupDelaySec);
 
-  Started = true;
+  this->Started = true;
 
   return status;
 }
@@ -245,7 +245,7 @@ PlusStatus vtkDataCollector::Stop()
 {
   LOG_TRACE("vtkDataCollector::Stop()");
 
-  Started = false;
+  this->Started = false;
 
   return PLUS_SUCCESS;
 }
@@ -483,9 +483,9 @@ bool vtkDataCollector::GetTrackingDataAvailable() const
 {
   LOG_TRACE("vtkDataCollector::GetTrackingDataAvailable()");
 
-  if( SelectedDevice != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return SelectedDevice->GetTrackingDataAvailable();
+    return this->SelectedDevice->GetTrackingDataAvailable();
   }
 
   return false;
@@ -497,9 +497,9 @@ bool vtkDataCollector::GetVideoDataAvailable() const
 {
   LOG_TRACE("vtkDataCollector::GetVideoDataAvailable()");
 
-  if( SelectedDevice != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return SelectedDevice->GetVideoDataAvailable();
+    return this->SelectedDevice->GetVideoDataAvailable();
   }
 
   return false;
@@ -514,7 +514,7 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
   // Assemble file names
   std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
 
-  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
     vtkPlusDevice* device = *it;
 
@@ -552,9 +552,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
 {
   LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime()");
 
-  if( SelectedDevice != NULL )
+  if( this->SelectedDevice != NULL )
   {
-    return SelectedDevice->GetTrackedFrameByTime(time, trackedFrame);
+    return this->SelectedDevice->GetTrackedFrameByTime(time, trackedFrame);
   }
 
   LOG_ERROR("No selected device. Unable to get a tracked frame by time when no device available/selected.");
@@ -674,14 +674,14 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrameFromTrackedFrame(std::s
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec )
 {
-  if( SelectedDevice == NULL )
+  if( this->SelectedDevice == NULL )
   {
     LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
     return PLUS_FAIL;
   }
 
-  SelectedDevice->SetLocalTimeOffsetSec(videoLagSec);
-  SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
+  this->SelectedDevice->SetLocalTimeOffsetSec(videoLagSec);
+  this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
   return PLUS_SUCCESS;
 }
 
