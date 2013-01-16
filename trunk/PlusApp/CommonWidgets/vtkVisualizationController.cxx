@@ -763,7 +763,6 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 
   this->DataCollector->Stop();
   this->DataCollector->Disconnect();
-  this->SetDataCollector(NULL);
 
   return PLUS_SUCCESS;
 }
