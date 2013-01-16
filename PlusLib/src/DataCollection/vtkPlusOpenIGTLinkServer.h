@@ -17,6 +17,7 @@ class vtkDataCollector;
 class vtkTransformRepository; 
 class TrackedFrame; 
 class vtkRecursiveCriticalSection; 
+class vtkPlusCommandProcessor;
 
 /*!
   \class vtkPlusOpenIGTLinkServer 
@@ -83,8 +84,18 @@ protected:
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
 
+  /*! 
+    Execute a remotely invocated string command
+    \param resultString String containing the reply to the command (human readable)
+    \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
+  */ 
+  int ExecuteCommand(const char* commandString, std::string& resultString); 
+
 private:
 	
+  /*! Get client socket corresponding to a client ID. Used by the command processor, which identifies clients by ID. */
+  igtl::ClientSocket::Pointer GetClientSocket(int clientId);
+
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
   
@@ -159,6 +170,9 @@ private:
 
   /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
   int IgtlMessageCrcCheckEnabled; 
+
+  /*! Factory to generate commands that are invoked remotely */ 
+  vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;
 
 };
 

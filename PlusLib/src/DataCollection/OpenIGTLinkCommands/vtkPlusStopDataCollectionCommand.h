@@ -7,13 +7,8 @@
 #ifndef __vtkPlusStopDataCollectionCommand_h
 #define __vtkPlusStopDataCollectionCommand_h
 
-
 #include <string>
-#include <vector>
 
-#include "vtkObject.h"
-
-#include "vtkDataCollector.h"
 #include "vtkPlusCommand.h"
 
 /*!
@@ -26,13 +21,24 @@ class VTK_EXPORT vtkPlusStopDataCollectionCommand : public vtkPlusCommand
 public:
   
   static vtkPlusStopDataCollectionCommand *New();
-  vtkTypeRevisionMacro( vtkPlusStopDataCollectionCommand, vtkObject );
+  vtkTypeMacro(vtkPlusStopDataCollectionCommand, vtkObject);
+
+  virtual vtkPlusCommand* Clone() { return New(); }
+
   virtual void PrintSelf( ostream& os, vtkIndent indent );
-  
-  virtual bool CanExecute( std::string str );
-  virtual bool Execute();
-  virtual std::string GetStringRepresentation();
-  
+
+  /*! Executes the command  */
+  virtual PlusStatus Execute();
+
+  virtual void GetCommandNames(std::list<std::string> &cmdNames)
+  { cmdNames.clear(); cmdNames.push_back("StopDataCollection"); }
+
+  /*! 
+    Gets the description for the specified command name.
+    \param commandName Command name to provide the description for. If the pointer is NULL then all the supported commands shal be described.
+  */
+  virtual const char* GetDescription(const char* commandName)
+  { return "StopDataCollection: Stops collecting data and save the result to file"; }
   
 protected:
   

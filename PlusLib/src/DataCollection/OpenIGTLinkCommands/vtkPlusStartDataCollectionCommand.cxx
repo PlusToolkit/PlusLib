@@ -5,11 +5,21 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusStartDataCollectionCommand.h"
-#include "igtlStringMessage1.h"
 
-vtkCxxRevisionMacro( vtkPlusStartDataCollectionCommand, "$Revision: 1.0 $" );
-vtkStandardNewMacro( vtkPlusStartDataCollectionCommand ); 
+#include "vtkPlusCommandProcessor.h"
+#include "vtkPlusStartDataCollectionCommand.h"
+
+vtkStandardNewMacro( vtkPlusStartDataCollectionCommand );
+
+//----------------------------------------------------------------------------
+vtkPlusStartDataCollectionCommand::vtkPlusStartDataCollectionCommand()
+{
+}
+
+//----------------------------------------------------------------------------
+vtkPlusStartDataCollectionCommand::~vtkPlusStartDataCollectionCommand()
+{
+}
 
 //----------------------------------------------------------------------------
 void vtkPlusStartDataCollectionCommand::PrintSelf( ostream& os, vtkIndent indent )
@@ -18,43 +28,19 @@ void vtkPlusStartDataCollectionCommand::PrintSelf( ostream& os, vtkIndent indent
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusStartDataCollectionCommand::CanExecute( std::string str )
+PlusStatus vtkPlusStartDataCollectionCommand::Execute()
 {
-  if ( str.compare( this->StringRepresentation ) == 0 )
-  {
-    return true;
-  }
-  return false;
-}
-
-//----------------------------------------------------------------------------  
-bool vtkPlusStartDataCollectionCommand::Execute()
-{
-  PlusStatus status = this->DataCollector->Start();
+//  PlusStatus status = this->CommandProcessor->GetDataCollector()->Start();
+    PlusStatus status=PLUS_SUCCESS;
   if ( status == PLUS_FAIL )
   {
-    LOG_WARNING( "Data collector could not be started." );
-    return false;
+    LOG_INFO("vtkPlusStartDataCollectionCommand::Execute: Data collector could not be started");
+    SetCommandCompleted(PLUS_FAIL,"Data collector could not be started");
   }
-  return true;
+  else
+  {
+    LOG_INFO("vtkPlusStartDataCollectionCommand::Execute: Data collector started");
+    SetCommandCompleted(PLUS_SUCCESS,"Data collector started");
+  }
+  return PLUS_SUCCESS;
 }
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStartDataCollectionCommand::GetStringRepresentation()
-{
-  return this->StringRepresentation;
-}
-
-//----------------------------------------------------------------------------
-vtkPlusStartDataCollectionCommand::vtkPlusStartDataCollectionCommand()
-{
-  this->StringRepresentation = "StartDataCollection";
-  this->AddSupportedCommandString( this->StringRepresentation );
-}
-
-//----------------------------------------------------------------------------
-vtkPlusStartDataCollectionCommand::~vtkPlusStartDataCollectionCommand()
-{
-
-}
-

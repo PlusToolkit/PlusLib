@@ -40,16 +40,15 @@ public:
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkClient, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
-  vtkSetMacro( NetworkPort, int );
-  vtkSetStringMacro( ServerAddress );
+  vtkSetMacro( ServerPort, int );
+  vtkSetStringMacro( ServerHost );
+    
+  PlusStatus Connect();
+  PlusStatus Disconnect();
   
-  vtkSetObjectMacro( ActiveCommand, vtkPlusCommand );
-  
-  int ConnectToServer();
-  int StartDataCollector();
-  int StopDataCollector();
-  
-  bool SendCommand( vtkPlusCommand* command );
+  PlusStatus SendCommand( vtkPlusCommand* command );
+  /*! Wait for a command reply */
+  PlusStatus ReceiveReply(std::string &replyStr, double timeoutSec=0);
   
   void Lock();
   void Unlock();
@@ -59,28 +58,34 @@ protected:
   
   vtkPlusOpenIGTLinkClient();
   virtual ~vtkPlusOpenIGTLinkClient();
-  
+
+  /*! Thread for receiveing control data from clients */ 
+  static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
+
   
 private:
 	
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
-  void operator=( const vtkPlusOpenIGTLinkClient& );
-  
-  vtkMultiThreader*  Threader;
-  vtkRecursiveCriticalSection*      Mutex;
+  void operator=( const vtkPlusOpenIGTLinkClient& );  
+
+  std::pair<bool,bool> DataReceiverActive;
+
+  int  DataReceiverThreadId;
+
+  /*! Multithreader instance for controlling threads */ 
+  vtkSmartPointer<vtkMultiThreader> Threader;
+
+  /*! Mutex instance for safe data access */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
+  vtkSmartPointer<vtkRecursiveCriticalSection> SocketMutex;
   
   igtl::ClientSocket::Pointer ClientSocket;
-  vtkRecursiveCriticalSection*               SocketMutex;
-  
-  int         NetworkPort;
-  char*       ServerAddress;
-  int         ThreadId;
-  bool        CommandInProgress;
-  
-  vtkPlusCommand* ActiveCommand;
+
+  std::deque<std::string> Replies;
+
+  int         ServerPort;
+  char*       ServerHost;
   
 };
 
-
 #endif
-
