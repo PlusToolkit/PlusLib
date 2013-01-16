@@ -21,6 +21,8 @@ See License.txt for details.
 
 #include "vtkPlusIgtlMessageFactory.h" 
 
+#include "vtkPlusCommandProcessor.h"
+
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
@@ -53,8 +55,9 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , ServerSocket(igtl::ServerSocket::New())
 , SendValidTransformsOnly(true)
 , IgtlMessageCrcCheckEnabled(0)
+, PlusCommandProcessor(vtkSmartPointer<vtkPlusCommandProcessor>::New())
 {
-
+  
 }
 
 //----------------------------------------------------------------------------
@@ -131,12 +134,26 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     LOG_INFO("Server default images to send: " << imageNames.str() ); 
   }
 
+  this->PlusCommandProcessor->SetDataCollector(this->DataCollector);
+  this->PlusCommandProcessor->Start();
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 {
+  // Stop command processor thread 
+  if ( this->PlusCommandProcessor->IsRunning() )
+  {
+    this->PlusCommandProcessor->Stop();
+    while ( this->PlusCommandProcessor->IsRunning() )
+    {
+      // Wait until the thread stops 
+      vtkAccurateTimer::Delay( 0.2 ); 
+    }
+  }
+
   // Stop data receiver thread 
   if ( this->DataReceiverThreadId >=0 )
   {
@@ -260,6 +277,33 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       vtkAccurateTimer::Delay(0.2);
       self->LastSentTrackedFrameTimestamp=0; // next time start sending from the most recent timestamp
       continue; 
+    }
+
+    // Send remote command execution replies to clients
+    PlusCommandReplyList replies;
+    self->PlusCommandProcessor->GetCommandReplies(replies);
+    if (!replies.empty())
+    {
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
+
+      // Create a reply message (as a STATUS message)
+      for (PlusCommandReplyList::iterator replyIt=replies.begin(); replyIt!=replies.end(); replyIt++)
+      {
+        igtl::ClientSocket::Pointer clientSocket=self->GetClientSocket(replyIt->ClientId);
+        if (clientSocket.IsNull())
+        {
+          LOG_WARNING("Message reply cannot be sent to client, probably client has been disconnected");
+          continue;
+        }
+
+        igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();
+        replyMsg->SetDeviceName("RTS_REXEC"); 
+        replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+        replyMsg->SetStatusString(replyIt->ReplyString.c_str());
+        replyMsg->Pack(); 
+        clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackSize());
+
+      }
     }
 
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -399,6 +443,27 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
         statusMsg->Pack(); 
         client.ClientSocket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackBodySize()); 
+      }
+      else if ( (strcmp(headerMsg->GetDeviceType(), "STRING") == 0) &&
+        (strcmp(headerMsg->GetDeviceName(), "GET_REXEC") == 0))
+      {
+        // Received a remote command execution message
+        // The command is encoded in in an XML string in a STRING message body
+        // (a STRING message body is used because the OpenIGTLink implementation does not contain a specific REXEC message type)        
+        igtl::StringMessage::Pointer commandMsg = igtl::StringMessage::New(); 
+        commandMsg->SetMessageHeader(headerMsg); 
+        commandMsg->AllocatePack(); 
+        client.ClientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() ); 
+      
+        int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+        if (c & igtl::MessageHeader::UNPACK_BODY) 
+        {          
+          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString());
+        }
+        else
+        {
+          LOG_ERROR("GET_REXEC message unpacking failed");
+        }        
       }
       else
       {
@@ -739,3 +804,17 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   return PLUS_SUCCESS;
 }
 
+//------------------------------------------------------------------------------
+igtl::ClientSocket::Pointer vtkPlusOpenIGTLinkServer::GetClientSocket(int clientId)
+{
+  // Close client sockets 
+  std::list<PlusIgtlClientInfo>::iterator clientIterator; 
+  for ( clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
+  {
+    if (clientIterator->ClientId==clientId)
+    {
+      return clientIterator->ClientSocket;
+    }
+  }
+  return NULL;
+}

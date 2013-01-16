@@ -6,10 +6,15 @@ See License.txt for details.
 
 #include "PlusIgtlClientInfo.h"
 
+int PlusIgtlClientInfo::ClientIdCounter=1;
+
+
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo::PlusIgtlClientInfo()
 {
   this->ClientSocket = NULL; 
+  this->ClientId=ClientIdCounter;
+  this->ClientIdCounter++;  
 }
 
 //----------------------------------------------------------------------------
@@ -21,7 +26,9 @@ PlusIgtlClientInfo::~PlusIgtlClientInfo()
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo::PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo)
 {
-  this->ClientSocket = NULL; 
+  this->ClientSocket = NULL;
+  this->ClientId=ClientIdCounter;
+  this->ClientIdCounter++;  
   *this = clientInfo; 
 }
 
@@ -40,6 +47,8 @@ PlusIgtlClientInfo& PlusIgtlClientInfo::operator=(PlusIgtlClientInfo const& clie
   }
 
   this->ClientSocket = clientInfo.ClientSocket; 
+  this->ClientId = clientInfo.ClientId;
+
   this->ShallowCopy(clientInfo); 
   return *this;
 }

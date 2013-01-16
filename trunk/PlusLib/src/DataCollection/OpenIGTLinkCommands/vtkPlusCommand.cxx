@@ -6,9 +6,21 @@
 
 #include "PlusConfigure.h"
 #include "vtkPlusCommand.h"
+#include "vtkPlusCommandProcessor.h"
 #include "vtkVersion.h"
 
-vtkCxxRevisionMacro( vtkPlusCommand, "$Revision: 1.0 $" );
+//----------------------------------------------------------------------------
+vtkPlusCommand::vtkPlusCommand()
+: Completed(false)
+, CommandProcessor(NULL)
+, ClientId(0)
+{
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommand::~vtkPlusCommand()
+{  
+}
 
 //----------------------------------------------------------------------------
 void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
@@ -17,39 +29,64 @@ void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //----------------------------------------------------------------------------
-const vtkPlusCommand::CommandStringsType vtkPlusCommand::GetSupportedCommandStrings() const
-{
-  return this->CommandStrings;
+PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
+{  
+  if (aConfig==NULL)
+  {
+    LOG_ERROR("vtkPlusCommand::ReadConfiguration failed, input is NULL");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-const char* vtkPlusCommand::GetVTKSourceVersion()
-{
-  return VTK_SOURCE_VERSION;
+PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
+{  
+  if (aConfig==NULL)
+  {
+    LOG_ERROR("vtkPlusCommand::WriteConfiguration failed, input is NULL");
+    return PLUS_FAIL;
+  }
+  aConfig->SetName("Command");
+  std::list<std::string> cmdNames;
+  GetCommandNames(cmdNames);
+  if (!cmdNames.empty())
+  {
+    aConfig->SetAttribute("Name",cmdNames.front().c_str());
+  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-const char* vtkPlusCommand::GetDescription()
-{
-  return "VTK PlusCommand";
+void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
+{  
+  this->CommandProcessor=processor;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand::vtkPlusCommand()
+PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
 {
-  this->DataCollector = NULL;
-  
-  this->StringRepresentation.clear(); 
+  if (this->CommandProcessor==NULL)
+  {
+    LOG_ERROR("vtkPlusCommand::SetCommandCompleted failed, command processor is invalid");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString);
+  }
+  this->Completed=true;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand::~vtkPlusCommand()
-{
-  
+bool vtkPlusCommand::IsCompleted()
+{  
+  return this->Completed;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusCommand::AddSupportedCommandString( std::string commandString )
-{
-  this->CommandStrings.push_back( commandString );
+void vtkPlusCommand::SetClientId(int clientId)
+{  
+  this->ClientId=clientId;
 }

@@ -359,8 +359,7 @@ IF( PLUS_USE_OpenIGTLink )
     vtkPlusOpenIGTLinkServer.cxx
     vtkPlusOpenIGTLinkClient.cxx
     OpenIGTLinkCommands/vtkPlusCommand.cxx
-    OpenIGTLinkCommands/vtkPlusCommandCollection.cxx
-    OpenIGTLinkCommands/vtkPlusCommandFactory.cxx
+    OpenIGTLinkCommands/vtkPlusCommandProcessor.cxx
     OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.cxx
     OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.cxx
     OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
@@ -372,8 +371,7 @@ IF( PLUS_USE_OpenIGTLink )
       vtkPlusOpenIGTLinkServer.h
       vtkPlusOpenIGTLinkClient.h
       OpenIGTLinkCommands/vtkPlusCommand.h
-      OpenIGTLinkCommands/vtkPlusCommandCollection.h
-      OpenIGTLinkCommands/vtkPlusCommandFactory.h      
+      OpenIGTLinkCommands/vtkPlusCommandProcessor.h      
       OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.h
       OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.h
       OpenIGTLinkTracking/vtkOpenIGTLinkTracker.h 

@@ -25,6 +25,16 @@ class VTK_EXPORT PlusIgtlClientInfo
 {
 public:
 
+  /*! Constructor */ 
+  PlusIgtlClientInfo();
+  /*! Copy constructor */ 
+  PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo); 
+  /*! Destructor */ 
+  virtual ~PlusIgtlClientInfo(); 
+
+  /*! Counter to generate unique client IDs. Access to the counter is not protected, therefore all clients should be created from the same thread. */
+  static int ClientIdCounter;
+
   /*! Helper struct for storing image stream and embedded transform frame names 
   IGTL image message device name: [Name]_[EmbeddedTransformToFrame]
   */ 
@@ -57,6 +67,9 @@ public:
   /*! Transform names to send with igt image message */ 
   std::vector<ImageStream> ImageStreams; 
 
+  /*! Unique client identifier. Cannot be 0. */   
+  int ClientId;
+
   /*! Assignment operator */
   PlusIgtlClientInfo& operator=(PlusIgtlClientInfo const&clientInfo); 
 
@@ -65,13 +78,6 @@ public:
   {
     return (in.ClientSocket == this->ClientSocket ); 
   }
-
-  /*! Constructor */ 
-  PlusIgtlClientInfo();
-  /*! Copy constructor */ 
-  PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo); 
-  /*! Destructor */ 
-  ~PlusIgtlClientInfo(); 
 }; 
 
 #endif
