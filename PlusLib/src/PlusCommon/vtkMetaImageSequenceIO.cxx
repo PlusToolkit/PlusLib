@@ -71,7 +71,6 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 : FileName(NULL)
 , TempHeaderFileName(NULL)
 , TempImageFileName(NULL)
-, PixelDataFileName(NULL)
 , PixelDataFileOffset(0)
 , TrackedFrameList(vtkTrackedFrameList::New())
 , UseCompression(false)
@@ -79,11 +78,12 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 , PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
 , NumberOfComponents(1)
 , NumberOfDimensions(3)
+, m_CurrentFrameOffset(0)
+, m_TotalBytesWritten(0)
 , ImageOrientationInFile(US_IMG_ORIENT_XX)
 , ImageOrientationInMemory(US_IMG_ORIENT_XX)
 , ImageType(US_IMG_TYPE_XX)
-, m_CurrentFrameOffset(0)
-, m_TotalBytesWritten(0)
+, PixelDataFileName(NULL)
 { 
   this->Dimensions[0]=0;
   this->Dimensions[1]=0;
@@ -1293,10 +1293,10 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
     this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
   }
 
-  if (this->ImageType==US_IMG_TYPE_XX)
+  if (this->ImageType == US_IMG_TYPE_XX)
   {
     // No specific type is requested, so just use the same as in the memory
-    this->ImageType=this->TrackedFrameList->GetImageType();
+    this->ImageType = this->TrackedFrameList->GetImageType();
   }
   if (this->ImageType!=this->TrackedFrameList->GetImageType())
   {
@@ -1316,7 +1316,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::WriteImages()
 {
-  if (WriteImagePixels(false) != PLUS_SUCCESS)
+  if (WriteImagePixels(this->TempImageFileName, false) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
