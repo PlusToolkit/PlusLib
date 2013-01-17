@@ -28,6 +28,7 @@ vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
 , m_CompressFileOnDisconnect(false)
 , m_TotalFramesRecorded(0)
 , m_HeaderPrepared(false)
+, EnableCapturing(true)
 {
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
@@ -79,6 +80,12 @@ PlusStatus vtkVirtualStreamDiscCapture::ReadConfiguration( vtkXMLDataElement* ro
   if( comp != NULL )
   {
     m_CompressFileOnDisconnect = STRCASECMP(comp, "true") == 0 ? true : false;
+  }
+
+  const char* enableCapturing = deviceElement->GetAttribute("EnableCapturing");
+  if( enableCapturing != NULL )
+  {
+    this->EnableCapturing = STRCASECMP(enableCapturing, "true") == 0 ? true : false;
   }
 
   return PLUS_SUCCESS;
@@ -162,6 +169,12 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
 
 PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
 {
+  if (!this->EnableCapturing)
+  {
+    // Capturing is disabled
+    return PLUS_SUCCESS;
+  }
+
   // If frames exist that haven't been recorded, record them (compare with last recorded timestamp)
   // Allocates frames
   if( this->BuildNewTrackedFrameList() != PLUS_SUCCESS )

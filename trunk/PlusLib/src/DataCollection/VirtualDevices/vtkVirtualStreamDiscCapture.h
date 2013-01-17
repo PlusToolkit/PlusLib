@@ -32,6 +32,13 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
+  /*! Output file name */
+  virtual void SetFilename(const char* filename) { m_Filename=filename; }
+
+  /*! Enables capturing frames. It can be used for pausing the recording. */
+  vtkSetMacro(EnableCapturing, bool);
+  vtkGetMacro(EnableCapturing, bool);
+
 protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
@@ -64,6 +71,8 @@ protected:
 
   /*! Record the number of frames captured */
   long int m_TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
+
+  bool EnableCapturing;
 
 private:
   vtkVirtualStreamDiscCapture(const vtkVirtualStreamDiscCapture&);  // Not implemented.

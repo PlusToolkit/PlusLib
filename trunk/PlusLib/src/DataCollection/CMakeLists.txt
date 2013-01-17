@@ -360,8 +360,8 @@ IF( PLUS_USE_OpenIGTLink )
     vtkPlusOpenIGTLinkClient.cxx
     OpenIGTLinkCommands/vtkPlusCommand.cxx
     OpenIGTLinkCommands/vtkPlusCommandProcessor.cxx
-    OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.cxx
-    OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.cxx
+    OpenIGTLinkCommands/vtkPlusStartStopRecordingCommand.cxx
+    OpenIGTLinkCommands/vtkPlusReconstructVolumeCommand.cxx
     OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
     OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.cxx
     )
@@ -372,8 +372,8 @@ IF( PLUS_USE_OpenIGTLink )
       vtkPlusOpenIGTLinkClient.h
       OpenIGTLinkCommands/vtkPlusCommand.h
       OpenIGTLinkCommands/vtkPlusCommandProcessor.h      
-      OpenIGTLinkCommands/vtkPlusStartDataCollectionCommand.h
-      OpenIGTLinkCommands/vtkPlusStopDataCollectionCommand.h
+      OpenIGTLinkCommands/vtkPlusStartStopRecordingCommand.h
+      OpenIGTLinkCommands/vtkPlusReconstructVolumeCommand.h
       OpenIGTLinkTracking/vtkOpenIGTLinkTracker.h 
       OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
       )

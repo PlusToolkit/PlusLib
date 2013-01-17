@@ -1,0 +1,67 @@
+<PlusConfiguration version="2.0">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST PlusServer remote control using OpenIGTLink commands, no hardware is needed" 
+      Description="Read data from file and stream it through OpenIGTLink. Can be used to test commands, such as start/stop recording and reconstruct volume" 
+    />
+    <Device
+      Type="SavedVideoDataset"
+      Id="DeviceSavedDataset"
+      SequenceMetafile="NwirePhantomFreehand.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      Selectable="true" >
+        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+    </Device>
+    <Device
+      Type="VirtualStreamCapture"
+      Id="DiscWriter"
+      Filename="RecordingTest.mha"
+      EnableCapturing="false"
+      Selectable="true" >
+        <InputStream Id="SavedDatasetOutput" />
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
+      Date="2011.12.06 17:57:00"
+    />
+    <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
+    <Transform From="Image" To="Probe"
+      Matrix="-0.0094 -0.0739 -0.0028 -103.5322
+               0.0774 -0.0076 -0.0049 -43.1227
+               0.0046 -0.0032 0.0760 -93.3
+               0 0 0 1"
+      Error="0.508027" Date="2011.08.19 14:11:53" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
+      Error="0.582721" Date="012712_152030"
+    />        
+  </CoordinateDefinitions> 
+  
+  <VolumeReconstruction
+    Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
+    ClipRectangleOrigin="167 62" ClipRectangleSize="495 488" OutputSpacing="0.5 0.5 0.5"
+  />
+
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToReference" /> 
+        <Transform Name="StylusTipToReference" /> 
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>

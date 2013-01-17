@@ -13,8 +13,8 @@ See License.txt for details.
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtksys/CommandLineArguments.hxx"
 
-#include "vtkPlusStartDataCollectionCommand.h"
-#include "vtkPlusStopDataCollectionCommand.h"
+#include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkPlusReconstructVolumeCommand.h"
 
 int main( int argc, char** argv )
 {
@@ -31,7 +31,7 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
-  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server" );
+  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server (START, STOP, RECONSTRUCT)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
   if ( !args.Parse() )
@@ -61,18 +61,26 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }  
 
-  vtkSmartPointer<vtkPlusStartDataCollectionCommand> startDataCollectionCommand=vtkSmartPointer<vtkPlusStartDataCollectionCommand>::New();
-  vtkSmartPointer<vtkPlusStopDataCollectionCommand> stopDataCollectionCommand=vtkSmartPointer<vtkPlusStopDataCollectionCommand>::New();
+  
+  vtkSmartPointer<vtkPlusReconstructVolumeCommand> stopDataCollectionCommand=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
 
   // Execute command
   if (STRCASECMP(command.c_str(),"START")==0)
   {
-    client->SendCommand(startDataCollectionCommand);
+    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
+    cmd->SetCommandNameStart();
+    client->SendCommand(cmd);
   }
   else if (STRCASECMP(command.c_str(),"STOP")==0)
   {
-    
-    client->SendCommand(stopDataCollectionCommand);    
+    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
+    cmd->SetCommandNameStop();
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
+  {
+    vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    client->SendCommand(cmd);
   }
   else
   {
@@ -92,33 +100,6 @@ int main( int argc, char** argv )
   {
     LOG_INFO("Reply: "<<reply);
   }
-
-  /*  
-
-  LOG_INFO("Waiting...");
-  vtkAccurateTimer::Delay(3);
-  LOG_INFO("Send command...");
-  client->SendCommand(startDataCollectionCommand);
-  client->ReceiveReply(reply, replyTimeoutSec);
-  LOG_INFO("Reply: "<<reply);
-
-  LOG_INFO("Waiting...");
-  vtkAccurateTimer::Delay(2);
-  LOG_INFO("Send command...");
-  client->SendCommand(stopDataCollectionCommand);
-  client->ReceiveReply(reply, replyTimeoutSec);
-  LOG_INFO("Reply: "<<reply);
-
-  LOG_INFO("Waiting...");
-  vtkAccurateTimer::Delay(2);
-  LOG_INFO("Send command...");
-  client->SendCommand(startDataCollectionCommand);
-  client->ReceiveReply(reply, replyTimeoutSec);
-  LOG_INFO("Reply: "<<reply);
-
-  LOG_INFO("Waiting before disconnect...");
-  vtkAccurateTimer::Delay(15);
-  */
 
   client->Disconnect();
 

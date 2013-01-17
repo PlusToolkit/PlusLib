@@ -12,8 +12,8 @@ See License.txt for details.
 #include "vtkRecursiveCriticalSection.h"
 
 #include "vtkPlusCommand.h"
-#include "vtkPlusStartDataCollectionCommand.h"
-#include "vtkPlusStopDataCollectionCommand.h"
+#include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkPlusReconstructVolumeCommand.h"
 
 vtkStandardNewMacro( vtkPlusCommandProcessor );
 
@@ -27,12 +27,12 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 {
   // Register default commands
   {
-    vtkPlusCommand* cmd=vtkPlusStartDataCollectionCommand::New();
+    vtkPlusCommand* cmd=vtkPlusStartStopRecordingCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
   {
-    vtkPlusCommand* cmd=vtkPlusStopDataCollectionCommand::New();
+    vtkPlusCommand* cmd=vtkPlusReconstructVolumeCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
