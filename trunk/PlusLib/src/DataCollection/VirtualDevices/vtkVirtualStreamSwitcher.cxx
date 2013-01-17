@@ -43,7 +43,10 @@ void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
   }
 
   os << indent << "Active input stream: \n";
-  this->CurrentActiveInputStream->PrintSelf(os, indent);
+  if( this->CurrentActiveInputStream != NULL )
+  {
+    this->CurrentActiveInputStream->PrintSelf(os, indent);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -136,6 +139,13 @@ PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
     // For now, just choose the first... maybe in the future make it more elegant
     this->SetCurrentActiveInputStream(ActiveStreams[0]);
     this->CopyInputStreamToOutputStream();
+
+    // We will also now need to output the correct transform associated with the new stream
+    // Is there any way to make this generic?
+    // In config file, associate transform/image names to special prefix/postfixes?
+    // scan stream name, if postfix matches, output transform(s) with that postfix? eg stream id -- Output_depth:5cm, transform -- ImageToProbeTransform_5cm, etc...
+    //                                        have base transform name(s) in the config eg: ImageToProbeTransform
+
     return PLUS_SUCCESS;
   }
  
