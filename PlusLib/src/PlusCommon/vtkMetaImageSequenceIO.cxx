@@ -68,10 +68,10 @@ vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameLi
 
 //----------------------------------------------------------------------------
 vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
-: FileName(NULL)
+: TrackedFrameList(vtkTrackedFrameList::New())
+, FileName(NULL)
 , TempHeaderFileName(NULL)
 , TempImageFileName(NULL)
-, TrackedFrameList(vtkTrackedFrameList::New())
 , UseCompression(false)
 , FileType(itk::ImageIOBase::Binary)
 , PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
