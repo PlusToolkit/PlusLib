@@ -49,7 +49,7 @@ public:
     may be able to execute different commands.
     \param commandName Command name to provide the description for. If the pointer is NULL then all the supported commands shal be described.
   */
-  virtual const char* GetDescription(const char* commandName)=0;
+  virtual std::string GetDescription(const char* commandName)=0;
 
   /*! Returns the list of command names that this command can process */
   virtual void GetCommandNames(std::list<std::string> &cmdNames)=0;
