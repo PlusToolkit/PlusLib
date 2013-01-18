@@ -168,6 +168,12 @@ PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
   // Fix the header to write the correct number of frames
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
+  if (!m_HeaderPrepared)
+  {
+    // nothing has been prepared, so nothing to finalize
+    return PLUS_SUCCESS;
+  }
+
   std::ostringstream dimSizeStr; 
   int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
