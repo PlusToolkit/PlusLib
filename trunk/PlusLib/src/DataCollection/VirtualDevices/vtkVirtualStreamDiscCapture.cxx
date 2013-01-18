@@ -221,7 +221,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
       // While this thread was working on getting the frames, capturing was disabled, so cancel the update now
       return PLUS_SUCCESS;
     }
-    LOG_WARNING("Unable to build new tracked frame list. Continuing.");
+    LOG_WARNING("Unable to build new tracked frame list. Continuing. Device: " << this->GetDeviceId());
     return PLUS_FAIL;
   }
 
@@ -277,7 +277,7 @@ PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
   // Record
   if ( this->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     return PLUS_FAIL;
   }
 
