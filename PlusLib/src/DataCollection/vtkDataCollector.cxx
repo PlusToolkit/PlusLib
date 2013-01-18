@@ -162,7 +162,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
             {
               // Found it!
               thisDevice->AddInputStream(aStream);
-              continue;
+              break;
             }
           }
         }
