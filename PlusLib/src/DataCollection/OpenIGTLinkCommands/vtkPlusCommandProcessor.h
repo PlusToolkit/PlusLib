@@ -28,6 +28,10 @@ typedef std::list<PlusCommandReply> PlusCommandReplyList;
 /*!
   \class vtkPlusCommandProcessor 
   \brief Creates a PlusCommand from a string.
+  If the commands are to be executed on the main thread then call ExecuteCommands() periodically from the main thread.
+  If the commands are to be executed on a separate thread (to allow background processing, but maybe requiring more synchronization) call Start() to start an internal processing thread. 
+  Probably one of the processing models would be enough, but at this point it's not clear which one is better.
+  TODO: keep only one method and remove the other approach completely once the processing model decision is finalized.
   \ingroup PlusLibDataCollection
 */
 class
@@ -39,6 +43,12 @@ public:
   static vtkPlusCommandProcessor *New();
   vtkTypeMacro(vtkPlusCommandProcessor, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);   
+
+  /*! 
+    Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 
+    \return Number of executed commands
+  */
+  int ExecuteCommands();
 
   /*! Start thread for processing the commands in the queue. Must be called from the main thread. */
   virtual PlusStatus Start();

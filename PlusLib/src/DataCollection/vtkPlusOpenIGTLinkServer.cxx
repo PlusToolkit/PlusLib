@@ -135,7 +135,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
   }
 
   this->PlusCommandProcessor->SetDataCollector(this->DataCollector);
-  this->PlusCommandProcessor->Start();
+  //this->PlusCommandProcessor->Start();
 
   return PLUS_SUCCESS;
 }
@@ -143,6 +143,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 {
+  
+  /*
   // Stop command processor thread 
   if ( this->PlusCommandProcessor->IsRunning() )
   {
@@ -153,6 +155,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
       vtkAccurateTimer::Delay( 0.2 ); 
     }
   }
+  */
 
   // Stop data receiver thread 
   if ( this->DataReceiverThreadId >=0 )
@@ -817,4 +820,10 @@ igtl::ClientSocket::Pointer vtkPlusOpenIGTLinkServer::GetClientSocket(int client
     }
   }
   return NULL;
+}
+
+//------------------------------------------------------------------------------
+int vtkPlusOpenIGTLinkServer::ProcessPendingCommands()
+{
+  return this->PlusCommandProcessor->ExecuteCommands();
 }

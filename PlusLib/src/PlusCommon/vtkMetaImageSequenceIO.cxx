@@ -1185,6 +1185,11 @@ std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 {
+  if (this->TempHeaderFileName==NULL)
+  {
+    LOG_ERROR("Cannot update file header, filename is invalid");
+    return PLUS_FAIL;
+  }
   FILE *stream=NULL;
   // open in read+write binary mode
   if ( FileOpen( &stream, this->TempHeaderFileName, "r+b" ) != PLUS_SUCCESS )

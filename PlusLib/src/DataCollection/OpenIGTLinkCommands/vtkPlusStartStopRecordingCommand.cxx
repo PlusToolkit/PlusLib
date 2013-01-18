@@ -13,6 +13,8 @@ See License.txt for details.
 vtkStandardNewMacro( vtkPlusStartStopRecordingCommand );
 
 static const char START_CMD[]="StartRecording";
+static const char SUSPEND_CMD[]="SuspendRecording";
+static const char RESUME_CMD[]="ResumeRecording";
 static const char STOP_CMD[]="StopRecording";
 
 //----------------------------------------------------------------------------
@@ -38,6 +40,18 @@ void vtkPlusStartStopRecordingCommand::SetCommandNameStart()
 }
 
 //----------------------------------------------------------------------------
+void vtkPlusStartStopRecordingCommand::SetCommandNameSuspend()
+{
+  SetCommandName(SUSPEND_CMD);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusStartStopRecordingCommand::SetCommandNameResume()
+{
+  SetCommandName(RESUME_CMD);
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusStartStopRecordingCommand::SetCommandNameStop()
 {
   SetCommandName(STOP_CMD);
@@ -48,7 +62,9 @@ void vtkPlusStartStopRecordingCommand::GetCommandNames(std::list<std::string> &c
 { 
   cmdNames.clear(); 
   cmdNames.push_back(START_CMD);
-  cmdNames.push_back(STOP_CMD);
+  cmdNames.push_back(SUSPEND_CMD);
+  cmdNames.push_back(RESUME_CMD);
+  cmdNames.push_back(STOP_CMD);  
 }
 
 //----------------------------------------------------------------------------
@@ -58,12 +74,22 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const char* command
   if (commandName==NULL || STRCASECMP(commandName, START_CMD))
   {
     desc+=START_CMD;
-    desc+=": Starts collecting data into file with a VirtualStreamCapture device. Attributes: OutputFilename: name of the output file (optional); CaptureDeviceId: ID of the capture device, if not specified then the first VirtualStreamCapture device will be started (optional)";
+    desc+=": Start collecting data into file with a VirtualStreamCapture device. Attributes: OutputFilename: name of the output file (optional); CaptureDeviceId: ID of the capture device, if not specified then the first VirtualStreamCapture device will be started (optional)";
+  }
+  if (commandName==NULL || STRCASECMP(commandName, SUSPEND_CMD))
+  {
+    desc+=SUSPEND_CMD;
+    desc+=": Suspend data collection. Attributes: CaptureDeviceId: (optional)";
+  }
+  if (commandName==NULL || STRCASECMP(commandName, RESUME_CMD))
+  {
+    desc+=RESUME_CMD;
+    desc+=": Resume suspended data collection. Attributes: CaptureDeviceId (optional)";
   }
   if (commandName==NULL || STRCASECMP(commandName, STOP_CMD))
   {
     desc+=STOP_CMD;
-    desc+=": Stops collecting data into file with a VirtualStreamCapture device. Attributes: CaptureDeviceId: ID of the capture device, if not specified then the first VirtualStreamCapture device will be stopped (optional)";
+    desc+=": Stop collecting data into file with a VirtualStreamCapture device. Attributes: CaptureDeviceId (optional)";
   }
   return desc;
 }
@@ -82,9 +108,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
     return PLUS_FAIL;
   }
   SetCommandName(aConfig->GetAttribute("Name"));
-  if (this->CommandName==0 ||
-    (STRCASECMP(this->CommandName, START_CMD)!=0 && STRCASECMP(this->CommandName, STOP_CMD)!=0)
-    )
+  if ( this->CommandName==0 ||
+       ( STRCASECMP(this->CommandName, START_CMD)!=0 && STRCASECMP(this->CommandName, STOP_CMD)!=0
+         && STRCASECMP(this->CommandName, SUSPEND_CMD)!=0 && STRCASECMP(this->CommandName, RESUME_CMD)!=0 )  )
   {
     LOG_ERROR("Unsupported command name is specified: "<<(this->CommandName?this->CommandName:"NULL"));
     return PLUS_FAIL;
@@ -204,6 +230,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     return PLUS_FAIL;
   }    
 
+  PlusStatus status=PLUS_SUCCESS;
   std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->CommandName+" ";  
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->CommandName);
   if (STRCASECMP(this->CommandName, START_CMD)==0)
@@ -212,20 +239,41 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     {
       captureDevice->SetFilename(this->OutputFilename);
     }
+    if (captureDevice->OpenFile()!=PLUS_SUCCESS)
+    {
+      status=PLUS_FAIL;
+    }
     captureDevice->SetEnableCapturing(true);
-    reply+="completed";
-    SetCommandCompleted(PLUS_SUCCESS,reply);
+  }
+  else if (STRCASECMP(this->CommandName, SUSPEND_CMD)==0)
+  {    
+    captureDevice->SetEnableCapturing(false);
+  }
+  else if (STRCASECMP(this->CommandName, RESUME_CMD)==0)
+  {    
+    captureDevice->SetEnableCapturing(true);
   }
   else if (STRCASECMP(this->CommandName, STOP_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(false);
-    reply+="completed";
-    SetCommandCompleted(PLUS_SUCCESS,reply);
+    if (captureDevice->CloseFile()!=PLUS_SUCCESS)
+    {
+      status=PLUS_FAIL;
+    }   
   }
   else
   {
-    reply+="failed, unknown command";
+    reply+="unknown command, ";
     SetCommandCompleted(PLUS_FAIL,reply);
   }
-  return PLUS_SUCCESS;
+  if (status==PLUS_SUCCESS)
+  {
+    reply+="completed successfully";
+  }
+  else
+  {
+    reply+="failed";
+  }
+  SetCommandCompleted(status,reply);
+  return status;
 }

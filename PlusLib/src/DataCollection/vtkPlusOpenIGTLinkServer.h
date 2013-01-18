@@ -59,6 +59,12 @@ public:
   /*! Stop server */ 
   PlusStatus Stop();
     
+  /*! 
+    Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 
+    \return Number of executed commands
+  */
+  int ProcessPendingCommands();  
+
 protected:
   
   vtkPlusOpenIGTLinkServer();

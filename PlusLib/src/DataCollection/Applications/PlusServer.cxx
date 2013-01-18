@@ -164,8 +164,10 @@ int main( int argc, char** argv )
   neverStop = (runTime==0.0);
 
   // Run server until requested 
+  const double commandQueuePollIntervalSec=0.010;
   while ( (vtkAccurateTimer::GetSystemTime() < startTime + runTime) || (neverStop) )
   {
+    server->ProcessPendingCommands();
 #ifdef _WIN32
     // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
     MSG Msg;
@@ -180,9 +182,9 @@ int main( int argc, char** argv )
       runTime = 0.0;
       neverStop = false;
     }
-    Sleep(1); // give a chance to other threads to get CPU time now
+    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
 #else
-    vtkAccurateTimer::Delay( 0.2 );
+    usleep(commandQueuePollIntervalSec * 1000000);
 #endif
   }
 
