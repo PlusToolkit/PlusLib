@@ -22,6 +22,8 @@ int main( int argc, char** argv )
   std::string serverHost="127.0.0.1";
   int serverPort = 18944;
   std::string command;
+  std::string deviceId;
+  std::string outputFilename="PlusServerRecording.mha";
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
@@ -31,7 +33,9 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
-  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server (START, STOP, RECONSTRUCT)" );
+  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server (START, STOP, SUSPEND, RESUME, RECONSTRUCT)" );
+  args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture device)" );
+  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: PlusServerRecording.mha)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
   if ( !args.Parse() )
@@ -69,13 +73,41 @@ int main( int argc, char** argv )
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
     cmd->SetCommandNameStart();
-    cmd->SetOutputFilename("PlusServerRecording.mha");
+    cmd->SetOutputFilename(outputFilename.c_str());
+    if ( !deviceId.empty() )
+    {
+      cmd->SetCaptureDeviceId(deviceId.c_str());
+    }
     client->SendCommand(cmd);
   }
   else if (STRCASECMP(command.c_str(),"STOP")==0)
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
     cmd->SetCommandNameStop();
+    if ( !deviceId.empty() )
+    {
+      cmd->SetCaptureDeviceId(deviceId.c_str());
+    }
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"SUSPEND")==0)
+  {
+    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
+    cmd->SetCommandNameSuspend();
+    if ( !deviceId.empty() )
+    {
+      cmd->SetCaptureDeviceId(deviceId.c_str());
+    }
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"RESUME")==0)
+  {
+    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
+    cmd->SetCommandNameResume();
+    if ( !deviceId.empty() )
+    {
+      cmd->SetCaptureDeviceId(deviceId.c_str());
+    }
     client->SendCommand(cmd);
   }
   else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
