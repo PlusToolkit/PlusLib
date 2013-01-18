@@ -35,9 +35,15 @@ public:
   /*! Output file name */
   virtual void SetFilename(const char* filename) { m_Filename=filename; }
 
+  /*! Open the output file for writing */
+  virtual PlusStatus OpenFile();
+
+  /*! Close the output file */
+  virtual PlusStatus CloseFile();
+
   /*! Enables capturing frames. It can be used for pausing the recording. */
-  vtkSetMacro(EnableCapturing, bool);
   vtkGetMacro(EnableCapturing, bool);
+  vtkSetMacro(EnableCapturing, bool);
 
 protected:
   virtual PlusStatus InternalConnect();
@@ -63,8 +69,8 @@ protected:
   /*! Meta sequence to write to */
   vtkMetaImageSequenceIO* m_Writer;
 
-  /*! When disconnecting, re-read the data from file, compress it while writing it */
-  bool m_CompressFileOnDisconnect;
+  /*! When closing the file, re-read the data from file, and write it compressed */
+  bool m_EnableFileCompression;
 
   /*! Preparing the header requires image data already collected, this flag makes the header preparation wait until valid data is collected */
   bool m_HeaderPrepared;
@@ -73,6 +79,9 @@ protected:
   long int m_TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
   bool EnableCapturing;
+
+  /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> WriterAccessMutex;
 
 private:
   vtkVirtualStreamDiscCapture(const vtkVirtualStreamDiscCapture&);  // Not implemented.

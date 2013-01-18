@@ -16,8 +16,6 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkVirtualStreamDiscCapture, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualStreamDiscCapture);
 
-const double HUGE_DOUBLE = 1.7e308;
-
 //----------------------------------------------------------------------------
 vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
 : vtkPlusDevice()
@@ -25,10 +23,11 @@ vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
 , m_LastRecordedFrameTimestamp(0.0)
 , m_Filename("")
 , m_Writer(vtkMetaImageSequenceIO::New())
-, m_CompressFileOnDisconnect(false)
+, m_EnableFileCompression(false)
 , m_TotalFramesRecorded(0)
 , m_HeaderPrepared(false)
 , EnableCapturing(true)
+, WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 {
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
@@ -76,10 +75,10 @@ PlusStatus vtkVirtualStreamDiscCapture::ReadConfiguration( vtkXMLDataElement* ro
     m_Filename = std::string(filename);
   }
 
-  const char* comp = deviceElement->GetAttribute("CompressFileOnDisconnect");
+  const char* comp = deviceElement->GetAttribute("EnableFileCompression");
   if( comp != NULL )
   {
-    m_CompressFileOnDisconnect = STRCASECMP(comp, "true") == 0 ? true : false;
+    m_EnableFileCompression = STRCASECMP(comp, "true") == 0 ? true : false;
   }
 
   const char* enableCapturing = deviceElement->GetAttribute("EnableCapturing");
@@ -94,54 +93,83 @@ PlusStatus vtkVirtualStreamDiscCapture::ReadConfiguration( vtkXMLDataElement* ro
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
 {
-  double lowestRate(HUGE_DOUBLE);
+  bool lowestRateKnown=false;
+  double lowestRate=30; // just a usual value (FPS)
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
-    if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )
+    if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
     {
       lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+      lowestRateKnown=true;
     }
   }
-  this->AcquisitionRate = lowestRate;
-
-  if ( !m_Filename.empty() )
+  if (lowestRateKnown)
   {
-    // Actual saving
-    std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
-    std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
-    std::string extension = vtksys::SystemTools::GetFilenameExtension(m_Filename); 
+    this->AcquisitionRate = lowestRate;
+  }
+  else
+  {
+    LOG_WARNING("vtkVirtualStreamDiscCapture acquisition rate is not known");
+  }
 
-    vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-    if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
+  if (this->EnableCapturing)
+  {
+    // Capturing enabled, so we have to open the file now
+    if (OpenFile()!=PLUS_SUCCESS)
     {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
+      return PLUS_FAIL;
     }
-    else
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
-    }
-    
-    m_Writer->SetFileName(m_Filename.c_str());
-    // Because this virtual device continually appends data to the file, we cannot do live compression
-    m_Writer->SetUseCompression(false);
-    m_Writer->SetTrackedFrameList(m_RecordedFrames);
-
-    // Save config file next to the tracked frame list
-    std::string configFileName = path + "/" + filename + "_config.xml";
-    PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
+{ 
+  this->EnableCapturing=false;
+  PlusStatus status=CloseFile();
+  return status;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
+{
+  if ( m_Filename.empty() )
+  {
+    LOG_ERROR("vtkVirtualStreamDiscCapture: Cannot open file, filename is not specified");
+    return PLUS_FAIL;
+  }
+
+  PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+
+  m_Writer->SetFileName(m_Filename.c_str());
+  // Because this virtual device continually appends data to the file, we cannot do live compression
+  m_Writer->SetUseCompression(false);
+  m_Writer->SetTrackedFrameList(m_RecordedFrames);
+
+  // Save config file next to the tracked frame list
+  std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
+  if (!path.empty())
+  {
+    path+="/";
+  }
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
+  std::string configFileName = path + filename + "_config.xml";
+  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
 {
   // Fix the header to write the correct number of frames
+  PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+
   std::ostringstream dimSizeStr; 
-  int dimensions[3];
+  int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
   dimensions[1] = m_Writer->GetDimensions()[1];
   dimensions[2] = m_TotalFramesRecorded;
@@ -153,7 +181,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
 
   m_Writer->Close();
 
-  if( m_CompressFileOnDisconnect )
+  if( m_EnableFileCompression )
   {
     if( this->CompressFile() != PLUS_SUCCESS )
     {
@@ -162,6 +190,9 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
     }
   }
 
+  m_HeaderPrepared=false;
+  m_RecordedFrames->Clear();
+  
   return PLUS_SUCCESS;
 }
 
@@ -179,12 +210,24 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
   // Allocates frames
   if( this->BuildNewTrackedFrameList() != PLUS_SUCCESS )
   {
+    if (!this->EnableCapturing)
+    {
+      // While this thread was working on getting the frames, capturing was disabled, so cancel the update now
+      return PLUS_SUCCESS;
+    }
     LOG_WARNING("Unable to build new tracked frame list. Continuing.");
     return PLUS_FAIL;
   }
 
   if( m_RecordedFrames->GetNumberOfTrackedFrames() == 0 )
   {
+    return PLUS_SUCCESS;
+  }
+
+  PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  if (!this->EnableCapturing)
+  {
+    // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
     return PLUS_SUCCESS;
   }
 
@@ -279,3 +322,4 @@ PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
 
   return PLUS_SUCCESS;
 }
+

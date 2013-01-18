@@ -67,8 +67,9 @@ int main( int argc, char** argv )
   // Execute command
   if (STRCASECMP(command.c_str(),"START")==0)
   {
-    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
+    vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
     cmd->SetCommandNameStart();
+    cmd->SetOutputFilename("PlusServerRecording.mha");
     client->SendCommand(cmd);
   }
   else if (STRCASECMP(command.c_str(),"STOP")==0)

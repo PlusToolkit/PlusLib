@@ -50,6 +50,8 @@ public:
   vtkGetStringMacro(CommandName);
   vtkSetStringMacro(CommandName);
   void SetCommandNameStart();
+  void SetCommandNameSuspend();
+  void SetCommandNameResume();
   void SetCommandNameStop();
 
   /*!

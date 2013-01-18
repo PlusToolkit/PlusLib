@@ -100,7 +100,6 @@ PlusStatus vtkPlusCommandProcessor::Stop()
   return PLUS_SUCCESS;
 }
 
-
 //----------------------------------------------------------------------------
 void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadInfo* data )
 {
@@ -111,39 +110,16 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
   // Execute commands until a stop is requested  
   while ( self->CommandExecutionActive.first )
   {
-    bool isQueueEmpty=true;
-    {
-      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
-      isQueueEmpty=self->ActiveCommands.empty();
-    }
-    if (isQueueEmpty)
+    int numberOfExecutedCommands=self->ExecuteCommands();
+    if (numberOfExecutedCommands==0)
     {
       // no commands in the queue, wait a bit before checking again
-      const double commandQueuePollIntervalSec=0.1;
+      const double commandQueuePollIntervalSec=0.010;
 #ifdef _WIN32
       Sleep(commandQueuePollIntervalSec*1000);
 #else
       usleep(commandQueuePollIntervalSec * 1000000);
 #endif
-      continue;
-    }
-    {
-      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
-      for (std::deque< vtkPlusCommand* >::iterator cmdIt=self->ActiveCommands.begin(); cmdIt!=self->ActiveCommands.end(); ++cmdIt)
-      {
-        (*cmdIt)->Execute();
-        if ((*cmdIt)->IsCompleted())
-        {
-          // the command execution is completed, so remove it from the queue of active commands
-          (*cmdIt)->UnRegister(self);
-          cmdIt=self->ActiveCommands.erase(cmdIt);
-          if (cmdIt==self->ActiveCommands.end())
-          {
-            // it was the last command in the queue
-            break;
-          }
-        }
-      }
     }
   }
 
@@ -153,6 +129,38 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+int vtkPlusCommandProcessor::ExecuteCommands()
+{
+  int numberOfExecutedCommands=0;
+  bool isQueueEmpty=true;
+  {
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    if (this->ActiveCommands.empty())
+    {
+      return numberOfExecutedCommands;
+    }
+  }
+
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  for (std::deque< vtkPlusCommand* >::iterator cmdIt=this->ActiveCommands.begin(); cmdIt!=this->ActiveCommands.end(); ++cmdIt)
+  {
+    numberOfExecutedCommands++;
+    (*cmdIt)->Execute();
+    if ((*cmdIt)->IsCompleted())
+    {
+      // the command execution is completed, so remove it from the queue of active commands
+      (*cmdIt)->UnRegister(this);
+      cmdIt=this->ActiveCommands.erase(cmdIt);
+      if (cmdIt==this->ActiveCommands.end())
+      {
+        // it was the last command in the queue
+        break;
+      }
+    }
+  }
+  return numberOfExecutedCommands;
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
