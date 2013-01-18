@@ -14,8 +14,7 @@
 #define vtkGetObjectConstMacro(name,type)                               \
   virtual type *Get##name () const                                      \
   {                                                                     \
-  vtkDebugConstMacro(<< this->GetClassName() << " (" << this            \
-  << "): returning " #name " address " << this->name );                 \
+  /* vtkDebugConstMacro(<< this->GetClassName() << " (" << this << "): returning " #name " address " << this->name );  */   \
   return this->name;                                                    \
   }
 
