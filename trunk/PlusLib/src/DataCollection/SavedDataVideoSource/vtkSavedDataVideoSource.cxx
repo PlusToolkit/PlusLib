@@ -12,6 +12,9 @@
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
 
+// If the loop time is shorter than this (typically because there is only one frame) then replay the whole buffer at every update
+static const double MINIMUM_LOOP_TIME_SEC=0.001;
+static const double MAXIMUM_LOOP_TIME_SEC=1e30;
 
 vtkCxxRevisionMacro(vtkSavedDataVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkSavedDataVideoSource);
@@ -73,7 +76,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
   {
     LOG_ERROR("vtkSavedDataVideoSource: Unable to get latest timestamp from local buffer!");
     return PLUS_FAIL; 
-  }
+  }  
 
   // Compute the next timestamp 
   double currentFrameTimestamp = this->LoopStartTime + elapsedTime; 
@@ -99,6 +102,7 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
     // this frame has been already added in this period, so nothing new to grab now
     return PLUS_SUCCESS;
   }
+
 
   // Get first and last frame index to be added
   unsigned long bufferIndexOfFirstFrameToBeAdded=0;
@@ -261,6 +265,26 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   savedDataBuffer->Clear(); 
 
   this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);
+
+  // Set the default loop start time and length to match the video buffer start time and length
+  this->LoopStartTime=this->LastAddedFrameTimestamp;  
+  double loopEndTime=0;
+  this->LocalVideoBuffer->GetLatestTimeStamp(loopEndTime);
+  this->LoopTime=loopEndTime-this->LoopStartTime;
+  if (this->LoopTime<MINIMUM_LOOP_TIME_SEC)
+  {
+    // The loop time is too short, probably there is only one frame in the sequence
+    if ( this->AcquisitionRate < 1.0/MAXIMUM_LOOP_TIME_SEC )
+    {
+      LOG_ERROR("Invalid AcquisitionRate: "<<this->AcquisitionRate);
+      this->LoopTime=1.0; 
+    }
+    else
+    {
+      // Acquire one loop (usually one frame) at each sampling period
+      this->LoopTime=1.0/this->AcquisitionRate;    
+    }
+  }
 
   this->GetBuffer()->Clear();
   this->GetBuffer()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
