@@ -64,7 +64,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, 
   }
   else if( RequireFrameBufferSizeInDeviceSetConfiguration )
   {
-    LOG_ERROR("Unable to find main buffer size in device element when it is required.");
+    LOG_ERROR("Unable to find main buffer size in device element when it is required. StreamId: " << this->GetStreamId() );
   }
 
   int averagedItemsForFiltering = 0;
