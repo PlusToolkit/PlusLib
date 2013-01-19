@@ -2650,12 +2650,12 @@ static void ndi_IRCHK_helper(ndicapi *pol, const char *cp, const char *crp)
 */
 static void ndi_COMM_helper(ndicapi *pol, const char *cp, const char *crp)
 {
-  static int convert_baud[7] = { 9600, 14400, 19200, 38400, 57600, 115200, 921600 };
+  static int convert_baud[8] = { 9600, 14400, 19200, 38400, 57600, 115200, 921600, 1228739 };
   char newdps[4] = "8N1";
   int newspeed = 9600;
   int newhand = 0;
 
-  if (cp[5] >= '0' && cp[5] <= '5') {
+  if (cp[5] >= '0' && cp[5] <= '7') {
     newspeed = convert_baud[cp[5]-'0'];
   }
   if (cp[6] == '1') {

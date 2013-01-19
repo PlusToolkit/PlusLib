@@ -524,6 +524,7 @@ int ndiSerialComm(HANDLE serial_port, int baud, const char *mode,
     case 57600:  newbaud = CBR_57600;  break;
     case 115200: newbaud = CBR_115200; break;
     case 921600: newbaud = CBR_921600; break;
+    case 1228739: newbaud = CBR_19200; break;
     default:     return -1;
     }
 

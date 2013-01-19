@@ -328,6 +328,7 @@ PlusStatus vtkNDITracker::InternalStartRecording()
   case 57600: baud = NDI_57600; break; 
   case 115200: baud = NDI_115200; break;
   case 921600: baud = NDI_921600; break;
+  case 1228739: baud = NDI_1228739; break;
 
   default:
     LOG_ERROR("Illegal baud rate");
