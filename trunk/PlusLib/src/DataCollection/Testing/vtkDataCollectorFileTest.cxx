@@ -122,8 +122,12 @@ int main( int argc, char** argv )
   // Check some transforms to ensure that the correct data is returned by the data collector
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
 
+  // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
+  // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
+  double timeOffset=218.188043;
+
   // Frame 0001
-  dataCollector->GetTrackedFrameByTime(218.792613, &trackedFrame);
+  dataCollector->GetTrackedFrameByTime(218.792613-timeOffset, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
   
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
@@ -153,7 +157,7 @@ int main( int argc, char** argv )
   }
 
   // Frame 0013
-  dataCollector->GetTrackedFrameByTime(222.619279, &trackedFrame);
+  dataCollector->GetTrackedFrameByTime(222.619279-timeOffset, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)

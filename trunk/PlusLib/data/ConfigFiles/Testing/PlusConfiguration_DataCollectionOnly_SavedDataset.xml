@@ -8,7 +8,8 @@
 
     <Device
       Id="SavedDataTracker"
-      Type="SavedTrackerDataset"
+      Type="SavedVideoDataset"
+      UseData="TRANSFORM"      
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Probe"

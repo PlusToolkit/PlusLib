@@ -8,8 +8,9 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     />
 
     <Device
-      Type="SavedTrackerDataset"
       Id="DeviceSavedDataset"
+      Type="SavedVideoDataset"
+      UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="fCal_Test_Calibration.mha"
@@ -26,8 +27,8 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     </Device>
 
     <Device
-      Type="SavedVideoDataset"
       Id="DeviceSavedDataset" 
+      Type="SavedVideoDataset"
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 

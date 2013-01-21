@@ -352,11 +352,26 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
+  // local tools
   for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkPlusStreamTool* tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
+}
+
+//----------------------------------------------------------------------------
+double vtkPlusDevice::GetToolLocalTimeOffsetSec()
+{
+  // local tools
+  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
+  {
+    vtkPlusStreamTool* tool = it->second;
+    double aTimeOffsetSec=tool->GetBuffer()->GetLocalTimeOffsetSec();
+    return aTimeOffsetSec;
+  }
+  LOG_ERROR("Failed to get tool local time offset");
+  return 0.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -1278,7 +1293,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTracke
     numberOfFramesToAdd = numberOfFramesSinceTimestamp;
   }
 
-  LOG_DEBUG("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
+  LOG_TRACE("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
 
   // If we couldn't find any frames (or one of the items were invalid) 
   // set the timestamp to the most recent one
@@ -2145,6 +2160,7 @@ double vtkPlusDevice::GetAcquisitionRate() const
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
 {
+// TODO: check this
   LOG_TRACE("vtkDataCollector::GetOldestTimestamp"); 
   ts=0;
 

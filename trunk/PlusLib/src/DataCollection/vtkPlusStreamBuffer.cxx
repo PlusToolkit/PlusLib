@@ -446,7 +446,10 @@ PlusStatus vtkPlusStreamBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolSta
     LOG_ERROR( "vtkPlusDataBuffer: Unable to add NULL matrix to tracker buffer!"); 
     return PLUS_FAIL; 
   }
-
+  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    unfilteredTimestamp=vtkAccurateTimer::GetSystemTime();
+  }
   if (filteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     bool filteredTimestampProbablyValid=true;

@@ -7,8 +7,9 @@
     />
 
     <Device
-      Type="SavedTrackerDataset"
+      Type="SavedVideoDataset"
       Id="DeviceSavedDataset"
+      UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="UsSimulatorAlgoTestTrackingData.mha"
