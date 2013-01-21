@@ -12,10 +12,6 @@
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
 
-// If the loop time is shorter than this (typically because there is only one frame) then replay the whole buffer at every update
-static const double MINIMUM_LOOP_TIME_SEC=0.001;
-static const double MAXIMUM_LOOP_TIME_SEC=1e30;
-
 vtkCxxRevisionMacro(vtkSavedDataVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkSavedDataVideoSource);
 
@@ -26,12 +22,14 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->LocalVideoBuffer = NULL;
   this->SequenceMetafile = NULL; 
   this->RepeatEnabled = false; 
-  this->LoopStartTime = 0.0; 
-  this->LoopTime = 0.0; 
+  this->LoopStartTime_Local = 0.0; 
+  this->LoopStopTime_Local = 0.0; 
   this->UseAllFrameFields = false;
   this->UseOriginalTimestamps = false;
-  this->LastAddedFrameTimestamp=0;
-  this->LastAddedFrameLoopIndex=0;
+  this->LastAddedFrameUid=0;
+  this->LastAddedLoopIndex=0;
+  this->LoopFirstFrameUid=0;
+  this->LoopLastFrameUid=0;
 
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
@@ -68,126 +66,149 @@ PlusStatus vtkSavedDataVideoSource::InternalUpdate()
 {
   //LOG_TRACE("vtkSavedDataVideoSource::InternalUpdate");
 
-  // Compute elapsed time since we restarted the timer
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime();
+  const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
 
-  double latestFrameTimestamp(0); 
-  if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
+  // Determine the UID and loop index of the next frame that will be added
+  BufferItemUidType frameToBeAddedUid=this->LastAddedFrameUid+1;
+  int frameToBeAddedLoopIndex=this->LastAddedLoopIndex;
+  if (frameToBeAddedUid>this->LoopLastFrameUid)
   {
-    LOG_ERROR("vtkSavedDataVideoSource: Unable to get latest timestamp from local buffer!");
-    return PLUS_FAIL; 
-  }  
-
-  // Compute the next timestamp 
-  double currentFrameTimestamp = this->LoopStartTime + elapsedTime; 
-  int currentFrameLoopIndex=0;
-  if ( currentFrameTimestamp > latestFrameTimestamp )
-  {
-    if ( this->RepeatEnabled )
-    {
-      currentFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
-      currentFrameLoopIndex=floor(elapsedTime/this->LoopTime); // how many loops have we completed so far?
-    }
-    else
-    {
-      // Use the latest frame always
-      currentFrameTimestamp = latestFrameTimestamp; 
-    }
+    frameToBeAddedLoopIndex++;
+    frameToBeAddedUid -= numberOfFramesInTheLoop;      
   }
 
-  BufferItemUidType currentFrameUid=0;
-  this->LocalVideoBuffer->GetItemUidFromTime(currentFrameTimestamp,currentFrameUid);
-  if (currentFrameTimestamp<=this->LastAddedFrameTimestamp && currentFrameLoopIndex<=this->LastAddedFrameLoopIndex)
+  if (!this->UseOriginalTimestamps)
   {
-    // this frame has been already added in this period, so nothing new to grab now
+    // Don't use the original timestamps, just replay with one frame at each update
+
+    if (!this->RepeatEnabled && frameToBeAddedLoopIndex>0)
+    {
+      // there is no repeat and we already played the loop once, so don't add any more frames
+      return PLUS_SUCCESS;
+    }
+    
+    this->FrameNumber++;
+
+    StreamBufferItem dataBufferItemToBeAdded; 
+    if (this->LocalVideoBuffer->GetStreamBufferItem( frameToBeAddedUid, &dataBufferItemToBeAdded) != ITEM_OK )
+    {
+      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer, UID=" << frameToBeAddedUid);
+      return PLUS_FAIL;
+    }    
+    StreamBufferItem::FieldMapType fieldMap;
+    if (this->UseAllFrameFields)
+    {
+      fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
+    }
+
+    // UNDEFINED_TIMESTAMP => use current timestamp
+    if (this->GetBuffer()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap)!=PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+
+    this->LastAddedFrameUid=frameToBeAddedUid;
+    this->LastAddedLoopIndex=frameToBeAddedLoopIndex;
+
     return PLUS_SUCCESS;
   }
 
+  // Compute elapsed time since we started the acquisition
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime();
 
-  // Get first and last frame index to be added
-  unsigned long bufferIndexOfFirstFrameToBeAdded=0;
-  if (this->GetBuffer()->GetNumberOfItems()>0)
+  double loopTime=this->LoopStopTime_Local-this->LoopStartTime_Local;
+
+  int currentLoopIndex=0; // how many loops have we completed so far?
+  BufferItemUidType currentFrameUid=0; // uid of the frame that has been acquired most recently (uid of the last frame that has to be added in this update)
   {
-    // frames have been added already
-    int bufferIndexOfLastAddedFrame = 0;  
-    if (this->LocalVideoBuffer->GetBufferIndexFromTime(this->LastAddedFrameTimestamp, bufferIndexOfLastAddedFrame) != ITEM_OK)
+    double currentFrameTime_Local=0; // current time in the Local buffer time reference
+    if (!this->RepeatEnabled || loopTime==0 )
     {
-      LOG_ERROR("Unable to find the latest added frame, the local buffer is corrupted " << this->LastAddedFrameTimestamp);
-      return PLUS_FAIL;
+      if ( elapsedTime >= loopTime )
+      {
+        // reached the end of the loop, nothing to add
+        return PLUS_SUCCESS;
+      }
+      currentLoopIndex=0;
+      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime;
     }
-    bufferIndexOfFirstFrameToBeAdded=bufferIndexOfLastAddedFrame+1;
-    if (bufferIndexOfFirstFrameToBeAdded>=this->LocalVideoBuffer->GetNumberOfItems())
+    else
     {
-      bufferIndexOfFirstFrameToBeAdded=0;
+      currentLoopIndex=floor(elapsedTime/loopTime);
+      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;    
+    }
+    
+    // Get the uid of the frame that has been most recently acquired
+    BufferItemUidType closestFrameUid=0;
+    this->LocalVideoBuffer->GetItemUidFromTime(currentFrameTime_Local,closestFrameUid);
+    double closestFrameTime_Local=0;
+    this->LocalVideoBuffer->GetTimeStamp(closestFrameUid, closestFrameTime_Local);
+    if (closestFrameTime_Local>currentFrameTime_Local)
+    {
+      // the closest frame is newer than the current time, so don't use this item but the one before
+      currentFrameUid=closestFrameUid-1;
+    }
+    else
+    {
+      currentFrameUid=closestFrameUid;
+    }
+    if (currentFrameUid<this->LoopFirstFrameUid)
+    {
+      currentLoopIndex--;
+      currentFrameUid += numberOfFramesInTheLoop;      
+    }
+    if (currentFrameUid>this->LoopLastFrameUid)
+    {
+      currentLoopIndex++;
+      currentFrameUid -= numberOfFramesInTheLoop;      
     }
   }
-  int bufferIndexOfLastFrameToBeAdded=0;
-  if (this->LocalVideoBuffer->GetBufferIndexFromTime(currentFrameTimestamp, bufferIndexOfLastFrameToBeAdded) != ITEM_OK)
-  {
-    LOG_ERROR("Unable to find the latest added frame, the local buffer is corrupted " << currentFrameUid);
-    return PLUS_FAIL;
-  }
 
-  int numberOfFramesToBeAdded=(bufferIndexOfLastFrameToBeAdded-bufferIndexOfFirstFrameToBeAdded+1)+
-    (currentFrameLoopIndex-this->LastAddedFrameLoopIndex)*this->LocalVideoBuffer->GetNumberOfItems();
- 
+  int numberOfFramesToBeAdded=(currentFrameUid-this->LastAddedFrameUid)+
+    (currentLoopIndex-this->LastAddedLoopIndex)*numberOfFramesInTheLoop;
+
   PlusStatus status=PLUS_SUCCESS;
-
-  // add at least one frame
-  int bufferIndexOfFrameToBeAdded=bufferIndexOfFirstFrameToBeAdded;
-  int loopIndexOfFrameToBeAdded=this->LastAddedFrameLoopIndex;
   for (int addedFrames=0; addedFrames<numberOfFramesToBeAdded; addedFrames++)
   {
 
     // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
     // For simplicity, we increase it always by 1.
+    // TODO: use the UID difference as increment
     this->FrameNumber++;
        
-    BufferItemUidType uidOfFrameToBeAdded=-1;
-    if (this->LocalVideoBuffer->GetItemUidFromBufferIndex(bufferIndexOfFrameToBeAdded, uidOfFrameToBeAdded)!=ITEM_OK)
+    StreamBufferItem dataBufferItemToBeAdded; 
+    if (this->LocalVideoBuffer->GetStreamBufferItem( frameToBeAddedUid, &dataBufferItemToBeAdded) != ITEM_OK )
     {
-      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
-      status=PLUS_FAIL;
-      continue;
-    }
-    StreamBufferItem DataBufferItemToBeAdded; 
-    if (this->LocalVideoBuffer->GetStreamBufferItem( uidOfFrameToBeAdded, &DataBufferItemToBeAdded) != ITEM_OK )
-    {
-      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer " << bufferIndexOfFrameToBeAdded);
+      LOG_ERROR("vtkSavedDataVideoSource: Failed to retrieve item from the buffer, UID=" << frameToBeAddedUid);
       status=PLUS_FAIL;
       continue;
     }
 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP;
-    double unfilteredTimestamp=UNDEFINED_TIMESTAMP;
-    if (this->UseOriginalTimestamps)
-    {    
-      // Read the timestamp without any local time offset. Offset will be applied when it is copied to the video buffer.
-      filteredTimestamp=DataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;
-      unfilteredTimestamp=DataBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+loopIndexOfFrameToBeAdded*this->LoopTime;    
-    }
+    // Read the timestamp without any local time offset. Offset will be applied when it is copied to the video buffer.
+    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local;
+    double unfilteredTimestamp=dataBufferItemToBeAdded.GetUnfilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local;    // TODO: check what happens if no unfiltered timestamp is available
 
     StreamBufferItem::FieldMapType fieldMap;
     if (this->UseAllFrameFields)
     {
-      fieldMap = DataBufferItemToBeAdded.GetCustomFrameFieldMap();    
+      fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
     }
 
-    if (this->GetBuffer()->AddItem(&(DataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+    if (this->GetBuffer()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
     {
       status=PLUS_FAIL;
     }  
 
-    bufferIndexOfFrameToBeAdded++;
-    if (bufferIndexOfFrameToBeAdded>=this->LocalVideoBuffer->GetNumberOfItems())
+    this->LastAddedFrameUid=frameToBeAddedUid;
+    this->LastAddedLoopIndex=frameToBeAddedLoopIndex;
+
+    frameToBeAddedUid++;
+    if (frameToBeAddedUid>this->LoopLastFrameUid)
     {
-      bufferIndexOfFrameToBeAdded=0;
-      loopIndexOfFrameToBeAdded++;
+      frameToBeAddedLoopIndex++;
+      frameToBeAddedUid -= numberOfFramesInTheLoop;      
     }
   }
-
-  this->LastAddedFrameTimestamp=currentFrameTimestamp;
-  this->LastAddedFrameLoopIndex=currentFrameLoopIndex;
 
   this->Modified();
   return status;
@@ -264,28 +285,45 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 
-  this->LocalVideoBuffer->GetOldestTimeStamp(this->LastAddedFrameTimestamp);
+  double oldestTimestamp_Local=0;
+  this->LocalVideoBuffer->GetOldestTimeStamp(oldestTimestamp_Local);
+  double latestTimestamp_Local=0;
+  this->LocalVideoBuffer->GetLatestTimeStamp(latestTimestamp_Local);
 
   // Set the default loop start time and length to match the video buffer start time and length
-  this->LoopStartTime=this->LastAddedFrameTimestamp;  
-  double loopEndTime=0;
-  this->LocalVideoBuffer->GetLatestTimeStamp(loopEndTime);
-  this->LoopTime=loopEndTime-this->LoopStartTime;
-  if (this->LoopTime<MINIMUM_LOOP_TIME_SEC)
+
+  this->LoopFirstFrameUid=this->LocalVideoBuffer->GetOldestItemUidInBuffer();
+  this->LoopLastFrameUid=this->LocalVideoBuffer->GetLatestItemUidInBuffer();
+  
+  this->LoopStartTime_Local=oldestTimestamp_Local;  
+  
+  // When we reach the last frame we have to wait one frame period before
+  // playing the first frame, so we have to add one frame period to the loop length (loopTime)
+  double framePeriodSec=0;
+  double frameRate=this->LocalVideoBuffer->GetFrameRate(true);
+  if (frameRate!=0.0)
   {
-    // The loop time is too short, probably there is only one frame in the sequence
-    if ( this->AcquisitionRate < 1.0/MAXIMUM_LOOP_TIME_SEC )
-    {
-      LOG_ERROR("Invalid AcquisitionRate: "<<this->AcquisitionRate);
-      this->LoopTime=1.0; 
+    framePeriodSec=1.0/frameRate;
+  }
+  else
+  {
+    // There is probably only one frame in the buffer, so use the AcquisitionRate
+    // (instead of trying to find out the frame period from the frame rate in the file)
+    if ( this->AcquisitionRate!=0.0 )
+    {      
+      framePeriodSec=1.0/this->AcquisitionRate;
     }
     else
     {
-      // Acquire one loop (usually one frame) at each sampling period
-      this->LoopTime=1.0/this->AcquisitionRate;    
+      LOG_ERROR("Invalid AcquisitionRate: "<<this->AcquisitionRate);      
+      framePeriodSec=1.0;
     }
   }
+  this->LoopStopTime_Local=latestTimestamp_Local+framePeriodSec;
 
+  this->LastAddedFrameUid=this->LoopFirstFrameUid-1;
+  this->LastAddedLoopIndex=0;
+  
   this->GetBuffer()->Clear();
   this->GetBuffer()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
   this->GetBuffer()->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
@@ -459,4 +497,74 @@ PlusStatus vtkSavedDataVideoSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSavedDataVideoSource::GetLoopTimeRange(double& loopStartTime, double& loopStopTime)
+{
+  loopStartTime=this->LoopStartTime_Local;
+  loopStopTime=this->LoopStopTime_Local;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSavedDataVideoSource::SetLoopTimeRange(double loopStartTime, double loopStopTime)
+{
+  this->LoopStartTime_Local=loopStartTime;
+  this->LoopStopTime_Local=loopStopTime;
+
+  this->LoopFirstFrameUid=GetClosestFrameUidWithinTimeRange(this->LoopStartTime_Local, this->LoopStartTime_Local, this->LoopStopTime_Local);
+  this->LoopLastFrameUid=GetClosestFrameUidWithinTimeRange(this->LoopStopTime_Local, this->LoopStartTime_Local, this->LoopStopTime_Local);
+
+  this->LastAddedFrameUid=this->LoopFirstFrameUid-1;
+  this->LastAddedLoopIndex=0;  
+}
+
+BufferItemUidType vtkSavedDataVideoSource::GetClosestFrameUidWithinTimeRange(double time_Local, double startTime_Local, double stopTime_Local)
+{
+  // time_Local should be within the specified interval
+  if (time_Local<startTime_Local)
+  {
+    time_Local=startTime_Local;
+  }
+  else if (time_Local>stopTime_Local)
+  {
+    time_Local=stopTime_Local;
+  }
+  // time_Local should be also within the local buffer time range
+  double oldestTimestamp_Local=0;
+  this->LocalVideoBuffer->GetOldestTimeStamp(oldestTimestamp_Local);
+  double latestTimestamp_Local=0;
+  this->LocalVideoBuffer->GetLatestTimeStamp(latestTimestamp_Local);
+
+  // if the asked time is outside of the loop range then return the closest element in the range
+  if (time_Local<oldestTimestamp_Local)
+  {
+    time_Local=oldestTimestamp_Local;
+  }
+  else if (time_Local>latestTimestamp_Local)
+  {
+    time_Local=latestTimestamp_Local;
+  }
+
+  // Get the uid of the frame that has been most recently acquired
+  BufferItemUidType closestFrameUid=0;
+  this->LocalVideoBuffer->GetItemUidFromTime(time_Local,closestFrameUid);
+  double closestFrameTime_Local=0;
+  this->LocalVideoBuffer->GetTimeStamp(closestFrameUid, closestFrameTime_Local);
+
+  // The closest frame is at the boundary, but it may be just outside the range:
+  // use the next/previous frame if the closest frame is on the wrong side of the boundary
+  if (closestFrameTime_Local<startTime_Local)
+  {
+    return closestFrameUid + 1;
+  } 
+  else if (closestFrameTime_Local>stopTime_Local)
+  {
+    return  closestFrameUid - 1;
+  }
+  else
+  {
+    // the found closest frame is already within the specified range
+    return closestFrameUid;
+  }
 }

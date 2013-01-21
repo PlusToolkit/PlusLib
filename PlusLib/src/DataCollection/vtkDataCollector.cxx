@@ -864,115 +864,59 @@ PlusStatus vtkDataCollector::SetLoopTimes()
 {
   LOG_TRACE("vtkDataCollector::SetLoopTimes"); 
 
-  double oldestTrackerTimeStamp(0);
-  double latestTrackerTimeStamp(0);
-  vtkSavedDataTracker* savedDataTracker = NULL;
-
+  double latestLoopStartTime(0);
+  double earliestLoopStopTime(0);
+  bool isLoopStartStopTimeInitialized=false;
+  
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
-    savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(*it); 
-
-    if ( savedDataTracker != NULL )
+    vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
+    if( savedDataVideoSource == NULL)
     {
-      if ( savedDataTracker->GetLocalTrackerBuffer() == NULL ) 
-      {
-        LOG_ERROR("Failed to get local tracker buffer!"); 
-        return PLUS_FAIL;
-      }
-
-      if ( savedDataTracker->GetLocalTrackerBuffer()->GetOldestTimeStamp(oldestTrackerTimeStamp) !=  ITEM_OK ) 
-      {
-        LOG_WARNING("Failed to get oldest timestamp from local tracker buffer!"); 
-        return PLUS_FAIL;
-      }
-
-      if ( savedDataTracker->GetLocalTrackerBuffer()->GetLatestTimeStamp(latestTrackerTimeStamp) !=  ITEM_OK ) 
-      {
-        LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
-        return PLUS_FAIL;
-      }
-      break;
+      // loops are only set for saved data sources
+      continue;
     }
+    if(!savedDataVideoSource->GetUseOriginalTimestamps())
+    {
+      LOG_WARNING("The device "<<savedDataVideoSource->GetDeviceId()<<" does not use original timestamps, therefore synchronization of loop time is not applicable");
+      continue;
+    }
+    double loopStartTime=0;
+    double loopStopTime=0;
+    savedDataVideoSource->GetLoopTimeRange(loopStartTime, loopStopTime);
+    if (loopStartTime>latestLoopStartTime || !isLoopStartStopTimeInitialized)
+    {
+      loopStartTime=latestLoopStartTime;
+    }
+    if (loopStopTime<earliestLoopStopTime || !isLoopStartStopTimeInitialized)
+    {
+      loopStopTime=earliestLoopStopTime;
+    }
+    isLoopStartStopTimeInitialized=true;
   }
 
-  double oldestVideoTimeStamp(0);
-  double latestVideoTimeStamp(0);
-  vtkSavedDataVideoSource* savedDataVideoSource = NULL;
+  if (!isLoopStartStopTimeInitialized)
+  {
+    LOG_WARNING("No saved data source devices were found that use original timestamps, so synchronization of loop times is not performed");
+    return PLUS_SUCCESS;
+  }
 
+  if (latestLoopStartTime>=earliestLoopStopTime)
+  {
+    LOG_ERROR("Data sets in saved data source devices do not have a common time range. Synchronization of loop times is not possible.");
+    return PLUS_FAIL;
+  }
+
+  // Set the common loop range for all saved data source devices
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
-    savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
-    if( savedDataVideoSource != NULL)
+    vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
+    if( savedDataVideoSource == NULL)
     {
-      if ( savedDataVideoSource->GetLocalVideoBuffer() == NULL ) 
-      {
-        LOG_ERROR("Failed to get local video buffer!"); 
-        return PLUS_FAIL;
-      }
-
-      if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
-      {
-        LOG_WARNING("Failed to get oldest timestamp from local video buffer!"); 
-        return PLUS_FAIL;
-      }
-
-      if ( savedDataVideoSource->GetLocalVideoBuffer()->GetLatestTimeStamp(latestVideoTimeStamp) !=  ITEM_OK ) 
-      {
-        LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
-        return PLUS_FAIL;
-      }
-      break;
+      // loops are only set for saved data sources
+      continue;
     }
-  }
-
-  // Item timestamps should computed in the following way for saved datasets (time intersection of the two buffers)
-  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
-
-  // Compute the loop start time 
-  double loopStartTime(0);
-  if ( oldestVideoTimeStamp > oldestTrackerTimeStamp )
-  {
-    loopStartTime = oldestVideoTimeStamp; 
-  }
-  else
-  {
-    loopStartTime = oldestTrackerTimeStamp; 
-  }
-
-  // Compute the loop time 
-  double loopTime(0); 
-  if ( savedDataVideoSource == NULL )
-  {
-    loopTime = latestTrackerTimeStamp - loopStartTime;
-  }
-  else if ( savedDataTracker == NULL )
-  {
-    loopTime = latestVideoTimeStamp - loopStartTime; 
-  }
-  else if ( latestVideoTimeStamp > latestTrackerTimeStamp )
-  {
-    loopTime = latestTrackerTimeStamp - loopStartTime; 
-  }
-  else
-  {
-    loopTime = latestVideoTimeStamp - loopStartTime; 
-  }
-
-  if ( loopTime < 0 )
-  {
-    LOG_ERROR("The two saved datasets don't intersect each other!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( savedDataVideoSource != NULL )
-  {
-    savedDataVideoSource->SetLoopStartTime( loopStartTime );
-    savedDataVideoSource->SetLoopTime( loopTime );
-  }
-  if ( savedDataTracker != NULL )
-  {
-    savedDataTracker->SetLoopStartTime( loopStartTime ); 
-    savedDataTracker->SetLoopTime( loopTime );
+    savedDataVideoSource->SetLoopTimeRange(latestLoopStartTime, earliestLoopStopTime);
   }
 
   return PLUS_SUCCESS; 
