@@ -7,14 +7,17 @@
     />
       
     <Device
-      Id="SomeVideoDevice"
+      Id="VideoDevice"
       Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       Selectable="true" >
-      <OutputStream Id="Output" BufferSize="100"/>
+      <Image Id="VideoOutput" BufferSize="100" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
   </DataCollection>
@@ -33,7 +36,10 @@
         UsImageOrientation="MF"
         AcquisitionRate="30"
         LocalTimeOffsetSec="0" >
-          <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="50" AveragedItemsForFiltering="20"/>
+          <Image Id="VideoOutput" BufferSize="50" AveragedItemsForFiltering="20" />
+          <OutputStream Id="OutputOpenIGTLinkVideo">
+            <Image Id="VideoOutput" />
+          </OutputStream>
       </Device>    
     </DataCollection>
   </PlusServerTestClientsConfiguration>

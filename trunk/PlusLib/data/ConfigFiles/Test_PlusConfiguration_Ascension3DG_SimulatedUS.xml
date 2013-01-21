@@ -8,18 +8,16 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="Ascension3DG"
-      Id="DeviceAscension3DG"
-      BufferSize="2500"
       Frequency="15"
       LocalTimeOffset="0.0"
-      AveragedItemsForFiltering="20"
       FilterAcWideNotch="1">
-        <Tool Name="Probe" PortName="0"></Tool>
-        <Tool Name="Reference" PortName="1"></Tool>
-        <Tool Name="Stylus" PortName="2"></Tool>
+        <Tool Name="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0"></Tool>
+        <Tool Name="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1"></Tool>
+        <Tool Name="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2"></Tool>
 
-        <OutputStream Id="Output3DG" >
+        <OutputStream Id="TrackerOutput" >
           <Tool Name="Probe"/>
           <Tool Name="Reference"/>
           <Tool Name="Stylus"/>
@@ -27,20 +25,24 @@
       </Device>
 
     <Device
+      Id="VideoDevice"
       Type="UsSimulator"
-      Id="DeviceUsSimulator"
       LocalTimeOffsetSec="0.0"
       AveragedItemsForFiltering="20"
       AcquisitionRate="15"
       BufferSize="100"
       UsImageOrientation="MF" >
-        <OutputStream Id="UsSimulatorOutput" BufferSize="500" />
+        <Image Id="ImageOutput" BufferSize="500" />
+        
+        <OutputStream Id="VideoDeviceOutput">
+          <Image Id="ImageOutput"/>
+        </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="Output3DG" />
-      <InputStream Id="UsSimulatorOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
   

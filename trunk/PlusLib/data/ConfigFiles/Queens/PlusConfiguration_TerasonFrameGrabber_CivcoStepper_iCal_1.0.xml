@@ -9,7 +9,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
 
     <Device
       Type="BrachyTracker"
-      Id="DeviceBrachyTracker"
+      Id="TrackerDevice"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="0"
@@ -18,7 +18,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
       ModelNumber="4012A18-a"
       ModelVersion=""
       ModelSerialNumber="01-50-149" >
-      <OutputStream Id="BrachyTrackerOutput" BufferSize="300" AveragedItemsForFiltering="20"  />
+      <OutputStream Id="TrackerOutput" BufferSize="300" AveragedItemsForFiltering="20"  />
       <StepperCalibration 
         AlgorithmVersion="1.0.0"
         Date=""
@@ -42,13 +42,16 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
       VideoFormat="Y800 (640x480)"
       InputChannel="01 Video: SVideo"
       ICBufferSize="50">
-      <OutputStream Id="ICCapturingOutput" BufferSize="100" AveragedItemsForFiltering="20"  />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
     
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="BrachyTrackerOutput" />
-      <InputStream Id="ICCapturingOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

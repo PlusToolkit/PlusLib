@@ -7,14 +7,17 @@
     />
       
     <Device
-      Id="SavedData"
+      Id="VideoDevice"
       Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       Selectable="true" >
-      <OutputStream Id="Output" BufferSize="100" />
+      <Image Id="VideoOutput" BufferSize="100" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 

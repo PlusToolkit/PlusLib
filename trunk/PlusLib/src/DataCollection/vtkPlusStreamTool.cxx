@@ -5,36 +5,32 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
-#include "vtkPlusStreamTool.h"
 #include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkObjectFactory.h"
-#include "vtkXMLUtilities.h"
+#include "vtkPlusStreamTool.h"
+#include "vtkTransform.h"
+//#include "vtkObjectFactory.h"
+//#include "vtkXMLUtilities.h"
 
 vtkStandardNewMacro(vtkPlusStreamTool);
 
 //----------------------------------------------------------------------------
 vtkPlusStreamTool::vtkPlusStreamTool()
-{  
-  this->Device = 0;
+: Device(NULL)
+, PortName(NULL)
+, FrameNumber(0)
+, LED1(0)
+, LED2(0)
+, LED3(0)
 
-  this->LED1 = 0;
-  this->LED2 = 0;
-  this->LED3 = 0;
-
-  this->ToolName = NULL;
-  this->PortName = NULL;
-
-  this->ToolRevision = 0;
-  this->ToolSerialNumber = 0;
-  this->ToolPartNumber = 0;
-  this->ToolManufacturer = 0;
-
-  this->Buffer = vtkPlusStreamBuffer::New();
-
-  this->FrameNumber = 0;
+, ToolRevision(NULL)
+, ToolSerialNumber(NULL)
+, ToolPartNumber(NULL)
+, ToolManufacturer(NULL)
+, ToolName(NULL)
+, ReferenceCoordinateFrameName(NULL)
+, Buffer(vtkPlusStreamBuffer::New())
+{
 }
 
 //----------------------------------------------------------------------------
@@ -46,10 +42,10 @@ vtkPlusStreamTool::~vtkPlusStreamTool()
     this->ToolName = NULL; 
   }
 
-  if ( this->PortName != NULL )
+  if ( this->ReferenceCoordinateFrameName != NULL )
   {
-    delete [] this->PortName; 
-    this->PortName = NULL; 
+    delete [] this->ReferenceCoordinateFrameName; 
+    this->ReferenceCoordinateFrameName = NULL; 
   }
 
   this->SetPortName(NULL); 
@@ -77,6 +73,10 @@ void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
   if ( this->ToolName )
   {
     os << indent << "ToolName: " << this->GetToolName() << "\n";
+  }
+  if ( this->ReferenceCoordinateFrameName )
+  {
+    os << indent << "ReferenceCoordinateFrameName: " << this->GetReferenceCoordinateFrameName() << "\n";
   }
   if ( this->PortName )
   {
@@ -133,6 +133,35 @@ PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
   char *cp1 =  new char[n]; 
   const char *cp2 = (toolName); 
   this->ToolName = cp1;
+  do { *cp1++ = *cp2++; } while ( --n ); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
+{
+  if ( this->ReferenceCoordinateFrameName == NULL && referenceName == NULL) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->ReferenceCoordinateFrameName && referenceName && ( STRCASECMP(this->ReferenceCoordinateFrameName, referenceName) == 0 ) ) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->ReferenceCoordinateFrameName != NULL )
+  {
+    LOG_ERROR("Tool name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
+    return PLUS_FAIL; 
+  }
+
+  // Copy string 
+  size_t n = strlen(referenceName) + 1; 
+  char *cp1 =  new char[n]; 
+  const char *cp2 = (referenceName); 
+  this->ReferenceCoordinateFrameName = cp1;
   do { *cp1++ = *cp2++; } while ( --n ); 
 
   return PLUS_SUCCESS; 
@@ -225,6 +254,7 @@ void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
   this->SetToolPartNumber( tool->GetToolPartNumber() );
   this->SetToolManufacturer( tool->GetToolManufacturer() );
   this->SetToolName( tool->GetToolName() ); 
+  this->SetReferenceName( tool->GetReferenceCoordinateFrameName() );
 
   this->Buffer->DeepCopy( tool->GetBuffer() );
 

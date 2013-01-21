@@ -8,14 +8,19 @@ vtkPhantomRegistrationTest uses this configuration"
     />
 
     <Device
+      Id="TrackerDevice"
       Type="FakeTracker"
-      Id="DeviceFakeTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       Mode="RecordPhantomLandmarks"
       Selectable="true">
       <Tool Name="Reference" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20" /> 
       <Tool Name="Stylus" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20" />
+      
+      <OutputStream Id="TrackerOutput">
+        <Tool Name="Reference" />
+        <Tool Name="Stylus" />
+      </OutputStream>
     </Device>
   </DataCollection> 
 

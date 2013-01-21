@@ -13,15 +13,15 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="CertusTracker"
-      Id="DeviceCertusTracker"
       BufferSize="2500"
       AcquisitionRate="50"
       AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0.0"
       Selectable="true" >
       <Tool PortName="0" Model="L14-5_38" Name="Probe" />
-      <OutputStream Id="OutputCertusTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
       </OutputStream>
     </Device>

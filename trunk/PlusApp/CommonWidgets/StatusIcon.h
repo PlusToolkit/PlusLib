@@ -92,6 +92,22 @@ protected:
   */
   PlusStatus ConstructMessageListWidget();
 
+  /*!
+  * Reset the icon to a nice green icon
+  */
+  void ResetIconState();
+
+protected slots:
+  /*!
+  * Create an extended context menu with the clear option
+  */
+  void CreateCustomContextMenu(const QPoint& aPoint);
+
+  /*!
+  * Clear the message box
+  */
+  void ClearMessageList();
+
 public slots:
   /*!
   * Callback function for logger to display messages in popup window

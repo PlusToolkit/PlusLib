@@ -8,7 +8,7 @@
   
     <Device
       Type="OpenIGTLinkTracker"
-      Id="DeviceOpenIGTLinkTracker"
+      Id="TrackerDevice"
       MessageType="TRANSFORM"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -18,7 +18,7 @@
       <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
       <Tool Name="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputOpenIGTLinkTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
       </OutputStream>
@@ -26,7 +26,7 @@
 
     <Device
       Type="OpenIGTLinkVideo"
-      Id="DeviceOpenIGTLinkVideo"
+      Id="VideoDevice"
       MessageType="IMAGE"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -35,13 +35,16 @@
       UsImageOrientation="MF"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0" >
-        <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
     
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="OutputOpenIGTLinkVideo" />
-      <InputStream Id="OutputOpenIGTLinkTracker" />
+      <InputStream Id="VideoDeviceOutput" />
+      <InputStream Id="TrackerOutput" />
     </Device>
   </DataCollection>
 

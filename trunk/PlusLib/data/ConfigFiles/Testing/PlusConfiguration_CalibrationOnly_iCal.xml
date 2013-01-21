@@ -3,8 +3,8 @@
   <DataCollection StartupDelaySec="1.0">
 
     <Device
+      Id="TrackerDevice"
       Type="BrachyTracker"
-      Id="DeviceBrachyTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="3"
@@ -14,7 +14,7 @@
       ModelVersion=""
       odelSerialNumber="01-50-149" 
       Selectable="true" >
-      <OutputStream Id="BrachyTrackerOutput" BufferSize="1000" AveragedItemsForFiltering="20"/>
+      <OutputStream Id="TrackerOutput" BufferSize="1000" AveragedItemsForFiltering="20"/>
       <StepperCalibration
         AlgorithmVersion="1.0.0"
         Date="2011.05.02"

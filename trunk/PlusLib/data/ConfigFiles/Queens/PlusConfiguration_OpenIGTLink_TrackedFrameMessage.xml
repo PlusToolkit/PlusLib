@@ -8,7 +8,7 @@
   
     <Device
       Type="OpenIGTLinkVideo"
-      Id="DeviceOpenIGTLinkVideo"
+      Id="VideoDevice"
       MessageType="TRACKEDFRAME"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -17,7 +17,10 @@
       AcquisitionRate="30"
       LocalTimeOffsetSec="0"
       Selectable="true" >
-        <OutputStream Id="OutputOpenIGTLinkVideo" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 

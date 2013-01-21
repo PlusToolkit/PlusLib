@@ -16,7 +16,10 @@
       UsImageOrientation="MF"
       RepeatEnabled="TRUE" 
       Selectable="true" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 

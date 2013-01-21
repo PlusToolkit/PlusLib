@@ -4,7 +4,7 @@
     
     <Device
       Type="AuroraTracker"
-      Id="DeviceAuroraTracker"
+      Id="TrackerDevice"
       SerialPort="7"
       BaudRate="115200"
       AcquisitionRate="50"
@@ -14,7 +14,7 @@
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputAuroraTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -24,7 +24,7 @@
 
     <Device
       Type="SonixVideo"
-      Id="DeviceSonixVideo"
+      Id="VideoDevice"
       UsImageOrientation="UF"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.008"
@@ -41,13 +41,16 @@
       CompressionStatus="0"
       RfAcquisitionMode="RfOnly"
       ConnectionSetupDelayMs="3000" >
-        <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
     
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="Output3DG" />
-      <InputStream Id="SonixVideoOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
   <CoordinateDefinitions>

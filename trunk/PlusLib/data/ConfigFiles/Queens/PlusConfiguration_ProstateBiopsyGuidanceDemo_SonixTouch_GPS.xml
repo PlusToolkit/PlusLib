@@ -7,20 +7,21 @@
     />
 
     <Device
-      Type="Ascension3DG"
-      Id="DeviceAscension3DG"
-      AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      AcquisitionRate="50" 
+      LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1" >
-      <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <OutputStream Id="Output3DG" >
+      <Tool Name="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+      
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
       </OutputStream>
     </Device>
 
     <Device
       Type="SonixVideo"
-      Id="DeviceSonixVideo" 
+      Id="VideoDevice" 
       UsImageOrientation="MF"
       IP="137.82.56.185" 
       ImagingMode="BMode"
@@ -33,13 +34,16 @@
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-        <OutputStream Id="SonixVideoOutput" BufferSize="400" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="Output3DG" />
-      <InputStream Id="SonixVideoOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

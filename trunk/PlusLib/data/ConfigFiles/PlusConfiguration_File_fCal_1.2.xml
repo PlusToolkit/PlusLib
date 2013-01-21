@@ -14,7 +14,10 @@
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       Selectable="true" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+        <Image Id="VideoOutput" BufferSize="500" />
+        <OutputStream Id="SavedDatasetOutput">
+          <Image Id="VideoOutput"/>
+        </OutputStream>
     </Device>
   </DataCollection>
 

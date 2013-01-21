@@ -7,16 +7,18 @@
     />
     
     <Device
-      Id="DeviceSavedDataset"
+      Id="TrackerDevice"
       Type="SavedDataSource"
       SequenceMetafile="FacetInPlaneInsertion.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE"
       Selectable="true" >
-        <OutputStream Id="Output" BufferSize="100" />
+        <Image Id="VideoOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+        <OutputStream Id="Output">
+          <Image Id="VideoOutput"/>
+        </OutputStream>
     </Device>
-    
   </DataCollection>
   
   

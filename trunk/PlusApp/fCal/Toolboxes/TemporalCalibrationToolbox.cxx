@@ -345,7 +345,7 @@ void TemporalCalibrationToolbox::StartCalibration()
         m_PreviousTrackerOffset = aDevice->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
         m_PreviousVideoOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec(); 
         // TODO : verify this is the correct conversion to make
-        aDevice->SetLocalTimeOffsetSec(0.0); 
+        aDevice->SetImageLocalTimeOffsetSec(0.0); 
         aDevice->SetToolLocalTimeOffsetSec(0.0);
         offsetsSuccessfullyRetrieved = true;
       }

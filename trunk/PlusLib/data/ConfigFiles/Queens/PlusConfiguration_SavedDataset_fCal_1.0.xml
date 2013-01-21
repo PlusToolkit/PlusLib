@@ -8,7 +8,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     />
 
     <Device
-      Id="DeviceSavedDataset"
+      Id="TrackerDevice"
       Type="SavedDataSource"
       UseData="TRANSFORM"
       AcquisitionRate="10"
@@ -19,7 +19,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputSavedTrackerDataset" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -35,13 +35,16 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       SequenceMetafile="fCal_Test_Calibration.mha"
       UsImageOrientation="MF"
       RepeatEnabled="TRUE" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="SavedDatasetOutput" />
-      <InputStream Id="OutputSavedTrackerDataset" />
+      <InputStream Id="VideoDeviceOutput" />
+      <InputStream Id="TrackerOutput" />
     </Device>
   </DataCollection>
 

@@ -9,7 +9,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
 
     <Device
       Type="CertusTracker"
-      Id="DeviceCertusTracker"
+      Id="TrackerDevice"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
@@ -17,7 +17,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputCertusTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -42,7 +42,10 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
       
       <RfProcessing>
         <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
@@ -58,8 +61,8 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="OutputCertusTracker" />
-      <InputStream Id="SonixVideoOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

@@ -9,7 +9,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
     <Device
       Type="CertusTracker"
-      Id="DeviceCertusTracker"
+      Id="TrackerDevice"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
@@ -17,7 +17,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
 
-      <OutputStream Id="OutputCertusTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -25,7 +25,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     </Device>
 
     <Device
-      Id="SonixVideo"
+      Id="VideoDevice"
       Type="SonixVideo" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
@@ -41,13 +41,16 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20"  />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="OutputCertusTracker" />
-      <InputStream Id="SonixOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
 
   </DataCollection>

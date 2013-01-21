@@ -7,6 +7,7 @@
     />
 
     <xDevice
+      Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.0"
@@ -16,7 +17,7 @@
       <Tool Name="Reference" PortName="0" BufferSize="200" AveragedItemsForFiltering="20"/>
       <Tool Name="Stylus" PortName="1" BufferSize="200" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputFakeTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
       </OutputStream>
@@ -37,13 +38,16 @@
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-        <OutputStream Id="SonixVideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <xInputStream Id="OutputFakeTracker" />
-      <InputStream Id="SonixVideoOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

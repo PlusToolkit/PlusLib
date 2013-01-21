@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
   LOG_DEBUG("Reading config file finished.");
 
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
-  sonixGrabber->SetDeviceId("SonixVideo");
+  sonixGrabber->SetDeviceId("VideoDevice");
   sonixGrabber->ReadConfiguration(configRead);
 
   DisplayMode displayMode=SHOW_IMAGE;

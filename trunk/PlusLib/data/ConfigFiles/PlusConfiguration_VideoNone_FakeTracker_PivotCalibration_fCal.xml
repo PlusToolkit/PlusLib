@@ -8,7 +8,7 @@ vtkStylusCalibrationTest uses this configuration"
     />
 
     <Device
-      Id="FakeTracker"
+      Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
@@ -17,12 +17,11 @@ vtkStylusCalibrationTest uses this configuration"
       <Tool Name="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
       <Tool Name="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />
       
-      <OutputStream Id="Output">
+      <OutputStream Id="TrackerOutput">
         <Tool Name="Reference" />
         <Tool Name="Stylus" />
       </OutputStream>
     </Device>
-
   </DataCollection>
 
 

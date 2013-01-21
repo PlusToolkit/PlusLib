@@ -8,7 +8,6 @@
 
     <Device
       Type="SavedDataSource"
-      Id="DeviceSavedDataset"
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
@@ -19,24 +18,29 @@
       <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputSavedTrackerDataset" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
       </OutputStream>
     </Device>
 
-    <Device Type="UsSimulator" Id="DeviceUsSimulator"
+    <Device 
+      Id="VideoDevice"
+      Type="UsSimulator" 
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       UsImageOrientation="MF">
-        <OutputStream Id="UsSimulatorOutput" BufferSize="200" AveragedItemsForFiltering="20"/>
+      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
     
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="UsSimulatorOutput" />
-      <InputStream Id="OutputSavedTrackerDataset" />
+      <InputStream Id="VideoDeviceOutput" />
+      <InputStream Id="TrackerOutput" />
     </Device>
   </DataCollection>
 

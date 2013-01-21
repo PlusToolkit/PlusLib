@@ -9,7 +9,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
 
     <Device
       Type="BrachyTracker"
-      Id="DeviceBrachyTracker"
+      Id="TrackerDevice"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="0"
@@ -18,7 +18,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       ModelNumber="4012A18-a"
       ModelVersion=""
       ModelSerialNumber="01-50-149">
-      <OutputStream Id="BrachyTrackerOutput" BufferSize="1000" AveragedItemsForFiltering="20"  />
+      <OutputStream Id="TrackerOutput" BufferSize="1000" AveragedItemsForFiltering="20"  />
       <StepperCalibration
         AlgorithmVersion="1.0.0"
         Date="20110102"
@@ -33,7 +33,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
 
     <Device
       Type="SonixVideo"
-      Id="DeviceSonixVideo" 
+      Id="VideoDevice" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
@@ -48,13 +48,16 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0">
-      <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20"  />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
     
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="BrachyTrackerOutput" />
-      <InputStream Id="SonixOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

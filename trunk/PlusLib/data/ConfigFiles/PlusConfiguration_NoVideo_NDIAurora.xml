@@ -8,15 +8,15 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
     />
 
     <Device
+      Id="TrackerDevice" 
       Type="AuroraTracker"
-      Id="DeviceAuroraTracker"
       SerialPort="4"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" 
       Selectable="true">
       <Tool Name="Needle" PortName="0" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputAuroraTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Needle"/>
       </OutputStream>
     </Device>

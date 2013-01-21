@@ -33,16 +33,13 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   /*! Set tool local time offsets in the input streams that contain tools */
-  void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
 
   /*! Get tool local time offset from the input streams that contains tools */
-  double GetToolLocalTimeOffsetSec();
+  virtual double GetToolLocalTimeOffsetSec();
 
   virtual double GetAcquisitionRate() const;
 protected:
-  virtual void InternalWriteOutputStreams(vtkXMLDataElement* rootXMLElement);
-  virtual void InternalWriteInputStreams(vtkXMLDataElement* rootXMLElement);
-
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();
 

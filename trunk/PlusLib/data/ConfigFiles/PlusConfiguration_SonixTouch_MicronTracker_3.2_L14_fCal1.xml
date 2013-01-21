@@ -7,8 +7,8 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="MicronTracker"
-      Id="DeviceMicronTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       TemplateDirectory="Markers"
@@ -17,7 +17,7 @@
       <Tool Name="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
       <Tool Name="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="OutputMicronTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -25,7 +25,7 @@
     </Device>
 
     <Device
-      Id="SonixVideo"
+      Id="VideoDevice"
       Type="SonixVideo" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
@@ -41,13 +41,16 @@
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <OutputStream Id="SonixOutput" BufferSize="500" AveragedItemsForFiltering="20"  />
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="OutputMicronTracker" />
-      <InputStream Id="SonixOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
     
   </DataCollection>

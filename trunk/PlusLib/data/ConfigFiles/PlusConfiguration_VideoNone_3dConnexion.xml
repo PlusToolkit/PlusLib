@@ -7,8 +7,8 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="3dConnexion"
-      Id="Device3dConnexion"      
       AcquisitionRate="125"
       LocalTimeOffsetSec="0.0"
       OperatingMode="JOYSTICK"
@@ -17,7 +17,7 @@
       Selectable="true" >
       <Tool Name="Navigator" PortName="SpaceNavigator" BufferSize="2500" AveragedItemsForFiltering="20"/>
       
-      <OutputStream Id="Output3dConnexion" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Navigator"/>
       </OutputStream>
     </Device>

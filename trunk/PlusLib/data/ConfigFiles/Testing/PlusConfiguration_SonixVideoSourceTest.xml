@@ -1,7 +1,7 @@
 <PlusConfiguration version="2.0">
   <DataCollection StartupDelaySec="1.0">
     <Device
-      Id="SonixVideo"
+      Id="VideoDevice"
       Type="SonixVideo" 
       UsImageOrientation="UF"
       AcquisitionRate="30" 
@@ -18,7 +18,10 @@
       Timeout="-1" 
       CompressionStatus="0" 
       Selectable="true" >
-      <OutputStream Id="SonixOutput" BufferSize="30" AveragedItemsForFiltering="20"  />
+      <Image Id="VideoOutput" BufferSize="30" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 </PlusConfiguration>

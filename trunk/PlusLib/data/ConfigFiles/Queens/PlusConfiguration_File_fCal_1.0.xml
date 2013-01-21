@@ -8,15 +8,17 @@
     
     <Device
       Type="SavedDataSource"
-      Id="DeviceSavedDataset"
+      Id="VideoDevice"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" 
       Selectable="true">
-        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+      <Image Id="VideoOutput" BufferSize="500" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
-    
   </DataCollection>
 
 

@@ -7,8 +7,8 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="FakeTracker"
-      Id="DeviceFakeTracker"
       AcquisitionRate="20"
       LocalTimeOffset="0.0"
       Mode="SmoothMove" >
@@ -16,7 +16,7 @@
       <Tool Name="Reference" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20"/>
       <Tool Name="MissingTool" PortName="2" BufferSize="1000" AveragedItemsForFiltering="20"/> 
       
-      <OutputStream Id="OutputFakeTracker" >
+      <OutputStream Id="TrackerOutput" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="MissingTool"/>
@@ -24,17 +24,20 @@
     </Device>
 
     <Device
+      Id="VideoDevice" 
       Type="Epiphan"
-      Id="DeviceEpiphan" 
       AcquisitionRate="30" 
       UsImageOrientation="MF" >
-      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20"/>
+      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
-      <InputStream Id="OutputFakeTracker" />
-      <InputStream Id="EpiphanOutput" />
+      <InputStream Id="TrackerOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

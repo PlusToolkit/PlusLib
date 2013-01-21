@@ -7,7 +7,7 @@
     />
 
     <Device
-      Id="SavedDataTracker"
+      Id="TrackerDevice"
       Type="SavedDataSource"
       UseData="TRANSFORM"      
       AcquisitionRate="10"
@@ -16,13 +16,13 @@
       SequenceMetafile="NwirePhantomFreehand.mha"
       Selectable="true" >
       <Tool BufferSize="200" AveragedItemsForFiltering="20" Name="Tool" PortName="0" />
-      <OutputStream Id="SavedDataTrackerOutput">
+      <OutputStream Id="TrackerOutput">
         <Tool Name="Tool"/>
       </OutputStream>
     </Device>
 
     <Device
-      Id="SavedDataVideo"
+      Id="VideoDevice"
       Type="SavedDataSource" 
       UseData="IMAGE"
       AcquisitionRate="10" 
@@ -30,7 +30,10 @@
       UsImageOrientation="MF"
       SequenceMetafile="NwirePhantomFreehand.mha"
       Selectable="true" >
-      <OutputStream Id="SavedDataVideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 

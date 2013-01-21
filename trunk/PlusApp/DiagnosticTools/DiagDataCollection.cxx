@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	dataCollector->ReadConfiguration(configRootElement);
 
   DeviceCollection devices;
-  dataCollector->GetSelectableDevices(devices);
+  dataCollector->GetDevices(devices);
   if( devices.size() != 1 )
   {
     LOG_ERROR("Multiple selectable devices defined when only 1 expected. Please review configuration file.");

@@ -762,7 +762,7 @@ void fCalMainWindow::BuildDevicesMenu()
 
   DeviceCollection aCollection;
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL && 
-   this->GetVisualizationController()->GetDataCollector()->GetSelectableDevices(aCollection) != PLUS_SUCCESS )
+   this->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
   {
     // Data collector might be disconnected
     return;

@@ -7,8 +7,8 @@
     />
 
     <Device
+      Id="TrackerDevice"
       Type="PolarisTracker"
-      Id="DevicePolarisTracker"
       SerialPort="3"
       BaudRate="115200"
       AcquisitionRate="50"
@@ -25,17 +25,20 @@
     </Device>
 
     <Device
+      Id="VideoDevice" 
       Type="Epiphan"
-      Id="DeviceEpiphan" 
       AcquisitionRate="30" 
       UsImageOrientation="MF" >
-      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoDeviceOutput">
+        <Image Id="VideoOutput"/>
+      </OutputStream>
     </Device>
 
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
       <InputStream Id="TrackerOutput" />
-      <InputStream Id="EpiphanOutput" />
+      <InputStream Id="VideoDeviceOutput" />
     </Device>
   </DataCollection>
 

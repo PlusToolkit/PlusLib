@@ -5,9 +5,9 @@
 =========================================================Plus=header=end*/ 
 
 #include "StatusIcon.h"
-
 #include <QEvent>
 #include <QGridLayout>
+#include <QMenu>
 #include <QSizePolicy>
 
 //-----------------------------------------------------------------------------
@@ -139,6 +139,8 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   m_MessageTextEdit = new QTextEdit(m_MessageListWidget);
   m_MessageTextEdit->setWordWrapMode(QTextOption::NoWrap);
   m_MessageTextEdit->setReadOnly(true);
+  m_MessageTextEdit->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_MessageTextEdit, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(CreateCustomContextMenu(const QPoint&)));
 
   grid->addWidget(m_MessageTextEdit);
   m_MessageListWidget->setLayout(grid);
@@ -168,9 +170,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
           m_MessageListWidget->show();
 
         } else {
-          m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-          m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
-
+          ResetIconState();
           m_MessageListWidget->hide();
         }
 
@@ -184,4 +184,33 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 
   // Pass the event on to the parent class
   return QWidget::eventFilter( obj, ev );
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::CreateCustomContextMenu( const QPoint& aPoint )
+{
+  QMenu *menu = m_MessageTextEdit->createStandardContextMenu();
+  QAction* clear = new QAction("Clear", this);
+  menu->addAction(clear);
+  connect(clear, SIGNAL(triggered()), this, SLOT(ClearMessageList()));
+  menu->exec(m_MessageTextEdit->mapToGlobal(aPoint));
+  delete menu;
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ClearMessageList()
+{
+  m_MessageTextEdit->clear();
+  ResetIconState();
+  m_MessageListWidget->hide();
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ResetIconState()
+{
+  m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
+  m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
 }
