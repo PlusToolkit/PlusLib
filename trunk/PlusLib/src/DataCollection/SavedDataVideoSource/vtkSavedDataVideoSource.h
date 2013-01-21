@@ -35,16 +35,12 @@ public:
   /*! Get SequenceMetafile name with path with tracking buffer data  */
   vtkGetStringMacro(SequenceMetafile);
 
-  /*! Set loop start time /sa LoopStartTime */
-  vtkSetMacro(LoopStartTime, double); 
-  /*! Get loop start time /sa LoopStartTime */
-  vtkGetMacro(LoopStartTime, double); 
-
-  /*! Set loop time /sa LoopTime */
-  vtkSetMacro(LoopTime, double); 
-  /*! Get loop time /sa LoopTime */
-  vtkGetMacro(LoopTime, double); 
-
+  /*! Set the time range of the loaded buffer that will be replayed */
+  void SetLoopTimeRange(double loopStartTime, double loopStopTime); 
+  
+  /*! Get the time range of the loaded buffer that will be replayed. It is initialized to the full range of the loaded data set on Connect(). */
+  void GetLoopTimeRange(double& loopStartTime, double& loopStopTime); 
+    
   /*! Set flag to to enable saved dataset looping /sa RepeatEnabled */
   vtkGetMacro(RepeatEnabled, bool);
   /*! Get flag to to enable saved dataset looping /sa RepeatEnabled */
@@ -89,6 +85,8 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
+  BufferItemUidType GetClosestFrameUidWithinTimeRange(double time_Local, double startTime_Local, double stopTime_Local);
+
 protected:
   /*! Byte alignment of each row in the framebuffer */
   int FrameBufferRowAlignment;
@@ -99,15 +97,15 @@ protected:
   /*! Flag to to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). */
   bool RepeatEnabled; 
 
-  /*! Loop start time
-  ItemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  /*! 
+    Loop start time (in local buffer time). The first acquired frame (at system time = 0) will be the frame
+    that has the closest timestamp to the start time.
+    ItemTimestamp_Local = loopStartTime_Local + (actualTimestamp_Sys - startTimestamp_Sys) % (loopStopTime-LooStartTime)
   */
-  double LoopStartTime; 
+  double LoopStartTime_Local; 
 
-  /*! Loop time
-  ItemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
-  */
-  double LoopTime; 
+  /*! Loop stop time (in local buffer time) */
+  double LoopStopTime_Local; 
 
   /*! Local video buffer */
   vtkPlusStreamBuffer* LocalVideoBuffer; 
@@ -118,11 +116,17 @@ protected:
   /*! Read the timestamps from the file and use provide them in the output (instead of the current time) */
   bool UseOriginalTimestamps;
 
-  /*! Time of the last added frame (in the local buffer time coordinate frame) */
-  double LastAddedFrameTimestamp;
+  /*! Buffer item UID of the last added frame in the local buffer */
+  BufferItemUidType LastAddedFrameUid;
 
   /*! Index of the loop when the last frame was added. Used for making sure we add each frame only once in one loop period. */
-  int LastAddedFrameLoopIndex;
+  int LastAddedLoopIndex;
+
+  /*! Frames before this item (identified by the buffer item UID) in the local buffer are ignored, not replayed */
+  BufferItemUidType LoopFirstFrameUid;
+  
+  /*! Frames after this item (identified by the buffer item UID) in the local buffer are ignored, not replayed */
+  BufferItemUidType LoopLastFrameUid;
 
 private:
   static vtkSavedDataVideoSource* Instance;

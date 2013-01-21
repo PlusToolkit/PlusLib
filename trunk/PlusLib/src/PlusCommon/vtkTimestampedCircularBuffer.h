@@ -66,7 +66,11 @@ public:
   /*! Set unfiltered timestamp */
   void SetUnfilteredTimestamp( double unfilteredTimestamp) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
 
-  /*! Set/get index assigned by the data acuiqisition system (usually a counter) */
+  /*!
+    Set/get index assigned by the data acquisition system (usually a counter)
+    If frames are skipped then the counter should be increased by the number of skipped frames, therefore
+    the index difference between subsequent frames be more than 1.
+  */
   unsigned long GetIndex() { return this->Index; }; 
   void SetIndex(unsigned long index) { this->Index = index; }; 
 
@@ -144,7 +148,7 @@ protected:
   /*! index assigned by the data acuiqisition system (usually a counter) */
   unsigned long Index; 
 
-  /*! unique identifier assigned by the storage buffer */
+  /*! unique identifier assigned by the storage buffer, it is guaranteed to increase monotonously, by one for each frame that is added to the buffer*/
   BufferItemUidType Uid; 
 
   /*! Custom frame fields */

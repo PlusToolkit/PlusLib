@@ -9,7 +9,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Type="SavedTrackerDataset"
-      Id="DeviceSavedDataset"
+      Id="TrackerDeviceSavedDataset"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="WaterTankBottomTranslationTrackerBuffer.mha"
@@ -27,7 +27,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Type="SavedVideoDataset"
-      Id="DeviceSavedDataset" 
+      Id="VideoDeviceSavedDataset" 
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 

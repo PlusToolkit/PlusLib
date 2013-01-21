@@ -14,8 +14,6 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkVirtualStreamMixer, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualStreamMixer);
 
-const double HUGE_DOUBLE = 1.7e308;
-
 //----------------------------------------------------------------------------
 vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 : vtkPlusDevice()
@@ -58,25 +56,28 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
 //----------------------------------------------------------------------------
 double vtkVirtualStreamMixer::GetAcquisitionRate() const
 {
-  double lowestRate(HUGE_DOUBLE);
-
-  vtkPlusStreamBuffer* aBuff = NULL;
+  // Determine frame rate from the video input device with the lowest frame rate  
+  bool lowestRateKnown=false;
+  double lowestRate=30; // just a usual value (FPS)  
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
-    aBuff = NULL;
     vtkPlusStream* anInputStream = (*it);
+    vtkPlusStreamBuffer* aBuff = NULL;
     if( anInputStream->BufferCount() > 0 && anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
     {
       StreamBufferItem item;
-      if( aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() && anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )
+      if( aBuff->GetNumberOfItems()>0 && aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
       {
-        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
+        {
+          lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        }
       }
     }
   }
-
-  if( lowestRate == HUGE_DOUBLE )
+  if( !lowestRateKnown )
   {
+    // Couldn't determine the lowest acquisition rate, so just use the one that was set by default
     lowestRate = this->AcquisitionRate;
   }
   return lowestRate;

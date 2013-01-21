@@ -525,6 +525,8 @@ template<class BufferItemType>
 double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=false*/, double *framePeriodStdevSecPtr /* =NULL */)
 {
 	// TODO: Start the frame rate computation from the latest frame UID with using a few seconds of items in the buffer
+	bool cannotComputeIdealFrameRateDueToInvalidFrameNumbers=false;
+	
 	std::vector<double> framePeriods; 
 	for ( BufferItemUidType frame = this->GetLatestItemUidInBuffer(); frame > this->GetOldestItemUidInBuffer(); --frame )
 	{
@@ -551,18 +553,21 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 		{
 			continue; 
 		}
-
-		int frameDiff = framenum - prevframenum;
-		if (frameDiff == 0)
-		{
-			// the same frame number was set for different frame indexes; this should not happen
-			continue;
-		}
 		 
 		double frameperiod = (time - prevtime); 
+		int frameDiff = framenum - prevframenum;
+
 		if ( ideal )
 		{
-			frameperiod /= (1.0 * frameDiff);
+			if (frameDiff > 0)
+			{
+				frameperiod /= (1.0 * frameDiff);
+			}
+			else
+			{
+				// the same frame number was set for different frame indexes; this should not happen (probably no frame number is available)
+				cannotComputeIdealFrameRateDueToInvalidFrameNumbers=true;				
+			}
 		}
 
 		if ( frameperiod > 0 )
@@ -570,8 +575,19 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 			framePeriods.push_back(frameperiod); 
 		}
 	}
+	
+	if (cannotComputeIdealFrameRateDueToInvalidFrameNumbers)
+	{
+		LOG_WARNING("Cannot compute ideal frame rate acurately, as frame numbers are invalid or missing");
+	}
 
 	const int numberOfFramePeriods =  framePeriods.size(); 
+	if (numberOfFramePeriods<1)
+	{
+		LOG_WARNING("Failed to compute frame rate. Not enough samples.");
+		return 0;
+	}
+	
 	double samplingPeriod(0); 
 	for ( int i = 0; i < numberOfFramePeriods; i++ )
 	{
