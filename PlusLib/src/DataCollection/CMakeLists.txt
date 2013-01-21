@@ -23,7 +23,7 @@ SET (DataCollection_SRCS
   vtkPlusDeviceFactory.cxx
   vtkPlusStreamTool.cxx
   FakeTracking/vtkFakeTracker.cxx   
-  SavedDataVideoSource/vtkSavedDataVideoSource.cxx 
+  SavedDataSource/vtkSavedDataSource.cxx 
   VirtualDevices/vtkVirtualStreamMixer.cxx
   VirtualDevices/vtkVirtualStreamSwitcher.cxx
   VirtualDevices/vtkVirtualStreamDiscCapture.cxx 
@@ -45,7 +45,7 @@ if (WIN32)
     vtkPlusDeviceFactory.h
     vtkPlusStreamTool.h
     FakeTracking/vtkFakeTracker.h
-    SavedDataVideoSource/vtkSavedDataVideoSource.h 
+    SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualStreamMixer.h
     VirtualDevices/vtkVirtualStreamSwitcher.h
 	VirtualDevices/vtkVirtualStreamDiscCapture.h
@@ -63,7 +63,7 @@ SET (DataCollection_INCLUDE_DIRS
   ${DataCollection_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_SOURCE_DIR}/FakeTracking 
-  ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataVideoSource 
+  ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataSource 
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)

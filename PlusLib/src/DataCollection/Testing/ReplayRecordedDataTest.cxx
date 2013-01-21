@@ -15,7 +15,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
-#include "vtkSavedDataVideoSource.h"
+#include "vtkSavedDataSource.h"
 
 
 int main( int argc, char** argv )

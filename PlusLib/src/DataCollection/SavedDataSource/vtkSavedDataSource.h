@@ -4,26 +4,26 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkSavedDataVideoSource_h
-#define __vtkSavedDataVideoSource_h
+#ifndef __vtkSavedDataSource_h
+#define __vtkSavedDataSource_h
 
 #include "vtkPlusDevice.h"
 
 class vtkPlusStreamBuffer; 
 
-class VTK_EXPORT vtkSavedDataVideoSource;
+class VTK_EXPORT vtkSavedDataSource;
 
 /*!
-\class vtkSavedDataVideoSource 
+\class vtkSavedDataSource 
 \brief Class for providing VTK video input interface from sequence metafile
 \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkSavedDataVideoSource : public vtkPlusDevice
+class VTK_EXPORT vtkSavedDataSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkSavedDataVideoSource,vtkPlusDevice);
+  vtkTypeRevisionMacro(vtkSavedDataSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
-  static vtkSavedDataVideoSource* New();
+  static vtkSavedDataSource* New();
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -75,9 +75,9 @@ public:
 
 protected:
   /*! Constructor */
-  vtkSavedDataVideoSource();
+  vtkSavedDataSource();
   /*! Destructor */
-  virtual ~vtkSavedDataVideoSource();
+  virtual ~vtkSavedDataSource();
 
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
@@ -105,13 +105,16 @@ protected:
   /*! Get local tracker buffer */
   vtkPlusStreamBuffer* GetLocalTrackerBuffer(); 
 
+  /*! Get the output buffer (the video buffer or the first active tool buffer of the current stream) */
+  vtkPlusStreamBuffer* GetOutputBuffer();
+
   /*! 
     Get local tracker buffer, it returns tracker buffer if the output is a tracker stream, and 
     returns the video buffer if the output is a video stream 
   */
   vtkPlusStreamBuffer* GetLocalBuffer();
 
-  void DeleteLocalTrackerBuffers(); 
+  void DeleteLocalBuffers(); 
 
 protected:
   /*! Byte alignment of each row in the framebuffer */
@@ -166,9 +169,9 @@ protected:
   SimulatedStreamType SimulatedStream;
 
 private:
-  static vtkSavedDataVideoSource* Instance;
-  vtkSavedDataVideoSource(const vtkSavedDataVideoSource&);  // Not implemented.
-  void operator=(const vtkSavedDataVideoSource&);  // Not implemented.
+  static vtkSavedDataSource* Instance;
+  vtkSavedDataSource(const vtkSavedDataSource&);  // Not implemented.
+  void operator=(const vtkSavedDataSource&);  // Not implemented.
 };
 
 #endif
