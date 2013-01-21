@@ -116,14 +116,9 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     LOG_ERROR("No devices created. Please verify configuration file and any error produced.");
     return PLUS_FAIL;
   }
-
-  for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+  else
   {
-    if( (*it)->GetSelectable() )
-    {
-      this->SetSelectedDevice((*it)->GetDeviceId());
-      break;
-    }
+    this->SetSelectedDevice(Devices.at(0)->GetDeviceId());
   }
 
   vtkPlusDevice* aDevice;
@@ -436,19 +431,15 @@ PlusStatus vtkDataCollector::SetSelectedDevice( const std::string &aDeviceId )
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetSelectableDevices( DeviceCollection &OutVector ) const
+PlusStatus vtkDataCollector::GetDevices( DeviceCollection &OutVector ) const
 {
-  LOG_TRACE("vtkDataCollector::GetSelectableDevices()");
+  LOG_TRACE("vtkDataCollector::GetDevices()");
 
   OutVector.clear();
 
   for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
-    vtkPlusDevice* device = (*it);
-    if( device->GetSelectable() )
-    {
-      OutVector.push_back(device);
-    }
+    OutVector.push_back(*it);
   }
 
   return OutVector.size() > 0 ? PLUS_SUCCESS : PLUS_FAIL;
@@ -679,7 +670,7 @@ PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double
     return PLUS_FAIL;
   }
 
-  this->SelectedDevice->SetLocalTimeOffsetSec(videoLagSec);
+  this->SelectedDevice->SetImageLocalTimeOffsetSec(videoLagSec);
   this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
   return PLUS_SUCCESS;
 }

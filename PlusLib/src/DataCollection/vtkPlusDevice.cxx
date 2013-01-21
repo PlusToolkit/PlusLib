@@ -18,6 +18,7 @@ See License.txt for details.
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
+#include "vtkPlusStreamImage.h"
 #include "vtkWindows.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkRfProcessor.h"
@@ -65,7 +66,6 @@ vtkPlusDevice::vtkPlusDevice()
 , FrameTimeStamp(0)
 , NumberOfOutputFrames(1)
 , OutputNeedsInitialization(1)
-, Selectable(false)
 , RequireDeviceImageOrientationInDeviceSetConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -247,14 +247,14 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool*& aTool)
     return PLUS_FAIL;
   }
 
-  if ( this->CurrentStream->GetToolBuffersStartConstIterator() == this->CurrentStream->GetToolBuffersEndConstIterator() )
+  if ( this->CurrentStream->GetToolsStartConstIterator() == this->CurrentStream->GetToolsEndConstIterator() )
   {
     LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
     return PLUS_FAIL; 
   }
 
   // Get the first tool
-  aTool = this->CurrentStream->GetToolBuffersStartIterator()->second; 
+  aTool = this->CurrentStream->GetToolsStartIterator()->second; 
 
   return PLUS_SUCCESS; 
 }
@@ -313,7 +313,7 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusStream
     return PLUS_FAIL;
   }
 
-  for ( ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartConstIterator(); it != this->CurrentStream->GetToolBuffersEndConstIterator(); ++it)
+  for ( ToolContainerConstIterator it = this->CurrentStream->GetToolsStartConstIterator(); it != this->CurrentStream->GetToolsEndConstIterator(); ++it)
   {
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
@@ -336,16 +336,12 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
+void vtkPlusDevice::SetImageLocalTimeOffsetSec( double aTimeOffsetSec )
 {
-  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  for( ImageContainerIterator it = this->Images.begin(); it != this->Images.end(); ++it )
   {
-    vtkPlusStream* aStream = *it;
-    for( StreamBufferMapContainerConstIterator bufIter = aStream->GetBuffersStartConstIterator(); bufIter != aStream->GetBuffersEndConstIterator(); ++bufIter)
-    {
-      vtkPlusStreamBuffer* aBuff = bufIter->second;
-      aBuff->SetLocalTimeOffsetSec(aTimeOffsetSec);
-    }
+    vtkPlusStreamImage* image = it->second;
+    image->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
 }
 
@@ -371,6 +367,20 @@ double vtkPlusDevice::GetToolLocalTimeOffsetSec()
     return aTimeOffsetSec;
   }
   LOG_ERROR("Failed to get tool local time offset");
+  return 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkPlusDevice::GetImageLocalTimeOffsetSec()
+{
+  // local images
+  for( ImageContainerIterator it = this->Images.begin(); it != this->Images.end(); ++it )
+  {
+    vtkPlusStreamImage* image = it->second;
+    double aTimeOffsetSec = image->GetBuffer()->GetLocalTimeOffsetSec();
+    return aTimeOffsetSec;
+  }
+  LOG_ERROR("Failed to get image local time offset");
   return 0.0;
 }
 
@@ -706,13 +716,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     return PLUS_FAIL;
   }
 
-  const char* selectable = deviceXMLElement->GetAttribute("Selectable");
-  if( selectable == NULL )
-  {
-    selectable = "false";
-  }
-  SetSelectable(STRCASECMP(selectable, "true") == 0);
-
   // Read tool configurations 
   for ( int tool = 0; tool < deviceXMLElement->GetNumberOfNestedElements(); tool++ )
   {
@@ -730,12 +733,34 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       continue; 
     }
 
+    streamTool->SetReferenceName(this->ToolReferenceFrameName);
+
     if ( this->AddTool(streamTool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to add tool '" << streamTool->GetToolName() << "' to tracker on port " << streamTool->GetPortName() );
+      LOG_ERROR("Failed to add tool '" << streamTool->GetToolName() << "' to device on port " << streamTool->GetPortName() );
     }
   }
 
+  // Read image configurations
+  for ( int image = 0; image < deviceXMLElement->GetNumberOfNestedElements(); image++ )
+  {
+    vtkXMLDataElement* imageDataElement = deviceXMLElement->GetNestedElement(image); 
+    if ( STRCASECMP(imageDataElement->GetName(), "Image") != 0 )
+    {
+      // if this is not an image element, skip it
+      continue; 
+    }
+
+    vtkSmartPointer<vtkPlusStreamImage> streamImage = vtkSmartPointer<vtkPlusStreamImage>::New();
+    streamImage->ReadConfiguration(imageDataElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration );
+
+    if ( this->AddImage(streamImage) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add image '" << streamImage->GetImageName() << "' to device.");
+    }
+  }
+
+  // Continue with device configuration
   int acquisitionRate = 0;
   if ( deviceXMLElement->GetScalarAttribute("AcquisitionRate", acquisitionRate) )
   {
@@ -772,7 +797,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_ERROR("Unable to find rf processing sub-element in device configuration when it is required.");
   }
 
-  // Now that we have the tools, we can create the output streams and connect things as necessary
+  // Now that we have the tools and images, we can create the output streams and connect things as necessary
   for ( int stream = 0; stream < deviceXMLElement->GetNumberOfNestedElements(); stream++ )
   {
     vtkXMLDataElement* streamElement = deviceXMLElement->GetNestedElement(stream); 
@@ -784,7 +809,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
     vtkSmartPointer<vtkPlusStream> aStream = vtkSmartPointer<vtkPlusStream>::New();
     aStream->SetOwnerDevice(this);
-    aStream->ReadConfiguration(streamElement, RequireFrameBufferSizeInDeviceSetConfiguration, RequireAveragedItemsForFilteringInDeviceSetConfiguration);
+    aStream->ReadConfiguration(streamElement);
 
     this->OutputStreams.push_back(aStream);
     aStream->Register(this);
@@ -794,7 +819,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
     LOG_INFO("Device local time offset: " << 1000*localTimeOffsetSec << "ms" );
-    this->SetLocalTimeOffsetSec(localTimeOffsetSec);
+    this->SetImageLocalTimeOffsetSec(localTimeOffsetSec);
     this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
   }
   else if ( RequireLocalTimeOffsetSecInDeviceSetConfiguration )
@@ -805,45 +830,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   if( this->OutputStreams.size() == 0 )
   {
     LOG_INFO("No output streams defined for device: " << this->GetDeviceId() );
-  }
-
-  // For each output stream, add the tools to the output stream
-  // Now that we have the tools, we can create the output streams and connect things as necessary
-  for ( int stream = 0; stream < deviceXMLElement->GetNumberOfNestedElements(); stream++ )
-  {
-    vtkXMLDataElement* streamElement = deviceXMLElement->GetNestedElement(stream); 
-    if ( STRCASECMP(streamElement->GetName(), "OutputStream") != 0 )
-    {
-      // if this is not a stream element, skip it
-      continue; 
-    }
-    
-    const char * id = streamElement->GetAttribute("Id");  // Can't make it to this point if an ID is incorrectly defined
-    vtkPlusStream* aStream=NULL;
-    if( this->GetStreamByName(aStream, id) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Error while trying to find stream by name.");
-      return PLUS_FAIL;
-    }
-
-    for ( int tool = 0; tool < streamElement->GetNumberOfNestedElements(); tool++ )
-    {
-      vtkXMLDataElement* toolDataElement = streamElement->GetNestedElement(tool); 
-      if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
-      {
-        continue;
-      }
-      
-      const char* toolName = toolDataElement->GetAttribute("Name");
-      vtkPlusStreamTool* aTool=NULL;
-      if( this->GetTool(toolName, aTool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to retrieve tool.");
-        return PLUS_FAIL;
-      }
-
-      aStream->AddTool(aTool);
-    }
   }
 
   if( this->OutputStreams.size() > 0 )
@@ -886,8 +872,6 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     LOG_ERROR("Unable to write configuration: xml data element is NULL!"); 
     return PLUS_FAIL;
   }
-
-  deviceDataElement->SetAttribute("Selectable", this->GetSelectable() ? "true" : "false");
 
   for ( int i = 0; i < deviceDataElement->GetNumberOfNestedElements(); i++ )
   {
@@ -979,7 +963,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
   // Get frame UID
-  if( this->CurrentStream->BufferCount() > 0 )
+  if( this->CurrentStream->ImageCount() > 0 )
   {
     BufferItemUidType frameUID = 0; 
     ItemStatus status = this->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
@@ -990,7 +974,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
         LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
           ") - item not available anymore!"); 
       }
-      else if ( status == ITEM_NOT_AVAILABLE_YET )
+      else if ( status == ITEM_NOT_AVAILABLE_YET) 
       {
         LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << timestamp <<
           ") - item not available yet!");
@@ -1035,10 +1019,10 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   timestampFieldValue << std::fixed << synchronizedTimestamp; 
   aTrackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
 
-  for (ToolContainerConstIterator it = this->CurrentStream->GetToolBuffersStartIterator(); it != this->CurrentStream->GetToolBuffersEndIterator(); ++it)
+  for (ToolContainerConstIterator it = this->CurrentStream->GetToolsStartIterator(); it != this->CurrentStream->GetToolsEndIterator(); ++it)
   {
     vtkPlusStreamTool* aTool = it->second;
-    PlusTransformName toolTransformName(aTool->GetToolName(), this->ToolReferenceFrameName ); 
+    PlusTransformName toolTransformName(aTool->GetToolName(), aTool->GetReferenceCoordinateFrameName() ); 
     if ( !toolTransformName.IsValid() )
     {
       LOG_ERROR("Tool transform name is invalid!"); 
@@ -1667,13 +1651,9 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetStartTime( double startTime )
 {
-  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  for ( ImageContainerConstIterator it = this->GetImageIteratorBegin(); it != this->GetImageIteratorEnd(); ++it)
   {
-    vtkPlusStream* aStream = *it;
-    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter)
-    {
-      buffIter->second->SetStartTime(startTime);
-    }
+    it->second->GetBuffer()->SetStartTime(startTime); 
   }
 
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
@@ -1689,14 +1669,10 @@ double vtkPlusDevice::GetStartTime()
   //        simply be included in the average
   double sumStartTime = 0.0;
   double numberOfBuffers(0); 
-  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  for ( ImageContainerConstIterator it = this->GetImageIteratorBegin(); it != this->GetImageIteratorEnd(); ++it)
   {
-    vtkPlusStream* aStream = *it;
-    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter )
-    {
-      sumStartTime += buffIter->second->GetStartTime();
-      numberOfBuffers++;
-    }
+    sumStartTime += it->second->GetBuffer()->GetStartTime(); 
+    numberOfBuffers++; 
   }
   
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
@@ -1729,16 +1705,10 @@ PlusStatus vtkPlusDevice::Probe()
 //-----------------------------------------------------------------------------
 void vtkPlusDevice::ClearAllBuffers()
 {
-  for( StreamContainerIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it )
+  for ( ImageContainerConstIterator it = this->GetImageIteratorBegin(); it != this->GetImageIteratorEnd(); ++it)
   {
-    vtkPlusStream* aStream = *it;
-    for( StreamBufferMapContainerConstIterator buffIter = aStream->GetBuffersStartConstIterator(); buffIter != aStream->GetBuffersEndConstIterator(); ++buffIter )
-    {
-      vtkPlusStreamBuffer* aBuff = buffIter->second;
-      aBuff->Clear();
-    }
+    it->second->GetBuffer()->Clear(); 
   }
-
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     it->second->GetBuffer()->Clear(); 
@@ -1758,7 +1728,7 @@ PlusStatus vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
 vtkImageData* vtkPlusDevice::GetBrightnessOutput()
 {  
   vtkImageData* resultImage=this->BlankImage;
-  if ( GetBuffer()->GetLatestStreamBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
+  if ( this->GetBuffer() != NULL && this->GetBuffer()->GetLatestStreamBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
   {
     LOG_DEBUG("No video data available yet, return blank frame");
   }
@@ -2476,11 +2446,11 @@ bool vtkPlusDevice::GetVideoDataAvailable()
   for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
   {
     vtkPlusStream* stream = *it;
-    for( StreamBufferMapContainerConstIterator bufIt = stream->GetBuffersStartConstIterator(); bufIt != stream->GetBuffersEndConstIterator(); ++bufIt)
+    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
     {
-      vtkPlusStreamBuffer* buffer = bufIt->second;
+      vtkPlusStreamImage* image = it->second;
       StreamBufferItem item;
-      if( buffer->GetLatestStreamBufferItem(&item) != ITEM_OK )
+      if( image->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
         continue;
       }
@@ -2493,7 +2463,7 @@ bool vtkPlusDevice::GetVideoDataAvailable()
     // Now check any and all tool buffers
     for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
-      vtkPlusStreamTool* tool = it->second;
+      vtkSmartPointer<vtkPlusStreamTool> tool = it->second;
       StreamBufferItem item;
       if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
@@ -2518,18 +2488,12 @@ vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer()
 //----------------------------------------------------------------------------
 vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer( int port )
 {
-  if( this->CurrentStream == NULL )
+  if( this->CurrentStream == NULL || this->CurrentStream->ImageCount() == 0)
   {
     return NULL;
   }
 
-  vtkPlusStreamBuffer* aBuff=NULL;
-  if( this->CurrentStream->GetBuffer(aBuff, port) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to retrieve selected non-tool buffer " << port << " from device " << this->GetDeviceId());
-    return NULL;
-  }
-  return aBuff;
+  return this->CurrentStream->GetImagesStartIterator()->second->GetBuffer();
 }
 
 //----------------------------------------------------------------------------
@@ -2566,6 +2530,116 @@ void vtkPlusDevice::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement
   {
     vtkPlusStream* aStream = *it;
     vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
-    aStream->WriteCompactConfiguration(streamElement);
+    aStream->WriteConfiguration(streamElement);
   }
+}
+
+//----------------------------------------------------------------------------
+ImageContainerConstIterator vtkPlusDevice::GetImageIteratorBegin() const
+{
+  return this->Images.begin(); 
+}
+
+//----------------------------------------------------------------------------
+ImageContainerConstIterator vtkPlusDevice::GetImageIteratorEnd() const
+{
+  return this->Images.end();
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusDevice::GetNumberOfImages() const
+{
+  return this->Images.size(); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddImage( vtkPlusStreamImage* anImage )
+{
+  if ( anImage == NULL )
+  {
+    LOG_ERROR("Failed to add tool to tracker, tool is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( anImage->GetImageName() == NULL )
+  {
+    LOG_ERROR("Failed to add image to device, image name must be defined!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( this->Images.find( anImage->GetImageName() ) == this->GetImageIteratorEnd() )
+  {
+    // Check tool port names, it should be unique too
+    for ( ImageContainerConstIterator it = this->GetImageIteratorBegin(); it != this->GetImageIteratorEnd(); ++it)
+    {
+      if ( STRCASECMP( anImage->GetImageName(), it->second->GetImageName() ) == 0 )
+      {
+        LOG_ERROR("Failed to add '" << anImage->GetImageName() << "' image to container: image with name '" << it->second->GetImageName() 
+          << "' is already defined'!"); 
+        return PLUS_FAIL; 
+      }
+    }
+
+    anImage->Register(this); 
+    anImage->SetDevice(this); 
+    this->Images[anImage->GetImageName()] = anImage; 
+  }
+  else
+  {
+    LOG_ERROR("Image with name '" << anImage->GetImageName() << "' is already in the image container!"); 
+    return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetFirstActiveImage(vtkPlusStreamImage*& anImage)
+{
+  if( this->CurrentStream == NULL )
+  {
+    LOG_ERROR("Current stream is null. Unable to get first active tool.");
+    return PLUS_FAIL;
+  }
+
+  if ( this->CurrentStream->GetImagesStartConstIterator() == this->CurrentStream->GetImagesEndConstIterator() )
+  {
+    LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get the first tool
+  anImage = this->CurrentStream->GetImagesStartConstIterator()->second; 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetImage(const char* anImageName, vtkPlusStreamImage*& anImage)
+{
+  if ( anImageName == NULL )
+  {
+    LOG_ERROR("Failed to get image, image name is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if( this->Images.find(anImageName) != this->Images.end() )
+  {
+    anImage = this->Images.find(anImageName)->second;
+    return PLUS_SUCCESS;
+  }
+
+  if( CurrentStream == NULL )
+  {
+    LOG_ERROR("Failed to get image, CurrentStream is NULL"); 
+    return PLUS_FAIL;
+  }
+
+  if( this->CurrentStream->GetImage(anImage, anImageName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to find image '" << anImageName <<"' in the list, please check the configuration file first." ); 
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }

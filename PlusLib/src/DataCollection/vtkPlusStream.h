@@ -22,39 +22,35 @@ class vtkPlusDevice;
 class VTK_EXPORT vtkPlusStream : public vtkDataObject
 {
 public:
-  static const int FIND_PORT;
-  static int MAX_PORT;
-
   static vtkPlusStream *New();
   vtkTypeRevisionMacro(vtkPlusStream, vtkObject);
 
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement, bool RequireFrameBufferSizeInDeviceSetConfiguration = false, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
   /*!
     Write the details about the stream to XML
   */
   PlusStatus WriteConfiguration(vtkXMLDataElement* aStreamElement);
-  /*!
-    Write select details about the stream to XML
-  */
-  PlusStatus WriteCompactConfiguration(vtkXMLDataElement* aStreamElement);
 
-  int BufferCount() const { return this->StreamBuffers.size(); }
-  PlusStatus AddBuffer(vtkPlusStreamBuffer* aBuffer, int aPort);
-  PlusStatus GetBuffer(vtkPlusStreamBuffer*& aBuffer, int port);
-  StreamBufferMapContainerConstIterator GetBuffersStartConstIterator() const;
-  StreamBufferMapContainerConstIterator GetBuffersEndConstIterator() const;
+  int ImageCount() const { return this->Images.size(); }
+  PlusStatus AddImage(vtkPlusStreamImage* anImage);
+  PlusStatus RemoveImage(const char* imageName);
+  PlusStatus GetImage( vtkPlusStreamImage*& anImage, const char* name );
+  ImageContainerIterator GetImagesStartIterator();
+  ImageContainerIterator GetImagesEndIterator();
+  ImageContainerConstIterator GetImagesStartConstIterator() const;
+  ImageContainerConstIterator GetImagesEndConstIterator() const;
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusStreamTool* aTool );
   PlusStatus RemoveTool(const char* toolName);
   PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
-  ToolContainerConstIterator GetToolBuffersStartConstIterator() const;
-  ToolContainerIterator GetToolBuffersStartIterator();
-  ToolContainerConstIterator GetToolBuffersEndConstIterator() const;
-  ToolContainerIterator GetToolBuffersEndIterator();
+  ToolContainerIterator GetToolsStartIterator();
+  ToolContainerIterator GetToolsEndIterator();
+  ToolContainerConstIterator GetToolsStartConstIterator() const;
+  ToolContainerConstIterator GetToolsEndConstIterator() const;
 
   PlusStatus Clear();
 
@@ -70,9 +66,8 @@ public:
   vtkGetStringMacro(StreamId);
 
 protected:
-  StreamBufferMapContainer  StreamBuffers;
-
   ToolContainer             Tools;
+  ImageContainer            Images;
   vtkPlusDevice*            OwnerDevice;
   char *                    StreamId;
 

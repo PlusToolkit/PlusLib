@@ -44,6 +44,9 @@ public:
   therefore it must be unique and can be set only once */
   PlusStatus SetToolName(const char* toolName);
 
+  /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
+  PlusStatus SetReferenceName(const char* referenceName);
+
   /*! Set port name. Port name is used to identify the tool among all the tools provided by the tracker device 
   therefore it must be unique and can be set only once */
   PlusStatus SetPortName(const char* portName);
@@ -91,6 +94,8 @@ public:
   vtkGetStringMacro(ToolSerialNumber);
   /*! Get tool name */
   vtkGetStringMacro(ToolName); 
+  /*! Get the reference coordinate frame name */
+  vtkGetStringMacro(ReferenceCoordinateFrameName);
 
   /*! Set tracker which owns this tool */
   void SetDevice(vtkPlusDevice *device);
@@ -126,6 +131,7 @@ protected:
   char *ToolPartNumber;
   char *ToolManufacturer;
   char *ToolName; 
+  char *ReferenceCoordinateFrameName;
 
   vtkPlusStreamBuffer* Buffer;
 

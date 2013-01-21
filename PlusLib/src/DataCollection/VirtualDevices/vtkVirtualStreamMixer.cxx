@@ -7,6 +7,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
+#include "vtkPlusStreamImage.h"
 #include "vtkVirtualStreamMixer.h"
 
 //----------------------------------------------------------------------------
@@ -62,16 +63,27 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
-    vtkPlusStreamBuffer* aBuff = NULL;
-    if( anInputStream->BufferCount() > 0 && anInputStream->GetBuffer(aBuff, 0) == PLUS_SUCCESS )
+
+    vtkPlusStreamImage* anImage = NULL;
+    vtkPlusStreamTool* aTool = NULL;
+    
+    if( anInputStream->ImageCount() > 0 && anInputStream->GetImage(anImage, 0) == PLUS_SUCCESS )
     {
       StreamBufferItem item;
-      if( aBuff->GetNumberOfItems()>0 && aBuff->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
+      if( anImage->GetBuffer()->GetNumberOfItems() > 0 && anImage->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
       {
         if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
         {
           lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
         }
+      }
+    }
+    else if( anInputStream->ToolCount() > 0 && anInputStream->GetTool(aTool, 0) == PLUS_SUCCESS )
+    {
+      StreamBufferItem item;
+      if( aTool->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidTransformData() && anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )
+      {
+        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
       }
     }
   }
@@ -89,33 +101,44 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
   // First, empty whatever is there, because this can be called at any point after a configuration
   this->GetOutputStream()->Clear();
 
-  // take input streams, check for name conflicts, copy pointer to output stream
   for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
-    for( StreamBufferMapContainerConstIterator bufIt = anInputStream->GetBuffersStartConstIterator(); bufIt != anInputStream->GetBuffersEndConstIterator(); ++bufIt )
+    for( ImageContainerConstIterator inputImageIter = anInputStream->GetImagesStartConstIterator(); inputImageIter != anInputStream->GetImagesEndConstIterator(); ++inputImageIter )
     {
-      vtkPlusStreamBuffer* inputBuffer = bufIt->second;
+      vtkPlusStreamImage* anInputImage = inputImageIter->second;
 
-      for(StreamBufferMapContainerConstIterator outputBufferIt = this->GetOutputStream()->GetBuffersStartConstIterator(); outputBufferIt != this->GetOutputStream()->GetBuffersEndConstIterator(); ++outputBufferIt)
+      bool found = false;
+      for( ImageContainerConstIterator outputImageIter = this->GetOutputStream()->GetImagesStartConstIterator(); outputImageIter != this->GetOutputStream()->GetImagesEndConstIterator(); ++outputImageIter )
       {
-        if( outputBufferIt->second == inputBuffer )
+        vtkPlusStreamImage* anOutputImage = outputImageIter->second;
+        // Check for double adds or name conflicts
+        if( anInputImage == anOutputImage )
         {
-          LOG_ERROR("Buffer already found in the output stream. Trying to add the same inputBuffer twice.");
+          found = true;
+          LOG_ERROR("Image already exists in the output stream. Somehow the same image is part of two input streams. Consider using a virtual device to resolve them first.");
+          break;
+        }
+        else if( anInputImage->GetImageName() == anOutputImage->GetImageName() )
+        {
+          found = true;
+          LOG_ERROR("Name collision! Two images are outputting the same source. Consider using a virtual device to resolve them first.");
           break;
         }
       }
 
-      // This input inputBuffer is not in the output stream, put it in!
-      this->GetOutputStream()->AddBuffer(inputBuffer, vtkPlusStream::FIND_PORT);
+      if( !found )
+      {
+        this->GetOutputStream()->AddImage(anInputImage);
+      }
     }
 
-    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolBuffersStartConstIterator(); inputToolIter != anInputStream->GetToolBuffersEndConstIterator(); ++inputToolIter )
+    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolsStartConstIterator(); inputToolIter != anInputStream->GetToolsEndConstIterator(); ++inputToolIter )
     {
       vtkPlusStreamTool* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolBuffersStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolBuffersEndConstIterator(); ++outputToolIt )
+      for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolsEndConstIterator(); ++outputToolIt )
       {
         vtkPlusStreamTool* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -141,34 +164,6 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElement )
-{
-  // Do not call parent function, this replaces the parent call
-  LOG_TRACE("vtkVirtualStreamMixer::InternalWriteOutputStreams( " << rootXMLElement->GetName() << ")");
-
-  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
-  {
-    vtkPlusStream* aStream = *it;
-    vtkXMLDataElement* streamElement = this->FindOutputStreamElement(rootXMLElement, aStream->GetStreamId());
-    aStream->WriteCompactConfiguration(streamElement);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::InternalWriteInputStreams( vtkXMLDataElement* rootXMLElement )
-{
-  // Do not call parent function, this replaces the parent call
-  LOG_TRACE("vtkVirtualStreamMixer::InternalWriteInputStreams( " << rootXMLElement->GetName() << ")");
-
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
-  {
-    vtkPlusStream* aStream = *it;
-    vtkXMLDataElement* streamElement = this->FindInputStreamElement(rootXMLElement, aStream->GetStreamId());
-    aStream->WriteCompactConfiguration(streamElement);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -198,7 +193,7 @@ double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
     for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusStreamTool* tool = it->second;
-      double aTimeOffsetSec=tool->GetBuffer()->GetLocalTimeOffsetSec();
+      double aTimeOffsetSec = tool->GetBuffer()->GetLocalTimeOffsetSec();
       return aTimeOffsetSec;
     }
   }

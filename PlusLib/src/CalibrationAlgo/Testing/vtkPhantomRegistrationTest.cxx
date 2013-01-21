@@ -125,9 +125,9 @@ int main (int argc, char* argv[])
 
   // Acquire landmarks
   vtkPlusDevice* device = NULL;
-  if( dataCollector->GetDevice(device, "FakeTracker") != PLUS_SUCCESS )
+  if( dataCollector->GetDevice(device, "TrackerDevice") != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to locate device with Id \"FakeTracker\". Check config file.");
+    LOG_ERROR("Unable to locate device with Id \"TrackerDevice\". Check config file.");
     exit(EXIT_FAILURE);
   }
   vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(device);

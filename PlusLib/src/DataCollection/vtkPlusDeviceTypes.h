@@ -11,6 +11,7 @@ class vtkPlusDevice;
 class vtkPlusStream;
 class vtkPlusStreamBuffer;
 class vtkPlusStreamTool;
+class vtkPlusStreamImage;
 class vtkVirtualStreamMixer;
 
 #include "PlusVideoFrame.h"
@@ -55,6 +56,10 @@ typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 typedef std::map<std::string, vtkPlusStreamTool*> ToolContainer;
 typedef ToolContainer::iterator ToolContainerIterator;
 typedef ToolContainer::const_iterator ToolContainerConstIterator;
+
+typedef std::map<std::string, vtkPlusStreamImage* > ImageContainer;
+typedef ImageContainer::iterator ImageContainerIterator;
+typedef ImageContainer::const_iterator ImageContainerConstIterator;
 
 typedef std::vector<vtkPlusDevice*> DeviceCollection;
 typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;

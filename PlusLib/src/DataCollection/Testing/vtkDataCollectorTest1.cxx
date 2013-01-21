@@ -166,9 +166,9 @@ int main(int argc, char **argv)
 
   if ( ! inputVideoBufferMetafile.empty() )
   {
-    if( dataCollector->GetDevice(videoDevice, "SavedDataVideo") != PLUS_SUCCESS )
+    if( dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to locate the device with Id=\"SavedDataVideo\". Check config file.");
+      LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
     vtkSavedDataSource* videoSource = dynamic_cast<vtkSavedDataSource*>(videoDevice); 
@@ -183,9 +183,9 @@ int main(int argc, char **argv)
 
   if ( ! inputTrackerBufferMetafile.empty() )
   {
-    if( dataCollector->GetDevice(trackerDevice, "SavedDataTracker") != PLUS_SUCCESS )
+    if( dataCollector->GetDevice(trackerDevice, "TrackerDevice") != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to locate the device with Id=\"SavedDataTracker\". Check config file.");
+      LOG_ERROR("Unable to locate the device with Id=\"TrackerDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
     vtkSavedDataSource* tracker = dynamic_cast<vtkSavedDataSource*>(trackerDevice); 

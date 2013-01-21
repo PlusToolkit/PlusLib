@@ -9,14 +9,12 @@ See License.txt for details.
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
+#include "vtkPlusStreamImage.h"
 
 //----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusStream, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusStream);
-
-int vtkPlusStream::MAX_PORT = 500;
-const int vtkPlusStream::FIND_PORT = -1;
 
 //----------------------------------------------------------------------------
 vtkPlusStream::vtkPlusStream(void)
@@ -29,12 +27,12 @@ vtkPlusStream::vtkPlusStream(void)
 //----------------------------------------------------------------------------
 vtkPlusStream::~vtkPlusStream(void)
 {
-  StreamBuffers.clear();
+  Images.clear();
   Tools.clear();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, bool RequireFrameBufferSizeInDeviceSetConfiguration, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration )
+PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -46,44 +44,28 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, 
   }
   this->SetStreamId(id);
 
-  // TODO : come up with a way to define multiple buffers per stream... stereo image devices will require it
-  int bufferSize = 0;
-  if ( aStreamElement->GetScalarAttribute("BufferSize", bufferSize) )
+  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
   {
-    vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
-    if( this->AddBuffer(aBuff, vtkPlusStream::FIND_PORT) != PLUS_SUCCESS )
+    vtkXMLDataElement* imageElement = aStreamElement->GetNestedElement(i); 
+    if ( STRCASECMP(imageElement->GetName(), "Image") != 0 )
     {
-      LOG_ERROR("Unable to add a buffer to the stream. Can't set params of buffer.");
-      return PLUS_FAIL;
+      // if this is not an image element, skip it
+      continue; 
     }
-    // Set the buffer size
-    if ( aBuff->SetBufferSize(bufferSize) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to set buffer size!");
-    }
-  }
-  else if( RequireFrameBufferSizeInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find main buffer size in device element when it is required. StreamId: " << this->GetStreamId() );
-  }
 
-  int averagedItemsForFiltering = 0;
-  if ( aStreamElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
-  {
-    for( StreamBufferMapContainerIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+    const char* name = imageElement->GetAttribute("Id");
+    if( name == NULL )
     {
-      vtkPlusStreamBuffer* aBuff = it->second;
-      aBuff->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+      LOG_WARNING("No field \"Id\" defined in the image element " << this->GetStreamId() << ". Unable to add it to the output stream.");
+      continue;
     }
-  }
-  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find averaged items for filtering in stream configuration when it is required.");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+    vtkPlusStreamImage* image = NULL;
+    if( this->OwnerDevice == NULL || this->OwnerDevice->GetImage(name, image) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to retrieve image from owner device.");
+      continue;
+    }
+    this->Images[name] = image;
   }
 
   for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
@@ -98,7 +80,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement, 
     const char* toolName = toolElement->GetAttribute("Name");
     if( toolName == NULL )
     {
-      LOG_WARNING("No field \"Name\" defined in the OutputStream " << this->GetStreamId() << ". Unable to add it to the output stream.");
+      LOG_WARNING("No field \"Name\" defined in the tool element " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
     vtkPlusStreamTool* tool = NULL;
@@ -118,14 +100,20 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
 {
   aStreamElement->SetAttribute("Id", this->GetStreamId());
 
-  if( this->StreamBuffers.size() > 0 )
+  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
   {
-    // TODO : extend this to support multiple buffers per stream
-    aStreamElement->SetIntAttribute("BufferSize", this->StreamBuffers[0]->GetBufferSize());
-    if( aStreamElement->GetAttribute("AveragedItemsForFiltering") != NULL )
+    vtkXMLDataElement* element = aStreamElement->GetNestedElement(i); 
+    if ( STRCASECMP(element->GetName(), "Image") != 0 )
     {
-      aStreamElement->SetIntAttribute("AveragedItemsForFiltering", this->StreamBuffers[0]->GetAveragedItemsForFiltering());
+      continue; 
     }
+    vtkPlusStreamImage* anImage = NULL;
+    if( element->GetAttribute("Name") == NULL || this->GetImage(anImage, element->GetAttribute("Name")) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve image when saving config.");
+      return PLUS_FAIL;
+    }
+    anImage->WriteCompactConfiguration(element);
   }
 
   for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
@@ -133,10 +121,9 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
     vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
     if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
     {
-      // if this is not a tool element, skip it
       continue; 
     }
-    vtkPlusStreamTool* aTool=NULL;
+    vtkPlusStreamTool* aTool = NULL;
     if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tool when saving config.");
@@ -149,42 +136,24 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::WriteCompactConfiguration( vtkXMLDataElement* aStreamElement )
+PlusStatus vtkPlusStream::GetImage( vtkPlusStreamImage*& anImage, const char* name )
 {
-  aStreamElement->SetAttribute("Id", this->GetStreamId());
-
-  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  if( name == NULL )
   {
-    vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
-    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
-    {
-      // if this is not a tool element, skip it
-      continue; 
-    }
-    vtkPlusStreamTool* aTool=NULL;
-    if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve tool when saving config.");
-      return PLUS_FAIL;
-    }
-    aTool->WriteCompactConfiguration(toolElement);
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetBuffer( vtkPlusStreamBuffer*& aBuffer, int port )
-{
-  if( StreamBuffers.find(port) == StreamBuffers.end() )
-  {
-    LOG_ERROR("Invalid port selected.");
+    LOG_ERROR("Null name sent to stream image request.");
     return PLUS_FAIL;
   }
 
-  aBuffer = StreamBuffers[port];
+  for( ImageContainerIterator it = this->Images.begin(); it != this->Images.end(); ++it)
+  {
+    if( STRCASECMP(name, it->second->GetImageName()) == 0 )
+    {
+      anImage = it->second;
+      return PLUS_SUCCESS;
+    }
+  }
 
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -209,37 +178,49 @@ PlusStatus vtkPlusStream::GetTool(vtkPlusStreamTool*& aTool, const char* toolNam
 }
 
 //----------------------------------------------------------------------------
-StreamBufferMapContainerConstIterator vtkPlusStream::GetBuffersStartConstIterator() const
+ImageContainerConstIterator vtkPlusStream::GetImagesStartConstIterator() const
 {
-  return this->StreamBuffers.begin();
+  return this->Images.begin();
 }
 
 //----------------------------------------------------------------------------
-StreamBufferMapContainerConstIterator vtkPlusStream::GetBuffersEndConstIterator() const
+ImageContainerConstIterator vtkPlusStream::GetImagesEndConstIterator() const
 {
-  return this->StreamBuffers.end();
+  return this->Images.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusStream::GetToolBuffersStartConstIterator() const
+ImageContainerIterator vtkPlusStream::GetImagesStartIterator()
+{
+  return this->Images.begin();
+}
+
+//----------------------------------------------------------------------------
+ImageContainerIterator vtkPlusStream::GetImagesEndIterator()
+{
+  return this->Images.end();
+}
+
+//----------------------------------------------------------------------------
+ToolContainerConstIterator vtkPlusStream::GetToolsStartConstIterator() const
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusStream::GetToolBuffersEndConstIterator() const
+ToolContainerConstIterator vtkPlusStream::GetToolsEndConstIterator() const
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusStream::GetToolBuffersStartIterator()
+ToolContainerIterator vtkPlusStream::GetToolsStartIterator()
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusStream::GetToolBuffersEndIterator()
+ToolContainerIterator vtkPlusStream::GetToolsEndIterator()
 {
   return this->Tools.end();
 }
@@ -291,47 +272,25 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddBuffer(vtkPlusStreamBuffer* aBuffer, int port )
+PlusStatus vtkPlusStream::AddImage(vtkPlusStreamImage* anImage)
 {
-  if( port != FIND_PORT )
+  if( anImage == NULL )
   {
-    if( this->StreamBuffers.find(port) != this->StreamBuffers.end() )
-    {
-      LOG_WARNING("Overwriting a buffer at port " << port );
-    }
-    this->StreamBuffers[port] = aBuffer;
-    this->StreamBuffers[port]->Register(this);
-    return PLUS_SUCCESS;
+    LOG_ERROR("Trying to add null image to stream.");
+    return PLUS_FAIL;
   }
 
-  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
+  for( ImageContainerConstIterator it = this->Images.begin(); it != this->Images.end(); ++it)
   {
-    if( it->second == aBuffer && it->first == port )
+    if( it->second == anImage )
     {
       return PLUS_SUCCESS;
     }
   }
 
-  std::vector<int> usedPorts;
-  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
-  {
-    usedPorts.push_back(it->first);
-  }
+  this->Images[anImage->GetImageName()] = anImage;
 
-  double newPort = 0;
-  while( newPort < MAX_PORT )
-  {
-    if( std::find(usedPorts.begin(), usedPorts.end(), newPort) == usedPorts.end() )
-    {
-      this->StreamBuffers[newPort] = aBuffer;
-      this->StreamBuffers[newPort]->Register(this);
-      return PLUS_SUCCESS;
-    }
-    newPort++;
-  }
-
-  LOG_ERROR("Unable to find a suitable port for a new buffer. How did you go over " << MAX_PORT << " ports!");
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -342,12 +301,7 @@ PlusStatus vtkPlusStream::Clear()
     (it->second)->UnRegister(this);
   }
   this->Tools.clear();
-  
-  for( StreamBufferMapContainerConstIterator it = this->StreamBuffers.begin(); it != this->StreamBuffers.end(); ++it)
-  {
-    (it->second)->UnRegister(this);
-  }
-  this->StreamBuffers.clear();
+  this->Images.clear();
   return PLUS_SUCCESS;
 }
 
@@ -356,11 +310,11 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 {
   aTimestamp = 0;
 
-  for( StreamBufferMapContainerConstIterator it = this->GetBuffersStartConstIterator(); it != this->GetBuffersEndConstIterator(); ++it )
+  for( ImageContainerConstIterator it = this->GetImagesStartConstIterator(); it != this->GetImagesEndConstIterator(); ++it )
   {
-    vtkPlusStreamBuffer* aBuf = it->second;
+    vtkPlusStreamImage* aBuf = it->second;
     double timestamp;
-    if( aBuf->GetLatestTimeStamp(timestamp) == ITEM_OK )
+    if( it->second->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
       if( timestamp > aTimestamp )
       {
@@ -369,18 +323,15 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
     }
   }
 
-  for( ToolContainerConstIterator it = this->GetToolBuffersStartConstIterator(); it != this->GetToolBuffersEndConstIterator(); ++it)
+  for( ToolContainerConstIterator it = this->GetToolsStartConstIterator(); it != this->GetToolsEndConstIterator(); ++it)
   {
     vtkPlusStreamTool* aTool = it->second;
-    if( aTool->GetBuffer() != NULL )
+    double timestamp;
+    if( aTool->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
-      double timestamp;
-      if( aTool->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
+      if( timestamp > aTimestamp )
       {
-        if( timestamp > aTimestamp )
-        {
-          aTimestamp = timestamp;
-        }
+        aTimestamp = timestamp;
       }
     }
   }
@@ -392,33 +343,15 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 void vtkPlusStream::DeepCopy( const vtkPlusStream& aStream )
 {
   // Make this stream look like aStream
-  this->Clear();
-  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
-  {
-    vtkSmartPointer<vtkPlusStreamBuffer> aBuff = vtkSmartPointer<vtkPlusStreamBuffer>::New();
-    if( this->AddBuffer(aBuff, it->first) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to add a buffer to port " << it->first);
-      continue;
-    }
-  }
-  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
-  {
-    vtkSmartPointer<vtkPlusStreamTool> aTool = vtkSmartPointer<vtkPlusStreamTool>::New();
-    if( this->AddTool(aTool) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to add a tool when deep copying a stream.");
-      continue;
-    }
-  }
+  this->ShallowCopy(aStream);
 
   // Now the streams are the same!
-  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
+  for( ImageContainerConstIterator it = aStream.GetImagesStartConstIterator(); it != aStream.GetImagesEndConstIterator(); ++it )
   {
     // Find the buffer in this with same port, copy it
-    this->StreamBuffers[it->first]->DeepCopy(it->second);
+    this->Images[it->first]->DeepCopy(it->second);
   }
-  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
+  for( ToolContainerConstIterator it = aStream.GetToolsStartConstIterator(); it != aStream.GetToolsEndConstIterator(); ++it)
   {
     // Find the tool with same name... copy it
     this->Tools[it->first]->DeepCopy(it->second);
@@ -429,19 +362,20 @@ void vtkPlusStream::DeepCopy( const vtkPlusStream& aStream )
 void vtkPlusStream::ShallowCopy( const vtkPlusStream& aStream )
 {
   this->Clear();
-  for( StreamBufferMapContainerConstIterator it = aStream.GetBuffersStartConstIterator(); it != aStream.GetBuffersEndConstIterator(); ++it )
+  for( ImageContainerConstIterator it = aStream.GetImagesStartConstIterator(); it != aStream.GetImagesEndConstIterator(); ++it)
   {
-    if( this->AddBuffer(it->second, it->first) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkPlusStreamImage> anImage = vtkSmartPointer<vtkPlusStreamImage>::New();
+    if( this->AddImage(anImage) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to add a buffer to port " << it->first);
+      LOG_ERROR("Unable to add an image when shallow copying a stream.");
       continue;
     }
   }
-  for( ToolContainerConstIterator it = aStream.GetToolBuffersStartConstIterator(); it != aStream.GetToolBuffersEndConstIterator(); ++it)
+  for( ToolContainerConstIterator it = aStream.GetToolsStartConstIterator(); it != aStream.GetToolsEndConstIterator(); ++it)
   {
     if( this->AddTool(it->second) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to add a tool when deep copying a stream.");
+      LOG_ERROR("Unable to add a tool when shallow copying a stream.");
       continue;
     }
   }

@@ -178,11 +178,29 @@ public:
   /*! Get the end of the tool iterator */
   ToolContainerConstIterator GetToolIteratorEnd() const;
 
-  /*! Add tool to the tracker */
+  /*! Add tool to the device */
   PlusStatus AddTool(vtkPlusStreamTool* tool ); 
 
-  /*! Get number of tools */
+  /*! Get number of images */
   int GetNumberOfTools() const;
+
+  /*! Get the image object for the specified image name */
+  PlusStatus GetImage(const char* anImageName, vtkPlusStreamImage*& anImage);
+
+  /*! Get the first active image object */
+  PlusStatus GetFirstActiveImage(vtkPlusStreamImage*& anImage); 
+
+  /*! Get the beginning of the image iterator */
+  ImageContainerConstIterator GetImageIteratorBegin() const; 
+
+  /*! Get the end of the image iterator */
+  ImageContainerConstIterator GetImageIteratorEnd() const;
+
+  /*! Add image to the device */
+  PlusStatus AddImage( vtkPlusStreamImage* anImage ); 
+
+  /*! Get number of images */
+  int GetNumberOfImages() const;
 
   /*! Convert tool status to string */
   static std::string ConvertToolStatusToString(ToolStatus status); 
@@ -203,9 +221,10 @@ public:
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
-  virtual void SetLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual void SetImageLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual double GetToolLocalTimeOffsetSec();
+  virtual double GetImageLocalTimeOffsetSec();
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -264,8 +283,6 @@ public:
   virtual char* GetDeviceId() const { return this->DeviceId; }
   // Set the device Id
   vtkSetStringMacro(DeviceId);
-
-  vtkGetMacro(Selectable, bool);
 
   /*! Set the native ultrasound image orientation that the device acquires */
   vtkSetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION); 
@@ -384,8 +401,6 @@ public:
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
-  vtkSetMacro(Selectable, bool);
-
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
   /*! Get number of tracked frames between two given timestamps (inclusive) */
@@ -477,8 +492,9 @@ protected:
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
-  /*! Tracker tools */
   ToolContainer Tools; 
+  ImageContainer Images;
+
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 
 
@@ -516,8 +532,6 @@ protected:
 
   /*! Set if output needs to be cleared to be cleared before being written */
   int OutputNeedsInitialization;
-
-  bool Selectable;
 
 protected:
   /*
