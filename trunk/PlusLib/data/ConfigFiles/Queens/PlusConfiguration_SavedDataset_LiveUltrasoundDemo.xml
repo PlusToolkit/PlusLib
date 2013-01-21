@@ -8,7 +8,7 @@
     
     <Device
       Id="DeviceSavedDataset"
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       SequenceMetafile="FacetInPlaneInsertion.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="FALSE"

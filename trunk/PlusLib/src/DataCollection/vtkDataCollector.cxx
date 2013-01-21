@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
-#include "vtkSavedDataVideoSource.h"
+#include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -869,20 +869,20 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
-    vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
-    if( savedDataVideoSource == NULL)
+    vtkSavedDataSource* savedDataSource = dynamic_cast<vtkSavedDataSource*>(*it);
+    if( savedDataSource == NULL)
     {
       // loops are only set for saved data sources
       continue;
     }
-    if(!savedDataVideoSource->GetUseOriginalTimestamps())
+    if(!savedDataSource->GetUseOriginalTimestamps())
     {
-      LOG_DEBUG("The device "<<savedDataVideoSource->GetDeviceId()<<" does not use original timestamps, therefore synchronization of loop time is not applicable");
+      LOG_DEBUG("The device "<<savedDataSource->GetDeviceId()<<" does not use original timestamps, therefore synchronization of loop time is not applicable");
       continue;
     }
     double loopStartTime=0;
     double loopStopTime=0;
-    savedDataVideoSource->GetLoopTimeRange(loopStartTime, loopStopTime);
+    savedDataSource->GetLoopTimeRange(loopStartTime, loopStopTime);
     if (loopStartTime>latestLoopStartTime || !isLoopStartStopTimeInitialized)
     {
       latestLoopStartTime=loopStartTime;
@@ -909,13 +909,13 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   // Set the common loop range for all saved data source devices
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
-    vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(*it);
-    if( savedDataVideoSource == NULL)
+    vtkSavedDataSource* savedDataSource = dynamic_cast<vtkSavedDataSource*>(*it);
+    if( savedDataSource == NULL)
     {
       // loops are only set for saved data sources
       continue;
     }
-    savedDataVideoSource->SetLoopTimeRange(latestLoopStartTime, earliestLoopStopTime);
+    savedDataSource->SetLoopTimeRange(latestLoopStartTime, earliestLoopStopTime);
   }
 
   return PLUS_SUCCESS; 

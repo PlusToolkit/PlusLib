@@ -8,7 +8,7 @@
       
     <Device
       Id="SomeVideoDevice"
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"

@@ -9,7 +9,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Id="DeviceSavedDataset"
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
@@ -28,7 +28,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Id="DeviceSavedDataset" 
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 

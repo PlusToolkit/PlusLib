@@ -9,11 +9,12 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Id="TrackerDeviceSavedDataset"
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="WaterTankBottomTranslationTrackerBuffer.mha"
+      UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
@@ -28,12 +29,13 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device
       Id="VideoDeviceSavedDataset" 
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
       UsImageOrientation="MF"
+      UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <OutputStream Id="SavedDatasetOutput" BufferSize="200" AveragedItemsForFiltering="20" />
     </Device>

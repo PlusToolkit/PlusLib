@@ -7,7 +7,7 @@
     />
     
     <Device
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       Id="DeviceSavedDataset"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"

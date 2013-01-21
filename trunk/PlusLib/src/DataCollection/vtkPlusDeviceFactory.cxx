@@ -51,7 +51,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // Video sources
-#include "vtkSavedDataVideoSource.h"
+#include "vtkSavedDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
 //#ifdef PLUS_USE_MATROX_IMAGING
@@ -132,7 +132,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["PhidgetSpatial"]=(PointerToDevice)&vtkPhidgetSpatialTracker::New; 
 #endif
 
-  DeviceTypes["SavedVideoDataset"]=(PointerToDevice)&vtkSavedDataVideoSource::New; 
+  DeviceTypes["SavedDataSource"]=(PointerToDevice)&vtkSavedDataSource::New; 
   DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New; 
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink

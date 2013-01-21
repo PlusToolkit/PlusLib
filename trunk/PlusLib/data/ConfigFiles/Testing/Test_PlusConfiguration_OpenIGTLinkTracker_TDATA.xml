@@ -31,7 +31,7 @@
 
     <Device
       Id="SavedData"
-      Type="SavedVideoDataset"
+      Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE"
       UseOriginalTimestamps="FALSE"

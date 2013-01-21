@@ -8,7 +8,7 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkSavedDataVideoSource.h"
+#include "vtkSavedDataSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 int main (int argc, char* argv[])
@@ -124,12 +124,12 @@ int main (int argc, char* argv[])
   // Video source type: SavedDataset
 
   LOG_INFO("Testing video source factory create instance function with SavedDataset video source type..."); 
-  if ( deviceFactory->CreateInstance("SavedVideoDataset", device, "vidDevice") != PLUS_SUCCESS )
+  if ( deviceFactory->CreateInstance("SavedDataSource", device, "vidDevice") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 
   }
-  if ( dynamic_cast<vtkSavedDataVideoSource*>(device) == NULL )
+  if ( dynamic_cast<vtkSavedDataSource*>(device) == NULL )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 

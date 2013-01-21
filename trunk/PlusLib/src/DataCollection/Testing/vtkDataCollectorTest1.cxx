@@ -21,7 +21,7 @@ See License.txt for details.
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
 #include "vtkPlusDevice.h"
-#include "vtkSavedDataVideoSource.h"
+#include "vtkSavedDataSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
 #include "vtkPlusStreamTool.h"
@@ -171,10 +171,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"SavedDataVideo\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(videoDevice); 
+    vtkSavedDataSource* videoSource = dynamic_cast<vtkSavedDataSource*>(videoDevice); 
     if ( videoSource == NULL )
     {
-      LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
+      LOG_ERROR( "Unable to cast video source to vtkSavedDataSource." );
       exit( EXIT_FAILURE );
     }
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
@@ -188,10 +188,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"SavedDataTracker\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkSavedDataVideoSource* tracker = dynamic_cast<vtkSavedDataVideoSource*>(trackerDevice); 
+    vtkSavedDataSource* tracker = dynamic_cast<vtkSavedDataSource*>(trackerDevice); 
     if ( tracker == NULL )
     {
-      LOG_ERROR( "Unable to cast tracker to vtkSavedDataVideoSource" );
+      LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
       exit( EXIT_FAILURE );
     }
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
