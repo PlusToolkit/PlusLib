@@ -170,3 +170,38 @@ void vtkVirtualStreamMixer::InternalWriteInputStreams( vtkXMLDataElement* rootXM
     aStream->WriteCompactConfiguration(streamElement);
   }
 }
+
+//----------------------------------------------------------------------------
+void vtkVirtualStreamMixer::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
+{
+  // tools in input streams (owned by other devices)
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    // Now check any and all tool buffers
+    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    {
+      vtkPlusStreamTool* tool = it->second;
+      tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
+{
+  // tools in input streams (owned by other devices)
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    // Now check any and all tool buffers
+    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    {
+      vtkPlusStreamTool* tool = it->second;
+      double aTimeOffsetSec=tool->GetBuffer()->GetLocalTimeOffsetSec();
+      return aTimeOffsetSec;
+    }
+  }
+  LOG_ERROR("Failed to get tool local time offset");
+  return 0.0;
+}

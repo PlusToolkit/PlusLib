@@ -70,6 +70,9 @@ public:
   */
   virtual PlusStatus NotifyConfigured();
 
+  /*! Probe to see if the tracking system is present on the specified serial port. */
+  PlusStatus Probe();
+
 protected:
   /*! Constructor */
   vtkSavedDataVideoSource();
@@ -79,13 +82,36 @@ protected:
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
 
+  /*! Connect to device, in case the output is a video stream */
+  virtual PlusStatus InternalConnectVideo(vtkTrackedFrameList* savedDataBuffer);
+
+  /*! Connect to device, in case the output is a tracker stream */
+  virtual PlusStatus InternalConnectTracker(vtkTrackedFrameList* savedDataBuffer);
+
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
+  /*! Internal update, called when NOT the original timestamps are used */
+  PlusStatus InternalUpdateCurrentTimestamp(BufferItemUidType frameToBeAddedUid, int frameToBeAddedLoopIndex);
+
+  /*! Internal update, called when the original timestamps are used */
+  PlusStatus InternalUpdateOriginalTimestamp(BufferItemUidType frameToBeAddedUid, int frameToBeAddedLoopIndex);
+
   BufferItemUidType GetClosestFrameUidWithinTimeRange(double time_Local, double startTime_Local, double stopTime_Local);
+
+  /*! Get local tracker buffer */
+  vtkPlusStreamBuffer* GetLocalTrackerBuffer(); 
+
+  /*! 
+    Get local tracker buffer, it returns tracker buffer if the output is a tracker stream, and 
+    returns the video buffer if the output is a video stream 
+  */
+  vtkPlusStreamBuffer* GetLocalBuffer();
+
+  void DeleteLocalTrackerBuffers(); 
 
 protected:
   /*! Byte alignment of each row in the framebuffer */
@@ -110,6 +136,9 @@ protected:
   /*! Local video buffer */
   vtkPlusStreamBuffer* LocalVideoBuffer; 
 
+  /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
+  std::map<std::string, vtkPlusStreamBuffer*> LocalTrackerBuffers; 
+
   /*! Read all the frame fields from the file and provide them in the output */
   bool UseAllFrameFields;
 
@@ -127,6 +156,14 @@ protected:
   
   /*! Frames after this item (identified by the buffer item UID) in the local buffer are ignored, not replayed */
   BufferItemUidType LoopLastFrameUid;
+
+  enum SimulatedStreamType
+  {
+    TRACKER_STREAM, /*< The device provides a tracker stream */
+    VIDEO_STREAM   /*!< The device provides a video stream (with optional tracking data added as fields) */
+  };
+
+  SimulatedStreamType SimulatedStream;
 
 private:
   static vtkSavedDataVideoSource* Instance;

@@ -15,7 +15,6 @@ See License.txt for details.
 #include "vtkPlusStream.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkPlusStreamTool.h"
-#include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
@@ -878,7 +877,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
     }
     if(!savedDataVideoSource->GetUseOriginalTimestamps())
     {
-      LOG_WARNING("The device "<<savedDataVideoSource->GetDeviceId()<<" does not use original timestamps, therefore synchronization of loop time is not applicable");
+      LOG_DEBUG("The device "<<savedDataVideoSource->GetDeviceId()<<" does not use original timestamps, therefore synchronization of loop time is not applicable");
       continue;
     }
     double loopStartTime=0;
@@ -886,18 +885,18 @@ PlusStatus vtkDataCollector::SetLoopTimes()
     savedDataVideoSource->GetLoopTimeRange(loopStartTime, loopStopTime);
     if (loopStartTime>latestLoopStartTime || !isLoopStartStopTimeInitialized)
     {
-      loopStartTime=latestLoopStartTime;
+      latestLoopStartTime=loopStartTime;
     }
     if (loopStopTime<earliestLoopStopTime || !isLoopStartStopTimeInitialized)
     {
-      loopStopTime=earliestLoopStopTime;
+      earliestLoopStopTime=loopStopTime;
     }
     isLoopStartStopTimeInitialized=true;
   }
 
   if (!isLoopStartStopTimeInitialized)
   {
-    LOG_WARNING("No saved data source devices were found that use original timestamps, so synchronization of loop times is not performed");
+    LOG_DEBUG("No saved data source devices were found that use original timestamps, so synchronization of loop times is not performed");
     return PLUS_SUCCESS;
   }
 

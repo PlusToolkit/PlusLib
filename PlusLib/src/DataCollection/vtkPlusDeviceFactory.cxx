@@ -43,7 +43,6 @@ See License.txt for details.
 #include "vtkPhidgetSpatialTracker.h"
 #endif
 #include "vtkFakeTracker.h"
-#include "vtkSavedDataTracker.h"
 #include "vtkChRoboticsTracker.h"
 #ifdef WIN32
   // 3dConnexion tracker is supported on Windows only
@@ -99,7 +98,6 @@ vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
-  DeviceTypes["SavedTrackerDataset"]=(PointerToDevice)&vtkSavedDataTracker::New; 
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
 #ifdef WIN32

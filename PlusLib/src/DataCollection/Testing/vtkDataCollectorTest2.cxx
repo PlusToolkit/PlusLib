@@ -13,7 +13,6 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
@@ -104,10 +103,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"SavedDataTracker\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(trackerDevice); 
+    vtkSavedDataVideoSource* tracker = dynamic_cast<vtkSavedDataVideoSource*>(trackerDevice); 
     if ( tracker == NULL )
     {
-      LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
+      LOG_ERROR( "Unable to cast tracker to vtkSavedDataVideoSource" );
       exit( EXIT_FAILURE );
     }
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 

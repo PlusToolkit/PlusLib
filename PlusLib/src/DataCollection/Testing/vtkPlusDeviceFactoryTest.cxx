@@ -8,7 +8,6 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -73,21 +72,6 @@ int main (int argc, char* argv[])
   if ( device != NULL )
   {
     LOG_ERROR("NULL device expected!"); 
-    return EXIT_FAILURE; 
-  }
-
-  ////////////////////////////////////////////////////////
-  // device type: SavedDataset
-
-  LOG_INFO("Testing device factory create instance function with SavedDataset device type..."); 
-  if ( deviceFactory->CreateInstance("SavedTrackerDataset", device, "SavedDatasetDevice") != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to create SavedDataset device instance!"); 
-    return EXIT_FAILURE; 
-  }
-  if ( dynamic_cast<vtkSavedDataTracker*>(device) == NULL )
-  {
-    LOG_ERROR("Failed to create SavedDatasetTracker instance!"); 
     return EXIT_FAILURE; 
   }
 
