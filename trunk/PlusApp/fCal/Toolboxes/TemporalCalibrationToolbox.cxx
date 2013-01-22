@@ -231,9 +231,9 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
       if ( dataCollector )
       {
         vtkPlusDevice* aDevice = NULL;
-        if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL)
+        if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
         {
-          videoTimeOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec();
+          videoTimeOffset = aDevice->GetImageLocalTimeOffsetSec();
         }
       }
     }
@@ -342,8 +342,8 @@ void TemporalCalibrationToolbox::StartCalibration()
       }
       else if ( aDevice->GetVideoDataAvailable() )
       {
-        m_PreviousTrackerOffset = aDevice->GetToolIteratorBegin()->second->GetBuffer()->GetLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = aDevice->GetBuffer()->GetLocalTimeOffsetSec(); 
+        m_PreviousTrackerOffset = aDevice->GetToolLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = aDevice->GetImageLocalTimeOffsetSec(); 
         // TODO : verify this is the correct conversion to make
         aDevice->SetImageLocalTimeOffsetSec(0.0); 
         aDevice->SetToolLocalTimeOffsetSec(0.0);
@@ -490,9 +490,9 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     if (dataCollector)
     {
       vtkPlusDevice* aDevice = NULL;
-      if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS && aDevice->GetBuffer() != NULL )
+      if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
       {
-        aDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
+        aDevice->SetImageLocalTimeOffsetSec(trackerLagSec);
         offsetsSuccessfullySet = true;
       }
     }
@@ -598,9 +598,10 @@ void TemporalCalibrationToolbox::CancelCalibration()
       {
         LOG_ERROR("No selected stream mixer. Unable to reset the local time offset to their previous value.")
       }
-      if ( aDevice != NULL && aDevice->GetBuffer() != NULL)
+      if ( aDevice != NULL )
       {
-        dataCollector->SetLocalTimeOffsetSec(m_PreviousTrackerOffset, m_PreviousVideoOffset); 
+        aDevice->SetImageLocalTimeOffsetSec(m_PreviousVideoOffset); 
+        aDevice->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
         offsetsSuccessfullySet = true;
       }
     }

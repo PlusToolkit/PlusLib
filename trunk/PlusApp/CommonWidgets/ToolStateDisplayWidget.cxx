@@ -201,6 +201,17 @@ PlusStatus ToolStateDisplayWidget::Update()
   m_DataCollector->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
+  if (transformNames.size()!=m_ToolStateLabels.size())
+  {
+    LOG_WARNING("Tool number inconsistency!");
+
+    if (InitializeTools(m_DataCollector, true) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Re-initializing tool state widget failed");
+      return PLUS_FAIL;
+    }
+  }
+
   std::vector<PlusTransformName>::iterator transformIt;
   std::vector<QTextEdit*>::iterator labelIt;
   for (transformIt = transformNames.begin(), labelIt = m_ToolStateLabels.begin(); transformIt != transformNames.end() && labelIt != m_ToolStateLabels.end(); ++transformIt, ++labelIt)
@@ -239,17 +250,6 @@ PlusStatus ToolStateDisplayWidget::Update()
           label->setTextColor(QColor::fromRgb(223, 0, 0));
           break;
       }
-    }
-  }
-
-  if (labelIt != m_ToolStateLabels.end())
-  {
-    LOG_WARNING("Tool number inconsistency!");
-
-    if (InitializeTools(m_DataCollector, true) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Re-initializing tool state widget failed");
-      return PLUS_FAIL;
     }
   }
 
