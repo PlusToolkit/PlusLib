@@ -16,7 +16,7 @@
       LocalTimeOffsetSec="0.0" 
       Selectable="true">
       <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <OutputStream Id="TrackerDevice"">
+      <OutputStream Id="TrackerDevice">
         <Tool Name="OrientationSensor"/>
       </OutputStream>
     </Device>
