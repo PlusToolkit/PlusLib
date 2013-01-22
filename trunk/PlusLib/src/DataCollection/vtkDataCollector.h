@@ -169,7 +169,7 @@ public:
   PlusStatus GetFrameRate( double& frameRate ) const;
   vtkImageData* GetBrightnessOutput();
   PlusStatus GetBrightnessFrameSize(int aDim[2]);
-  PlusStatus SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec );
+  //PlusStatus SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec );
 
   PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
   PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);

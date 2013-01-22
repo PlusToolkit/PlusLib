@@ -18,6 +18,7 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
+#include "vtkPlusStreamImage.h"
 
 static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
 
@@ -124,7 +125,13 @@ int main( int argc, char** argv )
 
   // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
-  double timeOffset=218.188043;
+  vtkPlusDevice* selectedDevice=NULL;
+  dataCollector->GetSelectedDevice(selectedDevice);
+  vtkPlusStreamImage* imageStream=NULL;
+  selectedDevice->GetImage("VideoOutput", imageStream);
+  double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
+  double timestampOfFirstFrameInFile=218.188043;
+  double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
 
   // Frame 0001
   dataCollector->GetTrackedFrameByTime(218.792613-timeOffset, &trackedFrame);
