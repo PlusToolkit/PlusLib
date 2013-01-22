@@ -118,7 +118,9 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
   }
   else
   {
-    this->SetSelectedDevice(Devices.at(0)->GetDeviceId());
+    // select the last device by default (usually we are interested in the output of mixer devices,
+    // which are mostly defined as the last device)
+    this->SetSelectedDevice(Devices.back()->GetDeviceId());
   }
 
   vtkPlusDevice* aDevice;
@@ -662,6 +664,7 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrameFromTrackedFrame(std::s
 }
 
 //------------------------------------------------------------------------------
+/*
 PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec )
 {
   if( this->SelectedDevice == NULL )
@@ -674,6 +677,7 @@ PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double
   this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
   return PLUS_SUCCESS;
 }
+*/
 
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList)
@@ -744,7 +748,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     aTimestampFrom = itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
+    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame, false /* get tracking data only */ ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracking data by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;

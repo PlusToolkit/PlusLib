@@ -93,7 +93,6 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
 {
   // Compute elapsed time since we started the acquisition
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetOutputBuffer()->GetStartTime();
-
   double loopTime=this->LoopStopTime_Local-this->LoopStartTime_Local;
 
   const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
@@ -162,8 +161,10 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
       status=PLUS_FAIL;
       continue;
     }
-    // Read the timestamp without any local time offset. Offset will be applied when it is copied to the video buffer.
-    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local;
+
+    // Compute the system time corresponding to this frame
+    // Get the filtered timestamp from the buffer without any local time offset. Offset will be applied when it is copied to the output stream's buffer.
+    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local+this->GetOutputBuffer()->GetStartTime();
     double unfilteredTimestamp=filteredTimestamp; // we ignore unfiltered timestamps
 
     switch (this->SimulatedStream)

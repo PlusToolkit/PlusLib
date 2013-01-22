@@ -60,33 +60,34 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
   // Determine frame rate from the video input device with the lowest frame rate  
   bool lowestRateKnown=false;
   double lowestRate=30; // just a usual value (FPS)  
+
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
     vtkPlusStream* anInputStream = (*it);
 
-    vtkPlusStreamImage* anImage = NULL;
-    vtkPlusStreamTool* aTool = NULL;
-    
-    if( anInputStream->ImageCount() > 0 && anInputStream->GetImage(anImage, 0) == PLUS_SUCCESS )
+    // Get the lowest rate from all image streams
+    for( ImageContainerConstIterator inputImageIter = anInputStream->GetImagesStartConstIterator(); inputImageIter != anInputStream->GetImagesEndConstIterator(); ++inputImageIter )
     {
-      StreamBufferItem item;
-      if( anImage->GetBuffer()->GetNumberOfItems() > 0 && anImage->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
-      {
-        if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
-        {
-          lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
-        }
-      }
-    }
-    else if( anInputStream->ToolCount() > 0 && anInputStream->GetTool(aTool, 0) == PLUS_SUCCESS )
-    {
-      StreamBufferItem item;
-      if( aTool->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidTransformData() && anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate )
+      vtkPlusStreamImage* anImage = inputImageIter->second;
+      if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
       {
         lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        lowestRateKnown=true;
+      }
+    }
+
+    // Get the lowest rate from all tool streams
+    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolsStartConstIterator(); inputToolIter != anInputStream->GetToolsEndConstIterator(); ++inputToolIter )
+    {
+      vtkPlusStreamTool* anTool = inputToolIter->second;
+      if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
+      {
+        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        lowestRateKnown=true;
       }
     }
   }
+
   if( !lowestRateKnown )
   {
     // Couldn't determine the lowest acquisition rate, so just use the one that was set by default
@@ -200,3 +201,39 @@ double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
   LOG_ERROR("Failed to get tool local time offset");
   return 0.0;
 }
+
+//----------------------------------------------------------------------------
+void vtkVirtualStreamMixer::SetImageLocalTimeOffsetSec( double aTimeOffsetSec )
+{
+  // images in input streams (owned by other devices)
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    // Now check any and all image buffers
+    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
+    {
+      vtkPlusStreamImage* image = it->second;
+      image->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+double vtkVirtualStreamMixer::GetImageLocalTimeOffsetSec()
+{
+  // images in input streams (owned by other devices)
+  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  {
+    vtkPlusStream* stream = *it;
+    // Now check any and all image buffers
+    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
+    {
+      vtkPlusStreamImage* image = it->second;
+      double aTimeOffsetSec = image->GetBuffer()->GetLocalTimeOffsetSec();
+      return aTimeOffsetSec;
+    }
+  }
+  LOG_ERROR("Failed to get image local time offset");
+  return 0.0;
+}
+
