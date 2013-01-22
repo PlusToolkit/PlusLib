@@ -38,6 +38,12 @@ public:
   /*! Get tool local time offset from the input streams that contains tools */
   virtual double GetToolLocalTimeOffsetSec();
 
+  /*! Set tool local time offsets in the input streams that contain images */
+  virtual void SetImageLocalTimeOffsetSec( double aTimeOffsetSec );
+
+  /*! Get tool local time offset from the input streams that contains images */
+  virtual double GetImageLocalTimeOffsetSec();
+
   virtual double GetAcquisitionRate() const;
 protected:
   vtkVirtualStreamMixer();

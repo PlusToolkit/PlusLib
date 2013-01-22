@@ -239,7 +239,7 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusStreamTool* tool )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool*& aTool)
+PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusStreamTool*& aTool) const
 {
   if( this->CurrentStream == NULL )
   {
@@ -949,7 +949,7 @@ PlusStatus vtkPlusDevice::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrackedFrame )
+PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrackedFrame, bool enableImageData/*=true*/ )
 {
   int numberOfErrors(0);
   double synchronizedTimestamp(0);
@@ -963,7 +963,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
   // Get frame UID
-  if( this->CurrentStream->ImageCount() > 0 )
+  if( this->CurrentStream->ImageCount() > 0 && enableImageData )
   {
     BufferItemUidType frameUID = 0; 
     ItemStatus status = this->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
@@ -2443,12 +2443,12 @@ bool vtkPlusDevice::GetTrackingDataAvailable()
 //----------------------------------------------------------------------------
 bool vtkPlusDevice::GetVideoDataAvailable()
 {
-  for( StreamContainerConstIterator it = this->OutputStreams.begin(); it != this->OutputStreams.end(); ++it)
+  for( StreamContainerConstIterator streamIt = this->OutputStreams.begin(); streamIt != this->OutputStreams.end(); ++streamIt)
   {
-    vtkPlusStream* stream = *it;
-    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
+    vtkPlusStream* stream = *streamIt;
+    for( ImageContainerConstIterator imageIt = stream->GetImagesStartConstIterator(); imageIt != stream->GetImagesEndConstIterator(); ++imageIt)
     {
-      vtkPlusStreamImage* image = it->second;
+      vtkPlusStreamImage* image = imageIt->second;
       StreamBufferItem item;
       if( image->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {
@@ -2461,9 +2461,9 @@ bool vtkPlusDevice::GetVideoDataAvailable()
     }
 
     // Now check any and all tool buffers
-    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    for( ToolContainerConstIterator toolIt = stream->GetToolsStartConstIterator(); toolIt != stream->GetToolsEndConstIterator(); ++toolIt)
     {
-      vtkSmartPointer<vtkPlusStreamTool> tool = it->second;
+      vtkSmartPointer<vtkPlusStreamTool> tool = toolIt->second;
       StreamBufferItem item;
       if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
       {

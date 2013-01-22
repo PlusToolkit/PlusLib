@@ -6,7 +6,7 @@
       Description="Configuration file for Saved dataset + fCal 1.0
 It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
     />
-
+    
     <Device
       Id="TrackerDeviceSavedDataset"
       Type="SavedDataSource"
@@ -37,17 +37,18 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       UsImageOrientation="MF"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
+      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
       <OutputStream Id="VideoDeviceOutput">
         <Image Id="VideoOutput"/>
       </OutputStream>
     </Device>
-    
+
     <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
       <OutputStream Id="Final"/>
       <InputStream Id="VideoDeviceOutput" />
       <InputStream Id="TrackerOutput" />
     </Device>
+    
   </DataCollection>
 
 

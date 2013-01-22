@@ -74,8 +74,11 @@ public:
   /*!
     Get tracked frame containing the transform(s) or the
     image(s) acquired from the device at a specific timestamp
+    \param timestamp Timestamp of the requested tracked frame
+    \param trackedFrame Target tracked frame
+    \param enableImageData Enable returning of image data. Tracking data will be interpolated at the timestamp of the image data.
   */
-  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame& trackedFrame);
+  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame& trackedFrame, bool enableImageData=true);
   virtual PlusStatus GetTrackedFrame(TrackedFrame *trackedFrame);
 
   /*!
@@ -167,7 +170,7 @@ public:
   PlusStatus GetTool(const char* aToolName, vtkPlusStreamTool*& aTool);
 
   /*! Get the first active tool object */
-  PlusStatus GetFirstActiveTool(vtkPlusStreamTool*& aTool); 
+  PlusStatus GetFirstActiveTool(vtkPlusStreamTool*& aTool) const; 
 
   /*! Get the tool object for the specified tool port name */
   PlusStatus GetToolByPortName( const char* aPortName, vtkPlusStreamTool*& aTool); 
