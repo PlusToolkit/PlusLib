@@ -2,9 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Simulation mode for Stylus calibration"
-      Description="No Video with Fake tracker in Pivot calibration mode
-      vtkStylusCalibrationTest uses this configuration" 
+      Name="Simulated ultrasound image with Ascension3DG tracking of Probe (dummy) + Reference + Stylus"
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus" 
     />
 
     <Device
