@@ -45,33 +45,12 @@
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
   
-  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
-      File="L14-5_38_ProbeModel.stl"
-      ModelToObjectTransform="
-        -1 0 0 29.7
-        0 -1 0 1.5
-        0 0 1 -14
-        0 0 0 1"
-    />
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
-      File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1 0 0 -210.0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1"
-    />
-    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
-      Opacity="0.6"
-      File="FCal_2.0.stl"
-      ModelToObjectTransform="
-        1 0 0 -35.0
-        0 1 0 -10.0
-        0 0 1 -5.0
-        0 0 0 1"
-    />
+  <Rendering WorldCoordinateFrame="Tracker" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="OrientationSensor" Id="OrientationSensorAxes"/>\
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="TiltSensor" Id="TiltSensorAxes"/>\
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Accelerometer" Id="AccelerometerAxes"/>\
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Gyroscope" Id="GyroscopeAxes"/>\
+    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Magnetometer" Id="MagnetometerAxes"/>\
   </Rendering>
 
 
