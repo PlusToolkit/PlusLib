@@ -179,6 +179,9 @@ public:
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
 
+  vtkSetStringMacro(DefaultSelectedDevice);
+  vtkGetStringMacro(DefaultSelectedDevice);
+
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
@@ -189,6 +192,8 @@ protected:
   DeviceCollection Devices;
 
   vtkPlusDevice* SelectedDevice;
+
+  char * DefaultSelectedDevice;
 
   bool Connected;
   bool Started;

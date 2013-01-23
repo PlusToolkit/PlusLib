@@ -31,6 +31,7 @@ vtkDataCollector::vtkDataCollector()
 : vtkObject()
 , StartupDelaySec(0.0)
 , SelectedDevice(NULL)
+, DefaultSelectedDevice(NULL)
 , Connected(false)
 , Started(false)
 {
@@ -118,9 +119,23 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
   }
   else
   {
-    // select the last device by default (usually we are interested in the output of mixer devices,
-    // which are mostly defined as the last device)
-    this->SetSelectedDevice(Devices.back()->GetDeviceId());
+    // default device to request data from on connect
+    const char* defaultSelectedDeviceId = dataCollectionElement->GetAttribute("DefaultSelectedDeviceId");
+    if (defaultSelectedDeviceId != NULL)
+    {
+      std::string deviceId(defaultSelectedDeviceId);
+      vtkPlusDevice* aDevice = NULL;
+      if( this->GetDevice(aDevice, deviceId) == PLUS_SUCCESS )
+      {
+        this->SetSelectedDevice(deviceId);
+      }
+    }
+    else
+    {
+      // select the last device by default (usually we are interested in the output of mixer devices,
+      // which are mostly defined as the last device)
+      this->SetSelectedDevice(Devices.back()->GetDeviceId());
+    }
   }
 
   vtkPlusDevice* aDevice;
