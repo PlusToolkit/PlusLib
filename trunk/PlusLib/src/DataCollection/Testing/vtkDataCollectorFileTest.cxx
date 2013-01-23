@@ -128,7 +128,7 @@ int main( int argc, char** argv )
   vtkPlusDevice* selectedDevice=NULL;
   dataCollector->GetSelectedDevice(selectedDevice);
   vtkPlusStreamImage* imageStream=NULL;
-  selectedDevice->GetImage("VideoOutput", imageStream);
+  selectedDevice->GetImage("Video", imageStream);
   double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;

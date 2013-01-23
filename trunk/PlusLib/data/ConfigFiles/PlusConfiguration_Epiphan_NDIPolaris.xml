@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="Epiphan framegrabber + NDI Polaris" 
       Description="Epiphan framegrabber image acquisition + NDI Polaris for tracking"
@@ -13,14 +13,13 @@
       BaudRate="115200"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
-        <Tool Name="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <Tool Name="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        
-        <OutputStream Id="TrackerOutput" >
-          <Tool Name="Tool"/>
-          <Tool Name="Reference"/>
-          <Tool Name="Stylus"/>
+      <Tool Name="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+      <Tool Name="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+      <Tool Name="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>        
+      <OutputStream Id="TrackerStream" >
+        <Tool Name="Tool"/>
+        <Tool Name="Reference"/>
+        <Tool Name="Stylus"/>
       </OutputStream>
     </Device>
 
@@ -29,17 +28,18 @@
       Type="Epiphan"
       AcquisitionRate="30" 
       UsImageOrientation="MF" >
-      <Image Id="VideoOutput" BufferSize="100" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="VideoDeviceOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
 
 

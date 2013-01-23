@@ -6,7 +6,6 @@
       Description="Configuration file for No video + NDI Aurora
 The computer needs to be on the same local network as Aurora SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
     />
-
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
@@ -14,13 +13,11 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" 
       Selectable="true">
-      <Tool Name="Needle" PortName="0" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Needle" PortName="0" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Needle"/>
       </OutputStream>
     </Device>
-
   </DataCollection>
 
   <Rendering WorldCoordinateFrame="Tracker">

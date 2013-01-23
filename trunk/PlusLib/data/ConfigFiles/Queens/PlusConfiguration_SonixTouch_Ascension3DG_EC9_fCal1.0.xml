@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="SonixTouch Ascension3DG(GPS) EC9 +Reference +Stylus" 
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
@@ -14,9 +14,8 @@
       FilterAcWideNotch="1" >
       <Tool Name="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
       <Tool Name="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
-      <Tool Name="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -40,17 +39,18 @@
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="VideoDeviceOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
 
 

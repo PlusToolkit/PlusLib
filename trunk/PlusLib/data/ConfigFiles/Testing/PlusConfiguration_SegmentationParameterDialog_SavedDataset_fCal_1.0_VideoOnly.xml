@@ -5,20 +5,18 @@
       Name="TEST SegmentationParameterDialogTest - Saved dataset for video only" 
       Description="Saved dataset for video only" 
     />
-
     <Device
-      Type="SavedDataSource"
-      Id="DeviceSavedDataset"
+      Id="VideoDevice"
+      Type="SavedDataSource"      
       UseData="IMAGE"    
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.12" 
       SequenceMetafile="AllSegmentablefCal.mha"
       UsImageOrientation="MF"
-      RepeatEnabled="TRUE" 
-      Selectable="true" >
-      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      RepeatEnabled="TRUE" >
+      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
   </DataCollection>

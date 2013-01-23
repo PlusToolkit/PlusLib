@@ -11,7 +11,6 @@
       Name="TEST Volume reconstruction test" 
       Description="" 
     />
-
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
@@ -21,7 +20,7 @@
       LocalTimeOffsetSec="0.0"
       Selectable="true" >
       <Tool PortName="0" Model="L14-5_38" Name="Probe" />
-      <OutputStream Id="TrackerOutput" >
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
       </OutputStream>
     </Device>

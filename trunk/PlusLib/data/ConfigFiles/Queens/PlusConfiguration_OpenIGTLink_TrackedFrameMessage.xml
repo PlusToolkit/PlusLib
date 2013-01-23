@@ -5,10 +5,9 @@
       Name="OpenIGTLink TRACKEDFRAME message connection"
       Description="OpenIGTLink configuration file for TRACKEDFRAME messages + fCal 1.2" 
     />
-  
     <Device
-      Type="OpenIGTLinkVideo"
-      Id="VideoDevice"
+      Id="TrackedVideoDevice"
+      Type="OpenIGTLinkVideo"      
       MessageType="TRACKEDFRAME"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -17,9 +16,9 @@
       AcquisitionRate="30"
       LocalTimeOffsetSec="0"
       Selectable="true" >
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
   </DataCollection>

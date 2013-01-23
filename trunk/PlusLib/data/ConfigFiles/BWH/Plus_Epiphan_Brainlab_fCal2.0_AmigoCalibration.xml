@@ -1,44 +1,46 @@
 <PlusConfiguration version="1.4" PlusRevision="1.7.1.2323">
-  <DataCollection StartupDelaySec="1">
+  <DataCollection StartupDelaySec="1" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet Name="Brainlab fCal 2.0 Amigo Calibration Ready" Description="Tools expected from Brainlab: 0: Probe, 1: Reference, 2: Stylus."/>
     
     <Device
-    Type="OpenIGTLinkTracker"
-    Id="DeviceOpenIGTLinkTracker"
-    MessageType="TDATA"
-    ServerAddress="172.22.233.144"
-    ServerPort="22222"
-    IgtlMessageCrcCheckEnabled="true"
-    AcquisitionRate="30"
-	ReconnectOnReceiveTimeout="false"
-    LocalTimeOffset="0.0" >
+      Id="TrackerDevice"
+      Type="OpenIGTLinkTracker"
+      MessageType="TDATA"
+      ServerAddress="172.22.233.144"
+      ServerPort="22222"
+      IgtlMessageCrcCheckEnabled="true"
+      AcquisitionRate="30"
+      ReconnectOnReceiveTimeout="false"
+      LocalTimeOffset="0.0" >
       <Tool Name="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
       <Tool Name="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-	  <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput">
+      <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream">
         <Tool Name="ReferenceStar" />
         <Tool Name="Pointer" />
-		<Tool Name="Ultrasound" />
+        <Tool Name="Ultrasound" />
       </OutputStream>
     </Device>
     
     <Device
-    Type="Epiphan"
-    Id="DeviceEpiphan" 
-    AcquisitionRate="10" 
-    UsImageOrientation="MF"
-    xClipRectangleOrigin="253 108" 
-    xClipRectangleSize="720 667"
-    >
-      <OutputStream Id="EpiphanOutput" BufferSize="100" AveragedItemsForFiltering="20" />
+      Id="VideoDevice" 
+      Type="Epiphan"
+      AcquisitionRate="10" 
+      UsImageOrientation="MF"
+      xClipRectangleOrigin="253 108" 
+      xClipRectangleSize="720 667">
+      <Image Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
+      </OutputStream>      
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="EpiphanOutput" />
-    </Device>
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
+    </Device>    
+
   </DataCollection>
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
@@ -159,6 +161,7 @@
     Compounding="On"
     FillHoles="Off"/>
   <fCal
+    SelectedDeviceId="FinalMixer"
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
     TransducerModelId="ProbeModel"

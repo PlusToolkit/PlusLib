@@ -4,19 +4,17 @@
     <DeviceSet 
       Name="Simulation mode for freehand spatial calibration with phantom containing 2 NWires" 
       Description="Data collector in file mode providing sequence for freehand calibration" 
-    />
-    
+    />    
     <Device
-      Type="SavedDataSource"
-      Id="VideoDevice"
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"      
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE" 
-      Selectable="true">
-      <Image Id="VideoOutput" BufferSize="500" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      RepeatEnabled="TRUE">
+      <Image Id="Video" BufferSize="500" />
+      <OutputStream Id="TrackedVideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
   </DataCollection>

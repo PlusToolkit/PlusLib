@@ -1,33 +1,30 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="TEST Data collection in file mode 3 NWires + OpenIGTLink broadcasting through OpenIGTLinkServer (IMAGE and TRANSFORM messages)" 
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
-    />
-      
+    />      
     <Device
-      Id="VideoDevice"
+      Id="TrackedVideoDevice"
       Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      Selectable="true" >
-      <Image Id="VideoOutput" BufferSize="100" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      RepeatEnabled="TRUE" >
+      <Image Id="Video" BufferSize="100" />
+      <OutputStream Id="TrackedVideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
-
   </DataCollection>
   
   <PlusServerTestClientsConfiguration>
     <!-- This configuration section is used during PlusServer testing to configure OpenIGTLink clients --> 
     <DataCollection>            
       <Device
-        Type="OpenIGTLinkVideo"
-        Id="DeviceOpenIGTLinkVideo"
+        Id="OpenIGTLinkVideoSenderDevice"
+        Type="OpenIGTLinkVideo"        
         MessageType="TrackedFrame"
         ServerAddress="127.0.0.1"
         ServerPort="18944"
@@ -36,14 +33,13 @@
         UsImageOrientation="MF"
         AcquisitionRate="30"
         LocalTimeOffsetSec="0" >
-          <Image Id="VideoOutput" BufferSize="50" AveragedItemsForFiltering="20" />
-          <OutputStream Id="OutputOpenIGTLinkVideo">
-            <Image Id="VideoOutput" />
-          </OutputStream>
+        <Image Id="Video" BufferSize="50" AveragedItemsForFiltering="20" />
+        <OutputStream Id="TrackedVideoSenderStream">
+          <Image Id="Video" />
+        </OutputStream>
       </Device>    
     </DataCollection>
   </PlusServerTestClientsConfiguration>
-
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
     <DefaultClientInfo> 

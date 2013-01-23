@@ -1,14 +1,14 @@
 <PlusConfiguration version="1.4">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="BrainLabTrackerSim with video from file" 
       Description="To be used with the BrainLabTrackerSim simulator or with a real BrainLab tracker"
     />
 
     <Device
+      Id="TrackerDevice"
       Type="OpenIGTLinkTracker"
-      Id="DeviceOpenIGTLinkTracker"
       MessageType="TDATA"
       TrackerInternalCoordinateSystemName="Reference"
       ServerAddress="127.0.0.1"
@@ -16,13 +16,11 @@
       IgtlMessageCrcCheckEnabled="true"
       AcquisitionRate="20"
       ReconnectOnReceiveTimeout="false"
-      LocalTimeOffset="0.0" >
-    
+      LocalTimeOffset="0.0" >    
       <Tool Name="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
       <Tool Name="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput">
+      <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream">
         <Tool Name="ReferenceStar" />
         <Tool Name="Pointer" />
         <Tool Name="Ultrasound" />
@@ -30,21 +28,24 @@
     </Device>
 
     <Device
-      Id="SavedData"
+      Id="VideoDevice"
       Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE"
       UseOriginalTimestamps="FALSE"
-      RepeatEnabled="TRUE"
-      >
-      <OutputStream Id="Output" BufferSize="100" />
+      RepeatEnabled="TRUE">
+      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
+      </OutputStream>
     </Device>
     
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="Output" />
-    </Device>
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
+    </Device>    
+
   </DataCollection>
   
   

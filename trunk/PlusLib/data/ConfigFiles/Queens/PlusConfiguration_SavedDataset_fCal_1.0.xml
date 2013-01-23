@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="Saved dataset for both video and tracking (fCal)" 
       Description="Configuration file for Saved dataset + fCal 1.0
@@ -17,9 +17,8 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       RepeatEnabled="TRUE" >
       <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -27,7 +26,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     </Device>
 
     <Device
-      Id="DeviceSavedDataset" 
+      Id="VideoDevice" 
       Type="SavedDataSource"
       UseData="IMAGE"
       AcquisitionRate="10" 
@@ -35,17 +34,18 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       SequenceMetafile="fCal_Test_Calibration.mha"
       UsImageOrientation="MF"
       RepeatEnabled="TRUE" >
-      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="VideoDeviceOutput" />
-      <InputStream Id="TrackerOutput" />
-    </Device>
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
+    </Device>    
+
   </DataCollection>
 
 

@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="TEST WebCam with Fake tracker" 
       Description="Test mode for vtkDataCollectorTest with WebCam and Fake tracker" 
@@ -14,9 +14,8 @@
       Mode="SmoothMove" >
       <Tool Name="Probe" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/> 
       <Tool Name="Reference" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20"/>
-      <Tool Name="MissingTool" PortName="2" BufferSize="1000" AveragedItemsForFiltering="20"/> 
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="MissingTool" PortName="2" BufferSize="1000" AveragedItemsForFiltering="20"/>       
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="MissingTool"/>
@@ -27,17 +26,18 @@
       Id="VideoDevice" 
       Type="VFWVideo"
       UsImageOrientation="MF" >
-      <Image Id="VideoOutput" BufferSize="100" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="VideoDeviceOutput" />
-      <InputStream Id="TrackerOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
 
  <CoordinateDefinitions>

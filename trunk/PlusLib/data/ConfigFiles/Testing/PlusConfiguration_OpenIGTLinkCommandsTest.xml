@@ -6,22 +6,23 @@
       Description="Read data from file and stream it through OpenIGTLink. Can be used to test commands, such as start/stop recording and reconstruct volume" 
     />
     <Device
+      Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      Id="DeviceSavedDataset"
       SequenceMetafile="NwirePhantomFreehand.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      Selectable="true" >
-        <OutputStream Id="SavedDatasetOutput" BufferSize="500" />
+      RepeatEnabled="TRUE">
+      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="TrackedVideoStream">
+        <Image Id="Video"/>
+      </OutputStream>
     </Device>
     <Device
       Type="VirtualStreamCapture"
       Id="DiscWriter"
       Filename="RecordingTest.mha"
-      EnableCapturing="false"
-      Selectable="true" >
-        <InputStream Id="SavedDatasetOutput" />
+      EnableCapturing="FALSE">
+      <InputStream Id="TrackedVideoStream" />
     </Device>
   </DataCollection>
 

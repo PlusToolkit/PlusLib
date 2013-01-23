@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="Simulated ultrasound image with Ascension3DG tracking of Probe (dummy) + Reference + Stylus"
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus" 
@@ -12,16 +12,15 @@
       Frequency="15"
       LocalTimeOffset="0.0"
       FilterAcWideNotch="1">
-        <Tool Name="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0"></Tool>
-        <Tool Name="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1"></Tool>
-        <Tool Name="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2"></Tool>
-
-        <OutputStream Id="TrackerOutput" >
-          <Tool Name="Probe"/>
-          <Tool Name="Reference"/>
-          <Tool Name="Stylus"/>
-        </OutputStream>
-      </Device>
+      <Tool Name="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0"></Tool>
+      <Tool Name="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1"></Tool>
+      <Tool Name="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2"></Tool>
+      <OutputStream Id="TrackerStream" >
+        <Tool Name="Probe"/>
+        <Tool Name="Reference"/>
+        <Tool Name="Stylus"/>
+      </OutputStream>
+    </Device>
 
     <Device
       Id="VideoDevice"
@@ -31,18 +30,18 @@
       AcquisitionRate="15"
       BufferSize="100"
       UsImageOrientation="MF" >
-        <Image Id="ImageOutput" BufferSize="500" />
-        
-        <OutputStream Id="VideoDeviceOutput">
-          <Image Id="ImageOutput"/>
-        </OutputStream>
+      <Image Id="Video" BufferSize="500" />      
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
+      </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="VideoDeviceOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+
   </DataCollection>
   
   <PlusOpenIGTLinkServer ListeningPort="18944" MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="10"> 

@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="SonixRP L14-5 + NDI Certus" 
       Description="Configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0
@@ -15,9 +15,8 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
         <Tool Name="Stylus"/>
@@ -42,17 +41,18 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="VideoDeviceOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
 
 

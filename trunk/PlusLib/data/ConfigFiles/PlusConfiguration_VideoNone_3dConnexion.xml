@@ -5,7 +5,6 @@
       Name="3dConnexion SpaceNavigator" 
       Description="Configuration file for 3dConnexion SpaceMouse" 
     />
-
     <Device
       Id="TrackerDevice"
       Type="3dConnexion"
@@ -15,13 +14,11 @@
       TranslationScales="0.001 -0.001 -0.001"
       RotationScales="0.001 -0.001 -0.001" 
       Selectable="true" >
-      <Tool Name="Navigator" PortName="SpaceNavigator" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Navigator" PortName="SpaceNavigator" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Navigator"/>
       </OutputStream>
     </Device>
-
   </DataCollection>
   
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" > 

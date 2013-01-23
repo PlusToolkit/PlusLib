@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="TEST Tracking and video data is read from sequence metafile." 
       Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
@@ -16,7 +16,7 @@
       SequenceMetafile="NwirePhantomFreehand.mha"
       Selectable="true" >
       <Tool BufferSize="200" AveragedItemsForFiltering="20" Name="Tool" PortName="0" />
-      <OutputStream Id="TrackerOutput">
+      <OutputStream Id="TrackerStream">
         <Tool Name="Tool"/>
       </OutputStream>
     </Device>
@@ -30,11 +30,18 @@
       UsImageOrientation="MF"
       SequenceMetafile="NwirePhantomFreehand.mha"
       Selectable="true" >
-      <Image Id="VideoOutput" BufferSize="200" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
+    
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
+    </Device>
+    
   </DataCollection>
 
 </PlusConfiguration>

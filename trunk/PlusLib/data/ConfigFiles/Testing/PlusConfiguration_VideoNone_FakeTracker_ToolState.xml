@@ -4,7 +4,6 @@
       Name="TEST No Video with Fake tracker in Tool state mode" 
       Description="ToolStateDisplayWidgetTest uses this configuration" 
     />
-
     <Device
       Id="TrackerDevice"
       Type="FakeTracker"
@@ -13,7 +12,7 @@
       Mode="ToolState"
       Selectable="true" >
       <Tool Name="Test" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/>
-      <OutputStream Id="TrackerOutput" >
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Test"/>
       </OutputStream>
     </Device>

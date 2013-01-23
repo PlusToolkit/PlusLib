@@ -246,7 +246,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
   for ( int i = 0; i < numberOfClientsToConnect; ++i )
   {
     vtkSmartPointer<vtkOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkOpenIGTLinkVideoSource>::New(); 
-    client->SetDeviceId("DeviceOpenIGTLinkVideo");
+    client->SetDeviceId("OpenIGTLinkVideoSenderDevice");
     client->ReadConfiguration(configRootElement);
     client->SetServerAddress("localhost");
     client->SetServerPort(listeningPort); 

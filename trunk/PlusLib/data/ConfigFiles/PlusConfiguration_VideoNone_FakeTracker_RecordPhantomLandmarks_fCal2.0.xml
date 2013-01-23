@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="Simulation mode for Phantom registration fCal2.0" 
-      Description="No Video with Fake tracker in Record phantom landmarks mode
-vtkPhantomRegistrationTest uses this configuration" 
+      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" 
     />
 
     <Device
@@ -15,15 +14,13 @@ vtkPhantomRegistrationTest uses this configuration"
       Mode="RecordPhantomLandmarks"
       Selectable="True" >
       <Tool Name="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" /> 
-      <Tool Name="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" />
-      
-      <OutputStream Id="TrackerOutput">
+      <Tool Name="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" />      
+      <OutputStream Id="TrackerStream">
         <Tool Name="Reference" />
         <Tool Name="Stylus" />
       </OutputStream>
     </Device>
   </DataCollection> 
-
 
   <CoordinateDefinitions>
     <Transform From="Reference" To="Tracker"

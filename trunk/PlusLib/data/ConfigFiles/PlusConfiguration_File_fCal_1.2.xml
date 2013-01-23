@@ -5,19 +5,17 @@
       Name="Simulation mode for freehand spatial calibration with phantom containing 3 NWires" 
       Description="Data collector in file mode providing sequence for freehand calibration" 
     />
-
     <Device
-      Type="SavedDataSource"
-      Id="DeviceSavedDataset"
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"      
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      Selectable="true" >
-        <Image Id="VideoOutput" BufferSize="500" />
-        <OutputStream Id="SavedDatasetOutput">
-          <Image Id="VideoOutput"/>
-        </OutputStream>
+      RepeatEnabled="TRUE">
+      <Image Id="Video" BufferSize="500" />
+      <OutputStream Id="TrackedVideoStream">
+        <Image Id="Video"/>
+      </OutputStream>
     </Device>
   </DataCollection>
 

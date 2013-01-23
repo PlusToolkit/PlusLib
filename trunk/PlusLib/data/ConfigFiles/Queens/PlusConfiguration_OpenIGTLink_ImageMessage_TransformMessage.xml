@@ -1,14 +1,14 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="OpenIGTLink TRANSFORM and IMAGE message connection"
       Description="OpenIGTLink configuration file for TRANSFORM and IMAGE messages + fCal 1.2" 
     />
   
     <Device
-      Type="OpenIGTLinkTracker"
       Id="TrackerDevice"
+      Type="OpenIGTLinkTracker"      
       MessageType="TRANSFORM"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -16,17 +16,16 @@
       AcquisitionRate="30"
       LocalTimeOffset="0.0" >
       <Tool Name="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-      
-      <OutputStream Id="TrackerOutput" >
+      <Tool Name="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>      
+      <OutputStream Id="TrackerStream" >
         <Tool Name="Probe"/>
         <Tool Name="Reference"/>
       </OutputStream>
     </Device>
 
     <Device
-      Type="OpenIGTLinkVideo"
       Id="VideoDevice"
+      Type="OpenIGTLinkVideo"
       MessageType="IMAGE"
       ServerAddress="127.0.0.1"
       ServerPort="18944"
@@ -35,17 +34,18 @@
       UsImageOrientation="MF"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0" >
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
     
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="VideoDeviceOutput" />
-      <InputStream Id="TrackerOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
 
 

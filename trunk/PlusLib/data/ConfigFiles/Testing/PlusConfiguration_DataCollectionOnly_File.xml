@@ -4,19 +4,17 @@
     <DeviceSet 
       Name="TEST Data collection uses sequence metafile in file mode." 
       Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
-    />
-      
+    />      
     <Device
-      Id="VideoDevice"
+      Id="TrackedVideoDevice"
       Type="SavedDataSource"
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      Selectable="true" >
-      <Image Id="VideoOutput" BufferSize="100" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      RepeatEnabled="TRUE" >
+      <Image Id="Video" BufferSize="100" />
+      <OutputStream Id="TrackedVideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
   </DataCollection>

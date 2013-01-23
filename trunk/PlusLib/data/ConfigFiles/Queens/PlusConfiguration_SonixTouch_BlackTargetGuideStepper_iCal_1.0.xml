@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
       Description="Configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
@@ -8,8 +8,8 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     />
 
     <Device
-      Type="BrachyTracker"
       Id="TrackerDevice"
+      Type="BrachyTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="3"
@@ -18,8 +18,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       ModelNumber="4012A18-a" 
       ModelVersion=""
       ModelSerialNumber="01-50-149" >
-      <OutputStream Id="TrackerOutput" BufferSize="1p00" AveragedItemsForFiltering="20"  />
-
       <StepperCalibration
         AlgorithmVersion="1.0.0"
         Date="2011.05.02"
@@ -30,11 +28,12 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         Rx0=""
         Ry0=""
         ProbeRotationEncoderScale="1.0" />
+      <OutputStream Id="TrackerOutput" BufferSize="1p00" AveragedItemsForFiltering="20"  />        
     </Device>
 
     <Device
-      Type="SonixVideo"
       Id="VideoDevice" 
+      Type="SonixVideo"      
       UsImageOrientation="UF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
@@ -49,17 +48,18 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0">
-      <Image Id="VideoOutput" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoDeviceOutput">
-        <Image Id="VideoOutput"/>
+      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      <OutputStream Id="VideoStream">
+        <Image Id="Video"/>
       </OutputStream>
     </Device>
 
-    <Device Id="FinalMixer" Type="VirtualStreamMixer" Selectable="True">
-      <OutputStream Id="Final"/>
-      <InputStream Id="TrackerOutput" />
-      <InputStream Id="VideoDeviceOutput" />
+    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
+      <InputStream Id="TrackerStream" />
+      <InputStream Id="VideoStream" />
+      <OutputStream Id="TrackedVideoStream"/>
     </Device>
+    
   </DataCollection>
   
   <Segmentation
