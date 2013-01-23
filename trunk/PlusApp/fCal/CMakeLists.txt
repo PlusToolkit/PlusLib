@@ -8,56 +8,58 @@ INCLUDE(${QT_USE_FILE})
 # Sources
 
 SET (fCal_SRCS
-	fCalMain.cxx
-	fCalMainWindow.cxx
-	Toolboxes/ConfigurationToolbox.cxx
-	Toolboxes/CapturingToolbox.cxx
-	Toolboxes/SpatialCalibrationToolbox.cxx
-	Toolboxes/TemporalCalibrationToolbox.cxx
-	Toolboxes/StylusCalibrationToolbox.cxx
-	Toolboxes/PhantomRegistrationToolbox.cxx
-	Toolboxes/VolumeReconstructionToolbox.cxx
-	)
+  fCalMain.cxx
+  fCalMainWindow.cxx
+  QCustomAction.cxx
+  Toolboxes/ConfigurationToolbox.cxx
+  Toolboxes/CapturingToolbox.cxx
+  Toolboxes/SpatialCalibrationToolbox.cxx
+  Toolboxes/TemporalCalibrationToolbox.cxx
+  Toolboxes/StylusCalibrationToolbox.cxx
+  Toolboxes/PhantomRegistrationToolbox.cxx
+  Toolboxes/VolumeReconstructionToolbox.cxx
+  )
 
-if (WIN32)	
-	SET (fCal_SRCS
-		${fCal_SRCS}
-		)
-endif (WIN32)	
+if (WIN32)  
+  SET (fCal_SRCS
+    ${fCal_SRCS}
+    )
+endif (WIN32)  
 
 SET (fCal_UI_HDRS
-		fCalMainWindow.h
-		Toolboxes/AbstractToolbox.h
-		Toolboxes/ConfigurationToolbox.h
-		Toolboxes/CapturingToolbox.h
-		Toolboxes/SpatialCalibrationToolbox.h
-		Toolboxes/TemporalCalibrationToolbox.h
-		Toolboxes/StylusCalibrationToolbox.h
-		Toolboxes/PhantomRegistrationToolbox.h
-		Toolboxes/VolumeReconstructionToolbox.h
-	)
+    fCalMainWindow.h
+    QCustomAction.h
+    Toolboxes/AbstractToolbox.h
+    Toolboxes/ConfigurationToolbox.h
+    Toolboxes/CapturingToolbox.h
+    Toolboxes/SpatialCalibrationToolbox.h
+    Toolboxes/TemporalCalibrationToolbox.h
+    Toolboxes/StylusCalibrationToolbox.h
+    Toolboxes/PhantomRegistrationToolbox.h
+    Toolboxes/VolumeReconstructionToolbox.h
+  )
 
 SET (fCal_UI_SRCS
-	fCalMainWindow.ui 
-	Toolboxes/ConfigurationToolbox.ui
-	Toolboxes/CapturingToolbox.ui
-	Toolboxes/SpatialCalibrationToolbox.ui
-	Toolboxes/TemporalCalibrationToolbox.ui
-	Toolboxes/StylusCalibrationToolbox.ui
-	Toolboxes/PhantomRegistrationToolbox.ui
-	Toolboxes/VolumeReconstructionToolbox.ui
-	)
+  fCalMainWindow.ui 
+  Toolboxes/ConfigurationToolbox.ui
+  Toolboxes/CapturingToolbox.ui
+  Toolboxes/SpatialCalibrationToolbox.ui
+  Toolboxes/TemporalCalibrationToolbox.ui
+  Toolboxes/StylusCalibrationToolbox.ui
+  Toolboxes/PhantomRegistrationToolbox.ui
+  Toolboxes/VolumeReconstructionToolbox.ui
+  )
 
 SET (fCal_QT_Resources
-	fCal.qrc
-	${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
-	)
-	
+  fCal.qrc
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  )
+  
 
 # --------------------------------------------------------------------------
 # Qt specific commands
 
-QT4_WRAP_CPP( fCal_QT_MOC_Files ${fCal_UI_HDRS} )			  
+QT4_WRAP_CPP( fCal_QT_MOC_Files ${fCal_UI_HDRS} )        
 QT4_WRAP_UI( fCal_QT_UI_Headers ${fCal_UI_SRCS} )
 QT4_WRAP_CPP( fCal_QT_MOC_UI_Files ${fCal_QT_UI_Headers} )
 QT4_ADD_RESOURCES( fCal_QT_RCC_Files ${fCal_QT_Resources} )

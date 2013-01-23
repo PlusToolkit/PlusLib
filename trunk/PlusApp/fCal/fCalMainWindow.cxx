@@ -8,6 +8,7 @@ See License.txt for details.
 #include "ConfigFileSaverDialog.h"
 #include "ConfigurationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
+#include "QCustomAction.h"
 #include "SpatialCalibrationToolbox.h"
 #include "StatusIcon.h"
 #include "StylusCalibrationToolbox.h"
@@ -476,17 +477,28 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
       QMenu* menu = NULL;
       if (obj == ui.pushButton_Tools)
       {
-        menu = new QMenu(tr("Options"), ui.pushButton_Tools);
-        menu->addActions(ui.pushButton_Tools->actions());
-        menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
+        if( !ui.pushButton_Tools->isEnabled() )
+        {
+          return true;
+        }
+        else
+        {
+          menu = new QMenu(tr("Options"), ui.pushButton_Tools);
+          menu->addActions(ui.pushButton_Tools->actions());
+          menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
+        }
       }
       else if( obj == ui.pushButton_ImageOrientation )
       {
+        if( !ui.pushButton_ImageOrientation->isEnabled() )
+        {
+          return true;
+        }
         menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
         for( std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it )
         {
           QCustomAction* action = (*it);
-          if( action->isSeparator )
+          if( action->IsSeparator() )
           {
             menu->addSeparator();
           }
@@ -499,12 +511,16 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
       }
       else
       {
+        if( !ui.pushButton_ShowDevices->isEnabled() )
+        {
+          return true;
+        }
         menu = new QMenu(tr("Actions"), ui.pushButton_ShowDevices);
 
         for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
         {
           QCustomAction* action = (*it);
-          if( action->isSeparator )
+          if( action->IsSeparator() )
           {
             menu->addSeparator();
           }
@@ -761,8 +777,8 @@ void fCalMainWindow::BuildDevicesMenu()
   m_3DActionList.push_back(m_ShowPhantomModelAction);
 
   DeviceCollection aCollection;
-  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL && 
-   this->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+  if( this->GetVisualizationController() == NULL || this->GetVisualizationController()->GetDataCollector() == NULL || 
+    !this->GetVisualizationController()->GetDataCollector()->GetConnected() || this->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
   {
     // Data collector might be disconnected
     return;
@@ -783,19 +799,31 @@ void fCalMainWindow::BuildDevicesMenu()
     {
       action->setChecked(aDevice == device);
     }
-    connect(action, SIGNAL(triggered()), this, SLOT(DeviceSelected(device)));
+    connect(action, SIGNAL(triggered()), action, SLOT(activated()));
+    connect(action, SIGNAL(deviceSelected(std::string&)), this, SLOT(DeviceSelected(std::string&)));
     m_3DActionList.push_back(action);
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::DeviceSelected( vtkPlusDevice* aDevice )
+void fCalMainWindow::DeviceSelected( std::string& deviceId )
 {
-  LOG_TRACE("fCalMainWindow::DeviceSelected(" << aDevice->GetDeviceId() << ")");
+  LOG_TRACE("fCalMainWindow::DeviceSelected(" << deviceId << ")");
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(aDevice->GetDeviceId());
+    this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(deviceId);
   }
+  if( this->GetVisualizationController()->GetDataCollector()->GetVideoDataAvailable() )
+  {
+    this->GetVisualizationController()->SetInput(this->GetVisualizationController()->GetDataCollector()->GetBrightnessOutput());
+  }
+  else
+  {
+    this->GetVisualizationController()->DisconnectInput();
+  }
+  this->GetVisualizationController()->Reset();
+
+  BuildDevicesMenu();
 }

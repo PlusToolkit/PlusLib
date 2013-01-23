@@ -7,9 +7,8 @@ See License.txt for details.
 #ifndef __fCalMainWindow_h
 #define __fCalMainWindow_h
 
-#include "ui_fCalMainWindow.h"
-
 #include "PlusConfigure.h"
+#include "ui_fCalMainWindow.h"
 #include <QtGui/QMainWindow>
 
 class vtkVisualizationController;
@@ -20,6 +19,7 @@ class StatusIcon;
 class QLabel;
 class QProgressBar;
 class QTimer;
+class QCustomAction;
 
 //-----------------------------------------------------------------------------
 
@@ -224,7 +224,7 @@ protected:
     /*!
     * Activate a certain device
     */
-    void DeviceSelected(vtkPlusDevice* aDevice);
+    void DeviceSelected(std::string& deviceId);
 
     /*!
     * Resize event handler
@@ -245,19 +245,6 @@ protected:
     void SetOrientationMLeftFDown();
     void EnableOrientationMarkers();
     void EnableROI();
-
-private:
-  class QCustomAction : public QAction
-  {
-  public:
-    QCustomAction(const QString &text, QObject* parent, bool aIsSeparator = false)
-      : QAction(text, parent)
-      , isSeparator(aIsSeparator)
-    {
-    };
-
-    bool isSeparator;
-  };
 
 protected:
   /*! Object visualizer */

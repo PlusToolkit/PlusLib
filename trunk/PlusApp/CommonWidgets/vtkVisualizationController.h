@@ -265,6 +265,8 @@ public:
 
   void SetCanvas(QVTKWidget* aCanvas);
 
+  void SetInput( vtkImageData * input );
+
 protected:
   vtkGetObjectMacro(ImageVisualizer, vtkImageVisualizer);
   vtkGetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);

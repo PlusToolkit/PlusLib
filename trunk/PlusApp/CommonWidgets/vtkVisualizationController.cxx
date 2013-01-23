@@ -908,3 +908,13 @@ void vtkVisualizationController::SetTransformRepository( vtkSmartPointer<vtkTran
 {
   this->TransformRepository = aRepo;
 }
+
+//-----------------------------------------------------------------------------
+
+void vtkVisualizationController::SetInput( vtkImageData * input )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetInput(input);
+  }
+}
