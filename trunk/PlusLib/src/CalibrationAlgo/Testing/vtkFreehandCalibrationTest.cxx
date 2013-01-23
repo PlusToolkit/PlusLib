@@ -64,15 +64,15 @@ int main (int argc, char* argv[])
   cmdargs.Initialize(argc, argv);
 
   cmdargs.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset.");
-  cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset.");
+  cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset. Optional, if not specified then the calibration error will be computed from the calibration dataset.");
 
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
-  cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+  cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results. Optional.");
 
-  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
-  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
+  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");	
+  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");	
 
-  cmdargs.AddArgument("--save-result-configuration", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name");	
+  cmdargs.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name. Optional.");
 
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -85,7 +85,7 @@ int main (int argc, char* argv[])
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  LOG_INFO("Initialize"); 
+  LOG_INFO("Read configuration file..."); 
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
@@ -112,6 +112,7 @@ int main (int argc, char* argv[])
   patternRecognition.ReadConfiguration(configRootElement);
 
   // Load and segment calibration image
+  LOG_INFO("Read calibration sequence file..."); 
   vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   if (calibrationTrackedFrameList->ReadFromSequenceMetafile(inputCalibrationSeqMetafile.c_str()) != PLUS_SUCCESS)
   {
@@ -119,6 +120,7 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
+  LOG_INFO("Segment fiducials...");
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
   if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
   {
@@ -128,33 +130,51 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames());
 
-  // Load and segment validation image
-  vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if (validationTrackedFrameList->ReadFromSequenceMetafile(inputValidationSeqMetafile.c_str()) != PLUS_SUCCESS)
+  if (!inputValidationSeqMetafile.empty())
   {
-    LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
-    return EXIT_FAILURE;
+    // Load and segment validation image
+    LOG_INFO("Read validation sequence file..."); 
+    vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+    if (validationTrackedFrameList->ReadFromSequenceMetafile(inputValidationSeqMetafile.c_str()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
+      return EXIT_FAILURE;
+    }
+    LOG_INFO("Segment fiducials...");
+    int numberOfSuccessfullySegmentedValidationImages = 0;
+    if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Error occured during segmentation of validation images!"); 
+      return EXIT_FAILURE;
+    }
+
+    LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
+
+    // Calibrate using independent data for validation
+    LOG_INFO("Calibrate..."); 
+    if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Calibration failed!");
+      return EXIT_FAILURE;
+    }
+
   }
-
-  int numberOfSuccessfullySegmentedValidationImages = 0;
-  if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
+  else
   {
-    LOG_ERROR("Error occured during segmentation of validation images!"); 
-    return EXIT_FAILURE;
-  }
-
-  LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
-
-  // Calibrate
-  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Calibration failed!");
-    return EXIT_FAILURE;
+    LOG_INFO("Validation data set is not provided, therefore error is computed from the calibration data set");
+    // Calibrate using the same data for calibration and validation
+    LOG_INFO("Calibrate..."); 
+    if (freehandCalibration->Calibrate( calibrationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Calibration failed!");
+      return EXIT_FAILURE;
+    }
   }
 
   // Save result to configuration file
-  if (resultConfigFileName.size() > 0)
+  if (!resultConfigFileName.empty())
   {
+    LOG_INFO("Save results to: "<<resultConfigFileName); 
     if ( transformRepository->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
@@ -164,17 +184,21 @@ int main (int argc, char* argv[])
     PlusCommon::PrintXML(resultConfigFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()); 
   }
 
-  // Compare results
-  std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
-  if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
+  if (!inputBaselineFileName.empty())
   {
-    LOG_ERROR("Comparison of calibration data to baseline failed");
-    std::cout << "Exit failure!!!" << std::endl; 
+    LOG_INFO("Compare with baseline: "<<inputBaselineFileName); 
+    // Compare results to baseline
+    std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+    if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
+    {
+      LOG_ERROR("Comparison of calibration data to baseline failed");
+      std::cout << "Exit failure!!!" << std::endl; 
 
-    return EXIT_FAILURE;
+      return EXIT_FAILURE;
+    }
   }
 
-  std::cout << "Exit success!!!" << std::endl; 
+  std::cout << "Calibration has been completed successfully" << std::endl; 
   return EXIT_SUCCESS;
 }
 
