@@ -418,6 +418,12 @@ PlusStatus vtkDataCollector::SetSelectedDevice( const std::string &aDeviceId )
 {
   LOG_TRACE("vtkDataCollector::SetSelectedDevice(" << aDeviceId << ")");
 
+  if( this->SelectedDevice != NULL && STRCASECMP(aDeviceId.c_str(), this->SelectedDevice->GetDeviceId()) == 0 )
+  {
+    // Device is already selected
+    return PLUS_SUCCESS;
+  }
+
   for( DeviceCollectionConstIterator it = Devices.begin(); it != Devices.end(); ++it )
   {
     vtkPlusDevice* device = (*it);
