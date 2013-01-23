@@ -13,8 +13,7 @@
       AhrsAlgorithmGain="1.5"
       TiltSensorWestAxisIndex="1"
       AcquisitionRate="125"
-      LocalTimeOffsetSec="0.0" 
-      Selectable="true">
+      LocalTimeOffsetSec="0.0" >
       <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
       <Tool Name="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
       <Tool Name="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
@@ -159,6 +158,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    DefaultDeviceIdOnConnect="TrackerDevice"
   />
 
 

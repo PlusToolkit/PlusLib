@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "ConfigurationToolbox.h"
@@ -23,10 +23,10 @@
 //-----------------------------------------------------------------------------
 
 ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
-  , QWidget(aParentMainWindow, aFlags)
-  , m_ToolStatePopOutWindow(NULL)
-  , m_IsToolDisplayDetached(false)
+: AbstractToolbox(aParentMainWindow)
+, QWidget(aParentMainWindow, aFlags)
+, m_ToolStatePopOutWindow(NULL)
+, m_IsToolDisplayDetached(false)
 {
   ui.setupUi(this);
 
@@ -170,7 +170,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       LOG_INFO("Connect to devices"); 
 
       // Disable main window
-       m_ParentMainWindow->setEnabled(false);
+      m_ParentMainWindow->setEnabled(false);
 
       // Create dialog
       QDialog* connectDialog = new QDialog(this, Qt::Dialog);
@@ -236,7 +236,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       }
       else
       {
-        if( aDevice != NULL && aDevice->GetTrackingDataAvailable() )
+        if( aDevice != NULL && aDevice->GetTrackingEnabled() )
         {
           m_DeviceSetSelectorWidget->ShowResetTrackerButton(aDevice->IsResettable());
         }
@@ -246,11 +246,14 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       m_ParentMainWindow->BuildDevicesMenu();
 
       // Re-enable main window
-       m_ParentMainWindow->setEnabled(true);
+      m_ParentMainWindow->setEnabled(true);
 
-       // Re-enable manipulation buttons
-       m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
-       m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
+      // Re-enable manipulation buttons
+      m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
+      if( aDevice != NULL && aDevice->GetVideoEnabled() )
+      {
+        m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
+      }
     }
   }
   else // Disconnect

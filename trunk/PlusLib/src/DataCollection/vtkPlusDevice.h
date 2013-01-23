@@ -107,6 +107,7 @@ public:
   bool GetTrackingDataAvailable();
   bool GetVideoDataAvailable();
   bool GetTrackingEnabled() const;
+  bool GetVideoEnabled() const;
   
   /*!
     Record incoming data at the specified acquisition rate.  The recording

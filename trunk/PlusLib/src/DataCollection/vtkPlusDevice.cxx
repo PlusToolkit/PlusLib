@@ -2509,6 +2509,18 @@ bool vtkPlusDevice::GetTrackingEnabled() const
 }
 
 //----------------------------------------------------------------------------
+bool vtkPlusDevice::GetVideoEnabled() const
+{
+  if( this->CurrentStream != NULL )
+  {
+    return this->CurrentStream->ImageCount() > 0;
+  }
+
+  LOG_ERROR("Current stream not defined. Unable to answer GetVideoEnabled().");
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusDevice::InternalWriteOutputStreams( vtkXMLDataElement* rootXMLElement )
 {
   LOG_TRACE("vtkPlusDevice::InternalWriteOutputStreams( " << rootXMLElement->GetName() << ")");
