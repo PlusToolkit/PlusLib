@@ -169,9 +169,10 @@ public:
   /*! Reset show devices toggle button (on disconnect from devices) */
   void ResetShowDevices();
 
-  /*!
-  * Dynamically build the devices menu based on the values returned from the data collector
-  */
+  /*! Set the selected device that fCal is watching */
+  void SetSelectedDevice( std::string deviceId );
+
+  /*! Dynamically build the devices menu based on the values returned from the data collector */
   void BuildDevicesMenu();
 
 protected:

@@ -513,6 +513,14 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   m_ParentMainWindow->SetImageObjectId(imageObjectId);
 
+  // default device to request data from on connect
+  const char* defaultDeviceIdOnConnect = fCalElement->GetAttribute("DefaultDeviceIdOnConnect");
+  if (defaultDeviceIdOnConnect != NULL)
+  {
+    std::string deviceId(defaultDeviceIdOnConnect);
+    this->m_ParentMainWindow->SetSelectedDevice(deviceId);
+  }
+
   return PLUS_SUCCESS;
 }
 

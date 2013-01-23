@@ -813,7 +813,12 @@ void fCalMainWindow::DeviceSelected( std::string& deviceId )
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(deviceId);
+    if( this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(deviceId) != PLUS_SUCCESS )
+    {
+      this->GetVisualizationController()->DisconnectInput();
+      this->GetVisualizationController()->HideAll();
+      return;
+    }
   }
   if( this->GetVisualizationController()->GetDataCollector()->GetVideoDataAvailable() )
   {
@@ -825,5 +830,12 @@ void fCalMainWindow::DeviceSelected( std::string& deviceId )
   }
   this->GetVisualizationController()->Reset();
 
-  BuildDevicesMenu();
+  this->BuildDevicesMenu();
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetSelectedDevice( std::string deviceId )
+{
+  this->DeviceSelected(deviceId);
 }
