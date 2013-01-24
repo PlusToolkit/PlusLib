@@ -501,6 +501,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
+          LOG_INFO("Received command: "<<commandMsg->GetString());
           self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString());
         }
         else

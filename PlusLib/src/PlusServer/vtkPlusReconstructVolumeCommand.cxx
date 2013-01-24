@@ -94,7 +94,10 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 {
-  vtkTransformRepository* transformRepository = this->CommandProcessor->GetPlusServer()->GetTransformRepository();
+  // Create a copy of the transform repository to allow using it for volume reconstruction while being also used in other threads
+  vtkTransformRepository* transformRepositoryShared = this->CommandProcessor->GetPlusServer()->GetTransformRepository();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  transformRepository->DeepCopy(transformRepositoryShared);    
 
   // Print calibration transform
   std::ostringstream osTransformRepo; 

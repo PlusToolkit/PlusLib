@@ -184,7 +184,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
 
         if( !isValid && packValidTransformsOnly )
         {
-          LOG_DEBUG("Attempted to send invalid transform over IGT Link when server has prevented sending.");
+          LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
           continue;
         }
 

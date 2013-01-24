@@ -133,6 +133,9 @@ public:
   /*! Checks if a transform exist */
   virtual PlusStatus IsExistingTransform(const PlusTransformName aTransformName, bool aSilent = true);
 
+  /*! Copies the persistent contents of the repository */
+  virtual PlusStatus DeepCopy(vtkTransformRepository* sourceRepositoryName);
+
 protected:
   vtkTransformRepository();
   ~vtkTransformRepository();  
