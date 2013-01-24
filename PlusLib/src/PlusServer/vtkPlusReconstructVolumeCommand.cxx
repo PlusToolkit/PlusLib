@@ -115,14 +115,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 
   // Initialize reconstructor from the XML configuration
   vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
-  if (configRootElement == NULL)
-  {
-    LOG_INFO("vtkPlusReconstructVolumeCommand::Execute: failed, invalid configuration");
-    SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, invalid configuration");
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* reconConfig = configRootElement->FindNestedElementWithName("VolumeReconstruction");
-  this->VolumeReconstructor->ReadConfiguration(reconConfig);
+  if (this->VolumeReconstructor->ReadConfiguration(configRootElement)!=PLUS_SUCCESS)
   {
     LOG_INFO("vtkPlusReconstructVolumeCommand::Execute: failed, could not read VolumeReconstruction element in the XML tree");
     SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, could not read VolumeReconstruction element in the XML tree");

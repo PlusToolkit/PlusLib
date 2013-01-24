@@ -83,8 +83,8 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Reference coordinate system: where the volume will be reconstructed in
-  const char* referenceCoordinateFrame=config->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame==NULL)
+  const char* referenceCoordinateFrame=reconConfig->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame!=NULL)
   {
     SetReferenceCoordinateFrame(referenceCoordinateFrame);
   }
