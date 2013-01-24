@@ -111,39 +111,12 @@ int main (int argc, char* argv[])
       LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName ); 
       return EXIT_FAILURE; 
     }
-  }
-  else
-  {
-    // Read image to reference transform from the XML configuration
-    vtkXMLDataElement* reconConfig = configRootElement->FindNestedElementWithName("VolumeReconstruction");
-    if (reconConfig == NULL)
-    {
-      LOG_ERROR("Image to reference transform is not specified at the command-line and could not load from the VolumeReconstruction element in the XML tree either!");
-      return EXIT_FAILURE;
-    }
-    const char* referenceCoordinateFrameName=reconConfig->GetAttribute("ReferenceCoordinateFrame");
-    if (referenceCoordinateFrameName==NULL)
-    {
-      LOG_ERROR("Image to reference transform is not specified at the command-line and could not find the ReferenceCoordinateFrame attribute in the VolumeReconstruction element in the XML tree either!");
-      return EXIT_FAILURE;
-    }
-    const char* imageCoordinateFrameName=reconConfig->GetAttribute("ImageCoordinateFrame");
-    if (imageCoordinateFrameName==NULL)
-    {
-      LOG_ERROR("Image to reference transform is not specified at the command-line and could not find the ImageCoordinateFrame attribute in the VolumeReconstruction element in the XML tree either!");
-      return EXIT_FAILURE;
-    }
-    // image to reference transform is specified in the XML tree
-    imageToReferenceTransformName=PlusTransformName(imageCoordinateFrameName,referenceCoordinateFrameName);
-    if (!imageToReferenceTransformName.IsValid())
-    { 
-      LOG_ERROR("Cannot create a transform name from '" << imageCoordinateFrameName <<"' to '"<<referenceCoordinateFrameName<<"'" ); 
-      return EXIT_FAILURE; 
-    }
+    reconstructor->SetImageCoordinateFrame(imageToReferenceTransformName.From().c_str());
+    reconstructor->SetReferenceCoordinateFrame(imageToReferenceTransformName.To().c_str());
   }
   
   LOG_INFO("Set volume output extent...");
-  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, imageToReferenceTransformName) != PLUS_SUCCESS )
+  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set output extent of volume!"); 
     return EXIT_FAILURE; 
@@ -168,7 +141,7 @@ int main (int argc, char* argv[])
 
     // Insert slice for reconstruction
     bool insertedIntoVolume=false;
-    if ( reconstructor->AddTrackedFrame(frame, transformRepository, imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
+    if ( reconstructor->AddTrackedFrame(frame, transformRepository, &insertedIntoVolume ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 

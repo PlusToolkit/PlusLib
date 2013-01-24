@@ -46,9 +46,11 @@ public:
   
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
+  virtual vtkDataCollector* GetDataCollector();
 
   /*! Set transform repository instance */
   virtual void SetTransformRepository(vtkTransformRepository* transformRepository); 
+  virtual vtkTransformRepository* GetTransformRepository();
 
   /*! Get number of connected clients */ 
   virtual int GetNumberOfConnectedClients(); 

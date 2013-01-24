@@ -14,7 +14,7 @@ class vtkDataCollector;
 
 /*!
   \class vtkPlusStartStopRecordingCommand 
-  \brief This command starts capturing with a vtkVirtualStreamDiscCapture capture on the server side. 
+  \brief This command starts and stops capturing with a vtkVirtualStreamDiscCapture capture on the server side. 
   \ingroup PlusLibDataCollection
  */ 
 class VTK_EXPORT vtkPlusStartStopRecordingCommand : public vtkPlusCommand
@@ -56,10 +56,9 @@ public:
 
   /*!
     Helper function to get pointer to the capture device
-    \param dataCollector Pointer to the data collector
     \param captureDeviceId Capture device ID. If it is NULL then a pointer to the first VirtualStreamCapture device is returned.
   */
-  static vtkVirtualStreamDiscCapture* GetCaptureDevice(vtkDataCollector* dataCollector, const char* captureDeviceId);
+  vtkVirtualStreamDiscCapture* GetCaptureDevice(const char* captureDeviceId);
 
 protected:
 

@@ -11,8 +11,8 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
-
 #include "vtkRecursiveCriticalSection.h"
+#include "vtkImageData.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
@@ -20,7 +20,7 @@ See License.txt for details.
 #include "igtlStatusMessage.h"
 
 #include "vtkPlusIgtlMessageFactory.h" 
-
+#include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusCommandProcessor.h"
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
@@ -134,7 +134,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
     LOG_INFO("Server default images to send: " << imageNames.str() ); 
   }
 
-  this->PlusCommandProcessor->SetDataCollector(this->DataCollector);
+  this->PlusCommandProcessor->SetPlusServer(this);
   //this->PlusCommandProcessor->Start();
 
   return PLUS_SUCCESS;
@@ -289,9 +289,10 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
 
+
       // Create a reply message (as a STATUS message)
       for (PlusCommandReplyList::iterator replyIt=replies.begin(); replyIt!=replies.end(); replyIt++)
-      {
+      {        
         igtl::ClientSocket::Pointer clientSocket=self->GetClientSocket(replyIt->ClientId);
         if (clientSocket.IsNull())
         {
@@ -299,6 +300,43 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
           continue;
         }
 
+        // Send image message (optional)
+        if (replyIt->ImageData!=NULL)
+        {
+          std::string imageName="PlusServerImage";
+          if (!replyIt->ImageName.empty())
+          {
+            imageName=replyIt->ImageName;
+          }
+
+          vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransform=vtkSmartPointer<vtkMatrix4x4>::New();
+          if (replyIt->ImageToReferenceTransform!=NULL)
+          {
+            imageToReferenceTransform=vtkSmartPointer<vtkMatrix4x4>::Take(replyIt->ImageToReferenceTransform);
+            replyIt->ImageToReferenceTransform=NULL;
+          }
+
+          igtl::ImageMessage::Pointer imageMsg = igtl::ImageMessage::New();
+          imageMsg->SetDeviceName(imageName.c_str());                  
+          if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMsg, replyIt->ImageData, 
+            imageToReferenceTransform, vtkAccurateTimer::GetSystemTime()) != PLUS_SUCCESS )
+          {
+            LOG_ERROR("Failed to pack image into reply to client"); 
+          }
+          else
+          {       
+            // broadcast image result
+            std::list<PlusIgtlClientInfo>::iterator clientIterator; 
+            for ( clientIterator = self->IgtlClients.begin(); clientIterator != self->IgtlClients.end(); ++clientIterator)
+            {
+              clientIterator->ClientSocket->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
+            }            
+          }
+          replyIt->ImageData->UnRegister(NULL);
+          replyIt->ImageData=NULL;
+        }        
+
+        // Send status message
         igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();
         replyMsg->SetDeviceName("RTS_REXEC"); 
         replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
@@ -826,4 +864,16 @@ igtl::ClientSocket::Pointer vtkPlusOpenIGTLinkServer::GetClientSocket(int client
 int vtkPlusOpenIGTLinkServer::ProcessPendingCommands()
 {
   return this->PlusCommandProcessor->ExecuteCommands();
+}
+
+//------------------------------------------------------------------------------
+vtkDataCollector* vtkPlusOpenIGTLinkServer::GetDataCollector()
+{
+  return this->DataCollector;
+}
+
+//------------------------------------------------------------------------------
+vtkTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
+{
+  return this->TransformRepository;
 }

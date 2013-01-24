@@ -63,7 +63,7 @@ public:
     Automatically adjusts the reconstruced volume size to enclose all the
     frames in the supplied vtkTrackedFrameList. It clears the reconstructed volume.
   */
-  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName);
+  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository);
 
   /*! 
     Inserts the tracked frame into the volume. The origin, spacing, and extent of the output volume
@@ -71,7 +71,7 @@ public:
     or setting the OutputSpacing, OutputOrigin, and OutputExtent attributes in the configuration data
     element).
   */
-  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume=NULL);
+  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, bool* insertedIntoVolume=NULL);
 
   /*! Load the reconstructed volume from the pasteSlicesIntoVolume object and applies hole filling if enabled */
   virtual PlusStatus LoadReconstructedVolume();
@@ -107,6 +107,14 @@ public:
   */
   PlusStatus SaveReconstructedVolumeToVtkFile(const char* filename, bool alpha=false);
 
+  /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
+  vtkGetStringMacro(ImageCoordinateFrame);
+  vtkSetStringMacro(ImageCoordinateFrame);
+
+  /*! Get/set the Reference coordinate system name. It overrides the value read from the config file. */
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
@@ -114,10 +122,23 @@ protected:
   /*! Helper function for computing the extent of the reconstructed volume that encloses all the frames */
   static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
 
+  /*! Construct ImageToReference transform name from the image and reference coordinate frame member variables */
+  PlusStatus GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName);
+
   vtkPasteSliceIntoVolume* Reconstructor; 
   vtkFillHolesInVolume* HoleFiller; 
  
   vtkSmartPointer<vtkImageData> ReconstructedVolume;
+
+  /*! Defines the image coordinate system name: it corresponds to the image data in the tracked frame */
+  char* ImageCoordinateFrame;
+
+  /*! 
+    Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system 
+    (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in
+    the Reference coordinate system)
+  */
+  char* ReferenceCoordinateFrame;
 
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   int FillHoles;

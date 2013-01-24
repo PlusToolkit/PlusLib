@@ -58,6 +58,9 @@ public:
   /*! Unpack image message to tracked frame */ 
   static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck); 
 
+  /*! Pack image message from vtkImageData volume */ 
+  static PlusStatus PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, vtkMatrix4x4* imageToReferenceTransform, double timestamp ); 
+
   /*! Pack transform message from tracked frame */ 
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
     igtl::Matrix4x4& igtlMatrix, double timestamp ); 

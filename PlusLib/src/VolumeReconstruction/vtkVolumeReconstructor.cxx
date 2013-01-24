@@ -32,6 +32,8 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
+: ImageCoordinateFrame(NULL)
+, ReferenceCoordinateFrame(NULL)
 {
   this->ReconstructedVolume = vtkSmartPointer<vtkImageData>::New();
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
@@ -55,6 +57,8 @@ vtkVolumeReconstructor::~vtkVolumeReconstructor()
     this->HoleFiller->Delete();
     this->HoleFiller=NULL;
   }
+  SetImageCoordinateFrame(NULL);
+  SetReferenceCoordinateFrame(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -76,6 +80,19 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   {
     LOG_ERROR("vtkVolumeReconstructor::ReadConfiguration failed: No volume reconstruction is found in the XML tree!");
     return PLUS_FAIL;
+  }
+
+  // Reference coordinate system: where the volume will be reconstructed in
+  const char* referenceCoordinateFrame=config->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame==NULL)
+  {
+    SetReferenceCoordinateFrame(referenceCoordinateFrame);
+  }
+  // Image coordinate system: name of the 2D image frame coordinate system
+  const char* imageCoordinateFrame=reconConfig->GetAttribute("ImageCoordinateFrame");
+  if (imageCoordinateFrame!=NULL)
+  {
+    SetImageCoordinateFrame(imageCoordinateFrame);
   }
 
   // output volume parameters
@@ -407,6 +424,9 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     }
   }
 
+  reconConfig->SetAttribute("ImageCoordinateFrame", this->ImageCoordinateFrame);
+  reconConfig->SetAttribute("ReferenceCoordinateFrame", this->ReferenceCoordinateFrame);
+
   // output parameters
   reconConfig->SetVectorAttribute("OutputSpacing", 3, this->Reconstructor->GetOutputSpacing());
   reconConfig->SetVectorAttribute("OutputOrigin", 3, this->Reconstructor->GetOutputOrigin());
@@ -487,8 +507,40 @@ void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName)
+PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName)
 {
+  if (this->ReferenceCoordinateFrame!=NULL && this->ImageCoordinateFrame!=NULL)
+  {
+    // image to reference transform is specified in the XML tree
+    imageToReferenceTransformName=PlusTransformName(this->ImageCoordinateFrame,this->ReferenceCoordinateFrame);
+    if (!imageToReferenceTransformName.IsValid())
+    { 
+      LOG_ERROR("Failed to set ImageToReference transform name from '" << this->ImageCoordinateFrame <<"' to '"<<this->ReferenceCoordinateFrame<<"'" ); 
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+  if (this->ImageCoordinateFrame==NULL)
+  {
+    LOG_ERROR("Image coordinate frame name is undefined");
+  }
+  if (this->ReferenceCoordinateFrame==NULL)
+  {
+    LOG_ERROR("Reference coordinate frame name is undefined");
+  }
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository)
+{
+  PlusTransformName imageToReferenceTransformName;
+  if (GetImageToReferenceTransformName(imageToReferenceTransformName)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Invalid ImageToReference transform name"); 
+    return PLUS_FAIL; 
+  }
+
   if ( trackedFrameList == NULL )
   {
     LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is NULL!"); 
@@ -576,8 +628,15 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, bool* insertedIntoVolume/*=NULL*/)
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, bool* insertedIntoVolume/*=NULL*/)
 {
+  PlusTransformName imageToReferenceTransformName;
+  if (GetImageToReferenceTransformName(imageToReferenceTransformName)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Invalid ImageToReference transform name"); 
+    return PLUS_FAIL; 
+  }
+
   if ( frame == NULL )
   {
     LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL!"); 

@@ -9,6 +9,7 @@ See License.txt for details.
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkVirtualStreamDiscCapture.h"
+#include "vtkDataCollector.h"
 
 vtkStandardNewMacro( vtkPlusStartStopRecordingCommand );
 
@@ -161,8 +162,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(vtkDataCollector* dataCollector, const char* captureDeviceId)
+vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const char* captureDeviceId)
 {
+  vtkDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("Data collector is invalid");    
@@ -218,7 +220,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkVirtualStreamDiscCapture *captureDevice=GetCaptureDevice(this->CommandProcessor->GetDataCollector(), this->CaptureDeviceId);
+  vtkVirtualStreamDiscCapture *captureDevice=GetCaptureDevice(this->CaptureDeviceId);
   if (captureDevice==NULL)
   {            
     std::string reply="VirtualStreamCapture has not been found (";
