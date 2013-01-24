@@ -289,7 +289,6 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
 
-
       // Create a reply message (as a STATUS message)
       for (PlusCommandReplyList::iterator replyIt=replies.begin(); replyIt!=replies.end(); replyIt++)
       {        
@@ -303,6 +302,9 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
         // Send image message (optional)
         if (replyIt->ImageData!=NULL)
         {
+          // TODO: now all images are broadcasted to all clients, it should be more configurable (the command should be able
+          // to specify if the image should be sent to the requesting client or all of them)
+
           std::string imageName="PlusServerImage";
           if (!replyIt->ImageName.empty())
           {

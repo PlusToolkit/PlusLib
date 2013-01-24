@@ -334,7 +334,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, vtkMatrix4x4* imageToReferenceTransform, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp)
 {
   if ( imageMessage.IsNull() )
   {
@@ -342,46 +342,94 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Point
     return PLUS_FAIL; 
   }
   
-  int imageSizePixels[3]={0}, subSizePixels[3]={0}, subOffset[3]={0};
-  double imageSpacingMm[3]={0};
-  
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( PlusVideoFrame::GetITKScalarPixelType(image->GetScalarType()) ); 
+  int volumeSizePixels[3]={0};
+  volume->GetDimensions( volumeSizePixels );  
+  imageMessage->SetDimensions( volumeSizePixels );
 
-  image->GetDimensions( imageSizePixels );
-  image->GetSpacing( imageSpacingMm );
-  image->GetDimensions( subSizePixels );
-
-  float spacingFloat[3]={0};
-  for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
-
-  imageMessage->SetDimensions( imageSizePixels );
-  imageMessage->SetSpacing( spacingFloat );
-  imageMessage->SetScalarType( scalarType );
+  int subSizePixels[3]={0};
+  volume->GetDimensions( subSizePixels );  
+  int subOffset[3]={0};
   imageMessage->SetSubVolume( subSizePixels, subOffset );
+  
+  double volumeSpacingMm[3]={0};
+  volume->GetSpacing( volumeSpacingMm );
+  float spacingFloat[3]={0};
+  for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)volumeSpacingMm[ i ];
+  imageMessage->SetSpacing( spacingFloat );
+
+  double volumeOriginMm[3]={0};   
+  volume->GetOrigin( volumeOriginMm );
+  // imageMessage->SetOrigin() is not used, because origin and normal is set later by imageMessage->SetMatrix()
+
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( PlusVideoFrame::GetITKScalarPixelType(volume->GetScalarType()) ); 
+  imageMessage->SetScalarType( scalarType );
+
+  imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);
+
   imageMessage->AllocateScalars();
 
   unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
-  unsigned char* vtkImagePointer = (unsigned char*)( image->GetScalarPointer() );
+  unsigned char* vtkImagePointer = (unsigned char*)( volume->GetScalarPointer() );
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());  
-  
-  // Convert VTK transform to IGTL transform.
-  // VTK and Plus: corner image origin
-  // OpenIGTLink image message: center image origin
-  vtkSmartPointer< vtkTransform > vtkToIgtTransform = vtkSmartPointer< vtkTransform >::New();
-  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, 0.0 );
-  vtkSmartPointer< vtkMatrix4x4 > convertedMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Multiply4x4( imageToReferenceTransform, vtkToIgtTransform->GetMatrix(), convertedMatrix );
-  igtl::Matrix4x4 igtlMatrix; 
-  for ( int row = 0; row < 4; ++ row )
-  {
-    for ( int col = 0; col < 4; ++ col )
-    {
-      igtlMatrix[ row ][ col ] = convertedMatrix->GetElement( row, col );
-    }
-  }  
 
-  imageMessage->SetMatrix( igtlMatrix );
+  ////// Code is similar to the conversion done in 3D Slicer: vtkIGTLToMRMLImage.cxx 
+
+  vtkSmartPointer<vtkMatrix4x4> ijkToVolumeTransform = vtkSmartPointer<vtkMatrix4x4>::New();    
+  ijkToVolumeTransform->Identity();
+  ijkToVolumeTransform->Element[0][0]=volumeSpacingMm[0];
+  ijkToVolumeTransform->Element[1][1]=volumeSpacingMm[1];
+  ijkToVolumeTransform->Element[2][2]=volumeSpacingMm[2];
+  ijkToVolumeTransform->Element[0][3]=volumeOriginMm[0];
+  ijkToVolumeTransform->Element[1][3]=volumeOriginMm[1];
+  ijkToVolumeTransform->Element[2][3]=volumeOriginMm[2];
+  vtkSmartPointer<vtkMatrix4x4> ijkToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Multiply4x4( volumeToReferenceTransform, ijkToVolumeTransform, ijkToReferenceTransform );
+  float ntx = ijkToReferenceTransform->Element[0][0] / (float)volumeSpacingMm[0];
+  float nty = ijkToReferenceTransform->Element[1][0] / (float)volumeSpacingMm[0];
+  float ntz = ijkToReferenceTransform->Element[2][0] / (float)volumeSpacingMm[0];
+  float nsx = ijkToReferenceTransform->Element[0][1] / (float)volumeSpacingMm[1];
+  float nsy = ijkToReferenceTransform->Element[1][1] / (float)volumeSpacingMm[1];
+  float nsz = ijkToReferenceTransform->Element[2][1] / (float)volumeSpacingMm[1];
+  float nnx = ijkToReferenceTransform->Element[0][2] / (float)volumeSpacingMm[2];
+  float nny = ijkToReferenceTransform->Element[1][2] / (float)volumeSpacingMm[2];
+  float nnz = ijkToReferenceTransform->Element[2][2] / (float)volumeSpacingMm[2];
+  float px  = ijkToReferenceTransform->Element[0][3];
+  float py  = ijkToReferenceTransform->Element[1][3];
+  float pz  = ijkToReferenceTransform->Element[2][3];
+
+  // Shift the center
+  // NOTE: The center of the image should be shifted due to different
+  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
+  // OpenIGTLink image has its origin at the center, while VTK image
+  // has one at the corner.
+  float hfovi = (float)volumeSpacingMm[0] * (float)(volumeSizePixels[0]-1) / 2.0;
+  float hfovj = (float)volumeSpacingMm[1] * (float)(volumeSizePixels[1]-1) / 2.0;
+  float hfovk = (float)volumeSpacingMm[2] * (float)(volumeSizePixels[2]-1) / 2.0;
+  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
+  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
+  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
+  px = px + cx;
+  py = py + cy;
+  pz = pz + cz;
+
+  igtl::Matrix4x4 matrix; // Image origin and orientation matrix
+  matrix[0][0] = ntx;
+  matrix[1][0] = nty;
+  matrix[2][0] = ntz;
+  matrix[0][1] = nsx;
+  matrix[1][1] = nsy;
+  matrix[2][1] = nsz;
+  matrix[0][2] = nnx;
+  matrix[1][2] = nny;
+  matrix[2][2] = nnz;
+  matrix[0][3] = px;
+  matrix[1][3] = py;
+  matrix[2][3] = pz;
+
+  imageMessage->SetMatrix(matrix);
+
+  ///////
 
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime( timestamp );
