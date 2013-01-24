@@ -153,7 +153,13 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
   std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
   if (!path.empty())
   {
-    path+="/";
+    path += "/";
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << m_Filename;
+    m_Filename = ss.str();
   }
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
   std::string configFileName = path + filename + "_config.xml";
