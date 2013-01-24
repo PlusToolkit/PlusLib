@@ -662,3 +662,11 @@ PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configR
   }
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::DeepCopy(vtkTransformRepository* sourceRepositoryName)
+{
+  vtkSmartPointer<vtkXMLDataElement> configRootElement=vtkSmartPointer<vtkXMLDataElement>::New();
+  sourceRepositoryName->WriteConfiguration(configRootElement);
+  return ReadConfiguration(configRootElement);
+}

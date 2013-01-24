@@ -135,33 +135,56 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
 //----------------------------------------------------------------------------
 int vtkPlusCommandProcessor::ExecuteCommands()
 {
+  vtkPlusCommand* cmd=NULL; // next command to be processed
   int numberOfExecutedCommands=0;
-  bool isQueueEmpty=true;
   {
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
     if (this->ActiveCommands.empty())
     {
       return numberOfExecutedCommands;
     }
+    cmd=this->ActiveCommands.front();
   }
-
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-  for (std::deque< vtkPlusCommand* >::iterator cmdIt=this->ActiveCommands.begin(); cmdIt!=this->ActiveCommands.end(); ++cmdIt)
-  {
+    
+  // Execute each active command once and remove completed command from the queue if completed.
+  // Implemented in a while loop to not block the mutex during command execution, only during management of the queue.
+  while (1)
+  {    
+    LOG_DEBUG("Executing command");
+    cmd->Execute();
     numberOfExecutedCommands++;
-    (*cmdIt)->Execute();
-    if ((*cmdIt)->IsCompleted())
+
     {
-      // the command execution is completed, so remove it from the queue of active commands
-      (*cmdIt)->UnRegister(this);
-      cmdIt=this->ActiveCommands.erase(cmdIt);
+      // Remove the current command from the queue if completed and get next command
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      // Find the current command in the queue
+      std::deque< vtkPlusCommand* >::iterator cmdIt=std::find(this->ActiveCommands.begin(), this->ActiveCommands.end(), cmd);
+      if (cmdIt==this->ActiveCommands.end())
+      {
+        // the command has been removed, it should not happen, as commands should be removed only when they are executed in this method
+        LOG_ERROR("Command that was under execution was removed from the queue");
+        return numberOfExecutedCommands;
+      }      
+      if (cmd->IsCompleted())
+      {
+        // the command execution is completed, so remove it from the queue of active commands
+        cmd->UnRegister(this); // delete command
+        cmdIt=this->ActiveCommands.erase(cmdIt);        
+      }
+      else
+      {
+        // the command has not been completed, so keep in the queue and progress to the next command
+        ++cmdIt;
+      }
       if (cmdIt==this->ActiveCommands.end())
       {
         // it was the last command in the queue
         break;
       }
+      cmd=*cmdIt;
     }
   }
+
   return numberOfExecutedCommands;
 }
 
@@ -227,7 +250,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
 
 //------------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString)
-{
+{  
   if (commandString.empty())
   {
     LOG_ERROR("Command string is undefined");

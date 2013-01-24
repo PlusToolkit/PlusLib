@@ -19,6 +19,8 @@ See License.txt for details.
 #include "igtlStatusMessage.h"
 #include "vtkPlusCommand.h"
 
+static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
+
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClient, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkClient ); 
 
@@ -51,10 +53,9 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect()
     LOG_ERROR( "Cannot connect to the server." );
     return PLUS_FAIL;
   }
-  else
-  {
-    LOG_TRACE( "Client successfully connected to server." );
-  }
+  LOG_TRACE( "Client successfully connected to server." );
+  
+  this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC ); 
 
   if ( this->DataReceiverThreadId < 0 )
   {
