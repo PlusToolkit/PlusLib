@@ -171,11 +171,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       LOG_ERROR("Extracting gray levels failed!");
       return PLUS_FAIL;
     }
-    vtkMatrix4x4* originOrientationMatrix=vtkMatrix4x4::New(); // will be deleted by the command processor
-    originOrientationMatrix->Element[0][3]=volumeToSend->GetOrigin()[0];
-    originOrientationMatrix->Element[1][3]=volumeToSend->GetOrigin()[1];
-    originOrientationMatrix->Element[2][3]=volumeToSend->GetOrigin()[2];
-    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", this->OutputVolDeviceName, volumeToSend, originOrientationMatrix);
+    vtkMatrix4x4* volumeToReferenceTransform=vtkMatrix4x4::New(); // will be deleted by the command processor
+    volumeToReferenceTransform->Identity(); // we leave it as identity, as the volume coordinate system is the same as the reference coordinate system (we may extend this later so that the client can request the volume in any coordinate system)
+    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
     this->Completed=true;
   }
   else
