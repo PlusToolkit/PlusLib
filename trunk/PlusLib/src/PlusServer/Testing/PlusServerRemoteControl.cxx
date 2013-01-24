@@ -23,7 +23,9 @@ int main( int argc, char** argv )
   int serverPort = 18944;
   std::string command;
   std::string deviceId;
+  std::string inputFilename="PlusServerRecording.mha";
   std::string outputFilename="PlusServerRecording.mha";
+  std::string outputImageName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
@@ -35,7 +37,9 @@ int main( int argc, char** argv )
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server (START, STOP, SUSPEND, RESUME, RECONSTRUCT)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture device)" );
+  args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: PlusServerRecording.mha)" );
+  args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
   if ( !args.Parse() )
@@ -63,10 +67,7 @@ int main( int argc, char** argv )
   {
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     exit(EXIT_FAILURE);
-  }  
-
-  
-  vtkSmartPointer<vtkPlusReconstructVolumeCommand> stopDataCollectionCommand=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+  }    
 
   // Execute command
   if (STRCASECMP(command.c_str(),"START")==0)
@@ -113,6 +114,15 @@ int main( int argc, char** argv )
   else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
   {
     vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    cmd->SetInputSeqFilename(inputFilename.c_str());
+    if (!outputFilename.empty())
+    {
+      cmd->SetOutputVolFilename(outputFilename.c_str());
+    }
+    if (!outputImageName.empty())
+    {
+      cmd->SetOutputVolDeviceName(outputImageName.c_str());
+    }
     client->SendCommand(cmd);
   }
   else

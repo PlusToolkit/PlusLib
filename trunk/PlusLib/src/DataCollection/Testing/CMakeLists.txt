@@ -2,6 +2,15 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
+
+#--------------------------------------------------------------------------------------------
+
+#***************************  TrackingTest ***************************
+ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
+TARGET_LINK_LIBRARIES(TrackingTest vtkDataCollection vtkPlusCommon )
+
+#***************************  TimestampFilteringTest ***************************
 ADD_EXECUTABLE(TimestampFilteringTest TimestampFilteringTest.cxx )
 TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkDataCollection )
 
@@ -265,7 +274,11 @@ ENDIF( PLUS_USE_OpenIGTLink )
 # Install
 #
 
-INSTALL(TARGETS PlusVersion MetaImageSequenceViewer
+INSTALL(
+  TARGETS 
+    PlusVersion 
+    MetaImageSequenceViewer
+    TrackingTest
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )

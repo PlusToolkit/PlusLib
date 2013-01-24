@@ -355,34 +355,20 @@ endif (WIN32)
 # OpenIGTLink 
 IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    vtkPlusOpenIGTLinkServer.cxx
-    vtkPlusOpenIGTLinkClient.cxx
-    OpenIGTLinkCommands/vtkPlusCommand.cxx
-    OpenIGTLinkCommands/vtkPlusCommandProcessor.cxx
-    OpenIGTLinkCommands/vtkPlusStartStopRecordingCommand.cxx
-    OpenIGTLinkCommands/vtkPlusReconstructVolumeCommand.cxx
     OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
     OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.cxx
     )
     
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      vtkPlusOpenIGTLinkServer.h
-      vtkPlusOpenIGTLinkClient.h
-      OpenIGTLinkCommands/vtkPlusCommand.h
-      OpenIGTLinkCommands/vtkPlusCommandProcessor.h      
-      OpenIGTLinkCommands/vtkPlusStartStopRecordingCommand.h
-      OpenIGTLinkCommands/vtkPlusReconstructVolumeCommand.h
       OpenIGTLinkTracking/vtkOpenIGTLinkTracker.h 
       OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkCommands 
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking 
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo
     CACHE INTERNAL "" FORCE)  
-
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
@@ -734,12 +720,6 @@ INSTALL(TARGETS vtkDataCollection
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
-
-# --------------------------------------------------------------------------
-# Applications
-#
-
-SUBDIRS (Applications)
   
 # --------------------------------------------------------------------------
 # Testing

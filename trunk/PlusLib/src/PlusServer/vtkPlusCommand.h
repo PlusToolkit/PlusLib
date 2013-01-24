@@ -8,6 +8,7 @@
 #define __VTKPLUSCOMMAND_H
 
 class vtkPlusCommandProcessor;
+class vtkDataCollector;
 
 /*!
   \class vtkPlusCommand 
@@ -61,6 +62,9 @@ protected:
 
   /*! Send a reply to the caller and set the status of the command completed (so it can be removed from the queue) */
   PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString);
+
+  /*! Convenience function for getting a pointer to the data collector */
+  virtual vtkDataCollector* GetDataCollector();
   
   vtkPlusCommand();
   virtual ~vtkPlusCommand();

@@ -13,14 +13,23 @@
 #include "vtkObject.h"
 #include "vtkMultiThreader.h"
 
-#include "vtkDataCollector.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 
 class vtkPlusCommand;
+class vtkImageData;
+class vtkMatrix4x4;
 
 struct PlusCommandReply
 {
+  PlusCommandReply()
+  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
+  {
+  }
   unsigned int ClientId;
-  std::string ReplyString;
+  std::string ReplyString;  
+  std::string ImageName;
+  vtkImageData* ImageData;
+  vtkMatrix4x4* ImageToReferenceTransform;
 };
 
 typedef std::list<PlusCommandReply> PlusCommandReplyList;
@@ -72,10 +81,10 @@ public:
   virtual PlusStatus GetCommandReplies(PlusCommandReplyList &replies);
 
   /*! Adds a reply to the queue for sending to a client. Can be called from any thread.  */
-  virtual void QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString);
+  virtual void QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const char* imageName=NULL, vtkImageData* imageData=NULL, vtkMatrix4x4* imageToReferenceTransform=NULL);
 
-  vtkGetObjectMacro(DataCollector, vtkDataCollector);
-  vtkSetObjectMacro(DataCollector, vtkDataCollector); 
+  vtkGetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
+  vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
     
 protected:
   vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);
@@ -88,7 +97,7 @@ protected:
 
 private:
 
-  vtkDataCollector *DataCollector;
+  vtkPlusOpenIGTLinkServer *PlusServer;
 
     /*! Multithreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;

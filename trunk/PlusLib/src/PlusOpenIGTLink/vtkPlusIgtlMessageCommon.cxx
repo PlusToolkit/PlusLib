@@ -334,6 +334,67 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
 
 //----------------------------------------------------------------------------
 // static 
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, vtkMatrix4x4* imageToReferenceTransform, double timestamp)
+{
+  if ( imageMessage.IsNull() )
+  {
+    LOG_ERROR("Failed to pack image message - input image message is NULL"); ;
+    return PLUS_FAIL; 
+  }
+  
+  int imageSizePixels[3]={0}, subSizePixels[3]={0}, subOffset[3]={0};
+  double imageSpacingMm[3]={0};
+  
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( PlusVideoFrame::GetITKScalarPixelType(image->GetScalarType()) ); 
+
+  image->GetDimensions( imageSizePixels );
+  image->GetSpacing( imageSpacingMm );
+  image->GetDimensions( subSizePixels );
+
+  float spacingFloat[3]={0};
+  for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
+
+  imageMessage->SetDimensions( imageSizePixels );
+  imageMessage->SetSpacing( spacingFloat );
+  imageMessage->SetScalarType( scalarType );
+  imageMessage->SetSubVolume( subSizePixels, subOffset );
+  imageMessage->AllocateScalars();
+
+  unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
+  unsigned char* vtkImagePointer = (unsigned char*)( image->GetScalarPointer() );
+
+  memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());  
+  
+  // Convert VTK transform to IGTL transform.
+  // VTK and Plus: corner image origin
+  // OpenIGTLink image message: center image origin
+  vtkSmartPointer< vtkTransform > vtkToIgtTransform = vtkSmartPointer< vtkTransform >::New();
+  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, 0.0 );
+  vtkSmartPointer< vtkMatrix4x4 > convertedMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Multiply4x4( imageToReferenceTransform, vtkToIgtTransform->GetMatrix(), convertedMatrix );
+  igtl::Matrix4x4 igtlMatrix; 
+  for ( int row = 0; row < 4; ++ row )
+  {
+    for ( int col = 0; col < 4; ++ col )
+    {
+      igtlMatrix[ row ][ col ] = convertedMatrix->GetElement( row, col );
+    }
+  }  
+
+  imageMessage->SetMatrix( igtlMatrix );
+
+  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  igtlTime->SetTime( timestamp );
+  imageMessage->SetTimeStamp( igtlTime );
+
+  imageMessage->Pack();
+
+  return PLUS_SUCCESS; 
+
+}
+
+//----------------------------------------------------------------------------
+// static 
 PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
                                                            igtl::Matrix4x4& igtlMatrix, double timestamp )
 {

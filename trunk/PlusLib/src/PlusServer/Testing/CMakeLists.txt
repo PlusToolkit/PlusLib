@@ -2,15 +2,11 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
 
-#***************************  TrackingTest ***************************
-ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
-TARGET_LINK_LIBRARIES(TrackingTest vtkDataCollection vtkPlusCommon )
-
 #***************************  PlusServer ***************************
 IF (PLUS_USE_OpenIGTLink )
 
   ADD_EXECUTABLE( PlusServer PlusServer.cxx )
-  TARGET_LINK_LIBRARIES( PlusServer vtkDataCollection vtkCommon )
+  TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkDataCollection vtkCommon )
   
   ADD_TEST( PlusServer
     ${EXECUTABLE_OUTPUT_PATH}/PlusServer
@@ -21,7 +17,7 @@ IF (PLUS_USE_OpenIGTLink )
   SET_TESTS_PROPERTIES( PlusServer PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
   
   ADD_EXECUTABLE( PlusServerRemoteControl PlusServerRemoteControl.cxx )
-  TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkDataCollection vtkCommon )
+  TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkDataCollection vtkCommon vtkPlusServer )
   
 ENDIF (PLUS_USE_OpenIGTLink )
  
@@ -32,8 +28,8 @@ ENDIF (PLUS_USE_OpenIGTLink )
 IF (PLUS_USE_OpenIGTLink )
   INSTALL(
   TARGETS
-    TrackingTest
     PlusServer
+    PlusServerRemoteControl
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )

@@ -6,7 +6,10 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
+#include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 
 #include "vtkPlusCommandProcessor.h"
 #include "vtkRecursiveCriticalSection.h"
@@ -23,7 +26,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , CommandExecutionThreadId(-1)
 , CommandExecutionActive(std::make_pair(false,false))
-, DataCollector(NULL)
+, PlusServer(NULL)
 {
   // Register default commands
   {
@@ -48,7 +51,7 @@ vtkPlusCommandProcessor::~vtkPlusCommandProcessor()
   } 
   this->RegisteredCommands.clear();
 
-  SetDataCollector(NULL);
+  SetPlusServer(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -247,11 +250,25 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString)
+void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const char* imageName/*=NULL*/, vtkImageData* imageData/*=NULL*/, vtkMatrix4x4* imageToReferenceTransform/*=NULL*/)
 {
   PlusCommandReply reply;
   reply.ClientId=clientId;
   reply.ReplyString=replyString;
+  if (imageName!=NULL)
+  {
+    reply.ImageName=imageName;
+  }
+  if (imageData!=NULL)
+  {
+    reply.ImageData=imageData;
+    reply.ImageData->Register(NULL);
+  }
+  if (imageToReferenceTransform!=NULL)
+  {
+    reply.ImageToReferenceTransform=imageToReferenceTransform;
+    reply.ImageToReferenceTransform->Register(NULL);
+  }
   {
     // Add reply to the sending queue
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
