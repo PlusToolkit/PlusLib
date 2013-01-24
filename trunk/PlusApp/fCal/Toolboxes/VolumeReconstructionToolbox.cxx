@@ -402,8 +402,10 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();
 
-  PlusTransformName imageToReferenceTransformName( m_ParentMainWindow->GetImageCoordinateFrame(), m_ParentMainWindow->GetReferenceCoordinateFrame() );
-  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), imageToReferenceTransformName);
+  m_VolumeReconstructor->SetReferenceCoordinateFrame(m_ParentMainWindow->GetReferenceCoordinateFrame().c_str());
+  m_VolumeReconstructor->SetImageCoordinateFrame(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
+
+  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository());
 
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex += m_VolumeReconstructor->GetSkipInterval() )
@@ -422,7 +424,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
     // Add this tracked frame to the reconstructor
     bool insertedIntoVolume=false;
-    if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), imageToReferenceTransformName, &insertedIntoVolume ) != PLUS_SUCCESS )
+    if ( m_VolumeReconstructor->AddTrackedFrame(frame, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), &insertedIntoVolume ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex); 
       continue; 
