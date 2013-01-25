@@ -9,6 +9,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkPlusStream.h"
 #include "vtkPlusStreamTool.h"
 #include "vtkUsSimulatorVideoSource.h"
 
@@ -17,8 +18,10 @@ vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
+: LastProcessedTrackingDataTimestamp(0)
 {
   this->Tracker = NULL;
+  this->LastProcessedTrackingDataTimestamp = 0;
 
   // Create and set up US simulator
   this->UsSimulator = NULL;
@@ -36,7 +39,7 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 }
 
 //----------------------------------------------------------------------------
@@ -59,59 +62,38 @@ void vtkUsSimulatorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorVideoSource::InternalGrab()
+PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
 {
-  //LOG_TRACE("vtkUsSimulatorVideoSource::InternalGrab");
+  //LOG_TRACE("vtkUsSimulatorVideoSource::InternalUpdate");
 
-  if (!this->Tracker)
+  if( this->InputStreams.size() != 1 )
   {
-    LOG_ERROR("Tracker not set to US simulator video source!");
+    LOG_ERROR("vtkUsSimulatorVideoSource device requires exactly 1 input stream (that contains the tracking data). Check configuration.");
+    return PLUS_FAIL;
+  }
+
+  // Get image to tracker transform from the tracker (only request 1 frame, the latest)
+  vtkSmartPointer<vtkTrackedFrameList> trackingFrames=vtkSmartPointer<vtkTrackedFrameList>::New();  
+  if ( this->InputStreams[0]->GetOwnerDevice()->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    return PLUS_FAIL;
+  }
+  TrackedFrame* trackedFrame=trackingFrames->GetTrackedFrame(0);
+  if (trackedFrame==NULL)
+  {
+    LOG_ERROR("Error while getting tracked frame from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     return PLUS_FAIL;
   }
 
   // Get latest tracker timestamp
-  double latestTrackerTimestamp = 0;
+  double latestTrackerTimestamp = trackedFrame->GetTimestamp();
   
-  vtkPlusStreamTool* firstActiveTool = NULL; 
-  if ( this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
-  if (trackerBuffer->GetNumberOfItems()==0)
-  {
-    LOG_DEBUG("The tracking buffer is empty, we cannot generate a simulated image yet");
-    return PLUS_SUCCESS;
-  }
-
-  BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
-  if ( uid > 1 )
-  {
-    // Always use the latestItemUid - 1 to be able to interpolate transforms
-    uid = uid - 1; 
-  }
-
-  if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestamp) != ITEM_OK )
-  {
-    LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
-    return PLUS_FAIL;
-  }
-
   // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
-
-  // Get image to tracker transform from the tracker
-  TrackedFrame trackedFrame;
-  if (this->Tracker->GetTrackedFrame(latestTrackerTimestamp, trackedFrame) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get tracked frame from the tracker with timestamp" << latestTrackerTimestamp);
-    return PLUS_FAIL;
-  }
-
-  if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+  
+  if ( this->TransformRepository->SetTransforms(*trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
     return PLUS_FAIL;
@@ -186,7 +168,7 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   // Read US simulator configuration
   if ( !this->UsSimulator
-    || this->UsSimulator->ReadConfiguration(config) != PLUS_SUCCESS)
+    || this->UsSimulator->ReadConfiguration(imageAcquisitionConfig) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read US simulator configuration!");
     return PLUS_FAIL;
@@ -202,3 +184,4 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   return PLUS_SUCCESS;
 }
+
