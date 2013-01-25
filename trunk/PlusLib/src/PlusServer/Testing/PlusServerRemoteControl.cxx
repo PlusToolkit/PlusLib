@@ -16,6 +16,11 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 
+// Normally a client should generate unique command IDs for each executed command
+// for sake of simplicity, in this sample app we don't generate new IDs, just use
+// this single hardcoded value.
+static const int COMMAND_ID=101;
+
 int main( int argc, char** argv )
 {
   // Check command line arguments.
@@ -35,7 +40,9 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
-  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, "Command name to be executed on the server (START, STOP, SUSPEND, RESUME, RECONSTRUCT)" );
+  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
+    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
+    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture device)" );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: PlusServerRecording.mha)" );
@@ -70,10 +77,10 @@ int main( int argc, char** argv )
   }    
 
   // Execute command
-  if (STRCASECMP(command.c_str(),"START")==0)
+  if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0)
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
-    cmd->SetCommandNameStart();
+    cmd->SetNameToStart();
     cmd->SetOutputFilename(outputFilename.c_str());
     if ( !deviceId.empty() )
     {
@@ -81,37 +88,37 @@ int main( int argc, char** argv )
     }
     client->SendCommand(cmd);
   }
-  else if (STRCASECMP(command.c_str(),"STOP")==0)
+  else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0)
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
-    cmd->SetCommandNameStop();
+    cmd->SetNameToStop();
     if ( !deviceId.empty() )
     {
       cmd->SetCaptureDeviceId(deviceId.c_str());
     }
     client->SendCommand(cmd);
   }
-  else if (STRCASECMP(command.c_str(),"SUSPEND")==0)
+  else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0)
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
-    cmd->SetCommandNameSuspend();
+    cmd->SetNameToSuspend();
     if ( !deviceId.empty() )
     {
       cmd->SetCaptureDeviceId(deviceId.c_str());
     }
     client->SendCommand(cmd);
   }
-  else if (STRCASECMP(command.c_str(),"RESUME")==0)
+  else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0)
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
-    cmd->SetCommandNameResume();
+    cmd->SetNameToResume();
     if ( !deviceId.empty() )
     {
       cmd->SetCaptureDeviceId(deviceId.c_str());
     }
     client->SendCommand(cmd);
   }
-  else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
+  else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0 || STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0)
   {
     vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
     cmd->SetInputSeqFilename(inputFilename.c_str());
@@ -123,6 +130,52 @@ int main( int argc, char** argv )
     {
       cmd->SetOutputVolDeviceName(outputImageName.c_str());
     }
+    if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
+    {
+      cmd->SetNameToReconstruct();
+    }
+    else
+    {
+      if (!deviceId.empty())
+      {
+        cmd->SetTrackedVideoDeviceId(deviceId.c_str());
+      }
+      else
+      {
+        LOG_ERROR("--device is not specified");
+        exit(EXIT_FAILURE);
+      }
+      cmd->SetNameToStart();
+      cmd->SetId(COMMAND_ID);
+    }
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0)
+  {
+    vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    cmd->SetNameToStop();
+    cmd->SetReferencedCommandId(COMMAND_ID);
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0)
+  {
+    vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    cmd->SetNameToSuspend();
+    cmd->SetReferencedCommandId(COMMAND_ID);
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0)
+  {
+    vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    cmd->SetNameToResume();
+    cmd->SetReferencedCommandId(COMMAND_ID);
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0)
+  {
+    vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
+    cmd->SetNameToGetSnapshot();
+    cmd->SetReferencedCommandId(COMMAND_ID);
     client->SendCommand(cmd);
   }
   else

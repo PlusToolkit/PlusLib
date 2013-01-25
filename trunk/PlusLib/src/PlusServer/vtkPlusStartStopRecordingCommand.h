@@ -22,7 +22,7 @@ class VTK_EXPORT vtkPlusStartStopRecordingCommand : public vtkPlusCommand
 public:
 
   static vtkPlusStartStopRecordingCommand *New();
-  vtkTypeMacro(vtkPlusStartStopRecordingCommand, vtkObject);
+  vtkTypeMacro(vtkPlusStartStopRecordingCommand, vtkPlusCommand);
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   virtual vtkPlusCommand* Clone() { return New(); }
 
@@ -47,12 +47,10 @@ public:
   vtkGetStringMacro(CaptureDeviceId);
   vtkSetStringMacro(CaptureDeviceId);
 
-  vtkGetStringMacro(CommandName);
-  vtkSetStringMacro(CommandName);
-  void SetCommandNameStart();
-  void SetCommandNameSuspend();
-  void SetCommandNameResume();
-  void SetCommandNameStop();
+  void SetNameToStart();
+  void SetNameToSuspend();
+  void SetNameToResume();
+  void SetNameToStop();
 
   /*!
     Helper function to get pointer to the capture device
@@ -66,8 +64,6 @@ protected:
   virtual ~vtkPlusStartStopRecordingCommand();
   
 private:
-
-  char* CommandName;
 
   char* OutputFilename;
   char* CaptureDeviceId;

@@ -10,6 +10,8 @@
 #include "vtkPlusCommand.h"
 
 class vtkVolumeReconstructor;
+class vtkTrackedFrameList;
+class vtkTransformRepository;
 
 /*!
   \class vtkPlusReconstructVolumeCommand 
@@ -21,7 +23,7 @@ class VTK_EXPORT vtkPlusReconstructVolumeCommand : public vtkPlusCommand
 public:
   
   static vtkPlusReconstructVolumeCommand *New();
-  vtkTypeMacro(vtkPlusReconstructVolumeCommand, vtkObject);
+  vtkTypeMacro(vtkPlusReconstructVolumeCommand, vtkPlusCommand);
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   virtual vtkPlusCommand* Clone() { return New(); }
 
@@ -52,8 +54,39 @@ public:
   vtkSetStringMacro(OutputVolDeviceName);
   vtkGetStringMacro(OutputVolDeviceName);
 
+  /*! Id of the device that provides tracked frames for the reconstruction */
+  vtkSetStringMacro(TrackedVideoDeviceId);
+  vtkGetStringMacro(TrackedVideoDeviceId);  
+
+  /*! Enables capturing frames. It can be used for pausing the live reconstruction. */
+  vtkGetMacro(EnableAddingFrames, bool);
+  vtkSetMacro(EnableAddingFrames, bool);
+
+  /*! If this flag is set then the live reconstruction will stop at the next Execute. */
+  vtkGetMacro(StopReconstructionRequested, bool);
+  vtkSetMacro(StopReconstructionRequested, bool);
+
+  /*! If this flag is set then a snapshot of the live reconstruction will be send/saved at the next Execute */
+  vtkGetMacro(ReconstructionSnapshotRequested, bool);
+  vtkSetMacro(ReconstructionSnapshotRequested, bool);
+
+  /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
+  vtkGetMacro(ReferencedCommandId, int);
+  vtkSetMacro(ReferencedCommandId, int);
+
+  void SetNameToReconstruct();
+  void SetNameToStart();
+  void SetNameToStop();
+  void SetNameToSuspend();
+  void SetNameToResume();
+  void SetNameToGetSnapshot();
+
 protected:
-  
+
+  PlusStatus InitializeReconstruction();
+  PlusStatus AddFrames(vtkTrackedFrameList* trackedFrameList);
+  PlusStatus SendReconstructionResults();
+
   vtkPlusReconstructVolumeCommand();
   virtual ~vtkPlusReconstructVolumeCommand();  
   
@@ -62,8 +95,19 @@ private:
   char* InputSeqFilename;
   char* OutputVolFilename;
   char* OutputVolDeviceName;
+  char* TrackedVideoDeviceId;
 
   vtkSmartPointer<vtkVolumeReconstructor> VolumeReconstructor;
+  vtkSmartPointer<vtkTransformRepository> TransformRepository;
+  /*! Timestamp of last added frame (the tracked frames acquired since this timestamp will be added to the volume on the next Execute) */
+  double LastRecordedFrameTimestamp;
+
+  bool LiveReconstructionInProgress;
+  bool EnableAddingFrames;
+  bool StopReconstructionRequested;
+  bool ReconstructionSnapshotRequested;
+
+  int ReferencedCommandId;
 
   vtkPlusReconstructVolumeCommand( const vtkPlusReconstructVolumeCommand& );
   void operator=( const vtkPlusReconstructVolumeCommand& );

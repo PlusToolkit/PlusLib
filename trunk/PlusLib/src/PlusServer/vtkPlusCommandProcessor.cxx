@@ -316,3 +316,22 @@ bool vtkPlusCommandProcessor::IsRunning()
 {
   return this->CommandExecutionActive.second;
 }
+
+//----------------------------------------------------------------------------
+vtkPlusCommand* vtkPlusCommandProcessor::GetQueuedCommand(int clientId, int commandId)
+{
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  // Find the command with the specified id
+  for (std::deque< vtkPlusCommand* >::iterator cmdIt=this->ActiveCommands.begin(); cmdIt!=this->ActiveCommands.end(); ++cmdIt)
+  {
+    if ((*cmdIt)->GetId()==commandId 
+      // &&(*cmdIt)->GetClientId()==clientId  TODO: temporarily clientId check is disabled to allow a client to talk to another client's command - in the long term a command should be deactivated if the requesting client is not connected anymore)
+      )
+    {
+      // found!
+      return (*cmdIt);
+    }
+  }
+  // not found
+  return NULL;
+}

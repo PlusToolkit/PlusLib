@@ -293,11 +293,6 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       for (PlusCommandReplyList::iterator replyIt=replies.begin(); replyIt!=replies.end(); replyIt++)
       {        
         igtl::ClientSocket::Pointer clientSocket=self->GetClientSocket(replyIt->ClientId);
-        if (clientSocket.IsNull())
-        {
-          LOG_WARNING("Message reply cannot be sent to client, probably client has been disconnected");
-          continue;
-        }
 
         // Send image message (optional)
         if (replyIt->ImageData!=NULL)
@@ -331,12 +326,23 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
             std::list<PlusIgtlClientInfo>::iterator clientIterator; 
             for ( clientIterator = self->IgtlClients.begin(); clientIterator != self->IgtlClients.end(); ++clientIterator)
             {
+              if (clientIterator->ClientSocket.IsNull())
+              {
+                LOG_WARNING("Message reply cannot be sent to client, probably client has been disconnected");
+                continue;
+              }
               clientIterator->ClientSocket->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
             }            
           }
           replyIt->ImageData->UnRegister(NULL);
           replyIt->ImageData=NULL;
         }        
+
+        if (clientSocket.IsNull())
+        {
+          LOG_WARNING("Message reply cannot be sent to client, probably client has been disconnected");
+          continue;
+        }
 
         // Send status message
         igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();

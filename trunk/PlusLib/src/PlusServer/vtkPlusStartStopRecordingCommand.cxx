@@ -22,41 +22,21 @@ static const char STOP_CMD[]="StopRecording";
 vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
 : OutputFilename(NULL)
 , CaptureDeviceId(NULL)
-, CommandName(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusStartStopRecordingCommand::~vtkPlusStartStopRecordingCommand()
 {
-  SetCommandName(NULL);
   SetOutputFilename(NULL);
   SetCaptureDeviceId(NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetCommandNameStart()
-{
-  SetCommandName(START_CMD);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetCommandNameSuspend()
-{
-  SetCommandName(SUSPEND_CMD);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetCommandNameResume()
-{
-  SetCommandName(RESUME_CMD);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetCommandNameStop()
-{
-  SetCommandName(STOP_CMD);
-}
+void vtkPlusStartStopRecordingCommand::SetNameToStart() { SetName(START_CMD); }
+void vtkPlusStartStopRecordingCommand::SetNameToSuspend() { SetName(SUSPEND_CMD); }
+void vtkPlusStartStopRecordingCommand::SetNameToResume() { SetName(RESUME_CMD); }
+void vtkPlusStartStopRecordingCommand::SetNameToStop() { SetName(STOP_CMD); }
 
 //----------------------------------------------------------------------------
 void vtkPlusStartStopRecordingCommand::GetCommandNames(std::list<std::string> &cmdNames)
@@ -108,18 +88,10 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   {
     return PLUS_FAIL;
   }
-  SetCommandName(aConfig->GetAttribute("Name"));
-  if ( this->CommandName==0 ||
-       ( STRCASECMP(this->CommandName, START_CMD)!=0 && STRCASECMP(this->CommandName, STOP_CMD)!=0
-         && STRCASECMP(this->CommandName, SUSPEND_CMD)!=0 && STRCASECMP(this->CommandName, RESUME_CMD)!=0 )  )
-  {
-    LOG_ERROR("Unsupported command name is specified: "<<(this->CommandName?this->CommandName:"NULL"));
-    return PLUS_FAIL;
-  }
   // Common parameters
   SetCaptureDeviceId(aConfig->GetAttribute("CaptureDeviceId"));
   // Start parameters
-  if (STRCASECMP(this->CommandName, START_CMD)==0)
+  if (STRCASECMP(this->Name, START_CMD)==0)
   {
     SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
   }
@@ -135,7 +107,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }  
   
   // Common parameters
-  aConfig->SetAttribute("Name",this->CommandName);
+  aConfig->SetAttribute("Name",this->Name);
   if (this->CaptureDeviceId!=NULL)
   {
     aConfig->SetAttribute("CaptureDeviceId",this->CaptureDeviceId);
@@ -146,7 +118,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }
 
   // Start parameters
-  if (STRCASECMP(this->CommandName, START_CMD)==0)
+  if (STRCASECMP(this->Name, START_CMD)==0)
   {
     if (this->OutputFilename!=NULL)
     {
@@ -213,7 +185,7 @@ vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStartStopRecordingCommand::Execute()
 {
-  if (this->CommandName==NULL)
+  if (this->Name==NULL)
   {
     LOG_ERROR("Command failed, no command name specified");
     SetCommandCompleted(PLUS_FAIL,"Command failed, no command name specified");
@@ -226,16 +198,16 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     std::string reply="VirtualStreamCapture has not been found (";
     reply+= this->CaptureDeviceId ? this->CaptureDeviceId : "auto-detect";
     reply+= "), ";
-    reply+= this->CommandName;
+    reply+= this->Name;
     reply+= "failed";
     SetCommandCompleted(PLUS_FAIL,reply);
     return PLUS_FAIL;
   }    
 
   PlusStatus status=PLUS_SUCCESS;
-  std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->CommandName+" ";  
-  LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->CommandName);
-  if (STRCASECMP(this->CommandName, START_CMD)==0)
+  std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name+" ";  
+  LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
+  if (STRCASECMP(this->Name, START_CMD)==0)
   {    
     if (this->OutputFilename!=NULL)
     {
@@ -247,15 +219,15 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     }
     captureDevice->SetEnableCapturing(true);
   }
-  else if (STRCASECMP(this->CommandName, SUSPEND_CMD)==0)
+  else if (STRCASECMP(this->Name, SUSPEND_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(false);
   }
-  else if (STRCASECMP(this->CommandName, RESUME_CMD)==0)
+  else if (STRCASECMP(this->Name, RESUME_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(true);
   }
-  else if (STRCASECMP(this->CommandName, STOP_CMD)==0)
+  else if (STRCASECMP(this->Name, STOP_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(false);
     if (captureDevice->CloseFile()!=PLUS_SUCCESS)
