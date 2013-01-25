@@ -85,7 +85,10 @@ public:
 
   vtkGetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
-    
+
+  /*! Get a command in the queue belonging to a specific client, based on its command id. Thread-safe. */
+  vtkPlusCommand* GetQueuedCommand(int clientId, int commandId);
+
 protected:
   vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);
 

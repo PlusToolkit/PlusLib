@@ -14,12 +14,15 @@ vtkPlusCommand::vtkPlusCommand()
 : Completed(false)
 , CommandProcessor(NULL)
 , ClientId(0)
+, Id(0)
+, Name(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::~vtkPlusCommand()
 {  
+  SetName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -36,6 +39,12 @@ PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
     LOG_ERROR("vtkPlusCommand::ReadConfiguration failed, input is NULL");
     return PLUS_FAIL;
   }
+  aConfig->GetScalarAttribute("Id",this->Id);
+  SetName(aConfig->GetAttribute("Name"));
+  if (ValidateName()!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
@@ -48,11 +57,23 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
   aConfig->SetName("Command");
-  std::list<std::string> cmdNames;
-  GetCommandNames(cmdNames);
-  if (!cmdNames.empty())
+  if (this->Name!=NULL)
   {
-    aConfig->SetAttribute("Name",cmdNames.front().c_str());
+    aConfig->SetAttribute("Name", this->Name);
+  }
+  else
+  {
+    // command name not set, so set the first command name as a default
+    std::list<std::string> cmdNames;
+    GetCommandNames(cmdNames);
+    if (!cmdNames.empty())
+    {
+      aConfig->SetAttribute("Name",cmdNames.front().c_str());
+    }
+  }
+  if (this->Id!=0)
+  {
+    aConfig->SetIntAttribute("Id",this->Id);
   }
   return PLUS_SUCCESS;
 }
@@ -112,4 +133,26 @@ vtkDataCollector* vtkPlusCommand::GetDataCollector()
     return NULL;
   }
   return dataCollector;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusCommand::ValidateName()
+{  
+  if (this->Name==NULL)
+  {
+    LOG_ERROR("Command name is not specified");
+    return PLUS_FAIL;
+  }
+  std::list<std::string> cmdNames;
+  GetCommandNames(cmdNames);
+  for (std::list<std::string>::iterator it=cmdNames.begin(); it!=cmdNames.end(); ++it)
+  {
+    if (STRCASECMP(it->c_str(),this->Name)==0)
+    {
+      // command found
+      return PLUS_SUCCESS;
+    }
+  }
+  LOG_ERROR("Command name "<<this->Name<<" is not recognized");
+  return PLUS_FAIL;
 }

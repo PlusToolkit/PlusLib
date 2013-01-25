@@ -40,10 +40,11 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Set the command processor to get access to the data collection devices and other commands */
-  void SetCommandProcessor( vtkPlusCommandProcessor* processor );  
+  virtual void SetCommandProcessor( vtkPlusCommandProcessor* processor );  
 
   /*! Set the command processor to get access to the data collection devices and other commands */
-  void SetClientId( int clientId );  
+  virtual void SetClientId( int clientId );  
+  vtkGetMacro(ClientId, int);
 
   /*! 
     Gets the description for the specified command name. Command name is specified because a command object
@@ -58,6 +59,12 @@ public:
   /*! Returns true if the command has been completed and no more need to call its Execute function */
   virtual bool IsCompleted();
   
+  vtkGetStringMacro(Name);
+  vtkSetStringMacro(Name);
+
+  vtkGetMacro(Id, int);
+  vtkSetMacro(Id, int);
+
 protected:
 
   /*! Send a reply to the caller and set the status of the command completed (so it can be removed from the queue) */
@@ -65,6 +72,9 @@ protected:
 
   /*! Convenience function for getting a pointer to the data collector */
   virtual vtkDataCollector* GetDataCollector();
+
+  /*! Check if the command name is in the list of command names */
+  PlusStatus ValidateName();
   
   vtkPlusCommand();
   virtual ~vtkPlusCommand();
@@ -72,6 +82,11 @@ protected:
   vtkPlusCommandProcessor* CommandProcessor;
   bool Completed;
   int ClientId;
+  
+  // Unique identifier of the command. It can be used to match commands and replies.
+  int Id;
+
+  char* Name;
       
 private:	
   vtkPlusCommand( const vtkPlusCommand& );
@@ -80,4 +95,3 @@ private:
 };
 
 #endif
-
