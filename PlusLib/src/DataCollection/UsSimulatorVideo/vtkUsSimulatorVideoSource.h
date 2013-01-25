@@ -58,7 +58,7 @@ protected:
 	virtual PlusStatus InternalDisconnect();
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalGrab();
+	virtual PlusStatus InternalUpdate();
 
 protected:
   /*! Ultrasound simulator */
@@ -69,6 +69,9 @@ protected:
 
   /* Transform repository */
   vtkTransformRepository* TransformRepository;
+
+  /* Timestamp of the last tracking item that has been processed already */
+  double LastProcessedTrackingDataTimestamp;
 
 private:
 	static vtkUsSimulatorVideoSource* Instance;
