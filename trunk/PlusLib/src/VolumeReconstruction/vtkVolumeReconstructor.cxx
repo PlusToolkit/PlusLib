@@ -6,6 +6,8 @@
 
 #include "PlusConfigure.h"
 
+#include "vtkVolumeReconstructor.h"
+
 #include <limits>
 
 #include "vtkImageImport.h" 
@@ -14,7 +16,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
-#include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageExtractComponents.h"
 #include "vtkDataSetWriter.h"
@@ -40,7 +41,7 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
   this->HoleFiller = vtkFillHolesInVolume::New();  
   this->FillHoles = 0;
   this->SkipInterval = 1;
-  this->ReconstructionModifiedTime = 0;
+  this->ReconstructedVolumeUpdatedTime = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -678,8 +679,17 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume()
+PlusStatus vtkVolumeReconstructor::UpdateReconstructedVolume()
 {
+  // Load reconstructed volume if the algorithm configuration was modified since the last load
+  //   MTime is updated whenever a new frame is added or configuration modified
+  //   ReconstructedVolumeUpdatedTime is updated whenever a reconstruction was completed
+  if (this->ReconstructedVolumeUpdatedTime >= this->GetMTime())
+  {
+    // reconstruction is already up-to-date
+    return PLUS_SUCCESS;
+  }
+
   if (this->FillHoles)
   {
     if (this->GenerateHoleFilledVolume() != PLUS_SUCCESS)
@@ -693,7 +703,7 @@ PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume()
     this->ReconstructedVolume->DeepCopy(this->Reconstructor->GetReconstructedVolume());
   }
 
-  this->ReconstructionModifiedTime = this->GetMTime();
+  this->ReconstructedVolumeUpdatedTime = this->GetMTime();
 
   return PLUS_SUCCESS; 
 }
@@ -701,9 +711,7 @@ PlusStatus vtkVolumeReconstructor::LoadReconstructedVolume()
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* volume)
 {
-  // Load reconstructed volume if the algorithm configuration was modified since the last load
-  if (this->ReconstructionModifiedTime < this->GetMTime()
-    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  if (this->UpdateReconstructedVolume() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to load reconstructed volume");
     return PLUS_FAIL;
@@ -729,9 +737,7 @@ PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume()
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructedVolume)
 {  
-  // Load reconstructed volume if the algorithm configuration was modified since the last load
-  if (this->ReconstructionModifiedTime < this->GetMTime()
-    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  if (this->UpdateReconstructedVolume() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to load reconstructed volume");
     return PLUS_FAIL;
@@ -752,9 +758,7 @@ PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructed
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolume)
 {
-  // Load reconstructed volume if the algorithm configuration was modified since the last load
-  if (this->ReconstructionModifiedTime < this->GetMTime()
-    && this->LoadReconstructedVolume() != PLUS_SUCCESS)
+  if (this->UpdateReconstructedVolume() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to load reconstructed volume");
     return PLUS_FAIL;

@@ -73,13 +73,16 @@ public:
   */
   virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, vtkTransformRepository* transformRepository, bool* insertedIntoVolume=NULL);
 
-  /*! Load the reconstructed volume from the pasteSlicesIntoVolume object and applies hole filling if enabled */
-  virtual PlusStatus LoadReconstructedVolume();
+  /*! 
+    Makes the reconstructed volume ready to be retrieved.
+    The slices are pasted into the volume immediately, but hole filling is performed only when this method is called.
+  */
+  virtual PlusStatus UpdateReconstructedVolume();
 
   /*! Load the reconstructed volume into the volume pointer */
   virtual PlusStatus GetReconstructedVolume(vtkImageData* volume);
 
-  /*! Apply hole filling to the reconstructed image, is called by LoadReconstructedVolume so an explicit call is not needed */
+  /*! Apply hole filling to the reconstructed image, is called by UpdateReconstructedVolume so an explicit call is not needed */
   virtual PlusStatus GenerateHoleFilledVolume();
 
   /*! Returns the reconstructed volume gray levels from the provided volume */
@@ -147,7 +150,7 @@ protected:
   int SkipInterval;
 
   /*! Modified time when reconstructing. This is used to determine whether re-reconstruction is necessary */
-  unsigned long ReconstructionModifiedTime;
+  unsigned long ReconstructedVolumeUpdatedTime;
 
 private: 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.
