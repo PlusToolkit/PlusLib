@@ -246,7 +246,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     if (this->ReconstructionSnapshotRequested)
     {
       this->ReconstructionSnapshotRequested=false;
-      return SendReconstructionResults(); // don't do any more work in this execute
+      SendReconstructionResults();
     }
     // Add frames
     if (this->EnableAddingFrames)
@@ -326,7 +326,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::AddFrames(vtkTrackedFrameList* track
   int numberOfFramesAddedToVolume=0; 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex+=this->VolumeReconstructor->GetSkipInterval() )
   {
-    LOG_DEBUG("Frame: "<<frameIndex);
+    LOG_TRACE("Adding frame to volume reconstructor: "<<frameIndex);
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
     if ( this->TransformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
@@ -348,6 +348,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::AddFrames(vtkTrackedFrameList* track
     }
   }
   trackedFrameList->Clear(); 
+
   LOG_DEBUG("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
   
   return status;
