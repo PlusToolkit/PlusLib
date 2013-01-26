@@ -1,4 +1,7 @@
 <PlusConfiguration version="2.0">
+
+  <!-- Used by vtkUsSimulatorAlgoTest -->
+
   <CoordinateDefinitions>
     <Transform
       From="Image" To="Probe"

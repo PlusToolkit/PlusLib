@@ -1,4 +1,5 @@
 <PlusConfiguration version="2.0">
+
   <CoordinateDefinitions>
     <Transform
       From="Image" To="Probe"
@@ -6,8 +7,7 @@
               -0.087    0.0       0.0        51.0
               0.0       0.0       0.087      -4.3    
               0         0         0          1"
-      Error="1.0" Date="022412_110829" />
-      
+      Error="1.0" Date="022412_110829" />      
     <Transform
       From="Phantom" To="Reference" 
       Matrix="-0.0217475 0.999619 0.0170018  74.7552 
@@ -30,26 +30,25 @@
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 0 0 1"
-  >
+      0 0 0 1" >
     <RfProcessing>
-    <ScanConversion TransducerName="Ultrasonix_L9-4/38"
-      TransducerGeometry="LINEAR"
-      ImagingDepthMm="616.0"
-      TransducerWidthMm="820.0"
-      OutputImageSizePixel="820 616"
-      OutputImageSpacingMmPerPixel="1.0 1.0"        
-      />
-    <xScanConversion TransducerName="BK_8848-axial"
-      TransducerGeometry="CURVILINEAR"
-      RadiusStartMm="10.0"
-      RadiusStopMm="60.0"
-      ThetaStartDeg="-70.0"
-      ThetaStopDeg="70.0"
-      OutputImageStartDepthMm="2.0"
-      OutputImageSizePixel="600 400"
-      OutputImageSpacingMmPerPixel="0.15 0.15"        
-      />       
+      <ScanConversion
+        TransducerName="Ultrasonix_L9-4/38"
+        TransducerGeometry="LINEAR"
+        ImagingDepthMm="60.0"
+        TransducerWidthMm="40.0"
+        OutputImageSizePixel="476 689"
+        OutputImageSpacingMmPerPixel="0.084 0.087"/>
+      <xScanConversion
+        TransducerName="BK_8848-axial"
+        TransducerGeometry="CURVILINEAR"
+        RadiusStartMm="5.0"
+        RadiusStopMm="60.0"
+        ThetaStartDeg="-60.0"
+        ThetaStopDeg="60.0"
+        OutputImageStartDepthMm="2.0"
+        OutputImageSizePixel="1200 800"
+        OutputImageSpacingMmPerPixel="0.084 0.087" />       
     </RfProcessing>  
   </vtkUsSimulatorAlgo>
   
