@@ -368,6 +368,8 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
     LOG_WARNING(sumAccOverflowErrors << " voxels have had too many pixels inserted. This can result in errors in the final volume. It is recommended that the output volume resolution be increased.");
   }
 
+  this->ReconstructedVolume->Modified();
+  this->AccumulationBuffer->Modified();
   this->Modified();
 
   return PLUS_SUCCESS;
