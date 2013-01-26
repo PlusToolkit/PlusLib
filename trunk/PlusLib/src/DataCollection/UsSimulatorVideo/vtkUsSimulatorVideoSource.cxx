@@ -77,6 +77,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   if ( this->InputStreams[0]->GetOwnerDevice()->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    this->LastProcessedTrackingDataTimestamp=vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
   TrackedFrame* trackedFrame=trackingFrames->GetTrackedFrame(0);
@@ -89,6 +90,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   // Get latest tracker timestamp
   double latestTrackerTimestamp = trackedFrame->GetTimestamp();
   
+  double latestFrameAlreadyAddedTimestamp=0;
+  this->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
+  if (latestFrameAlreadyAddedTimestamp>=latestTrackerTimestamp)
+  {
+    // simulated frame has been already generated for this timestamp
+    return PLUS_SUCCESS;
+  }
+
   // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
