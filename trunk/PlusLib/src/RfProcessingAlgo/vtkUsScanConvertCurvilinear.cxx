@@ -186,7 +186,7 @@ void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
         ip.weightCoefficients[3] =    samp_val * line_val   *intensityScaling;
 
         ip.inputPixelIndex = index_samp + index_line*numberOfSamples;
-        ip.outputPixelIndex = (outputImageSizePixelsX-1-j)+ outputImageSizePixelsX*i;
+        ip.outputPixelIndex = j + outputImageSizePixelsX*i;
         
         this->InterpolatedPointArray.push_back(ip);
       }

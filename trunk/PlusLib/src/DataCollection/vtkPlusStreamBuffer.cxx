@@ -334,7 +334,7 @@ PlusStatus vtkPlusStreamBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, this->ImageOrientation, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, frameSizeInPx, pixelType, this->ImageOrientation, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
@@ -389,7 +389,7 @@ PlusStatus vtkPlusStreamBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATIO
   }
 
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
-  if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, this->ImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, imageType, this->ImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to add video item to buffer: couldn't get requested reoriented frame!"); 
     return PLUS_FAIL; 

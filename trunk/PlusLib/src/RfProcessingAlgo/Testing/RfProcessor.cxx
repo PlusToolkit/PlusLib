@@ -112,7 +112,8 @@ int main(int argc, char **argv)
       // do brightness conversion only
       vtkImageData* brightnessImage=rfProcessor->GetBrightessConvertedImage();
       // Update the pixel data in the frame
-      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
+      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);  
+      rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
     }
     else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
     {
