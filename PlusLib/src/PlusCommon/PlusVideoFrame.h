@@ -69,6 +69,14 @@ public:
   typedef itk::ImageBase< 2 >                    ImageBaseType;
   typedef ImageBaseType::Pointer                 ImageBasePointer;
   typedef ImageBaseType::ConstPointer            ImageBaseConstPointer;  
+  struct FlipInfoType
+  {
+    FlipInfoType() : hFlip(false), vFlip(false), doubleColumn(false), doubleRow(false) {};
+    bool hFlip; // flip the image horizontally (pixel columns are reordered)
+    bool vFlip; // flip the image vertically (pixel rows are reordered)
+    bool doubleColumn; // keep pairs of pixel columns together (for RF_IQ_LINE encoded images)
+    bool doubleRow; // keep pairs of pixel rows together (for RF_I_LINE_Q_LINE encoded images)
+  };
 
   /*! Utility function to get the pixel type of an ImageBaseType object */
   static PlusCommon::ITKScalarPixelType GetITKScalarPixelType(ImageBaseType* itkImageBase);
@@ -196,91 +204,94 @@ public:
   static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image< unsigned char, 2 >::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image< unsigned char, 2 >::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<unsigned char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<unsigned char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<unsigned short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<unsigned short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<unsigned int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<unsigned int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<unsigned long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<unsigned long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<float, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<float, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( const itk::Image<double, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( const itk::Image<double, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage ); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
   template<class OutputImageType> 
-  static PlusStatus GetOrientedImageGeneric( const typename OutputImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_ORIENTATION outUsImageOrientation, typename OutputImageType::Pointer outUsOrientedImage ); 
+  static PlusStatus GetOrientedImageGeneric( const typename OutputImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, typename OutputImageType::Pointer outUsOrientedImage ); 
 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned char, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<char, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned short, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<short, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned int, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<int, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<unsigned long, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<long, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<float, 2>::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, itk::Image<double, 2>::Pointer outUsOrientedImage); 
     
   /*! Convert oriented image to MF oriented ultrasound image */
   template<class OutputImageType> 
-  static PlusStatus GetOrientedImageGeneric( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, typename OutputImageType::Pointer outUsOrientedImage); 
+  static PlusStatus GetOrientedImageGeneric( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], int numberOfBitsPerPixel, US_IMAGE_ORIENTATION outUsImageOrientation, typename OutputImageType::Pointer outUsOrientedImage); 
   
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
 
   /*! Convert vtkImageData to itkImage */
   static PlusStatus ConvertVtkImageToItkImage(vtkImageData* inFrame, itk::Image< unsigned char, 2 >::Pointer outFrame); 
 
-  static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_ORIENTATION usImageOrientation2, itk::FixedArray<bool, 2> &flipAxes);
+  static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 
-  /*! Flip a 2D image along one or two axes. This is a performance optimized version of flipping that does not use ITK filters */
+  /*! 
+    Flip a 2D image along one or two axes. This is a performance optimized version of flipping that does not use ITK filters 
+    \param doubleRow If this flag is set to true then pairs of rows are kept together. This is needed for flipping RF images with US_IMG_RF_I_LINE_Q_LINE encoding, where one scanline is encoded as a pair of I and Q lines in the image. 
+  */
   template<class OutputImageType> 
-  static PlusStatus FlipImage(const typename OutputImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, typename OutputImageType::Pointer outUsOrientedImage);
+  static PlusStatus FlipImage(const typename OutputImageType::Pointer inUsImage, const FlipInfoType& flipInfo, typename OutputImageType::Pointer outUsOrientedImage);
 
   /*! Convert between VTK and ITK scalar pixel types */
   static PlusCommon::ITKScalarPixelType GetITKScalarPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType);
