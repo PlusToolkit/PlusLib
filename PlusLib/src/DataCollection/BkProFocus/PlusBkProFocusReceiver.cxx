@@ -144,7 +144,8 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 
     // 32 bit, one sample pair
     const int32_t* currentInputPosition = reinterpret_cast<const int32_t*>(inputFrame + inputLineIndex*pitch + HEADER_SIZE_BYTES);
-    int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + numBmodeLines*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE );
+    // Fill the output from the last line, because RF data is expected in FM orientation, so first scanline on the unmarked side of the transducer, but the first scanline in the BK buffer is the one on the marked side
+    int32_t* currentOutputPosition = reinterpret_cast<int32_t*>(m_Frame + (m_MaxNumberOfLines-1-numBmodeLines)*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE );
 
     for(int samplePairIndex = 0; samplePairIndex < numberOfSamplePairsToCopy; ++samplePairIndex)
     {
@@ -176,7 +177,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
       {
         // AF: each sample in m_RfFrame is twice as large as in bmode, and we do not decimate
         int frameSizeInPix[2]={m_NumberOfRfSamplesPerLine, numBmodeLines}; // each I and Q value is a sample (there are numRfSamples/2 IQ pairs in one line)
-        m_CallbackVideoSource->NewFrameCallback(m_Frame, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
+        m_CallbackVideoSource->NewFrameCallback(m_Frame + (m_MaxNumberOfLines-numBmodeLines)*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
       }
       break;
     }
