@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkSavedDataSource, "$Revision: 1.0$");
@@ -190,7 +190,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
         int numOfErrors=0;
         for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
         {
-          vtkPlusStreamTool* tool=it->second;
+          vtkPlusDataSource* tool=it->second;
           StreamBufferItem bufferItem;  
           ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
           if ( itemStatus != ITEM_OK )
@@ -292,7 +292,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
 
       for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
-        vtkPlusStreamTool* tool=it->second;
+        vtkPlusDataSource* tool=it->second;
         StreamBufferItem bufferItem;  
         ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
         if ( itemStatus != ITEM_OK )
@@ -516,7 +516,7 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
   double transformMatrix[16]={0};
   for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    vtkPlusStreamTool* tool=it->second;
+    vtkPlusDataSource* tool=it->second;
     if (tool->GetToolName()==NULL)
     {
       // no tool name is available, don't connect it to any transform in the savedDataBuffer
@@ -816,7 +816,7 @@ BufferItemUidType vtkSavedDataSource::GetClosestFrameUidWithinTimeRange(double t
 vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
-  vtkPlusStreamTool* firstActiveTool = NULL; 
+  vtkPlusDataSource* firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 
@@ -879,7 +879,7 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
     break;
   case TRACKER_STREAM:
     {
-      vtkPlusStreamTool* firstActiveTool = NULL; 
+      vtkPlusDataSource* firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 

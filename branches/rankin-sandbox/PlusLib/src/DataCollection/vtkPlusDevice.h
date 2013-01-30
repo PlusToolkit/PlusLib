@@ -17,9 +17,9 @@ See License.txt for details.
 
 class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
-class vtkPlusStream;
+class vtkPlusChannel;
 class vtkPlusStreamBuffer;
-class vtkPlusStreamTool;
+class vtkPlusDataSource;
 class vtkRfProcessor;
 class vtkXMLDataElement;
 
@@ -168,13 +168,13 @@ public:
   double GetInternalUpdateRate() const;
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolName, vtkPlusStreamTool*& aTool);
+  PlusStatus GetTool(const char* aToolName, vtkPlusDataSource*& aTool);
 
   /*! Get the first active tool object */
-  PlusStatus GetFirstActiveTool(vtkPlusStreamTool*& aTool) const; 
+  PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool) const; 
 
   /*! Get the tool object for the specified tool port name */
-  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusStreamTool*& aTool); 
+  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
 
   /*! Get the beginning of the tool iterator */
   ToolContainerConstIterator GetToolIteratorBegin() const; 
@@ -183,16 +183,16 @@ public:
   ToolContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the device */
-  PlusStatus AddTool(vtkPlusStreamTool* tool ); 
+  PlusStatus AddTool(vtkPlusDataSource* tool ); 
 
   /*! Get number of images */
   int GetNumberOfTools() const;
 
   /*! Get the image object for the specified image name */
-  PlusStatus GetImage(const char* anImageName, vtkPlusStreamImage*& anImage);
+  PlusStatus GetImage(const char* anImageName, vtkPlusDataSource*& anImage);
 
   /*! Get the first active image object */
-  PlusStatus GetFirstActiveImage(vtkPlusStreamImage*& anImage); 
+  PlusStatus GetFirstActiveImage(vtkPlusDataSource*& anImage); 
 
   /*! Get the beginning of the image iterator */
   ImageContainerConstIterator GetImageIteratorBegin() const; 
@@ -201,7 +201,7 @@ public:
   ImageContainerConstIterator GetImageIteratorEnd() const;
 
   /*! Add image to the device */
-  PlusStatus AddImage( vtkPlusStreamImage* anImage ); 
+  PlusStatus AddImage( vtkPlusDataSource* anImage ); 
 
   /*! Get number of images */
   int GetNumberOfImages() const;
@@ -382,10 +382,10 @@ public:
   virtual US_IMAGE_TYPE GetImageType();
 
   /*! Access the available output streams */
-  PlusStatus GetStreamByName(vtkPlusStream*& aStream, const char * aStreamName);
+  PlusStatus GetStreamByName(vtkPlusChannel*& aStream, const char * aStreamName);
 
   /*! Add an input stream */
-  PlusStatus AddInputStream(vtkPlusStream* aStream);
+  PlusStatus AddInputStream(vtkPlusChannel* aStream);
 
   /*!
     Perform any completion tasks once configured
@@ -439,14 +439,14 @@ protected:
   /*! 
   This function is called by InternalUpdate() so that the subclasses
   can communicate information back to the vtkTracker base class, which
-  will in turn relay the information to the appropriate vtkPlusStreamTool.
+  will in turn relay the information to the appropriate vtkPlusDataSource.
   */
   PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
   can communicate information back to the vtkTracker base class, which
-  will in turn relay the information to the appropriate vtkPlusStreamTool.
+  will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
   PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
@@ -492,7 +492,7 @@ protected:
 
   StreamContainer OutputStreams;
   StreamContainer InputStreams;
-  vtkPlusStream* CurrentStream;
+  vtkPlusChannel* CurrentStream;
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;

@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 
 vtkStandardNewMacro(vtkFakeTracker);
@@ -61,7 +61,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
 {
   LOG_TRACE("vtkFakeTracker::InternalConnect"); 
 
-  vtkPlusStreamTool* tool = NULL; 
+  vtkPlusDataSource* tool = NULL; 
   switch (this->Mode)
   {
   case (FakeTrackerMode_Default):

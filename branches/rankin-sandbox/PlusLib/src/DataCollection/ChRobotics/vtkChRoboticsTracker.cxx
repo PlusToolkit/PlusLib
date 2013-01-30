@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"

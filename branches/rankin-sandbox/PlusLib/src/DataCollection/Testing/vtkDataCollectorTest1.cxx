@@ -24,7 +24,7 @@ See License.txt for details.
 #include "vtkSavedDataSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkRfProcessor.h"

@@ -15,7 +15,7 @@
 #include "vtkOpenIGTLinkTracker.h"
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"

@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPhidgetSpatialTracker.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"

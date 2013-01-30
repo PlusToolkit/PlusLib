@@ -18,7 +18,7 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
-#include "vtkPlusStreamImage.h"
+#include "vtkPlusDataSource.h"
 
 static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
 
@@ -127,7 +127,7 @@ int main( int argc, char** argv )
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
   vtkPlusDevice* selectedDevice=NULL;
   dataCollector->GetSelectedDevice(selectedDevice);
-  vtkPlusStreamImage* imageStream=NULL;
+  vtkPlusDataSource* imageStream=NULL;
   selectedDevice->GetImage("Video", imageStream);
   double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;

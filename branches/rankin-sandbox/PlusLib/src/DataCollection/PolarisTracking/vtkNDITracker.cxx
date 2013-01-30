@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkSocketCommunicator.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include <ctype.h>
 #include <float.h>
@@ -613,7 +613,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkPlusStreamTool* trackerTool = NULL; 
+    vtkPlusDataSource* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       if (flags != TOOL_MISSING)
@@ -868,7 +868,7 @@ void vtkNDITracker::EnableToolPorts()
       }
     }
 
-    vtkPlusStreamTool* trackerTool = NULL; 
+    vtkPlusDataSource* trackerTool = NULL; 
     if ( this->GetToolByPortName(it->second->GetPortName(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << it->second->GetPortName() ); 

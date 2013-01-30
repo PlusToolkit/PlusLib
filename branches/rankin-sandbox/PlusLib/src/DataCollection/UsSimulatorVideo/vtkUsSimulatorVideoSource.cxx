@@ -9,8 +9,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkPlusStream.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");

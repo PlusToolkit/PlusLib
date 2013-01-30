@@ -11,7 +11,7 @@
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceTypes.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	{
     for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkPlusStreamTool* tool = it->second;
+      vtkPlusDataSource* tool = it->second;
 		  tool->GetBuffer()->SetTimeStampReporting(true);
     }
 	}
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 	{
     for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkPlusStreamTool* tool = it->second;
+      vtkPlusDataSource* tool = it->second;
 
 			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
 			int bufferSize = tool->GetBuffer()->GetBufferSize(); 

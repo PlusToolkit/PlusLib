@@ -6,18 +6,18 @@ See License.txt for details.
 
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
-#include "vtkPlusStreamImage.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusDataSource.h"
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPlusStream, "$Revision: 1.0$");
-vtkStandardNewMacro(vtkPlusStream);
+vtkCxxRevisionMacro(vtkPlusChannel, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkPlusChannel);
 
 //----------------------------------------------------------------------------
-vtkPlusStream::vtkPlusStream(void)
+vtkPlusChannel::vtkPlusChannel(void)
 : OwnerDevice(NULL)
 , StreamId(NULL)
 {
@@ -25,14 +25,14 @@ vtkPlusStream::vtkPlusStream(void)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStream::~vtkPlusStream(void)
+vtkPlusChannel::~vtkPlusChannel(void)
 {
   Images.clear();
   Tools.clear();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
+PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -59,7 +59,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
       LOG_WARNING("No field \"Id\" defined in the image element " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
-    vtkPlusStreamImage* image = NULL;
+    vtkPlusDataSource* image = NULL;
     if( this->OwnerDevice == NULL || this->OwnerDevice->GetImage(name, image) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve image from owner device.");
@@ -83,7 +83,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
       LOG_WARNING("No field \"Name\" defined in the tool element " << this->GetStreamId() << ". Unable to add it to the output stream.");
       continue;
     }
-    vtkPlusStreamTool* tool = NULL;
+    vtkPlusDataSource* tool = NULL;
     if( this->OwnerDevice == NULL || this->OwnerDevice->GetTool(toolName, tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve tool from owner device.");
@@ -96,7 +96,7 @@ PlusStatus vtkPlusStream::ReadConfiguration( vtkXMLDataElement* aStreamElement )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement )
+PlusStatus vtkPlusChannel::WriteConfiguration( vtkXMLDataElement* aStreamElement )
 {
   aStreamElement->SetAttribute("Id", this->GetStreamId());
 
@@ -107,7 +107,7 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
     {
       continue; 
     }
-    vtkPlusStreamImage* anImage = NULL;
+    vtkPlusDataSource* anImage = NULL;
     if( element->GetAttribute("Name") == NULL || this->GetImage(anImage, element->GetAttribute("Name")) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve image when saving config.");
@@ -123,7 +123,7 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
     {
       continue; 
     }
-    vtkPlusStreamTool* aTool = NULL;
+    vtkPlusDataSource* aTool = NULL;
     if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tool when saving config.");
@@ -136,7 +136,7 @@ PlusStatus vtkPlusStream::WriteConfiguration( vtkXMLDataElement* aStreamElement 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetImage( vtkPlusStreamImage*& anImage, const char* name )
+PlusStatus vtkPlusChannel::GetImage( vtkPlusDataSource*& anImage, const char* name )
 {
   if( name == NULL )
   {
@@ -157,7 +157,7 @@ PlusStatus vtkPlusStream::GetImage( vtkPlusStreamImage*& anImage, const char* na
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetTool(vtkPlusStreamTool*& aTool, const char* toolName )
+PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolName )
 {
   if( toolName == NULL )
   {
@@ -178,55 +178,55 @@ PlusStatus vtkPlusStream::GetTool(vtkPlusStreamTool*& aTool, const char* toolNam
 }
 
 //----------------------------------------------------------------------------
-ImageContainerConstIterator vtkPlusStream::GetImagesStartConstIterator() const
+ImageContainerConstIterator vtkPlusChannel::GetImagesStartConstIterator() const
 {
   return this->Images.begin();
 }
 
 //----------------------------------------------------------------------------
-ImageContainerConstIterator vtkPlusStream::GetImagesEndConstIterator() const
+ImageContainerConstIterator vtkPlusChannel::GetImagesEndConstIterator() const
 {
   return this->Images.end();
 }
 
 //----------------------------------------------------------------------------
-ImageContainerIterator vtkPlusStream::GetImagesStartIterator()
+ImageContainerIterator vtkPlusChannel::GetImagesStartIterator()
 {
   return this->Images.begin();
 }
 
 //----------------------------------------------------------------------------
-ImageContainerIterator vtkPlusStream::GetImagesEndIterator()
+ImageContainerIterator vtkPlusChannel::GetImagesEndIterator()
 {
   return this->Images.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusStream::GetToolsStartConstIterator() const
+ToolContainerConstIterator vtkPlusChannel::GetToolsStartConstIterator() const
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusStream::GetToolsEndConstIterator() const
+ToolContainerConstIterator vtkPlusChannel::GetToolsEndConstIterator() const
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusStream::GetToolsStartIterator()
+ToolContainerIterator vtkPlusChannel::GetToolsStartIterator()
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusStream::GetToolsEndIterator()
+ToolContainerIterator vtkPlusChannel::GetToolsEndIterator()
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddTool(vtkPlusStreamTool* aTool )
+PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool )
 {
   if( aTool == NULL )
   {
@@ -250,7 +250,7 @@ PlusStatus vtkPlusStream::AddTool(vtkPlusStreamTool* aTool )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
+PlusStatus vtkPlusChannel::RemoveTool( const char* toolName )
 {
   if( toolName == NULL )
   {
@@ -272,7 +272,7 @@ PlusStatus vtkPlusStream::RemoveTool( const char* toolName )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::AddImage(vtkPlusStreamImage* anImage)
+PlusStatus vtkPlusChannel::AddImage(vtkPlusDataSource* anImage)
 {
   if( anImage == NULL )
   {
@@ -294,7 +294,7 @@ PlusStatus vtkPlusStream::AddImage(vtkPlusStreamImage* anImage)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::Clear()
+PlusStatus vtkPlusChannel::Clear()
 {
   for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
@@ -306,13 +306,13 @@ PlusStatus vtkPlusStream::Clear()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
+PlusStatus vtkPlusChannel::GetLatestTimestamp(double& aTimestamp) const
 {
   aTimestamp = 0;
 
   for( ImageContainerConstIterator it = this->GetImagesStartConstIterator(); it != this->GetImagesEndConstIterator(); ++it )
   {
-    vtkPlusStreamImage* aBuf = it->second;
+    vtkPlusDataSource* aBuf = it->second;
     double timestamp;
     if( it->second->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
@@ -325,7 +325,7 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 
   for( ToolContainerConstIterator it = this->GetToolsStartConstIterator(); it != this->GetToolsEndConstIterator(); ++it)
   {
-    vtkPlusStreamTool* aTool = it->second;
+    vtkPlusDataSource* aTool = it->second;
     double timestamp;
     if( aTool->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
     {
@@ -340,7 +340,7 @@ PlusStatus vtkPlusStream::GetLatestTimestamp(double& aTimestamp) const
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStream::DeepCopy( const vtkPlusStream& aStream )
+void vtkPlusChannel::DeepCopy( const vtkPlusChannel& aStream )
 {
   // Make this stream look like aStream
   this->ShallowCopy(aStream);
@@ -359,12 +359,12 @@ void vtkPlusStream::DeepCopy( const vtkPlusStream& aStream )
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStream::ShallowCopy( const vtkPlusStream& aStream )
+void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aStream )
 {
   this->Clear();
   for( ImageContainerConstIterator it = aStream.GetImagesStartConstIterator(); it != aStream.GetImagesEndConstIterator(); ++it)
   {
-    vtkSmartPointer<vtkPlusStreamImage> anImage = vtkSmartPointer<vtkPlusStreamImage>::New();
+    vtkSmartPointer<vtkPlusDataSource> anImage = vtkSmartPointer<vtkPlusDataSource>::New();
     if( this->AddImage(anImage) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add an image when shallow copying a stream.");

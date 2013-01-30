@@ -7,15 +7,15 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 //#include "vtkObjectFactory.h"
 //#include "vtkXMLUtilities.h"
 
-vtkStandardNewMacro(vtkPlusStreamTool);
+vtkStandardNewMacro(vtkPlusDataSource);
 
 //----------------------------------------------------------------------------
-vtkPlusStreamTool::vtkPlusStreamTool()
+vtkPlusDataSource::vtkPlusDataSource()
 : Device(NULL)
 , PortName(NULL)
 , FrameNumber(0)
@@ -34,7 +34,7 @@ vtkPlusStreamTool::vtkPlusStreamTool()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStreamTool::~vtkPlusStreamTool()
+vtkPlusDataSource::~vtkPlusDataSource()
 {
   if ( this->ToolName != NULL )
   {
@@ -62,7 +62,7 @@ vtkPlusStreamTool::~vtkPlusStreamTool()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
 
@@ -110,7 +110,7 @@ void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
+PlusStatus vtkPlusDataSource::SetToolName(const char* toolName)
 {
   if ( this->ToolName == NULL && toolName == NULL) 
   { 
@@ -139,7 +139,7 @@ PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
+PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
 {
   if ( this->ReferenceCoordinateFrameName == NULL && referenceName == NULL) 
   { 
@@ -168,7 +168,7 @@ PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
+PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 {
   if ( this->PortName == NULL && portName == NULL) 
   { 
@@ -197,25 +197,25 @@ PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED1(int state)
+void vtkPlusDataSource::SetLED1(int state)
 {
   this->Device->SetToolLED(this->PortName,1,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED2(int state)
+void vtkPlusDataSource::SetLED2(int state)
 {
   this->Device->SetToolLED(this->PortName,2,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED3(int state)
+void vtkPlusDataSource::SetLED3(int state)
 {
   this->Device->SetToolLED(this->PortName,3,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetDevice(vtkPlusDevice *device)
+void vtkPlusDataSource::SetDevice(vtkPlusDevice *device)
 {
   // The Tracker is not reference counted, since that would cause a reference loop
   if (device == this->Device)
@@ -241,9 +241,9 @@ void vtkPlusStreamTool::SetDevice(vtkPlusDevice *device)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
+void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *tool)
 {
-  LOG_TRACE("vtkPlusStreamTool::DeepCopy"); 
+  LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
 
   this->SetLED1( tool->GetLED1() );
   this->SetLED2( tool->GetLED2() );
@@ -263,9 +263,9 @@ void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
 {
-  LOG_TRACE("vtkPlusStreamTool::ReadConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
   if ( toolElement == NULL )
   {
@@ -325,9 +325,9 @@ PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* toolElement, 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement )
+PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* toolElement )
 {
-  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
 
   if ( toolElement == NULL )
   {
@@ -348,9 +348,9 @@ PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::WriteCompactConfiguration( vtkXMLDataElement* toolElement )
+PlusStatus vtkPlusDataSource::WriteCompactConfiguration( vtkXMLDataElement* toolElement )
 {
-  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
 
   if ( toolElement == NULL )
   {

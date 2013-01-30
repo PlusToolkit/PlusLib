@@ -19,7 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkUnsignedCharArray.h"
 #include <ctype.h>

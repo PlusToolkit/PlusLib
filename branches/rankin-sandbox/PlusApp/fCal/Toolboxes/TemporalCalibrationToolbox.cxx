@@ -10,7 +10,7 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>

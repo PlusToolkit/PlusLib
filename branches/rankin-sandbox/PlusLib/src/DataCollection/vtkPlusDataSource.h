@@ -4,35 +4,35 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkPlusStreamTool - interfaces VTK to a handheld 3D positioning tool
+// .NAME vtkPlusDataSource - interfaces VTK to a handheld 3D positioning tool
 // .SECTION Description
-// The vtkPlusStreamTool provides an interface between a tracked object in
+// The vtkPlusDataSource provides an interface between a tracked object in
 // the real world and a virtual object.
 // .SECTION see also
 // vtkTracker vtkPOLARISTracker vtkFlockTracker
 
-#ifndef __vtkPlusStreamTool_h
-#define __vtkPlusStreamTool_h
+#ifndef __vtkPlusDataSource_h
+#define __vtkPlusDataSource_h
 
 #include "vtkObject.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
 
 /*!
-\class vtkPlusStreamTool 
+\class vtkPlusDataSource 
 \brief Interface to a handheld 3D positioning tool
 
-The vtkPlusStreamTool provides an interface between a tracked object in
+The vtkPlusDataSource provides an interface between a tracked object in
 the real world and a virtual object.
 
 \ingroup PlusLibTracking
 */
-class VTK_EXPORT vtkPlusStreamTool : public vtkObject
+class VTK_EXPORT vtkPlusDataSource : public vtkObject
 {
 public:
 
-  static vtkPlusStreamTool *New();
-  vtkTypeMacro(vtkPlusStreamTool,vtkObject);
+  static vtkPlusDataSource *New();
+  vtkTypeMacro(vtkPlusDataSource,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
@@ -110,11 +110,11 @@ public:
   vtkSetStringMacro(ToolSerialNumber);
     
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
-  void DeepCopy(vtkPlusStreamTool *tool);
+  void DeepCopy(vtkPlusDataSource *tool);
 
 protected:
-  vtkPlusStreamTool();
-  ~vtkPlusStreamTool();
+  vtkPlusDataSource();
+  ~vtkPlusDataSource();
 
   vtkPlusDevice *Device;
 
@@ -136,8 +136,8 @@ protected:
   vtkPlusStreamBuffer* Buffer;
 
 private:
-  vtkPlusStreamTool(const vtkPlusStreamTool&);
-  void operator=(const vtkPlusStreamTool&);  
+  vtkPlusDataSource(const vtkPlusDataSource&);
+  void operator=(const vtkPlusDataSource&);  
 
 };
 

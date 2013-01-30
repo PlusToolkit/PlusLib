@@ -7,7 +7,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkVirtualStreamDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -97,7 +97,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
   double lowestRate=30; // just a usual value (FPS)
   for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
   {
-    vtkPlusStream* anInputStream = (*it);
+    vtkPlusChannel* anInputStream = (*it);
     if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
     {
       lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();

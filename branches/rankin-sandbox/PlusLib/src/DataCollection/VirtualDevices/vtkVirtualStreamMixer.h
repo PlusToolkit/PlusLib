@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkVirtualStreamMixer_h
 
 #include "vtkPlusDevice.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include <string>
 
 /*!
@@ -28,7 +28,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   // Virtual stream mixers output only one stream
-  vtkPlusStream* GetStream() const;
+  vtkPlusChannel* GetStream() const;
 
   virtual PlusStatus NotifyConfigured();
 
@@ -49,10 +49,10 @@ protected:
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();
 
-  vtkGetObjectConstMacro(OutputStream, vtkPlusStream);
-  vtkSetObjectMacro(OutputStream, vtkPlusStream);
+  vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
+  vtkSetObjectMacro(OutputStream, vtkPlusChannel);
 
-  vtkPlusStream*  OutputStream;
+  vtkPlusChannel*  OutputStream;
 
 private:
   vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.

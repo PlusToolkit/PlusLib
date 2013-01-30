@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -148,7 +148,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
     {
       std::ostringstream portName; 
       portName << i; 
-      vtkPlusStreamTool* tool = NULL; 
+      vtkPlusDataSource* tool = NULL; 
       if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -363,7 +363,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
 
-    vtkPlusStreamTool* tool = NULL;
+    vtkPlusDataSource* tool = NULL;
     if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 

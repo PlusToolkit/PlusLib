@@ -18,8 +18,7 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -77,7 +76,7 @@ public:
     }
     for ( ToolContainerConstIterator it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
     {
-      vtkPlusStreamTool* tool=it->second;
+      vtkPlusDataSource* tool=it->second;
       AddNewToolActor(tool->GetToolName());
       SetToolVisible(tool->GetToolName(),true);        
     }
@@ -136,7 +135,7 @@ public:
     { 
       PlusTransformName transformName = *it; 
 
-      vtkPlusStreamTool* tool=NULL;
+      vtkPlusDataSource* tool=NULL;
       if ( aDevice->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: " << transformName.From() ); 
@@ -282,7 +281,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  vtkPlusStreamTool* tool=NULL;
+  vtkPlusDataSource* tool=NULL;
   if ( !inputToolName.empty() )
   {
     if ( aDevice->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )

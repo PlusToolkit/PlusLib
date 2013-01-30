@@ -14,16 +14,16 @@
 class vtkPlusDevice;
 
 /*!
-  \class vtkPlusStream 
+  \class vtkPlusChannel 
   \brief Contains a number of timestamped circular buffer of StreamBufferItems. StreamBufferItems are essentially a class that contains both a single video frame and/or a 4x4 matrix.
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusStream : public vtkDataObject
+class VTK_EXPORT vtkPlusChannel : public vtkDataObject
 {
 public:
-  static vtkPlusStream *New();
-  vtkTypeRevisionMacro(vtkPlusStream, vtkObject);
+  static vtkPlusChannel *New();
+  vtkTypeRevisionMacro(vtkPlusChannel, vtkObject);
 
   /*!
     Parse the XML, read the details about the stream
@@ -35,18 +35,18 @@ public:
   PlusStatus WriteConfiguration(vtkXMLDataElement* aStreamElement);
 
   int ImageCount() const { return this->Images.size(); }
-  PlusStatus AddImage(vtkPlusStreamImage* anImage);
+  PlusStatus AddImage(vtkPlusDataSource* anImage);
   PlusStatus RemoveImage(const char* imageName);
-  PlusStatus GetImage( vtkPlusStreamImage*& anImage, const char* name );
+  PlusStatus GetImage( vtkPlusDataSource*& anImage, const char* name );
   ImageContainerIterator GetImagesStartIterator();
   ImageContainerIterator GetImagesEndIterator();
   ImageContainerConstIterator GetImagesStartConstIterator() const;
   ImageContainerConstIterator GetImagesEndConstIterator() const;
 
   int ToolCount() const { return this->Tools.size(); }
-  PlusStatus AddTool(vtkPlusStreamTool* aTool );
+  PlusStatus AddTool(vtkPlusDataSource* aTool );
   PlusStatus RemoveTool(const char* toolName);
-  PlusStatus GetTool(vtkPlusStreamTool*& aTool, const char* toolName);
+  PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolName);
   ToolContainerIterator GetToolsStartIterator();
   ToolContainerIterator GetToolsEndIterator();
   ToolContainerConstIterator GetToolsStartConstIterator() const;
@@ -54,8 +54,8 @@ public:
 
   PlusStatus Clear();
 
-  virtual void DeepCopy(const vtkPlusStream& aStream);
-  virtual void ShallowCopy(const vtkPlusStream& aStream);
+  virtual void DeepCopy(const vtkPlusChannel& aStream);
+  virtual void ShallowCopy(const vtkPlusChannel& aStream);
 
   PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
@@ -71,12 +71,12 @@ protected:
   vtkPlusDevice*            OwnerDevice;
   char *                    StreamId;
 
-  vtkPlusStream(void);
-  virtual ~vtkPlusStream(void);
+  vtkPlusChannel(void);
+  virtual ~vtkPlusChannel(void);
 
 private:
-  vtkPlusStream(const vtkPlusStream&);
-  void operator=(const vtkPlusStream&);
+  vtkPlusChannel(const vtkPlusChannel&);
+  void operator=(const vtkPlusChannel&);
 };
 
 #endif

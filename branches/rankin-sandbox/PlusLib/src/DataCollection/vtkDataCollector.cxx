@@ -12,9 +12,9 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
@@ -168,7 +168,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
           for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
           {
             vtkPlusDevice* device = (*it);
-            vtkPlusStream* aStream = NULL;
+            vtkPlusChannel* aStream = NULL;
             if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
             {
               // Found it!
@@ -725,7 +725,7 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
 
   // Get the first tool
   vtkPlusDevice* aDevice = NULL;
-  vtkPlusStreamTool* firstActiveTool = NULL; 
+  vtkPlusDataSource* firstActiveTool = NULL; 
   if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
   {
     LOG_ERROR("No selected stream mixer. Unable to search for tools.");

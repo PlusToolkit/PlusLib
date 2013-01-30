@@ -137,11 +137,11 @@ private:  // Variables.
   vtkMatrix4x4* LastTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
 
-  vtkPlusStreamTool* AccelerometerTool;
-  vtkPlusStreamTool* GyroscopeTool;
-  vtkPlusStreamTool* MagnetometerTool;
-  vtkPlusStreamTool* TiltSensorTool;
-  vtkPlusStreamTool* OrientationSensorTool;
+  vtkPlusDataSource* AccelerometerTool;
+  vtkPlusDataSource* GyroscopeTool;
+  vtkPlusDataSource* MagnetometerTool;
+  vtkPlusDataSource* TiltSensorTool;
+  vtkPlusDataSource* OrientationSensorTool;
 
   enum AHRS_METHOD
   {
