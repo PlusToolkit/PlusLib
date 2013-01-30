@@ -15,7 +15,8 @@ class vtkPlusDevice;
 
 /*!
   \class vtkPlusChannel 
-  \brief Contains a number of timestamped circular buffer of StreamBufferItems. StreamBufferItems are essentially a class that contains both a single video frame and/or a 4x4 matrix.
+  \brief  Contains an optional timestamped circular buffer containing the video images and a number of timestamped circular buffer of StreamBufferItems for the transforms. 
+          StreamBufferItems are essentially a class that contains both a single video frame and/or a 4x4 matrix.
 
   \ingroup PlusLibDataCollection
 */
@@ -28,48 +29,42 @@ public:
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aStreamElement);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement);
   /*!
     Write the details about the stream to XML
   */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* aStreamElement);
+  PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
 
-  int ImageCount() const { return this->Images.size(); }
-  PlusStatus AddImage(vtkPlusDataSource* anImage);
-  PlusStatus RemoveImage(const char* imageName);
-  PlusStatus GetImage( vtkPlusDataSource*& anImage, const char* name );
-  ImageContainerIterator GetImagesStartIterator();
-  ImageContainerIterator GetImagesEndIterator();
-  ImageContainerConstIterator GetImagesStartConstIterator() const;
-  ImageContainerConstIterator GetImagesEndConstIterator() const;
+  PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const;
+  void SetVideoSource( vtkPlusDataSource* aSource );
+  bool HasVideoSource() const;
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusDataSource* aTool );
   PlusStatus RemoveTool(const char* toolName);
   PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolName);
-  ToolContainerIterator GetToolsStartIterator();
-  ToolContainerIterator GetToolsEndIterator();
-  ToolContainerConstIterator GetToolsStartConstIterator() const;
-  ToolContainerConstIterator GetToolsEndConstIterator() const;
+  DataSourceContainerIterator GetToolsStartIterator();
+  DataSourceContainerIterator GetToolsEndIterator();
+  DataSourceContainerConstIterator GetToolsStartConstIterator() const;
+  DataSourceContainerConstIterator GetToolsEndConstIterator() const;
 
   PlusStatus Clear();
 
-  virtual void DeepCopy(const vtkPlusChannel& aStream);
-  virtual void ShallowCopy(const vtkPlusChannel& aStream);
+  virtual void ShallowCopy(const vtkPlusChannel& aChannel);
 
   PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
   vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
   vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
 
-  vtkSetStringMacro(StreamId);
-  vtkGetStringMacro(StreamId);
+  vtkSetStringMacro(ChannelId);
+  vtkGetStringMacro(ChannelId);
 
 protected:
-  ToolContainer             Tools;
-  ImageContainer            Images;
+  DataSourceContainer       Tools;
+  vtkPlusDataSource*        VideoSource;
   vtkPlusDevice*            OwnerDevice;
-  char *                    StreamId;
+  char *                    ChannelId;
 
   vtkPlusChannel(void);
   virtual ~vtkPlusChannel(void);

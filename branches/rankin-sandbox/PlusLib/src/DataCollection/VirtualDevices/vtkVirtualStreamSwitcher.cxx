@@ -36,7 +36,7 @@ void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
     os << indent << "Input stream: \n";
     (*it)->PrintSelf(os, indent);
@@ -117,7 +117,7 @@ PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
 {
   std::vector<vtkPlusChannel*> ActiveStreams;
 
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
     vtkPlusChannel* aStream = (*it);
     double latestTimestamp(0);
@@ -173,7 +173,7 @@ PlusStatus vtkVirtualStreamSwitcher::ReadConfiguration( vtkXMLDataElement* eleme
     return PLUS_FAIL;
   }
 
-  SetOutputStream(this->OutputStreams[0]);
+  SetOutputStream(this->OutputChannels[0]);
 
   return PLUS_SUCCESS;
 }
@@ -183,7 +183,7 @@ PlusStatus vtkVirtualStreamSwitcher::NotifyConfigured()
 {
   this->LastRecordedTimestampMap.clear();
 
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
     vtkPlusChannel* aStream = (*it);
     this->LastRecordedTimestampMap[aStream] = 0;

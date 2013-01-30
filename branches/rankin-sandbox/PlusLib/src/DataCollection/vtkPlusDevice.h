@@ -167,6 +167,9 @@ public:
   /*! Get the internal update rate for this tracking system.  This is the number of buffer entry items sent by the device per second (per tool). */
   double GetInternalUpdateRate() const;
 
+  /*! Get the data source object for the specified Id name, checks both video and tools */
+  PlusStatus GetDataSource(const char* aSourceId, vtkPlusDataSource*& aSource);
+
   /*! Get the tool object for the specified tool name */
   PlusStatus GetTool(const char* aToolName, vtkPlusDataSource*& aTool);
 
@@ -177,10 +180,10 @@ public:
   PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
 
   /*! Get the beginning of the tool iterator */
-  ToolContainerConstIterator GetToolIteratorBegin() const; 
+  DataSourceContainerConstIterator GetToolIteratorBegin() const; 
 
   /*! Get the end of the tool iterator */
-  ToolContainerConstIterator GetToolIteratorEnd() const;
+  DataSourceContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the device */
   PlusStatus AddTool(vtkPlusDataSource* tool ); 
@@ -189,22 +192,22 @@ public:
   int GetNumberOfTools() const;
 
   /*! Get the image object for the specified image name */
-  PlusStatus GetImage(const char* anImageName, vtkPlusDataSource*& anImage);
+  PlusStatus GetVideoSource(const char* aSourceId, vtkPlusDataSource*& aVideoSource);
 
   /*! Get the first active image object */
-  PlusStatus GetFirstActiveImage(vtkPlusDataSource*& anImage); 
+  PlusStatus GetFirstActiveVideoSource(vtkPlusDataSource*& anImage); 
 
   /*! Get the beginning of the image iterator */
-  ImageContainerConstIterator GetImageIteratorBegin() const; 
+  DataSourceContainerConstIterator GetVideoIteratorBegin() const; 
 
   /*! Get the end of the image iterator */
-  ImageContainerConstIterator GetImageIteratorEnd() const;
+  DataSourceContainerConstIterator GetVideoIteratorEnd() const;
 
   /*! Add image to the device */
-  PlusStatus AddImage( vtkPlusDataSource* anImage ); 
+  PlusStatus AddVideo( vtkPlusDataSource* anImage ); 
 
   /*! Get number of images */
-  int GetNumberOfImages() const;
+  int GetNumberOfVideoSources() const;
 
   /*! Convert tool status to string */
   static std::string ConvertToolStatusToString(ToolStatus status); 
@@ -225,10 +228,10 @@ public:
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
-  virtual void SetImageLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual double GetToolLocalTimeOffsetSec();
-  virtual double GetImageLocalTimeOffsetSec();
+  virtual double GetVideoLocalTimeOffsetSec();
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -381,11 +384,11 @@ public:
   /*! Get the image pixel type (B-mode, RF, ...) */
   virtual US_IMAGE_TYPE GetImageType();
 
-  /*! Access the available output streams */
-  PlusStatus GetStreamByName(vtkPlusChannel*& aStream, const char * aStreamName);
+  /*! Access the available output channels */
+  PlusStatus GetChannelByName(vtkPlusChannel*& aChannel, const char * aStreamName);
 
-  /*! Add an input stream */
-  PlusStatus AddInputStream(vtkPlusChannel* aStream);
+  /*! Add an input channel */
+  PlusStatus AddInputChannel(vtkPlusChannel* aChannel);
 
   /*!
     Perform any completion tasks once configured
@@ -458,19 +461,19 @@ protected:
   /*!
     Helper function used during configuration to locate the correct XML element for an output stream
   */
-  vtkXMLDataElement* FindOutputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
+  vtkXMLDataElement* FindOutputChannelElement(vtkXMLDataElement* rootXMLElement, const char* aChannelId);
   /*!
     Helper function used during configuration to locate the correct XML element for an input stream
   */
-  vtkXMLDataElement* FindInputStreamElement(vtkXMLDataElement* rootXMLElement, const char* aStreamId);
+  vtkXMLDataElement* FindInputChannelElement(vtkXMLDataElement* rootXMLElement, const char* aChannelId);
   /*!
     Method that writes output streams to XML
   */
-  virtual void InternalWriteOutputStreams(vtkXMLDataElement* rootXMLElement);
+  virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
   /*!
     Method that writes output streams to XML
   */
-  virtual void InternalWriteInputStreams(vtkXMLDataElement* rootXMLElement);
+  virtual void InternalWriteInputChannels(vtkXMLDataElement* rootXMLElement);
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
@@ -490,14 +493,14 @@ protected:
   /*! Recording thread id */
   int ThreadId;
 
-  StreamContainer OutputStreams;
-  StreamContainer InputStreams;
-  vtkPlusChannel* CurrentStream;
+  ChannelContainer  OutputChannels;
+  ChannelContainer  InputChannels;
+  vtkPlusChannel*   CurrentChannel;
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
-  ToolContainer Tools; 
-  ImageContainer Images;
+  DataSourceContainer Tools; 
+  DataSourceContainer VideoSources;
 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 

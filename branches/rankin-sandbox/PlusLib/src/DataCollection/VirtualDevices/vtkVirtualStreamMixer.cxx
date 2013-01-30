@@ -48,7 +48,7 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
     return PLUS_FAIL;
   }
 
-  SetOutputStream(this->OutputStreams[0]);
+  SetOutputStream(this->OutputChannels[0]);
 
   return PLUS_SUCCESS;
 }
@@ -60,28 +60,25 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
   bool lowestRateKnown=false;
   double lowestRate=30; // just a usual value (FPS)  
 
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusChannel* anInputStream = (*it);
+    vtkPlusChannel* anInputChannel = (*it);
 
     // Get the lowest rate from all image streams
-    for( ImageContainerConstIterator inputImageIter = anInputStream->GetImagesStartConstIterator(); inputImageIter != anInputStream->GetImagesEndConstIterator(); ++inputImageIter )
+    vtkPlusDataSource* videoSource = NULL;
+    if( anInputChannel->HasVideoSource() )
     {
-      vtkPlusDataSource* anImage = inputImageIter->second;
-      if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
-      {
-        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
-        lowestRateKnown=true;
-      }
+      lowestRate = anInputChannel->GetOwnerDevice()->GetAcquisitionRate();
+      lowestRateKnown=true;
     }
 
     // Get the lowest rate from all tool streams
-    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolsStartConstIterator(); inputToolIter != anInputStream->GetToolsEndConstIterator(); ++inputToolIter )
+    for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
     {
       vtkPlusDataSource* anTool = inputToolIter->second;
-      if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
+      if (anInputChannel->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
       {
-        lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
+        lowestRate = anInputChannel->GetOwnerDevice()->GetAcquisitionRate();
         lowestRateKnown=true;
       }
     }
@@ -101,44 +98,22 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
   // First, empty whatever is there, because this can be called at any point after a configuration
   this->GetOutputStream()->Clear();
 
-  for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusChannel* anInputStream = (*it);
-    for( ImageContainerConstIterator inputImageIter = anInputStream->GetImagesStartConstIterator(); inputImageIter != anInputStream->GetImagesEndConstIterator(); ++inputImageIter )
+    vtkPlusChannel* anInputChannel = (*it);
+    vtkPlusDataSource* aSource = NULL;
+
+    if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      vtkPlusDataSource* anInputImage = inputImageIter->second;
-
-      bool found = false;
-      for( ImageContainerConstIterator outputImageIter = this->GetOutputStream()->GetImagesStartConstIterator(); outputImageIter != this->GetOutputStream()->GetImagesEndConstIterator(); ++outputImageIter )
-      {
-        vtkPlusDataSource* anOutputImage = outputImageIter->second;
-        // Check for double adds or name conflicts
-        if( anInputImage == anOutputImage )
-        {
-          found = true;
-          LOG_ERROR("Image already exists in the output stream. Somehow the same image is part of two input streams. Consider using a virtual device to resolve them first.");
-          break;
-        }
-        else if( anInputImage->GetImageName() == anOutputImage->GetImageName() )
-        {
-          found = true;
-          LOG_ERROR("Name collision! Two images are outputting the same source. Consider using a virtual device to resolve them first.");
-          break;
-        }
-      }
-
-      if( !found )
-      {
-        this->GetOutputStream()->AddImage(anInputImage);
-      }
+      this->GetOutputStream()->SetVideoSource(aSource);
     }
 
-    for( ToolContainerConstIterator inputToolIter = anInputStream->GetToolsStartConstIterator(); inputToolIter != anInputStream->GetToolsEndConstIterator(); ++inputToolIter )
+    for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
     {
       vtkPlusDataSource* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( ToolContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolsEndConstIterator(); ++outputToolIt )
+      for( DataSourceContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolsEndConstIterator(); ++outputToolIt )
       {
         vtkPlusDataSource* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -148,7 +123,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
           LOG_ERROR("Tool already exists in the output stream. Somehow the same tool is part of two input streams. Consider using a virtual device to resolve them first.");
           break;
         }
-        else if( anInputTool->GetToolName() == anOutputTool->GetToolName() )
+        else if( anInputTool->GetSourceId() == anOutputTool->GetSourceId() )
         {
           found = true;
           LOG_ERROR("Name collision! Two tools are outputting the same transform. Consider using a virtual device to resolve them first.");
@@ -170,11 +145,11 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 void vtkVirtualStreamMixer::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 {
   // tools in input streams (owned by other devices)
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
   {
     vtkPlusChannel* stream = *it;
     // Now check any and all tool buffers
-    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    for( DataSourceContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusDataSource* tool = it->second;
       tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
@@ -186,11 +161,11 @@ void vtkVirtualStreamMixer::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
 {
   // tools in input streams (owned by other devices)
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
   {
     vtkPlusChannel* stream = *it;
     // Now check any and all tool buffers
-    for( ToolContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
+    for( DataSourceContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
     {
       vtkPlusDataSource* tool = it->second;
       double aTimeOffsetSec = tool->GetBuffer()->GetLocalTimeOffsetSec();
@@ -202,36 +177,37 @@ double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::SetImageLocalTimeOffsetSec( double aTimeOffsetSec )
+void vtkVirtualStreamMixer::SetVideoLocalTimeOffsetSec( double aTimeOffsetSec )
 {
   // images in input streams (owned by other devices)
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
   {
-    vtkPlusChannel* stream = *it;
-    // Now check any and all image buffers
-    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
+    vtkPlusChannel* aChannel = *it;
+    vtkPlusDataSource* aSource = NULL;
+
+    if( aChannel->HasVideoSource() && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      vtkPlusDataSource* image = it->second;
-      image->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+      aSource->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
     }
   }
 }
 
 //----------------------------------------------------------------------------
-double vtkVirtualStreamMixer::GetImageLocalTimeOffsetSec()
+double vtkVirtualStreamMixer::GetVideoLocalTimeOffsetSec()
 {
   // images in input streams (owned by other devices)
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it)
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
   {
-    vtkPlusChannel* stream = *it;
-    // Now check any and all image buffers
-    for( ImageContainerConstIterator it = stream->GetOwnerDevice()->GetImageIteratorBegin(); it != stream->GetOwnerDevice()->GetImageIteratorEnd(); ++it)
+    vtkPlusChannel* aChannel = *it;
+    vtkPlusDataSource* aSource = NULL;
+
+    if( aChannel->HasVideoSource() && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      vtkPlusDataSource* image = it->second;
-      double aTimeOffsetSec = image->GetBuffer()->GetLocalTimeOffsetSec();
+      double aTimeOffsetSec = aSource->GetBuffer()->GetLocalTimeOffsetSec();
       return aTimeOffsetSec;
     }
   }
+
   LOG_ERROR("Failed to get image local time offset");
   return 0.0;
 }

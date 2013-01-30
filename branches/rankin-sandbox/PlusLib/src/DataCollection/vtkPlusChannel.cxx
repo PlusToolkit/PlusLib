@@ -18,8 +18,9 @@ vtkStandardNewMacro(vtkPlusChannel);
 
 //----------------------------------------------------------------------------
 vtkPlusChannel::vtkPlusChannel(void)
-: OwnerDevice(NULL)
-, StreamId(NULL)
+: VideoSource(NULL)
+, OwnerDevice(NULL)
+, ChannelId(NULL)
 {
 
 }
@@ -27,130 +28,111 @@ vtkPlusChannel::vtkPlusChannel(void)
 //----------------------------------------------------------------------------
 vtkPlusChannel::~vtkPlusChannel(void)
 {
-  Images.clear();
+  this->VideoSource = NULL;
   Tools.clear();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aStreamElement )
+PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
-  const char * id = aStreamElement->GetAttribute("Id");
+  const char * id = aChannelElement->GetAttribute("Id");
   if( id == NULL )
   {
     LOG_ERROR("No stream id defined. It is required for all streams.");
     return PLUS_FAIL;
   }
-  this->SetStreamId(id);
+  this->SetChannelId(id);
 
-  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  vtkPlusDataSource* aSource = NULL;
+  for ( int i = 0; i < aChannelElement->GetNumberOfNestedElements(); i++ )
   {
-    vtkXMLDataElement* imageElement = aStreamElement->GetNestedElement(i); 
-    if ( STRCASECMP(imageElement->GetName(), "Image") != 0 )
+    vtkXMLDataElement* aSourceElement = aChannelElement->GetNestedElement(i); 
+    if ( STRCASECMP(aSourceElement->GetName(), "DataSource") != 0 )
     {
       // if this is not an image element, skip it
       continue; 
     }
 
-    const char* name = imageElement->GetAttribute("Id");
-    if( name == NULL )
+    const char* id = aSourceElement->GetAttribute("Id");
+    if( id == NULL )
     {
-      LOG_WARNING("No field \"Id\" defined in the image element " << this->GetStreamId() << ". Unable to add it to the output stream.");
+      LOG_WARNING("No field \"Id\" defined in the source element " << this->GetChannelId() << ". Unable to add it to the channel.");
       continue;
     }
-    vtkPlusDataSource* image = NULL;
-    if( this->OwnerDevice == NULL || this->OwnerDevice->GetImage(name, image) != PLUS_SUCCESS)
+
+    if( this->OwnerDevice == NULL || this->OwnerDevice->GetDataSource(id, aSource) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to retrieve image from owner device.");
-      continue;
+      if( aSource->GetType() == DATA_SOURCE_TYPE_VIDEO )
+      {
+        LOG_ERROR("Do not put Video sources as sub-tags of an output channel. Use the VideoDataSourceId attribute of the OutputChannel tag.");
+      }
+      else if( aSource->GetType() == DATA_SOURCE_TYPE_TOOL )
+      {
+        this->Tools[id] = aSource;
+      }
+      else
+      {
+        LOG_ERROR("Unknown source type when reading channel configuration. Id: " << id);
+      }
     }
-    this->Images[name] = image;
   }
 
-  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  if( aChannelElement->GetAttribute("VideoDataSourceId") != NULL && this->OwnerDevice->GetVideoSource(aChannelElement->GetAttribute("VideoDataSourceId"), aSource) == PLUS_SUCCESS )
   {
-    vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
-    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
-    {
-      // if this is not a tool element, skip it
-      continue; 
-    }
-
-    const char* toolName = toolElement->GetAttribute("Name");
-    if( toolName == NULL )
-    {
-      LOG_WARNING("No field \"Name\" defined in the tool element " << this->GetStreamId() << ". Unable to add it to the output stream.");
-      continue;
-    }
-    vtkPlusDataSource* tool = NULL;
-    if( this->OwnerDevice == NULL || this->OwnerDevice->GetTool(toolName, tool) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to retrieve tool from owner device.");
-      continue;
-    }
-    this->Tools[toolName] = tool;
+    this->VideoSource = aSource;
   }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::WriteConfiguration( vtkXMLDataElement* aStreamElement )
-{
-  aStreamElement->SetAttribute("Id", this->GetStreamId());
-
-  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
+  else if( aChannelElement->GetAttribute("VideoDataSourceId") != NULL )
   {
-    vtkXMLDataElement* element = aStreamElement->GetNestedElement(i); 
-    if ( STRCASECMP(element->GetName(), "Image") != 0 )
-    {
-      continue; 
-    }
-    vtkPlusDataSource* anImage = NULL;
-    if( element->GetAttribute("Name") == NULL || this->GetImage(anImage, element->GetAttribute("Name")) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve image when saving config.");
-      return PLUS_FAIL;
-    }
-    anImage->WriteCompactConfiguration(element);
-  }
-
-  for ( int i = 0; i < aStreamElement->GetNumberOfNestedElements(); i++ )
-  {
-    vtkXMLDataElement* toolElement = aStreamElement->GetNestedElement(i); 
-    if ( STRCASECMP(toolElement->GetName(), "Tool") != 0 )
-    {
-      continue; 
-    }
-    vtkPlusDataSource* aTool = NULL;
-    if( toolElement->GetAttribute("Name") == NULL || this->GetTool(aTool, toolElement->GetAttribute("Name")) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve tool when saving config.");
-      return PLUS_FAIL;
-    }
-    aTool->WriteCompactConfiguration(toolElement);
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetImage( vtkPlusDataSource*& anImage, const char* name )
-{
-  if( name == NULL )
-  {
-    LOG_ERROR("Null name sent to stream image request.");
+    LOG_ERROR("Unable to find video data source that matches Id: " << aChannelElement->GetAttribute("VideoDataSourceId"));
     return PLUS_FAIL;
   }
 
-  for( ImageContainerIterator it = this->Images.begin(); it != this->Images.end(); ++it)
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::WriteConfiguration( vtkXMLDataElement* aChannelElement )
+{
+  aChannelElement->SetAttribute("Id", this->GetChannelId());
+
+  for ( int i = 0; i < aChannelElement->GetNumberOfNestedElements(); i++ )
   {
-    if( STRCASECMP(name, it->second->GetImageName()) == 0 )
+    vtkXMLDataElement* element = aChannelElement->GetNestedElement(i); 
+    if ( STRCASECMP(element->GetName(), "DataSource") != 0 )
     {
-      anImage = it->second;
-      return PLUS_SUCCESS;
+      continue; 
     }
+    if( element->GetAttribute("Type") != NULL && STRCASECMP(element->GetAttribute("Type"), "Video") == 0 )
+    {
+      if( this->HasVideoSource() )
+      {
+        this->VideoSource->WriteConfiguration(element);
+      }
+    }
+    else if( element->GetAttribute("Type") != NULL && STRCASECMP(element->GetAttribute("Type"), "Tool") == 0 )
+    {
+      vtkPlusDataSource* aTool = NULL;
+      if( element->GetAttribute("Id") == NULL || this->GetTool(aTool, element->GetAttribute("Id")) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve tool when saving config.");
+        return PLUS_FAIL;
+      }
+      aTool->WriteCompactConfiguration(element);
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GetVideoSource( vtkPlusDataSource*& aVideoSource ) const
+{
+  if( this->HasVideoSource() )
+  {
+    aVideoSource = this->VideoSource;
+    return PLUS_SUCCESS;
   }
 
   return PLUS_FAIL;
@@ -165,9 +147,9 @@ PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolNa
     return PLUS_FAIL;
   }
 
-  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( STRCASECMP(toolName, it->second->GetToolName()) == 0 )
+    if( STRCASECMP(toolName, it->second->GetSourceId()) == 0 )
     {
       aTool = it->second;
       return PLUS_SUCCESS;
@@ -178,49 +160,25 @@ PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolNa
 }
 
 //----------------------------------------------------------------------------
-ImageContainerConstIterator vtkPlusChannel::GetImagesStartConstIterator() const
-{
-  return this->Images.begin();
-}
-
-//----------------------------------------------------------------------------
-ImageContainerConstIterator vtkPlusChannel::GetImagesEndConstIterator() const
-{
-  return this->Images.end();
-}
-
-//----------------------------------------------------------------------------
-ImageContainerIterator vtkPlusChannel::GetImagesStartIterator()
-{
-  return this->Images.begin();
-}
-
-//----------------------------------------------------------------------------
-ImageContainerIterator vtkPlusChannel::GetImagesEndIterator()
-{
-  return this->Images.end();
-}
-
-//----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusChannel::GetToolsStartConstIterator() const
+DataSourceContainerConstIterator vtkPlusChannel::GetToolsStartConstIterator() const
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerConstIterator vtkPlusChannel::GetToolsEndConstIterator() const
+DataSourceContainerConstIterator vtkPlusChannel::GetToolsEndConstIterator() const
 {
   return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusChannel::GetToolsStartIterator()
+DataSourceContainerIterator vtkPlusChannel::GetToolsStartIterator()
 {
   return this->Tools.begin();
 }
 
 //----------------------------------------------------------------------------
-ToolContainerIterator vtkPlusChannel::GetToolsEndIterator()
+DataSourceContainerIterator vtkPlusChannel::GetToolsEndIterator()
 {
   return this->Tools.end();
 }
@@ -234,7 +192,7 @@ PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool )
     return PLUS_FAIL;
   }
 
-  for( ToolContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( DataSourceContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     if( it->second == aTool )
     {
@@ -243,8 +201,8 @@ PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool )
     }
   }
 
-  this->Tools[aTool->GetToolName()] = aTool;
-  this->Tools[aTool->GetToolName()]->Register(this);
+  this->Tools[aTool->GetSourceId()] = aTool;
+  this->Tools[aTool->GetSourceId()]->Register(this);
 
   return PLUS_SUCCESS;
 }
@@ -258,50 +216,28 @@ PlusStatus vtkPlusChannel::RemoveTool( const char* toolName )
     return PLUS_FAIL;
   }
 
-  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( STRCASECMP(it->second->GetToolName(), toolName) == 0 )
+    if( STRCASECMP(it->second->GetSourceId(), toolName) == 0 )
     {
       it->second->UnRegister(this);
       this->Tools.erase(it);      
       return PLUS_SUCCESS;
     }
   }
-  
+
   return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::AddImage(vtkPlusDataSource* anImage)
-{
-  if( anImage == NULL )
-  {
-    LOG_ERROR("Trying to add null image to stream.");
-    return PLUS_FAIL;
-  }
-
-  for( ImageContainerConstIterator it = this->Images.begin(); it != this->Images.end(); ++it)
-  {
-    if( it->second == anImage )
-    {
-      return PLUS_SUCCESS;
-    }
-  }
-
-  this->Images[anImage->GetImageName()] = anImage;
-
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::Clear()
 {
-  for( ToolContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     (it->second)->UnRegister(this);
   }
   this->Tools.clear();
-  this->Images.clear();
+  this->VideoSource = NULL;
   return PLUS_SUCCESS;
 }
 
@@ -310,20 +246,15 @@ PlusStatus vtkPlusChannel::GetLatestTimestamp(double& aTimestamp) const
 {
   aTimestamp = 0;
 
-  for( ImageContainerConstIterator it = this->GetImagesStartConstIterator(); it != this->GetImagesEndConstIterator(); ++it )
+  if( this->HasVideoSource() )
   {
-    vtkPlusDataSource* aBuf = it->second;
-    double timestamp;
-    if( it->second->GetBuffer()->GetLatestTimeStamp(timestamp) == ITEM_OK )
+    if( this->VideoSource->GetBuffer()->GetLatestTimeStamp(aTimestamp) != ITEM_OK )
     {
-      if( timestamp > aTimestamp )
-      {
-        aTimestamp = timestamp;
-      }
+      LOG_ERROR("Unable to retrieve latest timestamp from the video source buffer.");
     }
   }
 
-  for( ToolContainerConstIterator it = this->GetToolsStartConstIterator(); it != this->GetToolsEndConstIterator(); ++it)
+  for( DataSourceContainerConstIterator it = this->GetToolsStartConstIterator(); it != this->GetToolsEndConstIterator(); ++it)
   {
     vtkPlusDataSource* aTool = it->second;
     double timestamp;
@@ -335,43 +266,21 @@ PlusStatus vtkPlusChannel::GetLatestTimestamp(double& aTimestamp) const
       }
     }
   }
-  
+
   return aTimestamp != 0 ? PLUS_SUCCESS : PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusChannel::DeepCopy( const vtkPlusChannel& aStream )
-{
-  // Make this stream look like aStream
-  this->ShallowCopy(aStream);
-
-  // Now the streams are the same!
-  for( ImageContainerConstIterator it = aStream.GetImagesStartConstIterator(); it != aStream.GetImagesEndConstIterator(); ++it )
-  {
-    // Find the buffer in this with same port, copy it
-    this->Images[it->first]->DeepCopy(it->second);
-  }
-  for( ToolContainerConstIterator it = aStream.GetToolsStartConstIterator(); it != aStream.GetToolsEndConstIterator(); ++it)
-  {
-    // Find the tool with same name... copy it
-    this->Tools[it->first]->DeepCopy(it->second);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aStream )
+void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aChannel )
 {
   this->Clear();
-  for( ImageContainerConstIterator it = aStream.GetImagesStartConstIterator(); it != aStream.GetImagesEndConstIterator(); ++it)
+
+  vtkPlusDataSource* aSource = NULL;
+  if( aChannel.HasVideoSource() && aChannel.GetVideoSource(aSource) )
   {
-    vtkSmartPointer<vtkPlusDataSource> anImage = vtkSmartPointer<vtkPlusDataSource>::New();
-    if( this->AddImage(anImage) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to add an image when shallow copying a stream.");
-      continue;
-    }
+    this->VideoSource = aSource;
   }
-  for( ToolContainerConstIterator it = aStream.GetToolsStartConstIterator(); it != aStream.GetToolsEndConstIterator(); ++it)
+  for( DataSourceContainerConstIterator it = aChannel.GetToolsStartConstIterator(); it != aChannel.GetToolsEndConstIterator(); ++it)
   {
     if( this->AddTool(it->second) != PLUS_SUCCESS )
     {
@@ -379,4 +288,16 @@ void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aStream )
       continue;
     }
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusChannel::HasVideoSource() const
+{
+  return this->VideoSource != NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusChannel::SetVideoSource( vtkPlusDataSource* aSource )
+{
+  this->VideoSource = aSource;
 }

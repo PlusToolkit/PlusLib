@@ -24,7 +24,7 @@ public:
   {return new vtkMyCallback;}
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
-    frameGrabber->GetImage(leftImage,NULL);
+    frameGrabber->GetVideoSource(leftImage,NULL);
     viewer->SetInput(leftImage);
     viewer->Render();
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
   viewer->SetSize(1024,768); 
 
   vtkSmartPointer<vtkImageData> leftImage=vtkSmartPointer<vtkImageData>::New();
-  frameGrabber->GetImage(leftImage,NULL);
+  frameGrabber->GetVideoSource(leftImage,NULL);
   viewer->SetInput(leftImage); 
 
   //Create the interactor that handles the event loop

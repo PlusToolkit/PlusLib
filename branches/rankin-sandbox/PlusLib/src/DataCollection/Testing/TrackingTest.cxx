@@ -74,11 +74,11 @@ public:
     {
       return;
     }
-    for ( ToolContainerConstIterator it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
+    for ( DataSourceContainerConstIterator it = aDevice->GetToolIteratorBegin(); it != aDevice->GetToolIteratorEnd(); ++it)
     {
       vtkPlusDataSource* tool=it->second;
-      AddNewToolActor(tool->GetToolName());
-      SetToolVisible(tool->GetToolName(),true);        
+      AddNewToolActor(tool->GetSourceId());
+      SetToolVisible(tool->GetSourceId(),true);        
     }
 
     this->Iren->AddObserver(vtkCommand::TimerEvent, this);
@@ -151,7 +151,7 @@ public:
       if ( trackedFrame.GetCustomFrameTransform(transformName, toolToTrackerTransform) != PLUS_SUCCESS )
       {
         ss << "failed to get transform\n";
-        SetToolVisible(tool->GetToolName(),false);        
+        SetToolVisible(tool->GetSourceId(),false);        
         continue;
       }
 
@@ -161,13 +161,13 @@ public:
       if ( status!=FIELD_OK )
       {
         ss	<< "missing or out of view\n"; 
-        SetToolVisible(tool->GetToolName(),false);        
+        SetToolVisible(tool->GetSourceId(),false);        
         continue;
       }
 
       // There is a valid transform
-      SetToolToTrackerTransform(tool->GetToolName(), toolToTrackerTransform);
-      SetToolVisible(tool->GetToolName(),true);
+      SetToolToTrackerTransform(tool->GetSourceId(), toolToTrackerTransform);
+      SetToolVisible(tool->GetSourceId(),true);
       ss	<< std::fixed 
         << toolToTrackerTransform->GetElement(0,0) << "   " << toolToTrackerTransform->GetElement(0,1) << "   " << toolToTrackerTransform->GetElement(0,2) << "   " << toolToTrackerTransform->GetElement(0,3) << " / "
         << toolToTrackerTransform->GetElement(1,0) << "   " << toolToTrackerTransform->GetElement(1,1) << "   " << toolToTrackerTransform->GetElement(1,2) << "   " << toolToTrackerTransform->GetElement(1,3) << " / "
@@ -331,7 +331,7 @@ int main(int argc, char **argv)
       std::string status = vtkPlusDevice::ConvertToolStatusToString(bufferItem.GetStatus()); 
 
       std::ostringstream message;
-      message << "Tool name: " << tool->GetToolName() << "Transform:  "; 
+      message << "Tool name: " << tool->GetSourceId() << "Transform:  "; 
       for ( int r = 0; r < 4; r++ )
       {
         for ( int c = 0; c < 4; c++ ) 

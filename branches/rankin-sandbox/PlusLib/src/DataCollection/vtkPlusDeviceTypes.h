@@ -41,9 +41,9 @@ enum ToolStatus
   TOOL_INVALID        /*!< Invalid tool status */
 };
 
-typedef std::vector<vtkPlusChannel*> StreamContainer;
-typedef StreamContainer::const_iterator StreamContainerConstIterator;
-typedef StreamContainer::iterator StreamContainerIterator;
+typedef std::vector<vtkPlusChannel*> ChannelContainer;
+typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
+typedef ChannelContainer::iterator ChannelContainerIterator;
 
 typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
@@ -53,13 +53,9 @@ typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 
-typedef std::map<std::string, vtkPlusDataSource*> ToolContainer;
-typedef ToolContainer::iterator ToolContainerIterator;
-typedef ToolContainer::const_iterator ToolContainerConstIterator;
-
-typedef std::map<std::string, vtkPlusDataSource* > ImageContainer;
-typedef ImageContainer::iterator ImageContainerIterator;
-typedef ImageContainer::const_iterator ImageContainerConstIterator;
+typedef std::map<std::string, vtkPlusDataSource*> DataSourceContainer;
+typedef DataSourceContainer::iterator DataSourceContainerIterator;
+typedef DataSourceContainer::const_iterator DataSourceContainerConstIterator;
 
 typedef std::vector<vtkPlusDevice*> DeviceCollection;
 typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;

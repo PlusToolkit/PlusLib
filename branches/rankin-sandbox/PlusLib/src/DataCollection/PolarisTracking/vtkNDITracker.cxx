@@ -624,7 +624,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     else
     {
       // send the matrix and status to the tool's vtkPlusDataBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetSourceId(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
     }
   }
   
@@ -834,7 +834,7 @@ void vtkNDITracker::EnableToolPorts()
   // get information for all tools
   ndiCommand(this->Device,"PHSR:00");
   ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  ToolContainerConstIterator it;
+  DataSourceContainerConstIterator it;
   for ( it = this->GetToolIteratorBegin(), tool = 0; it != this->GetToolIteratorEnd(); ++it, ++tool)
   {
     ph = ndiGetPHSRHandle(this->Device,tool);

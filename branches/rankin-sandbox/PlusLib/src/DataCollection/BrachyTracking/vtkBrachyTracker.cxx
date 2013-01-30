@@ -41,21 +41,21 @@ vtkBrachyTracker::vtkBrachyTracker()
 
   // Add tools to the tracker 
   vtkSmartPointer<vtkPlusDataSource> probeTool = vtkSmartPointer<vtkPlusDataSource>::New(); 
-  probeTool->SetToolName("Probe"); 
+  probeTool->SetSourceId("Probe"); 
   std::ostringstream probePortName; 
   probePortName << PROBEHOME_TO_PROBE_TRANSFORM; 
   probeTool->SetPortName(probePortName.str().c_str()); 
   this->AddTool(probeTool); 
 
   vtkSmartPointer<vtkPlusDataSource> templateTool = vtkSmartPointer<vtkPlusDataSource>::New(); 
-  templateTool->SetToolName("Template"); 
+  templateTool->SetSourceId("Template"); 
   std::ostringstream templatePortName; 
   templatePortName << TEMPLATEHOME_TO_TEMPLATE_TRANSFORM; 
   templateTool->SetPortName(templatePortName.str().c_str()); 
   this->AddTool(templateTool); 
 
   vtkSmartPointer<vtkPlusDataSource> encoderTool = vtkSmartPointer<vtkPlusDataSource>::New(); 
-  encoderTool->SetToolName("StepperEncoderValues"); 
+  encoderTool->SetSourceId("StepperEncoderValues"); 
   std::ostringstream encoderPortName; 
   encoderPortName << RAW_ENCODER_VALUES; 
   encoderTool->SetPortName(encoderPortName.str().c_str()); 
@@ -182,7 +182,7 @@ std::string vtkBrachyTracker::GetBrachyToolName(BRACHY_STEPPER_TOOL tool)
     return toolName; 
   }
 
-  toolName = trackerTool->GetToolName(); 
+  toolName = trackerTool->GetSourceId(); 
 
   return toolName; 
 }

@@ -158,19 +158,19 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
   }
 
   // Check that all tools were connected that was defined in the configuration file
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     std::stringstream convert(it->second->GetPortName());
     int port(-1); 
     if ( ! (convert >> port ) )
     {
-      LOG_ERROR("Failed to convert tool '" << it->second->GetToolName() << "' port name '" << it->second->GetPortName() << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      LOG_ERROR("Failed to convert tool '" << it->second->GetSourceId() << "' port name '" << it->second->GetPortName() << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
       return PLUS_FAIL; 
     }
 
     if ( !this->SensorAttached[ port ] )
     {
-      LOG_WARNING("Sensor not attached for tool '" << it->second->GetToolName() << "' on port name '" << it->second->GetPortName() << "', please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      LOG_WARNING("Sensor not attached for tool '" << it->second->GetSourceId() << "' on port name '" << it->second->GetPortName() << "', please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
     }
   }
   return PLUS_SUCCESS; 
@@ -373,7 +373,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
           
     // Devices has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
   }
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);

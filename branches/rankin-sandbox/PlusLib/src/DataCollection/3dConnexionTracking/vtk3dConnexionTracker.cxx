@@ -469,7 +469,7 @@ PlusStatus vtk3dConnexionTracker::InternalUpdate()
     
     // This device has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = this->SpaceNavigatorTool->GetFrameNumber() + 1 ; 
-    ToolTimeStampedUpdate( this->SpaceNavigatorTool->GetToolName(), this->DeviceToTrackerTransform, TOOL_OK, frameNumber, unfilteredTimestamp); 
+    ToolTimeStampedUpdate( this->SpaceNavigatorTool->GetSourceId(), this->DeviceToTrackerTransform, TOOL_OK, frameNumber, unfilteredTimestamp); 
   }
 
   return PLUS_SUCCESS;

@@ -159,21 +159,26 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
         continue;
       }
 
-      for ( int i = 0; i < deviceElement->GetNumberOfNestedElements(); ++i )
+      vtkXMLDataElement* inputChannelsElement = aConfig->FindNestedElementWithName("InputChannels");
+
+      if (inputChannelsElement != NULL)
       {
-        vtkXMLDataElement* streamElement = deviceElement->GetNestedElement(i); 
-        if( STRCASECMP(streamElement->GetName(), "InputStream") == 0 )
+        for ( int i = 0; i < inputChannelsElement->GetNumberOfNestedElements(); ++i )
         {
-          // We have an input stream, lets find it
-          for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+          vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
+          if( STRCASECMP(inputChannelElement->GetName(), "InputStream") == 0 )
           {
-            vtkPlusDevice* device = (*it);
-            vtkPlusChannel* aStream = NULL;
-            if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
+            // We have an input stream, lets find it
+            for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
             {
-              // Found it!
-              thisDevice->AddInputStream(aStream);
-              break;
+              vtkPlusDevice* device = (*it);
+              vtkPlusChannel* aStream = NULL;
+              if( device->GetChannelByName(aStream, inputChannelElement->GetAttribute("Id")) == PLUS_SUCCESS )
+              {
+                // Found it!
+                thisDevice->AddInputChannel(aStream);
+                break;
+              }
             }
           }
         }
@@ -688,15 +693,15 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrameFromTrackedFrame(std::s
 /*
 PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec )
 {
-  if( this->SelectedDevice == NULL )
-  {
-    LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
-    return PLUS_FAIL;
-  }
+if( this->SelectedDevice == NULL )
+{
+LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
+return PLUS_FAIL;
+}
 
-  this->SelectedDevice->SetImageLocalTimeOffsetSec(videoLagSec);
-  this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
-  return PLUS_SUCCESS;
+this->SelectedDevice->SetImageLocalTimeOffsetSec(videoLagSec);
+this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
+return PLUS_SUCCESS;
 }
 */
 
@@ -882,7 +887,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   double latestLoopStartTime(0);
   double earliestLoopStopTime(0);
   bool isLoopStartStopTimeInitialized=false;
-  
+
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
     vtkSavedDataSource* savedDataSource = dynamic_cast<vtkSavedDataSource*>(*it);
