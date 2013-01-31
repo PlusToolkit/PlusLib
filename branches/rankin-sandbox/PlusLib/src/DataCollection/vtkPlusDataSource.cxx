@@ -265,17 +265,17 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
 {
   LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
-  if ( toolElement == NULL )
+  if ( sourceElement == NULL )
   {
     LOG_ERROR("Unable to configure data sourcel! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
-  const char* sourceId = toolElement->GetAttribute("Id"); 
+  const char* sourceId = sourceElement->GetAttribute("Id"); 
   if ( sourceId != NULL ) 
   {
     this->SetSourceId(sourceId); 
@@ -286,11 +286,11 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, 
     return PLUS_FAIL; 
   }
 
-  const char* type = toolElement->GetAttribute("Type"); 
+  const char* type = sourceElement->GetAttribute("Type"); 
   if ( type != NULL && STRCASECMP(type, "Tool") == 0 ) 
   {
     this->SetType(DATA_SOURCE_TYPE_TOOL);
-    const char* portName = toolElement->GetAttribute("PortName"); 
+    const char* portName = sourceElement->GetAttribute("PortName"); 
     if ( portName != NULL ) 
     {
       this->SetPortName(portName); 
@@ -312,7 +312,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, 
   }
 
   int bufferSize = 0; 
-  if ( toolElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+  if ( sourceElement->GetScalarAttribute("BufferSize", bufferSize) ) 
   {
     this->GetBuffer()->SetBufferSize(bufferSize);
   }
@@ -323,7 +323,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, 
   }
 
   int averagedItemsForFiltering = 0;
-  if ( toolElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  if ( sourceElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
     this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
   }

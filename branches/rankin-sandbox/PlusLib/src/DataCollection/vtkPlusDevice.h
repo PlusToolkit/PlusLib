@@ -120,7 +120,7 @@ public:
 
     /*! Get the buffer that is used to hold the data. */
   virtual vtkPlusStreamBuffer* GetBuffer();
-  virtual vtkPlusStreamBuffer* GetBuffer(int port);
+  virtual vtkPlusStreamBuffer* GetBuffer(const char* sourceId);
 
   /*! 
     Get the buffer that is used to hold the data

@@ -2510,13 +2510,7 @@ bool vtkPlusDevice::GetVideoDataAvailable()
 //----------------------------------------------------------------------------
 vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer()
 {
-  return this->GetBuffer(0);
-}
-
-//----------------------------------------------------------------------------
-vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer( int port )
-{
-  if( this->CurrentChannel == NULL || this->CurrentChannel->HasVideoSource() )
+  if( this->CurrentChannel == NULL || !this->CurrentChannel->HasVideoSource() )
   {
     return NULL;
   }
