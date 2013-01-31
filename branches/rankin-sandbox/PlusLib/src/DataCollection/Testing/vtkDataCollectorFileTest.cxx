@@ -13,6 +13,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
 #include "vtkMatrix4x4.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkSmartPointer.h"
@@ -125,10 +126,10 @@ int main( int argc, char** argv )
 
   // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
-  vtkPlusDevice* selectedDevice=NULL;
-  dataCollector->GetSelectedDevice(selectedDevice);
+  vtkPlusChannel* selectedChannel=NULL;
+  dataCollector->GetSelectedChannel(selectedChannel);
   vtkPlusDataSource* imageStream=NULL;
-  selectedDevice->GetVideoSource("Video", imageStream);
+  selectedChannel->GetVideoSource(imageStream);
   double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;

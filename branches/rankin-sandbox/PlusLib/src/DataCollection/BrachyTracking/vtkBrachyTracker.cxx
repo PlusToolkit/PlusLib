@@ -14,9 +14,10 @@ See License.txt for details.
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -73,7 +74,8 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
@@ -1018,4 +1020,27 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
   }
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkBrachyTracker::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 0 )
+  {
+    this->OutputChannels[0]->Clear();
+
+    for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
+    {
+      this->OutputChannels[0]->AddTool(it->second);
+    }
+
+    this->CurrentChannel = this->OutputChannels[0];
+  }
+  else
+  {
+    LOG_ERROR("No output channels in brachy tracker. Need exactly 1.");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
