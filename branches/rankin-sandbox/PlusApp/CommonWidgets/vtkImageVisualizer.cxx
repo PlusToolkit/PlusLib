@@ -487,8 +487,8 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    vtkPlusDevice* aDevice = NULL;
-    if( this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+    vtkPlusChannel* aChannel(NULL);
+    if( this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
     {
       this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
     }

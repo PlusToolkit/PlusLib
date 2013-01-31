@@ -53,6 +53,7 @@ vtkPlusDevice::vtkPlusDevice()
 , CurrentStreamBufferItem(new StreamBufferItem())
 , ToolReferenceFrameName(NULL)
 , DeviceId(NULL)
+, DefaultOutputChannel(NULL)
 , DeviceImageOrientation(US_IMG_ORIENT_XX)
 , AcquisitionRate(30)
 , Recording(0)
@@ -100,17 +101,25 @@ vtkPlusDevice::vtkPlusDevice()
 //----------------------------------------------------------------------------
 vtkPlusDevice::~vtkPlusDevice()
 {
-  // we certainly don't want to access a virtual
-  // function after the subclass has destructed!!
   if (this->Connected)
   {
     Disconnect();
   }
 
+  this->InputChannels.clear();
   this->OutputChannels.clear();
   this->Tools.clear();
+  this->VideoSources.clear();
 
-  delete CurrentStreamBufferItem; CurrentStreamBufferItem = NULL;
+  delete this->CurrentStreamBufferItem; this->CurrentStreamBufferItem = NULL;
+
+  delete this->DeviceId; this->DeviceId = NULL;
+
+  if( this->DefaultOutputChannel != NULL )
+  {
+    delete this->DefaultOutputChannel;
+    this->DefaultOutputChannel = NULL;
+  }
 
   DELETE_IF_NOT_NULL(this->BlankImage);
 
@@ -143,10 +152,16 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "ToolReferenceFrameName: " << this->ToolReferenceFrameName << "\n";
   }
 
+  for( DataSourceContainerConstIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    vtkPlusDataSource* dataSource = it->second;
+    dataSource->PrintSelf(os, indent);
+  }
+
   for( DataSourceContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
-    vtkPlusDataSource* tool = it->second;
-    tool->PrintSelf(os, indent);
+    vtkPlusDataSource* dataSource = it->second;
+    dataSource->PrintSelf(os, indent);
   }
 }
 
@@ -813,7 +828,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       vtkXMLDataElement* channelElement = outputChannelsElement->GetNestedElement(channel); 
       if ( STRCASECMP(channelElement->GetName(), "OutputChannel") != 0 )
       {
-        // if this is not a stream element, skip it
+        // if this is not a channel element, skip it
         continue; 
       }
 
@@ -843,10 +858,21 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     LOG_INFO("No output channels defined for device: " << this->GetDeviceId() );
   }
-
-  if( this->OutputChannels.size() > 0 )
+  else
   {
-    this->CurrentChannel = this->OutputChannels[0];
+    const char* defaultOutputChannel = deviceXMLElement->GetAttribute("DefaultOutputChannelId");
+    if( defaultOutputChannel != NULL )
+    {
+      vtkPlusChannel* aChannel(NULL);
+      if( this->GetOutputChannelByName(aChannel, defaultOutputChannel) == PLUS_SUCCESS )
+      {
+        this->CurrentChannel = aChannel;
+      }
+    }
+    else
+    {
+      this->CurrentChannel = this->OutputChannels[0];
+    }
   }
 
   return PLUS_SUCCESS;
@@ -984,7 +1010,7 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& aTrac
 
   if( this->CurrentChannel == NULL )
   {
-    LOG_ERROR("Current stream is null. There is no stream to request a tracked frame from.");
+    LOG_ERROR("Current channel is null. There is no channel to request a tracked frame from.");
     return PLUS_FAIL;
   }
 
@@ -2110,20 +2136,20 @@ PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetChannelByName(vtkPlusChannel*& aChannel, const char * aStreamName )
+PlusStatus vtkPlusDevice::GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId )
 {
-  if( aStreamName == NULL )
+  if( aChannelId == NULL )
   {
-    LOG_ERROR("Null stream name sent to GetChannelByName.");
+    LOG_ERROR("Null channel name sent to GetOutputChannelByName.");
     return PLUS_FAIL;
   }
 
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
   {
-    vtkPlusChannel* stream = (*it);
-    if( STRCASECMP(stream->GetChannelId(), aStreamName) == 0 )
+    vtkPlusChannel* channel = (*it);
+    if( STRCASECMP(channel->GetChannelId(), aChannelId) == 0 )
     {
-      aChannel = stream;
+      aChannel = channel;
       return PLUS_SUCCESS;
     }
   }
@@ -2697,6 +2723,55 @@ PlusStatus vtkPlusDevice::GetDataSource( const char* aSourceId, vtkPlusDataSourc
   }
   if( this->GetTool(aSourceId, aSource) == PLUS_SUCCESS )
   {
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+ChannelContainerConstIterator vtkPlusDevice::GetOutputChannelsStart() const
+{
+  return this->OutputChannels.begin();
+}
+
+//----------------------------------------------------------------------------
+ChannelContainerIterator vtkPlusDevice::GetOutputChannelsStart()
+{
+  return this->OutputChannels.begin();
+}
+
+//----------------------------------------------------------------------------
+ChannelContainerConstIterator vtkPlusDevice::GetOutputChannelsEnd() const
+{
+  return this->OutputChannels.end();
+}
+
+//----------------------------------------------------------------------------
+ChannelContainerIterator vtkPlusDevice::GetOutputChannelsEnd()
+{
+  return this->OutputChannels.end();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetCurrentChannel( vtkPlusChannel*& aChannel )
+{
+  if( this->CurrentChannel != NULL )
+  {
+    aChannel = this->CurrentChannel;
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::SetCurrentChannel( const std::string& aChannelId )
+{
+  vtkPlusChannel* aChannel(NULL);
+  if( this->GetOutputChannelByName(aChannel, aChannelId.c_str()) == PLUS_SUCCESS )
+  {
+    this->CurrentChannel = aChannel;
     return PLUS_SUCCESS;
   }
 

@@ -11,7 +11,8 @@
       Type="SavedDataSource"      
       SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" 
       UseData="IMAGE_AND_TRANSFORM" 
-      UseOriginalTimestamps="TRUE"  
+      UseOriginalTimestamps="TRUE" 
+	  DefaultOutputChannelId="FinalOutput" 
       RepeatEnabled="TRUE" >
 
       <DataSources>

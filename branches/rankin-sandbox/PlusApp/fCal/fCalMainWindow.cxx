@@ -135,7 +135,7 @@ void fCalMainWindow::Initialize()
   m_ShowROIAction->setCheckable(true);
   m_ImageManipulationActionList.push_back(m_ShowROIAction);
 
-  BuildDevicesMenu();
+  BuildChannelMenu();
 
   // Declare this class as the event handler
   ui.pushButton_ShowDevices->installEventFilter(this);
@@ -753,7 +753,7 @@ void fCalMainWindow::Set3DManipulationMenuEnabled( bool aEnable)
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::BuildDevicesMenu()
+void fCalMainWindow::BuildChannelMenu()
 {
   for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
   {
@@ -786,34 +786,48 @@ void fCalMainWindow::BuildDevicesMenu()
 
   separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
+
+  // Determine currently selected device (if any)
+  vtkPlusChannel* selectedChannel = NULL;
+  this->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(selectedChannel);
+  // Determine total number of output channels
+  int numChannels(0);
+  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  {
+    vtkPlusDevice* device = *it;
+    numChannels += device->OutputChannelCount();
+  }
+
   // now add an entry for each device
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
     vtkPlusDevice* device = *it;
-    vtkPlusDevice* aDevice = NULL;
-
-    QCustomAction* action = new QCustomAction(QString(device->GetDeviceId()), ui.pushButton_ShowDevices);
-    action->setCheckable(true);
-    action->setDisabled(aCollection.size() == 1); // If there's only one device, disable action so they can't unselect it
-    if( this->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+    for( ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter )
     {
-      action->setChecked(aDevice == device);
+      vtkPlusChannel* aChannel = *channelIter;
+      std::stringstream ss;
+      ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
+      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, device, aChannel);
+      action->setCheckable(true);
+      action->setDisabled(numChannels == 1);
+      vtkPlusChannel* currentChannel(NULL);
+      action->setChecked(device->GetCurrentChannel(currentChannel) == PLUS_SUCCESS && selectedChannel == currentChannel);
+      connect(action, SIGNAL(triggered()), action, SLOT(activated()));
+      connect(action, SIGNAL(channelSelected(vtkPlusDevice*, vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusDevice*, vtkPlusChannel*)));
+      m_3DActionList.push_back(action);
     }
-    connect(action, SIGNAL(triggered()), action, SLOT(activated()));
-    connect(action, SIGNAL(deviceSelected(std::string&)), this, SLOT(DeviceSelected(std::string&)));
-    m_3DActionList.push_back(action);
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::DeviceSelected( std::string& deviceId )
+void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aChannel )
 {
-  LOG_TRACE("fCalMainWindow::DeviceSelected(" << deviceId << ")");
+  LOG_TRACE("fCalMainWindow::ChannelSelected(" << aDevice->GetDeviceId() << ", channel: " << aChannel->GetChannelId() << ")");
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    if( this->GetVisualizationController()->GetDataCollector()->SetSelectedDevice(deviceId) != PLUS_SUCCESS )
+    if( this->GetVisualizationController()->GetDataCollector()->SetSelectedChannel(aDevice->GetDeviceId(), aChannel->GetChannelId()) != PLUS_SUCCESS )
     {
       this->GetVisualizationController()->DisconnectInput();
       this->GetVisualizationController()->HideAll();
@@ -830,12 +844,5 @@ void fCalMainWindow::DeviceSelected( std::string& deviceId )
   }
   this->GetVisualizationController()->Reset();
 
-  this->BuildDevicesMenu();
-}
-
-//-----------------------------------------------------------------------------
-
-void fCalMainWindow::SetSelectedDevice( std::string deviceId )
-{
-  this->DeviceSelected(deviceId);
+  this->BuildChannelMenu();
 }

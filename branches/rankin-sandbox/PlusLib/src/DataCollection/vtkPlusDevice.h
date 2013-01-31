@@ -120,7 +120,6 @@ public:
 
     /*! Get the buffer that is used to hold the data. */
   virtual vtkPlusStreamBuffer* GetBuffer();
-  virtual vtkPlusStreamBuffer* GetBuffer(const char* sourceId);
 
   /*! 
     Get the buffer that is used to hold the data
@@ -385,10 +384,23 @@ public:
   virtual US_IMAGE_TYPE GetImageType();
 
   /*! Access the available output channels */
-  PlusStatus GetChannelByName(vtkPlusChannel*& aChannel, const char * aStreamName);
+  PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId);
+
+  int OutputChannelCount() const { return OutputChannels.size(); }
+
+  ChannelContainerConstIterator GetOutputChannelsStart() const;
+  ChannelContainerConstIterator GetOutputChannelsEnd() const;
+  ChannelContainerIterator GetOutputChannelsStart();
+  ChannelContainerIterator GetOutputChannelsEnd();
 
   /*! Add an input channel */
   PlusStatus AddInputChannel(vtkPlusChannel* aChannel);
+
+  /*! Retrieve the current channel */
+  PlusStatus GetCurrentChannel(vtkPlusChannel*& aChannel);
+
+  /*! Set the current channel */
+  PlusStatus SetCurrentChannel(const std::string& aChannelId);
 
   /*!
     Perform any completion tasks once configured
@@ -507,6 +519,9 @@ protected:
 
   /*! Id of the device */
   char* DeviceId;
+
+  /*! The channel to activate on start up */
+  char* DefaultOutputChannel;
 
   /*! The orientation of the image in the buffer if there is one */
   US_IMAGE_ORIENTATION DeviceImageOrientation; 

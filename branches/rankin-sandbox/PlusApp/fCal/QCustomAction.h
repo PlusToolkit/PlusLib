@@ -8,23 +8,26 @@ See License.txt for details.
 #define __QCustomAction_h
 
 #include <QAction>
+#include <vtkPlusChannel.h>
 
 class QCustomAction : public QAction
 {
   Q_OBJECT
 
 public:
-  QCustomAction(const QString &text, QObject* parent, bool aIsSeparator = false);
+  QCustomAction(const QString &text, QObject* parent, bool aIsSeparator = false, vtkPlusDevice* ownerDevice = NULL, vtkPlusChannel* ownerChannel = NULL);
   bool IsSeparator(){ return m_IsSeparator; }
 
 public slots:
   void activated();
 
 signals:
-  void deviceSelected(std::string&);
+  void channelSelected(vtkPlusDevice* aDevice, vtkPlusChannel* aChannel);
 
 private:
   bool m_IsSeparator;
+  vtkPlusDevice* m_OwnerDevice;
+  vtkPlusChannel* m_OwnerChannel;
 };
 
 #endif // __QCustomAction_h
