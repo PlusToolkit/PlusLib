@@ -1374,43 +1374,58 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   } 
 
   // Read ROM files for tools
-  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+  vtkXMLDataElement* dataSourcesElement = trackerConfig->FindNestedElementWithName("DataSources");
+  if( dataSourcesElement == NULL )
   {
-    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
-    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+    LOG_ERROR("Unable to find any data sources in the NDI tracker. No transforms will be outputted.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
     {
-      // if this is not a Tool element, skip it
-      continue; 
-    }
-
-    const char* portName = toolDataElement->GetAttribute("PortName"); 
-    int portNumber = -1;
-	  if ( portName != NULL ) 
-	  {
-      portNumber = atoi(portName);
-      if (portNumber > 12)
+      vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+      if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
       {
-        LOG_WARNING("Port number has to be 12 or smaller!");
+        // if this is not a data source element, skip it
+        continue; 
+      }
+
+      if ( toolDataElement->GetAttribute("Type") != NULL && STRCASECMP(toolDataElement->GetAttribute("Type"), "Tool") != 0 )
+      {
+        // if this is not a Tool element, skip it
+        continue; 
+      }
+
+      const char* portName = toolDataElement->GetAttribute("PortName"); 
+      int portNumber = -1;
+      if ( portName != NULL ) 
+      {
+        portNumber = atoi(portName);
+        if (portNumber > 12)
+        {
+          LOG_WARNING("Port number has to be 12 or smaller!");
+          continue;
+        }
+      }
+      else
+      {
+        LOG_ERROR("Unable to find PortName! This attribute is mandatory in NDI tool definition."); 
         continue;
       }
-	  }
-	  else
-	  {
-		  LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
-		  continue;
-	  }
 
-    const char* romFileName = toolDataElement->GetAttribute("RomFile");
-    if (romFileName)
-    {
-      // Passive tools (that need Rom files) must have port number 4 or higher
-      if (portNumber < 4)
+      const char* romFileName = toolDataElement->GetAttribute("RomFile");
+      if (romFileName)
       {
-        LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
-        continue;
+        // Passive tools (that need Rom files) must have port number 4 or higher
+        if (portNumber < 4)
+        {
+          LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
+          continue;
+        }
+        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
+        this->LoadVirtualSROM(portNumber, romFilePath.c_str());
       }
-      std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
-      this->LoadVirtualSROM(portNumber, romFilePath.c_str());
     }
   }
 
