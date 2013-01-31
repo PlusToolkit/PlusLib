@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
 
@@ -13,14 +13,19 @@
       Frequency="15"
       LocalTimeOffset="0.0"
       FilterAcWideNotch="1">
-      <Tool Name="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0"></Tool>
-      <Tool Name="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1"></Tool>
-      <Tool Name="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2"></Tool>
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
     </xDevice>
 
     <Device
@@ -32,29 +37,40 @@
       SequenceMetafile="SpinePhantom2Freehand.mha"
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE" >
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
-    
+
     <Device
       Id="VideoDevice"
       Type="UsSimulator"
       LocalTimeOffsetSec="0.0"
       AveragedItemsForFiltering="20"
       AcquisitionRate="15"
-      BufferSize="100"
       UsImageOrientation="MF" >
-      <Image Id="Video" BufferSize="500" />  
-      <InputStream Id="TrackerStream" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="500" />  
+      </DataSources>
+      
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+
       <vtkUsSimulatorAlgo
         BackgroundValue="155"
         ImageCoordinateFrame="Image"
@@ -89,18 +105,27 @@
       </vtkUsSimulatorAlgo>      
     </Device>
 
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
     </Device>
 
     <Device
       Id="CaptureDevice"
       Type="VirtualStreamCapture"
       Filename="RecordingTest.mha"
-      EnableCapturing="FALSE">
-      <InputStream Id="TrackedVideoStream" />
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
     </Device>
     
   </DataCollection>
@@ -147,8 +172,8 @@
         <Transform Name="ProbeToPhantom" /> 
         <Transform Name="StylusToPhantom" /> 
       </TransformNames>
-      <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Phantom"/>
+      <DataSource Type="Video"Names>
+        <DataSource Type="Video" Name="Image" EmbeddedTransformToFrame="Phantom"/>
       </ImageNames> 
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

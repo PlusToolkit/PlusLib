@@ -12,9 +12,9 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
@@ -127,21 +127,21 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       vtkPlusDevice* aDevice = NULL;
       if( this->GetDevice(aDevice, deviceId) == PLUS_SUCCESS )
       {
-        this->SetSelectedDevice(deviceId);
+        this->SelectedDevice = aDevice;
       }
     }
     else
     {
       // select the last device by default (usually we are interested in the output of mixer devices,
       // which are mostly defined as the last device)
-      this->SetSelectedDevice(Devices.back()->GetDeviceId());
+      this->SelectedDevice = Devices.back();
     }
   }
 
-  vtkPlusDevice* aDevice;
-  if( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  if( this->SelectedDevice != NULL && this->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
   {
-    LOG_ERROR("No selectable devices defined. Unable to locate any for data collection.");
+    LOG_ERROR("No selectable channels defined. Unable to locate any for data collection.");
     return PLUS_FAIL;
   }
 
@@ -159,21 +159,26 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
         continue;
       }
 
-      for ( int i = 0; i < deviceElement->GetNumberOfNestedElements(); ++i )
+      vtkXMLDataElement* inputChannelsElement = aConfig->FindNestedElementWithName("InputChannels");
+
+      if (inputChannelsElement != NULL)
       {
-        vtkXMLDataElement* streamElement = deviceElement->GetNestedElement(i); 
-        if( STRCASECMP(streamElement->GetName(), "InputStream") == 0 )
+        for ( int i = 0; i < inputChannelsElement->GetNumberOfNestedElements(); ++i )
         {
-          // We have an input stream, lets find it
-          for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
+          vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
+          if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
           {
-            vtkPlusDevice* device = (*it);
-            vtkPlusStream* aStream = NULL;
-            if( device->GetStreamByName(aStream, streamElement->GetAttribute("Id")) == PLUS_SUCCESS )
+            // We have an input stream, lets find it
+            for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
             {
-              // Found it!
-              thisDevice->AddInputStream(aStream);
-              break;
+              vtkPlusDevice* device = (*it);
+              vtkPlusChannel* aChannel = NULL;
+              if( device->GetOutputChannelByName(aChannel, inputChannelElement->GetAttribute("Id")) == PLUS_SUCCESS )
+              {
+                // Found it!
+                thisDevice->AddInputChannel(aChannel);
+                break;
+              }
             }
           }
         }
@@ -429,13 +434,15 @@ PlusStatus vtkDataCollector::GetTrackedFrame( TrackedFrame* trackedFrame )
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::SetSelectedDevice( const std::string &aDeviceId )
+PlusStatus vtkDataCollector::SetSelectedChannel( const std::string &aDeviceId, const std::string& aChannelId )
 {
-  LOG_TRACE("vtkDataCollector::SetSelectedDevice(" << aDeviceId << ")");
+  LOG_TRACE("vtkDataCollector::SetSelectedChannel(" << aDeviceId << ", " << aChannelId << ")");
 
-  if( this->SelectedDevice != NULL && STRCASECMP(aDeviceId.c_str(), this->SelectedDevice->GetDeviceId()) == 0 )
+  vtkPlusChannel* aChannel(NULL);
+  if( this->SelectedDevice != NULL && STRCASECMP(aDeviceId.c_str(), this->SelectedDevice->GetDeviceId()) == 0 
+    && this->SelectedDevice->GetCurrentChannel(aChannel) == PLUS_SUCCESS && STRCASECMP(aChannel->GetChannelId(), aChannelId.c_str()) == 0 )
   {
-    // Device is already selected
+    // Channel is already selected
     return PLUS_SUCCESS;
   }
 
@@ -444,8 +451,8 @@ PlusStatus vtkDataCollector::SetSelectedDevice( const std::string &aDeviceId )
     vtkPlusDevice* device = (*it);
     if( aDeviceId.compare(device->GetDeviceId()) == 0 )
     {
-      SelectedDevice = device;
-      return PLUS_SUCCESS;
+      this->SelectedDevice = device;
+      return this->SelectedDevice->SetCurrentChannel(aChannelId);
     }
   }
 
@@ -470,14 +477,13 @@ PlusStatus vtkDataCollector::GetDevices( DeviceCollection &OutVector ) const
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollector::GetSelectedDevice( vtkPlusDevice* &aDevice )
+PlusStatus vtkDataCollector::GetSelectedChannel( vtkPlusChannel* &aChannel )
 {
-  LOG_TRACE("vtkDataCollector::GetSelectedDevice()");
+  LOG_TRACE("vtkDataCollector::GetSelectedChannel()");
 
   if( SelectedDevice != NULL )
   {
-    aDevice = SelectedDevice;
-    return PLUS_SUCCESS;
+    return SelectedDevice->GetCurrentChannel(aChannel);
   }
 
   return PLUS_FAIL;
@@ -688,15 +694,15 @@ PlusStatus vtkDataCollector::GetTrackerToolReferenceFrameFromTrackedFrame(std::s
 /*
 PlusStatus vtkDataCollector::SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec )
 {
-  if( this->SelectedDevice == NULL )
-  {
-    LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
-    return PLUS_FAIL;
-  }
+if( this->SelectedDevice == NULL )
+{
+LOG_ERROR("No selected stream mixer. Unable to set local time offset.");
+return PLUS_FAIL;
+}
 
-  this->SelectedDevice->SetImageLocalTimeOffsetSec(videoLagSec);
-  this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
-  return PLUS_SUCCESS;
+this->SelectedDevice->SetImageLocalTimeOffsetSec(videoLagSec);
+this->SelectedDevice->SetToolLocalTimeOffsetSec(trackerLagSec);
+return PLUS_SUCCESS;
 }
 */
 
@@ -724,14 +730,14 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
   }
 
   // Get the first tool
-  vtkPlusDevice* aDevice = NULL;
-  vtkPlusStreamTool* firstActiveTool = NULL; 
-  if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* firstActiveTool = NULL; 
+  if ( this->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
   {
-    LOG_ERROR("No selected stream mixer. Unable to search for tools.");
+    LOG_ERROR("No selected channel. Unable to search for tools.");
     return PLUS_FAIL;
   }
-  if( aDevice->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+  if( aChannel->GetOwnerDevice()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to get tracked frame list - there is no active tool!"); 
     return PLUS_FAIL; 
@@ -769,7 +775,8 @@ PlusStatus vtkDataCollector::GetTrackingData(double& aTimestampFrom, vtkTrackedF
     aTimestampFrom = itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame, false /* get tracking data only */ ) != PLUS_SUCCESS )
+    // TODO : move get tracked frame logic to channel
+    if ( aChannel->GetOwnerDevice()->GetTrackedFrame(itemTimestamp, trackedFrame, false /* get tracking data only */ ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracking data by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;
@@ -802,25 +809,26 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     LOG_ERROR("Unable to get tracked frame list - video is not enabled"); 
     return PLUS_FAIL; 
   }
-  vtkPlusDevice* aDevice = NULL;
-  if ( this->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  if ( this->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Selected stream mixer is invalid. No video source present."); 
+    LOG_ERROR("Selected channel is invalid. No video source present."); 
     return PLUS_FAIL; 
   }
-  if ( aDevice->GetBuffer()->GetNumberOfItems()==0 )
+  vtkPlusDataSource* aSource(NULL);
+  if ( aChannel->GetVideoSource(aSource) == PLUS_SUCCESS && aSource->GetBuffer()->GetNumberOfItems()==0 )
   {
     LOG_DEBUG("vtkDataCollector::GetVideoData: the video buffer is empty, no items will be returned"); 
     return PLUS_SUCCESS;
   }
 
   PlusStatus status = PLUS_SUCCESS;
-  BufferItemUidType oldestItemUid=aDevice->GetBuffer()->GetOldestItemUidInBuffer();
-  BufferItemUidType latestItemUid=aDevice->GetBuffer()->GetLatestItemUidInBuffer();
+  BufferItemUidType oldestItemUid=aSource->GetBuffer()->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid=aSource->GetBuffer()->GetLatestItemUidInBuffer();
   for (BufferItemUidType itemUid=oldestItemUid; itemUid<=latestItemUid; ++itemUid)
   {
     double itemTimestamp=0;
-    if (aDevice->GetBuffer()->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
+    if (aSource->GetBuffer()->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
     {
       // probably the buffer item is not available anymore
       continue;
@@ -833,7 +841,7 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aDevice->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
+    if ( aChannel->GetOwnerDevice()->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;
@@ -882,7 +890,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   double latestLoopStartTime(0);
   double earliestLoopStopTime(0);
   bool isLoopStartStopTimeInitialized=false;
-  
+
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
     vtkSavedDataSource* savedDataSource = dynamic_cast<vtkSavedDataSource*>(*it);

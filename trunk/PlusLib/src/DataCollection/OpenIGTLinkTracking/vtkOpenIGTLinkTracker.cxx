@@ -15,7 +15,7 @@
 #include "vtkOpenIGTLinkTracker.h"
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -146,9 +146,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
 
     // We need the following tool names from the server 
-    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
     {
-      PlusTransformName tName( it->second->GetToolName(), this->GetToolReferenceFrameName() ); 
+      PlusTransformName tName( it->second->GetSourceId(), this->GetToolReferenceFrameName() ); 
       clientInfo.TransformNames.push_back( tName ); 
     }
 
@@ -366,16 +366,16 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     // Set status for non-detected tools
     vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     toolMatrix->Identity();
-    for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {    
-      if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
+      if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
       {
         // this tool has been found and update has been already called with the correct transform
-        LOG_TRACE("Tool "<<it->second->GetToolName()<<": found");
+        LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
         continue;
       }
-      LOG_TRACE("Tool "<<it->second->GetToolName()<<": not found");
-      this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetToolName(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
+      LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
+      this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
     }
     return PLUS_SUCCESS;
   }

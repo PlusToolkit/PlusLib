@@ -19,7 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkUnsignedCharArray.h"
 #include <ctype.h>
@@ -61,7 +61,7 @@ public:
   /*!
     Get image from the camera into VTK images. If an input arguments is NULL then that image is not retrieved.
   */
-  PlusStatus GetImage(vtkImageData* leftImage, vtkImageData* rightImage);
+  PlusStatus GetVideoSource(vtkImageData* leftImage, vtkImageData* rightImage);
   
   /*! Get the status of the MicronTracker (Tracking or not) */
   vtkGetMacro(IsMicronTrackingInitialized, int);

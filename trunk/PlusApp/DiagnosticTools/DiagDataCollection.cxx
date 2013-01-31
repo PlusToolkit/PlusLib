@@ -11,7 +11,7 @@
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceTypes.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -126,9 +126,9 @@ int main(int argc, char **argv)
 	}
 	if ( trackerDevice != NULL )
 	{
-    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
+    for (DataSourceContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkPlusStreamTool* tool = it->second;
+      vtkPlusDataSource* tool = it->second;
 		  tool->GetBuffer()->SetTimeStampReporting(true);
     }
 	}
@@ -215,16 +215,16 @@ int main(int argc, char **argv)
 
 	if ( trackerDevice != NULL )
 	{
-    for (ToolContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
+    for (DataSourceContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
 		{
-      vtkPlusStreamTool* tool = it->second;
+      vtkPlusDataSource* tool = it->second;
 
 			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
 			int bufferSize = tool->GetBuffer()->GetBufferSize(); 
       double realFramePeriodStdevSec=0;
 			double realFrameRate = tool->GetBuffer()->GetFrameRate(false, &realFramePeriodStdevSec);
 			double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
-			LOG_INFO("------------------ " << tool->GetToolName() << " ---------------------"); 
+			LOG_INFO("------------------ " << tool->GetSourceId() << " ---------------------"); 
 			LOG_INFO("Tracker tool " << tool <<  " actual sampling frequency: " << realFrameRate << "fps (sampling period stdev: "<<realFramePeriodStdevSec*1000.0<<"ms)"); 
 			LOG_INFO("Tracker tool " << tool <<  " nominal sampling frequency: " << idealFrameRate << "fps"); 
 			LOG_INFO("Number of items in the tool buffer: " << numOfItems ); 

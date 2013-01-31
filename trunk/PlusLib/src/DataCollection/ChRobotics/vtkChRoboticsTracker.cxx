@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -211,7 +211,7 @@ PlusStatus vtkChRoboticsTracker::InternalUpdate()
     
     // This device has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = this->OrientationSensorTool->GetFrameNumber() + 1 ; 
-    ToolTimeStampedUpdate( this->OrientationSensorTool->GetToolName(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp); 
+    ToolTimeStampedUpdate( this->OrientationSensorTool->GetSourceId(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp); 
   }
 
   return PLUS_SUCCESS;

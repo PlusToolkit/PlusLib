@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
@@ -13,18 +13,23 @@
       TiltSensorWestAxisIndex="1"
       AcquisitionRate="125"
       LocalTimeOffsetSec="0.0" >
-      <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
-      <Tool Name="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>           
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="OrientationSensor"/>
-        <Tool Name="TiltSensor"/>
-        <Tool Name="Accelerometer"/>
-        <Tool Name="Gyroscope"/>
-        <Tool Name="Magnetometer"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
+        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="OrientationSensor"/>
+          <DataSource Id="TiltSensor"/>
+          <DataSource Id="Accelerometer"/>
+          <DataSource Id="Gyroscope"/>
+          <DataSource Id="Magnetometer"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
   </DataCollection>
   

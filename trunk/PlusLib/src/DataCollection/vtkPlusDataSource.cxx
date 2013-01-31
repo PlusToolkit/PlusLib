@@ -6,40 +6,38 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
 #include "vtkTransform.h"
-//#include "vtkObjectFactory.h"
-//#include "vtkXMLUtilities.h"
 
-vtkStandardNewMacro(vtkPlusStreamTool);
+vtkStandardNewMacro(vtkPlusDataSource);
 
 //----------------------------------------------------------------------------
-vtkPlusStreamTool::vtkPlusStreamTool()
+vtkPlusDataSource::vtkPlusDataSource()
 : Device(NULL)
 , PortName(NULL)
+, Type(DATA_SOURCE_TYPE_NONE)
 , FrameNumber(0)
 , LED1(0)
 , LED2(0)
 , LED3(0)
-
 , ToolRevision(NULL)
 , ToolSerialNumber(NULL)
 , ToolPartNumber(NULL)
 , ToolManufacturer(NULL)
-, ToolName(NULL)
+, SourceId(NULL)
 , ReferenceCoordinateFrameName(NULL)
 , Buffer(vtkPlusStreamBuffer::New())
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStreamTool::~vtkPlusStreamTool()
+vtkPlusDataSource::~vtkPlusDataSource()
 {
-  if ( this->ToolName != NULL )
+  if ( this->SourceId != NULL )
   {
-    delete [] this->ToolName; 
-    this->ToolName = NULL; 
+    delete [] this->SourceId; 
+    this->SourceId = NULL; 
   }
 
   if ( this->ReferenceCoordinateFrameName != NULL )
@@ -49,12 +47,11 @@ vtkPlusStreamTool::~vtkPlusStreamTool()
   }
 
   this->SetPortName(NULL); 
-
   this->SetToolRevision(NULL); 
   this->SetToolSerialNumber(NULL); 
   this->SetToolManufacturer(NULL); 
 
-  if ( this->Buffer )
+  if ( this->Buffer != NULL )
   {
     this->Buffer->Delete(); 
     this->Buffer = NULL;
@@ -62,7 +59,7 @@ vtkPlusStreamTool::~vtkPlusStreamTool()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
 
@@ -70,9 +67,13 @@ void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "Tracker: " << this->Device << "\n";
   }
-  if ( this->ToolName )
+  if ( this->SourceId )
   {
-    os << indent << "ToolName: " << this->GetToolName() << "\n";
+    os << indent << "SourceId: " << this->GetSourceId() << "\n";
+  }
+  if ( this->Type != DATA_SOURCE_TYPE_NONE )
+  {
+    os << indent << "Type: " << ((this->Type == DATA_SOURCE_TYPE_VIDEO) ? "Video" : "Tool") << "\n";
   }
   if ( this->ReferenceCoordinateFrameName )
   {
@@ -110,21 +111,21 @@ void vtkPlusStreamTool::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
+PlusStatus vtkPlusDataSource::SetSourceId(const char* toolName)
 {
-  if ( this->ToolName == NULL && toolName == NULL) 
+  if ( this->SourceId == NULL && toolName == NULL) 
   { 
     return PLUS_SUCCESS;
   } 
 
-  if ( this->ToolName && toolName && ( STRCASECMP(this->ToolName, toolName) == 0 ) ) 
+  if ( this->SourceId && toolName && ( STRCASECMP(this->SourceId, toolName) == 0 ) ) 
   { 
     return PLUS_SUCCESS;
   } 
 
-  if ( this->ToolName != NULL )
+  if ( this->SourceId != NULL )
   {
-    LOG_ERROR("Tool name change is not allowed for tool '" << this->ToolName << "'" ); 
+    LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -132,14 +133,14 @@ PlusStatus vtkPlusStreamTool::SetToolName(const char* toolName)
   size_t n = strlen(toolName) + 1; 
   char *cp1 =  new char[n]; 
   const char *cp2 = (toolName); 
-  this->ToolName = cp1;
+  this->SourceId = cp1;
   do { *cp1++ = *cp2++; } while ( --n ); 
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
+PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
 {
   if ( this->ReferenceCoordinateFrameName == NULL && referenceName == NULL) 
   { 
@@ -153,7 +154,7 @@ PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
 
   if ( this->ReferenceCoordinateFrameName != NULL )
   {
-    LOG_ERROR("Tool name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
+    LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -168,7 +169,7 @@ PlusStatus vtkPlusStreamTool::SetReferenceName(const char* referenceName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
+PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 {
   if ( this->PortName == NULL && portName == NULL) 
   { 
@@ -182,7 +183,7 @@ PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
 
   if ( this->PortName != NULL )
   {
-    LOG_ERROR("Port name change is not allowed on tool port'" << this->PortName << "'" ); 
+    LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -197,25 +198,25 @@ PlusStatus vtkPlusStreamTool::SetPortName(const char* portName)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED1(int state)
+void vtkPlusDataSource::SetLED1(int state)
 {
   this->Device->SetToolLED(this->PortName,1,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED2(int state)
+void vtkPlusDataSource::SetLED2(int state)
 {
   this->Device->SetToolLED(this->PortName,2,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetLED3(int state)
+void vtkPlusDataSource::SetLED3(int state)
 {
   this->Device->SetToolLED(this->PortName,3,state);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::SetDevice(vtkPlusDevice *device)
+void vtkPlusDataSource::SetDevice(vtkPlusDevice *device)
 {
   // The Tracker is not reference counted, since that would cause a reference loop
   if (device == this->Device)
@@ -241,125 +242,154 @@ void vtkPlusStreamTool::SetDevice(vtkPlusDevice *device)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStreamTool::DeepCopy(vtkPlusStreamTool *tool)
+void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
-  LOG_TRACE("vtkPlusStreamTool::DeepCopy"); 
+  LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
 
-  this->SetLED1( tool->GetLED1() );
-  this->SetLED2( tool->GetLED2() );
-  this->SetLED3( tool->GetLED3() );
+  this->SetLED1( aSource->GetLED1() );
+  this->SetLED2( aSource->GetLED2() );
+  this->SetLED3( aSource->GetLED3() );
 
-  this->SetToolRevision( tool->GetToolRevision() );
-  this->SetToolSerialNumber( tool->GetToolSerialNumber() );
-  this->SetToolPartNumber( tool->GetToolPartNumber() );
-  this->SetToolManufacturer( tool->GetToolManufacturer() );
-  this->SetToolName( tool->GetToolName() ); 
-  this->SetReferenceName( tool->GetReferenceCoordinateFrameName() );
+  this->SetToolRevision( aSource->GetToolRevision() );
+  this->SetToolSerialNumber( aSource->GetToolSerialNumber() );
+  this->SetToolPartNumber( aSource->GetToolPartNumber() );
+  this->SetToolManufacturer( aSource->GetToolManufacturer() );
+  this->SetSourceId( aSource->GetSourceId() ); 
+  this->SetType( aSource->GetType() );
+  this->SetReferenceName( aSource->GetReferenceCoordinateFrameName() );
 
-  this->Buffer->DeepCopy( tool->GetBuffer() );
+  this->Buffer->DeepCopy( aSource->GetBuffer() );
 
-  this->SetFrameNumber( tool->GetFrameNumber() );
+  this->SetFrameNumber( aSource->GetFrameNumber() );
 }
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
 {
-  LOG_TRACE("vtkPlusStreamTool::ReadConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
-  if ( toolElement == NULL )
+  if ( sourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure data sourcel! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
-  const char* toolName = toolElement->GetAttribute("Name"); 
-  if ( toolName != NULL ) 
+  const char* sourceId = sourceElement->GetAttribute("Id"); 
+  if ( sourceId != NULL ) 
   {
-    this->SetToolName(toolName); 
+    this->SetSourceId(sourceId); 
   }
   else
   {
-    LOG_ERROR("Unable to find tool name! Name attribute is mandatory in tool definition."); 
+    LOG_ERROR("Unable to find attribute Id! Id attribute is mandatory in source definition."); 
     return PLUS_FAIL; 
   }
 
-  const char* portName = toolElement->GetAttribute("PortName"); 
-  if ( portName != NULL ) 
+  const char* type = sourceElement->GetAttribute("Type"); 
+  if ( type != NULL && STRCASECMP(type, "Tool") == 0 ) 
   {
-    this->SetPortName(portName); 
+    this->SetType(DATA_SOURCE_TYPE_TOOL);
+    const char* portName = sourceElement->GetAttribute("PortName"); 
+    if ( portName != NULL ) 
+    {
+      this->SetPortName(portName); 
+    }
+    else
+    {
+      LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
+      return PLUS_FAIL; 
+    }
+  }
+  else if ( type != NULL && STRCASECMP(type, "Video") == 0 ) 
+  {
+    this->SetType(DATA_SOURCE_TYPE_VIDEO);
   }
   else
   {
-    LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Missing type element. It is required to define the source type.");
+    return PLUS_FAIL;
   }
 
   int bufferSize = 0; 
-  if ( toolElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+  if ( sourceElement->GetScalarAttribute("BufferSize", bufferSize) ) 
   {
     this->GetBuffer()->SetBufferSize(bufferSize);
   }
   else
   {
-    LOG_ERROR("Unable to find tool \"" << this->GetToolName() << "\" buffer size in device element when it is required.");
+    LOG_ERROR("Unable to find source \"" << this->GetSourceId() << "\" buffer size in source element when it is required.");
     return PLUS_FAIL;
   }
 
   int averagedItemsForFiltering = 0;
-  if ( toolElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  if ( sourceElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
     this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
   }
   else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
   {
-    LOG_ERROR("Unable to find averaged items for filtering in device configuration when it is required.");
+    LOG_ERROR("Unable to find averaged items for filtering in source configuration when it is required.");
     return PLUS_FAIL;
   }
   else
   {
-    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in device element. Using default value.");
+    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in source element. Using default value.");
   }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::WriteConfiguration( vtkXMLDataElement* toolElement )
+PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElement )
 {
-  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
 
-  if ( toolElement == NULL )
+  if ( aSourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure data source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
-  toolElement->SetAttribute("Name", this->GetToolName());
-  toolElement->SetAttribute("PortName", this->GetPortName());
-  toolElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
+  aSourceElement->SetAttribute("Id", this->GetSourceId());
+  aSourceElement->SetAttribute("PortName", this->GetPortName());
+  aSourceElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
 
-  if( toolElement->GetAttribute("AveragedItemsForFiltering") != NULL )
+  if( aSourceElement->GetAttribute("AveragedItemsForFiltering") != NULL )
   {
-    toolElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
+    aSourceElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
   }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusStreamTool::WriteCompactConfiguration( vtkXMLDataElement* toolElement )
+PlusStatus vtkPlusDataSource::WriteCompactConfiguration( vtkXMLDataElement* aSourceElement )
 {
-  LOG_TRACE("vtkPlusStreamTool::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
 
-  if ( toolElement == NULL )
+  if ( aSourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
-  toolElement->SetAttribute("Name", this->GetToolName());
-  toolElement->SetAttribute("PortName", this->GetPortName());
+  aSourceElement->SetAttribute("Id", this->GetSourceId());
+  aSourceElement->SetAttribute("PortName", this->GetPortName());
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+DataSourceType vtkPlusDataSource::GetType() const
+{
+  return this->Type;
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkPlusDataSource::SetType( DataSourceType aType )
+{
+  this->Type = aType;
 }

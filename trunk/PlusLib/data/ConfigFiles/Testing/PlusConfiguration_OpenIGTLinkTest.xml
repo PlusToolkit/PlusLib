@@ -1,10 +1,10 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
       Name="TEST Data collection in file mode 3 NWires + OpenIGTLink broadcasting through OpenIGTLinkServer (IMAGE and TRANSFORM messages)" 
       Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" 
-    />      
+    />
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
@@ -12,10 +12,13 @@
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
-      <Image Id="Video" BufferSize="100" />
-      <OutputStream Id="TrackedVideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
   </DataCollection>
   
@@ -33,10 +36,13 @@
         UsImageOrientation="MF"
         AcquisitionRate="30"
         LocalTimeOffsetSec="0" >
-        <Image Id="Video" BufferSize="50" AveragedItemsForFiltering="20" />
-        <OutputStream Id="TrackedVideoSenderStream">
-          <Image Id="Video" />
-        </OutputStream>
+        <DataSources>
+          <DataSource Type="Video" Id="Video" BufferSize="50" AveragedItemsForFiltering="20" />
+        </DataSources>
+
+        <OutputChannels>
+          <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />
+        </OutputChannels>
       </Device>    
     </DataCollection>
   </PlusServerTestClientsConfiguration>

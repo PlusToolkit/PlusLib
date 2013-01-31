@@ -13,6 +13,7 @@ See License.txt for details.
 
 class vtkVisualizationController;
 class vtkPlusDevice;
+class vtkPlusChannel;
 class AbstractToolbox;
 class StatusIcon;
 
@@ -169,11 +170,8 @@ public:
   /*! Reset show devices toggle button (on disconnect from devices) */
   void ResetShowDevices();
 
-  /*! Set the selected device that fCal is watching */
-  void SetSelectedDevice( std::string deviceId );
-
   /*! Dynamically build the devices menu based on the values returned from the data collector */
-  void BuildDevicesMenu();
+  void BuildChannelMenu();
 
 protected:
   /*!
@@ -225,7 +223,7 @@ protected:
     /*!
     * Activate a certain device
     */
-    void DeviceSelected(std::string& deviceId);
+    void ChannelSelected(vtkPlusDevice* aDevice, vtkPlusChannel* aChannel);
 
     /*!
     * Resize event handler

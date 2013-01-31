@@ -1,53 +1,69 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
-    <DeviceSet Name="2N Wire Phantom Distance(15mm)_SPIE" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus.">
-      
+    <DeviceSet 
+      Name="2N Wire Phantom Distance(15mm)_SPIE" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." >
     </DeviceSet>
-    <Device
+
+    <Device 
       Id="TrackerDevice" 
       Type="Ascension3DG" 
       AcquisitionRate="50" 
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1" >
-      <Tool Name="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
-      <Tool Name="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
-      <Tool Name="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />      
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
 
     <Device
       Id="VideoDevice"
-      Type="SonixVideo"     
-      FrameSize="820 616"
+      Type="SonixVideo" 
       UsImageOrientation="UF"
-      FrameRate="10"
-      LocalTimeOffset="-0.05"
-      IP="127.0.0.1"
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
       ImagingMode="BMode"
-      AcquisitionDataType="BPost"
-      Depth="-1"
-      Sector="-1"
-      Gain="-1"
-      DynRange="-1"
-      Zoom="-1"
-      Frequency="-1"
-      Timeout="-1"
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
       CompressionStatus="0" >
-      <Image Id="Video" BufferSize="50" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
 
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
-    </Device>    
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
 
     <Synchronization
       Type="ChangeDetection"

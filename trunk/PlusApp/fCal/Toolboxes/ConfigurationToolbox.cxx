@@ -11,7 +11,7 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
 #include "vtkPhantomRegistrationAlgo.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusChannel.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -229,28 +229,28 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->hide();
       delete connectDialog;
 
-      vtkPlusDevice* aDevice = NULL;
-      if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+      vtkPlusChannel* aChannel(NULL);
+      if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
       {
-        LOG_ERROR("No selected device. Unable to determine if it has a tracker.");
+        LOG_ERROR("No selected channel. Unable to determine if it has a tracker.");
       }
       else
       {
-        if( aDevice != NULL && aDevice->GetTrackingEnabled() )
+        if( aChannel != NULL && aChannel->GetOwnerDevice()->GetTrackingEnabled() )
         {
-          m_DeviceSetSelectorWidget->ShowResetTrackerButton(aDevice->IsResettable());
+          m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel->GetOwnerDevice()->IsResettable());
         }
       }
 
       // Rebuild the devices menu to 
-      m_ParentMainWindow->BuildDevicesMenu();
+      m_ParentMainWindow->BuildChannelMenu();
 
       // Re-enable main window
       m_ParentMainWindow->setEnabled(true);
 
       // Re-enable manipulation buttons
       m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
-      if( aDevice != NULL && aDevice->GetVideoEnabled() )
+      if( aChannel != NULL && aChannel->GetOwnerDevice()->GetVideoEnabled() )
       {
         m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
       }
@@ -271,7 +271,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
     // Rebuild the devices menu to clear out any previous devices
-    m_ParentMainWindow->BuildDevicesMenu();
+    m_ParentMainWindow->BuildChannelMenu();
   }
 
   QApplication::restoreOverrideCursor();
@@ -594,16 +594,16 @@ void ConfigurationToolbox::ResetTracker()
 {
   if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
   {
-    vtkPlusDevice* aDevice = NULL;
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+    vtkPlusChannel* aChannel = NULL;
+    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
     {
-      LOG_ERROR("No selected stream mixer. Unable to reset tracker.");
+      LOG_ERROR("No selected channel. Unable to reset tracker.");
       return;
     }
 
-    if( aDevice != NULL )
+    if( aChannel != NULL )
     {
-      aDevice->Reset();
+      aChannel->GetOwnerDevice()->Reset();
     }
   }
 }

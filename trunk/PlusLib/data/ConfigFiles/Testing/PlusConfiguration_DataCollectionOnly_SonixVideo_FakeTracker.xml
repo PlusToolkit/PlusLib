@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
@@ -13,14 +13,18 @@
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Stylus"
       Mode="PivotCalibration"
-      ReferenceToolName="Reference"
-      Selectable="true" >
-      <Tool Name="Reference" BufferSize="200" AveragedItemsForFiltering="20" PortName="0"/> 
-      <Tool Name="Stylus" BufferSize="200" AveragedItemsForFiltering="20" PortName="1" />
-      <OutputStream Id="TrackerStream">
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-      </OutputStream>
+      ReferenceToolName="Reference" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="200" AveragedItemsForFiltering="20" PortName="0"/> 
+        <DataSource Type="Tool" Id="Stylus" BufferSize="200" AveragedItemsForFiltering="20" PortName="1" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
 
     <Device
@@ -38,20 +42,28 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" 
-      Selectable="true" >
-      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
         
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" />
+      </OutputChannels>
     </Device>
-
   </DataCollection>
 
 </PlusConfiguration>

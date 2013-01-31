@@ -28,7 +28,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkNDICertusTracker.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkNDICertusTracker);
@@ -461,7 +461,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkPlusStreamTool* trackerTool = NULL; 
+    vtkPlusDataSource* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
@@ -469,7 +469,7 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
     else
     {
       // send the matrix and status to the tool's vtkPlusDataBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, status, (unsigned long)uFrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetSourceId(), this->SendMatrix, status, (unsigned long)uFrameNumber, unfilteredTimestamp);
     }
   }
 
@@ -686,7 +686,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
               std::ostringstream toolPortName; 
               toolPortName << port; 
-              vtkPlusStreamTool* trackerTool = NULL; 
+              vtkPlusDataSource* trackerTool = NULL; 
               if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
               {
                 LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
@@ -742,7 +742,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
 
         std::ostringstream toolPortName; 
         toolPortName << toolCounter; 
-        vtkPlusStreamTool* trackerTool = NULL; 
+        vtkPlusDataSource* trackerTool = NULL; 
         if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 

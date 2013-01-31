@@ -6,14 +6,16 @@ See License.txt for details.
 
 #include "QCustomAction.h"
 
-QCustomAction::QCustomAction(const QString &text, QObject* parent, bool aIsSeparator)
+QCustomAction::QCustomAction(const QString &text, QObject* parent, bool aIsSeparator, vtkPlusDevice* ownerDevice, vtkPlusChannel* ownerChannel)
 : QAction(text, parent)
 , m_IsSeparator(aIsSeparator)
+, m_OwnerDevice(ownerDevice)
+, m_OwnerChannel(ownerChannel)
 {
 
 }
 
 void QCustomAction::activated()
 {
-  emit deviceSelected(this->text().toStdString());
+  emit channelSelected(m_OwnerDevice, m_OwnerChannel);
 }

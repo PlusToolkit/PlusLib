@@ -408,8 +408,8 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  vtkPlusDevice* aDevice = NULL;
-  if (this->GetDataCollector() != NULL && this->GetDataCollector()->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  if( this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
   {
     // Force update of the brightness image in the DataCollector,
     // because it is the image that the image actors show
@@ -598,8 +598,8 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 PlusStatus vtkVisualizationController::ConnectInput()
 {
-  vtkPlusDevice* aDevice = NULL;
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
   {
     this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
     return PLUS_SUCCESS;

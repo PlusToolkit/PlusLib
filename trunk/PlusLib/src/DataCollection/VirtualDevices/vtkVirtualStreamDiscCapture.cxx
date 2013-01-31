@@ -7,7 +7,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkVirtualStreamDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -95,9 +95,9 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
 {
   bool lowestRateKnown=false;
   double lowestRate=30; // just a usual value (FPS)
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusStream* anInputStream = (*it);
+    vtkPlusChannel* anInputStream = (*it);
     if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
     {
       lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
@@ -321,16 +321,16 @@ PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
 
 PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
 {
-  if( this->InputStreams.size() != 1 )
+  if( this->InputChannels.size() != 1 )
   {
     LOG_ERROR("Stream capture device requires exactly 1 input stream. Check configuration.");
     return PLUS_FAIL;
   }
 
-  // GetTrackedFrame reads from the OutputStreams
+  // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
-  this->OutputStreams.push_back(this->InputStreams[0]);
-  this->CurrentStream = this->OutputStreams[0];
+  this->OutputChannels.push_back(this->InputChannels[0]);
+  this->CurrentChannel = this->OutputChannels[0];
 
   return PLUS_SUCCESS;
 }

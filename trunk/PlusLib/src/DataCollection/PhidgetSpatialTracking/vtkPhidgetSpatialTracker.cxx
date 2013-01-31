@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPhidgetSpatialTracker.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -185,7 +185,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       tracker->LastAccelerometerToTrackerTransform->SetElement(0,3,data[i]->acceleration[0]);
       tracker->LastAccelerometerToTrackerTransform->SetElement(1,3,data[i]->acceleration[1]);
       tracker->LastAccelerometerToTrackerTransform->SetElement(2,3,data[i]->acceleration[2]);
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetToolName(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetSourceId(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
     if (tracker->GyroscopeTool!=NULL)
     {
@@ -193,14 +193,14 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       tracker->LastGyroscopeToTrackerTransform->SetElement(0,3,data[i]->angularRate[0]);
       tracker->LastGyroscopeToTrackerTransform->SetElement(1,3,data[i]->angularRate[1]);
       tracker->LastGyroscopeToTrackerTransform->SetElement(2,3,data[i]->angularRate[2]);
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetToolName(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetSourceId(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
     if (tracker->MagnetometerTool!=NULL)
     {      
       if (data[i]->magneticField[0]>1e100)
       {
         // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
       }
       else
       {
@@ -209,7 +209,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
         tracker->LastMagnetometerToTrackerTransform->SetElement(0,3,data[i]->magneticField[0]);
         tracker->LastMagnetometerToTrackerTransform->SetElement(1,3,data[i]->magneticField[1]);
         tracker->LastMagnetometerToTrackerTransform->SetElement(2,3,data[i]->magneticField[2]);
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetToolName(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
       }
     }     
 
@@ -254,7 +254,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       tracker->LastTiltSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
       tracker->LastTiltSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
 
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetToolName(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetSourceId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
 
     if (tracker->OrientationSensorTool!=NULL)
@@ -262,7 +262,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       if (data[i]->magneticField[0]>1e100)
       {
         // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetToolName(), tracker->LastOrientationSensorToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);        
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);        
       }
       else
       {
@@ -313,7 +313,7 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
           }
         }
 
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetToolName(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
       }            
 
     }    

@@ -157,8 +157,8 @@ public:
   * Functions to manage the currently active stream mixers
   */
   PlusStatus GetDevices( DeviceCollection &OutVector ) const;
-  PlusStatus SetSelectedDevice( const std::string &aDeviceId );
-  PlusStatus GetSelectedDevice( vtkPlusDevice* &aDevice );
+  PlusStatus SetSelectedChannel( const std::string &aDeviceId, const std::string& aChannelId );
+  PlusStatus GetSelectedChannel( vtkPlusChannel* &aChannel );
 
   /*
   * Functions to pass on to the active stream mixer

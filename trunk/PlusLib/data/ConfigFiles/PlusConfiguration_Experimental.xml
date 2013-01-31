@@ -2,21 +2,25 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Simulation mode for freehand spatial calibration with phantom 2.0 containing 3 NWires" 
-      Description="Data collector in file mode providing sequence for freehand calibration" 
+      Name="Experimental configuration to test latest changes" 
+      Description="Testing new XML layout including DataSources and Channels" 
     />
-    <Device
-      Id="TrackedVideoDevice"
+    
+	<Device
+      Id="SavedDatasetDevice"
       Type="SavedDataSource"      
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
-      UseData="IMAGE_AND_TRANSFORM"
-      UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE">
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" 
+      UseData="IMAGE_AND_TRANSFORM" 
+      UseOriginalTimestamps="TRUE" 
+	  DefaultOutputChannelId="FinalOutput" 
+      RepeatEnabled="TRUE" >
+
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" />
+        <DataSource Type="Video" Id="VideoFeed" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
-      <OutputChannels>
-        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+
+      <OutputChannels>        
+        <OutputChannel Id="FinalOutput" VideoDataSourceId="VideoFeed" />
       </OutputChannels>
     </Device>
   </DataCollection>

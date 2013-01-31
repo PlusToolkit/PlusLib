@@ -1,6 +1,9 @@
-<PlusConfiguration version="1.4" BufferSize="2500" LocalTimeOffsetSec="0" PlusRevision="1.5.3.1738">
+<PlusConfiguration version="2.1" PlusRevision="1.5.3.1738">
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
-    <DeviceSet Name="SonixTouch L14-5 + NDI Aurora 4cm depth" Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"/>
+    <DeviceSet 
+      Name="SonixTouch L14-5 + NDI Aurora 4cm depth" 
+        Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
+      />
     
     <Device
       Id="TrackerDevice"
@@ -9,21 +12,26 @@
       BaudRate="115200"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0">
-      <Tool Name="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="Probe"/>
-        <Tool Name="Reference"/>
-        <Tool Name="Stylus"/>
-        <Tool Name="Needle"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+          <DataSource Id="Needle"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
 
     <Device
       Id="VideoDevice"
-      Type="SonixVideo"
+      Type="SonixVideo"      
       UsImageOrientation="UF"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.008"
@@ -40,16 +48,26 @@
       CompressionStatus="0"
       RfAcquisitionMode="RfOnly"
       ConnectionSetupDelayMs="3000" >
-      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
     
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
     </Device>
     
   </DataCollection>

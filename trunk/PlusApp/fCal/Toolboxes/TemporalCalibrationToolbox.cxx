@@ -8,9 +8,9 @@ See License.txt for details.
 #include "TemporalCalibrationToolbox.h"
 #include "TrackedFrame.h"
 #include "fCalMainWindow.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
@@ -230,10 +230,10 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
       vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
       if ( dataCollector )
       {
-        vtkPlusDevice* aDevice = NULL;
-        if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+        vtkPlusChannel* aChannel(NULL);
+        if ( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
         {
-          videoTimeOffset = aDevice->GetImageLocalTimeOffsetSec();
+          videoTimeOffset = aChannel->GetOwnerDevice()->GetVideoLocalTimeOffsetSec();
         }
       }
     }
@@ -331,22 +331,22 @@ void TemporalCalibrationToolbox::StartCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkPlusDevice* aDevice;
-      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+      vtkPlusChannel* aChannel(NULL);
+      if( dataCollector->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
       {
         LOG_ERROR("No selected stream mixer. No data available.");
       }
-      if (!aDevice->GetTrackingDataAvailable())
+      if (!aChannel->GetOwnerDevice()->GetTrackingDataAvailable())
       {
         LOG_ERROR("No tracking data is available in stream mixer. Does it include a tracking device?");
       }
-      else if ( aDevice->GetVideoDataAvailable() )
+      else if ( aChannel->GetOwnerDevice()->GetVideoDataAvailable() )
       {
-        m_PreviousTrackerOffset = aDevice->GetToolLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = aDevice->GetImageLocalTimeOffsetSec(); 
+        m_PreviousTrackerOffset = aChannel->GetOwnerDevice()->GetToolLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = aChannel->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(); 
         // TODO : verify this is the correct conversion to make
-        aDevice->SetImageLocalTimeOffsetSec(0.0); 
-        aDevice->SetToolLocalTimeOffsetSec(0.0);
+        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(0.0); 
+        aChannel->GetOwnerDevice()->SetToolLocalTimeOffsetSec(0.0);
         offsetsSuccessfullyRetrieved = true;
       }
     }
@@ -489,10 +489,10 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkPlusDevice* aDevice = NULL;
-      if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
+      vtkPlusChannel* aChannel(NULL);
+      if( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
       {
-        aDevice->SetImageLocalTimeOffsetSec(trackerLagSec);
+        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(trackerLagSec);
         offsetsSuccessfullySet = true;
       }
     }
@@ -593,15 +593,15 @@ void TemporalCalibrationToolbox::CancelCalibration()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     if (dataCollector)
     {
-      vtkPlusDevice* aDevice = NULL;
-      if( dataCollector->GetSelectedDevice(aDevice) != PLUS_SUCCESS )
+      vtkPlusChannel* aChannel(NULL);
+      if( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
       {
         LOG_ERROR("No selected stream mixer. Unable to reset the local time offset to their previous value.")
       }
-      if ( aDevice != NULL )
+      if ( aChannel != NULL )
       {
-        aDevice->SetImageLocalTimeOffsetSec(m_PreviousVideoOffset); 
-        aDevice->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
+        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(m_PreviousVideoOffset); 
+        aChannel->GetOwnerDevice()->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
         offsetsSuccessfullySet = true;
       }
     }

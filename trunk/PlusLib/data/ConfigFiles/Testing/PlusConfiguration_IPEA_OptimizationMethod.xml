@@ -1,16 +1,41 @@
-<PlusConfiguration version="1.4" PlusRevision="1.7.1.2174">
+<PlusConfiguration version="2.1" PlusRevision="1.7.1.2174">
   <DataCollection StartupDelaySec="1">
-     <DeviceSet Name="SonixTouch + PolarisTracker L14-5 + Reference + Stylus Calibration+ Phantom Calibration  2.0 01/06 CalibrationSequence_Depth15_20130107_024735" Description="SonixTouch + PolarisTracker + Stylus Calibration + Phantom 2.0 calibration 01/06 CalibrationSequence_Depth15_20130107_024735 "/>
-    <ImageAcquisition
-      Type="SavedDataset"
-      SequenceMetafile="CalibrationSequence_Depth15_20130107_024735.mha"
-      UseData="IMAGE_AND_TRANSFORM"
-      UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE"
-      BufferSize="275"
-      LocalTimeOffsetSec="0"/>
-      <!--
-    <Tracker
+    <DeviceSet 
+      Name="SonixTouch + PolarisTracker L14-5 + Reference + Stylus Calibration+ Phantom Calibration  2.0 01/06 CalibrationSequence_Depth15_20130107_024735" 
+      Description="SonixTouch + PolarisTracker + Stylus Calibration + Phantom 2.0 calibration 01/06 CalibrationSequence_Depth15_20130107_024735 "
+    />
+    <Device 
+      Id="VideoDevice" 
+      Type="SavedDataset" 
+      SequenceMetafile="CalibrationSequence_Depth15_20130107_024735.mha" 
+      UseData="IMAGE_AND_TRANSFORM" 
+      UseOriginalTimestamps="TRUE" 
+      RepeatEnabled="TRUE" 
+      LocalTimeOffsetSec="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="275" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoOutput" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <!--
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
       Type="PolarisTracker"
       SerialPort="4"
       BaudRate="115200"
@@ -18,32 +43,47 @@
       AcquisitionRate="50"
       AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0">
-      <Tool Name="Probe" PortName="5" RomFile="NdiToolDefinitions\8700339.rom"/>
-      <Tool Name="Stylus" PortName="6" RomFile="NdiToolDefinitions\8700340.rom"/>
-      <Tool Name="Reference" PortName="7" RomFile="NdiToolDefinitions\8700449.rom"/>
-    </Tracker>
-    <ImageAcquisition
-      Type="SonixVideo"
-      BufferSize="500"
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="5" RomFile="NdiToolDefinitions\8700339.rom"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="6" RomFile="NdiToolDefinitions\8700340.rom"/>
+        <DataSource Type="Tool" Id="Reference" PortName="7" RomFile="NdiToolDefinitions\8700449.rom"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoOutput" />
+          <DataSource Id="Probe"/>
+          <DataSource Id="Stylus"/>
+          <DataSource Id="Reference"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
       UsImageOrientation="UF"
-      AcquisitionRate="30"
-      AveragedItemsForFiltering="20"
+      AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.084"
-      IP="130.15.7.20"
+      IP="130.15.7.20" 
       ImagingMode="BMode"
-      AcquisitionDataType="BPost"
-      SoundVelocity="1481"
-      Depth="-1"
-      Sector="-1"
-      Gain="-1"
-      DynRange="-1"
-      Zoom="-1"
-      Frequency="-1"
-      Timeout="-1"
-      CompressionStatus="0"
-      RfAcquisitionMode="RfOnly"
-      ConnectionSetupDelayMs="3000"/>
-      -->
+      AcquisitionDataType="BPost" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    -->
   </DataCollection>
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"

@@ -4,35 +4,40 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkPlusStreamTool - interfaces VTK to a handheld 3D positioning tool
+// .NAME vtkPlusDataSource - interfaces VTK to a handheld 3D positioning tool or video source
 // .SECTION Description
-// The vtkPlusStreamTool provides an interface between a tracked object in
+// The vtkPlusDataSource provides an interface between a tracked object or video stream in
 // the real world and a virtual object.
 // .SECTION see also
-// vtkTracker vtkPOLARISTracker vtkFlockTracker
+// vtkPlusDevice vtkPlusStreamBuffer vtkPlusChannel
 
-#ifndef __vtkPlusStreamTool_h
-#define __vtkPlusStreamTool_h
+#ifndef __vtkPlusDataSource_h
+#define __vtkPlusDataSource_h
 
 #include "vtkObject.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h"
 
 /*!
-\class vtkPlusStreamTool 
-\brief Interface to a handheld 3D positioning tool
+\class vtkPlusDataSource 
+\brief Interface to a handheld 3D positioning tool or video source
 
-The vtkPlusStreamTool provides an interface between a tracked object in
-the real world and a virtual object.
-
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusStreamTool : public vtkObject
+
+class vtkPlusStreamBuffer;
+enum DataSourceType
+{
+  DATA_SOURCE_TYPE_NONE,
+  DATA_SOURCE_TYPE_TOOL,
+  DATA_SOURCE_TYPE_VIDEO,
+};
+
+class VTK_EXPORT vtkPlusDataSource : public vtkObject
 {
 public:
 
-  static vtkPlusStreamTool *New();
-  vtkTypeMacro(vtkPlusStreamTool,vtkObject);
+  static vtkPlusDataSource *New();
+  vtkTypeMacro(vtkPlusDataSource,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
@@ -40,27 +45,32 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
   virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 
-  /*! Set tool name. Tool name is used to identify the tool among all the tools provided by the tracker device 
-  therefore it must be unique and can be set only once */
-  PlusStatus SetToolName(const char* toolName);
+  /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device 
+  therefore it must be unique */
+  PlusStatus SetSourceId(const char* toolName);
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceName(const char* referenceName);
 
-  /*! Set port name. Port name is used to identify the tool among all the tools provided by the tracker device 
-  therefore it must be unique and can be set only once */
+  /*! Set port name. Port name is used to identify the source among all the sources provided by the device 
+  therefore it must be unique */
   PlusStatus SetPortName(const char* portName);
 
-  /*! Get the tracked tool buffer */
+  /*! Get the buffer */
   virtual vtkPlusStreamBuffer* GetBuffer() const { return this->Buffer; }
 
-  /*! Get the tracker which owns this tool. */
+  /*! Get the tracker which owns this source. */
+  // TODO : consider a re-design of this idea
   vtkGetObjectMacro(Device,vtkPlusDevice);
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName); 
 
-  /*! Get the frame number (some devices has frame numbering, otherwise just increment if new frame received) */
+  /*! Get type: vidoe or tool. */
+  DataSourceType GetType() const;
+  void SetType(DataSourceType aType);
+
+  /*! Get the frame number (some devices have frame numbering, otherwise just increment if new frame received) */
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
 
@@ -92,8 +102,8 @@ public:
   vtkGetStringMacro(ToolPartNumber);
   /*! Get tool serial number */
   vtkGetStringMacro(ToolSerialNumber);
-  /*! Get tool name */
-  vtkGetStringMacro(ToolName); 
+  /*! Get source id */
+  vtkGetStringMacro(SourceId); 
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrameName);
 
@@ -110,15 +120,17 @@ public:
   vtkSetStringMacro(ToolSerialNumber);
     
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
-  void DeepCopy(vtkPlusStreamTool *tool);
+  void DeepCopy(vtkPlusDataSource *source);
 
 protected:
-  vtkPlusStreamTool();
-  ~vtkPlusStreamTool();
+  vtkPlusDataSource();
+  ~vtkPlusDataSource();
 
   vtkPlusDevice *Device;
 
   char *PortName;
+
+  DataSourceType Type;
 
   unsigned long FrameNumber; 
 
@@ -130,14 +142,14 @@ protected:
   char *ToolSerialNumber;
   char *ToolPartNumber;
   char *ToolManufacturer;
-  char *ToolName; 
+  char *SourceId; 
   char *ReferenceCoordinateFrameName;
 
   vtkPlusStreamBuffer* Buffer;
 
 private:
-  vtkPlusStreamTool(const vtkPlusStreamTool&);
-  void operator=(const vtkPlusStreamTool&);  
+  vtkPlusDataSource(const vtkPlusDataSource&);
+  void operator=(const vtkPlusDataSource&);  
 
 };
 

@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
@@ -14,12 +14,14 @@
       IgtlMessageCrcCheckEnabled="false"
       UsImageOrientation="MF"
       AcquisitionRate="30"
-      LocalTimeOffsetSec="0"
-      Selectable="true" >
-      <Image Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      LocalTimeOffsetSec="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
   </DataCollection>
 

@@ -1,4 +1,4 @@
-<PlusConfiguration version="1.4" PlusRevision="1.7.1.2323">
+<PlusConfiguration version="2.1" PlusRevision="1.7.1.2323">
   <DataCollection StartupDelaySec="1" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet Name="Brainlab fCal 2.0 Amigo Calibration Ready" Description="Tools expected from Brainlab: 0: Probe, 1: Reference, 2: Stylus."/>
     
@@ -12,14 +12,19 @@
       AcquisitionRate="30"
       ReconnectOnReceiveTimeout="false"
       LocalTimeOffset="0.0" >
-      <Tool Name="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-      <Tool Name="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>      
-      <OutputStream Id="TrackerStream">
-        <Tool Name="ReferenceStar" />
-        <Tool Name="Pointer" />
-        <Tool Name="Ultrasound" />
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Tool" Id="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="ReferenceStar" />
+          <DataSource Id="Pointer" />
+          <DataSource Id="Ultrasound" />
+        </OutputChannel>
+      </OutputChannels>
     </Device>
     
     <Device
@@ -29,17 +34,27 @@
       UsImageOrientation="MF"
       xClipRectangleOrigin="253 108" 
       xClipRectangleSize="720 667">
-      <Image Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>      
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
 
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
-    </Device>    
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
 
   </DataCollection>
   <CoordinateDefinitions>

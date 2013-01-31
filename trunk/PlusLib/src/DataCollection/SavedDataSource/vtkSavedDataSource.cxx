@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkSavedDataSource, "$Revision: 1.0$");
@@ -188,24 +188,24 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
         double nextFrameTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0);
 
         int numOfErrors=0;
-        for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+        for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
         {
-          vtkPlusStreamTool* tool=it->second;
+          vtkPlusDataSource* tool=it->second;
           StreamBufferItem bufferItem;  
-          ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
+          ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
           if ( itemStatus != ITEM_OK )
           {
             if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
             {
-              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<" - frame not available yet!");
+              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<" - frame not available yet!");
             }
             else if ( itemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
             {
-              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<" - frame not available anymore!");
+              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<" - frame not available anymore!");
             }
             else
             {
-              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<"!");
+              LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<"!");
             }
             status=PLUS_FAIL;
             continue;
@@ -214,7 +214,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
           vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
           if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
           {
-            LOG_ERROR("Failed to get toolTransMatrix for tool "<<tool->GetToolName()); 
+            LOG_ERROR("Failed to get toolTransMatrix for tool "<<tool->GetSourceId()); 
             status=PLUS_FAIL;
             continue;
           }
@@ -223,7 +223,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
           // This device has no frame numbering, just auto increment tool frame number if new frame received
           unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
           // send the transformation matrix and flags to the tool
-          if (this->ToolTimeStampedUpdateWithoutFiltering(tool->GetToolName(), toolTransMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp)!=PLUS_SUCCESS)
+          if (this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolTransMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp)!=PLUS_SUCCESS)
           {
             status=PLUS_FAIL;
           }
@@ -290,24 +290,24 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
       // retrieve timestamp from the first active tool and add all the tool matrices corresponding to that timestamp
       double nextFrameTimestamp=dataBufferItemToBeAdded.GetTimestamp(0);
 
-      for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
-        vtkPlusStreamTool* tool=it->second;
+        vtkPlusDataSource* tool=it->second;
         StreamBufferItem bufferItem;  
-        ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetToolName()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
+        ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
         if ( itemStatus != ITEM_OK )
         {
           if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
           {
-            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<" - frame not available yet!");
+            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<" - frame not available yet!");
           }
           else if ( itemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
           {
-            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<" - frame not available anymore!");
+            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<" - frame not available anymore!");
           }
           else
           {
-            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetToolName()<<"!");
+            LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<"!");
           }
           status=PLUS_FAIL;
           continue;
@@ -316,7 +316,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
         vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
         if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
         {
-          LOG_ERROR("Failed to get toolTransMatrix for tool "<<tool->GetToolName()); 
+          LOG_ERROR("Failed to get toolTransMatrix for tool "<<tool->GetSourceId()); 
           status=PLUS_FAIL;
           continue;
         }
@@ -325,7 +325,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
         // This device has no frame numbering, just auto increment tool frame number if new frame received
         unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
         // send the transformation matrix and flags to the tool
-        if (this->ToolTimeStampedUpdate(tool->GetToolName(), toolTransMatrix, toolStatus, frameNumber, UNDEFINED_TIMESTAMP)!=PLUS_SUCCESS)
+        if (this->ToolTimeStampedUpdate(tool->GetSourceId(), toolTransMatrix, toolStatus, frameNumber, UNDEFINED_TIMESTAMP)!=PLUS_SUCCESS)
         {
           status=PLUS_FAIL;
         }
@@ -514,27 +514,27 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
 
   // Enable tools that have a matching transform name in the savedDataBuffer
   double transformMatrix[16]={0};
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    vtkPlusStreamTool* tool=it->second;
-    if (tool->GetToolName()==NULL)
+    vtkPlusDataSource* tool=it->second;
+    if (tool->GetSourceId()==NULL)
     {
       // no tool name is available, don't connect it to any transform in the savedDataBuffer
       continue;
     }        
 
-    PlusTransformName toolTransformName(tool->GetToolName(), this->ToolReferenceFrameName ); 
+    PlusTransformName toolTransformName(tool->GetSourceId(), this->ToolReferenceFrameName ); 
     if (!frame->IsCustomFrameTransformNameDefined(toolTransformName) )
     {
       std::string strTransformName; 
       toolTransformName.GetTransformName(strTransformName); 
-      LOG_WARNING("Tool '" << tool->GetToolName() << "' has no matching transform in the file with name: " << strTransformName ); 
+      LOG_WARNING("Tool '" << tool->GetSourceId() << "' has no matching transform in the file with name: " << strTransformName ); 
       continue;
     }
 
     if (frame->GetCustomFrameTransform(toolTransformName, transformMatrix)!=PLUS_SUCCESS)
     {
-      LOG_WARNING("Cannot convert the custom frame field ( for tool "<<tool->GetToolName()<<") to a transform");
+      LOG_WARNING("Cannot convert the custom frame field ( for tool "<<tool->GetSourceId()<<") to a transform");
       continue;
     }
     // a transform with the same name as the tool name has been found in the savedDataBuffer
@@ -545,12 +545,12 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
     buffer->DeepCopy( tool->GetBuffer() ); 
     if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetToolName());
+      LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetSourceId());
       return PLUS_FAIL;
     }
 
     buffer->Register(this);
-    this->LocalTrackerBuffers[tool->GetToolName()] = buffer;
+    this->LocalTrackerBuffers[tool->GetSourceId()] = buffer;
   }
 
   savedDataBuffer->Clear();
@@ -816,13 +816,13 @@ BufferItemUidType vtkSavedDataSource::GetClosestFrameUidWithinTimeRange(double t
 vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
-  vtkPlusStreamTool* firstActiveTool = NULL; 
+  vtkPlusDataSource* firstActiveTool = NULL; 
   if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 
     return NULL; 
   }
-  return this->LocalTrackerBuffers[firstActiveTool->GetToolName()];
+  return this->LocalTrackerBuffers[firstActiveTool->GetSourceId()];
 }
 
 //----------------------------------------------------------------------------
@@ -879,7 +879,7 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
     break;
   case TRACKER_STREAM:
     {
-      vtkPlusStreamTool* firstActiveTool = NULL; 
+      vtkPlusDataSource* firstActiveTool = NULL; 
       if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 
