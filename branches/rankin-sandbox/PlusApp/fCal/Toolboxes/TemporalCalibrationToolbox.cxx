@@ -233,7 +233,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
         vtkPlusDevice* aDevice = NULL;
         if ( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
         {
-          videoTimeOffset = aDevice->GetImageLocalTimeOffsetSec();
+          videoTimeOffset = aDevice->GetVideoLocalTimeOffsetSec();
         }
       }
     }
@@ -343,9 +343,9 @@ void TemporalCalibrationToolbox::StartCalibration()
       else if ( aDevice->GetVideoDataAvailable() )
       {
         m_PreviousTrackerOffset = aDevice->GetToolLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = aDevice->GetImageLocalTimeOffsetSec(); 
+        m_PreviousVideoOffset = aDevice->GetVideoLocalTimeOffsetSec(); 
         // TODO : verify this is the correct conversion to make
-        aDevice->SetImageLocalTimeOffsetSec(0.0); 
+        aDevice->SetVideoLocalTimeOffsetSec(0.0); 
         aDevice->SetToolLocalTimeOffsetSec(0.0);
         offsetsSuccessfullyRetrieved = true;
       }
@@ -492,7 +492,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
       vtkPlusDevice* aDevice = NULL;
       if( dataCollector->GetSelectedDevice(aDevice) == PLUS_SUCCESS )
       {
-        aDevice->SetImageLocalTimeOffsetSec(trackerLagSec);
+        aDevice->SetVideoLocalTimeOffsetSec(trackerLagSec);
         offsetsSuccessfullySet = true;
       }
     }
@@ -600,7 +600,7 @@ void TemporalCalibrationToolbox::CancelCalibration()
       }
       if ( aDevice != NULL )
       {
-        aDevice->SetImageLocalTimeOffsetSec(m_PreviousVideoOffset); 
+        aDevice->SetVideoLocalTimeOffsetSec(m_PreviousVideoOffset); 
         aDevice->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
         offsetsSuccessfullySet = true;
       }

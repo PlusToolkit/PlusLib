@@ -51,7 +51,7 @@ vtkPlusDataSource::~vtkPlusDataSource()
   this->SetToolSerialNumber(NULL); 
   this->SetToolManufacturer(NULL); 
 
-  if ( this->Buffer )
+  if ( this->Buffer != NULL )
   {
     this->Buffer->Delete(); 
     this->Buffer = NULL;
@@ -125,7 +125,7 @@ PlusStatus vtkPlusDataSource::SetSourceId(const char* toolName)
 
   if ( this->SourceId != NULL )
   {
-    LOG_ERROR("Tool name change is not allowed for tool '" << this->SourceId << "'" ); 
+    LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -154,7 +154,7 @@ PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
 
   if ( this->ReferenceCoordinateFrameName != NULL )
   {
-    LOG_ERROR("Tool name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
+    LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -183,7 +183,7 @@ PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 
   if ( this->PortName != NULL )
   {
-    LOG_ERROR("Port name change is not allowed on tool port'" << this->PortName << "'" ); 
+    LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'" ); 
     return PLUS_FAIL; 
   }
 
@@ -242,24 +242,25 @@ void vtkPlusDataSource::SetDevice(vtkPlusDevice *device)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *tool)
+void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
   LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
 
-  this->SetLED1( tool->GetLED1() );
-  this->SetLED2( tool->GetLED2() );
-  this->SetLED3( tool->GetLED3() );
+  this->SetLED1( aSource->GetLED1() );
+  this->SetLED2( aSource->GetLED2() );
+  this->SetLED3( aSource->GetLED3() );
 
-  this->SetToolRevision( tool->GetToolRevision() );
-  this->SetToolSerialNumber( tool->GetToolSerialNumber() );
-  this->SetToolPartNumber( tool->GetToolPartNumber() );
-  this->SetToolManufacturer( tool->GetToolManufacturer() );
-  this->SetSourceId( tool->GetSourceId() ); 
-  this->SetReferenceName( tool->GetReferenceCoordinateFrameName() );
+  this->SetToolRevision( aSource->GetToolRevision() );
+  this->SetToolSerialNumber( aSource->GetToolSerialNumber() );
+  this->SetToolPartNumber( aSource->GetToolPartNumber() );
+  this->SetToolManufacturer( aSource->GetToolManufacturer() );
+  this->SetSourceId( aSource->GetSourceId() ); 
+  this->SetType( aSource->GetType() );
+  this->SetReferenceName( aSource->GetReferenceCoordinateFrameName() );
 
-  this->Buffer->DeepCopy( tool->GetBuffer() );
+  this->Buffer->DeepCopy( aSource->GetBuffer() );
 
-  this->SetFrameNumber( tool->GetFrameNumber() );
+  this->SetFrameNumber( aSource->GetFrameNumber() );
 }
 
 
@@ -270,7 +271,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* toolElement, 
 
   if ( toolElement == NULL )
   {
-    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure data sourcel! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
@@ -346,7 +347,7 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
 
   if ( aSourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure stream tool! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure data source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 

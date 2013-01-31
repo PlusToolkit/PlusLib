@@ -4,12 +4,12 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// .NAME vtkPlusDataSource - interfaces VTK to a handheld 3D positioning tool
+// .NAME vtkPlusDataSource - interfaces VTK to a handheld 3D positioning tool or video source
 // .SECTION Description
-// The vtkPlusDataSource provides an interface between a tracked object in
+// The vtkPlusDataSource provides an interface between a tracked object or video stream in
 // the real world and a virtual object.
 // .SECTION see also
-// vtkTracker vtkPOLARISTracker vtkFlockTracker
+// vtkPlusDevice vtkPlusStreamBuffer vtkPlusChannel
 
 #ifndef __vtkPlusDataSource_h
 #define __vtkPlusDataSource_h
