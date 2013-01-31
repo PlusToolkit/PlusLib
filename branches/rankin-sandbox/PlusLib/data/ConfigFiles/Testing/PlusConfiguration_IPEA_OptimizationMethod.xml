@@ -11,7 +11,7 @@
       UseData="IMAGE_AND_TRANSFORM" 
       UseOriginalTimestamps="TRUE" 
       RepeatEnabled="TRUE" 
-      LocalTimeOffsetSec="0" />
+      LocalTimeOffsetSec="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="275" />
       </DataSources>

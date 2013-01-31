@@ -42,8 +42,7 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" 
-      Selectable="true" >
+      CompressionStatus="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
@@ -59,10 +58,10 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      <InputChannels>
+      </InputChannels>
       
       <OutputChannels>
-        <OutputChannel Id="TrackedVideoStream"/>
+        <OutputChannel Id="TrackedVideoStream" />
       </OutputChannels>
     </Device>
   </DataCollection>

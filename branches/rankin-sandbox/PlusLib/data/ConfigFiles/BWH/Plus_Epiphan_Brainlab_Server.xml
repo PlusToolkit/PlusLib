@@ -77,8 +77,8 @@
         <Transform Name="ReferenceStarToTracker" />
         <Transform Name="UltrasoundToTracker" />
       </TransformNames>
-      <DataSource Type="Video"Names>
-        <DataSource Type="Video" Name="Image" EmbeddedTransformToFrame="Tracker" />
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Tracker" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

@@ -62,7 +62,7 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
       continue;
     }
 
-    if( this->OwnerDevice == NULL || this->OwnerDevice->GetDataSource(id, aSource) != PLUS_SUCCESS)
+    if( this->OwnerDevice != NULL && this->OwnerDevice->GetDataSource(id, aSource) == PLUS_SUCCESS)
     {
       if( aSource->GetType() == DATA_SOURCE_TYPE_VIDEO )
       {
@@ -76,6 +76,11 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
       {
         LOG_ERROR("Unknown source type when reading channel configuration. Id: " << id);
       }
+    }
+    else
+    {
+      LOG_ERROR("Unable to add tool data source \'" << id << "\'.");
+      return PLUS_FAIL;
     }
   }
 

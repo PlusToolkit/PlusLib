@@ -48,7 +48,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
       ICBufferSize="50">
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
-      <DataSources>
+      </DataSources>
 
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

@@ -58,8 +58,8 @@
         <Transform Name="ReferenceToTracker" /> 
     <Transform Name="ProbeToReference" />
       </TransformNames>
-    <DataSource Type="Video"Names>
-      <DataSource Type="Video" Name="Image" EmbeddedTransformToFrame="Reference" />
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
     </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

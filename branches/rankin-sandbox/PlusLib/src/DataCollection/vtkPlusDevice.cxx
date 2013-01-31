@@ -2700,7 +2700,6 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
 
   if( CurrentChannel == NULL )
   {
-    LOG_ERROR("Failed to get image, CurrentChannel is NULL"); 
     return PLUS_FAIL;
   }
 
