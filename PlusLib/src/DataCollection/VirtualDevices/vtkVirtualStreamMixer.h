@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkVirtualStreamMixer_h
 
 #include "vtkPlusDevice.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include <string>
 
 /*!
@@ -28,7 +28,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   // Virtual stream mixers output only one stream
-  vtkPlusStream* GetStream() const;
+  vtkPlusChannel* GetStream() const;
 
   virtual PlusStatus NotifyConfigured();
 
@@ -39,20 +39,20 @@ public:
   virtual double GetToolLocalTimeOffsetSec();
 
   /*! Set tool local time offsets in the input streams that contain images */
-  virtual void SetImageLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
 
   /*! Get tool local time offset from the input streams that contains images */
-  virtual double GetImageLocalTimeOffsetSec();
+  virtual double GetVideoLocalTimeOffsetSec();
 
   virtual double GetAcquisitionRate() const;
 protected:
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();
 
-  vtkGetObjectConstMacro(OutputStream, vtkPlusStream);
-  vtkSetObjectMacro(OutputStream, vtkPlusStream);
+  vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
+  vtkSetObjectMacro(OutputStream, vtkPlusChannel);
 
-  vtkPlusStream*  OutputStream;
+  vtkPlusChannel*  OutputStream;
 
 private:
   vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.

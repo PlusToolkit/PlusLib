@@ -120,7 +120,7 @@ private:  // Variables.
   */
   std::string FirmwareDirectory;
 
-  vtkPlusStreamTool* OrientationSensorTool;
+  vtkPlusDataSource* OrientationSensorTool;
 
   vtkXMLDataElement* FirmwareDefinition;
   std::string FirmwareVersionId;

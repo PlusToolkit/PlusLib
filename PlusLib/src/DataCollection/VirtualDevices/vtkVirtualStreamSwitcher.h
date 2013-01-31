@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkVirtualStreamSwitcher_h
 
 #include "vtkPlusDevice.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include <string>
 
 /*!
@@ -27,7 +27,7 @@ public:
   /*!
     Virtual stream switchers output only one stream
   */
-  PlusStatus GetStream(vtkPlusStream* &aStream) const;
+  PlusStatus GetStream(vtkPlusChannel* &aStream) const;
 
   virtual double GetAcquisitionRate() const;
 
@@ -36,7 +36,7 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
-  vtkGetObjectConstMacro(OutputStream, vtkPlusStream);
+  vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
 
 protected:
   virtual PlusStatus InternalUpdate();
@@ -48,14 +48,14 @@ protected:
   vtkVirtualStreamSwitcher();
   virtual ~vtkVirtualStreamSwitcher();
 
-  vtkGetObjectMacro(CurrentActiveInputStream, vtkPlusStream);
-  vtkSetObjectMacro(CurrentActiveInputStream, vtkPlusStream);
+  vtkGetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
+  vtkSetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
 
-  vtkSetObjectMacro(OutputStream, vtkPlusStream);
+  vtkSetObjectMacro(OutputStream, vtkPlusChannel);
 
-  vtkPlusStream*                    CurrentActiveInputStream;
-  std::map<vtkPlusStream*, double>  LastRecordedTimestampMap;
-  vtkPlusStream*                    OutputStream;
+  vtkPlusChannel*                    CurrentActiveInputStream;
+  std::map<vtkPlusChannel*, double>  LastRecordedTimestampMap;
+  vtkPlusChannel*                    OutputStream;
 
   unsigned long FramesWhileInactive;
 

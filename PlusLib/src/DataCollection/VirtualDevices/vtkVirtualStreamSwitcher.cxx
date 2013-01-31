@@ -6,7 +6,7 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkVirtualStreamSwitcher.h"
 
 //----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  for( StreamContainerIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
     os << indent << "Input stream: \n";
     (*it)->PrintSelf(os, indent);
@@ -50,7 +50,7 @@ void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::GetStream(vtkPlusStream* &aStream) const
+PlusStatus vtkVirtualStreamSwitcher::GetStream(vtkPlusChannel* &aStream) const
 {
   if( this->CurrentActiveInputStream != NULL )
   {
@@ -115,11 +115,11 @@ PlusStatus vtkVirtualStreamSwitcher::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
 {
-  std::vector<vtkPlusStream*> ActiveStreams;
+  std::vector<vtkPlusChannel*> ActiveStreams;
 
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusStream* aStream = (*it);
+    vtkPlusChannel* aStream = (*it);
     double latestTimestamp(0);
     if( aStream->GetLatestTimestamp(latestTimestamp) != PLUS_SUCCESS )
     {
@@ -156,7 +156,7 @@ PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
 //----------------------------------------------------------------------------
 double vtkVirtualStreamSwitcher::GetAcquisitionRate() const
 {
-  vtkPlusStream* aStream = NULL;
+  vtkPlusChannel* aStream = NULL;
   if( this->GetStream(aStream) == PLUS_SUCCESS )
   {
     return aStream->GetOwnerDevice()->GetAcquisitionRate();
@@ -173,7 +173,7 @@ PlusStatus vtkVirtualStreamSwitcher::ReadConfiguration( vtkXMLDataElement* eleme
     return PLUS_FAIL;
   }
 
-  SetOutputStream(this->OutputStreams[0]);
+  SetOutputStream(this->OutputChannels[0]);
 
   return PLUS_SUCCESS;
 }
@@ -183,9 +183,9 @@ PlusStatus vtkVirtualStreamSwitcher::NotifyConfigured()
 {
   this->LastRecordedTimestampMap.clear();
 
-  for( StreamContainerConstIterator it = this->InputStreams.begin(); it != this->InputStreams.end(); ++it )
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusStream* aStream = (*it);
+    vtkPlusChannel* aStream = (*it);
     this->LastRecordedTimestampMap[aStream] = 0;
   }
 

@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkSocketCommunicator.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include <ctype.h>
 #include <float.h>
@@ -613,7 +613,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     
     std::ostringstream toolPortName; 
     toolPortName << tool; 
-    vtkPlusStreamTool* trackerTool = NULL; 
+    vtkPlusDataSource* trackerTool = NULL; 
     if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
     {
       if (flags != TOOL_MISSING)
@@ -624,7 +624,7 @@ PlusStatus vtkNDITracker::InternalUpdate()
     else
     {
       // send the matrix and status to the tool's vtkPlusDataBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetToolName(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetSourceId(), this->SendMatrix, (ToolStatus)flags, toolFrameNumber, toolTimestamp);
     }
   }
   
@@ -834,7 +834,7 @@ void vtkNDITracker::EnableToolPorts()
   // get information for all tools
   ndiCommand(this->Device,"PHSR:00");
   ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  ToolContainerConstIterator it;
+  DataSourceContainerConstIterator it;
   for ( it = this->GetToolIteratorBegin(), tool = 0; it != this->GetToolIteratorEnd(); ++it, ++tool)
   {
     ph = ndiGetPHSRHandle(this->Device,tool);
@@ -868,7 +868,7 @@ void vtkNDITracker::EnableToolPorts()
       }
     }
 
-    vtkPlusStreamTool* trackerTool = NULL; 
+    vtkPlusDataSource* trackerTool = NULL; 
     if ( this->GetToolByPortName(it->second->GetPortName(), trackerTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool by port name: " << it->second->GetPortName() ); 
@@ -1374,43 +1374,58 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   } 
 
   // Read ROM files for tools
-  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+  vtkXMLDataElement* dataSourcesElement = trackerConfig->FindNestedElementWithName("DataSources");
+  if( dataSourcesElement == NULL )
   {
-    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
-    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+    LOG_ERROR("Unable to find any data sources in the NDI tracker. No transforms will be outputted.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
     {
-      // if this is not a Tool element, skip it
-      continue; 
-    }
-
-    const char* portName = toolDataElement->GetAttribute("PortName"); 
-    int portNumber = -1;
-	  if ( portName != NULL ) 
-	  {
-      portNumber = atoi(portName);
-      if (portNumber > 12)
+      vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+      if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
       {
-        LOG_WARNING("Port number has to be 12 or smaller!");
+        // if this is not a data source element, skip it
+        continue; 
+      }
+
+      if ( toolDataElement->GetAttribute("Type") != NULL && STRCASECMP(toolDataElement->GetAttribute("Type"), "Tool") != 0 )
+      {
+        // if this is not a Tool element, skip it
+        continue; 
+      }
+
+      const char* portName = toolDataElement->GetAttribute("PortName"); 
+      int portNumber = -1;
+      if ( portName != NULL ) 
+      {
+        portNumber = atoi(portName);
+        if (portNumber > 12)
+        {
+          LOG_WARNING("Port number has to be 12 or smaller!");
+          continue;
+        }
+      }
+      else
+      {
+        LOG_ERROR("Unable to find PortName! This attribute is mandatory in NDI tool definition."); 
         continue;
       }
-	  }
-	  else
-	  {
-		  LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
-		  continue;
-	  }
 
-    const char* romFileName = toolDataElement->GetAttribute("RomFile");
-    if (romFileName)
-    {
-      // Passive tools (that need Rom files) must have port number 4 or higher
-      if (portNumber < 4)
+      const char* romFileName = toolDataElement->GetAttribute("RomFile");
+      if (romFileName)
       {
-        LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
-        continue;
+        // Passive tools (that need Rom files) must have port number 4 or higher
+        if (portNumber < 4)
+        {
+          LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
+          continue;
+        }
+        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
+        this->LoadVirtualSROM(portNumber, romFilePath.c_str());
       }
-      std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
-      this->LoadVirtualSROM(portNumber, romFilePath.c_str());
     }
   }
 

@@ -9,16 +9,17 @@ See License.txt for details.
   \brief This program tests if a recorded tracked ultrasound buffer can be read and replayed from file using vtkDataCollectorFile
 */ 
 
-#include "vtkSmartPointer.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkXMLUtilities.h"
-#include "vtkMatrix4x4.h"
-
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
-#include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
-#include "vtkPlusStreamImage.h"
+#include "vtkDataCollector.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSmartPointer.h"
+#include "vtkTransformRepository.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
 
@@ -125,10 +126,10 @@ int main( int argc, char** argv )
 
   // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
-  vtkPlusDevice* selectedDevice=NULL;
-  dataCollector->GetSelectedDevice(selectedDevice);
-  vtkPlusStreamImage* imageStream=NULL;
-  selectedDevice->GetImage("Video", imageStream);
+  vtkPlusChannel* selectedChannel=NULL;
+  dataCollector->GetSelectedChannel(selectedChannel);
+  vtkPlusDataSource* imageStream=NULL;
+  selectedChannel->GetVideoSource(imageStream);
   double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;

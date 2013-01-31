@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 
 vtkStandardNewMacro(vtkFakeTracker);
@@ -61,7 +61,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
 {
   LOG_TRACE("vtkFakeTracker::InternalConnect"); 
 
-  vtkPlusStreamTool* tool = NULL; 
+  vtkPlusDataSource* tool = NULL; 
   switch (this->Mode)
   {
   case (FakeTrackerMode_Default):
@@ -290,7 +290,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
   case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
     {
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-      for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
         ToolStatus toolStatus = TOOL_OK;
 
@@ -324,7 +324,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
           this->InternalTransform->RotateX(rotation);
         }
 
-        this->ToolTimeStampedUpdate(it->second->GetToolName(),this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
+        this->ToolTimeStampedUpdate(it->second->GetSourceId(),this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
       }
     }
     break;
@@ -523,13 +523,6 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
   {
     LOG_WARNING("Unable to find FakeTracker XML data element");
     return PLUS_FAIL; 
-  }
-
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
   }
 
   if ( !this->Recording )

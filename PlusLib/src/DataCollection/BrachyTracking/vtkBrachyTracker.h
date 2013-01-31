@@ -54,6 +54,9 @@ public:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
+  /*! Perform any post configuration actions */
+  virtual PlusStatus NotifyConfigured();
+
   /*! Probe to see if the tracking system is present on the specified serial port. */
   PlusStatus Probe();
 

@@ -19,10 +19,9 @@ SET (DataCollection_SRCS
   vtkDataCollector.cxx 
   vtkDataCollectorSynchronizer.cxx
   vtkPlusDevice.cxx
-  vtkPlusStream.cxx
+  vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
-  vtkPlusStreamTool.cxx 
-  vtkPlusStreamImage.cxx 
+  vtkPlusDataSource.cxx 
   FakeTracking/vtkFakeTracker.cxx   
   SavedDataSource/vtkSavedDataSource.cxx 
   VirtualDevices/vtkVirtualStreamMixer.cxx
@@ -42,10 +41,9 @@ if (WIN32)
     vtkDataCollectorSynchronizer.h
     vtkPlusDevice.h
     vtkPlusDeviceTypes.h 
-    vtkPlusStream.h
+    vtkPlusChannel.h
     vtkPlusDeviceFactory.h
-    vtkPlusStreamTool.h
-    vtkPlusStreamImage.h 
+    vtkPlusDataSource.h
     FakeTracking/vtkFakeTracker.h
     SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualStreamMixer.h

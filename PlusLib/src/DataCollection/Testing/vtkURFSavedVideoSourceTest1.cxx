@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"

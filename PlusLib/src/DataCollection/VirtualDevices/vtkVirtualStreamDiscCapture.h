@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStream.h"
+#include "vtkPlusChannel.h"
 #include <string>
 
 /*!

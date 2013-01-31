@@ -180,7 +180,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-    vtkPlusStreamTool* tool = NULL; 
+    vtkPlusDataSource* tool = NULL; 
     if ( this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS )
     {
       LOG_DEBUG("Marker " << identifiedTemplateName << " has no associated tool"); 
@@ -191,27 +191,27 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 #ifdef USE_MICRONTRACKER_TIMESTAMPS
     this->ToolTimeStampedUpdateWithoutFiltering( tool->GetToolName(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
 #else
-    this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 #endif
 
-    identifiedToolNames.insert(tool->GetToolName());
+    identifiedToolNames.insert(tool->GetSourceId());
   }
 
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
-  for ( ToolContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {    
-    if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
+    if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
     {
       // this tool has been found and update has been already called with the correct transform
-      LOG_TRACE("Tool "<<it->second->GetToolName()<<": found");
+      LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
       continue;
     }
-    LOG_TRACE("Tool "<<it->second->GetToolName()<<": not found");
+    LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
 #ifdef USE_MICRONTRACKER_TIMESTAMPS
     ToolTimeStampedUpdateWithoutFiltering(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);   
 #else
-    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);   
+    ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);   
 #endif
   }
 
@@ -267,7 +267,7 @@ void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rightImage)
+PlusStatus vtkMicronTracker::GetVideoSource(vtkImageData* leftImage, vtkImageData* rightImage)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 

@@ -9,8 +9,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkPlusStream.h"
-#include "vtkPlusStreamTool.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
@@ -66,7 +66,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
 {
   //LOG_TRACE("vtkUsSimulatorVideoSource::InternalUpdate");
 
-  if( this->InputStreams.size() != 1 )
+  if( this->InputChannels.size() != 1 )
   {
     LOG_ERROR("vtkUsSimulatorVideoSource device requires exactly 1 input stream (that contains the tracking data). Check configuration.");
     return PLUS_FAIL;
@@ -74,7 +74,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
   vtkSmartPointer<vtkTrackedFrameList> trackingFrames=vtkSmartPointer<vtkTrackedFrameList>::New();  
-  if ( this->InputStreams[0]->GetOwnerDevice()->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
+  if ( this->InputChannels[0]->GetOwnerDevice()->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     this->LastProcessedTrackingDataTimestamp=vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on

@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 
 class vtkPlusStreamBuffer;
-class vtkPlusStreamTool;
+class vtkPlusDataSource;
 class vtkMatrix4x4;
 
 /*!
@@ -94,7 +94,7 @@ private:  // Functions.
 
 private:  // Variables.
 
-  vtkPlusStreamTool* SpaceNavigatorTool;
+  vtkPlusDataSource* SpaceNavigatorTool;
   vtkMatrix4x4* LatestMouseTransform;
   vtkMatrix4x4* DeviceToTrackerTransform;
   double TranslationScales[3];
