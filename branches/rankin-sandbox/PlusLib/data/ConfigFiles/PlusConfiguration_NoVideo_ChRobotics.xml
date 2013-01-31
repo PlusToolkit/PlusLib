@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
@@ -13,12 +13,16 @@
       BaudRate="115200"
       FirmwareDirectory="ChRoboticsFirmware"
       AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0" 
-      Selectable="true">
-      <Tool Name="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      <OutputStream Id="TrackerStream">
-        <Tool Name="OrientationSensor"/>
-      </OutputStream>
+      LocalTimeOffsetSec="0.0" >
+      <DataSources>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="OrientationSensor"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
     
   </DataCollection>

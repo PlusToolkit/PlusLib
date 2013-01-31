@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <!--
     This configuration is for volume reconstruction from US image slices recorded with
@@ -14,18 +14,19 @@
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
-      BufferSize="2500"
       AcquisitionRate="50"
-      AveragedItemsForFiltering="20"
-      LocalTimeOffsetSec="0.0"
-      Selectable="true" >
-      <Tool PortName="0" Model="L14-5_38" Name="Probe" />
-      <OutputStream Id="TrackerStream" >
-        <Tool Name="Probe"/>
-      </OutputStream>
+      LocalTimeOffsetSec="0.0" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="2500" Model="L14-5_38" AveragedItemsForFiltering="20"/>
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
   </DataCollection>
-
 
   <CoordinateDefinitions>
     <Transform From="Phantom" To="Reference"

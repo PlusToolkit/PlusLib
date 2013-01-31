@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
@@ -13,12 +13,16 @@
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Probe"
-      SequenceMetafile="NwirePhantomFreehand.mha"
-      Selectable="true" >
-      <Tool BufferSize="200" AveragedItemsForFiltering="20" Name="Tool" PortName="0" />
-      <OutputStream Id="TrackerStream">
-        <Tool Name="Tool"/>
-      </OutputStream>
+      SequenceMetafile="NwirePhantomFreehand.mha" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Tool" BufferSize="200" AveragedItemsForFiltering="20" PortName="0" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Tool"/>
+        </OutputChannel>
+      </OutputChannels>
     </Device>
 
     <Device
@@ -28,18 +32,25 @@
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
       UsImageOrientation="MF"
-      SequenceMetafile="NwirePhantomFreehand.mha"
-      Selectable="true" >
-      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      SequenceMetafile="NwirePhantomFreehand.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
     
     <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
     </Device>
     
   </DataCollection>

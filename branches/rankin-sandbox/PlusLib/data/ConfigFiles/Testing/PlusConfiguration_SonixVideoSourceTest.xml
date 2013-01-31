@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
   <DataCollection StartupDelaySec="1.0">
     <Device
       Id="VideoDevice"
@@ -16,12 +16,14 @@
       Zoom="-1" 
       Frequency="-1" 
       Timeout="-1" 
-      CompressionStatus="0" 
-      Selectable="true" >
-      <Image Id="Video" BufferSize="30" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="30" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
   </DataCollection>
 </PlusConfiguration>

@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
@@ -11,14 +11,17 @@
       Type="FakeTracker" 
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
-      Mode="RecordPhantomLandmarks"
-      Selectable="True" >
-      <Tool Name="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" /> 
-      <Tool Name="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" />      
-      <OutputStream Id="TrackerStream">
-        <Tool Name="Reference" />
-        <Tool Name="Stylus" />
-      </OutputStream>
+      Mode="RecordPhantomLandmarks" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
+      </DataSources> 
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
     </Device>
   </DataCollection> 
 

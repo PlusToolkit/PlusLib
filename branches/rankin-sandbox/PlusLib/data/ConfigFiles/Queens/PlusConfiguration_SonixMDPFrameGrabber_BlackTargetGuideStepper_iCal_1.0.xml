@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
@@ -18,7 +18,9 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       ModelNumber="4012A18-a"
       ModelVersion=""
       ModelSerialNumber="01-50-149" >
-        <OutputStream Id="TrackerOutput" BufferSize="300" AveragedItemsForFiltering="20" />
+        <OutputChannels>
+          <OutputChannel Id="TrackerOutput" />
+        </OutputChannels>
     </Device>
 
     <Device
@@ -32,18 +34,27 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       VideoFormat="Y800 (640x480)"
       InputChannel="01 Video: SVideo"
       ICBufferSize="50" >
-      <Image Id="Video" BufferSize="100" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
 
-    <Device Id="TrackedVideoDevice" Type="VirtualStreamMixer">
-      <InputStream Id="TrackerStream" />
-      <InputStream Id="VideoStream" />
-      <OutputStream Id="TrackedVideoStream"/>
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualStreamMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
     </Device>
-    
   </DataCollection>
 
   

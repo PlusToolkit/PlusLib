@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
@@ -12,10 +12,13 @@
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
-      <Image Id="Video" BufferSize="100" />
-      <OutputStream Id="TrackedVideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
   </DataCollection>
 

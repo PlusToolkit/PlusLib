@@ -1,10 +1,11 @@
-<PlusConfiguration version="2.0">
+<PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST SegmentationParameterDialogTest - Saved dataset for video only" 
       Description="Saved dataset for video only" 
     />
+
     <Device
       Id="VideoDevice"
       Type="SavedDataSource"      
@@ -14,10 +15,13 @@
       SequenceMetafile="AllSegmentablefCal.mha"
       UsImageOrientation="MF"
       RepeatEnabled="TRUE" >
-      <Image Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
-      <OutputStream Id="VideoStream">
-        <Image Id="Video"/>
-      </OutputStream>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
     </Device>
   </DataCollection>
 
