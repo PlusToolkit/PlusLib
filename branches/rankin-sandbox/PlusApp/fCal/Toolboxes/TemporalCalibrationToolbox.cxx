@@ -42,6 +42,11 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 {
   ui.setupUi(this);
 
+  m_LineSegmentationClipRectangleOrigin[0]=0;
+  m_LineSegmentationClipRectangleOrigin[1]=0;
+  m_LineSegmentationClipRectangleSize[0]=0;
+  m_LineSegmentationClipRectangleSize[1]=0;
+
   // Create tracked frame lists
   m_TemporalCalibrationTrackingData = vtkTrackedFrameList::New();
   m_TemporalCalibrationTrackingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
@@ -191,6 +196,21 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   else
   {
     LOG_WARNING("Unable to read TemporalCalibrationDurationSec attribute from fCal element of the device set configuration, default value '" << m_TemporalCalibrationDurationSec << "' will be used");
+  }
+
+  // TODO: move all temporal calibration attributes into one vtkTemporalCalibrationAlgo element
+  // Now we get the clipping region from the fiducial line segmentation algo element
+  vtkXMLDataElement* segmentationParameters = aConfig->FindNestedElementWithName("Segmentation");
+  if (segmentationParameters != NULL)
+  {
+    int regionOfInterest[4] = {0}; 
+    if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+    {
+      m_LineSegmentationClipRectangleOrigin[0]=regionOfInterest[0];
+      m_LineSegmentationClipRectangleOrigin[1]=regionOfInterest[2];
+      m_LineSegmentationClipRectangleSize[0]=regionOfInterest[1]-regionOfInterest[0];
+      m_LineSegmentationClipRectangleSize[1]=regionOfInterest[3]-regionOfInterest[2];
+    }    
   }
 
   return PLUS_SUCCESS;
@@ -404,6 +424,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   probeToReferenceTransformName.GetTransformName(probeToReferenceTransformNameString);
   temporalCalibrationObject.SetTrackerFrames(m_TemporalCalibrationTrackingData, probeToReferenceTransformNameString);
   temporalCalibrationObject.SetVideoFrames(m_TemporalCalibrationVideoData);
+  temporalCalibrationObject.SetVideoClipRectangle( m_LineSegmentationClipRectangleOrigin,  m_LineSegmentationClipRectangleSize);
   temporalCalibrationObject.SetSamplingResolutionSec(0.001);
   temporalCalibrationObject.SetSaveIntermediateImages(false);
 

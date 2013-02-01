@@ -33,6 +33,9 @@ public:
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
 
+  /*! Sets a rectanguler region of interest. The algorithm will ignore everything outside the specified image region. If the rectangle size is (0,0) then no clipping is performed. */
+  void SetClippingRegion(int clipRectangleOriginPix[2], int clipRectangleSizePix[2]);
+
   /*!
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
@@ -72,6 +75,9 @@ protected:
 
   void SaveIntermediateImage(int frameNumber, CharImageType::Pointer scanlineImage, double x_0, double y_0, double r_x, double r_y, int numOfValidScanlines, const std::vector<itk::Point<double,2> > &intensityPeakPositions);  
 
+  /*! Adjust clipping region origin and size to fit inside the frame size. */
+  void LimitClippingToValidRegion(const int frameSize[2]); 
+
   ///
 
   vtkSmartPointer<vtkTrackedFrameList> m_VideoFrames; 
@@ -87,6 +93,12 @@ protected:
 
   double m_SignalTimeRangeMin;
   double m_SignalTimeRangeMax;
+
+  /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
+  int m_ClipRectangleOrigin[2];
+
+  /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
+  int m_ClipRectangleSize[2]; 
 
 private:
   vtkLineSegmentationAlgo(const vtkLineSegmentationAlgo&);

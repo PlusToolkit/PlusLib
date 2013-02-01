@@ -67,6 +67,10 @@ vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() :
 {  
   m_SignalTimeRangeMin=0.0;
   m_SignalTimeRangeMax=-1.0;
+  m_ClipRectangleOrigin[0]=0;
+  m_ClipRectangleOrigin[1]=0;
+  m_ClipRectangleSize[0]=0;
+  m_ClipRectangleSize[1]=0;
 }
 
 //----------------------------------------------------------------------------
@@ -219,6 +223,17 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
     std::vector<itk::Point<double,2> > intensityPeakPositions;
     CharImageType::RegionType region = localImage->GetLargestPossibleRegion();
+    
+    if( (m_ClipRectangleSize[0] > 0) && (m_ClipRectangleSize[1] > 0) )
+    {
+      // Clipping enabled
+      CharImageType::SizeType frameSize=region.GetSize();
+      int frameSizeIntVec[2]={frameSize[0],frameSize[1]};
+      LimitClippingToValidRegion(frameSizeIntVec);      
+      region.SetSize(m_ClipRectangleSize[0], m_ClipRectangleSize[1]);
+      region.SetIndex(m_ClipRectangleOrigin[0], m_ClipRectangleOrigin[1]);
+    }
+    
     int numOfValidScanlines = 0;
 
     for(int currScanlineNum = 0; currScanlineNum < NUMBER_OF_SCANLINES; ++currScanlineNum)
@@ -793,4 +808,38 @@ void vtkLineSegmentationAlgo::GetDetectedTimestamps(std::deque<double> &timestam
 void vtkLineSegmentationAlgo::GetDetectedPositions(std::deque<double> &positions)
 {
   positions=m_SignalValues;
+}
+
+//-----------------------------------------------------------------------------
+void vtkLineSegmentationAlgo::SetClippingRegion(int clipRectangleOriginPix[2], int clipRectangleSizePix[2])
+{
+  m_ClipRectangleOrigin[0]=clipRectangleOriginPix[0];
+  m_ClipRectangleOrigin[1]=clipRectangleOriginPix[1];
+  m_ClipRectangleSize[0]=clipRectangleSizePix[0];
+  m_ClipRectangleSize[1]=clipRectangleSizePix[2];
+}
+
+//----------------------------------------------------------------------------
+void vtkLineSegmentationAlgo::LimitClippingToValidRegion(const int frameSize[2])
+{
+  if (m_ClipRectangleOrigin[0]<0 || m_ClipRectangleOrigin[1]<0
+    || m_ClipRectangleOrigin[0]>=frameSize[0] || m_ClipRectangleOrigin[1]>=frameSize[0])
+  {
+    LOG_WARNING("ClipRectangleOrigin is invalid ("<<m_ClipRectangleOrigin[0]<<", "<<m_ClipRectangleOrigin[1]<<"). The frame size is "
+      <<frameSize[0]<<"x"<<frameSize[1]<<". Using (0,0) as ClipRectangleOrigin.");
+    m_ClipRectangleOrigin[0]=0;
+    m_ClipRectangleOrigin[1]=0;
+  }
+  if (m_ClipRectangleOrigin[0]+m_ClipRectangleSize[0]>=frameSize[0])
+  {
+    // rectangle size is out of the framSize bounds, clip it to the available size
+    LOG_WARNING("Adjusting ClipRectangleSize x to "<<m_ClipRectangleSize[0]);
+    m_ClipRectangleSize[0]=frameSize[0]-m_ClipRectangleOrigin[0];
+  }
+  if (m_ClipRectangleOrigin[1]+m_ClipRectangleSize[1]>frameSize[1])
+  {
+    // rectangle size is out of the framSize bounds, clip it to the available size
+    LOG_WARNING("Adjusting ClipRectangleSize y to "<<m_ClipRectangleSize[1]);
+    m_ClipRectangleSize[1]=frameSize[1]-m_ClipRectangleOrigin[1];
+  }    
 }

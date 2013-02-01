@@ -46,6 +46,10 @@ TemporalCalibration::TemporalCalibration() :
 {
   m_FixedSignal.frameList=NULL;
   m_MovingSignal.frameList=NULL;
+  m_LineSegmentationClipRectangleOrigin[0]=0;
+  m_LineSegmentationClipRectangleOrigin[1]=0;
+  m_LineSegmentationClipRectangleSize[0]=0;
+  m_LineSegmentationClipRectangleSize[1]=0;
 }
 
 //-----------------------------------------------------------------------------
@@ -569,6 +573,7 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
     {
       vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
       lineSegmenter->SetVideoFrames(signal.frameList);
+      lineSegmenter->SetClippingRegion(m_LineSegmentationClipRectangleOrigin, m_LineSegmentationClipRectangleSize);
       lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
       lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
       lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
@@ -833,4 +838,13 @@ PlusStatus TemporalCalibration::ConstructTableSignal(std::deque<double> &x, std:
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void TemporalCalibration::SetVideoClipRectangle(int clipRectangleOrigin[2], int clipRectangleSize[2])
+{
+  m_LineSegmentationClipRectangleOrigin[0]=clipRectangleOrigin[0];
+  m_LineSegmentationClipRectangleOrigin[1]=clipRectangleOrigin[1];
+  m_LineSegmentationClipRectangleSize[0]=clipRectangleSize[0];
+  m_LineSegmentationClipRectangleSize[1]=clipRectangleSize[1];
 }
