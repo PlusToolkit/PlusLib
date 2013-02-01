@@ -223,16 +223,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
     std::vector<itk::Point<double,2> > intensityPeakPositions;
     CharImageType::RegionType region = localImage->GetLargestPossibleRegion();
-    
-    if( (m_ClipRectangleSize[0] > 0) && (m_ClipRectangleSize[1] > 0) )
-    {
-      // Clipping enabled
-      CharImageType::SizeType frameSize=region.GetSize();
-      int frameSizeIntVec[2]={frameSize[0],frameSize[1]};
-      LimitClippingToValidRegion(frameSizeIntVec);      
-      region.SetSize(m_ClipRectangleSize[0], m_ClipRectangleSize[1]);
-      region.SetIndex(m_ClipRectangleOrigin[0], m_ClipRectangleOrigin[1]);
-    }
+    LimitToClipRegion(region);
     
     int numOfValidScanlines = 0;
 
@@ -241,13 +232,13 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       // Set the scanline start pixel
       CharImageType::IndexType startPixel;
       int scanlineSpacingPix = static_cast<int>(region.GetSize()[0] / (NUMBER_OF_SCANLINES + 1) );
-      startPixel[0] = scanlineSpacingPix * (currScanlineNum + 1);
-      startPixel[1] = 0;
+      startPixel[0] = region.GetIndex()[0]+scanlineSpacingPix * (currScanlineNum + 1);
+      startPixel[1] = region.GetIndex()[1];
 
       // Set the scanline end pixel
       CharImageType::IndexType endPixel;
       endPixel[0] = startPixel[0];
-      endPixel[1] = region.GetSize()[1] - 1;
+      endPixel[1] = startPixel[1]+region.GetSize()[1] - 1;
 
       std::deque<int> intensityProfile; // Holds intensity profile of the line
       itk::LineIterator<CharImageType> it(localImage, startPixel, endPixel); 
@@ -321,7 +312,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
         itk::Point<double, 2> currPeakPos;
         currPeakPos[0] = static_cast<double>(startPixel[0]);
-        currPeakPos[1] = currPeakPos_y;
+        currPeakPos[1] = startPixel[1]+currPeakPos_y;
         intensityPeakPositions.push_back(currPeakPos);
         ++numOfValidScanlines;
 
@@ -352,7 +343,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       }
 
       // Store the y-value of the line, when the line's x-value is half of the image's width
-      double t = ( 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
+      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
       m_SignalValues.push_back( std::abs( planeParameters.at(3) + t * r_y ) );
 
       //  Store timestamp for image frame
@@ -593,6 +584,7 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   // Write image showing the scan lines to file
   std::ostrstream scanLineImageFilename;
   scanLineImageFilename << m_IntermediateFilesOutputDirectory << "/scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
+  LOG_DEBUG("Save line segmentation intermediate image to "<<scanLineImageFilename.str());
   PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
 
   // Test writing of colour image to file
@@ -600,25 +592,24 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   typedef itk::Image<rgbPixelType, 2> rgbImageType;
   rgbImageType::Pointer rgbImageCopy = rgbImageType::New();
 
+  CharImageType::RegionType fullImageRegion = scanlineImage->GetLargestPossibleRegion();
+  
   rgbImageType::IndexType start;
-  start[0] =   0;  // first index on X
-  start[1] =   0;  // first index on Y
-
-  CharImageType::RegionType scanlineRegion = scanlineImage->GetLargestPossibleRegion();
+  start[0] =   fullImageRegion.GetIndex()[0];  // first index on X
+  start[1] =   fullImageRegion.GetIndex()[0];  // first index on Y
   rgbImageType::SizeType  size;
-  size[0]  = scanlineRegion.GetSize()[0];  // size along X
-  size[1]  = scanlineRegion.GetSize()[1];  // size along Y
-
+  size[0]  = fullImageRegion.GetSize()[0];  // size along X
+  size[1]  = fullImageRegion.GetSize()[1];  // size along Y
   rgbImageType::RegionType region;
-  region.SetSize( size );
   region.SetIndex( start );
-
+  region.SetSize( size );
   rgbImageCopy->SetRegions( region );
   rgbImageCopy->Allocate();
 
-  for(unsigned int x_coord = 0; x_coord  < region.GetSize()[0]; ++x_coord)
+  // Copy grayscale image to an RGB image to allow drawing of annotations in color
+  for(unsigned int x_coord = region.GetIndex()[0]; x_coord  < region.GetSize()[0]; ++x_coord)
   {
-    for(unsigned int y_coord = 0; y_coord < region.GetSize()[1]; ++y_coord)
+    for(unsigned int y_coord = region.GetIndex()[1]; y_coord < region.GetSize()[1]; ++y_coord)
     {
       rgbImageType::IndexType currRgbImageIndex;
       currRgbImageIndex[0] = x_coord;
@@ -637,16 +628,14 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
 
   float diag = vcl_sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
 
-  // Draw line
+  // Draw detected line
   for(int i = static_cast<int>(-diag); i < static_cast<int>(diag); ++i)
   {
     rgbImageType::IndexType currIndex;
-    currIndex[0]= static_cast<int>(x_0 + i * r_x);
-    currIndex[1]= static_cast<int>(y_0 + i * r_y);
+    currIndex[0]=static_cast<int>(x_0 + i * r_x);
+    currIndex[1]=static_cast<int>(y_0 + i * r_y);
 
-    CharImageType::RegionType outputRegion = scanlineImage->GetLargestPossibleRegion();
-
-    if(outputRegion.IsInside(currIndex))
+    if(fullImageRegion.IsInside(currIndex))
     {
       rgbPixelType currRgbImagePixelVal;
       currRgbImagePixelVal.Set(0, 0, 255);
@@ -655,18 +644,18 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   }
 
   // Draw intensity peaks (as squares)
-  for(int i = 0; i < numOfValidScanlines; ++i)
+  for(int scanLineIndex = 0; scanLineIndex < numOfValidScanlines; ++scanLineIndex)
   {
-    unsigned int x_coord = static_cast<unsigned int>(intensityPeakPositions.at(i).GetElement(0));
-    unsigned int y_coord = static_cast<unsigned int>(intensityPeakPositions.at(i).GetElement(1));
+    unsigned int sqareCenterCoordX = static_cast<unsigned int>(intensityPeakPositions.at(scanLineIndex).GetElement(0));
+    unsigned int sqareCenterCoordY = static_cast<unsigned int>(intensityPeakPositions.at(scanLineIndex).GetElement(1));
 
-    for(int j = x_coord - 3; j < x_coord + 3; ++j)
+    for(int x = sqareCenterCoordX - 3; x < sqareCenterCoordX + 3; ++x)
     {
-      for(int k = y_coord - 3; k < y_coord + 3; ++k)
+      for(int y = sqareCenterCoordY - 3; y < sqareCenterCoordY + 3; ++y)
       {
         rgbImageType::IndexType currIndex;
-        currIndex[0] =  j;  // index on X
-        currIndex[1] =  k;  // index on Y
+        currIndex[0] =  x;  // index on X
+        currIndex[1] =  y;  // index on Y
 
         rgbPixelType currRgbImagePixelVal;
         currRgbImagePixelVal.Set(0, 0, 255);
@@ -811,35 +800,64 @@ void vtkLineSegmentationAlgo::GetDetectedPositions(std::deque<double> &positions
 }
 
 //-----------------------------------------------------------------------------
-void vtkLineSegmentationAlgo::SetClippingRegion(int clipRectangleOriginPix[2], int clipRectangleSizePix[2])
+void vtkLineSegmentationAlgo::SetClipRectangle(int clipRectangleOriginPix[2], int clipRectangleSizePix[2])
 {
   m_ClipRectangleOrigin[0]=clipRectangleOriginPix[0];
   m_ClipRectangleOrigin[1]=clipRectangleOriginPix[1];
   m_ClipRectangleSize[0]=clipRectangleSizePix[0];
-  m_ClipRectangleSize[1]=clipRectangleSizePix[2];
+  m_ClipRectangleSize[1]=clipRectangleSizePix[1];
 }
 
 //----------------------------------------------------------------------------
-void vtkLineSegmentationAlgo::LimitClippingToValidRegion(const int frameSize[2])
+void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& region)
 {
-  if (m_ClipRectangleOrigin[0]<0 || m_ClipRectangleOrigin[1]<0
-    || m_ClipRectangleOrigin[0]>=frameSize[0] || m_ClipRectangleOrigin[1]>=frameSize[0])
+  LOG_INFO("Clip: at ("<<m_ClipRectangleOrigin[0]<<","<<m_ClipRectangleOrigin[1]<<" of size ("<<m_ClipRectangleSize[0]<<","<<m_ClipRectangleSize[1]<<")");
+
+  if( (m_ClipRectangleSize[0] <= 0) || (m_ClipRectangleSize[1] <= 0) )
   {
-    LOG_WARNING("ClipRectangleOrigin is invalid ("<<m_ClipRectangleOrigin[0]<<", "<<m_ClipRectangleOrigin[1]<<"). The frame size is "
-      <<frameSize[0]<<"x"<<frameSize[1]<<". Using (0,0) as ClipRectangleOrigin.");
-    m_ClipRectangleOrigin[0]=0;
-    m_ClipRectangleOrigin[1]=0;
+    // no clipping
+    return;
   }
-  if (m_ClipRectangleOrigin[0]+m_ClipRectangleSize[0]>=frameSize[0])
+
+  // Clipping enabled
+  int clipRectangleOrigin[2]={m_ClipRectangleOrigin[0],m_ClipRectangleOrigin[1]};
+  int clipRectangleSize[2]={m_ClipRectangleSize[0],m_ClipRectangleSize[1]};
+  
+  // Adjust clipping region origin and size to fit inside the frame region
+  CharImageType::IndexType imageOrigin=region.GetIndex();
+  CharImageType::SizeType imageSize=region.GetSize();
+  if (clipRectangleOrigin[0]<imageOrigin[0] || clipRectangleOrigin[1]<imageOrigin[1]
+    || clipRectangleOrigin[0]>=imageOrigin[0]+imageSize[0] || clipRectangleOrigin[1]>=imageOrigin[1]+imageSize[1])
+  {
+    LOG_WARNING("ClipRectangleOrigin is invalid ("<<clipRectangleOrigin[0]<<", "<<clipRectangleOrigin[1]<<"). The frame size is "
+      <<imageSize[0]<<"x"<<imageSize[1]<<". Using ("<<imageOrigin[0]<<","<<imageOrigin<<") as ClipRectangleOrigin.");
+    clipRectangleOrigin[0]=0;
+    clipRectangleOrigin[1]=0;
+  }
+  if (clipRectangleOrigin[0]+clipRectangleSize[0]>=imageOrigin[0]+imageSize[0])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
-    LOG_WARNING("Adjusting ClipRectangleSize x to "<<m_ClipRectangleSize[0]);
-    m_ClipRectangleSize[0]=frameSize[0]-m_ClipRectangleOrigin[0];
+    clipRectangleSize[0]=imageOrigin[0]+imageSize[0]-clipRectangleOrigin[0];
+    LOG_WARNING("Adjusting ClipRectangleSize x to "<<clipRectangleSize[0]);
   }
-  if (m_ClipRectangleOrigin[1]+m_ClipRectangleSize[1]>frameSize[1])
+  if (clipRectangleOrigin[1]+clipRectangleSize[1]>imageSize[1])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
-    LOG_WARNING("Adjusting ClipRectangleSize y to "<<m_ClipRectangleSize[1]);
-    m_ClipRectangleSize[1]=frameSize[1]-m_ClipRectangleOrigin[1];
+    clipRectangleSize[1]=imageOrigin[1]+imageSize[1]-clipRectangleOrigin[1];
+    LOG_WARNING("Adjusting ClipRectangleSize y to "<<clipRectangleSize[1]);    
   }    
+
+  if( (clipRectangleSize[0] <= 0) || (clipRectangleSize[1] <= 0) )
+  {
+    // after the adjustment it seems that there is no clipping is needed
+    return;
+  }
+
+  // Save updated clipping parameters to the region    
+  imageOrigin[0]=clipRectangleOrigin[0];
+  imageOrigin[1]=clipRectangleOrigin[1];
+  imageSize[0]=clipRectangleSize[0];
+  imageSize[1]=clipRectangleSize[1];    
+  region.SetIndex(imageOrigin);
+  region.SetSize(imageSize);
 }

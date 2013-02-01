@@ -221,7 +221,7 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
 void vtkICCapturingSource::LimitClippingToValidRegion(const int frameSize[2])
 {
   if (this->ClipRectangleOrigin[0]<0 || this->ClipRectangleOrigin[1]<0
-    || this->ClipRectangleOrigin[0]>=frameSize[0] || this->ClipRectangleOrigin[1]>=frameSize[0])
+    || this->ClipRectangleOrigin[0]>=frameSize[0] || this->ClipRectangleOrigin[1]>=frameSize[1])
   {
     LOG_WARNING("ClipRectangleOrigin is invalid ("<<this->ClipRectangleOrigin[0]<<", "<<this->ClipRectangleOrigin[1]<<"). The frame size is "
       <<frameSize[0]<<"x"<<frameSize[1]<<". Using (0,0) as ClipRectangleOrigin.");
@@ -231,14 +231,14 @@ void vtkICCapturingSource::LimitClippingToValidRegion(const int frameSize[2])
   if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>=frameSize[0])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
-    LOG_WARNING("Adjusting ClipRectangleSize x to "<<this->ClipRectangleSize[0]);
     this->ClipRectangleSize[0]=frameSize[0]-this->ClipRectangleOrigin[0];
+    LOG_WARNING("Adjusting ClipRectangleSize x to "<<this->ClipRectangleSize[0]);
   }
   if (this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>frameSize[1])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
-    LOG_WARNING("Adjusting ClipRectangleSize y to "<<this->ClipRectangleSize[1]);
     this->ClipRectangleSize[1]=frameSize[1]-this->ClipRectangleOrigin[1];
+    LOG_WARNING("Adjusting ClipRectangleSize y to "<<this->ClipRectangleSize[1]);
   }    
 }
 
