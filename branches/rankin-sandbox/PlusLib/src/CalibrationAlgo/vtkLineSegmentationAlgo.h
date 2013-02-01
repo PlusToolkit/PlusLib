@@ -94,6 +94,12 @@ protected:
   double m_SignalTimeRangeMin;
   double m_SignalTimeRangeMax;
 
+  /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
+  int m_ClipRectangleOrigin[2];
+
+  /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
+  int m_ClipRectangleSize[2]; 
+
 private:
   vtkLineSegmentationAlgo(const vtkLineSegmentationAlgo&);
   void operator=(const vtkLineSegmentationAlgo&);

@@ -67,6 +67,10 @@ vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() :
 {  
   m_SignalTimeRangeMin=0.0;
   m_SignalTimeRangeMax=-1.0;
+  m_ClipRectangleOrigin[0]=0;
+  m_ClipRectangleOrigin[1]=0;
+  m_ClipRectangleSize[0]=0;
+  m_ClipRectangleSize[1]=0;
 }
 
 //----------------------------------------------------------------------------

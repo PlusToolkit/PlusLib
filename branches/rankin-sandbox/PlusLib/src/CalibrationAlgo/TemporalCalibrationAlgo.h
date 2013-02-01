@@ -124,6 +124,9 @@ public:
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumVideoTrackerLagSec(double maxLagSec);
 
+  /*! Sets a clipping rectangle for the video frames. Line will only be searched within the specified region. If rectangle size is (0,0) (as it is by default) then the whole frame is used. */  
+  void SetVideoClipRectangle(int clipRectangleOrigin[2], int clipRectangleSize[2]);
+
   /*! Enable/disable saving of intermediate images for debugging. Need to call before SetVideoFrames. */
   void SetSaveIntermediateImages(bool saveIntermediateImages);
 
@@ -225,6 +228,12 @@ private:
   double m_BestCorrelationNormalizationFactor;
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
   double m_FixedSignalValuesNormalizationFactor;
+
+  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
+  int m_LineSegmentationClipRectangleOrigin[2];
+
+  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
+  int m_LineSegmentationClipRectangleSize[2]; 
 
 };
 
