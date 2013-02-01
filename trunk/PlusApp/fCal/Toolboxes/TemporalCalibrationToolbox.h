@@ -92,6 +92,12 @@ protected:
   /*! Duration of the temporal calibration process in seconds */
   int m_TemporalCalibrationDurationSec;
 
+  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
+  int m_LineSegmentationClipRectangleOrigin[2];
+
+  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
+  int m_LineSegmentationClipRectangleSize[2]; 
+
   /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
   double m_LastRecordedTrackingItemTimestamp;
 
