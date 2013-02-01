@@ -91,6 +91,7 @@ public:
   /*! Get tracker item status */
   ToolStatus GetStatus() const;
 
+  void SetValidTransformData(bool aValid) { ValidTransformData = aValid; }
   bool HasValidTransformData() const { return ValidTransformData; }
   bool HasValidVideoData() const 
   { 

@@ -397,7 +397,7 @@ PlusStatus vtkSavedDataSource::InternalConnect()
     status=InternalConnectTracker(savedDataBuffer);
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
   }
 
   if (status!=PLUS_SUCCESS)

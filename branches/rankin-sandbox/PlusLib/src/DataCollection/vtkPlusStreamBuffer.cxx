@@ -351,7 +351,12 @@ PlusStatus vtkPlusStreamBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION
   {
     for ( TrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
     {
-      newObjectInBuffer->SetCustomFrameField( it->first, it->second ); 
+      newObjectInBuffer->SetCustomFrameField( it->first, it->second );
+      std::string name(it->first);
+      if( name.find("Transform") != std::string::npos )
+      {
+        newObjectInBuffer->SetValidTransformData(true);
+      }
     }
   }
 
