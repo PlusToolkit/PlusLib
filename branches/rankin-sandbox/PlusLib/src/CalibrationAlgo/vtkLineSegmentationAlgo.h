@@ -33,6 +33,9 @@ public:
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
 
+  /*! Sets a rectanguler region of interest. The algorithm will ignore everything outside the specified image region. If the rectangle size is (0,0) then no clipping is performed. */
+  void SetClipRectangle(int clipRectangleOriginPix[2], int clipRectangleSizePix[2]);
+
   /*!
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
@@ -71,6 +74,9 @@ protected:
   void PlotDoubleArray(const std::deque<double> &intensityValues);
 
   void SaveIntermediateImage(int frameNumber, CharImageType::Pointer scanlineImage, double x_0, double y_0, double r_x, double r_y, int numOfValidScanlines, const std::vector<itk::Point<double,2> > &intensityPeakPositions);  
+
+  /*! Update passed region to fit within the frame size. */
+  void LimitToClipRegion(CharImageType::RegionType& region);
 
   ///
 

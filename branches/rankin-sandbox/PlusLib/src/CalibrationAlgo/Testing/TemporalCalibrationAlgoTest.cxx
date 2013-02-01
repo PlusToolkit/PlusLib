@@ -168,6 +168,18 @@ int main(int argc, char **argv)
   testTemporalCalibrationObject.SetVideoFrames(videoFrames);
   testTemporalCalibrationObject.SetMaximumVideoTrackerLagSec(maxTimeOffsetSec);
 
+  if (clipRectOrigin.size()>0 || clipRectSize.size()>0)
+  {
+    if (clipRectOrigin.size()!=2 || clipRectSize.size()!=2)
+    {
+      LOG_ERROR("Invalid clip rectangle origin and/or size");
+      exit(EXIT_FAILURE);
+    }
+    int clipRectOriginIntVec[2]={clipRectOrigin[0],clipRectOrigin[1]};
+    int clipRectSizeIntVec[2]={clipRectSize[0],clipRectSize[1]};
+    testTemporalCalibrationObject.SetVideoClipRectangle(clipRectOriginIntVec, clipRectSizeIntVec);
+  }
+
   TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error=TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE;
 
   //  Calculate the time-offset
