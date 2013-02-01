@@ -573,7 +573,7 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
     {
       vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
       lineSegmenter->SetVideoFrames(signal.frameList);
-      lineSegmenter->SetClippingRegion(m_LineSegmentationClipRectangleOrigin, m_LineSegmentationClipRectangleSize);
+      lineSegmenter->SetClipRectangle(m_LineSegmentationClipRectangleOrigin, m_LineSegmentationClipRectangleSize);
       lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
       lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
       lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
