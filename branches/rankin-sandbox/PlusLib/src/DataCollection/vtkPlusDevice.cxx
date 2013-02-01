@@ -1749,7 +1749,7 @@ PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
 {
   if( this->CurrentChannel != NULL )
   {
-    this->CurrentChannel->GetOldestTimestamp(ts);
+    return this->CurrentChannel->GetOldestTimestamp(ts);
   }
 
   LOG_ERROR("No current channel.");
@@ -1761,7 +1761,7 @@ PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
 {
   if( this->CurrentChannel != NULL )
   {
-    this->CurrentChannel->GetMostRecentTimestamp(ts);
+    return this->CurrentChannel->GetMostRecentTimestamp(ts);
   }
 
   LOG_ERROR("No current channel.");
