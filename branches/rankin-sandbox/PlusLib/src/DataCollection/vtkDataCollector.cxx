@@ -542,8 +542,16 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
     outputDeviceBufferSequenceFileName.append("_");
     outputDeviceBufferSequenceFileName.append(dateAndTime);
 
+
     LOG_INFO("Write device buffer to " << outputDeviceBufferSequenceFileName);
-    device->GetBuffer()->WriteToMetafile( aDirectory, outputDeviceBufferSequenceFileName.c_str(), false); 
+    vtkPlusDataSource* aSource(NULL);
+    vtkPlusChannel* aChannel(NULL);
+    if( device->GetCurrentChannel(aChannel) && aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
+      return PLUS_FAIL;
+    }
+    aSource->GetBuffer()->WriteToMetafile( aDirectory, outputDeviceBufferSequenceFileName.c_str(), false); 
   }
 
   return PLUS_SUCCESS;
