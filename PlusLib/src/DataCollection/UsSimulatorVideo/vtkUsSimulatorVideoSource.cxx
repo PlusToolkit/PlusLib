@@ -122,7 +122,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   this->UsSimulator->SetModelToImageMatrix(referenceToImageTransformMatrix);
   this->UsSimulator->Update();
 
-  PlusStatus status = this->GetBuffer()->AddItem(
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
+    return PLUS_FAIL;
+  }
+
+  PlusStatus status = aSource->GetBuffer()->AddItem(
     this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
@@ -137,14 +144,21 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   // Set to default MF internal image orientation
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
-  this->GetBuffer()->Clear();
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
+    return PLUS_FAIL;
+  }
+
+  aSource->GetBuffer()->Clear();
   int frameSize[2]={0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");
     return PLUS_FAIL;
   }
-  this->GetBuffer()->SetFrameSize(frameSize);
+  aSource->GetBuffer()->SetFrameSize(frameSize);
 
   return PLUS_SUCCESS;
 }

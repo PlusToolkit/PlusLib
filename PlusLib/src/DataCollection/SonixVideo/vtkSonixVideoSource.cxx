@@ -13,18 +13,19 @@ Authors include: Danielle Pace
 Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 =========================================================================*/  
 
-#include "vtkSonixVideoSource.h"
-
 #include "vtkImageData.h"
-#include "vtkObjectFactory.h"
-#include "vtkTimerLog.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiThreader.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSonixVideoSource.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusStreamBuffer.h"
-#include "vtkMultiThreader.h"
 
 #include <ctype.h>
 
@@ -232,7 +233,13 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   int frameSize[2] = {0,0};
   this->GetFrameSize(frameSize); 
-  int frameBufferBytesPerPixel = this->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
+    return PLUS_FAIL;
+  }
+  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -282,7 +289,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = this->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -387,18 +394,25 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     continue;
 #endif
 
+    vtkPlusDataSource* aSource(NULL);
+    if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
+      return PLUS_FAIL;
+    }
+
     switch (this->DataDescriptor.ss)
     {
     case 8:
       this->SetPixelType( itk::ImageIOBase::UCHAR );
       this->SetImageType( US_IMG_BRIGHTNESS );
-      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
       break;
     case 16:
       this->SetPixelType( itk::ImageIOBase::SHORT );
       this->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
       // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
       // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
       {
         int tmp=this->DataDescriptor.h;

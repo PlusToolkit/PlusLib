@@ -5,13 +5,14 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkSavedDataSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
+#include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkSavedDataSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkSavedDataSource);
@@ -396,7 +397,7 @@ PlusStatus vtkSavedDataSource::InternalConnect()
     status=InternalConnectTracker(savedDataBuffer);
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
   }
 
   if (status!=PLUS_SUCCESS)
@@ -872,11 +873,20 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalBuffer()
 vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
 {
   vtkPlusStreamBuffer* buff=NULL;
+
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
-    buff=this->GetBuffer();
-    break;
+    {
+      vtkPlusDataSource* aSource(NULL);
+      if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
+        return NULL;
+      }
+      buff = aSource->GetBuffer();
+      break;
+    }
   case TRACKER_STREAM:
     {
       vtkPlusDataSource* firstActiveTool = NULL; 
@@ -891,7 +901,7 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
     }
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
   }
   if (buff==NULL)
   {

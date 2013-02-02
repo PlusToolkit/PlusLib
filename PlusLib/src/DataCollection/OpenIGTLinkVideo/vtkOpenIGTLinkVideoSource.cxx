@@ -4,19 +4,19 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "vtkOpenIGTLinkVideoSource.h"
-
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkPlusStreamBuffer.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
-
-#include "igtlMessageHeader.h"
 #include "igtlImageMessage.h"
+#include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
+#include "vtkImageData.h"
+#include "vtkObjectFactory.h"
+#include "vtkOpenIGTLinkVideoSource.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtksys/SystemTools.hxx"
 
 #include <vector>
 #include <string>
@@ -118,7 +118,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
   this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
 
   // Clear buffer on connect 
-  this->GetBuffer()->Clear(); 
+  this->CurrentChannel->Clear();
 
   // If we specified message type, try to send it to the server
   if ( this->MessageType )
@@ -229,8 +229,15 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   // for simplicity, we increase frame number always by 1.
   this->FrameNumber++;
 
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the OpenIGTLinkVideo device.");
+    return PLUS_FAIL;
+  }
+
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
   {
     PlusVideoFrame* videoFrame=trackedFrame.GetImageData();
     if (videoFrame==NULL)
@@ -238,11 +245,11 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    this->GetBuffer()->SetPixelType( videoFrame->GetITKScalarPixelType() );  
-    this->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
+    aSource->GetBuffer()->SetPixelType( videoFrame->GetITKScalarPixelType() );  
+    aSource->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
-  PlusStatus status = this->GetBuffer()->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
+  PlusStatus status = aSource->GetBuffer()->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
   this->Modified();
 
   return status;

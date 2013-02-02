@@ -10,13 +10,15 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkXMLUtilities.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 
 int main(int argc, char **argv)
@@ -84,7 +86,14 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to locate the device with Id=\"SomeVideoSource\". Check config file.");
     exit(EXIT_FAILURE);
   }
-  buffer->DeepCopy(device->GetBuffer());
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( device->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    return NULL;
+  }
+  buffer->DeepCopy(aSource->GetBuffer());
 
 	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
 	buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 

@@ -11,6 +11,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkSavedDataSource.h"
@@ -133,11 +135,16 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkPlusStreamBuffer> videobuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
-  if ( videoDevice != NULL ) 
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( videoDevice == NULL || videoDevice->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    LOG_INFO("Copy video buffer"); 
-    videobuffer->DeepCopy(videoDevice->GetBuffer());
+    LOG_ERROR("Unable to retrieve the video source.");
+    return NULL;
   }
+
+  videobuffer->DeepCopy(aSource->GetBuffer());
+
 
   vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New(); 
   if ( trackerDevice != NULL )

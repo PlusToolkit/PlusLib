@@ -5,13 +5,14 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
+#include "epiphan/frmgrab.h"
 #include "vtkEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusStreamBuffer.h"
-#include "epiphan/frmgrab.h"
+#include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkEpiphanVideoSource);
@@ -64,7 +65,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   LOG_TRACE( "vtkEpiphanVideoSource::InternalConnect" );
 
   // Clear buffer on connect 
-  this->GetBuffer()->Clear();
+  this->CurrentChannel->Clear();
 
   // Initialize frmgrab library
   FrmGrabNet_Init();
@@ -128,8 +129,17 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
-  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
-  this->GetBuffer()->SetFrameSize(this->FrameSize); 
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
+    return PLUS_FAIL;
+  }
+  else
+  {
+    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+    aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -217,14 +227,20 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   this->FrameNumber++; 
 
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);  
-    this->GetBuffer()->SetFrameSize( FrameSize );
+    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
+    return PLUS_FAIL;
+  }
+  // If the buffer is empty, set the pixel type and frame size to the first received properties 
+  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  {
+    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);  
+    aSource->GetBuffer()->SetFrameSize( FrameSize );
   }
 
-  PlusStatus status = this->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
+  PlusStatus status = aSource->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
     itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
   this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);

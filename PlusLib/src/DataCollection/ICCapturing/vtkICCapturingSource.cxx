@@ -4,20 +4,20 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
-
-#include "vtkICCapturingSource.h"
 #include "ICCapturingListener.h"
-#include <tisudshl.h>
-
+#include "PlusConfigure.h"
+#include "vtkICCapturingSource.h"
 #include "vtkImageData.h"
-#include "vtkObjectFactory.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiThreader.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusStreamBuffer.h"
-#include "vtkMultiThreader.h"
+#include <tisudshl.h>
 
 #include <ctype.h>
 
@@ -178,6 +178,13 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
     return PLUS_SUCCESS;
   }
 
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
+    return PLUS_FAIL;
+  }
+
   this->FrameNumber = frameNumber; 
 
   const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
@@ -205,12 +212,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = this->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), this->GetDeviceImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), this->GetDeviceImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = this->GetBuffer()->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 
@@ -293,7 +300,14 @@ PlusStatus vtkICCapturingSource::InternalConnect()
     LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel ); 
     return PLUS_FAIL;    
   }
-  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR );  
+
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
+    return PLUS_FAIL;
+  }
+  aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR );  
 
   int frameSize[2]={0,0};
   frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
@@ -302,12 +316,12 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
   {
     LimitClippingToValidRegion(frameSize);
-    this->GetBuffer()->SetFrameSize(this->ClipRectangleSize);
+    aSource->GetBuffer()->SetFrameSize(this->ClipRectangleSize);
   }
   else
   {
     // No clipping
-    this->GetBuffer()->SetFrameSize(frameSize); 
+    aSource->GetBuffer()->SetFrameSize(frameSize); 
   }
 
   if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
