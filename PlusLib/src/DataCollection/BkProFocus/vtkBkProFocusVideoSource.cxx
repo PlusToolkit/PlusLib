@@ -1,20 +1,22 @@
+#include "PlusBkProFocusReceiver.h"
 #include "PlusConfigure.h"
 #include "vtkBkProFocusVideoSource.h"
-#include "vtkPlusStreamBuffer.h"
-#include "PlusBkProFocusReceiver.h"
-#include "vtkRfProcessor.h"
-#include "vtkUsScanConvertLinear.h"
-#include "vtkUsScanConvertCurvilinear.h"
-#include "vtkImageImport.h"
 #include "vtkImageData.h"
+#include "vtkImageImport.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkRfProcessor.h"
+#include "vtkUsScanConvertCurvilinear.h"
+#include "vtkUsScanConvertLinear.h"
 
 // BK Includes
 #include "AcquisitionGrabberSapera.h"
 #include "AcquisitionInjector.h"
 #include "AcquisitionSettings.h"
+#include "BmodeViewDataReceiver.h"
 #include "CommandAndControl.h"
 #include "ParamConnectionSettings.h"
-#include "BmodeViewDataReceiver.h"
 #include "SaperaViewDataReceiver.h"
 #include "TcpClient.h"
 
@@ -353,8 +355,17 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   // send frames to this video source
   this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->PlusReceiver);
 
-  // Clear buffer on connect because the new frames that we will acquire might have a different size 
-  this->GetBuffer()->Clear();  
+  // Clear buffer on connect because the new frames that we will acquire might have a different size
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+  {
+    aSource->GetBuffer()->Clear();  
+  }
+  else
+  {
+    LOG_ERROR("Unable to retrieve video source for BkPro device.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -474,31 +485,42 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
   }
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( this->GetBuffer()->GetNumberOfItems() == 0 )
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+  {
+    aSource->GetBuffer()->Clear();  
+  }
+  else
+  {
+    LOG_ERROR("Unable to retrieve video source for BkPro device.");
+    return;
+  }
+
+  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
-    this->GetBuffer()->SetPixelType(pixelType);      
-    this->GetBuffer()->SetImageType(imageType);
-    this->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+    aSource->GetBuffer()->SetPixelType(pixelType);      
+    aSource->GetBuffer()->SetImageType(imageType);
+    aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
     if (imageType==US_IMG_BRIGHTNESS)
     {
       // Store B-mode images in MF orientation
-      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
     }
     else
     {
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
-      this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
     <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
       <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
       <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
-      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()));
+      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
 
   } 
 
-  this->GetBuffer()->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  aSource->GetBuffer()->AddItem(pixelDataPtr, this->GetDeviceImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 
