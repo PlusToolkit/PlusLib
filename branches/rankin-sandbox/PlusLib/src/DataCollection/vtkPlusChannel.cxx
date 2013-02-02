@@ -242,13 +242,20 @@ PlusStatus vtkPlusChannel::RemoveTool( const char* toolName )
   {
     if( STRCASECMP(it->second->GetSourceId(), toolName) == 0 )
     {
-      it->second->UnRegister(this);
-      this->Tools.erase(it);      
+      this->Tools.erase(it);
       return PLUS_SUCCESS;
     }
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::RemoveTools()
+{
+  this->Tools.clear();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -258,7 +265,10 @@ PlusStatus vtkPlusChannel::Clear()
   {
     (it->second)->GetBuffer()->Clear();
   }
-  this->VideoSource->GetBuffer()->Clear();
+  if( this->VideoSource != NULL )
+  {
+    this->VideoSource->GetBuffer()->Clear();
+  }
   return PLUS_SUCCESS;
 }
 

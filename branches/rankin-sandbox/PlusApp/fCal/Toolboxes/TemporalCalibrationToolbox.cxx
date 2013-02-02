@@ -615,9 +615,9 @@ void TemporalCalibrationToolbox::CancelCalibration()
     if (dataCollector)
     {
       vtkPlusChannel* aChannel(NULL);
-      if( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+      if( dataCollector->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
       {
-        LOG_ERROR("No selected stream mixer. Unable to reset the local time offset to their previous value.")
+        LOG_ERROR("No selected channel. Unable to reset the local time offset to their previous value.")
       }
       if ( aChannel != NULL )
       {

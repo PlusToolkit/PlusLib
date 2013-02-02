@@ -159,7 +159,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
         continue;
       }
 
-      vtkXMLDataElement* inputChannelsElement = aConfig->FindNestedElementWithName("InputChannels");
+      vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
 
       if (inputChannelsElement != NULL)
       {
@@ -849,7 +849,7 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aChannel->GetOwnerDevice()->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
+    if ( aChannel->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;

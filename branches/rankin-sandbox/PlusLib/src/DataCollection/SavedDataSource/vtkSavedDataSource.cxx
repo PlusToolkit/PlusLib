@@ -873,18 +873,20 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalBuffer()
 vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
 {
   vtkPlusStreamBuffer* buff=NULL;
-  vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
-    return NULL;
-  }
 
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
-    buff = aSource->GetBuffer();
-    break;
+    {
+      vtkPlusDataSource* aSource(NULL);
+      if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
+        return NULL;
+      }
+      buff = aSource->GetBuffer();
+      break;
+    }
   case TRACKER_STREAM:
     {
       vtkPlusDataSource* firstActiveTool = NULL; 

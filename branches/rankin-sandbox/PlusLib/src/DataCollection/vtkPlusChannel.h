@@ -44,6 +44,7 @@ public:
   PlusStatus AddTool(vtkPlusDataSource* aTool );
   PlusStatus RemoveTool(const char* toolName);
   PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolName);
+  PlusStatus RemoveTools();
   DataSourceContainerIterator GetToolsStartIterator();
   DataSourceContainerIterator GetToolsEndIterator();
   DataSourceContainerConstIterator GetToolsStartConstIterator() const;
