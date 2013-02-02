@@ -14,19 +14,20 @@ Authors include: Siddharth Vikal (Queen's University),
  and The University of Western Ontario)
 =========================================================================*/  
 
-#include "vtkSonixPortaVideoSource.h"
-
+#include "TrackedFrame.h" 
 #include "vtkImageData.h"
-#include "vtkObjectFactory.h"
-#include "vtkTimerLog.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiThreader.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkSonixPortaVideoSource.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusStreamBuffer.h"
-#include "vtkMultiThreader.h"
-#include "TrackedFrame.h" 
 
 #include <ctype.h>
 
@@ -272,7 +273,13 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   this->FrameNumber++;
   int frameSize[2] = {0,0};
   this->GetFrameSize(frameSize);
-  int frameBufferBytesPerPixel = this->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  vtkPlusDataSource* aSource(NULL);
+  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the SonixPorta device.");
+    return PLUS_FAIL;
+  }
+  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
   
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -301,7 +308,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str(); 
 
-  PlusStatus status = this->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, this->GetDeviceImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
   return status;
 }

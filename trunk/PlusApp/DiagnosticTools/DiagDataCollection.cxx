@@ -8,10 +8,11 @@
 #include "vtkDataCollector.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceTypes.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusDataSource.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -119,11 +120,19 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( videoDevice->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve video source from video device.");
+    exit(EXIT_FAILURE);
+  }
+
   // Enable timestamp reporting for video and all tools
-	if (videoDevice != NULL ) 
-	{
-		videoDevice->GetBuffer()->SetTimeStampReporting(true);
-	}
+  if (aSource != NULL ) 
+  {
+    aSource->GetBuffer()->SetTimeStampReporting(true);
+  }
 	if ( trackerDevice != NULL )
 	{
     for (DataSourceContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
@@ -165,13 +174,13 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Print statistics
-	if ( videoDevice != NULL ) 
+	if ( aSource != NULL ) 
 	{    
     double realVideoFramePeriodStdevSec=0;
-		double realVideoFrameRate = videoDevice->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
-		double idealVideoFrameRate = videoDevice->GetBuffer()->GetFrameRate(true);
-		int numOfItems = videoDevice->GetBuffer()->GetNumberOfItems(); 
-		int bufferSize = videoDevice->GetBuffer()->GetBufferSize(); 
+		double realVideoFrameRate = aSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
+		double idealVideoFrameRate = aSource->GetBuffer()->GetFrameRate(true);
+		int numOfItems = aSource->GetBuffer()->GetNumberOfItems(); 
+		int bufferSize = aSource->GetBuffer()->GetBufferSize(); 
 
 		LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps"); 
     LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)"); 
@@ -181,22 +190,22 @@ int main(int argc, char **argv)
     // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
     int numberOfNonUniqueFrames=0;
     int numberOfValidFrames=0;
-    for ( BufferItemUidType frameUid = videoDevice->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoDevice->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+    for ( BufferItemUidType frameUid = aSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= aSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
     {
       double time(0); 
-      if ( videoDevice->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+      if ( aSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
       unsigned long framenum(0); 
-      if ( videoDevice->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+      if ( aSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
       numberOfValidFrames++;
-      if (frameUid == videoDevice->GetBuffer()->GetOldestItemUidInBuffer())
+      if (frameUid == aSource->GetBuffer()->GetOldestItemUidInBuffer())
       { 
         // no previous frame
         continue;
       }
       double prevtime(0); 
-      if ( videoDevice->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
+      if ( aSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
       unsigned long prevframenum(0); 
-      if ( videoDevice->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
+      if ( aSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
       if (framenum == prevframenum)
       {
         // the same frame number was set for different frame indexes; this should not happen
@@ -292,10 +301,10 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Dump buffers to file 
-	if ( videoDevice != NULL ) 
+	if ( aSource != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		videoDevice->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		aSource->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
 	if ( trackerDevice != NULL )

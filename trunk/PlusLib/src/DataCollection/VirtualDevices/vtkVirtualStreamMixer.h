@@ -28,7 +28,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   // Virtual stream mixers output only one stream
-  vtkPlusChannel* GetStream() const;
+  vtkPlusChannel* GetChannel() const;
 
   virtual PlusStatus NotifyConfigured();
 
@@ -49,10 +49,10 @@ protected:
   vtkVirtualStreamMixer();
   virtual ~vtkVirtualStreamMixer();
 
-  vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
-  vtkSetObjectMacro(OutputStream, vtkPlusChannel);
+  vtkGetObjectConstMacro(OutputChannel, vtkPlusChannel);
+  vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
 
-  vtkPlusChannel*  OutputStream;
+  vtkPlusChannel*  OutputChannel;
 
 private:
   vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.

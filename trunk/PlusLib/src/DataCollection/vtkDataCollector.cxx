@@ -159,7 +159,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
         continue;
       }
 
-      vtkXMLDataElement* inputChannelsElement = aConfig->FindNestedElementWithName("InputChannels");
+      vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
 
       if (inputChannelsElement != NULL)
       {
@@ -542,8 +542,16 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
     outputDeviceBufferSequenceFileName.append("_");
     outputDeviceBufferSequenceFileName.append(dateAndTime);
 
+
     LOG_INFO("Write device buffer to " << outputDeviceBufferSequenceFileName);
-    device->GetBuffer()->WriteToMetafile( aDirectory, outputDeviceBufferSequenceFileName.c_str(), false); 
+    vtkPlusDataSource* aSource(NULL);
+    vtkPlusChannel* aChannel(NULL);
+    if( device->GetCurrentChannel(aChannel) && aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
+      return PLUS_FAIL;
+    }
+    aSource->GetBuffer()->WriteToMetafile( aDirectory, outputDeviceBufferSequenceFileName.c_str(), false); 
   }
 
   return PLUS_SUCCESS;
@@ -841,7 +849,7 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aChannel->GetOwnerDevice()->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
+    if ( aChannel->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;

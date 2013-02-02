@@ -11,7 +11,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       Id="TrackedVideoDevice" 
       Type="VirtualStreamMixer" >
       <InputChannels>
-        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="TrackerOutput" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
       

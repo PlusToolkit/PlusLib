@@ -17,7 +17,7 @@ vtkStandardNewMacro(vtkVirtualStreamMixer);
 //----------------------------------------------------------------------------
 vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 : vtkPlusDevice()
-, OutputStream(NULL)
+, OutputChannel(NULL)
 {
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 }
@@ -34,10 +34,10 @@ void vtkVirtualStreamMixer::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusChannel* vtkVirtualStreamMixer::GetStream() const
+vtkPlusChannel* vtkVirtualStreamMixer::GetChannel() const
 {
   // Virtual stream mixers always have exactly one output stream
-  return this->GetOutputStream();
+  return this->GetOutputChannel();
 }
 
 //----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
     return PLUS_FAIL;
   }
 
-  SetOutputStream(this->OutputChannels[0]);
+  SetOutputChannel(this->OutputChannels[0]);
 
   return PLUS_SUCCESS;
 }
@@ -96,7 +96,8 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
 PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 {
   // First, empty whatever is there, because this can be called at any point after a configuration
-  this->GetOutputStream()->Clear();
+  this->GetOutputChannel()->RemoveTools();
+  this->GetOutputChannel()->Clear();
 
   for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
@@ -105,7 +106,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      this->GetOutputStream()->SetVideoSource(aSource);
+      this->GetOutputChannel()->SetVideoSource(aSource);
     }
 
     for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
@@ -113,7 +114,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
       vtkPlusDataSource* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( DataSourceContainerConstIterator outputToolIt = this->GetOutputStream()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputStream()->GetToolsEndConstIterator(); ++outputToolIt )
+      for( DataSourceContainerConstIterator outputToolIt = this->GetOutputChannel()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputChannel()->GetToolsEndConstIterator(); ++outputToolIt )
       {
         vtkPlusDataSource* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -133,7 +134,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
       if( !found )
       {
-        this->GetOutputStream()->AddTool(anInputTool);
+        this->GetOutputChannel()->AddTool(anInputTool);
       }
     }
   }

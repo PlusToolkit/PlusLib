@@ -11,15 +11,17 @@
 // in a window (useful for quick interactive testing of the image transfer).
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include <stdlib.h>
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSonixPortaVideoSource.h"
-#include "vtkPlusStreamBuffer.h"
-#include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
+#include "vtkImageViewer.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusStreamBuffer.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
+#include "vtkSonixPortaVideoSource.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <stdlib.h>
 
 enum DisplayMode
 {
@@ -284,7 +286,14 @@ int main(int argc, char* argv[])
   portaGrabber->SetImagingMode(BMode);
   displayMode=SHOW_IMAGE;
 
-  if ( portaGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( portaGrabber->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    return NULL;
+  }
+  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer size!"); 
     exit(EXIT_FAILURE);
