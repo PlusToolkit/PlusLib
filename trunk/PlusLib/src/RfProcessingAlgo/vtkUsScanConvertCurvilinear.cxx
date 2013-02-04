@@ -288,10 +288,6 @@ void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
   T *envelope_data=inPtr; // The envelope detected and log-compressed data
   int numberOfSamples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
   T *image=outPtr; // The resulting image
-  
-  vtkIdType* outInc=outData->GetIncrements();
-
-  int ij_index_coef = interpolationTableExt[0]*4; //Index into coefficient array
 
   std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator firstPoint=self->GetInterpolatedPointArray().begin()+interpolationTableExt[0];
   std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator afterLastPoint=self->GetInterpolatedPointArray().begin()+interpolationTableExt[1]+1;
