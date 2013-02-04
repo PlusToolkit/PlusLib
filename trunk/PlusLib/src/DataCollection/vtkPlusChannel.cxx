@@ -823,6 +823,9 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestamp, vtkTra
     }
   }
 
+  // return the latest added timestamp so next time GetTrackedFrameListSampled is called the frames will be added from this one
+  aTimestamp=latestAddedTimestamp;
+
   return status;
 }
 
