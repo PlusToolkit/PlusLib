@@ -811,8 +811,6 @@ void vtkLineSegmentationAlgo::SetClipRectangle(int clipRectangleOriginPix[2], in
 //----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& region)
 {
-  LOG_INFO("Clip: at ("<<m_ClipRectangleOrigin[0]<<","<<m_ClipRectangleOrigin[1]<<" of size ("<<m_ClipRectangleSize[0]<<","<<m_ClipRectangleSize[1]<<")");
-
   if( (m_ClipRectangleSize[0] <= 0) || (m_ClipRectangleSize[1] <= 0) )
   {
     // no clipping
