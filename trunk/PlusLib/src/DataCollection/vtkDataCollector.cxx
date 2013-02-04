@@ -98,17 +98,15 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       if( deviceElement->GetAttribute("Id") == NULL )
       {
         LOG_ERROR("Device of type " << deviceElement->GetAttribute("Type") << " with no ID. Unable to continue operating with an incomplete device configuration.");
-        continue;
+        return PLUS_FAIL;
       }
       if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
       {    
         LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
+        return PLUS_FAIL;
       }
-      else
-      {
-        device->ReadConfiguration(aConfig);
-        Devices.push_back(device);
-      }
+      device->ReadConfiguration(aConfig);
+      Devices.push_back(device);
     }
   }
 
@@ -117,25 +115,23 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     LOG_ERROR("No devices created. Please verify configuration file and any error produced.");
     return PLUS_FAIL;
   }
+
+  // default device to request data from on connect
+  const char* defaultSelectedDeviceId = dataCollectionElement->GetAttribute("DefaultSelectedDeviceId");
+  if (defaultSelectedDeviceId != NULL)
+  {
+    std::string deviceId(defaultSelectedDeviceId);
+    vtkPlusDevice* aDevice = NULL;
+    if( this->GetDevice(aDevice, deviceId) == PLUS_SUCCESS )
+    {
+      this->SelectedDevice = aDevice;
+    }
+  }
   else
   {
-    // default device to request data from on connect
-    const char* defaultSelectedDeviceId = dataCollectionElement->GetAttribute("DefaultSelectedDeviceId");
-    if (defaultSelectedDeviceId != NULL)
-    {
-      std::string deviceId(defaultSelectedDeviceId);
-      vtkPlusDevice* aDevice = NULL;
-      if( this->GetDevice(aDevice, deviceId) == PLUS_SUCCESS )
-      {
-        this->SelectedDevice = aDevice;
-      }
-    }
-    else
-    {
-      // select the last device by default (usually we are interested in the output of mixer devices,
-      // which are mostly defined as the last device)
-      this->SelectedDevice = Devices.back();
-    }
+    // select the last device by default (usually we are interested in the output of mixer devices,
+    // which are mostly defined as the last device)
+    this->SelectedDevice = Devices.back();
   }
 
   vtkPlusChannel* aChannel(NULL);
@@ -156,7 +152,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       if( this->GetDevice(thisDevice, deviceElement->GetAttribute("Id")) != PLUS_SUCCESS )
       {
         LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " doesn't exist.");
-        continue;
+        return PLUS_FAIL;
       }
 
       vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
