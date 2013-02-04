@@ -765,10 +765,12 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestamp, vtkTra
     LOG_ERROR("Unable to get most recent timestamp!"); 
     return PLUS_FAIL; 
   }
-  // If the user provided a 0 timestamp then we just set the timestamp and not yet collect any data
-  if ( aTimestamp < 0.0001 )
+  // If the user provided a 0 or undefined timestamp then just set the timestamp to start data collection from now
+  // (GetTrackedFrameListSampled will start collecting data if it is called again)
+  if ( aTimestamp < 0.0001 || aTimestamp==UNDEFINED_TIMESTAMP)
   {
     aTimestamp = mostRecentTimestamp; 
+    return PLUS_SUCCESS;
   }
 
   // Check if there are less frames than it would be needed according to the sampling rate
