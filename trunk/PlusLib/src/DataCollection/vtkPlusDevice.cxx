@@ -2048,13 +2048,13 @@ PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& track
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
-  if( this->CurrentChannel != NULL )
+  if( this->CurrentChannel == NULL )
   {
-    this->CurrentChannel->GetTrackedFrame(timestamp, trackedFrame, enableImageData);
+    LOG_ERROR("No current channel.");
+    return PLUS_FAIL;    
   }
 
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
+  return this->CurrentChannel->GetTrackedFrame(timestamp, trackedFrame, enableImageData);  
 }
 
 //----------------------------------------------------------------------------

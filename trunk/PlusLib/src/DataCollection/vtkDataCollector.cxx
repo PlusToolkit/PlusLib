@@ -845,11 +845,27 @@ PlusStatus vtkDataCollector::GetVideoData(double& aTimestampFrom, vtkTrackedFram
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
-    if ( aChannel->GetTrackedFrame(itemTimestamp, trackedFrame) != PLUS_SUCCESS )
+
+    StreamBufferItem currentStreamBufferItem; 
+    if ( aSource->GetBuffer()->GetStreamBufferItem(itemUid, &currentStreamBufferItem) != ITEM_OK )
     {
-      LOG_ERROR("Unable to get video frame by time: " << std::fixed << itemTimestamp ); 
-      status=PLUS_FAIL;
+      LOG_ERROR("Couldn't get video buffer item by frame UID: " << itemUid); 
+      return PLUS_FAIL; 
     }
+
+    // Copy frame 
+    PlusVideoFrame frame = currentStreamBufferItem.GetFrame(); 
+    trackedFrame.SetImageData(frame);
+    trackedFrame.SetTimestamp(itemTimestamp);
+
+    // Copy all custom fields
+    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType::iterator fieldIterator;
+    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    {
+      trackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+    }
+
     // Add tracked frame to the list 
     if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
