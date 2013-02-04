@@ -54,18 +54,10 @@ See License.txt for details.
 #include "vtkSavedDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
-//#ifdef PLUS_USE_MATROX_IMAGING
-//#include "vtkMILVideoSource2.h"
-//#endif
-
 #ifdef WIN32
 #ifdef PLUS_USE_VFW_VIDEO
 #include "vtkWin32VideoSource2.h"
 #endif
-//#else
-//#ifdef USE_LINUX_VIDEO
-//#include "vtkV4L2VideoSource2.h"
-//#endif
 
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
@@ -145,17 +137,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
   DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
 #endif 
-#ifdef PLUS_USE_MATROX_IMAGING
-  DeviceTypes["MatroxImaging"]=(PointerToDevice)&vtkMILVideoSource2::New; 
-#endif 
 #ifdef PLUS_USE_VFW_VIDEO
   DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
 #endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
   DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
-#endif 
-#ifdef PLUS_USE_LINUX_VIDEO
-  DeviceTypes["LinuxVideo"]=(PointerToDevice)&vtkV4L2LinuxSource2::New; 
 #endif 
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
