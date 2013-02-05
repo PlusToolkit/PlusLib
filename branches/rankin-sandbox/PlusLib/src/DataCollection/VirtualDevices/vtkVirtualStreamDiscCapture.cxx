@@ -144,7 +144,6 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
-  m_Writer->SetFileName(m_Filename.c_str());
   // Because this virtual device continually appends data to the file, we cannot do live compression
   m_Writer->SetUseCompression(false);
   m_Writer->SetTrackedFrameList(m_RecordedFrames);
@@ -161,6 +160,9 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
     ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << m_Filename;
     m_Filename = ss.str();
   }
+
+  m_Writer->SetFileName(m_Filename.c_str());
+
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
   std::string configFileName = path + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());

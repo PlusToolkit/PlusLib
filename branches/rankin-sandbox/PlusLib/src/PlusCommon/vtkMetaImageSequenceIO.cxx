@@ -687,6 +687,18 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
       pixFileName+=".raw";
     }
 
+    std::string path = vtksys::SystemTools::GetFilenamePath(this->FileName); 
+    std::stringstream ss;
+    if (!path.empty())
+    {
+      ss << path << "/" << pixFileName;
+    }
+    else
+    {
+      ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << pixFileName;
+    }
+    pixFileName = ss.str();  
+
     SetPixelDataFileName(pixFileName.c_str());
   }
   else
@@ -1425,7 +1437,7 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
   }
   if( in == NULL || out == NULL )
   {
-    LOG_ERROR( "An error occurred while opening files!" ) ;
+    LOG_ERROR( "An error occurred while opening files! In: " << (in != NULL ? srcFilename : "NULL") << ", Out: " << (out != NULL ? destFilename : "NULL") << "." );
     return PLUS_FAIL;
   }
   else
