@@ -81,7 +81,7 @@ public:
   {
     if (!capSetVideoFormat(CapWnd,BitMapInfoPtr,BitMapInfoSize))
     {
-      LOG_ERROR("Cannot get bitmap info from capture window");
+      LOG_ERROR("Cannot set bitmap video format for capture window");
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
@@ -283,7 +283,7 @@ LRESULT PASCAL vtkWin32VideoSource2ErrorCallbackProc(HWND hwndC, int ErrID, LPST
 {
   if (ErrID)
   {
-    LOG_ERROR("Video for Windows error: #"<<ErrID);
+    LOG_ERROR("Video for Windows error: #"<<ErrID<<"");
   }
   return 1;
 }
