@@ -81,7 +81,6 @@ IF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     vtkndicapi
     )
-    
   ADD_SUBDIRECTORY(ndicapi)
 
 ENDIF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
