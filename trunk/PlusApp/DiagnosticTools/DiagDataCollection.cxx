@@ -122,9 +122,9 @@ int main(int argc, char **argv)
   
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( videoDevice->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( videoDevice->GetOutputChannelByName(aChannel, "VideoOutput") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve video source from video device.");
+    LOG_ERROR("Unable to retrieve video source from channel VideoOutput.");
     exit(EXIT_FAILURE);
   }
 
@@ -287,13 +287,13 @@ int main(int argc, char **argv)
   // Generate tracking data acq report
   if ( trackerDevice != NULL )
   {
-    trackerDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
+    trackerDevice->GenerateDataAcquisitionReport(**(trackerDevice->GetOutputChannelsStart()), htmlReport, plotter); 
   }
 
   // Generate video data acq report
   if ( videoDevice != NULL ) 
   {
-    videoDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
+    videoDevice->GenerateDataAcquisitionReport(**(videoDevice->GetOutputChannelsStart()), htmlReport, plotter); 
   }
 
   std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 

@@ -74,7 +74,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
   vtkSmartPointer<vtkTrackedFrameList> trackingFrames=vtkSmartPointer<vtkTrackedFrameList>::New();  
-  if ( this->InputChannels[0]->GetOwnerDevice()->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
+  if ( this->InputChannels[0]->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     this->LastProcessedTrackingDataTimestamp=vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
@@ -91,7 +91,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   double latestTrackerTimestamp = trackedFrame->GetTimestamp();
   
   double latestFrameAlreadyAddedTimestamp=0;
-  this->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
+  this->OutputChannels[0]->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
   if (latestFrameAlreadyAddedTimestamp>=latestTrackerTimestamp)
   {
     // simulated frame has been already generated for this timestamp
@@ -123,7 +123,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   this->UsSimulator->Update();
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
     return PLUS_FAIL;
@@ -145,7 +145,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
     return PLUS_FAIL;
@@ -208,3 +208,21 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkUsSimulatorVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkUsSimulatorVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkUsSimulatorVideoSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

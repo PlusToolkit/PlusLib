@@ -41,6 +41,7 @@ vtkVisualizationController::vtkVisualizationController()
 , CurrentMode(DISPLAY_MODE_NONE)
 , AcquisitionFrameRate(20)
 , TransformRepository(NULL)
+, SelectedChannel(NULL)
 {
   // Create transform repository
   this->ClearTransformRepository();
@@ -219,7 +220,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->DataCollector->GetVideoDataAvailable() == false)
+    if (this->SelectedChannel->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
@@ -346,9 +347,6 @@ PlusStatus vtkVisualizationController::StartDataCollection()
     return PLUS_FAIL;
   }
 
-  this->ImageVisualizer->AssignDataCollector(this->DataCollector);
-  this->PerspectiveVisualizer->AssignDataCollector(this->DataCollector);
-
   return PLUS_SUCCESS;
 }
 
@@ -408,12 +406,11 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  vtkPlusChannel* aChannel(NULL);
-  if( this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+  // Force update of the brightness image in the DataCollector,
+  // because it is the image that the image actors show
+  if( this->SelectedChannel != NULL )
   {
-    // Force update of the brightness image in the DataCollector,
-    // because it is the image that the image actors show
-    this->GetDataCollector()->GetBrightnessOutput();
+    this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel));
   }
 
   return PLUS_SUCCESS;
@@ -499,9 +496,9 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   TrackedFrame trackedFrame;
-  if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame from data collector!");
+    LOG_ERROR("Unable to get tracked frame from selected channel!");
     return PLUS_FAIL;
   }
   if (this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS)
@@ -552,14 +549,14 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
   if (aUseLatestTrackedFrame)
   {
-    if (this->DataCollector == NULL || this->DataCollector->GetTrackingDataAvailable() == false)
+    if (this->SelectedChannel == NULL || this->SelectedChannel->GetTrackingDataAvailable() == false)
     {
-      LOG_ERROR("Data collector object is invalid or not tracking!");
+      LOG_ERROR("SelectedChannel object is invalid or not tracking!");
       return PLUS_FAIL;
     }
 
     TrackedFrame trackedFrame;
-    if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get tracked frame from data collector!");
       return PLUS_FAIL;
@@ -599,9 +596,9 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 PlusStatus vtkVisualizationController::ConnectInput()
 {
   vtkPlusChannel* aChannel(NULL);
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+  if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
   {
-    this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
+    this->GetImageActor()->SetInput(this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel)));
     return PLUS_SUCCESS;
   }
 
@@ -917,4 +914,44 @@ void vtkVisualizationController::SetInput( vtkImageData * input )
   {
     this->GetImageVisualizer()->SetInput(input);
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
+{
+  if( aChannel == NULL )
+  {
+    LOG_ERROR("Null channel sent to vtkVisualizationController::SetSelectedChannel");
+    return;
+  }
+
+  this->SelectedChannel = aChannel;
+
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetSelectedChannel(aChannel);
+  }
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->SetSelectedChannel(aChannel);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::AssignDataCollector( vtkDataCollector* aCollector )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->AssignDataCollector(aCollector);
+  }
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->AssignDataCollector(aCollector);
+  }
+
+  return PLUS_SUCCESS;
 }

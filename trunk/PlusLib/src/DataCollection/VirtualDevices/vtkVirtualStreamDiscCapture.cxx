@@ -144,7 +144,6 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
-  m_Writer->SetFileName(m_Filename.c_str());
   // Because this virtual device continually appends data to the file, we cannot do live compression
   m_Writer->SetUseCompression(false);
   m_Writer->SetTrackedFrameList(m_RecordedFrames);
@@ -161,6 +160,9 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
     ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << m_Filename;
     m_Filename = ss.str();
   }
+
+  m_Writer->SetFileName(m_Filename.c_str());
+
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
   std::string configFileName = path + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
@@ -281,7 +283,7 @@ PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
   //LOG_TRACE("vtkVirtualStreamDiscCapture::AppendNewFrames");
 
   // Record
-  if ( this->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
+  if ( this->OutputChannels[0]->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     return PLUS_FAIL;
@@ -321,16 +323,15 @@ PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
 
 PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
 {
-  if( this->InputChannels.size() != 1 )
+  if( this->OutputChannels.size() > 0 )
   {
-    LOG_ERROR("Stream capture device requires exactly 1 input stream. Check configuration.");
-    return PLUS_FAIL;
+    LOG_WARNING("vtkVirtualStreamDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped.");
+    this->OutputChannels.clear();
   }
 
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
   this->OutputChannels.push_back(this->InputChannels[0]);
-  this->CurrentChannel = this->OutputChannels[0];
 
   return PLUS_SUCCESS;
 }

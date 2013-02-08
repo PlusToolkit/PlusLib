@@ -110,6 +110,9 @@ public:
   */
   vtkGetVector2Macro(ClipRectangleOrigin,int);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   /*! Constructor */
   vtkICCapturingSource();

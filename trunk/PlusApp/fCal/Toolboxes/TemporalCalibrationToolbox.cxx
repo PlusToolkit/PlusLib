@@ -247,14 +247,9 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 
     if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     {
-      vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-      if ( dataCollector )
+      if ( m_ParentMainWindow->GetSelectedChannel() != NULL )
       {
-        vtkPlusChannel* aChannel(NULL);
-        if ( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
-        {
-          videoTimeOffset = aChannel->GetOwnerDevice()->GetVideoLocalTimeOffsetSec();
-        }
+        videoTimeOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec();
       }
     }
 
@@ -334,42 +329,36 @@ void TemporalCalibrationToolbox::StartCalibration()
 
   // Set validation transform names for tracked frame list
   std::string toolReferenceFrame;
-  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
-    || (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
+    || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
   {
     LOG_ERROR("Failed to get tool reference frame name!");
     return;
   }
+  toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_TemporalCalibrationTrackingData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_TemporalCalibrationVideoData->SetFrameTransformNameForValidation(transformNameForValidation);
 
   // Set the local time offset to 0 before synchronization
   bool offsetsSuccessfullyRetrieved = false;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+
+  if( m_ParentMainWindow->GetSelectedChannel() == NULL )
   {
-    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-    if (dataCollector)
-    {
-      vtkPlusChannel* aChannel(NULL);
-      if( dataCollector->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("No selected stream mixer. No data available.");
-      }
-      if (!aChannel->GetOwnerDevice()->GetTrackingDataAvailable())
-      {
-        LOG_ERROR("No tracking data is available in stream mixer. Does it include a tracking device?");
-      }
-      else if ( aChannel->GetOwnerDevice()->GetVideoDataAvailable() )
-      {
-        m_PreviousTrackerOffset = aChannel->GetOwnerDevice()->GetToolLocalTimeOffsetSec(); 
-        m_PreviousVideoOffset = aChannel->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(); 
-        // TODO : verify this is the correct conversion to make
-        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(0.0); 
-        aChannel->GetOwnerDevice()->SetToolLocalTimeOffsetSec(0.0);
-        offsetsSuccessfullyRetrieved = true;
-      }
-    }
+    LOG_ERROR("No selected channel. No data available.");
+  }
+  if (!m_ParentMainWindow->GetSelectedChannel()->GetTrackingDataAvailable())
+  {
+    LOG_ERROR("No tracking data is available in the selected channel. Does it include a tracking device?");
+  }
+  else if ( m_ParentMainWindow->GetSelectedChannel()->GetVideoDataAvailable() )
+  {
+    m_PreviousTrackerOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolLocalTimeOffsetSec(); 
+    m_PreviousVideoOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(); 
+    // TODO : verify this is the correct conversion to make
+    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(0.0); 
+    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetToolLocalTimeOffsetSec(0.0);
+    offsetsSuccessfullyRetrieved = true;
   }
   if (!offsetsSuccessfullyRetrieved)
   {
@@ -505,18 +494,11 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   // Set the result local time offset
   bool offsetsSuccessfullySet = false;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+
+  if( m_ParentMainWindow->GetSelectedChannel() != NULL )
   {
-    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-    if (dataCollector)
-    {
-      vtkPlusChannel* aChannel(NULL);
-      if( dataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
-      {
-        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(trackerLagSec);
-        offsetsSuccessfullySet = true;
-      }
-    }
+    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(trackerLagSec);
+    offsetsSuccessfullySet = true;
   }
   if (!offsetsSuccessfullySet)
   {
@@ -576,14 +558,14 @@ void TemporalCalibrationToolbox::DoCalibration()
   int numberOfVideoFramesBeforeRecording = m_TemporalCalibrationVideoData->GetNumberOfTrackedFrames();
 
   // Acquire tracking frames
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingData(m_LastRecordedTrackingItemTimestamp, m_TemporalCalibrationTrackingData) != PLUS_SUCCESS )
+  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingData(m_ParentMainWindow->GetSelectedChannel(), m_LastRecordedTrackingItemTimestamp, m_TemporalCalibrationTrackingData) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to tracking data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedTrackingItemTimestamp << ")"); 
   }
   else
   {
     // Acquire video frames
-    if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetVideoData(m_LastRecordedVideoItemTimestamp, m_TemporalCalibrationVideoData) != PLUS_SUCCESS )
+    if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetVideoData(m_ParentMainWindow->GetSelectedChannel(), m_LastRecordedVideoItemTimestamp, m_TemporalCalibrationVideoData) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get video data from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedVideoItemTimestamp << ")"); 
     }
@@ -609,23 +591,11 @@ void TemporalCalibrationToolbox::CancelCalibration()
 
   // Reset the local time offset to the previous values
   bool offsetsSuccessfullySet = false;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+  if (m_ParentMainWindow->GetSelectedChannel() != NULL)
   {
-    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-    if (dataCollector)
-    {
-      vtkPlusChannel* aChannel(NULL);
-      if( dataCollector->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("No selected channel. Unable to reset the local time offset to their previous value.")
-      }
-      if ( aChannel != NULL )
-      {
-        aChannel->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(m_PreviousVideoOffset); 
-        aChannel->GetOwnerDevice()->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
-        offsetsSuccessfullySet = true;
-      }
-    }
+    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(m_PreviousVideoOffset); 
+    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetToolLocalTimeOffsetSec(m_PreviousTrackerOffset);
+    offsetsSuccessfullySet = true;
   }
   if (!offsetsSuccessfullySet)
   {
@@ -677,7 +647,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     gridPlotWindow->setMargin(0);
     gridPlotWindow->setSpacing(4);
 
-    // Uncalibrted chart view
+    // Uncalibrated chart view
     QVTKWidget* uncalibratedPlotVtkWidget = new QVTKWidget(m_TemporalCalibrationPlotsWindow);
 
     m_UncalibratedPlotContextView = vtkContextView::New();
@@ -688,6 +658,10 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 
     vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
     uncalibratedTrackerMetricLine->SetInput(m_UncalibratedTrackerPositionMetric, 0, 1);
+    //vtkVariantArray* array = vtkVariantArray::New();
+    //m_UncalibratedTrackerPositionMetric->GetRow(13, array);
+    //array->PrintSelf(std::cout, *(vtkIndent::New()));
+    //std::cout << array->GetValue(0) << "::" << array->GetValue(1) << std::endl;
     uncalibratedTrackerMetricLine->SetColor(1,0,0);
     uncalibratedTrackerMetricLine->SetWidth(1.0);
 
@@ -704,7 +678,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 
     gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
 
-    // Calibrted chart view
+    // Calibrated chart view
     QVTKWidget* calibratedPlotVtkWidget = new QVTKWidget(m_TemporalCalibrationPlotsWindow);
 
     m_CalibratedPlotContextView = vtkContextView::New();
@@ -729,7 +703,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(m_CalibratedPlotContextView->GetRenderer());
     calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
 
-    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
+    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 0, 0);
 
     // Position and show window
     m_TemporalCalibrationPlotsWindow->setLayout(gridPlotWindow);

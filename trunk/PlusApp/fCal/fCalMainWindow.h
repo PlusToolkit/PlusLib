@@ -9,18 +9,18 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
+#include "vtkPlusDeviceTypes.h"
 #include <QtGui/QMainWindow>
 
-class vtkVisualizationController;
-class vtkPlusDevice;
-class vtkPlusChannel;
 class AbstractToolbox;
-class StatusIcon;
-
+class QCustomAction;
 class QLabel;
 class QProgressBar;
 class QTimer;
-class QCustomAction;
+class StatusIcon;
+class vtkPlusChannel;
+class vtkPlusDevice;
+class vtkVisualizationController;
 
 //-----------------------------------------------------------------------------
 
@@ -173,6 +173,12 @@ public:
   /*! Dynamically build the devices menu based on the values returned from the data collector */
   void BuildChannelMenu();
 
+  /*! Accessors for selected channel functionality */
+  void SetSelectedChannel(vtkPlusChannel& aChannel);
+  vtkPlusChannel* GetSelectedChannel(){ return m_SelectedChannel; }
+
+  void BuildChannelOwners(DeviceCollection devices);
+
 protected:
   /*!
   * Create toolboxes
@@ -320,6 +326,12 @@ protected:
 
   /*! Reference to all actions that will show up in ROI list */
   std::vector<QCustomAction*> m_3DActionList;
+
+  /*! Map that contains the channel to device mapping */
+  std::map<vtkPlusChannel*, vtkPlusDevice*> m_ChannelOwners;
+
+  /*! Selected channel */
+  vtkPlusChannel* m_SelectedChannel;
 
 private:
   Ui::fCalMainWindow	ui;

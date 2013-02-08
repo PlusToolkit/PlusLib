@@ -198,11 +198,22 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       }
       else
       {
+        DeviceCollection aCollection;
+        if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Unable to load the list of devices.");
+          return;
+        }
+
+        m_ParentMainWindow->BuildChannelOwners(aCollection);
+
         // Read configuration
         if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to read fCal configuration");
         }
+
+        m_ParentMainWindow->GetVisualizationController()->AssignDataCollector(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
 
         // Allow object visualizer to load anything it needs
         m_ParentMainWindow->GetVisualizationController()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
@@ -212,7 +223,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), true))
+        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetSelectedChannel(), true))
         {
           ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
           ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -229,31 +240,23 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->hide();
       delete connectDialog;
 
-      vtkPlusChannel* aChannel(NULL);
-      if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
+      if( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackingEnabled() )
       {
-        LOG_ERROR("No selected channel. Unable to determine if it has a tracker.");
+        m_DeviceSetSelectorWidget->ShowResetTrackerButton(m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->IsResettable());
       }
-      else
-      {
-        if( aChannel != NULL && aChannel->GetOwnerDevice()->GetTrackingEnabled() )
-        {
-          m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel->GetOwnerDevice()->IsResettable());
-        }
-      }
+    }
 
-      // Rebuild the devices menu to 
-      m_ParentMainWindow->BuildChannelMenu();
+    // Rebuild the devices menu to 
+    m_ParentMainWindow->BuildChannelMenu();
 
-      // Re-enable main window
-      m_ParentMainWindow->setEnabled(true);
+    // Re-enable main window
+    m_ParentMainWindow->setEnabled(true);
 
-      // Re-enable manipulation buttons
-      m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
-      if( aChannel != NULL && aChannel->GetOwnerDevice()->GetVideoEnabled() )
-      {
-        m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
-      }
+    // Re-enable manipulation buttons
+    m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
+    if( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetVideoEnabled() )
+    {
+      m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
     }
   }
   else // Disconnect
@@ -516,6 +519,38 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   m_ParentMainWindow->SetImageObjectId(imageObjectId);
 
+  // default selected device
+  const char* selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
+  vtkPlusDevice* aDevice(NULL);
+  if( selectedDeviceId == NULL || this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevice(aDevice, std::string(selectedDeviceId)) != PLUS_SUCCESS)
+  {
+    DeviceCollection aCollection;
+    if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+    {
+      aDevice = aCollection[0];
+    }
+    else
+    {
+      LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
+      return PLUS_FAIL;
+    }
+  }
+
+  vtkPlusChannel* aChannel(NULL);
+  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  {
+    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
+    {
+      aChannel = *(aDevice->GetOutputChannelsStart());
+    }
+    else
+    {
+      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
+      return PLUS_FAIL;
+    }
+  }
+
+  this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
   return PLUS_SUCCESS;
 }
 
@@ -595,7 +630,7 @@ void ConfigurationToolbox::ResetTracker()
   if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
   {
     vtkPlusChannel* aChannel = NULL;
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
+    if( m_ParentMainWindow->GetSelectedChannel() == NULL )
     {
       LOG_ERROR("No selected channel. Unable to reset tracker.");
       return;
@@ -603,7 +638,7 @@ void ConfigurationToolbox::ResetTracker()
 
     if( aChannel != NULL )
     {
-      aChannel->GetOwnerDevice()->Reset();
+      m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->Reset();
     }
   }
 }

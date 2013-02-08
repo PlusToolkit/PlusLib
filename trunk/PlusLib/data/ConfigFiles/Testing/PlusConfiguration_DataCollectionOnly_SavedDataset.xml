@@ -38,7 +38,7 @@
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="TrackerStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
     

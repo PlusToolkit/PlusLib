@@ -8,12 +8,12 @@
 #define __ToolStateDisplayWidgetTest_h
 
 #include "PlusConfigure.h"
-
 #include <QDialog>
 
-class vtkDataCollector;
 class DeviceSetSelectorWidget;
 class ToolStateDisplayWidget;
+class vtkPlusChannel;
+class vtkDataCollector;
 
 //-----------------------------------------------------------------------------
 
@@ -64,8 +64,9 @@ protected:
 	/*! Tool state display widget */
 	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
 
-	/*! Data collector object */
-	vtkDataCollector*	        m_DataCollector;
+	/*! Data source object */
+	vtkPlusChannel*	        m_SelectedChannel;
+  vtkDataCollector*       m_DataCollector;
 
 };
 

@@ -131,7 +131,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     }
 
     // If tracking
-    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingDataAvailable())
+    if (m_ParentMainWindow->GetSelectedChannel()->GetTrackingDataAvailable())
     {
       // Update state message according to available transforms
       if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
@@ -279,7 +279,7 @@ void CapturingToolbox::TakeSnapshot()
 
   TrackedFrame trackedFrame;
 
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetSelectedChannel() == NULL || m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
@@ -338,16 +338,9 @@ void CapturingToolbox::Record()
   // Reset accessory members
   m_FirstRecordedFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
 
-  vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
-  {
-    LOG_ERROR("Unable to reach valid data collector object!");
-    return;
-  }
-
   ui.plainTextEdit_saveResult->clear();
 
-  dataCollector->GetMostRecentTimestamp(m_LastRecordedFrameTimestamp);
+  m_ParentMainWindow->GetSelectedChannel()->GetMostRecentTimestamp(m_LastRecordedFrameTimestamp);
 
   // Start capturing
   SetState(ToolboxState_InProgress);
@@ -380,7 +373,7 @@ void CapturingToolbox::Capture()
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
-  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  if ( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
   }
@@ -567,19 +560,13 @@ double CapturingToolbox::GetMaximumFrameRate()
 {
   LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
-  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetVisualizationController() == NULL || m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetSelectedChannel() == NULL )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return 0.0;
   }
 
-  double frameRate = 0.0;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get frame rate from data collector!");
-  }
-
-  return frameRate;
+  return m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetAcquisitionRate();
 }
 
 //-----------------------------------------------------------------------------

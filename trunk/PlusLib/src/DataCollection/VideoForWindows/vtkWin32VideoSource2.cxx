@@ -283,7 +283,7 @@ LRESULT PASCAL vtkWin32VideoSource2ErrorCallbackProc(HWND hwndC, int ErrID, LPST
 {
   if (ErrID)
   {
-    LOG_ERROR("Video for Windows error: #"<<ErrID<<"");
+    LOG_ERROR("Video for Windows error: #"<<ErrID);
   }
   return 1;
 }
@@ -344,7 +344,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   // set up the parent window, but don't show it
   int frameSize[2]={0,0};
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
@@ -388,8 +388,8 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
 
   // set up the video capture format
   this->Internal->GetBitmapInfoFromCaptureDevice();
-  this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
-  this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
+  //this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
+  //this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
   if (this->Internal->SetBitmapInfoInCaptureDevice()!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set requested frame size in the capture device");
@@ -613,13 +613,13 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
     }
     break;
   default:
-    LOG_ERROR("Unkown compression type: "<<inputCompression);
+    LOG_ERROR("Unknown compression type: "<<inputCompression);
     return PLUS_FAIL;
   }
   
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
@@ -735,7 +735,7 @@ PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 //----------------------------------------------------------------------------
 PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 {
-  if (this->Superclass::SetFrameSize(x,y)!=PLUS_SUCCESS)
+  if (this->Superclass::SetFrameSize(*(this->OutputChannels[0]), x, y)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -743,16 +743,8 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
   {
     // set up the video capture format
     this->Internal->GetBitmapInfoFromCaptureDevice();
-    int frameSize[2]={0,0};
-    vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
-      return PLUS_FAIL;
-    }
-    aSource->GetBuffer()->GetFrameSize(frameSize);
-    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
-    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
+    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = x;
+    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = y;
     if (this->Internal->SetBitmapInfoInCaptureDevice()!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set requested frame size in the capture device");
@@ -820,12 +812,18 @@ PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
-    return PLUS_FAIL;
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the win32video device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+    }
   }
-  aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
 
   if (this->GetConnected())
   {
@@ -852,13 +850,19 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
   
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
-    return PLUS_FAIL;
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the win32video device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      aSource->GetBuffer()->SetFrameSize(width, height);
+      aSource->GetBuffer()->SetPixelType(pixelType); 
+    }
   }
-  aSource->GetBuffer()->SetFrameSize(width, height);
-  aSource->GetBuffer()->SetPixelType(pixelType); 
 
   int frameSize[2]={width, height};
   this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType);
@@ -917,3 +921,22 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+
+PlusStatus vtkWin32VideoSource2::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("Win32VideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for win32 video source. Cannot proceed." );
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

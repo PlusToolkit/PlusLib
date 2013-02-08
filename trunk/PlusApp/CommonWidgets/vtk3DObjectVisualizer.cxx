@@ -6,11 +6,11 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-
-#include "vtkGlyph3D.h"
-#include "vtkObjectFactory.h"
 #include "vtk3DObjectVisualizer.h"
 #include "vtkDisplayableObject.h"
+#include "vtkGlyph3D.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkSmartPointer.h"
@@ -35,6 +35,7 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 , WorldCoordinateFrame(NULL)
 , VolumeID(NULL)
 , TransformRepository(vtkSmartPointer<vtkTransformRepository>::New())
+, SelectedChannel(NULL)
 {
   // Set up canvas renderer
   vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -127,7 +128,7 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
   // Get tracked frame and set the transforms
   TrackedFrame trackedFrame; 
-  if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  if ( this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame!"); 
     return PLUS_FAIL; 
@@ -347,13 +348,13 @@ PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkSmartPointer<vtkT
     }
 
     TrackedFrame trackedFrame;
-    if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get tracked frame from data collector");
       return PLUS_FAIL;
     }
 
-    if (this->DataCollector->GetTrackingDataAvailable() == false)
+    if (this->SelectedChannel->GetTrackingDataAvailable() == false)
     {
       LOG_WARNING("No tracking data is available");
     }
@@ -374,17 +375,17 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
 
   if( aCollector != NULL )
   {
-    if (this->DataCollector->GetConnected() == false)
+    if (this->SelectedChannel->GetOwnerDevice()->GetConnected() == false)
     {
       LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");
       return PLUS_FAIL;
     }
 
     // Connect data collector to image actor
-    if (this->DataCollector->GetVideoDataAvailable())
+    if (this->SelectedChannel->GetVideoDataAvailable())
     {
       this->ImageActor->VisibilityOn();
-      this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
+      this->ImageActor->SetInput(this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel)));
     }
     else
     {

@@ -126,8 +126,29 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 
         QApplication::restoreOverrideCursor();
 
+        vtkPlusDevice* aDevice(NULL);
+        vtkPlusChannel* aChannel(NULL);
+        DeviceCollection aCollection;
+        if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+        {
+          aDevice = aCollection[0];
+        }
+        else
+        {
+          LOG_ERROR("No devices in tool state display widget test. Nothing to show!");
+          return;
+        }
+
+        if( aDevice->OutputChannelCount() == 0 )
+        {
+          LOG_ERROR("No output channels to acquire data from.");
+          return;
+        }
+
+        aChannel = *(aDevice->GetOutputChannelsStart());
+
         // Show segmentation parameter dialog
-        SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector);
+        SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector, aChannel);
         segmentationParamDialog->exec();
 
         delete segmentationParamDialog;

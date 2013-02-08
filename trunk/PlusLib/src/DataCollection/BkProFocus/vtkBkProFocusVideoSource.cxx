@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "PlusBkProFocusReceiver.h"
 #include "PlusConfigure.h"
 #include "vtkBkProFocusVideoSource.h"
@@ -20,8 +26,12 @@
 #include "SaperaViewDataReceiver.h"
 #include "TcpClient.h"
 
+//----------------------------------------------------------------------------
+
 vtkCxxRevisionMacro(vtkBkProFocusVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkBkProFocusVideoSource);
+//----------------------------------------------------------------------------
+
 
 std::string ParseResponse(std::string str,int item)
 {
@@ -355,17 +365,8 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   // send frames to this video source
   this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->PlusReceiver);
 
-  // Clear buffer on connect because the new frames that we will acquire might have a different size
-  vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
-  {
-    aSource->GetBuffer()->Clear();  
-  }
-  else
-  {
-    LOG_ERROR("Unable to retrieve video source for BkPro device.");
-    return PLUS_FAIL;
-  }
+  // Clear buffer on connect because the new frames that we will acquire might have a different size 
+  this->OutputChannels[0]->Clear();  
 
   return PLUS_SUCCESS;
 }
@@ -373,9 +374,6 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 {
-
-
-
   this->Internal->BKAcqSapera.Destroy();
 
   this->Internal->BKAcqInjector.RemoveDataReceiver(&this->Internal->PlusReceiver);
@@ -484,18 +482,13 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
     return;
   }
 
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    aSource->GetBuffer()->Clear();  
-  }
-  else
-  {
-    LOG_ERROR("Unable to retrieve video source for BkPro device.");
+    LOG_ERROR("Output channel does not have video source. Unable to record a new frame.");
     return;
   }
-
+  // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
@@ -625,4 +618,23 @@ void vtkBkProFocusVideoSource::SetImagingMode(ImagingModeType imagingMode)
   this->ImagingMode=imagingMode;
   // always keep the receiver in RF mode and if B-mode image is requested then do the B-mode conversion in this class
   // this->Internal->PlusReceiver.SetImagingMode(imagingMode);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkBkProFocusVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkBkProFocusVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkBkProFocusVideoSource. Cannot proceed." );
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }

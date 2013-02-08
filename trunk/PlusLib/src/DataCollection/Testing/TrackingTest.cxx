@@ -16,9 +16,10 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkCommand.h"
 #include "vtkDataCollector.h"
 #include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusDataSource.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -116,7 +117,7 @@ public:
     ss.precision( 2 ); 
 
     TrackedFrame trackedFrame; 
-    if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!");
       return; 
@@ -192,6 +193,7 @@ public:
   }
 
   vtkDataCollector* DataCollector; 
+  vtkPlusChannel* BroadcastChannel;
   std::string DeviceId;
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Iren;
@@ -264,27 +266,32 @@ int main(int argc, char **argv)
   dataCollector->Connect(); 
   dataCollector->Start();
 
+  vtkPlusDevice* aDevice = NULL;
+  dataCollector->GetDevice(aDevice, deviceId);
+  if( aDevice == NULL )
+  {
+    LOG_ERROR("Unable to retrieve device \'" << deviceId << "\'.");
+    return EXIT_FAILURE;
+  }
+  if( aDevice->OutputChannelCount() == 0 )
+  {
+    LOG_ERROR("No channels to retrieve data from. Check config file.");
+    return EXIT_FAILURE;
+  }
+  vtkPlusChannel* aChannel = *(aDevice->GetOutputChannelsStart());
+
   const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
-  if ( !dataCollector->GetTrackingEnabled() )
+  if ( !aChannel->GetTrackingEnabled() )
   {
     LOG_ERROR("Tracking is not enabled!"); 
     return EXIT_FAILURE; 
   }
 
-
-  vtkPlusDevice* aDevice = NULL;
-  dataCollector->GetDevice(aDevice, deviceId);
-  if( aDevice == NULL )
-  {
-    LOG_ERROR("Unable to retrieve device.");
-    return EXIT_FAILURE;
-  }
-
   vtkPlusDataSource* tool=NULL;
   if ( !inputToolName.empty() )
   {
-    if ( aDevice->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )
+    if ( aChannel->GetTool(tool, inputToolName.c_str()) != PLUS_SUCCESS )
     { 
       LOG_ERROR("Failed to get tool with name: " << inputToolName ); 
       return EXIT_FAILURE; 
@@ -292,14 +299,14 @@ int main(int argc, char **argv)
   }
   else
   {
-    if ( aDevice->GetToolIteratorBegin() == aDevice->GetToolIteratorEnd() )
+    if ( aChannel->GetToolsStartIterator() == aChannel->GetToolsEndIterator() )
     {
       LOG_ERROR("There is no active tool!"); 
       return EXIT_FAILURE; 
     }
 
     // Use the first active tool 
-    tool = aDevice->GetToolIteratorBegin()->second; 
+    tool = aChannel->GetToolsStartIterator()->second; 
   }
 
   if ( tool == NULL )
@@ -351,7 +358,6 @@ int main(int argc, char **argv)
   else
   {
     // Start live rendering
-
     vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New(); 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New(); 
     renWin->AddRenderer(renderer);  
@@ -373,6 +379,7 @@ int main(int argc, char **argv)
     // Set up transform display actors
     vtkSmartPointer<vtkMyCallback> transformDisplayUpdater = vtkSmartPointer<vtkMyCallback>::New();
     transformDisplayUpdater->DataCollector=dataCollector; 
+    transformDisplayUpdater->BroadcastChannel=aChannel;
     transformDisplayUpdater->Renderer=renderer;
     transformDisplayUpdater->DeviceId=deviceId;
     transformDisplayUpdater->Iren=iren;

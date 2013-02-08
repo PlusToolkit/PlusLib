@@ -14,6 +14,7 @@
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkObject.h"
+#include "vtkPlusChannel.h"
 #include "vtkPolyData.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -114,6 +115,8 @@ public:
   vtkSetStringMacro(WorldCoordinateFrame);
   vtkGetStringMacro(VolumeID);
 
+  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
+
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
   PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
   PlusStatus AssignInputPolyData(vtkPolyData* aInputPolyData);
@@ -184,6 +187,9 @@ protected:
 
   /*! Reference to Transform repository that stores and handles all transforms */
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
+
+  /*! Channel to visualize */
+  vtkPlusChannel* SelectedChannel;
 };
 
 #endif  //__vtk3DObjectVisualizer_h

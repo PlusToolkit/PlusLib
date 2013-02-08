@@ -75,11 +75,6 @@ public:
     Return whether or not the device can be reset
   */
   virtual bool IsResettable();
-
-  bool GetTrackingDataAvailable();
-  bool GetVideoDataAvailable();
-  bool GetTrackingEnabled() const;
-  bool GetVideoEnabled() const;
   
   /*!
     Record incoming data at the specified acquisition rate.  The recording
@@ -90,8 +85,8 @@ public:
   /*! Stop recording */
   virtual PlusStatus StopRecording();
 
-    /*! Get the buffer that is used to hold the video data of the current channel. */
-  //virtual vtkPlusStreamBuffer* GetBuffer();
+  /*! Return the reference frame */
+  static PlusStatus GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName);
 
   /*! 
     Get the buffer that is used to hold the data
@@ -105,9 +100,9 @@ public:
     Set size of the internal frame buffer, i.e. the number of most recent frames that
     are stored in the video source class internally.
   */
-  virtual PlusStatus SetBufferSize(int FrameBufferSize, const char* toolName = NULL);
+  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName = NULL);
   /*! Get size of the internal frame buffer. */
-  virtual PlusStatus GetBufferSize(int& outVal, const char * toolName = NULL);
+  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolName = NULL);
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime );
@@ -116,16 +111,10 @@ public:
   virtual double GetStartTime();
 
   /*! Make a request for the latest image frame */
-  vtkImageData* GetBrightnessOutput();
+  vtkImageData* GetBrightnessOutput(vtkPlusChannel& aChannel);
 
   /*! Return the dimensions of the brightness frame size */
   PlusStatus GetBrightnessFrameSize(int aDim[2]);
-
-  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame& trackedFrame, bool enableImageData=true);
-  virtual PlusStatus GetTrackedFrame(TrackedFrame *trackedFrame);
-  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
-  virtual PlusStatus GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
 
   /*!
     Reset the device
@@ -201,6 +190,9 @@ public:
   /*! Get Reference name of the tools */
   vtkGetStringMacro(ToolReferenceFrameName);
 
+  /*! Is the device correctly configured? */
+  vtkGetMacro(CorrectlyConfigured, bool);
+
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
 
@@ -222,16 +214,7 @@ public:
     Add generated html report from data acquisition to the existing html report. 
     htmlReport and plotter arguments has to be defined by the caller function 
   */
-  virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
-
-  /*! Return the most recent synchronized timestamp in the buffers */
-  virtual PlusStatus GetMostRecentTimestamp(double &ts); 
-
-  /*! Return the oldest synchronized timestamp in the buffers */
-  virtual PlusStatus GetOldestTimestamp(double &ts); 
-
-  /*! Get the closest tracked frame timestamp to the specified time */
-  double GetClosestTrackedFrameTimestampByTime(double time);
+  virtual PlusStatus GenerateDataAcquisitionReport( vtkPlusChannel& aChannel, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
 
   /*! 
   The subclass will do all the hardware-specific update stuff
@@ -325,6 +308,9 @@ public:
   /*! Get the timestamp for the video frame returned with desired timestamping */
   vtkGetMacro(TimestampClosestToDesired, double);
 
+  /*! Return the default output channel to connect to */
+  vtkGetStringMacro(DefaultOutputChannel);
+
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
 
@@ -333,33 +319,33 @@ public:
     the device may either refuse a request for an illegal frame size or
     automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(int x, int y);
+  virtual PlusStatus SetFrameSize(vtkPlusChannel& aChannel, int x, int y);
 
   /*!
     Set the full-frame size.  This must be an allowed size for the device,
     the device may either refuse a request for an illegal frame size or
     automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(int dim[2]) { return this->SetFrameSize(dim[0], dim[1]); };
+  virtual PlusStatus SetFrameSize(vtkPlusChannel& aChannel, int dim[2]) { return this->SetFrameSize(aChannel, dim[0], dim[1]); };
 
   /*! Get the full-frame size */
   //virtual int* GetFrameSize();
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(int &x, int &y);
+  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(int dim[2]);
+  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int dim[2]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
-  virtual PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType);
+  virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::ITKScalarPixelType pixelType);
   /*! Get the pixel type (char, unsigned short, ...) */
-  virtual PlusCommon::ITKScalarPixelType GetPixelType();
+  virtual PlusCommon::ITKScalarPixelType GetPixelType(vtkPlusChannel& aChannel);
 
   /*! Set the image type (B-mode, RF, ...) provided by the video source. */
-  virtual PlusStatus SetImageType(US_IMAGE_TYPE imageType);
+  virtual PlusStatus SetImageType(vtkPlusChannel& aChannel, US_IMAGE_TYPE imageType);
   /*! Get the image pixel type (B-mode, RF, ...) */
-  virtual US_IMAGE_TYPE GetImageType();
+  virtual US_IMAGE_TYPE GetImageType(vtkPlusChannel& aChannel);
 
   /*! Access the available output channels */
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId);
@@ -373,12 +359,6 @@ public:
 
   /*! Add an input channel */
   PlusStatus AddInputChannel(vtkPlusChannel* aChannel);
-
-  /*! Retrieve the current channel */
-  PlusStatus GetCurrentChannel(vtkPlusChannel*& aChannel);
-
-  /*! Set the current channel */
-  PlusStatus SetCurrentChannel(const std::string& aChannelId);
 
   /*!
     Perform any completion tasks once configured
@@ -462,6 +442,10 @@ protected:
   */
   virtual void InternalWriteInputChannels(vtkXMLDataElement* rootXMLElement);
 
+  vtkSetMacro(CorrectlyConfigured, bool);
+
+  vtkSetStringMacro(DefaultOutputChannel);
+
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
 
@@ -482,7 +466,6 @@ protected:
 
   ChannelContainer  OutputChannels;
   ChannelContainer  InputChannels;
-  vtkPlusChannel*   CurrentChannel;
 
   /*! A stream buffer item to use as a temporary staging point */
   StreamBufferItem* CurrentStreamBufferItem;
@@ -529,6 +512,9 @@ protected:
 
   /*! Set if output needs to be cleared to be cleared before being written */
   int OutputNeedsInitialization;
+
+  /*! Is this device correctly configured? */
+  bool CorrectlyConfigured;
 
 protected:
   /*

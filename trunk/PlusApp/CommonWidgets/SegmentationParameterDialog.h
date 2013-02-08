@@ -7,21 +7,18 @@
 #ifndef SEGMENTATIONPARAMETERDIALOG_H
 #define SEGMENTATIONPARAMETERDIALOG_H
 
-#include "ui_SegmentationParameterDialog.h"
-
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-
+#include "ui_SegmentationParameterDialog.h"
 #include <QDialog>
 
-class QTimer;
-
 class FidPatternRecognition;
-
+class QTimer;
 class vtkActor;
 class vtkDataCollector;
 class vtkImageActor;
 class vtkImageVisualizer;
+class vtkPlusChannel;
 class vtkPolyData;
 class vtkROIModeHandler;
 class vtkSpacingModeHandler;
@@ -42,7 +39,7 @@ public:
 	* \param aParent Parent object
 	* \param aDataCollector Data collector (needed for the image output)
 	*/
-	SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector);
+	SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aCollector, vtkPlusChannel* aChannel);
 
 	/*!
 	* Destructor
@@ -291,6 +288,7 @@ protected slots:
 protected:
   /*! Data collector */
   vtkDataCollector*         m_DataCollector;
+  vtkPlusChannel*           m_SelectedChannel;
 
 	/*! Actor for displaying segmented points */
 	vtkActor*                 m_SegmentedPointsActor;

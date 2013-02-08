@@ -189,7 +189,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Return current frame rate as reported by Porta */
   int GetPortaFrameRate();
 
-  
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
   
 protected:
   vtkSonixPortaVideoSource();

@@ -530,7 +530,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   }
 
   // Show segmentation parameter dialog
-  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
+  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), m_ParentMainWindow->GetSelectedChannel());
   segmentationParamDialog->exec();
 
   delete segmentationParamDialog;
@@ -570,12 +570,13 @@ void SpatialCalibrationToolbox::StartCalibration()
 
   // Set validation transform names for tracked frame lists
   std::string toolReferenceFrame;
-  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
-    || (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
+    || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
   {
     LOG_ERROR("Failed to get tool reference frame name!");
     return;
   }
+  toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
@@ -677,7 +678,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   }
   int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
 
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(
+  if ( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameList(
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 

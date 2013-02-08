@@ -47,7 +47,13 @@
     </DataCollection>
   </PlusServerTestClientsConfiguration>
   
-  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="10" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputDeviceId="TrackedVideoDevice"
+    OutputChannelId="TrackedVideoStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

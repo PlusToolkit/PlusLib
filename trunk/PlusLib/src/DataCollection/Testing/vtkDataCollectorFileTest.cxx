@@ -126,16 +126,26 @@ int main( int argc, char** argv )
 
   // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
-  vtkPlusChannel* selectedChannel=NULL;
-  dataCollector->GetSelectedChannel(selectedChannel);
-  vtkPlusDataSource* imageStream=NULL;
-  selectedChannel->GetVideoSource(imageStream);
-  double recordingStartTime=imageStream->GetBuffer()->GetStartTime();
+  vtkPlusDevice* aDevice(NULL);
+  vtkPlusChannel* aChannel(NULL);
+  if( dataCollector->GetDevice(aDevice, "TrackedVideoDevice") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate device \'TrackedVideoDevice\'");
+    exit(EXIT_FAILURE);
+  }
+  if( aDevice->GetOutputChannelByName(aChannel, "TrackedVideoStream") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate channel \'TrackedVideoStream\'");
+    exit(EXIT_FAILURE);
+  }
+  vtkPlusDataSource* aSource=NULL;
+  aChannel->GetVideoSource(aSource);
+  double recordingStartTime=aSource->GetBuffer()->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
 
   // Frame 0001
-  dataCollector->GetTrackedFrameByTime(218.792613-timeOffset, &trackedFrame);
+  aChannel->GetTrackedFrameByTime(218.792613-timeOffset, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
   
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
@@ -165,7 +175,7 @@ int main( int argc, char** argv )
   }
 
   // Frame 0013
-  dataCollector->GetTrackedFrameByTime(222.619279-timeOffset, &trackedFrame);
+  aChannel->GetTrackedFrameByTime(222.619279-timeOffset, &trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)

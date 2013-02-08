@@ -52,6 +52,7 @@ vtkImageVisualizer::vtkImageVisualizer()
 , TopLineSource(NULL)
 , RightLineSource(NULL)
 , BottomLineSource(NULL)
+, SelectedChannel(NULL)
 {
   memset(RegionOfInterest, 0, sizeof(double[4]));
 
@@ -275,7 +276,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   double imageCenterX = 0;
   double imageCenterY = 0;
   int dimensions[2];
-  this->DataCollector->GetBrightnessFrameSize(dimensions);
+  this->SelectedChannel->GetOwnerDevice()->GetBrightnessFrameSize(dimensions);
   imageCenterX = dimensions[0] / 2.0;
   imageCenterY = dimensions[1] / 2.0;
 
@@ -487,10 +488,9 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    vtkPlusChannel* aChannel(NULL);
-    if( this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+    if( this->SelectedChannel != NULL )
     {
-      this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
+      this->ImageActor->SetInput(this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel)));
     }
     else
     {
@@ -609,7 +609,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     return PLUS_FAIL;
   }
 
-  this->DataCollector->GetBrightnessFrameSize(dimensions);
+  this->SelectedChannel->GetOwnerDevice()->GetBrightnessFrameSize(dimensions);
   double newPosition[3];
   double originalPosition[3];
 

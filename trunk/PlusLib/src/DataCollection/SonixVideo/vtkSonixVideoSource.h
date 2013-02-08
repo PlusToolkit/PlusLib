@@ -262,6 +262,8 @@ public:
   /*! Get current RF acquire mode */
   PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
 
 protected:
   /*! Constructor */

@@ -21,6 +21,7 @@ See License.txt for details.
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkMath.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
@@ -833,9 +834,10 @@ private:
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector)
+SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aCollector, vtkPlusChannel* aChannel)
 : QDialog(aParent)
-, m_DataCollector(aDataCollector)
+, m_DataCollector(aCollector)
+, m_SelectedChannel(aChannel)
 , m_SegmentedPointsActor(NULL)
 , m_SegmentedPointsPolyData(NULL)
 , m_CandidatesPolyData(NULL)
@@ -954,14 +956,14 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 {
   LOG_TRACE("SegmentationParameterDialog::InitializeVisualization");
 
-  if (m_DataCollector == NULL || m_DataCollector->GetConnected() == false) {
-    LOG_ERROR("Data collector is not initialized!");
+  if (m_SelectedChannel == NULL || m_SelectedChannel->GetOwnerDevice()->GetConnected() == false) {
+    LOG_ERROR("Data source is not initialized!");
     return PLUS_FAIL;
   }
 
-  if (!m_DataCollector->GetVideoDataAvailable()) 
+  if (!m_SelectedChannel->GetVideoDataAvailable()) 
   {
-    LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+    LOG_WARNING("Data source has no output port, canvas image actor initalization failed.");
   }
 
   // Create segmented points actor
@@ -1335,7 +1337,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
-    m_DataCollector->GetTrackedFrame(&m_Frame);
+    m_SelectedChannel->GetTrackedFrame(&m_Frame);
   }
 
   // Set image for canvas
@@ -1537,7 +1539,7 @@ PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
-  m_DataCollector->GetBrightnessFrameSize(aImageDimensions);
+  m_SelectedChannel->GetOwnerDevice()->GetBrightnessFrameSize(aImageDimensions);
 
   return PLUS_SUCCESS;
 }

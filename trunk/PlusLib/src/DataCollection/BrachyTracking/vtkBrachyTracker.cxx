@@ -1025,21 +1025,24 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 0 )
+  if( this->OutputChannels.size() > 1 )
   {
-    this->OutputChannels[0]->Clear();
-
-    for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
-    {
-      this->OutputChannels[0]->AddTool(it->second);
-    }
-
-    this->CurrentChannel = this->OutputChannels[0];
-  }
-  else
-  {
-    LOG_ERROR("No output channels in brachy tracker. Need exactly 1.");
+    LOG_WARNING("vtkBrachyTracker is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkBrachyTracker. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
+  this->OutputChannels[0]->Clear();
+
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
+  {
+    this->OutputChannels[0]->AddTool(it->second);
   }
 
   return PLUS_SUCCESS;

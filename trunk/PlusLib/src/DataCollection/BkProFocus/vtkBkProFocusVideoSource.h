@@ -46,6 +46,9 @@ public:
   PlusStatus GetFullIniFilePath(std::string &fullPath);
 
   void SetImagingMode(ImagingModeType imagingMode);
+
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
   
 protected:
   /*! Constructor */

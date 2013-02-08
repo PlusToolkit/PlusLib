@@ -5,23 +5,22 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkDataCollector.h"
-#include "vtkTransformRepository.h" 
 #include "TrackedFrame.h"
-#include "vtkObjectFactory.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkRecursiveCriticalSection.h"
-#include "vtkImageData.h"
-
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlStatusMessage.h"
-
-#include "vtkPlusIgtlMessageFactory.h" 
-#include "vtkPlusIgtlMessageCommon.h"
+#include "vtkDataCollector.h"
+#include "vtkImageData.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
+#include "vtkPlusIgtlMessageCommon.h"
+#include "vtkPlusIgtlMessageFactory.h" 
+#include "vtkPlusOpenIGTLinkServer.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h" 
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
@@ -56,6 +55,9 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , SendValidTransformsOnly(true)
 , IgtlMessageCrcCheckEnabled(0)
 , PlusCommandProcessor(vtkSmartPointer<vtkPlusCommandProcessor>::New())
+, OutputDeviceId(NULL)
+, OutputChannelId(NULL)
+, BroadcastChannel(NULL)
 {
   
 }
@@ -268,7 +270,19 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
   self->DataSenderActive.second = true; 
 
-  self->DataCollector->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
+  vtkPlusDevice* aDevice(NULL);
+  vtkPlusChannel* aChannel(NULL);
+  if( self->DataCollector->GetDevice(aDevice, std::string(self->GetOutputDeviceId())) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve device by ID: " << self->GetOutputDeviceId() );
+    return NULL;
+  }
+  if( aDevice->GetOutputChannelByName(self->BroadcastChannel, self->GetOutputChannelId()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve channel by ID: " << self->GetOutputChannelId() );
+    return NULL;
+  }
+  self->BroadcastChannel->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
   std::list<std::string>::iterator messageTypeIterator; 
   double elapsedTimeSinceLastPacketSentSec = 0; 
@@ -297,7 +311,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
         // Send image message (optional)
         if (replyIt->ImageData!=NULL)
         {
-          // TODO: now all images are broadcasted to all clients, it should be more configurable (the command should be able
+          // TODO: now all images are broadcast to all clients, it should be more configurable (the command should be able
           // to specify if the image should be sent to the requesting client or all of them)
 
           std::string imageName="PlusServerImage";
@@ -368,7 +382,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     // Maximize the number of frames to send
     numberOfFramesToGet = std::min(numberOfFramesToGet, self->MaxNumberOfIgtlMessagesToSend); 
 
-    if ( self->DataCollector->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
+    if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
       self->KeepAlive(); 
@@ -723,6 +737,18 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree!");
     return PLUS_FAIL;
+  }
+
+  const char* outputDeviceId = plusOpenIGTLinkServerConfig->GetAttribute("OutputDeviceId");
+  if ( outputDeviceId != NULL ) 
+  {
+    this->SetOutputDeviceId(outputDeviceId);
+  }
+
+  const char* outputChannelId = plusOpenIGTLinkServerConfig->GetAttribute("OutputChannelId");
+  if ( outputChannelId != NULL ) 
+  {
+    this->SetOutputChannelId(outputChannelId);
   }
 
   int maxTimeSpentWithProcessingMs = 0;

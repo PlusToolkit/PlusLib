@@ -5,18 +5,16 @@
 =========================================================Plus=header=end*/ 
 
 #include "ToolStateDisplayWidget.h"
-
-#include "vtkDataCollector.h"
-#include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-
+#include "vtkPlusChannel.h"
+#include "vtkTrackedFrameList.h"
 #include <QGridLayout>
 
 //-----------------------------------------------------------------------------
 
 ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFlags)
   : QWidget(aParent, aFlags)
-  , m_DataCollector(NULL)
+  , m_SelectedChannel(NULL)
   , m_Initialized(false)
 {
   m_ToolNameLabels.clear();
@@ -42,12 +40,12 @@ ToolStateDisplayWidget::~ToolStateDisplayWidget()
   m_ToolNameLabels.clear();
   m_ToolStateLabels.clear();
 
-  m_DataCollector = NULL;
+  m_SelectedChannel = NULL;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollector, bool aConnectionSuccessful)
+PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful)
 {
   LOG_TRACE("ToolStateDisplayWidget::InitializeTools"); 
 
@@ -86,19 +84,19 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
   }
 
 
-  m_DataCollector = aDataCollector;
+  m_SelectedChannel = aChannel;
 
   // Fail if data collector or tracker is not initialized (once the content was deleted)
-  if (m_DataCollector == NULL)
+  if (m_SelectedChannel == NULL)
   {
-    LOG_ERROR("Data collector is missing!");
+    LOG_ERROR("Data source is missing!");
     return PLUS_FAIL;
   }
 
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   TrackedFrame trackedFrame;
-  m_DataCollector->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   // Set up layout
@@ -166,7 +164,7 @@ int ToolStateDisplayWidget::GetDesiredHeight()
 {
   LOG_TRACE("ToolStateDisplayWidget::GetDesiredHeight"); 
 
-  if ( m_DataCollector == NULL )
+  if ( m_SelectedChannel == NULL )
   {
     return 23; 
   }
@@ -174,7 +172,7 @@ int ToolStateDisplayWidget::GetDesiredHeight()
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   TrackedFrame trackedFrame;
-  m_DataCollector->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   int numberOfTools = transformNames.size();
@@ -198,14 +196,14 @@ PlusStatus ToolStateDisplayWidget::Update()
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   TrackedFrame trackedFrame;
-  m_DataCollector->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   if (transformNames.size()!=m_ToolStateLabels.size())
   {
     LOG_WARNING("Tool number inconsistency!");
 
-    if (InitializeTools(m_DataCollector, true) != PLUS_SUCCESS)
+    if (InitializeTools(m_SelectedChannel, true) != PLUS_SUCCESS)
     {
       LOG_ERROR("Re-initializing tool state widget failed");
       return PLUS_FAIL;

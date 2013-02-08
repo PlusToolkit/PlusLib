@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( sonixGrabber->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( sonixGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;

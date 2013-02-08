@@ -137,7 +137,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkPlusStreamBuffer> videobuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( videoDevice == NULL || videoDevice->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( videoDevice == NULL || videoDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;

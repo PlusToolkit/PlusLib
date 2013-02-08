@@ -43,6 +43,10 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ShowPoints(false)
 , m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
+, m_ShowROIAction(NULL)
+, m_Show3DObjectsAction(NULL)
+, m_ShowPhantomModelAction(NULL)
+, m_SelectedChannel(NULL)
 {
   // Set up UI
   ui.setupUi(this);
@@ -787,9 +791,6 @@ void fCalMainWindow::BuildChannelMenu()
   separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
 
-  // Determine currently selected device (if any)
-  vtkPlusChannel* selectedChannel = NULL;
-  this->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(selectedChannel);
   // Determine total number of output channels
   int numChannels(0);
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
@@ -811,7 +812,7 @@ void fCalMainWindow::BuildChannelMenu()
       action->setCheckable(true);
       action->setDisabled(numChannels == 1);
       vtkPlusChannel* currentChannel(NULL);
-      action->setChecked(device->GetCurrentChannel(currentChannel) == PLUS_SUCCESS && selectedChannel == currentChannel);
+      action->setChecked(this->GetSelectedChannel() == aChannel);
       connect(action, SIGNAL(triggered()), action, SLOT(activated()));
       connect(action, SIGNAL(channelSelected(vtkPlusDevice*, vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusDevice*, vtkPlusChannel*)));
       m_3DActionList.push_back(action);
@@ -827,16 +828,11 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    if( this->GetVisualizationController()->GetDataCollector()->SetSelectedChannel(aDevice->GetDeviceId(), aChannel->GetChannelId()) != PLUS_SUCCESS )
-    {
-      this->GetVisualizationController()->DisconnectInput();
-      this->GetVisualizationController()->HideAll();
-      return;
-    }
+    this->SetSelectedChannel(*aChannel);
   }
-  if( this->GetVisualizationController()->GetDataCollector()->GetVideoDataAvailable() )
+  if( aChannel->GetVideoDataAvailable() )
   {
-    this->GetVisualizationController()->SetInput(this->GetVisualizationController()->GetDataCollector()->GetBrightnessOutput());
+    this->GetVisualizationController()->SetInput(aChannel->GetOwnerDevice()->GetBrightnessOutput(*aChannel));
   }
   else
   {
@@ -845,4 +841,26 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
   this->GetVisualizationController()->Reset();
 
   this->BuildChannelMenu();
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::BuildChannelOwners( DeviceCollection devices )
+{
+  for( DeviceCollectionIterator it = devices.begin(); it != devices.end(); ++it )
+  {
+    for( ChannelContainerIterator chanIt = (*it)->GetOutputChannelsStart(); chanIt != (*it)->GetOutputChannelsEnd(); ++chanIt )
+    {
+      m_ChannelOwners[*chanIt] = *it;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetSelectedChannel( vtkPlusChannel& aChannel )
+{
+  m_SelectedChannel = &aChannel;
+
+  this->GetVisualizationController()->SetSelectedChannel(&aChannel);
 }

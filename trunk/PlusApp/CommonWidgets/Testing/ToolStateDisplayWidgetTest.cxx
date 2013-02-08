@@ -8,6 +8,7 @@
 #include "ToolStateDisplayWidget.h"
 #include "ToolStateDisplayWidgetTest.h"
 #include "vtkDataCollector.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkXMLUtilities.h"
 #include <QTimer>
@@ -18,6 +19,7 @@ ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WFla
   : QDialog(parent, flags)
   , m_DeviceSetSelectorWidget(NULL)
   , m_DataCollector(NULL)
+  , m_SelectedChannel(NULL)
 {
   this->setMinimumSize(480, 300);
   this->setMaximumSize(480, 300);
@@ -57,7 +59,7 @@ ToolStateDisplayWidgetTest::~ToolStateDisplayWidgetTest()
   if (m_DataCollector != NULL) {
 	  m_DataCollector->Stop();
   }
-  m_DataCollector = NULL;
+  DELETE_IF_NOT_NULL(m_DataCollector);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,7 +129,7 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-			  if (m_ToolStateDisplayWidget->InitializeTools(m_DataCollector, true)) {
+			  if (m_ToolStateDisplayWidget->InitializeTools(m_SelectedChannel, true)) {
 				  m_ToolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight() + 40);
 				  m_ToolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 			  }
@@ -182,11 +184,32 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 	  return PLUS_FAIL;
   }
 
-  if (m_DataCollector->GetTrackingDataAvailable() == false) {
+  vtkPlusDevice* aDevice(NULL);
+  vtkPlusChannel* aChannel(NULL);
+  DeviceCollection aCollection;
+  if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+  {
+    aDevice = aCollection[0];
+  }
+  else
+  {
+    LOG_ERROR("No devices in tool state display widget test. Nothing to show!");
+    return PLUS_FAIL;
+  }
+
+  if( aDevice->OutputChannelCount() == 0 )
+  {
+    LOG_ERROR("No output channels to acquire data from.");
+    return PLUS_FAIL;
+  }
+
+  aChannel = *(aDevice->GetOutputChannelsStart());
+
+  if (aChannel->GetTrackingDataAvailable() == false) {
 	  LOG_INFO("Tracking is not initialized"); 
   }
 
-  if (! m_DataCollector->GetConnected()) {
+  if ( !m_DataCollector->GetConnected()) {
 	  LOG_ERROR("Unable to initialize DataCollector!"); 
 	  return PLUS_FAIL;
   }

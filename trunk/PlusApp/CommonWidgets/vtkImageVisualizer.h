@@ -17,6 +17,7 @@ See License.txt for details.
 #include "vtkImageActor.h"
 #include "vtkImageData.h"
 #include "vtkObject.h"
+#include "vtkPlusChannel.h"
 #include "vtkPolyData.h"
 #include "vtkProp3DCollection.h"
 #include "vtkRenderer.h"
@@ -136,6 +137,7 @@ public:
 
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
+  vtkGetObjectMacro(DataCollector, vtkDataCollector);
   vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
   vtkGetObjectMacro(ImageActor, vtkImageActor);
   vtkGetObjectMacro(ImageCamera, vtkCamera);
@@ -144,7 +146,7 @@ public:
   vtkGetObjectMacro(ScreenAlignedProps, vtkProp3DCollection);
   vtkGetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkGetObjectMacro(DataCollector, vtkDataCollector);
+  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
   PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
@@ -279,6 +281,8 @@ protected:
 
   /*! Array holding the bounds of the ROI */
   double                        RegionOfInterest[4];
+
+  vtkPlusChannel*               SelectedChannel;
 
   /*! Vector to hold the actors for each wire */
   std::vector<vtkTextActor3D*>  WireActors;
