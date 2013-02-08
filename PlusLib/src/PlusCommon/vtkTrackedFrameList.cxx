@@ -458,7 +458,7 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
   return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
 }
 
@@ -479,7 +479,7 @@ US_IMAGE_ORIENTATION vtkTrackedFrameList::GetImageOrientation()
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
   return US_IMG_ORIENT_XX;
 }
 
@@ -500,7 +500,7 @@ US_IMAGE_TYPE vtkTrackedFrameList::GetImageType()
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
   return US_IMG_TYPE_XX;
 }
 

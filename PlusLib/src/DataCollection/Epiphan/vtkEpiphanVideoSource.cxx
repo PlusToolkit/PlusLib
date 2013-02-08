@@ -64,9 +64,6 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
 
   LOG_TRACE( "vtkEpiphanVideoSource::InternalConnect" );
 
-  // Clear buffer on connect 
-  this->CurrentChannel->Clear();
-
   // Initialize frmgrab library
   FrmGrabNet_Init();
 
@@ -130,15 +127,18 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
-    aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+      aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+    }
   }
 
   return PLUS_SUCCESS;
@@ -214,7 +214,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     cropRect->height = this->ClipRectangleSize[1];
   }
 
-  frame= FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
+  frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
 
   delete cropRect;
   cropRect = NULL;
@@ -228,23 +228,28 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   this->FrameNumber++; 
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
-    return PLUS_FAIL;
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
+        return PLUS_FAIL;
+      }
+      else
+      {
+        this->Modified();
+      }
+    }
   }
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
-  {
-    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);  
-    aSource->GetBuffer()->SetFrameSize( FrameSize );
-  }
-
-  PlusStatus status = aSource->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
-    itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
-  this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
-  return status;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

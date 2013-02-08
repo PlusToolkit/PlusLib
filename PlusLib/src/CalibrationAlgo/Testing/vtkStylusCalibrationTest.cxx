@@ -11,24 +11,23 @@
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusConfig.h"
-#include "vtkPivotCalibrationAlgo.h"
-#include "vtkDataCollector.h"
-#include "vtkTrackedFrameList.h"
+#include "PlusMath.h"
 #include "TrackedFrame.h"
-#include "vtkTransformRepository.h"
-
+#include "vtkDataCollector.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPivotCalibrationAlgo.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusConfig.h"
 #include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "PlusMath.h"
-
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////
 const double TRANSLATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5mm
@@ -96,8 +95,20 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to start data collection!");
     exit(EXIT_FAILURE);
   }
-  if (dataCollector->GetTrackingDataAvailable() == false) {
-    LOG_ERROR("Data collector is not tracking!");
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDevice* aDevice(NULL);
+  if( dataCollector->GetDevice(aDevice, std::string("TrackerDevice")) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate device by ID: \'TrackerDevice\'");
+    exit(EXIT_FAILURE);
+  }
+  if( aDevice->GetOutputChannelByName(aChannel, "TrackerStream") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate channel by ID: \'TrackerStream\'");
+    exit(EXIT_FAILURE);
+  }
+  if ( aChannel->GetTrackingDataAvailable() == false ) {
+    LOG_ERROR("Channel \'" << aChannel->GetChannelId() << "\' is not tracking!");
     exit(EXIT_FAILURE);
   }
 
@@ -117,7 +128,7 @@ int main (int argc, char* argv[])
 
   // Create and initialize transform repository
   TrackedFrame trackedFrame;
-  dataCollector->GetTrackedFrame(&trackedFrame);
+  aChannel->GetTrackedFrame(&trackedFrame);
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   transformRepository->SetTransforms(trackedFrame);
@@ -135,7 +146,7 @@ int main (int argc, char* argv[])
 
     
     TrackedFrame trackedFrame; 
-    if ( dataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( aChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!"); 
       exit(EXIT_FAILURE);

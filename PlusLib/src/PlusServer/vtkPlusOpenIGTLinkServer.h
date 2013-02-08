@@ -13,11 +13,12 @@
 
 #include "igtlServerSocket.h"
 
-class vtkDataCollector;
-class vtkTransformRepository; 
 class TrackedFrame; 
-class vtkRecursiveCriticalSection; 
+class vtkDataCollector;
+class vtkPlusChannel;
 class vtkPlusCommandProcessor;
+class vtkRecursiveCriticalSection; 
+class vtkTransformRepository; 
 
 /*!
   \class vtkPlusOpenIGTLinkServer 
@@ -44,6 +45,9 @@ public:
   /*! Get server listening port */ 
   vtkGetMacro( ListeningPort, int );
   
+  vtkGetStringMacro(OutputChannelId);
+  vtkGetStringMacro(OutputDeviceId);
+
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
   virtual vtkDataCollector* GetDataCollector();
@@ -98,6 +102,9 @@ protected:
     \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
   */ 
   int ExecuteCommand(const char* commandString, std::string& resultString); 
+
+  vtkSetStringMacro(OutputDeviceId);
+  vtkSetStringMacro(OutputChannelId);
 
 private:
 	
@@ -182,6 +189,13 @@ private:
   /*! Factory to generate commands that are invoked remotely */ 
   vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;
 
+  /*! Device ID to request the channel from */
+  char* OutputDeviceId;
+  /*! Channel ID to request the data from */
+  char* OutputChannelId;
+
+  /*! Channel to use for broadcasting */
+  vtkPlusChannel* BroadcastChannel;
 };
 
 

@@ -81,27 +81,29 @@ int main(int argc, char **argv)
 	LOG_INFO("Copy video buffer"); 
 	vtkPlusStreamBuffer* buffer = vtkPlusStreamBuffer::New(); 
   vtkPlusDevice* device = NULL;
-  if( dataCollector->GetDevice(device, "SomeVideoSource") != PLUS_SUCCESS )
+  if( dataCollector->GetDevice(device, "VideoDevice") != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to locate the device with Id=\"SomeVideoSource\". Check config file.");
     exit(EXIT_FAILURE);
   }
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( device->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( device->GetOutputChannelByName(aChannel, "VideoStream") == PLUS_SUCCESS && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+  {
+    buffer->DeepCopy(aSource->GetBuffer());
+
+    LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
+    buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
+
+    buffer->Delete(); 
+
+    std::cout << "Test completed successfully!" << std::endl;
+    return EXIT_SUCCESS; 
+  }
+  else
   {
     LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
+    exit(EXIT_FAILURE);
   }
-  buffer->DeepCopy(aSource->GetBuffer());
-
-	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
-	buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
-
-	buffer->Delete(); 
-
-	std::cout << "Test completed successfully!" << std::endl;
-	return EXIT_SUCCESS; 
-
 }
 

@@ -54,6 +54,9 @@ public:
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   /*! Constructor */
   vtkOpenIGTLinkVideoSource();

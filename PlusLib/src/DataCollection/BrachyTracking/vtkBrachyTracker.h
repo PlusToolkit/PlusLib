@@ -178,7 +178,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write BrachyStepper configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
 protected:
   vtkBrachyTracker();

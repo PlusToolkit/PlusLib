@@ -179,7 +179,7 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
@@ -302,7 +302,7 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
@@ -491,6 +491,26 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
   // clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkICCapturingSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("ICCapturingSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkICCapturingSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

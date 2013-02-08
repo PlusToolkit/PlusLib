@@ -250,7 +250,14 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     client->ReadConfiguration(configRootElement);
     client->SetServerAddress("localhost");
     client->SetServerPort(listeningPort); 
-    client->SetBufferSize( 10 ); 
+    if( client->OutputChannelCount() == 0 )
+    {
+      LOG_ERROR("No output channels in openIGTLink client.");
+      ++numberOfErrors;
+      continue;
+    }
+    vtkPlusChannel* aChannel = *(client->GetOutputChannelsStart());
+    client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
     client->SetDeviceImageOrientation( US_IMG_ORIENT_MF );
 

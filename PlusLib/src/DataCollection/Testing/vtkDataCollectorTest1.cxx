@@ -10,24 +10,25 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkSmartPointer.h"
-#include "vtkImageViewer.h"
+#include "TrackedFrame.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
+#include "vtkDataCollector.h"
+#include "vtkImageData.h" 
+#include "vtkImageViewer.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusDevice.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkDataCollector.h"
-#include "vtkTextProperty.h"
-#include "vtkTextActor.h"
-#include "vtkPlusDevice.h"
-#include "vtkSavedDataSource.h"
-#include "vtkXMLUtilities.h"
-#include "vtkImageData.h" 
-#include "vtkPlusDataSource.h"
-#include "TrackedFrame.h"
-#include "vtkMatrix4x4.h"
 #include "vtkRfProcessor.h"
+#include "vtkSavedDataSource.h"
+#include "vtkSmartPointer.h"
+#include "vtkTextActor.h"
+#include "vtkTextProperty.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 class vtkMyCallback : public vtkCommand
 {
@@ -39,7 +40,7 @@ public:
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
     TrackedFrame trackedFrame; 
-    if ( this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to get tracked frame!"); 
       return; 
@@ -95,6 +96,7 @@ public:
   }
 
   vtkDataCollector* DataCollector; 
+  vtkPlusChannel* BroadcastChannel;
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
@@ -216,7 +218,18 @@ int main(int argc, char **argv)
   }
   else
   {    
-    
+    if( dataCollector->GetDevice(videoDevice, "TrackedVideoDevice") != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to locate the device with Id=\"TrackedVideoDevice\". Check config file.");
+      exit(EXIT_FAILURE);
+    }
+    vtkPlusChannel* aChannel(NULL);
+    if( videoDevice->GetOutputChannelByName(aChannel, "TrackedVideoStream") != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to locate the channel with Id=\"TrackedVideoStream\". Check config file.");
+      exit(EXIT_FAILURE);
+    }
+
     vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
@@ -251,6 +264,7 @@ int main(int argc, char **argv)
     //establish timer event and create timer
     vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
     call->DataCollector=dataCollector; 
+    call->BroadcastChannel=aChannel;
     call->Viewer=viewer;
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor;

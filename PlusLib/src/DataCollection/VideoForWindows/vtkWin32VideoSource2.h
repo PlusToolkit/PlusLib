@@ -73,6 +73,9 @@ public:
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. Public to allow calling from static function. */
 	PlusStatus AddFrameToBuffer(void *lpVideoHeader);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
 
   /*! Constructor */

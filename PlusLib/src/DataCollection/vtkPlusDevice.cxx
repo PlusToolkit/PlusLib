@@ -47,7 +47,6 @@ vtkPlusDevice::vtkPlusDevice()
 : ThreadAlive(false)
 , Connected(0)
 , ThreadId(-1)
-, CurrentChannel(NULL)
 , CurrentStreamBufferItem(new StreamBufferItem())
 , ToolReferenceFrameName(NULL)
 , DeviceId(NULL)
@@ -65,6 +64,7 @@ vtkPlusDevice::vtkPlusDevice()
 , FrameTimeStamp(0)
 , NumberOfOutputFrames(1)
 , OutputNeedsInitialization(1)
+, CorrectlyConfigured(true)
 , RequireDeviceImageOrientationInDeviceSetConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -254,20 +254,14 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusDataSource*& aTool) const
 {
-  if( this->CurrentChannel == NULL )
+  if ( this->Tools.size() == 0 )
   {
-    LOG_ERROR("Current channel is null. Unable to get first active tool.");
-    return PLUS_FAIL;
-  }
-
-  if ( this->CurrentChannel->GetToolsStartConstIterator() == this->CurrentChannel->GetToolsEndConstIterator() )
-  {
-    LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
+    LOG_ERROR("Failed to get first active tool - there are no tools!"); 
     return PLUS_FAIL; 
   }
 
   // Get the first tool
-  aTool = this->CurrentChannel->GetToolsStartIterator()->second; 
+  aTool = this->Tools.begin()->second;
 
   return PLUS_SUCCESS; 
 }
@@ -287,19 +281,7 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusDataSource*& aTo
     return PLUS_SUCCESS;
   }
 
-  if( CurrentChannel == NULL )
-  {
-    LOG_ERROR("Failed to get tool, CurrentChannel is NULL"); 
-    return PLUS_FAIL;
-  }
-
-  if( this->CurrentChannel->GetTool(aTool, aToolName) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to find tool '"<< aToolName <<"' in the list, please check the configuration file first." ); 
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
@@ -312,21 +294,6 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusDataSo
   }
 
   for ( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
-  {
-    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
-    {
-      aTool = it->second; 
-      return PLUS_SUCCESS; 
-    }
-  }
-
-  if( CurrentChannel == NULL )
-  {
-    LOG_ERROR("Failed to get tool, CurrentChannel is NULL"); 
-    return PLUS_FAIL;
-  }
-
-  for ( DataSourceContainerConstIterator it = this->CurrentChannel->GetToolsStartConstIterator(); it != this->CurrentChannel->GetToolsEndConstIterator(); ++it)
   {
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
@@ -855,22 +822,26 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   if( this->OutputChannels.size() == 0 )
   {
     LOG_INFO("No output channels defined for device: " << this->GetDeviceId() );
+    return PLUS_SUCCESS;
   }
-  else
+
+  const char* defaultOutputChannel = deviceXMLElement->GetAttribute("DefaultOutputChannelId");
+  if( defaultOutputChannel != NULL )
   {
-    const char* defaultOutputChannel = deviceXMLElement->GetAttribute("DefaultOutputChannelId");
-    if( defaultOutputChannel != NULL )
+    vtkPlusChannel* aChannel(NULL);
+    if( this->GetOutputChannelByName(aChannel, defaultOutputChannel) == PLUS_SUCCESS )
     {
-      vtkPlusChannel* aChannel(NULL);
-      if( this->GetOutputChannelByName(aChannel, defaultOutputChannel) == PLUS_SUCCESS )
-      {
-        this->CurrentChannel = aChannel;
-      }
+      this->SetDefaultOutputChannel(defaultOutputChannel);
     }
     else
     {
-      this->CurrentChannel = this->OutputChannels[0];
+      LOG_ERROR("Default output channel " << defaultOutputChannel << " does not exist for device: " << this->GetDeviceId() );
+      this->SetDefaultOutputChannel(this->OutputChannels[0]->GetChannelId());
     }
+  }
+  else
+  {
+    this->SetDefaultOutputChannel(this->OutputChannels[0]->GetChannelId());
   }
 
   return PLUS_SUCCESS;
@@ -1085,7 +1056,7 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
   unsigned long updatecount = 0;
   self->ThreadAlive = true; 
 
-  while ( self->IsRecording() )
+  while ( self->IsRecording() && self->GetCorrectlyConfigured() )
   {
     double newtime = vtkAccurateTimer::GetSystemTime();
     // get current tracking rate over last few updates
@@ -1122,15 +1093,14 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetBufferSize( int& outVal, const char * toolName /*= NULL*/ )
+PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, const char * toolName /*= NULL*/ )
 {
   LOG_TRACE("vtkPlusDeviceg::GetBufferSize");
-
 
   if( toolName == NULL )
   {
     vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve the video source.");
       return PLUS_FAIL;
@@ -1157,7 +1127,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( int& outVal, const char * toolName /*= 
 // set or change the circular buffer size
 // you will have to override this if you want the buffers
 // to be device-specific (i.e. something other than vtkDataArray)
-PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolName /*= NULL*/ )
+PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName /*= NULL*/ )
 {
   LOG_TRACE("vtkPlusDevice::SetBufferSize(" << FrameBufferSize << ")");
 
@@ -1170,7 +1140,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( int FrameBufferSize, const char* toolNa
   if( toolName == NULL )
   {
     vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve the video source.");
       return PLUS_FAIL;
@@ -1272,11 +1242,11 @@ PlusStatus vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
 }
 
 //----------------------------------------------------------------------------
-vtkImageData* vtkPlusDevice::GetBrightnessOutput()
+vtkImageData* vtkPlusDevice::GetBrightnessOutput(vtkPlusChannel& aChannel)
 {  
   vtkImageData* resultImage=this->BlankImage;
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return resultImage;
@@ -1378,7 +1348,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
+PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkPlusChannel& aChannel, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
   if ( htmlReport == NULL || plotter == NULL )
   {
@@ -1388,10 +1358,10 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlR
 
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
 
-  if( this->GetTrackingEnabled() )
+  if( aChannel.GetTrackingEnabled() )
   {
     // Use the first tool in the container to generate the report
-    vtkPlusDataSource* tool = this->GetToolIteratorBegin()->second;  
+    vtkPlusDataSource* tool = aChannel.GetToolsStartIterator()->second;  
 
     if ( tool->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
     { 
@@ -1424,10 +1394,10 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlR
 
   htmlReport->AddHorizontalLine(); 
 
-  if( this->GetVideoEnabled() )
+  if( aChannel.GetVideoEnabled() )
   {
     vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve the video source.");
       return PLUS_FAIL;
@@ -1490,9 +1460,16 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
   // get the info objects
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
-  // Set extent
+  // Find a video source and set extent
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  {
+    if( (*it)->GetVideoSource(aSource) == PLUS_SUCCESS )
+    {
+      break;
+    }
+  }
+  if( aSource == NULL )
   {
     return 0;
   }
@@ -1524,8 +1501,16 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   vtkImageData *data = vtkImageData::SafeDownCast(this->AllocateOutputData(this->GetOutputDataObject(0)));
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
 
+  // Find a video source and set extent
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  {
+    if( (*it)->GetVideoSource(aSource) == PLUS_SUCCESS )
+    {
+      break;
+    }
+  }
+  if( aSource == NULL )
   {
     return 1;
   }
@@ -1580,12 +1565,12 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
+PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusChannel& aChannel, int x, int y)
 {
   LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ")");
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return PLUS_FAIL;
@@ -1612,12 +1597,12 @@ PlusStatus vtkPlusDevice::SetFrameSize(int x, int y)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(int &x, int &y)
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y)
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
   int dim[2];
-  if( this->GetFrameSize(dim) != PLUS_SUCCESS )
+  if( this->GetFrameSize(aChannel, dim) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to get frame size from the device.");
     return PLUS_FAIL;
@@ -1629,12 +1614,12 @@ PlusStatus vtkPlusDevice::GetFrameSize(int &x, int &y)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(int dim[2])
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[2])
 {
   LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return PLUS_FAIL;
@@ -1644,12 +1629,12 @@ PlusStatus vtkPlusDevice::GetFrameSize(int dim[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetPixelType(PlusCommon::ITKScalarPixelType pixelType)
+PlusStatus vtkPlusDevice::SetPixelType(vtkPlusChannel& aChannel, PlusCommon::ITKScalarPixelType pixelType)
 {
   LOG_TRACE("vtkPlusDevice::SetPixelType");
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return PLUS_FAIL;
@@ -1659,12 +1644,12 @@ PlusStatus vtkPlusDevice::SetPixelType(PlusCommon::ITKScalarPixelType pixelType)
 }
 
 //----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType()
+PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType(vtkPlusChannel& aChannel)
 {
   LOG_TRACE("vtkPlusDevice::GetPixelType");
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
@@ -1674,10 +1659,10 @@ PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType()
 }
 
 //----------------------------------------------------------------------------
-US_IMAGE_TYPE vtkPlusDevice::GetImageType()
+US_IMAGE_TYPE vtkPlusDevice::GetImageType(vtkPlusChannel& aChannel)
 {
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return US_IMG_TYPE_XX;
@@ -1687,10 +1672,10 @@ US_IMAGE_TYPE vtkPlusDevice::GetImageType()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetImageType(US_IMAGE_TYPE imageType)
+PlusStatus vtkPlusDevice::SetImageType(vtkPlusChannel& aChannel, US_IMAGE_TYPE imageType)
 {
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel != NULL && this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return PLUS_FAIL;
@@ -1742,102 +1727,6 @@ PlusStatus vtkPlusDevice::AddInputChannel(vtkPlusChannel* aChannel )
 double vtkPlusDevice::GetAcquisitionRate() const
 {
   return this->AcquisitionRate;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetOldestTimestamp(double &ts)
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetOldestTimestamp(ts);
-  }
-
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetMostRecentTimestamp(double &ts)
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetMostRecentTimestamp(ts);
-  }
-
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-double vtkPlusDevice::GetClosestTrackedFrameTimestampByTime(double time)
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetClosestTrackedFrameTimestampByTime(time);
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetClosestTrackedFrameTimestampByTime().");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusDevice::GetTrackingDataAvailable()
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetTrackingDataAvailable();
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetTrackingDataAvailable().");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusDevice::GetVideoDataAvailable()
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetVideoDataAvailable();
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetVideoDataAvailable().");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-/*vtkPlusStreamBuffer* vtkPlusDevice::GetBuffer()
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetBuffer();
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetTrackingEnabled().");
-  return false;
-}*/
-
-//----------------------------------------------------------------------------
-bool vtkPlusDevice::GetTrackingEnabled() const
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetTrackingEnabled();
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetTrackingEnabled().");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusDevice::GetVideoEnabled() const
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetVideoEnabled();
-  }
-
-  LOG_ERROR("Current aChannel not defined. Unable to answer GetVideoEnabled().");
-  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -1928,23 +1817,13 @@ PlusStatus vtkPlusDevice::AddVideo( vtkPlusDataSource* aVideo )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetFirstActiveVideoSource(vtkPlusDataSource*& aVideoSource)
 {
-  if( this->CurrentChannel == NULL )
+  if ( this->VideoSources.size() == 0 )
   {
-    LOG_ERROR("Current aChannel is null. Unable to get first active source.");
-    return PLUS_FAIL;
-  }
-
-  if ( !this->CurrentChannel->HasVideoSource() )
-  {
-    LOG_ERROR("Failed to get first active video source - there is no video source!"); 
+    LOG_ERROR("Failed to get first active video source - there are no video sources!"); 
     return PLUS_FAIL; 
   }
 
-  // Get the first source
-  if( this->CurrentChannel->GetVideoSource(aVideoSource) == PLUS_SUCCESS )
-  {
-    return PLUS_SUCCESS;
-  }
+  aVideoSource = this->VideoSources.begin()->second;
 
   return PLUS_FAIL; 
 }
@@ -1964,19 +1843,7 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
     return PLUS_SUCCESS;
   }
 
-  if( CurrentChannel == NULL )
-  {
-    return PLUS_FAIL;
-  }
-
-  if( this->CurrentChannel->GetVideoSource(aVideoSource) == PLUS_SUCCESS && STRCASECMP(aVideoSource->GetSourceId(), aSourceId) != 0)
-  {
-    aVideoSource = NULL;
-    LOG_ERROR("Unable to find video source with Id '" << aSourceId <<"' in the list, please check the configuration file first." ); 
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -2018,94 +1885,36 @@ ChannelContainerIterator vtkPlusDevice::GetOutputChannelsEnd()
   return this->OutputChannels.end();
 }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetCurrentChannel( vtkPlusChannel*& aChannel )
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName)
 {
-  if( this->CurrentChannel != NULL )
+  LOG_TRACE("vtkDataCollectorFile::GetTrackerToolReferenceFrame");
+
+  // Try to find it out from the custom transforms that are stored in the tracked frame
+  std::vector<PlusTransformName> transformNames;
+  aFrame.GetCustomFrameTransformNameList(transformNames);
+
+  if (transformNames.size() == 0)
   {
-    aChannel = this->CurrentChannel;
-    return PLUS_SUCCESS;
-  }
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetCurrentChannel( const std::string& aChannelId )
-{
-  vtkPlusChannel* aChannel(NULL);
-  if( this->GetOutputChannelByName(aChannel, aChannelId.c_str()) == PLUS_SUCCESS )
-  {
-    this->CurrentChannel = aChannel;
-    return PLUS_SUCCESS;
-  }
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrame( double timestamp, TrackedFrame& trackedFrame, bool enableImageData/*=true*/ )
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-
-  if( this->CurrentChannel == NULL )
-  {
-    LOG_ERROR("No current channel.");
-    return PLUS_FAIL;    
-  }
-
-  return this->CurrentChannel->GetTrackedFrame(timestamp, trackedFrame, enableImageData);  
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrame( TrackedFrame *trackedFrame )
-{
-  LOG_TRACE("vtkPlusDevice::GetTrackedFrame(TrackedFrame)"); 
-
-  double mostRecentFrameTimestamp(0);
-  if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS) 
-  {
-    LOG_ERROR("Failed to get most recent timestamp from the buffer!"); 
+    LOG_ERROR("No transforms found in tracked frame!");
     return PLUS_FAIL;
   }
 
-  return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrameListSampled( double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec/*=-1*/ )
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-
-  if( this->CurrentChannel != NULL )
+  std::string frameName = "";
+  for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
   {
-    return this->CurrentChannel->GetTrackedFrameListSampled(aTimestamp, aTrackedFrameList, aSamplingRateSec, maxTimeLimitSec);
+    if (frameName == "")
+    {
+      frameName = it->To();
+    }
+    else if (frameName != it->To())
+    {
+      LOG_ERROR("Destination coordinate frame names are not the same!");
+      return PLUS_FAIL;
+    }
   }
 
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
-}
+  aToolReferenceFrameName = frameName;
 
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd )
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetTrackedFrameList(aTimestampFrom, aTrackedFrameList, aMaxNumberOfFramesToAdd);
-  }
-
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTrackedFrameByTime( double time, TrackedFrame* trackedFrame )
-{
-  if( this->CurrentChannel != NULL )
-  {
-    return this->CurrentChannel->GetTrackedFrameByTime(time, trackedFrame);
-  }
-
-  LOG_ERROR("No current channel.");
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }

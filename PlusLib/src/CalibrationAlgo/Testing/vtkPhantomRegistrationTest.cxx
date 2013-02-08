@@ -11,26 +11,25 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusConfig.h"
-#include "vtkPhantomRegistrationAlgo.h"
-#include "vtkDataCollector.h"
-#include "vtkTrackedFrameList.h"
+#include "PlusMath.h"
 #include "TrackedFrame.h"
+#include "vtkDataCollector.h"
 #include "vtkFakeTracker.h"
-#include "vtkTransformRepository.h"
-
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusConfig.h"
 #include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkMath.h"
-#include "PlusMath.h"
-
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD = 0.001; // error threshold  
@@ -89,7 +88,23 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to start data collection!");
     exit(EXIT_FAILURE);
   }
-  if (dataCollector->GetTrackingDataAvailable() == false)
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDevice* aDevice(NULL);
+  if( dataCollector->GetDevice(aDevice, std::string("TrackerDevice")) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate device by ID: \'TrackerDevice\'");
+    exit(EXIT_FAILURE);
+  }
+  if( aDevice->GetOutputChannelByName(aChannel, "TrackerStream") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate channel by ID: \'TrackerStream\'");
+    exit(EXIT_FAILURE);
+  }
+  if ( aChannel->GetTrackingDataAvailable() == false ) {
+    LOG_ERROR("Channel \'" << aChannel->GetChannelId() << "\' is not tracking!");
+    exit(EXIT_FAILURE);
+  }
+  if (aChannel->GetTrackingDataAvailable() == false)
   {
     LOG_ERROR("Data collector is not tracking!");
     exit(EXIT_FAILURE);
@@ -124,13 +139,7 @@ int main (int argc, char* argv[])
   }
 
   // Acquire landmarks
-  vtkPlusDevice* device = NULL;
-  if( dataCollector->GetDevice(device, "TrackerDevice") != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to locate device with Id \"TrackerDevice\". Check config file.");
-    exit(EXIT_FAILURE);
-  }
-  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(device);
+  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(aDevice);
   if (fakeTracker == NULL) {
     LOG_ERROR("Invalid tracker object!");
     exit(EXIT_FAILURE);
@@ -147,7 +156,7 @@ int main (int argc, char* argv[])
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    dataCollector->GetTrackedFrame(&trackedFrame);
+    aChannel->GetTrackedFrame(&trackedFrame);
     transformRepository->SetTransforms(trackedFrame);
 
     bool valid(false); 

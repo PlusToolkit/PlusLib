@@ -5,16 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-
-#include "vtkObjectFactory.h"
-#include "vtkImageData.h"
-
-#include "vtkPlusReconstructVolumeCommand.h"
-#include "vtkPlusCommandProcessor.h"
-#include "vtkVolumeReconstructor.h"
-#include "vtkTransformRepository.h"
-#include "vtkTrackedFrameList.h"
 #include "vtkDataCollector.h"
+#include "vtkImageData.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusCommandProcessor.h"
+#include "vtkPlusReconstructVolumeCommand.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
+#include "vtkVolumeReconstructor.h"
 
 static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=25;
 
@@ -128,6 +127,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
   SetOutputVolFilename(aConfig->GetAttribute("OutputVolFilename"));
   SetOutputVolDeviceName(aConfig->GetAttribute("OutputVolDeviceName"));
   SetTrackedVideoDeviceId(aConfig->GetAttribute("TrackedVideoDeviceId"));
+  SetTrackedVideoDeviceId(aConfig->GetAttribute("TrackedVideoChannelId"));
   aConfig->GetScalarAttribute("ReferencedCommandId",this->ReferencedCommandId);     
   return PLUS_SUCCESS;
 }
@@ -154,6 +154,10 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   if (this->TrackedVideoDeviceId!=NULL)
   {
     aConfig->SetAttribute("TrackedVideoDeviceId",this->TrackedVideoDeviceId);
+  }
+  if (this->TrackedVideoChannelId!=NULL)
+  {
+    aConfig->SetAttribute("TrackedVideoChannelId",this->TrackedVideoChannelId);
   }
   if (this->ReferencedCommandId!=0)
   {
@@ -207,11 +211,16 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   }
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
   {
-    vtkPlusDevice* trackedVideoDevice=NULL;
+    vtkPlusDevice* trackedVideoDevice(NULL);
+    vtkPlusChannel* trackedVideoChannel(NULL);
     vtkDataCollector* dataCollector=this->GetDataCollector();
     if (dataCollector!=NULL)
     {
       dataCollector->GetDevice(trackedVideoDevice, this->TrackedVideoDeviceId);
+    }
+    if( trackedVideoDevice != NULL )
+    {
+      trackedVideoDevice->GetOutputChannelByName(trackedVideoChannel, this->TrackedVideoChannelId);
     }
 
     if (!this->LiveReconstructionInProgress)
@@ -254,7 +263,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       if (trackedVideoDevice!=NULL)
       {
         vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-        trackedVideoDevice->GetTrackedFrameList(this->LastRecordedFrameTimestamp, trackedFrameList, MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE);
+        trackedVideoChannel->GetTrackedFrameList(this->LastRecordedFrameTimestamp, trackedFrameList, MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE);
         AddFrames(trackedFrameList);
       }
       else
@@ -296,7 +305,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, unknown command name");
       return PLUS_FAIL;
     }
-    SetCommandCompleted(PLUS_SUCCESS,"Live volume reconstruction control command procesing completed");
+    SetCommandCompleted(PLUS_SUCCESS,"Live volume reconstruction control command processing completed");
     return PLUS_SUCCESS;
   }
 } 

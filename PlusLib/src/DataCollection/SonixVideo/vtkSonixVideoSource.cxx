@@ -232,9 +232,9 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   this->FrameNumber = frmnum; 
 
   int frameSize[2] = {0,0};
-  this->GetFrameSize(frameSize); 
+  this->GetFrameSize(*(this->OutputChannels[0]), frameSize); 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
     return PLUS_FAIL;
@@ -277,7 +277,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     imgType=US_IMG_RF_I_LINE_Q_LINE;
     break;
   default:
-    LOG_ERROR("Uknown pixel type");
+    LOG_ERROR("Unknown pixel type");
   }
 
   if ( sz != frameSizeInBytes + numberOfBytesToSkip )
@@ -395,7 +395,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 #endif
 
     vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
       return PLUS_FAIL;
@@ -404,13 +404,13 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     switch (this->DataDescriptor.ss)
     {
     case 8:
-      this->SetPixelType( itk::ImageIOBase::UCHAR );
-      this->SetImageType( US_IMG_BRIGHTNESS );
+      this->SetPixelType( *(this->OutputChannels[0]), itk::ImageIOBase::UCHAR );
+      this->SetImageType( *(this->OutputChannels[0]), US_IMG_BRIGHTNESS );
       aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
       break;
     case 16:
-      this->SetPixelType( itk::ImageIOBase::SHORT );
-      this->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
+      this->SetPixelType( *(this->OutputChannels[0]), itk::ImageIOBase::SHORT );
+      this->SetImageType( *(this->OutputChannels[0]), US_IMG_RF_I_LINE_Q_LINE );
       // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
       aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
       // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
@@ -424,7 +424,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       LOG_ERROR("Unsupported Ulterius bit depth: "<<this->DataDescriptor.ss);
       continue;
     }
-    this->SetFrameSize( this->DataDescriptor.w, this->DataDescriptor.h); 
+    this->SetFrameSize( *(this->OutputChannels[0]), this->DataDescriptor.w, this->DataDescriptor.h); 
 
     // Set up imaging parameters
     // Parameter value <0 means that the parameter should be kept unchanged
@@ -1172,6 +1172,25 @@ PlusStatus vtkSonixVideoSource::InternalUpdate()
     {
       return PLUS_SUCCESS;
     }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkSonixVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkSonixVideoSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

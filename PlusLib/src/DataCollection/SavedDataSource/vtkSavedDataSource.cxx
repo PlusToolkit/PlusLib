@@ -723,6 +723,19 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSavedDataSource::NotifyConfigured()
 {
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkSavedDataSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkSavedDataSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
@@ -736,7 +749,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
     // nothing to check for
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: " << this->SimulatedStream);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -879,7 +892,7 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
   case VIDEO_STREAM:
     {
       vtkPlusDataSource* aSource(NULL);
-      if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+      if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
         return NULL;

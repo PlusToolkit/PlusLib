@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( portaGrabber->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( portaGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;

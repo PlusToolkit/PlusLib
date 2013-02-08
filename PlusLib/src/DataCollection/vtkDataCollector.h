@@ -65,21 +65,6 @@ public:
   */
   PlusStatus Disconnect();
 
-  /*! 
-  Return the most recent synchronized timestamp in the buffers 
-  */
-  PlusStatus GetMostRecentTimestamp(double &ts) const;
-
-  /*
-    Does the system have a tracker connected
-  */
-  bool GetTrackingEnabled() const;
-
-  /*
-    Does the system have a video device connected
-  */
-  bool GetVideoEnabled() const;
-
   /*
     Is the system connected?
   */
@@ -90,14 +75,6 @@ public:
     itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
   */
   virtual PlusStatus SetLoopTimes(); 
-
-  /*!
-  Get the tracked frame list from devices since time specified
-  \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-  \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-  \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since aTimestamp
-  */
-  PlusStatus GetTrackedFrameList(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1) const;
 
   /*!
     Return the requested device
@@ -113,26 +90,6 @@ public:
   DeviceCollectionConstIterator GetDeviceConstIteratorEnd() const;
 
   /*!
-    Very important function, requests the latest tracked frame from the data collector
-    The data collector can only process this if a device exists that can output tracked frames.
-    So far, we define this as a virtual device to perform this function specifically.
-    \param trackedFrame the frame to fill
-    */
-  PlusStatus GetTrackedFrame( TrackedFrame* trackedFrame );
-
-  /*! 
-    Get the tracked frame from devices by time with each tool transforms
-    \param time The closes frame to this timestamp will be retrieved
-    \param trackedFrame The output where the tracked frame information will be copied
-  */
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
-
-  /*!
-    Pass this request on to the selected stream mixer
-  */
-  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
-
-  /*!
     Have each device dump their buffers to disk
     \param aDirectory directory to dump to
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
@@ -144,43 +101,24 @@ public:
     \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
   */
-  PlusStatus GetTrackingData(double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList);
+  PlusStatus GetTrackingData(vtkPlusChannel* aRequestedChannel, double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList);
 
   /*!
     Get video data in a tracked frame list since time specified
     \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
   */
-  virtual PlusStatus GetVideoData(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
+  virtual PlusStatus GetVideoData(vtkPlusChannel* aRequestedChannel, double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
 
   /*
   * Functions to manage the currently active stream mixers
   */
   PlusStatus GetDevices( DeviceCollection &OutVector ) const;
-  PlusStatus SetSelectedChannel( const std::string &aDeviceId, const std::string& aChannelId );
-  PlusStatus GetSelectedChannel( vtkPlusChannel* &aChannel );
-
-  /*
-  * Functions to pass on to the active stream mixer
-  */
-  bool GetTrackingDataAvailable() const;
-  bool GetVideoDataAvailable() const;
-  PlusStatus GetFrameSize(int aDim[2]);
-  PlusStatus GetFrameRate( double& frameRate ) const;
-  vtkImageData* GetBrightnessOutput();
-  PlusStatus GetBrightnessFrameSize(int aDim[2]);
-  //PlusStatus SetLocalTimeOffsetSec( double trackerLagSec, double videoLagSec );
-
-  PlusStatus GetTrackerToolReferenceFrame(std::string &aToolReferenceFrameName);
-  PlusStatus GetTrackerToolReferenceFrameFromTrackedFrame(std::string &aToolReferenceFrameName);
 
   /*! Set startup delay in sec to give some time to the buffers for proper initialization */
   vtkSetMacro(StartupDelaySec, double); 
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
-
-  vtkSetStringMacro(DefaultSelectedDevice);
-  vtkGetStringMacro(DefaultSelectedDevice);
 
 protected:
   vtkDataCollector();
@@ -190,10 +128,6 @@ protected:
   double StartupDelaySec; 
 
   DeviceCollection Devices;
-
-  vtkPlusDevice* SelectedDevice;
-
-  char * DefaultSelectedDevice;
 
   bool Connected;
   bool Started;

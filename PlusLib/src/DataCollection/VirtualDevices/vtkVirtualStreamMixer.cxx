@@ -107,6 +107,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
       this->GetOutputChannel()->SetVideoSource(aSource);
+      this->AddVideo(aSource);
     }
 
     for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
@@ -135,81 +136,10 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
       if( !found )
       {
         this->GetOutputChannel()->AddTool(anInputTool);
+        this->AddTool(anInputTool);
       }
     }
   }
 
   return PLUS_SUCCESS;
 }
-
-//----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
-{
-  // tools in input streams (owned by other devices)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
-  {
-    vtkPlusChannel* stream = *it;
-    // Now check any and all tool buffers
-    for( DataSourceContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
-    {
-      vtkPlusDataSource* tool = it->second;
-      tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-double vtkVirtualStreamMixer::GetToolLocalTimeOffsetSec()
-{
-  // tools in input streams (owned by other devices)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
-  {
-    vtkPlusChannel* stream = *it;
-    // Now check any and all tool buffers
-    for( DataSourceContainerConstIterator it = stream->GetOwnerDevice()->GetToolIteratorBegin(); it != stream->GetOwnerDevice()->GetToolIteratorEnd(); ++it)
-    {
-      vtkPlusDataSource* tool = it->second;
-      double aTimeOffsetSec = tool->GetBuffer()->GetLocalTimeOffsetSec();
-      return aTimeOffsetSec;
-    }
-  }
-  LOG_ERROR("Failed to get tool local time offset");
-  return 0.0;
-}
-
-//----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::SetVideoLocalTimeOffsetSec( double aTimeOffsetSec )
-{
-  // images in input streams (owned by other devices)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
-  {
-    vtkPlusChannel* aChannel = *it;
-    vtkPlusDataSource* aSource = NULL;
-
-    if( aChannel->HasVideoSource() && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
-    {
-      aSource->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-double vtkVirtualStreamMixer::GetVideoLocalTimeOffsetSec()
-{
-  // images in input streams (owned by other devices)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
-  {
-    vtkPlusChannel* aChannel = *it;
-    vtkPlusDataSource* aSource = NULL;
-
-    if( aChannel->HasVideoSource() && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
-    {
-      double aTimeOffsetSec = aSource->GetBuffer()->GetLocalTimeOffsetSec();
-      return aTimeOffsetSec;
-    }
-  }
-
-  LOG_ERROR("Failed to get image local time offset");
-  return 0.0;
-}
-

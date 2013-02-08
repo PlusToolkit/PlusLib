@@ -118,12 +118,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
   this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
 
   // Clear buffer on connect 
-  this->CurrentChannel->Clear();
+  this->OutputChannels[0]->Clear();
 
   // If we specified message type, try to send it to the server
   if ( this->MessageType )
   {
-    // Send clinet info request to the server
+    // Send client info request to the server
     PlusIgtlClientInfo clientInfo; 
     // Set message type
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
@@ -230,7 +230,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   this->FrameNumber++;
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the OpenIGTLinkVideo device.");
     return PLUS_FAIL;
@@ -325,3 +325,21 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkOpenIGTLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for vtkOpenIGTLinkVideoSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

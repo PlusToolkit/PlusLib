@@ -32,18 +32,6 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
-  /*! Set tool local time offsets in the input streams that contain tools */
-  virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
-
-  /*! Get tool local time offset from the input streams that contains tools */
-  virtual double GetToolLocalTimeOffsetSec();
-
-  /*! Set tool local time offsets in the input streams that contain images */
-  virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
-
-  /*! Get tool local time offset from the input streams that contains images */
-  virtual double GetVideoLocalTimeOffsetSec();
-
   virtual double GetAcquisitionRate() const;
 protected:
   vtkVirtualStreamMixer();
