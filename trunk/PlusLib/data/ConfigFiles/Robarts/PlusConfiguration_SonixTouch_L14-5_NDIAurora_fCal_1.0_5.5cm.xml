@@ -1,5 +1,5 @@
 <PlusConfiguration version="2.1" PlusRevision="1.5.3.1738">
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixTouch L14-5 + NDI Aurora 5.5cm depth" 
       Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"

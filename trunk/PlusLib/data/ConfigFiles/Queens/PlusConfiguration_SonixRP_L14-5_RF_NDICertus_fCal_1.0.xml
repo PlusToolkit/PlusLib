@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.2">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixRP L14-5 in RF mode + NDI Certus" 
       Description="Configuration file for SonixRP L14-5 in RF mode + NDI Certus + fCal 1.0

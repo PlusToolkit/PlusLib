@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="Terason through FrameGrabber TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
       Description="Configuration file for Terason through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth

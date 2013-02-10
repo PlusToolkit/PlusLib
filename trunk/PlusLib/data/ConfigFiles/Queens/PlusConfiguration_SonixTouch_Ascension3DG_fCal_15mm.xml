@@ -1,5 +1,5 @@
 <PlusConfiguration version="2.1">
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="2N Wire Phantom Distance(15mm)_SPIE" 
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." >

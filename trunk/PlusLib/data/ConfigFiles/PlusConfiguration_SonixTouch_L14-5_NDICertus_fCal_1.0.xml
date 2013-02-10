@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixTouch L14-5 + NDI Certus" 
       Description="Configuration file for SonixTouch L14-5 + NDI Certus + fCal 1.0

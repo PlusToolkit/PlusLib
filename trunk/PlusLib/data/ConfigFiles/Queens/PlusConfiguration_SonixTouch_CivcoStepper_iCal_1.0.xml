@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixTouch TRUS + CIVCO Stepper + iCAL 1.0 + 70mm depth" 
       Description="Configuration file for SonixTouch TRUS + CIVCO + iCal 1.0 + 70mm depth

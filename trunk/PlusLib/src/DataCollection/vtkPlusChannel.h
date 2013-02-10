@@ -114,6 +114,10 @@ public:
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
 
+  vtkGetObjectMacro(RfProcessor, vtkRfProcessor);
+
+  vtkSetMacro(SaveRfProcessingParameters, bool);
+
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);

@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
 
     <DeviceSet 
       Name="Simulated ultrasound image with pre-recorded probe motion"

@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="TEST SonixTouch with Fake tracker" 
       Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 

@@ -1,5 +1,5 @@
 <PlusConfiguration version="2.1" PlusRevision="1.7.1.2323">
-  <DataCollection StartupDelaySec="1" DefaultSelectedDeviceId="TrackedVideoDevice" >
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet Name="Brainlab fCal 2.0 Amigo Calibration Ready" Description="Tools expected from Brainlab: 0: Probe, 1: Reference, 2: Stylus."/>
     
     <Device
