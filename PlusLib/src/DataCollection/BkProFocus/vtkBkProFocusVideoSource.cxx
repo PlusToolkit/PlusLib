@@ -72,6 +72,7 @@ class vtkBkProFocusVideoSource::vtkInternal
 {
 public:
   vtkBkProFocusVideoSource *External;
+  vtkPlusChannel* Channel;
 
   ParamConnectionSettings BKparamSettings; // parConnectSettings, for read/write settings from ini file
 
@@ -86,16 +87,17 @@ public:
   CommandAndControl* pBKcmdCtrl; // cmdctrl
 
   vtkBkProFocusVideoSource::vtkInternal::vtkInternal(vtkBkProFocusVideoSource* external) 
+    : External(external)
+    , pBKSaperaView(NULL)
+    , pBKcmdCtrl(NULL)
   {
-    this->External = external;
-    this->pBKSaperaView=NULL;
-    this->pBKcmdCtrl=NULL;
     this->PlusReceiver.SetPlusVideoSource(this->External);
   }
 
   virtual vtkBkProFocusVideoSource::vtkInternal::~vtkInternal() 
   {    
     this->PlusReceiver.SetPlusVideoSource(NULL);
+    this->Channel = NULL;
     delete this->pBKSaperaView;
     this->pBKSaperaView=NULL;
     delete this->pBKcmdCtrl;
@@ -166,44 +168,44 @@ public:
       if(scanPlane == "S")
       {
         LOG_DEBUG("Linear transducer");
-        if (vtkUsScanConvertLinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
+        if ( vtkUsScanConvertLinear::SafeDownCast(this->Channel->GetRfProcessor()->GetScanConverter()) == NULL)
         {
           // The current scan converter is not for a linear transducer, so change it now
-          vtkSmartPointer<vtkUsScanConvertLinear> scanConverter=vtkSmartPointer<vtkUsScanConvertLinear>::New();
-          this->External->RfProcessor->SetScanConverter(scanConverter);
+          vtkSmartPointer<vtkUsScanConvertLinear> scanConverter = vtkSmartPointer<vtkUsScanConvertLinear>::New();
+          this->Channel->GetRfProcessor()->SetScanConverter(scanConverter);
         }
       }
       else if(scanPlane == "T")
       {
         LOG_DEBUG("Curvilinear transducer");
-        if (vtkUsScanConvertCurvilinear::SafeDownCast(this->External->RfProcessor->GetScanConverter())==NULL)
+        if ( vtkUsScanConvertCurvilinear::SafeDownCast(this->Channel->GetRfProcessor()->GetScanConverter()) == NULL)
         {
           // The current scan converter is not for a curvilinear transducer, so change it now
-          vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConverter=vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
-          this->External->RfProcessor->SetScanConverter(scanConverter);
+          vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConverter = vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
+          this->Channel->GetRfProcessor()->SetScanConverter(scanConverter);
         }
       }
       else
       {
-        LOG_WARNING("Unknown transducer scan plane ("<<scanPlane<<"). Cannot determine transducer geometry.");
+        LOG_WARNING("Unknown transducer scan plane (" << scanPlane << "). Cannot determine transducer geometry.");
       }
     }
     else
     {
-      LOG_WARNING("Unknown transducer model ("<<transducer<<"). Cannot determine transducer geometry.");
+      LOG_WARNING("Unknown transducer model (" << transducer << "). Cannot determine transducer geometry.");
     }
 
-    vtkUsScanConvert* scanConverter=this->External->RfProcessor->GetScanConverter();
-    if (scanConverter!=NULL)
+    vtkUsScanConvert* scanConverter=this->Channel->GetRfProcessor()->GetScanConverter();
+    if (scanConverter != NULL)
     {
-      vtkUsScanConvertLinear* scanConverterLinear=vtkUsScanConvertLinear::SafeDownCast(scanConverter);
-      vtkUsScanConvertCurvilinear* scanConverterCurvilinear=vtkUsScanConvertCurvilinear::SafeDownCast(scanConverter);
-      if (scanConverterLinear!=NULL)
+      vtkUsScanConvertLinear* scanConverterLinear = vtkUsScanConvertLinear::SafeDownCast(scanConverter);
+      vtkUsScanConvertCurvilinear* scanConverterCurvilinear = vtkUsScanConvertCurvilinear::SafeDownCast(scanConverter);
+      if (scanConverterLinear != NULL)
       {
-        scanConverterLinear->SetTransducerWidthMm(startLineXMm+stopLineXMm);
+        scanConverterLinear->SetTransducerWidthMm(startLineXMm + stopLineXMm);
         scanConverterLinear->SetImagingDepthMm(stopDepthMm);
       }
-      else if (scanConverterCurvilinear!=NULL)
+      else if (scanConverterCurvilinear != NULL)
       {
         // this is a predefined value for 8848 transverse array, which
         // apparently cannot be queried from OEM. It is not clear if ROC is the distance to
@@ -216,10 +218,10 @@ public:
       }
       else
       {
-        LOG_WARNING("Unknown scan converter type: "<<scanConverter->GetTransducerGeometry());
+        LOG_WARNING("Unknown scan converter type: " << scanConverter->GetTransducerGeometry() );
       }
 
-      scanConverter->SetTransducerName((std::string("BK-")+transducer+scanPlane).c_str());      
+      scanConverter->SetTransducerName((std::string("BK-") + transducer + scanPlane).c_str());      
     }
     else
     {
@@ -422,18 +424,22 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 
 //----------------------------------------------------------------------------
 void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
-{ 
-  int frameSizeInPix[2]={inputFrameSizeInPix[0],inputFrameSizeInPix[1]}; // we may need to overwrite these, so create a copy that will be used internally
+{
+  // we may need to overwrite these, so create a copy that will be used internally
+  int frameSizeInPix[2] = {
+    inputFrameSizeInPix[0],
+    inputFrameSizeInPix[1]
+  };
 
-  LOG_TRACE("New frame received: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
-    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
-    <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType));
+  LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
+    << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType));
 
   switch (this->ImagingMode)
   {
   case RfMode:
     {
-      if (imageType==US_IMG_RF_REAL || imageType==US_IMG_RF_IQ_LINE || imageType==US_IMG_RF_I_LINE_Q_LINE)
+      if (imageType == US_IMG_RF_REAL || imageType == US_IMG_RF_IQ_LINE || imageType == US_IMG_RF_I_LINE_Q_LINE)
       {
         // RF image is received and RF image is needed => no need for conversion
         break;
@@ -443,12 +449,12 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
     }
   case BMode:
     {
-      if (imageType==US_IMG_BRIGHTNESS)
+      if (imageType == US_IMG_BRIGHTNESS)
       {
         // B-mode image is received and B-mode image is needed => no need for conversion
         break;
       }
-      else if (imageType==US_IMG_RF_REAL || imageType==US_IMG_RF_IQ_LINE || imageType==US_IMG_RF_I_LINE_Q_LINE)
+      else if (imageType == US_IMG_RF_REAL || imageType == US_IMG_RF_IQ_LINE || imageType == US_IMG_RF_I_LINE_Q_LINE)
       {
         // convert from RF to Brightness
 
@@ -456,29 +462,29 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
         vtkSmartPointer<vtkImageImport> bufferToVtkImage = vtkSmartPointer<vtkImageImport>::New();
         bufferToVtkImage->SetDataScalarType(PlusVideoFrame::GetVTKScalarPixelType(pixelType));
         bufferToVtkImage->SetImportVoidPointer((unsigned char*)pixelDataPtr);
-        bufferToVtkImage->SetDataExtent(0,frameSizeInPix[0]-1, 0,frameSizeInPix[1]-1, 0,0);
-        bufferToVtkImage->SetWholeExtent(0,frameSizeInPix[0]-1, 0,frameSizeInPix[1]-1, 0,0);
+        bufferToVtkImage->SetDataExtent(0, frameSizeInPix[0] - 1, 0, frameSizeInPix[1] - 1, 0,0);
+        bufferToVtkImage->SetWholeExtent(0, frameSizeInPix[0] - 1, 0, frameSizeInPix[1] - 1, 0,0);
         bufferToVtkImage->Update();
 
         // Convert
-        this->RfProcessor->SetRfFrame(bufferToVtkImage->GetOutput(), imageType);        
-        this->SaveRfProcessingParameters=true; // RF processing parameters were used, make sure they will be saved into the config file
+        this->OutputChannels[0]->GetRfProcessor()->SetRfFrame(bufferToVtkImage->GetOutput(), imageType);        
+        this->OutputChannels[0]->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
 
         // Overwrite the input parameters with the converted image; it will look as if we received a B-mode image
-        vtkImageData* convertedBmodeImage=this->RfProcessor->GetBrightessScanConvertedImage();
-        pixelDataPtr=convertedBmodeImage->GetScalarPointer();        
-        int *resultExtent=convertedBmodeImage->GetExtent();        
-        frameSizeInPix[0]=resultExtent[1]-resultExtent[0]+1;
-        frameSizeInPix[1]=resultExtent[3]-resultExtent[2]+1;
-        pixelType=PlusVideoFrame::GetITKScalarPixelType(convertedBmodeImage->GetScalarType());
-        imageType=US_IMG_BRIGHTNESS;
+        vtkImageData* convertedBmodeImage = this->OutputChannels[0]->GetRfProcessor()->GetBrightessScanConvertedImage();
+        pixelDataPtr = convertedBmodeImage->GetScalarPointer();        
+        int *resultExtent = convertedBmodeImage->GetExtent();        
+        frameSizeInPix[0] = resultExtent[1] - resultExtent[0] + 1;
+        frameSizeInPix[1] = resultExtent[3] - resultExtent[2] + 1;
+        pixelType = PlusVideoFrame::GetITKScalarPixelType(convertedBmodeImage->GetScalarType());
+        imageType = US_IMG_BRIGHTNESS;
         break;
       }
-      LOG_ERROR("The received frame is discarded, as it cannot be convert from "<<PlusVideoFrame::GetStringFromUsImageType(imageType)<<" to Brightness");
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << PlusVideoFrame::GetStringFromUsImageType(imageType) << " to Brightness");
       return;
     }
   default:
-    LOG_ERROR("The received frame is discarded, as the requested imaging mode ("<<PlusVideoFrame::GetStringFromUsImageType(imageType)<<") is not supported");
+    LOG_ERROR("The received frame is discarded, as the requested imaging mode (" << PlusVideoFrame::GetStringFromUsImageType(imageType) << ") is not supported");
     return;
   }
 
@@ -505,11 +511,11 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
       aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     }
-    LOG_INFO("Frame size: "<<frameSizeInPix[0]<<"x"<<frameSizeInPix[1]
-    <<", pixel type: "<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
-      <<", image type: "<<PlusVideoFrame::GetStringFromUsImageType(imageType)
-      <<", device image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
-      <<", buffer image orientation: "<<PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
+    LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
+    << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+      << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType)
+      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation())
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
 
   } 
 
@@ -626,7 +632,6 @@ PlusStatus vtkBkProFocusVideoSource::NotifyConfigured()
   if( this->OutputChannels.size() > 1 )
   {
     LOG_WARNING("vtkBkProFocusVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    return PLUS_FAIL;
   }
 
   if( this->OutputChannels.size() == 0 )
@@ -635,6 +640,8 @@ PlusStatus vtkBkProFocusVideoSource::NotifyConfigured()
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }
+
+  this->Internal->Channel = this->OutputChannels[0];
 
   return PLUS_SUCCESS;
 }
