@@ -1539,7 +1539,7 @@ PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
-  m_SelectedChannel->GetOwnerDevice()->GetBrightnessFrameSize(aImageDimensions);
+  m_SelectedChannel->GetBrightnessFrameSize(aImageDimensions);
 
   return PLUS_SUCCESS;
 }

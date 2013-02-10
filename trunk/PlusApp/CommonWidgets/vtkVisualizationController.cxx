@@ -410,7 +410,7 @@ PlusStatus vtkVisualizationController::Update()
   // because it is the image that the image actors show
   if( this->SelectedChannel != NULL )
   {
-    this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel));
+    this->SelectedChannel->GetBrightnessOutput();
   }
 
   return PLUS_SUCCESS;
@@ -598,7 +598,7 @@ PlusStatus vtkVisualizationController::ConnectInput()
   vtkPlusChannel* aChannel(NULL);
   if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
   {
-    this->GetImageActor()->SetInput(this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel)));
+    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
     return PLUS_SUCCESS;
   }
 

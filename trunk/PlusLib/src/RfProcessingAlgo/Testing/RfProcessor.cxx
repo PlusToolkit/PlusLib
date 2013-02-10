@@ -5,19 +5,18 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+#include "TrackedFrame.h"
+#include "vtkImageData.h" 
+#include "vtkMetaImageSequenceIO.h"
+#include "vtkRfProcessor.h"
+#include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
-
+#include "vtksys/SystemTools.hxx"
 #include <iomanip>
 #include <iostream>
-
-#include "vtkRfProcessor.h"
-#include "vtkXMLUtilities.h"
-#include "vtkSmartPointer.h"
-#include "vtkMetaImageSequenceIO.h"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-#include "vtkTransform.h"
-#include "vtkImageData.h" 
 
 
 //-----------------------------------------------------------------------------
@@ -89,54 +88,83 @@ int main(int argc, char **argv)
   {
     LOG_ERROR("Cannot find DataCollection/ImageAcquisition element in XML tree!");
     return PLUS_FAIL;
-  }  
-
-  // Create converter
-  vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
-  if ( rfProcessor->ReadConfiguration(deviceConfig) != PLUS_SUCCESS )
+  }
+  vtkXMLDataElement* outputChannelsElement = deviceConfig->FindNestedElementWithName("OutputChannels");
+  if (outputChannelsElement == NULL)
   {
-    LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
-    exit(EXIT_FAILURE); 
+    LOG_ERROR("Cannot find OutputChannels element in device tag tree!");
+    return PLUS_FAIL;
   }
 
-  // Process the frames
-  for (unsigned int i = 0; i<frameList->GetNumberOfTrackedFrames(); i++)
+  for ( int i = 0; i < outputChannelsElement->GetNumberOfNestedElements(); ++i )
   {
-    TrackedFrame* rfFrame = frameList->GetTrackedFrame(i);
+    vtkXMLDataElement* outputChannelElement = outputChannelsElement->GetNestedElement(i); 
 
-    // Do the conversion
-    rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetVtkImage(), rfFrame->GetImageData()->GetImageType());
-
-    if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
+    if (STRCASECMP(outputChannelElement->GetName(), "OutputChannel") != 0 )
     {
-      // do brightness conversion only
-      vtkImageData* brightnessImage=rfProcessor->GetBrightessConvertedImage();
-      // Update the pixel data in the frame
-      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);  
-      rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
+      continue;
     }
-    else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
+
+    // Create converter
+    vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
+    if ( rfProcessor->ReadConfiguration(outputChannelElement) != PLUS_SUCCESS )
     {
-      // do brightness and scan conversion
-      vtkImageData* brightnessImage=rfProcessor->GetBrightessScanConvertedImage();
-      // Update the pixel data in the frame
-      rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
-      rfFrame->GetImageData()->SetImageOrientation(US_IMG_ORIENT_MF); 
-      rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
+      LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
+      exit(EXIT_FAILURE); 
+    }
+
+    // Process the frames
+    for (unsigned int j = 0; j < frameList->GetNumberOfTrackedFrames(); j++)
+    {
+      TrackedFrame* rfFrame = frameList->GetTrackedFrame(j);
+
+      // Do the conversion
+      rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetVtkImage(), rfFrame->GetImageData()->GetImageType());
+
+      if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
+      {
+        // do brightness conversion only
+        vtkImageData* brightnessImage = rfProcessor->GetBrightessConvertedImage();
+        // Update the pixel data in the frame
+        rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);  
+        rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
+      }
+      else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
+      {
+        // do brightness and scan conversion
+        vtkImageData* brightnessImage = rfProcessor->GetBrightessScanConvertedImage();
+        // Update the pixel data in the frame
+        rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
+        rfFrame->GetImageData()->SetImageOrientation(US_IMG_ORIENT_MF); 
+        rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
+      }
+      else
+      {
+        LOG_ERROR("Unknown operation: "<<operation);
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+    std::stringstream ss;
+    std::string path = vtksys::SystemTools::GetFilenamePath(outputImgFile);
+    if( !path.empty() )
+    {
+      ss << path << "/";
+    }
+    if( outputChannelElement->GetAttribute("Id") != NULL )
+    {
+      ss << vtksys::SystemTools::GetFilenameWithoutExtension(outputImgFile) << "_OutputChannel_" << outputChannelElement->GetAttribute("Id") << vtksys::SystemTools::GetFilenameExtension(outputImgFile);
     }
     else
     {
-      LOG_ERROR("Unknown operation: "<<operation);
-      exit(EXIT_FAILURE);
+      ss << vtksys::SystemTools::GetFilenameWithoutExtension(outputImgFile) << "_OutputChannel_" << i << vtksys::SystemTools::GetFilenameExtension(outputImgFile);
     }
-
+    outputImgSeqFileWriter->SetFileName(ss.str().c_str()); 
+    outputImgSeqFileWriter->SetTrackedFrameList(frameList); 
+    outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
+    outputImgSeqFileWriter->Write(); 
   }
-
-  vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
-  outputImgSeqFileWriter->SetFileName(outputImgFile.c_str()); 
-  outputImgSeqFileWriter->SetTrackedFrameList(frameList); 
-  outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
-  outputImgSeqFileWriter->Write(); 
 
 	return EXIT_SUCCESS; 
 }

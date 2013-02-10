@@ -385,7 +385,7 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
     if (this->SelectedChannel->GetVideoDataAvailable())
     {
       this->ImageActor->VisibilityOn();
-      this->ImageActor->SetInput(this->SelectedChannel->GetOwnerDevice()->GetBrightnessOutput(*(this->SelectedChannel)));
+      this->ImageActor->SetInput( this->SelectedChannel->GetBrightnessOutput() );
     }
     else
     {

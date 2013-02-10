@@ -4,12 +4,13 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
-#include "vtkPlusDataSource.h"
-#include "vtkPlusDataSource.h"
+#include "vtkRfProcessor.h"
 
 //----------------------------------------------------------------------------
 
@@ -26,8 +27,21 @@ vtkPlusChannel::vtkPlusChannel(void)
 : VideoSource(NULL)
 , OwnerDevice(NULL)
 , ChannelId(NULL)
+, SaveRfProcessingParameters(false)
+, RfProcessor(vtkRfProcessor::New())
+, BlankImage(vtkImageData::New())
 {
+  // Default size for brightness frame
+  this->BrightnessFrameSize[0] = 640;
+  this->BrightnessFrameSize[1] = 480;
 
+  // Create a blank image, it will be used as output if frames are not available
+  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
+  this->BlankImage->SetScalarTypeToUnsignedChar();
+  this->BlankImage->SetNumberOfScalarComponents(1); 
+  this->BlankImage->AllocateScalars(); 
+  unsigned long memorysize = this->BrightnessFrameSize[0] * this->BrightnessFrameSize[1] * this->BlankImage->GetScalarSize(); 
+  memset(this->BlankImage->GetScalarPointer(), 0, memorysize);
 }
 
 //----------------------------------------------------------------------------
@@ -35,10 +49,14 @@ vtkPlusChannel::~vtkPlusChannel(void)
 {
   this->VideoSource = NULL;
   Tools.clear();
+
+  DELETE_IF_NOT_NULL(this->BlankImage);
+
+  DELETE_IF_NOT_NULL(this->RfProcessor);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement )
+PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -99,6 +117,18 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
     return PLUS_FAIL;
   }
 
+  vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName("RfProcessing");
+  if (rfElement != NULL)
+  {
+    this->RfProcessor->ReadConfiguration(rfElement);
+    this->SaveRfProcessingParameters = true;
+  }
+  else if( RequireRfElementInDeviceSetConfiguration )
+  {
+    LOG_ERROR("Unable to find RF processing sub-element in channel \'" << this->GetChannelId() << "\' configuration when it is required.");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -131,6 +161,12 @@ PlusStatus vtkPlusChannel::WriteConfiguration( vtkXMLDataElement* aChannelElemen
       }
       aTool->WriteCompactConfiguration(element);
     }
+  }
+
+  if (this->SaveRfProcessingParameters)
+  {
+    vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName("RfProcessing");
+    this->RfProcessor->WriteConfiguration(rfElement);
   }
 
   return PLUS_SUCCESS;
@@ -1226,4 +1262,49 @@ double vtkPlusChannel::GetClosestTrackedFrameTimestampByTime(double time)
 
   // neither tracker, nor video data available
   return UNDEFINED_TIMESTAMP;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GetBrightnessFrameSize(int aDim[2])
+{
+  aDim[0]=this->BrightnessFrameSize[0];
+  aDim[1]=this->BrightnessFrameSize[1];
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkImageData* vtkPlusChannel::GetBrightnessOutput()
+{  
+  vtkImageData* resultImage = this->BlankImage;
+  if( !this->HasVideoSource() )
+  {
+    LOG_ERROR("Cannot retrieve brightness output. Channel \'" << this->GetChannelId() << "\' doesn't have a video source.");
+    return resultImage;
+  }
+
+  if ( this->VideoSource->GetBuffer() != NULL && this->VideoSource->GetBuffer()->GetLatestStreamBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
+  {
+    LOG_DEBUG("No video data available yet, return blank frame");
+  }
+  else if (this->BrightnessOutputTrackedFrame.GetFrame().GetImageType()==US_IMG_BRIGHTNESS)
+  {
+    // B-mode image already, just return as is
+    resultImage = this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage();
+  }
+  else
+  {
+    // RF frame, convert to B-mode frame
+    this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage(), this->BrightnessOutputTrackedFrame.GetFrame().GetImageType());
+    resultImage = this->RfProcessor->GetBrightessScanConvertedImage();
+
+    // RF processing parameters were used, so save them into the config file
+    this->SaveRfProcessingParameters=true;
+  }
+
+  int *resultExtent=resultImage->GetExtent();
+  this->BrightnessFrameSize[0]=resultExtent[1]-resultExtent[0]+1;
+  this->BrightnessFrameSize[1]=resultExtent[3]-resultExtent[2]+1;
+
+  return resultImage;
 }

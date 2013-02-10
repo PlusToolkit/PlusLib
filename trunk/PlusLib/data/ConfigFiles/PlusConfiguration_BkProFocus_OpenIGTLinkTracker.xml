@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.2">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
@@ -14,27 +14,29 @@
       UsImageOrientation="FM"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0"
-      ImagingMode="RfMode"
-      >
-      <RfProcessing>
-        <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
-        <ScanConversion TransducerName="BK_8848-axial"
-          TransducerGeometry="CURVILINEAR"
-          RadiusStartMm="10.0"
-          RadiusStopMm="60.0"
-          ThetaStartDeg="-70.0"
-          ThetaStopDeg="70.0"
-          OutputImageStartDepthMm="2.0"
-          OutputImageSizePixel="600 400"
-          OutputImageSpacingMmPerPixel="0.15 0.15"        
-          /> 
-      </RfProcessing>
+      ImagingMode="RfMode" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
 
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0" />
+            <ScanConversion 
+              TransducerName="BK_8848-axial"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="10.0"
+              RadiusStopMm="60.0"
+              ThetaStartDeg="-70.0"
+              ThetaStopDeg="70.0"
+              OutputImageStartDepthMm="2.0"
+              OutputImageSizePixel="600 400"
+              OutputImageSpacingMmPerPixel="0.15 0.15" /> 
+          </RfProcessing>
+        </OutputChannel>
       </OutputChannels>
     </Device>
 

@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.2">
 
   <DataCollection StartupDelaySec="1.0" DefaultSelectedDeviceId="TrackedVideoDevice" >
     <DeviceSet 
@@ -46,22 +46,26 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
-      <RfProcessing>
-        <RfToBrightnessConversion NumberOfHilbertFilterCoeffs="32.0" BrightnessScale="20.0"/>
-        <ScanConversion TransducerName="Ultrasonix_L9-4/38"
-          TransducerGeometry="LINEAR"
-          ImagingDepthMm="55.0"
-          TransducerWidthMm="38.0"
-          OutputImageSizePixel="440 600"
-          OutputImageSpacingMmPerPixel="0.1 0.1" />
-      </RfProcessing>  
 
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0"/>
+            <ScanConversion 
+              TransducerName="Ultrasonix_L9-4/38"
+              TransducerGeometry="LINEAR"
+              ImagingDepthMm="55.0"
+              TransducerWidthMm="38.0"
+              OutputImageSizePixel="440 600"
+              OutputImageSpacingMmPerPixel="0.1 0.1" />
+          </RfProcessing>
+        <OutputChannel/>
       </OutputChannels>
     </Device>
 
