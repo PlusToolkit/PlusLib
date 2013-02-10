@@ -20,7 +20,6 @@ class vtkHTMLGenerator;
 class vtkPlusChannel;
 class vtkPlusStreamBuffer;
 class vtkPlusDataSource;
-class vtkRfProcessor;
 class vtkXMLDataElement;
 
 /*!
@@ -109,12 +108,6 @@ public:
 
   /*! Get recording start time */
   virtual double GetStartTime();
-
-  /*! Make a request for the latest image frame */
-  vtkImageData* GetBrightnessOutput(vtkPlusChannel& aChannel);
-
-  /*! Return the dimensions of the brightness frame size */
-  PlusStatus GetBrightnessFrameSize(int aDim[2]);
 
   /*!
     Reset the device
@@ -489,15 +482,6 @@ protected:
 
   /* Flag whether the device is recording */
   int Recording;
-
-  /*! If true then RF processing parameters will be saved into the config file */
-  bool SaveRfProcessingParameters;
-
-  /*! RF to brightness conversion */
-  vtkRfProcessor* RfProcessor;
-  vtkImageData* BlankImage;
-  StreamBufferItem BrightnessOutputTrackedFrame;
-  int BrightnessFrameSize[2];
 
   /*! if we want to update according to the frame closest to the timestamp specified by desiredTimestamp */
   double DesiredTimestamp;

@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-//#include "itkImageIOBase.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkImageData.h"
@@ -17,17 +16,16 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusStreamBuffer.h"
 #include "vtkRecursiveCriticalSection.h"
-#include "vtkRfProcessor.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkWindows.h"
 #include "vtksys/SystemTools.hxx"
 #include <ctype.h>
 #include <time.h>
+//#include "itkImageIOBase.h"
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
 #pragma warning ( disable : 4311 )
@@ -54,9 +52,6 @@ vtkPlusDevice::vtkPlusDevice()
 , DeviceImageOrientation(US_IMG_ORIENT_XX)
 , AcquisitionRate(30)
 , Recording(0)
-, SaveRfProcessingParameters(false)
-, RfProcessor(vtkRfProcessor::New())
-, BlankImage(vtkImageData::New())
 , DesiredTimestamp(-1)
 , UpdateWithDesiredTimestamp(0)
 , TimestampClosestToDesired(-1)
@@ -77,18 +72,6 @@ vtkPlusDevice::vtkPlusDevice()
   this->SetNumberOfInputPorts(0);
 
   this->SetToolReferenceFrameName("Tracker");
-
-  // Default size for brightness frame
-  this->BrightnessFrameSize[0]=640;
-  this->BrightnessFrameSize[1]=480;
-
-  // Create a blank image, it will be used as output if frames are not available
-  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
-  this->BlankImage->SetScalarTypeToUnsignedChar();
-  this->BlankImage->SetNumberOfScalarComponents(1); 
-  this->BlankImage->AllocateScalars(); 
-  unsigned long memorysize = this->BrightnessFrameSize[0]*this->BrightnessFrameSize[1]*this->BlankImage->GetScalarSize(); 
-  memset(this->BlankImage->GetScalarPointer(), 0, memorysize);
 
   this->Threader = vtkMultiThreader::New();
 
@@ -118,10 +101,6 @@ vtkPlusDevice::~vtkPlusDevice()
     delete this->DefaultOutputChannel;
     this->DefaultOutputChannel = NULL;
   }
-
-  DELETE_IF_NOT_NULL(this->BlankImage);
-
-  DELETE_IF_NOT_NULL(this->RfProcessor);
 
   DELETE_IF_NOT_NULL(this->Threader);
 
@@ -773,17 +752,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_ERROR("Ultrasound image orientation is not defined in the device element - please set UsImageOrientation in the device configuration");
   }
 
-  vtkXMLDataElement* rfElement = deviceXMLElement->FindNestedElementWithName("RfProcessing");
-  if (rfElement != NULL)
-  {
-    this->RfProcessor->ReadConfiguration(rfElement);
-    this->SaveRfProcessingParameters=true;
-  }
-  else if( RequireRfElementInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find rf processing sub-element in device configuration when it is required.");
-  }
-
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
   if( outputChannelsElement != NULL )
   {
@@ -799,7 +767,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
-      aChannel->ReadConfiguration(channelElement);
+      aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration);
 
 
       this->OutputChannels.push_back(aChannel);
@@ -911,12 +879,6 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
         aDataSource->WriteConfiguration(dataSourceElement);
       }
     }
-  }
-
-  if (this->SaveRfProcessingParameters)
-  {
-    vtkXMLDataElement* rfElement = deviceDataElement->FindNestedElementWithName("RfProcessing");
-    this->RfProcessor->WriteConfiguration(rfElement);
   }
 
   this->InternalWriteOutputChannels(config);
@@ -1230,52 +1192,6 @@ void vtkPlusDevice::ClearAllBuffers()
   {
     it->second->GetBuffer()->Clear(); 
   }
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetBrightnessFrameSize(int aDim[2])
-{
-  aDim[0]=this->BrightnessFrameSize[0];
-  aDim[1]=this->BrightnessFrameSize[1];
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-vtkImageData* vtkPlusDevice::GetBrightnessOutput(vtkPlusChannel& aChannel)
-{  
-  vtkImageData* resultImage=this->BlankImage;
-  vtkPlusDataSource* aSource(NULL);
-  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return resultImage;
-  }
-
-  if ( aSource->GetBuffer() != NULL && aSource->GetBuffer()->GetLatestStreamBufferItem( &this->BrightnessOutputTrackedFrame ) != ITEM_OK )
-  {
-    LOG_DEBUG("No video data available yet, return blank frame");
-  }
-  else if (this->BrightnessOutputTrackedFrame.GetFrame().GetImageType()==US_IMG_BRIGHTNESS)
-  {
-    // B-mode image already, just return as is
-    resultImage=this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage();
-  }
-  else
-  {
-    // RF frame, convert to B-mode frame
-    this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetFrame().GetVtkImage(), this->BrightnessOutputTrackedFrame.GetFrame().GetImageType());
-    resultImage=this->RfProcessor->GetBrightessScanConvertedImage();
-
-    // RF processing parameters were used, so save them into the config file
-    this->SaveRfProcessingParameters=true;
-  }
-
-  int *resultExtent=resultImage->GetExtent();
-  this->BrightnessFrameSize[0]=resultExtent[1]-resultExtent[0]+1;
-  this->BrightnessFrameSize[1]=resultExtent[3]-resultExtent[2]+1;
-
-  return resultImage;
 }
 
 //----------------------------------------------------------------------------

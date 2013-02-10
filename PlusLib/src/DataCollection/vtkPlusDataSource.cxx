@@ -271,7 +271,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
 
   if ( sourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure data sourcel! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure data source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 

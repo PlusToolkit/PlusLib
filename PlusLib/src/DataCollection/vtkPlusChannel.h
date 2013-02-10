@@ -12,6 +12,7 @@
 #include "vtkPlusDevice.h"
 
 class vtkPlusDevice;
+class vtkRfProcessor;
 
 /*!
   \class vtkPlusChannel 
@@ -29,7 +30,7 @@ public:
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration );
   /*!
     Write the details about the stream to XML
   */
@@ -54,6 +55,12 @@ public:
   bool GetVideoDataAvailable();
   bool GetTrackingEnabled() const;
   bool GetVideoEnabled() const;
+
+  /*! Make a request for the latest image frame */
+  vtkImageData* GetBrightnessOutput();
+
+  /*! Return the dimensions of the brightness frame size */
+  PlusStatus GetBrightnessFrameSize(int aDim[2]);
 
   /*! Get the first active tool object */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool); 
@@ -116,6 +123,15 @@ protected:
   vtkPlusDataSource*        VideoSource;
   vtkPlusDevice*            OwnerDevice;
   char *                    ChannelId;
+
+  /*! RF to brightness conversion */
+  vtkRfProcessor* RfProcessor;
+  vtkImageData* BlankImage;
+  StreamBufferItem BrightnessOutputTrackedFrame;
+  int BrightnessFrameSize[2];
+
+  /*! If true then RF processing parameters will be saved into the config file */
+  bool SaveRfProcessingParameters;
 
   vtkPlusChannel(void);
   virtual ~vtkPlusChannel(void);
