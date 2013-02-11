@@ -272,15 +272,24 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
   vtkPlusDevice* aDevice(NULL);
   vtkPlusChannel* aChannel(NULL);
-  if( self->DataCollector->GetDevice(aDevice, std::string(self->GetOutputDeviceId())) != PLUS_SUCCESS )
+  if( self->GetOutputDeviceId() == NULL || self->DataCollector->GetDevice(aDevice, std::string(self->GetOutputDeviceId())) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve device by ID: " << self->GetOutputDeviceId() );
-    return NULL;
+    DeviceCollection aCollection;
+    if( self->DataCollector->GetDevices(aCollection) != PLUS_SUCCESS || aCollection.size() == 0 )
+    {
+      LOG_ERROR("Unable to retrieve device by ID: " << (self->GetOutputDeviceId() == NULL ? "MISSINGID" : self->GetOutputDeviceId()) << " and no devices to fall back on." );
+      return NULL;
+    }
+    aDevice = aCollection[0];
   }
-  if( aDevice->GetOutputChannelByName(self->BroadcastChannel, self->GetOutputChannelId()) != PLUS_SUCCESS )
+  if( self->GetOutputChannelId() == NULL || aDevice->GetOutputChannelByName(self->BroadcastChannel, self->GetOutputChannelId()) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve channel by ID: " << self->GetOutputChannelId() );
-    return NULL;
+    if( aDevice->OutputChannelCount() == 0 )
+    {
+      LOG_ERROR("Unable to retrieve channel by ID: " << (self->GetOutputChannelId() == NULL ? "MISSINGID" : self->GetOutputChannelId()) << " and no channels to fall back on." );
+      return NULL;
+    }
+    self->BroadcastChannel = *(aDevice->GetOutputChannelsStart());
   }
   self->BroadcastChannel->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
@@ -740,16 +749,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   }
 
   const char* outputDeviceId = plusOpenIGTLinkServerConfig->GetAttribute("OutputDeviceId");
-  if ( outputDeviceId != NULL ) 
-  {
-    this->SetOutputDeviceId(outputDeviceId);
-  }
+  this->SetOutputDeviceId(outputDeviceId);
 
   const char* outputChannelId = plusOpenIGTLinkServerConfig->GetAttribute("OutputChannelId");
-  if ( outputChannelId != NULL ) 
-  {
-    this->SetOutputChannelId(outputChannelId);
-  }
+  this->SetOutputChannelId(outputChannelId);
 
   int maxTimeSpentWithProcessingMs = 0;
   if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("MaxTimeSpentWithProcessingMs", maxTimeSpentWithProcessingMs) ) 
