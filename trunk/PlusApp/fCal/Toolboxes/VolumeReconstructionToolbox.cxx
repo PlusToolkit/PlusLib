@@ -351,7 +351,7 @@ void VolumeReconstructionToolbox::Save()
     QApplication::restoreOverrideCursor();
 
     LOG_INFO("Reconstructed volume saved into file '" << fileName.toAscii().data() << "'");
-  }  
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -389,15 +389,15 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     {
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
-
     trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ) ) != PLUS_SUCCESS)
+    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ).toLatin1() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;
     }
   }
 
+  
   m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();

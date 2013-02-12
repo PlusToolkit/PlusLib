@@ -115,6 +115,7 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 
 void ConfigFileSaverDialog::SaveClicked()
 {
+
   LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
 
   // Get root element
@@ -144,13 +145,12 @@ void ConfigFileSaverDialog::SaveClicked()
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return;
 	}
-
   // Set name and description to XML
-  deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text());
-  deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText());
+	deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toLatin1());
+	deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toLatin1());
 
   // Display file save dialog and save XML
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
+  QString filter = QString( tr( "XML files ( *.xml );;" ) );
   QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName().c_str());
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 

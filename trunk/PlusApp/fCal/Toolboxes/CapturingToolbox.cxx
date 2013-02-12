@@ -466,7 +466,7 @@ void CapturingToolbox::WriteToFile( QString& aFilename )
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     // Actual saving
-    std::string filePath = aFilename.toAscii();
+    std::string filePath(aFilename.toLatin1().data());
     std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
     std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
     std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
