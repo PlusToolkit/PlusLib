@@ -57,6 +57,9 @@ protected:
 	 */
   PlusStatus StartDataCollection();
 
+  /*! Select the channel */
+  PlusStatus SelectChannel(vtkPlusChannel*& aChannel);
+
 protected:
   /*! Device set selector widget */
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;

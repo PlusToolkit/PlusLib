@@ -127,6 +127,12 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
+        if( this->SelectChannel(m_SelectedChannel) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Unable to select channel in ToolStateDisplayWidgetTest");
+          return;
+        }
+
 			  if (m_ToolStateDisplayWidget->InitializeTools(m_SelectedChannel, true)) {
 				  m_ToolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight() + 40);
 				  m_ToolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -210,6 +216,39 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
   if ( !m_DataCollector->GetConnected()) {
 	  LOG_ERROR("Unable to initialize DataCollector!"); 
 	  return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
+{
+  vtkPlusDevice* aDevice(NULL);
+
+  DeviceCollection aCollection;
+  if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+  {
+    aDevice = aCollection[0];
+  }
+  else
+  {
+    LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
+    return PLUS_FAIL;
+  }
+
+  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  {
+    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
+    {
+      aChannel = *(aDevice->GetOutputChannelsStart());
+    }
+    else
+    {
+      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
+      return PLUS_FAIL;
+    }
   }
 
   return PLUS_SUCCESS;
