@@ -1279,7 +1279,6 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
   vtkImageData* resultImage = this->BlankImage;
   if( !this->HasVideoSource() )
   {
-    LOG_ERROR("Cannot retrieve brightness output. Channel \'" << this->GetChannelId() << "\' doesn't have a video source.");
     return resultImage;
   }
 
