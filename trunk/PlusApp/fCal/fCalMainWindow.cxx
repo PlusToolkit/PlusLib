@@ -838,7 +838,6 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
   {
     this->GetVisualizationController()->DisconnectInput();
   }
-  this->GetVisualizationController()->Reset();
 
   this->BuildChannelMenu();
 }

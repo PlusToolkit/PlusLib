@@ -621,7 +621,8 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
 
 PlusStatus vtk3DObjectVisualizer::Reset()
 {
-  return this->ClearDisplayableObjects();
+  this->ClearDisplayableObjects();
+  return this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 }
 
 //-----------------------------------------------------------------------------
