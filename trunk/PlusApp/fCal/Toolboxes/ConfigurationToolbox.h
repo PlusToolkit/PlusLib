@@ -16,6 +16,7 @@ See License.txt for details.
 
 class DeviceSetSelectorWidget;
 class ToolStateDisplayWidget;
+class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
@@ -77,6 +78,9 @@ protected:
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
   bool eventFilter(QObject *obj, QEvent *ev);
+
+  /*! Select the channel */
+  PlusStatus SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement);
 
 signals:
   /*!

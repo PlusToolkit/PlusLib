@@ -56,7 +56,11 @@
     ClipRectangleOrigin="167 62" ClipRectangleSize="495 488" OutputOrigin="-34 -144 -59" OutputExtent="0 150 0 130 0 70" OutputSpacing="0.5 0.5 0.5"
   />
   
-  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="10"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

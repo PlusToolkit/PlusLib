@@ -428,7 +428,16 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   if (fCalElement == NULL)
   {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    LOG_ERROR("Unable to find fCal element in XML tree!");
+    vtkPlusChannel* aChannel(NULL);
+    if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to select a channel.");
+      return PLUS_FAIL;
+    }
+
+    this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
+
     return PLUS_FAIL;
   }
 
@@ -515,35 +524,11 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   m_ParentMainWindow->SetImageObjectId(imageObjectId);
 
-  // default selected device
-  const char* selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
-  vtkPlusDevice* aDevice(NULL);
-  if( selectedDeviceId == NULL || this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevice(aDevice, std::string(selectedDeviceId)) != PLUS_SUCCESS)
-  {
-    DeviceCollection aCollection;
-    if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
-    {
-      aDevice = aCollection[0];
-    }
-    else
-    {
-      LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
-      return PLUS_FAIL;
-    }
-  }
-
   vtkPlusChannel* aChannel(NULL);
-  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
   {
-    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
-    {
-      aChannel = *(aDevice->GetOutputChannelsStart());
-    }
-    else
-    {
-      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
-      return PLUS_FAIL;
-    }
+    LOG_ERROR("Unable to select a channel.");
+    return PLUS_FAIL;
   }
 
   this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
@@ -637,4 +622,46 @@ void ConfigurationToolbox::ResetTracker()
       m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->Reset();
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement)
+{
+  const char* selectedDeviceId(NULL);
+  if( fCalElement != NULL )
+  {
+    // default selected device
+    const char* selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
+  }
+
+  vtkPlusDevice* aDevice(NULL);
+  if( selectedDeviceId == NULL || this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevice(aDevice, std::string(selectedDeviceId)) != PLUS_SUCCESS)
+  {
+    DeviceCollection aCollection;
+    if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+    {
+      aDevice = aCollection[0];
+    }
+    else
+    {
+      LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
+      return PLUS_FAIL;
+    }
+  }
+
+  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  {
+    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
+    {
+      aChannel = *(aDevice->GetOutputChannelsStart());
+    }
+    else
+    {
+      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
+      return PLUS_FAIL;
+    }
+  }
+
+  return PLUS_SUCCESS;
 }

@@ -541,6 +541,9 @@ void TemporalCalibrationToolbox::DoCalibration()
 
   if (currentTimeSec - m_StartTimeSec >= m_TemporalCalibrationDurationSec)
   {
+    // Update progress
+    m_ParentMainWindow->SetStatusBarProgress(100);
+
     // The prescribed data collection time is up
     ComputeCalibrationResults();
     return;
