@@ -41,8 +41,6 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
 
   // Insert widgets into placeholders
   QGridLayout* mainGrid = new QGridLayout(this);
-  mainGrid->setColumnStretch(2, 1);
-  mainGrid->setRowStretch(2, 1);
   mainGrid->setMargin(4);
   mainGrid->setSpacing(4);
   mainGrid->setColumnMinimumWidth(0, 296);

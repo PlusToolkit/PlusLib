@@ -22,8 +22,6 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFla
 
   // Create default appearance
   QGridLayout* grid = new QGridLayout(this);
-  grid->setColumnStretch(1, 1);
-  grid->setRowStretch(1, 1);
   grid->setMargin(0);
   grid->setSpacing(0);
   QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);

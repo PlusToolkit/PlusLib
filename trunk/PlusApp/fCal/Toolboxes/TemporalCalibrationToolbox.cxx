@@ -642,8 +642,6 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     m_TemporalCalibrationPlotsWindow->installEventFilter(this);
 
     QGridLayout* gridPlotWindow = new QGridLayout(m_TemporalCalibrationPlotsWindow);
-    gridPlotWindow->setColumnStretch(2, 1);
-    gridPlotWindow->setRowStretch(1, 1);
     gridPlotWindow->setMargin(0);
     gridPlotWindow->setSpacing(4);
 
@@ -703,7 +701,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(m_CalibratedPlotContextView->GetRenderer());
     calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
 
-    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 0, 0);
+    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
 
     // Position and show window
     m_TemporalCalibrationPlotsWindow->setLayout(gridPlotWindow);

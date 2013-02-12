@@ -53,8 +53,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
 
   // Insert widgets into placeholders
   QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget);
-  gridDeviceSetSelection->setColumnStretch(1, 1);
-  gridDeviceSetSelection->setRowStretch(1, 1);
   gridDeviceSetSelection->setMargin(0);
   gridDeviceSetSelection->setSpacing(4);
   gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
@@ -62,8 +60,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
 
   QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
-  gridToolStateDisplay->setColumnStretch(1, 1);
-  gridToolStateDisplay->setRowStretch(1, 1);
   gridToolStateDisplay->setMargin(0);
   gridToolStateDisplay->setSpacing(4);
   gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
