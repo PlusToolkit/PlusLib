@@ -335,15 +335,16 @@ PlusStatus vtkNDITracker::InternalStartRecording()
     return PLUS_FAIL;
   }
 
+  const char * dev = "COM10:";
   char *devicename = this->SerialDevice;
   if (devicename == 0 || devicename[0] == '\0')
   {
     devicename = ndiDeviceName(this->SerialPort-1);
   }
-  this->Device = ndiOpen(devicename);
+  this->Device = ndiOpen(dev);
   if (this->Device == 0) 
   {
-    LOG_ERROR("Failed to open port: " << devicename << " - " << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to open port: " << (devicename == NULL ? "unknown" : devicename) << " - " << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
   // initialize Device
