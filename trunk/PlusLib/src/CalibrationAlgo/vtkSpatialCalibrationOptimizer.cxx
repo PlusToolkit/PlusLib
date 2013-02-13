@@ -394,8 +394,8 @@ void vtkSpatialCalibrationOptimizer::StoreAndShowResults()
   }
   if (this->MinimizationResiduals.size()>0)
   {
-    LOG_DEBUG("First Iteration " << 1 << ": rmsError = " << this->MinimizationResiduals[1] << " pixels");
-    LOG_DEBUG("Last Iteration " << this->MinimizationResiduals.size() << ":  rmsError = " << this->MinimizationResiduals[this->MinimizationResiduals.size()-1] << " pixels");
+    LOG_DEBUG("First Iteration: rmsError = " << this->MinimizationResiduals[1] << " pixels");
+    LOG_DEBUG("Last Iteration (" << this->MinimizationResiduals.size() << "):  rmsError = " << this->MinimizationResiduals[this->MinimizationResiduals.size()-1] << " pixels");
   }
   else
   {
@@ -468,7 +468,6 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
     scales[5] = this->TranslationParametersScale;
     scales[6] = this->ScalesParametersScale;  
     scales[7] = this->ScalesParametersScale;  
-    scales[8] = this->ScalesParametersScale;  
     break;
   default:
     LOG_ERROR("Number of transformation parameters is incorrect");
