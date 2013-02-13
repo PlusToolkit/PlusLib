@@ -59,7 +59,7 @@ public:
   /*! Returns the Euclidean distance between two 4x4 homogeneous transformation matrix */
   static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
-  /*! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix */
+  /*! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix, in degrees. */
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
   /*! Returns the distance between a line, defined by two point (x and y) and a point (z) */
