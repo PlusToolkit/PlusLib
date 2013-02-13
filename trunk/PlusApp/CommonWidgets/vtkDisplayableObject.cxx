@@ -464,7 +464,7 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
       return PLUS_SUCCESS;
     }
 
-    LOG_WARNING("File not defined for Model. No visualization will occur until data is defined.");
+    LOG_WARNING("File not defined for Model: "<<(this->ObjectId==NULL?"unknown":this->ObjectId)<<". No visualization will occur until data is defined.");
   }
 
   // Find absolute path for the file
