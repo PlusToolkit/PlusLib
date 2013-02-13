@@ -48,7 +48,14 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
     return PLUS_FAIL;
   }
 
-  SetOutputChannel(this->OutputChannels[0]);
+  if (this->OutputChannels.empty())
+  {
+    LOG_WARNING("vtkVirtualStreamMixer device "<<this->GetDeviceId()<<" does not have any output channels");
+  }
+  else
+  {
+    SetOutputChannel(this->OutputChannels[0]);
+  }
 
   return PLUS_SUCCESS;
 }
