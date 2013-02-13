@@ -725,9 +725,11 @@ PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* volume)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume()
 {
+  LOG_INFO("Hole Filling has begun");
   this->HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
   this->HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
   this->HoleFiller->Update();
+  LOG_INFO("Hole Filling has finished");
 
   this->ReconstructedVolume->DeepCopy(HoleFiller->GetOutput());
 
