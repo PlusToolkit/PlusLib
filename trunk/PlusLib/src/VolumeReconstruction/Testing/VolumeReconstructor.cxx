@@ -97,7 +97,7 @@ int main (int argc, char* argv[])
   LOG_DEBUG("Transform repository: \n" << osTransformRepo.str());  
 
   // Read image sequence
-  LOG_INFO("Reading image sequence...");
+  LOG_INFO("Reading image sequence " << inputImgSeqFileName );
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
