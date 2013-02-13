@@ -78,7 +78,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 
   this->NWires.clear();
 
-  this->SpatialCalibrationOptimizer = NULL;
   this->SpatialCalibrationOptimizer = vtkSpatialCalibrationOptimizer::New();
 }
 
@@ -149,23 +148,13 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
   
-  // optimization options
-
-  // vtkSpatialCalibrationOptimizer section
-  vtkXMLDataElement* spatialCalibrationOptimizerElement = aConfig->FindNestedElementWithName("vtkSpatialCalibrationOptimizer");   
-  
-  if (spatialCalibrationOptimizerElement != NULL)
+  // Optimization options
+  if (this->SpatialCalibrationOptimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)
   {
-    if (this->SpatialCalibrationOptimizer->ReadConfiguration(aConfig) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("vtkSpatialCalibrationOptimizer is not well specified in vtkSpatialCalibrationOptimizer element of the configuration!");
-      return PLUS_FAIL;     
-    }   
-  }
-
-
+    LOG_ERROR("vtkSpatialCalibrationOptimizer is not well specified in vtkSpatialCalibrationOptimizer element of the configuration!");
+    return PLUS_FAIL;     
+  }   
 
   return PLUS_SUCCESS;
 }
@@ -314,41 +303,24 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository, true );
 
-  switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationOptimizationMethod)
+  if (this->SpatialCalibrationOptimizer->Enabled())
   {
-  case vtkSpatialCalibrationOptimizer::NO_OPTIMIZATION:
-    break;
-
-  default:
-
+    LOG_INFO("Additional calibration optimization is requested");
     // Convert the transform to vnl
     PlusMath::ConvertVtkMatrixToVnlMatrix(this->ImageToProbeTransformMatrix,imageToProbeTransformMatrixVnl);
-
-    switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationCostFunction)
+    switch (this->SpatialCalibrationOptimizer->GetOptimizationMethod())
     {
-    case vtkSpatialCalibrationOptimizer::MINIMIZATION_2D:
+    case vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D:
       this->SpatialCalibrationOptimizer->SetOptimizerDataUsingNWires(&this->SegmentedPointsInImageFrame,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl,&outliers);
       break;
-    case vtkSpatialCalibrationOptimizer::MINIMIZATION_3D:
+    case vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D:
       this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl,&outliers);
       break;
     }
-
-    switch (this->SpatialCalibrationOptimizer->CurrentImageToProbeCalibrationOptimizationMethod)
-    {
-    case vtkSpatialCalibrationOptimizer::FIDUCIALS_SIMILARITY:
-      this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl,&outliers);
-      break;
-    }
-
     this->SpatialCalibrationOptimizer->Update();
     imageToProbeTransformMatrixVnl = this->SpatialCalibrationOptimizer->GetOptimizedImageToProbeTransformMatrix();
     SetAndValidateImageToProbeTransform( imageToProbeTransformMatrixVnl, transformRepository, false );
-    break;
   }
-
-
-
 
   // Log the calibration result and error
   LOG_INFO("Image to probe transform matrix = ");
@@ -576,6 +548,7 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_mat
 {
   // Convert transform to vtk
   vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  imageToProbeMatrix->Identity();
   for ( int i = 0; i < 3; i++ )
   {
     for ( int j = 0; j < 4; j++ )
@@ -584,14 +557,8 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_mat
     }
   }
 
-  // Make sure the last row in homogeneous transform is [0 0 0 1]
-  imageToProbeMatrix->SetElement(3, 0, 0.0);
-  imageToProbeMatrix->SetElement(3, 1, 0.0);
-  imageToProbeMatrix->SetElement(3, 2, 0.0);
-  imageToProbeMatrix->SetElement(3, 3, 1.0);
-
   // Check orthogonality
-  if ( ! IsImageToProbeTransformOrthogonal() )
+  if ( ! IsImageToProbeTransformOrthogonal(imageToProbeMatrix) )
   {
     LOG_WARNING("ImageToProbeTransform is not orthogonal! The result is probably not satisfactory");
   }
@@ -907,7 +874,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
   }
   totalRmsError2D = sqrt(totalRmsError2D/numberOfReprojections);
   
-	  // estimate the standar desviation
+	  // estimate the standar deviation
   for(int i=0;i<numberOfReprojections;i++)
   {
 	  double diff = allReprojection2DErrors.at(i) - totalRmsError2D;
@@ -920,7 +887,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
     this->ValidationRmsError2D = totalRmsError2D;
 	LOG_INFO("\n Validation 2D rms error = " << totalRmsError2D << " pixels");
 	this->ValidationRmsError2DSD = totalRmsError2DSD;
-	LOG_INFO("\n Validation 2D standard desviation = " << totalRmsError2DSD << " pixels");
+	LOG_INFO("\n Validation 2D standard deviation = " << totalRmsError2DSD << " pixels");
   }
   else
   {
@@ -928,7 +895,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
 	LOG_INFO("\n Calibration 2D rms error = " << totalRmsError2D << " pixels");
 
     this->CalibrationRmsError2DSD = totalRmsError2DSD;
-	LOG_INFO("\n Calibration 2D standard desviation = " << totalRmsError2DSD << " pixels");
+	LOG_INFO("\n Calibration 2D standard deviation = " << totalRmsError2DSD << " pixels");
   }
 
 
@@ -1065,34 +1032,25 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 
 //----------------------------------------------------------------------------
 
-bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal() const
+bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal(vtkMatrix4x4* imageToProbeMatrix) const
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
 
   // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-  double xVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,0), this->ImageToProbeTransformMatrix->GetElement(1,0), this->ImageToProbeTransformMatrix->GetElement(2,0) }; 
-  double yVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,1), this->ImageToProbeTransformMatrix->GetElement(1,1), this->ImageToProbeTransformMatrix->GetElement(2,1) };  
-  double zVector[3] = { this->ImageToProbeTransformMatrix->GetElement(0,2), this->ImageToProbeTransformMatrix->GetElement(1,2), this->ImageToProbeTransformMatrix->GetElement(2,2) };  
+  double xVector[3] = { imageToProbeMatrix->GetElement(0,0), imageToProbeMatrix->GetElement(1,0), imageToProbeMatrix->GetElement(2,0) }; 
+  double yVector[3] = { imageToProbeMatrix->GetElement(0,1), imageToProbeMatrix->GetElement(1,1), imageToProbeMatrix->GetElement(2,1) };  
+  double zVector[3] = { imageToProbeMatrix->GetElement(0,2), imageToProbeMatrix->GetElement(1,2), imageToProbeMatrix->GetElement(2,2) };  
+  vtkMath::Normalize(xVector);
+  vtkMath::Normalize(yVector);
+  vtkMath::Normalize(zVector);
+  double angleXYdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(xVector, yVector))));
+  double angleXZdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(xVector, zVector))));
+  double angleYZdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(yVector, zVector))));
 
-  double dotProductXY = vtkMath::Dot(xVector, yVector);
-  double dotProductXZ = vtkMath::Dot(xVector, zVector);
-  double dotProductYZ = vtkMath::Dot(yVector, zVector);
-
-  if (dotProductXY > 0.001) 
+  const double angleToleranceDeg=1.0;
+  if (fabs(angleXYdeg-90.0)>angleToleranceDeg || fabs(angleXZdeg-90.0)>angleToleranceDeg || fabs(angleYZdeg-90.0)>angleToleranceDeg) 
   {
-    LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Y axes is " << dotProductXY << ")");
-    return false; 
-  }
-
-  if (dotProductYZ > 0.001) 
-  {
-    LOG_WARNING("Calibration result axes are not orthogonal (dot product of Y and Z axes is " << dotProductYZ << ")");
-    return false; 
-  }
-
-  if (dotProductXZ > 0.001) 
-  {
-    LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Z axes is " << dotProductXZ << ")");
+    LOG_WARNING("Calibration result axes are not orthogonal. Axis angles (deg): XY=" << angleXYdeg << ", XZ=" << angleXZdeg << ", YZ=" <<angleYZdeg);
     return false; 
   }
 
@@ -1430,14 +1388,10 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 }
 
 //------------------------------------------------------------------------------------------------------
-
-PlusStatus vtkProbeCalibrationAlgo::GetCalibrationReport( std::vector<double> *optimizedResults, std::vector<double> *calibError,
-                                                            std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl) 
+PlusStatus vtkProbeCalibrationAlgo::GetCalibrationReport(std::vector<double> *calibError,
+  std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl) 
 {
-                                                            // Write the results to be easily processed
- 
-  *optimizedResults = this->SpatialCalibrationOptimizer->GetOptimizationResults();
-
+  // Write the results to be easily processed
   calibError->push_back(this->CalibrationRmsError2D);
   calibError->push_back(this->CalibrationRmsError2DSD);
   validError->push_back(this->ValidationRmsError2D);
