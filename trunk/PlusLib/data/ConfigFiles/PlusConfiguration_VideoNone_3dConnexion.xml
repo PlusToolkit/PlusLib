@@ -19,7 +19,7 @@
       
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
-          <DataSource Type="Tool" Id="Navigator"/>
+          <DataSource Id="Navigator" />
         </OutputChannel>
       </OutputChannels>
     </Device>
