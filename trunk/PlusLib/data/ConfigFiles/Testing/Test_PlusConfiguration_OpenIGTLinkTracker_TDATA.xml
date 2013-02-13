@@ -78,7 +78,7 @@
         <Transform Name="PointerToTracker" />
         <Transform Name="UltrasoundToTracker" />
       </TransformNames>
-      </ImageNames>
+      <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Tracker" />
       </ImageNames>
     </DefaultClientInfo>

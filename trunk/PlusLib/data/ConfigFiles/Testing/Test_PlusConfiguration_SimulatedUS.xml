@@ -172,8 +172,8 @@
         <Transform Name="ProbeToPhantom" /> 
         <Transform Name="StylusToPhantom" /> 
       </TransformNames>
-      <DataSource Type="Video"Names>
-        <DataSource Type="Video" Name="Image" EmbeddedTransformToFrame="Phantom"/>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Phantom" />
       </ImageNames> 
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
