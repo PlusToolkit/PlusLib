@@ -69,7 +69,7 @@ public:
   /*! 
     Check user image home to probe home transform orthogonality 
   */
-  bool IsImageToProbeTransformOrthogonal() const; 
+  bool IsImageToProbeTransformOrthogonal(vtkMatrix4x4* imageToProbeMatrix) const; 
 
   /*!
     Assembles the result string to display
@@ -126,8 +126,7 @@ public:
   PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
 
 
-  PlusStatus GetCalibrationReport( std::vector<double> *optimizedResults, std::vector<double> *calibError,
-                                                            std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl); 
+  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl); 
 
   vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
   {
@@ -305,7 +304,7 @@ protected:
   double ValidationRmsError2D;
   double ValidationRmsError2DSD;
 
-  /*! add text */
+  /*! Additional non-linear optimizer to improve calibration results */
   vtkSpatialCalibrationOptimizer* SpatialCalibrationOptimizer;
 
 private:
