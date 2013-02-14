@@ -991,6 +991,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
+  m_ImageVisualizer->SetSelectedChannel(m_SelectedChannel);
   if( m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to initialize the image visualizer.");
