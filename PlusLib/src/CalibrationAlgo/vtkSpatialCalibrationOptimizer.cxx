@@ -216,7 +216,7 @@ vtkSpatialCalibrationOptimizer::vtkSpatialCalibrationOptimizer()
 : IsotropicPixelSpacing(true)
 , RotationParametersScale(1.0)
 , TranslationParametersScale(0.005)
-, ScalesParametersScale(1.0)
+, ScalesParametersScale(10.0)
 {  
 }
 
@@ -390,7 +390,7 @@ void vtkSpatialCalibrationOptimizer::StoreAndShowResults()
   int stepSize=std::max<int>(1,this->MinimizationResiduals.size()/30);
   for( int i=0; i < this->MinimizationResiduals.size() ; i+=stepSize )
   {
-    LOG_INFO("FunctionEvaluation " << i << ":  rmsError = " << this->MinimizationResiduals[i]);
+    LOG_DEBUG("FunctionEvaluation " << i << ":  rmsError = " << this->MinimizationResiduals[i]);
   }
   if (this->MinimizationResiduals.size()>0)
   {
@@ -442,9 +442,9 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
     return PLUS_FAIL;
   }
 
-  optimizer->SetMaximumNumberOfIterations( 1000 );
-  optimizer->SetParametersConvergenceTolerance( 0.01 );
-  optimizer->SetFunctionConvergenceTolerance( 0.001 );
+  optimizer->SetMaximumNumberOfIterations( 3000 ); // default: 500, but often convergence needs 1000-1500 iterations
+  optimizer->SetParametersConvergenceTolerance( 1e-8 ); // default: 1e-8
+  optimizer->SetFunctionConvergenceTolerance( 1e-4 ); // default: 1e-4
   
   // Scale the translation components of the transform in the Optimizer
   OptimizerType::ScalesType scales( costFunction->GetNumberOfParameters() );

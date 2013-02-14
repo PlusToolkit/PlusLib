@@ -66,11 +66,6 @@ public:
   */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
-  /*! 
-    Check user image home to probe home transform orthogonality 
-  */
-  bool IsImageToProbeTransformOrthogonal(vtkMatrix4x4* imageToProbeMatrix) const; 
-
   /*!
     Assembles the result string to display
     \param precision Number of decimals printed in the string
@@ -166,9 +161,9 @@ protected:
     Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
     \param imageToProbeTransformMatrixVnl the calculated image to probe matrix
     \param transformRepository the transform repository to populate
-    \param ensureOrthogonal flag to indicate desired behaviour for orthogonality correction
+    \param computeImageToProbeTransformZaxis if true then the z axis in the image to prove transform is computed as a cross product of x and y axis, with an average length of x and y axes
   */
-  void SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool ensureOrthogonal = true );
+  void SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool computeImageToProbeTransformZaxis = true );
 
   /*! 
     Save results and error report to XML 
