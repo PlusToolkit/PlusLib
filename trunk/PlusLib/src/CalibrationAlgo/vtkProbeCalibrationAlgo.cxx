@@ -544,38 +544,34 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
 //-----------------------------------------------------------------------------
 
-void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool ensureOrthogonal )
+void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool computeImageToProbeTransformZaxis )
 {
-  // Convert transform to vtk
   vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  imageToProbeMatrix->Identity();
-  for ( int i = 0; i < 3; i++ )
-  {
-    for ( int j = 0; j < 4; j++ )
-    {
-      imageToProbeMatrix->SetElement(i, j, imageToProbeTransformMatrixVnl.get(i, j) ); 
-    }
-  }
-
+  PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransformMatrixVnl,imageToProbeMatrix);
+  
   // Check orthogonality
-  if ( ! IsImageToProbeTransformOrthogonal(imageToProbeMatrix) )
+  double xVector[3] = { imageToProbeMatrix->GetElement(0,0), imageToProbeMatrix->GetElement(1,0), imageToProbeMatrix->GetElement(2,0) }; 
+  double yVector[3] = { imageToProbeMatrix->GetElement(0,1), imageToProbeMatrix->GetElement(1,1), imageToProbeMatrix->GetElement(2,1) };  
+  vtkMath::Normalize(xVector);
+  vtkMath::Normalize(yVector);
+  double angleXYdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(xVector, yVector))));
+  const double angleToleranceDeg=1.0;
+  if (fabs(angleXYdeg-90.0)>angleToleranceDeg) 
   {
-    LOG_WARNING("ImageToProbeTransform is not orthogonal! The result is probably not satisfactory");
+    LOG_WARNING("ImageToProbe transformation matrix X and Y axes are not orthogonal. XY axis angle = " << angleXYdeg << " deg");
   }
 
-  if( ensureOrthogonal )
+  if (computeImageToProbeTransformZaxis)
   {
+    // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
     // Make the z vector have about the same length as x an y, so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
     double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)}; 
     double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};  
     double zVector[3] = {0,0,0}; 
-
     vtkMath::Cross(xVector, yVector, zVector); 
-
     vtkMath::Normalize(zVector);
     double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
     vtkMath::MultiplyScalar(zVector, normZ);
-
     imageToProbeMatrix->SetElement(0, 2, zVector[0]);
     imageToProbeMatrix->SetElement(1, 2, zVector[1]);
     imageToProbeMatrix->SetElement(2, 2, zVector[2]);
@@ -1031,35 +1027,6 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 }
 
 //----------------------------------------------------------------------------
-
-bool vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal(vtkMatrix4x4* imageToProbeMatrix) const
-{
-  LOG_TRACE("vtkProbeCalibrationAlgo::IsImageToProbeTransformOrthogonal");
-
-  // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-  double xVector[3] = { imageToProbeMatrix->GetElement(0,0), imageToProbeMatrix->GetElement(1,0), imageToProbeMatrix->GetElement(2,0) }; 
-  double yVector[3] = { imageToProbeMatrix->GetElement(0,1), imageToProbeMatrix->GetElement(1,1), imageToProbeMatrix->GetElement(2,1) };  
-  double zVector[3] = { imageToProbeMatrix->GetElement(0,2), imageToProbeMatrix->GetElement(1,2), imageToProbeMatrix->GetElement(2,2) };  
-  vtkMath::Normalize(xVector);
-  vtkMath::Normalize(yVector);
-  vtkMath::Normalize(zVector);
-  double angleXYdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(xVector, yVector))));
-  double angleXZdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(xVector, zVector))));
-  double angleYZdeg = fabs(vtkMath::DegreesFromRadians(acos(vtkMath::Dot(yVector, zVector))));
-
-  const double angleToleranceDeg=1.0;
-  if (fabs(angleXYdeg-90.0)>angleToleranceDeg || fabs(angleXZdeg-90.0)>angleToleranceDeg || fabs(angleYZdeg-90.0)>angleToleranceDeg) 
-  {
-    LOG_WARNING("Calibration result axes are not orthogonal. Axis angles (deg): XY=" << angleXYdeg << ", XZ=" << angleXZdeg << ", YZ=" <<angleYZdeg);
-    return false; 
-  }
-
-  return true; 
-}
-
-
-//----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame)
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML");

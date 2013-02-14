@@ -465,7 +465,7 @@ std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
 
 //----------------------------------------------------------------------------
 
-void PlusMath::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
+void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
 
@@ -480,7 +480,7 @@ void PlusMath::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix
 
 //----------------------------------------------------------------------------
 
-void PlusMath::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
+void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
 

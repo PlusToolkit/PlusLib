@@ -34,7 +34,9 @@ IF (PLUS_USE_BRACHY_TRACKER)
       --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
       --baseline-file=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
       )
-    SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    # A warning is expected for non-orthogonal ImageToProbeTransform axes, so don't include "WARNING" in the FAIL_REGULAR_EXPRESSION
+    SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+    
 
     ENDIF ()
 		
