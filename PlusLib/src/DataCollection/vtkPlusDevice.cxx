@@ -69,8 +69,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
 {
-  this->SetNumberOfInputPorts(0);
-
   this->SetToolReferenceFrameName("Tracker");
 
   this->Threader = vtkMultiThreader::New();
@@ -1358,126 +1356,6 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkPlusChannel& aChanne
   }
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-// This method returns the largest data that can be generated.
-int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
-                                      vtkInformationVector **vtkNotUsed(inputVector),
-                                      vtkInformationVector *outputVector)
-{
-  //LOG_TRACE("vtkPlusDevice::RequestInformation");
-
-  if (!this->Connected)
-  {
-    Connect();
-  }
-
-  // get the info objects
-  vtkInformation* outInfo = outputVector->GetInformationObject(0);
-
-  // Find a video source and set extent
-  vtkPlusDataSource* aSource(NULL);
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
-  {
-    if( (*it)->GetVideoSource(aSource) == PLUS_SUCCESS )
-    {
-      break;
-    }
-  }
-  if( aSource == NULL )
-  {
-    return 0;
-  }
-
-  int extent[6] = {0, aSource->GetBuffer()->GetFrameSize()[0] - 1, 0, aSource->GetBuffer()->GetFrameSize()[1] - 1, 0, 0 };
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
-
-  // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
-  double spacing[3]={1,1,1};
-  outInfo->Set(vtkDataObject::SPACING(),spacing,3);
-  double origin[3]={0,0,0};
-  outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
-
-  // set default data type - unsigned char and number of components 1
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, PlusVideoFrame::GetVTKScalarPixelType(aSource->GetBuffer()->GetPixelType()), 1);
-
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-// The Execute method is fairly complex, so I would not recommend overriding
-// it unless you have to.  Override the UnpackRasterLine() method instead.
-int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
-                               vtkInformationVector **vtkNotUsed(inputVector),
-                               vtkInformationVector *vtkNotUsed(outputVector))
-{
-  LOG_TRACE("vtkPlusDevice::RequestData");
-
-  vtkImageData *data = vtkImageData::SafeDownCast(this->AllocateOutputData(this->GetOutputDataObject(0)));
-  unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
-
-  // Find a video source and set extent
-  vtkPlusDataSource* aSource(NULL);
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
-  {
-    if( (*it)->GetVideoSource(aSource) == PLUS_SUCCESS )
-    {
-      break;
-    }
-  }
-  if( aSource == NULL )
-  {
-    return 1;
-  }
-
-  if ( aSource->GetBuffer() == NULL || aSource->GetBuffer()->GetNumberOfItems() < 1 )
-  {
-    // If the video buffer is empty, we can return immediately
-    LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
-    return 1;
-  }
-
-  if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
-  {
-    ItemStatus itemStatus = aSource->GetBuffer()->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusStreamBuffer::EXACT_TIME);
-    if ( itemStatus != ITEM_OK )
-    {
-      LOG_ERROR("Unable to copy video data to the requested output!");
-      return 1;
-    } 
-  }
-  else
-  {
-    // get the most recent frame if we are not updating with the desired timestamp
-    ItemStatus itemStatus = aSource->GetBuffer()->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
-    if ( itemStatus != ITEM_OK )
-    {
-      LOG_ERROR("Unable to copy video data to the requested output!");
-      return 1;
-    }
-  }
-
-  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
-  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
-
-  void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetBufferPointer();
-  int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
-
-  int dimensions[3]={0,0,0};
-  data->GetDimensions(dimensions);
-  int outputSizeInBytes=dimensions[0]*dimensions[1]*dimensions[2]*data->GetScalarSize()*data->GetNumberOfScalarComponents();
-
-  // the actual output size may be smaller than the output available
-  // (e.g., when the rendering window is resized)
-  if (bytesToCopy>outputSizeInBytes)
-  {
-    bytesToCopy=outputSizeInBytes;
-  }
-
-  memcpy( outPtr, sourcePtr, bytesToCopy);
-
-  return 1;
 }
 
 //----------------------------------------------------------------------------

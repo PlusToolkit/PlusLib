@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-#include "vtkImageAlgorithm.h"
+#include "vtkObject.h"
 #include "vtkMultiThreader.h"
 #include "vtkPlusDeviceTypes.h"
 #include "vtkTrackedFrameList.h"
@@ -32,11 +32,11 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
+class VTK_EXPORT vtkPlusDevice : public vtkObject
 {
 public:
   static vtkPlusDevice *New();
-  vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
+  vtkTypeRevisionMacro(vtkPlusDevice, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! 
@@ -357,18 +357,6 @@ public:
     Perform any completion tasks once configured
   */
   virtual PlusStatus NotifyConfigured(){ return PLUS_SUCCESS; }
-
-  /*! 
-    Return the latest or desired image frame. This method can be overridden in subclasses 
-    Part of the vtkAlgorithm pipeline
-  */
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
-  /*! 
-    Return the latest or desired image frame. This method can be overridden in subclasses 
-    Part of the vtkAlgorithm pipeline
-  */
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
