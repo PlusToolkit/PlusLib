@@ -85,34 +85,7 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
-  this->SonixIP = 0;
-
-  this->Frequency = -1; //in Mhz
-  this->Depth = -1; //in mm
-  this->Sector = -1; //in %
-  this->Gain = -1; //in %
-  this->DynRange = -1; //in dB
-  this->Zoom = -1; //in %
-  this->Timeout = -1; // in ms
-  this->ConnectionSetupDelayMs = 3000; // in ms
-  this->CompressionStatus = 0; // no compression by default
-  this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
-  this->ImagingMode = BMode; //corresponds to BMode imaging  
-  this->RfAcquisitionMode=RF_ACQ_RF_ONLY; // get RF data only in RfMode 
-
-  this->NumberOfOutputFrames = 1;
-
-  this->UlteriusConnected=false;
-
-  this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
-
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
+  this->Reset();
 }
 
 //----------------------------------------------------------------------------
@@ -125,6 +98,7 @@ vtkSonixVideoSource::~vtkSonixVideoSource()
 vtkSonixVideoSource* vtkSonixVideoSource::New()
 {
   vtkSonixVideoSource* ret = vtkSonixVideoSource::GetInstance();
+  ret->Reset();
   ret->Register(NULL);
   return ret;
 }
@@ -1192,6 +1166,58 @@ PlusStatus vtkSonixVideoSource::NotifyConfigured()
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkSonixVideoSource::Reset()
+{
+  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  {
+    (*it)->Delete();
+  }
+  this->InputChannels.clear();
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  {
+    (*it)->Delete();
+  }
+  this->OutputChannels.clear();
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
+  {
+    it->second->Delete();
+  }
+  this->Tools.clear();
+  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    it->second->Delete();
+  }
+  this->VideoSources.clear();
+
+  this->SonixIP = 0;
+  this->Frequency = -1; //in Mhz
+  this->Depth = -1; //in mm
+  this->Sector = -1; //in %
+  this->Gain = -1; //in %
+  this->DynRange = -1; //in dB
+  this->Zoom = -1; //in %
+  this->Timeout = -1; // in ms
+  this->ConnectionSetupDelayMs = 3000; // in ms
+  this->CompressionStatus = 0; // no compression by default
+  this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
+  this->ImagingMode = BMode; //corresponds to BMode imaging  
+  this->RfAcquisitionMode=RF_ACQ_RF_ONLY; // get RF data only in RfMode 
+  this->NumberOfOutputFrames = 1;
+  this->UlteriusConnected = false;
+  this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
+  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
 
   return PLUS_SUCCESS;
 }

@@ -269,6 +269,9 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_DeviceSetSelectorWidget->ShowResetTrackerButton(false);
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
+    DeviceCollection emptyCollection;
+    this->m_ParentMainWindow->BuildChannelOwners(emptyCollection);
+
     // Rebuild the devices menu to clear out any previous devices
     m_ParentMainWindow->BuildChannelMenu();
   }

@@ -846,6 +846,8 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
 
 void fCalMainWindow::BuildChannelOwners( DeviceCollection devices )
 {
+  m_ChannelOwners.clear();
+
   for( DeviceCollectionIterator it = devices.begin(); it != devices.end(); ++it )
   {
     for( ChannelContainerIterator chanIt = (*it)->GetOutputChannelsStart(); chanIt != (*it)->GetOutputChannelsEnd(); ++chanIt )

@@ -203,21 +203,21 @@ PlusStatus vtkPlusDeviceFactory::CreateInstance( const char* aDeviceType, vtkPlu
 
   if ( DeviceTypes.find(aDeviceType) == DeviceTypes.end() )
   {
-    LOG_ERROR("Unknown tracker type: " << aDeviceType);
+    LOG_ERROR("Unknown device type: " << aDeviceType);
     return PLUS_FAIL; 
   }
 
   if ( DeviceTypes[aDeviceType] == NULL )
   { 
-    LOG_ERROR("Invalid factory method for tracker type: " << aDeviceType);
+    LOG_ERROR("Invalid factory method for device type: " << aDeviceType);
     return PLUS_FAIL; 
   }
 
-  // Call tracker New() function
+  // Call device New() function
   aDevice = (*DeviceTypes[aDeviceType])(); 
   if (aDevice==NULL)
   {
-    LOG_ERROR("Invalid video source created for tracker type: " << aDeviceType);
+    LOG_ERROR("Invalid device created for device type: " << aDeviceType);
     return PLUS_FAIL; 
   }
 

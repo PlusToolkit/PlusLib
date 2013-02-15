@@ -1338,7 +1338,11 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
-    m_SelectedChannel->GetTrackedFrame(&m_Frame);
+    if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve tracked frame.");
+      return PLUS_FAIL;
+    }
   }
 
   // Set image for canvas
