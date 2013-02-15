@@ -966,6 +966,12 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
     LOG_WARNING("Data source has no output port, canvas image actor initalization failed.");
   }
 
+  if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve tracked frame.");
+    return PLUS_FAIL;
+  }
+
   // Create segmented points actor
   m_SegmentedPointsActor = vtkActor::New();
 
@@ -1003,6 +1009,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
   m_ImageVisualizer->SetResultOpacity(0.8);
   ui.canvas->GetRenderWindow()->AddRenderer(m_ImageVisualizer->GetCanvasRenderer());
+  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetVtkImage());
 
   // Create default picker
   m_ImageVisualizer->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
@@ -1014,7 +1021,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   SwitchToROIMode();
 
   // Start refresh timer
-  m_CanvasRefreshTimer->start(50);
+  m_CanvasRefreshTimer->start(33);
 
   return PLUS_SUCCESS;
 }
@@ -1344,9 +1351,6 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
       return PLUS_FAIL;
     }
   }
-
-  // Set image for canvas
-  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetVtkImage());
 
   // Segment image
   PatternRecognitionResult segResults;
