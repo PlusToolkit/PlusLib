@@ -291,6 +291,8 @@ protected:
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();
 
+  virtual PlusStatus Reset();
+
   ////////////////////////
 
   /*! For internal use only */

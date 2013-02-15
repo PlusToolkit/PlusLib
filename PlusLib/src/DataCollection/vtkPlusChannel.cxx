@@ -50,6 +50,8 @@ vtkPlusChannel::~vtkPlusChannel(void)
   this->VideoSource = NULL;
   Tools.clear();
 
+  this->SetOwnerDevice(NULL);
+
   DELETE_IF_NOT_NULL(this->BlankImage);
 
   DELETE_IF_NOT_NULL(this->RfProcessor);
