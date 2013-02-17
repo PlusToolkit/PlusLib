@@ -78,10 +78,10 @@ public:
   PlusStatus Update();
 
   /*! Provides to the class the information necessary make the optimization */
-  PlusStatus SetInputDataForMiddlePointMethod(std::vector< vnl_vector<double> > *DataPositionsInImageFrame, std::vector< vnl_vector<double> > *DataPositionsInProbeFrame, vnl_matrix<double> *ImageToProbeTransformMatrixVnl, std::set<int>* outliers);
+  PlusStatus SetInputDataForMiddlePointMethod(std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Image, std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Probe, vnl_matrix<double> *imageToProbeTransformMatrixVnl, std::set<int>* outliers);
 
   /*! Provides to the class the information necessary make the optimization */
-  PlusStatus SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl, std::set<int>* outliers);
+  PlusStatus SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *calibrationAllWiresIntersectionPointsPos_Image, std::vector<NWire> *nWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl, std::set<int>* outliers);
 
   /*! Get optimized Image to Probe matrix */
   vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix();
@@ -111,13 +111,13 @@ protected:
   OptimizationMethodType OptimizationMethod;
 
   /*! Positions of segmented points in image frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > DataPositionsInImageFrame;
+  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Image;
 
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
+  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Probe;
 
   /*! Positions of ALL the segmented points in image frame - input to the second cost function (distance to wires) */
-  std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
+  std::vector< vnl_vector<double> > CalibrationAllWiresIntersectionPointsPos_Image;
 
   /* Contains all the probe to phantom transforms used during calibration */
   std::vector< vnl_matrix<double> > ProbeToPhantomTransforms;
@@ -131,10 +131,6 @@ protected:
   /*! Store the result of the optimization process */
   vnl_matrix<double> ImageToProbeTransformMatrixVnl;
    
-  double RotationParametersScale;
-  double TranslationParametersScale;
-  double ScalesParametersScale; 
-
   /*! store the residuals used during the optimization */
   std::vector<double> MinimizationResiduals;
 

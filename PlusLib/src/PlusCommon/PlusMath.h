@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "vnl/vnl_matrix.h"
+#include "vnl/vnl_matrix_fixed.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_sparse_matrix.h"   
 #include "vtkMatrix4x4.h"
@@ -86,6 +87,8 @@ public:
   /*! Convert matrix between VTK and VNL */
 	static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
 	static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
+  static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix );
+
 
   /*! Print VTK matrix into STL stream */
   static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision = 3);

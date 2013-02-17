@@ -33,16 +33,12 @@ public:
 
   typedef Superclass::ParametersType              ParametersType;
   typedef Superclass::DerivativeType              DerivativeType;
-
-  typedef vnl_vector<double>                      VectorType;
-  typedef vnl_matrix<double>                      MatrixType;
-
   typedef itk::VersorRigid3DTransform< double > RigidTransformType;
 
-  typedef double MeasureType ;
-
-  DistanceToWiresCostFunction() {};
-
+  DistanceToWiresCostFunction()
+  : m_CalibrationOptimizer(NULL)
+  {
+  }
 
   DistanceToWiresCostFunction(vtkSpatialCalibrationOptimizer* calibrationOptimizer) 
   {
@@ -158,6 +154,7 @@ private:
   vtkSpatialCalibrationOptimizer* m_CalibrationOptimizer;
 }; 
 
+//-----------------------------------------------------------------------------
 class CommandIterationUpdate : public itk::Command 
 {
 public:
@@ -171,13 +168,10 @@ protected:
     m_IterationNumber=0;
   }
 public:
-
-
   void Execute(itk::Object *caller, const itk::EventObject & event)
   {
     Execute( (const itk::Object *)caller, event);
   }
-
   void Execute(const itk::Object * object, const itk::EventObject & event)
   {
     LOG_DEBUG( "Observer::Execute()");
@@ -195,7 +189,6 @@ public:
       LOG_DEBUG("Gradient " << optimizer->GetCachedDerivative() << "   ");
     }
   }
-
   const std::vector<double>& GetErrorValues()
   {
     return m_ErrorValues;
@@ -214,9 +207,6 @@ vtkStandardNewMacro(vtkSpatialCalibrationOptimizer);
 //-----------------------------------------------------------------------------
 vtkSpatialCalibrationOptimizer::vtkSpatialCalibrationOptimizer()
 : IsotropicPixelSpacing(true)
-, RotationParametersScale(1.0)
-, TranslationParametersScale(0.005)
-, ScalesParametersScale(10.0)
 {  
 }
 
@@ -228,9 +218,6 @@ vtkSpatialCalibrationOptimizer::~vtkSpatialCalibrationOptimizer()
 //-----------------------------------------------------------------------------
 double vtkSpatialCalibrationOptimizer::PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2 )
 {
-  //norm(cross( (LP2-LP1), (P-LP1) ) ) / norm(LP2-LP1);
-  //double d = vnl_cross_3d(LP2-LP1,P-LP1).two_norm() / (LP2-LP1).two_norm();
-
   // Convert point from vnl to vtk format
   double wireP0[3] = {aLineEndPoint1[0], aLineEndPoint1[1], aLineEndPoint1[2]};
   double wireP1[3] = {aLineEndPoint2[0], aLineEndPoint2[1], aLineEndPoint2[2]};
@@ -253,19 +240,19 @@ void vtkSpatialCalibrationOptimizer::ComputeRmsError(const vnl_matrix<double> &t
 
   case MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D:
     {
-      numberOfFrames = this->DataPositionsInImageFrame.size();
+      numberOfFrames = this->CalibrationMiddleWireIntersectionPointsPos_Image.size();
       for(int i=0;i<numberOfFrames;i++)
       {
-        px = transformationMatrix[0][0]*this->DataPositionsInImageFrame[i][0] + transformationMatrix[0][1]*this->DataPositionsInImageFrame[i][1] + 
-          transformationMatrix[0][2]*this->DataPositionsInImageFrame[i][2] + transformationMatrix[0][3];
-        py = transformationMatrix[1][0]*this->DataPositionsInImageFrame[i][0] + transformationMatrix[1][1]*this->DataPositionsInImageFrame[i][1] + 
-          transformationMatrix[1][2]*this->DataPositionsInImageFrame[i][2] + transformationMatrix[1][3];
-        pz = transformationMatrix[2][0]*this->DataPositionsInImageFrame[i][0] + transformationMatrix[2][1]*this->DataPositionsInImageFrame[i][1] + 
-          transformationMatrix[2][2]*this->DataPositionsInImageFrame[i][2] + transformationMatrix[2][3];
+        px = transformationMatrix[0][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[0][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
+          transformationMatrix[0][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[0][3];
+        py = transformationMatrix[1][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[1][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
+          transformationMatrix[1][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[1][3];
+        pz = transformationMatrix[2][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[2][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
+          transformationMatrix[2][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[2][3];
 
-        dx = px - this->DataPositionsInProbeFrame[i][0];
-        dy = py - this->DataPositionsInProbeFrame[i][1];
-        dz = pz - this->DataPositionsInProbeFrame[i][2];
+        dx = px - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][0];
+        dy = py - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][1];
+        dz = pz - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][2];
 
         squaredDistanceToMiddleWire = dx*dx + dy*dy + dz*dz;
         rmsError += squaredDistanceToMiddleWire;
@@ -277,7 +264,7 @@ void vtkSpatialCalibrationOptimizer::ComputeRmsError(const vnl_matrix<double> &t
   case MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D:
     {
       int nWires = this->NWires.size(); 
-      int m = this->SegmentedPointsInImageFrame.size()/(3*nWires); //number of frames
+      int m = this->CalibrationAllWiresIntersectionPointsPos_Image.size()/(3*nWires); //number of frames
       double residual=0;
 
       vnl_vector<double> segmentedInProbeFrame_vnl(4), segmentedInPhantomFrame_vnl(4);
@@ -291,12 +278,12 @@ void vtkSpatialCalibrationOptimizer::ComputeRmsError(const vnl_matrix<double> &t
         for (int j=0;j<3*nWires;j++)  // for each segmented point
         {
           // Find the projection in the probe frame 
-          px = transformationMatrix[0][0]*this->SegmentedPointsInImageFrame[3*nWires*i+j][0] + transformationMatrix[0][1]*this->SegmentedPointsInImageFrame[3*nWires*i+j][1] + 
-            transformationMatrix[0][2]*this->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ transformationMatrix[0][3];
-          py = transformationMatrix[1][0]*this->SegmentedPointsInImageFrame[3*nWires*i+j][0] + transformationMatrix[1][1]*this->SegmentedPointsInImageFrame[3*nWires*i+j][1] + 
-            transformationMatrix[1][2]*this->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ transformationMatrix[1][3];
-          pz = transformationMatrix[2][0]*this->SegmentedPointsInImageFrame[3*nWires*i+j][0] + transformationMatrix[2][1]*this->SegmentedPointsInImageFrame[3*nWires*i+j][1] + 
-            transformationMatrix[2][2]*this->SegmentedPointsInImageFrame[3*nWires*i+j][2]+ transformationMatrix[2][3];
+          px = transformationMatrix[0][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[0][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
+            transformationMatrix[0][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[0][3];
+          py = transformationMatrix[1][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[1][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
+            transformationMatrix[1][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[1][3];
+          pz = transformationMatrix[2][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[2][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
+            transformationMatrix[2][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[2][3];
 
           segmentedInProbeFrame_vnl[0] = px; 
           segmentedInProbeFrame_vnl[1] = py; 
@@ -446,28 +433,32 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   optimizer->SetParametersConvergenceTolerance( 1e-8 ); // default: 1e-8
   optimizer->SetFunctionConvergenceTolerance( 1e-4 ); // default: 1e-4
   
+  const double rotationParametersScale=1.0;
+  const double translationParametersScale=0.005;
+  const double scalesParametersScale=10.0;
+
   // Scale the translation components of the transform in the Optimizer
   OptimizerType::ScalesType scales( costFunction->GetNumberOfParameters() );
   switch (costFunction->GetNumberOfParameters())
   {
   case 7:
-    scales[0] = this->RotationParametersScale;
-    scales[1] = this->RotationParametersScale;
-    scales[2] = this->RotationParametersScale;
-    scales[3] = this->TranslationParametersScale; 
-    scales[4] = this->TranslationParametersScale; 
-    scales[5] = this->TranslationParametersScale;
-    scales[6] = this->ScalesParametersScale;  
+    scales[0] = rotationParametersScale;
+    scales[1] = rotationParametersScale;
+    scales[2] = rotationParametersScale;
+    scales[3] = translationParametersScale; 
+    scales[4] = translationParametersScale; 
+    scales[5] = translationParametersScale;
+    scales[6] = scalesParametersScale;  
     break;
   case 8:
-    scales[0] = this->RotationParametersScale;
-    scales[1] = this->RotationParametersScale;
-    scales[2] = this->RotationParametersScale;
-    scales[3] = this->TranslationParametersScale; 
-    scales[4] = this->TranslationParametersScale; 
-    scales[5] = this->TranslationParametersScale;
-    scales[6] = this->ScalesParametersScale;  
-    scales[7] = this->ScalesParametersScale;  
+    scales[0] = rotationParametersScale;
+    scales[1] = rotationParametersScale;
+    scales[2] = rotationParametersScale;
+    scales[3] = translationParametersScale; 
+    scales[4] = translationParametersScale; 
+    scales[5] = translationParametersScale;
+    scales[6] = scalesParametersScale;  
+    scales[7] = scalesParametersScale;  
     break;
   default:
     LOG_ERROR("Number of transformation parameters is incorrect");
@@ -514,29 +505,31 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 }
 
 //----------------------------------------------------------------------------
-
-PlusStatus vtkSpatialCalibrationOptimizer::SetInputDataForMiddlePointMethod(std::vector< vnl_vector<double> > *DataPositionsInImageFrame, std::vector< vnl_vector<double> > *DataPositionsInProbeFrame, vnl_matrix<double> *ImageToProbeTransformMatrixVnl,std::set<int>* outliers)
+PlusStatus vtkSpatialCalibrationOptimizer::SetInputDataForMiddlePointMethod(
+  std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Image, 
+  std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Probe, 
+  vnl_matrix<double> *imageToProbeTransformMatrixVnl,
+  std::set<int>* outliers)
 {
-  for(int i=0;i<DataPositionsInImageFrame->size();i++)
+  for(int i=0;i<calibrationMiddleWireIntersectionPointsPos_Image->size();i++)
   { 
     if(outliers->find(i) == outliers->end()) // if is not an outlier
     {
-      this->DataPositionsInImageFrame.push_back(DataPositionsInImageFrame->at(i));
-      this->DataPositionsInProbeFrame.push_back(DataPositionsInProbeFrame->at(i));
+      this->CalibrationMiddleWireIntersectionPointsPos_Image.push_back(calibrationMiddleWireIntersectionPointsPos_Image->at(i));
+      this->CalibrationMiddleWireIntersectionPointsPos_Probe.push_back(calibrationMiddleWireIntersectionPointsPos_Probe->at(i));
     }
   }
-  this->ImageToProbeSeedTransformMatrixVnl= *ImageToProbeTransformMatrixVnl;
+  this->ImageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-
-PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *SegmentedPointsInImageFrame, std::vector<NWire> *NWires, std::vector< vnl_matrix<double> > *ProbeToPhantomTransforms, vnl_matrix<double> *ImageToProbeTransformMatrixVnl,std::set<int>* outliers)
+PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *calibrationAllWiresIntersectionPointsPos_Image, std::vector<NWire> *nWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl,std::set<int>* outliers)
 {
   std::set<int> outliersProbeToPhantomTransforms;
 
-  int numberOfWires = NWires->size();
+  int numberOfWires = nWires->size();
   for (std::set<int>::const_iterator it = outliers->begin();it != outliers->end(); ++it)
   {
     outliersProbeToPhantomTransforms.insert(*it / numberOfWires);
@@ -544,20 +537,20 @@ PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerDataUsingNWires(std::vect
 
   LOG_INFO(outliersProbeToPhantomTransforms.size() << " probe to phantom transforms outliers were found");
 
-  for(int i=0;i<ProbeToPhantomTransforms->size();i++)
+  for(int i=0;i<probeToPhantomTransforms->size();i++)
   { 
     if(outliersProbeToPhantomTransforms.find(i) == outliersProbeToPhantomTransforms.end()) // if is not an outlier
     {
-      this->ProbeToPhantomTransforms.push_back(ProbeToPhantomTransforms->at(i));
+      this->ProbeToPhantomTransforms.push_back(probeToPhantomTransforms->at(i));
       for (int j=0;j<3*numberOfWires;j++)
       {
-        this->SegmentedPointsInImageFrame.push_back(SegmentedPointsInImageFrame->at(3*numberOfWires*i+j));
+        this->CalibrationAllWiresIntersectionPointsPos_Image.push_back(calibrationAllWiresIntersectionPointsPos_Image->at(3*numberOfWires*i+j));
       }
     }
   }
 
-  this->NWires = * NWires;
-  this->ImageToProbeSeedTransformMatrixVnl= *ImageToProbeTransformMatrixVnl;
+  this->NWires = * nWires;
+  this->ImageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
 
   return PLUS_SUCCESS;
 }
@@ -592,6 +585,7 @@ char* vtkSpatialCalibrationOptimizer::GetOptimizationMethodAsString(Optimization
   }
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkSpatialCalibrationOptimizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   LOG_TRACE("vtkSpatialCalibrationOptimizer::ReadConfiguration"); 
@@ -637,17 +631,6 @@ PlusStatus vtkSpatialCalibrationOptimizer::ReadConfiguration( vtkXMLDataElement*
       LOG_WARNING("Unable to recognize IsotropicPixelSpacing attribute: " << isotropicPixelSpacing << " - changed to true by default!"); 
       this->IsotropicPixelSpacing = true; 
     }
-  }
-
-  if (this->IsotropicPixelSpacing)
-  {
-    // isotropic
-    // TODO: set up the appropriate transform
-  }
-  else
-  {
-    // anisotropic
-    // TODO: set up the appropriate transform
   }
 
   return PLUS_SUCCESS;
