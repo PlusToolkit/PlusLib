@@ -207,16 +207,16 @@ protected:
   std::vector<NWire> NWires;
 
   /*! Positions of segmented points in image frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > DataPositionsInImageFrame;
+  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Image;
 
   /*! Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points */
-  std::vector< vnl_vector<double> > SegmentedPointsInImageFrame;
+  std::vector< vnl_vector<double> > CalibrationAllWiresIntersectionPointsPos_Image;
 
   /*! Vector containing all Probe to Phantom transforms */
   std::vector< vnl_matrix<double> > ProbeToPhantomTransforms;
 
   /*! Positions of segmented points in probe frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > DataPositionsInProbeFrame;
+  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Probe;
 
   /*!
     Confidence level (trusted zone) as a percentage of the independent validation data used to produce the final error computation results.  It serves as an effective way to get rid of corrupted data

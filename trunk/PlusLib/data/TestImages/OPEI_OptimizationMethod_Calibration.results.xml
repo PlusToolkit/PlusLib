@@ -11,15 +11,15 @@
   <ErrorReport>
     <ReprojectionError3DStatistics ValidationMeanMm="1.26642" ValidationStdDevMm="0.725263" CalibrationMeanMm="0.645559" CalibrationStdDevMm="0.359992"/>
     <ReprojectionError2DStatistics>
-      <Wire Name="7:G1_g1" ValidationMeanPx="-0.285332 0.839621" ValidationStdDevPx="1.151 0.590707" CalibrationMeanPx="-0.404847 1.01177" CalibrationStdDevPx="0.791244 0.573947"/>
-      <Wire Name="8:L1_h1" ValidationMeanPx="-0.606049 -0.0258672" ValidationStdDevPx="1.21089 0.628919" CalibrationMeanPx="0.117584 0.11212" CalibrationStdDevPx="1.14528 0.53764"/>
-      <Wire Name="9:M1_m1" ValidationMeanPx="-0.0882187 -0.192941" ValidationStdDevPx="1.02389 0.683746" CalibrationMeanPx="0.681243 0.318787" CalibrationStdDevPx="0.817935 0.656004"/>
-      <Wire Name="4:G3_g3" ValidationMeanPx="-0.36654 -0.778453" ValidationStdDevPx="1.12427 0.564598" CalibrationMeanPx="-0.124761 -0.830694" CalibrationStdDevPx="0.957384 0.510293"/>
-      <Wire Name="5:H3_l3" ValidationMeanPx="2.82095 -1.02111" ValidationStdDevPx="1.56187 0.618909" CalibrationMeanPx="0.644973 -0.511839" CalibrationStdDevPx="1.26765 0.51015"/>
+      <Wire Name="7:G1_g1" ValidationMeanPx="-0.285332 0.839621" ValidationStdDevPx="1.151 0.590707" CalibrationMeanPx="-0.404846 1.01177" CalibrationStdDevPx="0.791244 0.573947"/>
+      <Wire Name="8:L1_h1" ValidationMeanPx="-0.606049 -0.0258671" ValidationStdDevPx="1.21089 0.628919" CalibrationMeanPx="0.117584 0.11212" CalibrationStdDevPx="1.14528 0.53764"/>
+      <Wire Name="9:M1_m1" ValidationMeanPx="-0.0882185 -0.192941" ValidationStdDevPx="1.02389 0.683746" CalibrationMeanPx="0.681243 0.318787" CalibrationStdDevPx="0.817935 0.656004"/>
+      <Wire Name="4:G3_g3" ValidationMeanPx="-0.366539 -0.778453" ValidationStdDevPx="1.12427 0.564598" CalibrationMeanPx="-0.12476 -0.830694" CalibrationStdDevPx="0.957384 0.510293"/>
+      <Wire Name="5:H3_l3" ValidationMeanPx="2.82095 -1.02111" ValidationStdDevPx="1.56187 0.618909" CalibrationMeanPx="0.644974 -0.511839" CalibrationStdDevPx="1.26765 0.51015"/>
       <Wire Name="6:M3_m3" ValidationMeanPx="-0.472937 -0.41111" ValidationStdDevPx="0.932195 0.676244" CalibrationMeanPx="0.601837 0.175083" CalibrationStdDevPx="0.81845 0.607874"/>
       <Wire Name="1:H5_h5" ValidationMeanPx="-0.607693 0.404868" ValidationStdDevPx="1.11748 0.651103" CalibrationMeanPx="-0.657355 0.762639" CalibrationStdDevPx="0.82701 0.438896"/>
-      <Wire Name="2:L5_i5" ValidationMeanPx="-0.426782 0.0775934" ValidationStdDevPx="1.05851 0.607818" CalibrationMeanPx="0.102711 0.301951" CalibrationStdDevPx="0.945385 0.542393"/>
-      <Wire Name="3:M5_m5" ValidationMeanPx="-1.37701 -0.460859" ValidationStdDevPx="0.958719 0.677527" CalibrationMeanPx="-0.248324 0.00666414" CalibrationStdDevPx="0.993805 0.578717"/>
+      <Wire Name="2:L5_i5" ValidationMeanPx="-0.426782 0.0775935" ValidationStdDevPx="1.05851 0.607818" CalibrationMeanPx="0.102711 0.301951" CalibrationStdDevPx="0.945385 0.542393"/>
+      <Wire Name="3:M5_m5" ValidationMeanPx="-1.37701 -0.460859" ValidationStdDevPx="0.958719 0.677527" CalibrationMeanPx="-0.248323 0.00666406" CalibrationStdDevPx="0.993805 0.578717"/>
     </ReprojectionError2DStatistics>
     <ValidationData>
       <Frame Index="0" SegmentationStatus="Failed"/>
@@ -46,11 +46,11 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.13327 -0.193323"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.27199 -0.995723"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.673727 -0.562463"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.00754078 -1.15157"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.00754062 -1.15157"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.03921 -1.71532"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.141409 -1.42336"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="1.11845 -0.647839"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.805368 -0.406771"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.805368 -0.40677"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.0797643 -1.12443"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1130.95" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -100,8 +100,8 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.14627 -0.755191"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.83963 -1.27064"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.60293 -1.13514"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0412451 -0.213294"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-3.71072 0.490855"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.041245 -0.213294"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-3.71072 0.490856"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.0059 -0.717196"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1131.03" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -145,14 +145,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.24787"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.16697 0.0519197"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.16697 0.0519198"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.60302 -0.147399"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.497496 -0.53476"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.12493 -1.65504"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.80787 -1.39147"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.828788 -1.0985"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.416421 -0.325151"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.00498 -0.0640754"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.00498 -0.0640753"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.44746 -1.2515"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1131.11" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -198,11 +198,11 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.373026 0.968594"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.0331 0.301967"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.506932 0.139578"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.506931 0.139578"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.58983 -1.3409"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.84803 -0.892727"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.84803 -0.892726"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.0715 -0.432183"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.172623 0.0836095"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.172623 0.0836097"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.38943 0.392251"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.7759 -0.507516"/>
         </ReprojectionError2DList>
@@ -248,12 +248,12 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.08196 0.721884"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.24624 0.450971"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.24624 0.450972"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.138924 -0.278463"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.23339 -1.21281"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.32994 -1.05377"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.32995 -1.05377"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.503975 -0.812187"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.113613 -0.0868228"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.113613 -0.0868226"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.31715 0.29752"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.45228 -0.645106"/>
         </ReprojectionError2DList>
@@ -298,13 +298,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.626538"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.540367 1.14449"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.540368 1.14449"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.12105 0.182658"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.435528 -0.0987543"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.41222 -0.3513"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.83034 -0.75314"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.18807 -0.577093"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.300123 0.155154"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.300123 0.155155"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.23697 0.419813"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.57635 -0.648541"/>
         </ReprojectionError2DList>
@@ -402,10 +402,10 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.01491 1.29331"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.819618 0.272159"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.224263 0.00314365"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.224263 0.0031436"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.709905 -0.713676"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.03572 -0.75231"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.596533 -0.397518"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.596532 -0.397518"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.08329 0.353725"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.678753 0.501454"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.49944 -0.245536"/>
@@ -457,8 +457,8 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.114147 -0.342653"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.87588 -0.490938"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.171578 -0.326881"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.115745 0.420004"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.909657 0.744255"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.115745 0.420005"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.909656 0.744255"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.15586 -0.36095"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1131.54" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -502,11 +502,11 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.828278"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.212936 0.957835"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.212936 0.957836"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.738775 0.370138"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.751013 0.162081"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.226194 -0.663546"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.70729 -0.728968"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.226195 -0.663546"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.70729 -0.728967"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.09231 -0.37373"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.536812 0.2286"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.46293 0.543107"/>
@@ -556,10 +556,10 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.436655 1.31293"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.19113 0.873863"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.139505 0.43952"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.233357 -0.4355"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.233356 -0.4355"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.07647 -0.721036"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.332966 -0.163712"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.042589 0.571232"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0425889 0.571232"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.08026 0.582308"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.42442 -0.688881"/>
         </ReprojectionError2DList>
@@ -599,7 +599,7 @@
           <Point WireName="3:M5_m5" Position="384.171 385.562 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.98365"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.983651"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.07542"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.376838"/>
         </ReprojectionError3DList>
@@ -607,9 +607,9 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.02671 0.802887"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.23658 0.482803"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.103869 0.336193"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.309783 -0.861167"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.309783 -0.861166"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.73714 -0.899838"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.000860282 -0.32194"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.000860389 -0.32194"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.157132 0.172597"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.13455 0.285236"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.59042 -0.851686"/>
@@ -655,13 +655,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.799071"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.903977 0.930071"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.903976 0.930071"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.49478 0.208929"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.713444 -0.0591056"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.588755 -0.883644"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.19359 -0.941052"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.464812 -0.614612"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.633914 0.0646522"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.633913 0.0646524"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.06475 0.348241"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.80639 -0.930921"/>
         </ReprojectionError2DList>
@@ -706,7 +706,7 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.437797"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0986571 0.499891"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0986568 0.499891"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.999811 0.111106"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.236029 0.28451"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.122458 -1.26618"/>
@@ -757,14 +757,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.494933"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.726738 0.314551"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.726737 0.314551"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.998186 -0.304848"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.567725 0.00846886"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.567725 0.00846881"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.987465 -1.4405"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.58508 -1.29277"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.75457 -0.584263"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.20931 -0.347317"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.84958 -0.0487823"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.84958 -0.0487822"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.97962 -0.995568"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1131.94" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -882,7 +882,7 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.4569 0.47105"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.528596 0.508457"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.930194 -0.247573"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.2384 -0.301234"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.23841 -0.301234"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.697423 0.631069"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.730092 1.56445"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.693243 0.982187"/>
@@ -931,7 +931,7 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.87969 1.14575"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.946168 0.375592"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.94575 -0.0641644"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.94575 -0.0641645"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.80142 -0.87005"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.48663 -0.856989"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.44454 0.0392035"/>
@@ -976,13 +976,13 @@
         </SegmentedPoints>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="1.46463"/>
-          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="1.90095"/>
+          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="1.90096"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.37306"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.33116 1.75441"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.349 1.19615"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.978813 0.625668"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.978814 0.625668"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.61246 -0.21862"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.64257 -0.314266"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.19246 0.604691"/>
@@ -1081,12 +1081,12 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.563965"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.11948"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.554904"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.554903"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.366234 -0.575981"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.72002 -1.7293"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.0557531 -2.0844"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.72002 -1.72929"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.0557529 -2.0844"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.675021 -2.57584"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.78521 -2.71448"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.346651 -2.77933"/>
@@ -1130,12 +1130,12 @@
           <Point WireName="3:M5_m5" Position="388.362 375.905 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.752516"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.752515"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="1.24612"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.761298"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.35849 -0.693553"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.35849 -0.693552"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.800037 -1.4934"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.79385 -1.8017"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.373122 -2.37598"/>
@@ -1189,10 +1189,10 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.803291 -0.595196"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.838288 -1.22284"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.02947 -1.64747"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.099063 -2.26074"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0990632 -2.26074"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.48946 -2.41457"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.40745 -2.12609"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0684956 -1.09688"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0684955 -1.09688"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.39093 -1.41596"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.66672 -2.35657"/>
         </ReprojectionError2DList>
@@ -1238,9 +1238,9 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.492701 -0.574528"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.399309 -0.953232"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.399309 -0.953231"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.114146 -1.3893"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.199048 -2.10379"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.199049 -2.10379"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.213 -2.04487"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.85306 -1.62074"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.78491 -1.06015"/>
@@ -1288,9 +1288,9 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.198036"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0362587 0.23401"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.036259 0.23401"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.432498 -0.335755"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.409573 -0.837821"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.409573 -0.837822"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.484291 -1.56035"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.90426 -1.52654"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.139008 -1.15641"/>
@@ -1345,8 +1345,8 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.03533 -1.27683"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.70705 -1.04034"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.195622 -0.525179"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.74961 0.0537117"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0966846 -0.0966891"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.74961 0.0537118"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0966847 -0.096689"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.03547 -0.522643"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1134.67" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -1387,7 +1387,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.514622"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.29683"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.0767797"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.0767798"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.17115 0.957555"/>
@@ -1397,8 +1397,8 @@
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.69443 -0.704194"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.457122 -0.201475"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.865718 0.331505"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.176255 0.0845161"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.623912 0.000297489"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.176255 0.0845162"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.623912 0.000297483"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1134.75" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.209399 -0.153962 0.965633 -68.556 0.30665 -0.92737 -0.214359 158.441 0.928503 0.340998 -0.146978 -1077.7 0 0 0 1"/>
@@ -1449,7 +1449,7 @@
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.485783 0.207087"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.830399 0.460663"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.52245 0.326938"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.00855777 0.210812"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.00855769 0.210812"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1134.82" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.211042 -0.152848 0.965453 -68.4925 0.30497 -0.9281 -0.213599 158.18 0.928684 0.339512 -0.149254 -1077.79 0 0 0 1"/>
@@ -1495,7 +1495,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.111559 1.63173"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.12523 0.626974"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.229061 0.304859"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.420751 -0.654646"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.420752 -0.654645"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.78996 -0.201845"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.814457 0.0124713"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.518456 0.766539"/>
@@ -1548,9 +1548,9 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.473979 1.5813"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.168149 0.00741634"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.0877467 0.0237661"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.072151 -0.634558"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.168149 0.0074164"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.0877465 0.023766"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.0721508 -0.634558"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.77809 -0.568617"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.379431 -0.276811"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.1834 0.560992"/>
@@ -1599,12 +1599,12 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.528928 1.55086"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.0864097 0.0824684"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.0864096 0.0824685"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.158104 -0.204263"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.270002 -0.565117"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.21502 -0.612281"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.843606 -0.370688"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0295083 0.615351"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0295082 0.615352"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.150074 0.103251"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.24642 -0.040226"/>
         </ReprojectionError2DList>
@@ -1646,7 +1646,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.39166"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.43533"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.438323"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.438322"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.769001 1.28853"/>
@@ -1655,7 +1655,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.23908 -0.22742"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.12722 -0.559837"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.997874 -0.191955"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.71032 0.655233"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.710319 0.655234"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.897337 0.268597"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.98132 -0.607744"/>
         </ReprojectionError2DList>
@@ -1703,10 +1703,10 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.921517 1.16703"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.16682 0.566574"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.186059 0.190262"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.13662 -0.0895745"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.13662 -0.0895744"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.99711 -0.56809"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.807686 -0.184264"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.886082 0.866822"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.807685 -0.184264"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.886081 0.866823"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.58915 0.425675"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.60558 -0.365279"/>
         </ReprojectionError2DList>
@@ -1746,19 +1746,19 @@
           <Point WireName="3:M5_m5" Position="398.591 356.31 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.489544"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.489543"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.57986"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.873252"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.34549 1.52225"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.3066 0.322957"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.444937 0.00724538"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.444936 0.00724533"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-2.05626 -0.270688"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.84162 -0.473007"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.2861 -0.27638"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.15415 0.7205"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.64398 0.387875"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.64398 0.387876"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.72016 -0.470009"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1135.81" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -1802,9 +1802,9 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.420335"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.324727 0.963855"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.324726 0.963856"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.44168 0.409722"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.978486 0.0491579"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.978486 0.0491578"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.20071 -0.390377"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.35732 -0.468937"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.28333 -0.213156"/>
@@ -1859,7 +1859,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-2.73366 -0.837358"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.13019 -0.899393"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.53283 -0.383965"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.37012 -0.0423572"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.37012 -0.042357"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.470813 -0.221268"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.97479 -0.645934"/>
         </ReprojectionError2DList>
@@ -1905,13 +1905,13 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.94999 0.985761"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.09251 0.0977719"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.09251 0.097772"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.603398 -0.142663"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.37696 -0.782897"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.67968 -0.831741"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.955566 -0.273535"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.05285 0.31415"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.866019 0.0737996"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.866019 0.0737997"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.79953 -0.622516"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1136" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -1956,8 +1956,8 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.815201 1.06524"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.849991 0.0583717"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.604767 -0.0804446"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.849991 0.0583718"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.604767 -0.0804447"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.13549 -0.934014"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.16914 -0.666258"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.43724 -0.346914"/>
@@ -2010,14 +2010,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.05308"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.23787 0.977272"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.23787 0.977273"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.22443 0.398365"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.349167 0.178905"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.36373 -0.609872"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.48443 -0.882304"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.156789 -0.07395"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.7327 0.198604"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.210467 0.0316909"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.210466 0.031691"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.20147 -0.299125"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1136.64" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2062,13 +2062,13 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.56676 0.923338"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.650472 -0.0613147"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.0892265 0.49526"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.943732 -0.766698"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.650472 -0.0613146"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.0892267 0.49526"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.943731 -0.766697"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.91084 -1.05141"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0574298 -0.0551883"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.747898 0.439836"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.191999 0.0254042"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0574296 -0.0551883"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.747897 0.439836"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.191999 0.0254043"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.27956 -0.335739"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1136.7" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2117,7 +2117,7 @@
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.15994 0.400887"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.224065 -0.694251"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.40003 -0.89267"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.803607 -0.0906366"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.803607 -0.0906367"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.45221 0.861082"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.550503 0.337764"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.79902 -0.021949"/>
@@ -2166,12 +2166,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.10837 1.21565"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.56286 0.108206"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.450701 -0.881591"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.859194 -0.651627"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.450702 -0.881591"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.859194 -0.651626"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.98974 -1.61222"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.459572 -0.482606"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.718112 0.975912"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.233659 0.0799722"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.718112 0.975913"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.233659 0.0799723"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.16037 -0.467562"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1137.09" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2210,7 +2210,7 @@
           <Point WireName="3:M5_m5" Position="409.423 346.759 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.923527"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.923526"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.25856"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.10583"/>
         </ReprojectionError3DList>
@@ -2218,10 +2218,10 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.58008 0.912382"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.618511 -0.644438"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-2.17387 -1.43554"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.39093 -0.460963"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.39092 -0.460963"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.25339 -1.87799"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.56445 -0.80632"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.19269 0.72178"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.19269 0.721781"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.28054 -0.220257"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.6513 -0.887215"/>
         </ReprojectionError2DList>
@@ -2273,8 +2273,8 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.511198 -0.657962"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.96523 -1.7553"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.335884 -0.51068"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.13293 0.712698"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.390043 -0.0574511"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.13293 0.712699"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.390043 -0.057451"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.687026 -0.350922"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1137.48" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2321,11 +2321,11 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.637426 0.847097"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.674097 0.268479"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.335197 -0.381813"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.0336866 -0.299896"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.0336863 -0.299896"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.86924 -1.49263"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.186969 0.249148"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.893517 1.18701"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0481789 0.481274"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.048179 0.481274"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.741854 0.188276"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1137.55" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2364,7 +2364,7 @@
           <Point WireName="3:M5_m5" Position="417.16 340.999 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.153457"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.153458"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="2.21291"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.908994"/>
         </ReprojectionError3DList>
@@ -2372,7 +2372,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.702222 1.63405"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.433848 0.210618"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.78973 -0.184333"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.173309 -0.197568"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.173309 -0.197567"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.93166 -1.22603"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.589155 0.180642"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.157273 1.33358"/>
@@ -2420,14 +2420,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.34931"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0768667 1.38674"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0768664 1.38674"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.146754 0.163792"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.388935 -0.251094"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.651185 -0.346813"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.651184 -0.346812"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.90078 -1.13097"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.740376 0.10387"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.740375 0.10387"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.44863 1.40796"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.048251 0.369562"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.0482509 0.369562"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.88882 0.113771"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1137.68" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -2472,8 +2472,8 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.17588 1.80625"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.8584 0.0793393"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.0921496 -0.634301"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.8584 0.0793394"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.0921499 -0.634302"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.32326 -0.144665"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.69873 -1.47835"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.65084 -0.217569"/>
@@ -2573,7 +2573,7 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.7594"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.3909 -0.462758"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.3909 -0.462757"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.365067 -1.75745"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.1315 -2.20115"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.16458 -1.80387"/>
@@ -2630,7 +2630,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-3.09427 -0.325681"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.38174 -1.05289"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-3.72133 -0.391028"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-3.90622 1.25887"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-3.90622 1.25888"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.35846 0.18907"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-4.99786 -0.289854"/>
         </ReprojectionError2DList>
@@ -2675,7 +2675,7 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.5806"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.22716 0.401167"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.22715 0.401168"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.17042 -1.22287"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.911938 -1.34114"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.523442 -0.989978"/>
@@ -2728,11 +2728,11 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.591 -0.165454"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.23527 -0.772051"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.121234 -0.72577"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.372608 -1.00994"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.121233 -0.72577"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.372607 -1.00994"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.59829 -1.52644"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0686608 -0.477937"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0475027 0.332182"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.068661 -0.477937"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0475025 0.332182"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.89187 -0.489569"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.99648 -0.235354"/>
         </ReprojectionError2DList>
@@ -2778,9 +2778,9 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.377095 0.995227"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.00623979 0.21206"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.586326 0.230236"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.646782 -0.100042"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.00623987 0.21206"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.586327 0.230235"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.646781 -0.100042"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.6904 -0.596719"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.36812 0.259753"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.33812 1.45736"/>
@@ -2933,7 +2933,7 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.2479 1.22516"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.600959 -0.0469841"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-2.85273 0.0200348"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-2.85273 0.0200347"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-3.064 -0.359387"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.509864 -0.202142"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-2.74467 -0.290665"/>
@@ -2997,7 +2997,7 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.51465 1.34155"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.382094 0.0317546"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.63599 -0.0204921"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.63598 -0.0204922"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.75553 -0.422319"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.22917 -0.338939"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.59974 -0.200924"/>
@@ -3053,7 +3053,7 @@
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.921805 -1.21084"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.1997 -0.577347"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.56392 0.664058"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.539297 -0.0975013"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.539297 -0.0975012"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.57639 -0.286584"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1140.78" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -3097,17 +3097,17 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="1.44369"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="1.00651"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.61483"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.61482"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.967329 0.952562"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.66814 -0.453205"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.66814 -0.453204"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.434596 0.0182239"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.464544 -0.67079"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.06961 -1.09253"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.63579 -0.270289"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.33924 0.503495"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.756857 -0.0010515"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.756857 -0.00105142"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.35264 -0.434808"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1141.02" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -3151,11 +3151,11 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.66658"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.599433 0.891179"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.599432 0.891179"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.33016 0.432745"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.84271 0.652579"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.33745 -0.488777"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.886645 -0.457973"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.886646 -0.457973"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.70646 0.40069"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.00325 0.8894"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.268896 0.508645"/>
@@ -3202,13 +3202,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.23712"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0966686 0.683228"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0966689 0.683228"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.788878 0.281844"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.222767 0.430078"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.222766 0.430078"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.41005 -0.352975"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.14389 -0.560296"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0628711 0.345246"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.663382 0.408671"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0628713 0.345246"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.663381 0.408671"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.762643 0.258201"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.15387 0.015968"/>
         </ReprojectionError2DList>
@@ -3258,7 +3258,7 @@
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.189025 0.375139"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.03742 -0.530093"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.46739 -0.430518"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.313573 0.225182"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.313572 0.225182"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.620165 0.353336"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.816853 0.300497"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.37477 -0.174317"/>
@@ -3306,11 +3306,11 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.19962 0.919878"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.70374 -0.643857"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.402979 0.0164418"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.402978 0.0164418"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.18029 -0.832584"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.13307 -0.696051"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.765968 -0.174864"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.609651 0.0340841"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.609651 0.0340842"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.545787 0.171748"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.38768 -0.365468"/>
         </ReprojectionError2DList>
@@ -3410,10 +3410,10 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-3.37777 0.452105"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-3.09035 -0.891372"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-3.09035 -0.891371"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-2.45244 -1.43352"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-4.27754 -0.650057"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.793143 -1.57482"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.793142 -1.57482"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-3.91508 -1.98389"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-4.28926 -0.138877"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.74795 -0.656296"/>
@@ -3463,7 +3463,7 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="2.17766"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0307742 0.461194"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0307739 0.461194"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.59289 -0.489302"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.98114 -0.38184"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.9582 -1.12515"/>
@@ -3514,9 +3514,9 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.59671"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.870072 1.03664"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.870071 1.03664"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.64825 0.810113"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.00141594 0.745069"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.00141623 0.745069"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.58956 -0.384495"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.22216 -0.358157"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.17544 0.235572"/>
@@ -3567,11 +3567,11 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.623791 0.349128"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="4.11461 -0.885661"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.91236 0.0810796"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.91236 0.0810795"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.05164 -0.889042"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.08345 -0.922746"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.285573 -0.595659"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.996521 -0.0935843"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.996521 -0.0935842"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.93446 -0.189361"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.155785 -0.35745"/>
         </ReprojectionError2DList>
@@ -3616,9 +3616,9 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.2444"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0223436 1.35438"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.022344 1.35438"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="3.32186 0.180229"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.946143 1.00481"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.946144 1.00481"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.33589 0.155657"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.68787 0.0718212"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.270832 0.492378"/>
@@ -3670,7 +3670,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.26407 1.38551"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="5.30755 0.146671"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.86867 1.3492"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.142042 0.0659421"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.142042 0.0659422"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.00168 0.200848"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.39878 1.06172"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.244958 0.840549"/>
@@ -3776,10 +3776,10 @@
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.533112 -0.276562"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.293814 -0.370309"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.87812 -1.1522"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.1734 -0.250483"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.173401 -0.250483"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.233849 1.32625"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.71756 0.977493"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.523805 0.0949017"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.523805 0.0949018"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1147.71" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.174365 -0.103668 0.979209 -63.3441 0.32919 -0.931088 -0.157192 153.473 0.928025 0.349755 -0.128223 -1079.6 0 0 0 1"/>
@@ -3840,12 +3840,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.743737 1.86483"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.03984 0.796543"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.750395 0.0660776"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.750395 0.0660775"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.838081 0.215139"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="4.64694 -0.774469"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.21643 0.282538"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.506017 1.41865"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-3.55088 1.00503"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-3.55088 1.00504"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.501677 0.0223135"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="1149.2" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -3901,9 +3901,9 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.31161 -0.514717"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.954094 -0.114739"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.14446 -0.94263"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.367326 -0.737588"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.324391 -0.0845911"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.01317 0.552601"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.367325 -0.737588"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.324391 -0.0845912"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.01317 0.552602"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.242895 -0.293748"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.909395 -0.355957"/>
         </ReprojectionError2DList>
@@ -3957,8 +3957,8 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.02211 0.501521"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.47029 0.926548"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.424533 -0.194452"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.73565 0.0448484"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.57316 0.981378"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.73565 0.0448485"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.57317 0.981378"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.182595 1.31456"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.666712 0.396331"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.646253 0.797683"/>
@@ -4010,7 +4010,7 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.848039 0.626477"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.704987 0.0036806"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.704987 0.00368061"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.63279 0.324435"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.364265 -0.600729"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.96757 -0.429691"/>
@@ -4065,13 +4065,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.333137"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.375651 0.243124"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.37565 0.243124"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.755453 -0.555337"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.16022 -0.650212"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.66679 -0.785662"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.780023 -1.04564"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0175531 -0.35307"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.47862 0.280656"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0175532 -0.353071"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.478619 0.280656"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.251124 -0.742787"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.484489 -0.496175"/>
         </ReprojectionError2DList>
@@ -4121,12 +4121,12 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.259406"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.17268 1.05548"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.172679 1.05548"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.76304 0.654369"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.42272 0.449517"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0843063 0.0185225"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.715707 -0.232417"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.973897 0.926475"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0843065 0.0185226"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.715708 -0.232417"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.973898 0.926475"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.205165 1.21966"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.132894 0.721172"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.348468 0.907126"/>
@@ -4178,7 +4178,7 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="1.29926 0.675827"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.42508 0.555641"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.42509 0.555641"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.71762 0.335111"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.724768 0.104125"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.3832 -0.0471825"/>
@@ -4235,8 +4235,8 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.538694 0.982909"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.19702 0.573514"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.940256 0.824246"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.299079 0.316254"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.940256 0.824245"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.299078 0.316254"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.61481 0.261116"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.63828 1.07904"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.231839 1.21265"/>
@@ -4291,9 +4291,9 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.847856 0.999729"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.999982 0.25729"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.05693 -0.00116683"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.05693 -0.00116692"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.78353 0.186023"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.29879 -0.322723"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.2988 -0.322723"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.75975 0.303047"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.484643 0.930649"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.759374 0.0797812"/>
@@ -4345,14 +4345,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.206648"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.428336 0.184683"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.428335 0.184683"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.701168 -0.586235"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.249233 -0.782993"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.333914 -0.921434"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.03972 -1.00155"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.636013 -0.38737"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.348376 0.247114"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.338527 -0.661436"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.338528 -0.661436"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.334438 -0.681689"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="856.585" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -4403,9 +4403,9 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.90193 0.298156"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.965692 -1.19701"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.402142 -0.747617"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.402143 -0.747617"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.18804 -1.23419"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.28323 -1.25216"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.283231 -1.25216"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.240601 -0.735075"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.792301 0.151166"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.26998 -0.863439"/>
@@ -4461,8 +4461,8 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.0645228 -0.903609"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.322658 -0.405568"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.6755 -1.30339"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.136607 -1.10738"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.813274 -0.604024"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.136606 -1.10738"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.813273 -0.604024"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.37328 0.292797"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.855683 -0.499369"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.91256 -0.650351"/>
@@ -4515,7 +4515,7 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.40009 0.281441"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.300819 -0.862813"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.976244 -0.473296"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.976244 -0.473297"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.417749 -1.53879"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.340693 -1.22614"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.226363 -0.361799"/>
@@ -4565,18 +4565,18 @@
         </MiddleWires>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.356563"/>
-          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.630807"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.239403"/>
+          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.630808"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.239402"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0434221 0.597146"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0434218 0.597146"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.217396 -0.0735995"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.835388 0.403513"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.831176 -1.11804"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.835389 0.403513"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.831177 -1.11804"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.61329 -0.774161"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.55749 0.430973"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.0909416 0.61926"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0552847 0.064764"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.557491 0.430973"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.0909417 0.61926"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0552847 0.0647641"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.501383 0.290037"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="856.847" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -4628,7 +4628,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.44331 1.64381"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.22266 1.13515"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.331173 1.77246"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.354246 -0.0607958"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.354246 -0.0607957"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.04662 0.473445"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.492792 1.59144"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.17572 1.8908"/>
@@ -4687,7 +4687,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.16515 -0.908841"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.81794 -0.47946"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.50556 0.662711"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.430912 0.949698"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.430913 0.949699"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.168869 0.424191"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.14625 0.496386"/>
         </ReprojectionError2DList>
@@ -4733,7 +4733,7 @@
         </MiddleWires>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="1.03713"/>
-          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.657787"/>
+          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.657788"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.392687"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
@@ -4743,7 +4743,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.438861 -0.614433"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.01057 -0.101945"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.73305 0.91791"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0299302 1.19792"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0299301 1.19792"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.857592 0.463574"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.9798 0.651845"/>
         </ReprojectionError2DList>
@@ -4845,7 +4845,7 @@
         </MiddleWires>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.328843"/>
-          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.63654"/>
+          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.636541"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.480906"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
@@ -4855,7 +4855,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.942926 -1.37077"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.69618 -1.29637"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.99985 -0.565123"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.249262 0.434205"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.249263 0.434205"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.948226 -0.286592"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.354347 -0.559113"/>
         </ReprojectionError2DList>
@@ -4909,10 +4909,10 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.5894 -0.369475"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.23622 -0.31898"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.24413 -1.42283"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.0819716 -1.14895"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.0819714 -1.14895"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.27747 -0.487794"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.06755 0.42663"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.706101 0.0182556"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.706101 0.0182557"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.94283 -0.654135"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="857.24" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -4961,14 +4961,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.957822"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.44728 -0.00375391"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.44728 -0.00375385"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.980381 -1.28141"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.485122 -1.43785"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.17857 -1.80552"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.52623 -1.62666"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-1.12221 -0.885161"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.04873 -0.0354034"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.23813 -0.597915"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.04873 -0.0354033"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.23812 -0.597915"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.25389 -1.0908"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="857.305" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -5019,11 +5019,11 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.254859 -0.429299"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.436472 -0.987698"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.689682 -0.961197"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.345063 -2.00963"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.689683 -0.961197"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.345062 -2.00963"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.71657 -1.57013"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.261696 -1.11242"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.12702 -0.360474"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.12702 -0.360473"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.647195 -0.701357"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.28534 -0.925746"/>
         </ReprojectionError2DList>
@@ -5075,9 +5075,9 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.75053 0.488831"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.128089 -0.374419"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.447339 0.235128"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.447338 0.235128"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.340387 -1.45299"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.338425 -0.962451"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.338424 -0.962451"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.742978 -0.287567"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.28571 0.185612"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.59395 0.20406"/>
@@ -5129,15 +5129,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.733843"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.311093 0.952669"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.311094 0.952669"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.964434 0.277852"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.29991 1.16116"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.639263 -1.08804"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.639264 -1.08804"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.18148 -0.487475"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.16189 0.422582"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.584607 0.540468"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.34573 0.708317"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.14571 0.398906"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.14571 0.398905"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="857.501" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.165293 -0.214307 0.962679 -56.364 0.0510084 -0.972942 -0.22535 149.414 0.984925 0.0863535 -0.149889 -1091.4 0 0 0 1"/>
@@ -5188,7 +5188,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.496084 1.35771"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.776968 0.662614"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.5008 1.35146"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.41158 -0.751499"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.41159 -0.751499"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.69077 -0.150882"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="2.39509 0.872739"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.483868 0.951878"/>
@@ -5241,12 +5241,12 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.0396"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.301407 0.98161"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.301406 0.98161"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.11486 0.0183084"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.766056 0.552254"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.615128 -1.47972"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.74162 -0.834887"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0719335 -0.351341"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0719337 -0.351341"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.750856 0.612246"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-2.32319 0.216525"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.07031 -0.579826"/>
@@ -5297,15 +5297,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.590478"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.266778 0.842009"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.266777 0.842009"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.223172 0.0505713"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.92107 0.501771"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.2149 -1.31971"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.09634 -0.846311"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.72847 0.0801924"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.72847 0.0801923"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.520137 0.442965"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.973926 0.403605"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.211154 -0.0800944"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.211154 -0.0800945"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.01" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.167773 -0.214768 0.962147 -55.7704 0.0543457 -0.972482 -0.226551 149.12 0.984327 0.0902978 -0.151485 -1091.35 0 0 0 1"/>
@@ -5353,13 +5353,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.654426"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0500356 0.753868"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0500354 0.753868"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.430824 0.131984"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.859341 0.17994"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.51746 -0.998571"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.859342 0.17994"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.517461 -0.998571"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.59232 -0.643809"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.648944 0.515239"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.564659 0.739391"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.648945 0.515239"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.564658 0.739391"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.50716 0.888429"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.860891 0.435622"/>
         </ReprojectionError2DList>
@@ -5409,9 +5409,9 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.779821"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.962364 0.689135"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.419841 0.0432217"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.14996 0.0659014"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.962363 0.689135"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.419841 0.0432216"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.14996 0.0659013"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.311348 -1.01889"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.62496 -0.636637"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.818114 0.552732"/>
@@ -5467,13 +5467,13 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-2.7557 1.05402"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.05596 0.156988"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.61577 -0.0863211"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.61577 -0.0863212"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.332015 -1.03054"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.02348 -0.691314"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.02349 -0.691314"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.818719 0.50481"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.976405 0.713238"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.911365 0.644745"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.416044 -0.00223457"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.416044 -0.00223463"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.228" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.157261 -0.211448 0.964655 -55.6398 0.0552135 -0.973399 -0.222366 149.162 0.986012 0.0882314 -0.141403 -1090.87 0 0 0 1"/>
@@ -5521,15 +5521,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.569015"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0728676 0.693845"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0728674 0.693845"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.25804 0.417846"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.399598 0.0727757"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.399598 0.0727756"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.3915 -0.929004"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.01985 -0.348325"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.920603 0.505683"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.104801 1.07949"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.797073 0.868932"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.296552 0.253379"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.296552 0.253378"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.297" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.156505 -0.210821 0.964915 -55.6 0.0562004 -0.97347 -0.221806 149.17 0.986077 0.0889424 -0.140505 -1090.82 0 0 0 1"/>
@@ -5574,18 +5574,18 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.511216"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.514529"/>
-          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.293086"/>
+          <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.293085"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.690151 0.550913"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.127399 0.0680843"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.778657 0.141226"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.965535 -0.978032"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.965536 -0.978031"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.69258 -0.451066"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.17913 0.36808"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.56482 1.08819"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.326566 0.568235"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.573284 -0.0907968"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.573284 -0.0907969"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.365" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.155532 -0.209632 0.965331 -55.5685 0.0563128 -0.973752 -0.220534 149.145 0.986224 0.0886605 -0.139645 -1090.77 0 0 0 1"/>
@@ -5690,14 +5690,14 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.22617 0.805747"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.331121 -0.0029238"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.331121 -0.00292381"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.733437 0.189438"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.863455 -1.01381"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.04772 -0.607198"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.798191 0.381199"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.728182 0.865055"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.26683 0.099152"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.0288683 0.0582202"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.0288684 0.0582201"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.501" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.148943 -0.209225 0.966458 -55.7889 0.0587112 -0.973764 -0.219855 149.27 0.987101 0.0894878 -0.132751 -1090.47 0 0 0 1"/>
@@ -5749,9 +5749,9 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.65902 -0.280422"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.09311 0.408237"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.913321 -1.2161"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.528808 -0.691544"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.528809 -0.691544"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.30357 0.54256"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0617261 0.753425"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.061726 0.753425"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.62717 -0.12596"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.599639 0.137455"/>
         </ReprojectionError2DList>
@@ -5803,12 +5803,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.203153 0.848698"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.264334 0.203414"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.283531 0.196064"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.283532 0.196064"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.224456 -0.721979"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.198649 -0.535296"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.70907 0.784383"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.709071 0.784383"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.565653 0.906274"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.814752 0.0475153"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.814752 0.0475154"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.185825 0.18157"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.634" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -5859,13 +5859,13 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.509687 0.774951"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="2.00196 -0.0862332"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.949928 0.305238"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.949928 0.305237"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.117467 -0.756166"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.00256565 -0.42255"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.5302 0.832287"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.00256534 -0.42255"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.5302 0.832286"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.155953 0.767609"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.259338 0.186364"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.274132 -0.0168851"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.274132 -0.0168852"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.7" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.141322 -0.207392 0.967996 -55.6797 0.0594796 -0.974264 -0.217419 149.25 0.988175 0.088302 -0.125349 -1090.18 0 0 0 1"/>
@@ -5919,9 +5919,9 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.42998 -0.966023"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.0746 -0.533572"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.10933 0.682476"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0944303 0.784277"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.90065 0.0438789"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.334846 -0.00338044"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.0944301 0.784277"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.90065 0.043879"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.334846 -0.0033805"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.765" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.142012 -0.207335 0.967907 -55.6282 0.0599766 -0.974219 -0.217487 149.156 0.988046 0.0889375 -0.125916 -1090.19 0 0 0 1"/>
@@ -5969,8 +5969,8 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.704046"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.0088497 1.00045"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.85204 0.00184352"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.00884945 1.00045"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.85204 0.0018435"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.29952 0.663702"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="2.01802 -0.903867"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.564934 -0.328809"/>
@@ -6030,9 +6030,9 @@
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.685929 0.352114"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.0718 -0.796355"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.91501 -0.441691"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.722825 0.838659"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.722826 0.838659"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.180674 0.918717"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.0734195 0.215021"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.0734194 0.215021"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.383684 0.262003"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.893" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -6085,11 +6085,11 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.74782 -0.229053"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.554792 -0.269131"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.17305 -0.733167"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.41768 -0.551368"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.739283 0.161124"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.417681 -0.551368"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.739284 0.161124"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.322106 1.10517"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.711916 -0.0978409"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.0513084 -0.467062"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.0513085 -0.467062"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="858.956" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.142008 -0.210833 0.967152 -55.7104 0.0597365 -0.973448 -0.220977 148.483 0.988061 0.0891548 -0.125643 -1090.39 0 0 0 1"/>
@@ -6143,7 +6143,7 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.767119 -0.277067"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.490395 -0.465276"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.880102 0.102135"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.373809 0.74171"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.37381 0.74171"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.302966 -0.0488577"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.105375 -0.731117"/>
         </ReprojectionError2DList>
@@ -6195,12 +6195,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.508459 0.36649"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.49265 -0.155233"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.987014 -0.621766"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.987014 -0.621767"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.802303 -0.880184"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.872402 -0.633143"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0962393 0.133512"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0962395 0.133512"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.644581 0.638922"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.00167213 -0.249478"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.00167206 -0.249478"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.407421 -0.587406"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="859.077" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -6255,11 +6255,11 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.53447"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.298623 0.253128"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.298622 0.253128"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="5.60624 -0.977786"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.04172 -0.187189"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0303866 -1.04596"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.090065 -1.25222"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.04172 -0.18719"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0303868 -1.04596"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.0900647 -1.25222"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.08234 -0.363475"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.420911 0.554176"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="2.2546 -0.186725"/>
@@ -6313,10 +6313,10 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.701834 1.13504"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.823482 0.885057"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.898472 0.659924"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.898472 0.659923"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.16703 -0.160806"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.0558 -0.344282"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.357958 0.745366"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.357958 0.745365"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.81799 1.43629"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.827966 0.502005"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.01856 0.357419"/>
@@ -6368,8 +6368,8 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.69408 1.2656"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.42813 0.353076"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.46884 0.28634"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.42813 0.353075"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.46884 0.286339"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.708633 -0.796561"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.747088 -0.506202"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.65015 0.779686"/>
@@ -6418,14 +6418,14 @@
           <MiddleWire PositionInImageFrame="383.062 333.551 0 1" PositionInProbeFrame="-30.8332 -13.5984 207.887 1"/>
         </MiddleWires>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.242417"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.242416"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.424821"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.304726"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.136082 1.05624"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.136081 1.05624"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.603065 -0.436293"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.677028 -0.0765433"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.677029 -0.0765435"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.835388 -1.40612"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.782752 -0.868625"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.29791 -0.500358"/>
@@ -6481,12 +6481,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.00273 1.22521"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.15488 -0.366509"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.984606 -0.13306"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.984606 -0.133061"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.74247 -1.38043"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.261183 -0.807391"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0887288 -0.504151"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0887286 -0.504151"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.63179 0.457271"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.79571 0.00260366"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.79571 0.00260362"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.20198 -0.980223"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.184" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -6536,14 +6536,14 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.754854 1.74858"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.0233537 -0.0980786"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.380942 0.615888"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.0233537 -0.0980787"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.380943 0.615888"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.76693 -1.44984"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.60087 -0.337966"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.429627 0.0127382"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.429627 0.012738"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.2526 0.874666"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.287446 0.272947"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.0811982 -0.314014"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.0811981 -0.314014"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.25" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.158661 -0.239134 0.957936 -56.0895 0.0437627 -0.967569 -0.248787 145.424 0.986363 0.0813948 -0.14305 -1092.78 0 0 0 1"/>
@@ -6647,15 +6647,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.470156"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0157722 2.24476"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0157725 2.24476"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.623077 0.856344"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.933629 1.71196"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.048424 -0.604404"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.0484242 -0.604404"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.42037 0.643118"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.15329 1.20864"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.512535 1.65924"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.315696 1.31567"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.436432 0.736125"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.436433 0.736125"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.38" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.161225 -0.240106 0.957264 -56.07 0.0420266 -0.967404 -0.249728 145.266 0.986022 0.0804931 -0.145879 -1092.95 0 0 0 1"/>
@@ -6704,13 +6704,13 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.229737 1.48519"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="3.31005 -0.603519"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.292834 0.0873332"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="3.31005 -0.60352"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.292834 0.087333"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.475378 -1.45315"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.155129 -0.527926"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.251142 -0.184044"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.95668 0.740753"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0215281 0.394293"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0215282 0.394293"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.215294 -0.375221"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.642" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -6761,12 +6761,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.15312 1.23225"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.3215 0.177072"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.019827 0.104634"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.0198273 0.104634"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.17933 -1.58379"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.583536 -0.666518"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0316223 -0.426766"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.0316222 -0.426766"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.20044 0.563438"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0864971 0.485025"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0864972 0.485025"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.526919 -0.231024"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.708" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -6816,14 +6816,14 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.628574 1.76604"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.803978 -0.0237078"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.19527 0.685033"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.803978 -0.0237079"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.195271 0.685033"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-2.05379 -1.33225"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.34804 -0.303009"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.430849 0.0633749"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.430849 0.0633748"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.0709 1.28176"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.269894 0.487406"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.205795 -0.0263006"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.205795 -0.0263007"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.773" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.162549 -0.242596 0.956413 -56.1094 0.0430033 -0.966641 -0.252499 144.738 0.985763 0.0821723 -0.146694 -1093.16 0 0 0 1"/>
@@ -6934,8 +6934,8 @@
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.42887 -0.238531"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="3.12276 0.531625"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.383337 0.697165"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0440558 0.794343"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="2.52452 0.0900761"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0440559 0.794343"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="2.52452 0.090076"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.904" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.157128 -0.244787 0.95676 -56.3601 0.0448548 -0.966026 -0.254524 144.658 0.986559 0.0829082 -0.14081 -1092.92 0 0 0 1"/>
@@ -6987,11 +6987,11 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.44431 0.542323"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.45785 1.24057"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.996945 -0.685285"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.31598 0.0555696"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.35317 0.750726"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.558326 1.15866"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.31598 0.0555695"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.35317 0.750725"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.558325 1.15866"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.505226 0.784319"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.847126 0.45427"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.847126 0.454269"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="860.969" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.157019 -0.24303 0.957226 -56.2436 0.0448192 -0.966497 -0.252736 144.613 0.986578 0.0825864 -0.140866 -1092.89 0 0 0 1"/>
@@ -7045,8 +7045,8 @@
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.44092 -0.526469"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="3.37096 0.118651"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="2.44153 0.917488"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.279688 1.09861"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.425618 0.979502"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.279689 1.09861"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.425619 0.979502"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="2.08663 1.10025"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="861.1" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -7095,14 +7095,14 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.242396"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0681749 1.32125"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0681751 1.32125"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.04229 0.445338"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.533696 0.95629"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.533697 0.95629"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.828358 -0.347372"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.69634 -0.0481068"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.69634 -0.0481069"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.11385 0.657905"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.683442 1.11835"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0475378 0.795016"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.0475379 0.795016"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.6445 0.955621"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="861.166" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -7147,19 +7147,19 @@
         </MiddleWires>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.357341"/>
-          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.557575"/>
+          <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.557576"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.637241"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.035006 0.686254"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.2651 0.158762"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.0350062 0.686254"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.2651 0.158761"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.35535 0.31401"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.49155 -0.696866"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.636631 -0.839994"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.970187 -0.0360596"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.992556 0.674333"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.636631 -0.839995"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.970188 -0.0360597"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.992555 0.674333"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.290248 0.128014"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.0076897 0.168649"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.00768958 0.168649"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="861.231" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.152344 -0.24184 0.958282 -56.3643 0.0469206 -0.966737 -0.251433 144.064 0.987213 0.0832674 -0.135929 -1092.65 0 0 0 1"/>
@@ -7211,8 +7211,8 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.149542 0.594651"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-1.5586 0.211448"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.39148 -0.663074"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.0781497 -0.619849"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.574672 0.0046629"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.0781495 -0.619849"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.574672 0.00466275"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.17468 0.869065"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.670435 0.394674"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.37513 0.266444"/>
@@ -7264,11 +7264,11 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.52006 0.131209"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.15953 -0.151625"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="1.15953 -0.151626"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.39915 -0.337051"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.158259 -1.39085"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.53221 -1.37959"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.16667 -0.571023"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.16668 -0.571023"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.549292 0.0702522"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.635589 -0.308652"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="1.14688 -0.343936"/>
@@ -7320,14 +7320,14 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.97372 0.938662"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.826391 0.579881"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.33723 -0.0110749"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.826391 0.57988"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.33723 -0.0110751"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.983608 -0.82678"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.277065 -0.629319"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.277066 -0.629319"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="-0.444314 0.232729"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.31632 1.01187"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.13442 0.881473"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.708717 0.680391"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-0.708716 0.680391"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="861.427" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.149061 -0.242022 0.958753 -56.5385 0.0489179 -0.966593 -0.251606 143.82 0.987617 0.0844048 -0.132242 -1092.72 0 0 0 1"/>
@@ -7389,7 +7389,7 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="0.451571"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.104854 1.40797"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.104855 1.40797"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.216921 0.364774"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.57214 0.920596"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.787821 -0.917632"/>
@@ -7448,12 +7448,12 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.164169 1.79115"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="0.466228 0.210009"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.25676 0.870136"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.788951 -0.773192"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.78895 -0.773192"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="1.77435 0.280514"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.3312 0.376353"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.525136 1.51513"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.984839 1.19745"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.99212 0.36609"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="0.98484 1.19745"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.992121 0.36609"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="863.212" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.153977 -0.253689 0.954952 -57.0572 0.0430371 -0.963838 -0.262989 140.121 0.987137 0.0815926 -0.137491 -1095.06 0 0 0 1"/>
@@ -7566,15 +7566,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="2.23826"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.861946 0.337162"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.0941298 -0.835508"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.861945 0.337162"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.0941297 -0.835508"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.920912 0.177888"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.121089 -1.97121"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.05812 -1.48022"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.459772 -1.27583"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.03124 -0.0173697"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="2.03286 -0.563334"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.70545 -0.725212"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.705451 -0.725212"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="869.344" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.111549 -0.194051 0.974629 -52.1795 0.0313486 -0.979574 -0.198623 139.665 0.993264 0.0527094 -0.103187 -1095.83 0 0 0 1"/>
@@ -7622,15 +7622,15 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="2.77832"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.343007 0.797455"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.343006 0.797455"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-2.09913 0.290271"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.08184 0.842108"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.08184 0.842107"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.999367 -0.848517"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.955542 -0.62506"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.955543 -0.62506"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.21576 -0.194261"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.303071 0.31191"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="3.90243 -0.0619897"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.720744 -0.0111928"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="3.90243 -0.0619898"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.720744 -0.0111929"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="869.41" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.10963 -0.193008 0.975054 -52.1524 0.031655 -0.979791 -0.197504 139.735 0.993468 0.0525177 -0.101305 -1095.76 0 0 0 1"/>
@@ -7679,13 +7679,13 @@
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.27053"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.409269 2.26948"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="0.40927 2.26948"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.58444 1.63341"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="2.73387 2.0556"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="1.33078 -0.432015"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="2.94588 0.847161"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="2.01915 1.29631"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.263023 1.49903"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="0.263024 1.49903"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.330842 1.61533"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="2.31054 1.40202"/>
         </ReprojectionError2DList>
@@ -7761,9 +7761,9 @@
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.274142 0.890897"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="1.15093 1.72584"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="0.253648 -0.290562"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.640928 0.328173"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="0.640929 0.328173"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.66916 0.675611"/>
-          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.195587 0.858235"/>
+          <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-0.195586 0.858235"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-1.48683 1.11043"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="0.34909 0.547331"/>
         </ReprojectionError2DList>
@@ -7818,17 +7818,17 @@
           <MiddleWire PositionInImageFrame="414.374 254.495 0 1" PositionInProbeFrame="-31.3274 -3.32327 185.697 1"/>
         </MiddleWires>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.576314"/>
+          <ReprojectionError3D WireName="8:L1_h1" ErrorMm="0.576315"/>
           <ReprojectionError3D WireName="5:H3_l3" ErrorMm="0.976973"/>
           <ReprojectionError3D WireName="2:L5_i5" ErrorMm="1.30415"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
-          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.11263 1.71779"/>
+          <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.11262 1.71779"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.38715 0.0208154"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.45417 -0.110272"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.454171 -0.110272"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-2.0423 -0.747533"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-2.45941 -0.840508"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0874235 -0.894749"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.0874238 -0.894749"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.76606 0.782392"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.491933 0.497812"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-2.35415 -0.899914"/>
@@ -7884,10 +7884,10 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.11619 1.75119"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.772174 0.148334"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.101621 0.160979"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.26499 -0.701914"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="-0.101621 0.160978"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.26499 -0.701913"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-3.12962 -0.748118"/>
-          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.466589 -0.950713"/>
+          <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.46659 -0.950713"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.459 0.0485156"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.10775 -0.250993"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.48086 -0.740826"/>
@@ -7941,9 +7941,9 @@
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-0.919402 1.80193"/>
-          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.616986 0.57213"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.264885 0.762586"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.370797 -0.263729"/>
+          <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-0.616985 0.572129"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.264886 0.762586"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-0.370796 -0.263729"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-0.996064 -0.123782"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.274947 -0.20195"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.7687 0.409277"/>
@@ -7999,7 +7999,7 @@
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.39979 1.79197"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.11654 0.470224"/>
           <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.574444 1.48444"/>
-          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.54576 -0.0343401"/>
+          <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.54576 -0.03434"/>
           <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-2.4563 -0.381309"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.39841 -0.248091"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.03887 0.478098"/>
@@ -8055,12 +8055,12 @@
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="7:G1_g1" ErrorPx="-1.54431 1.62855"/>
           <ReprojectionError2D WireName="8:L1_h1" ErrorPx="-1.15246 0.694854"/>
-          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.902397 0.388566"/>
+          <ReprojectionError2D WireName="9:M1_m1" ErrorPx="0.902398 0.388566"/>
           <ReprojectionError2D WireName="4:G3_g3" ErrorPx="-1.82054 0.333633"/>
-          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.43626 -0.282993"/>
+          <ReprojectionError2D WireName="5:H3_l3" ErrorPx="-1.43625 -0.282993"/>
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="1.59794 0.107119"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-1.77215 0.464455"/>
-          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.21933 0.336633"/>
+          <ReprojectionError2D WireName="2:L5_i5" ErrorPx="1.21934 0.336633"/>
           <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.97371 -0.642926"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="874.318" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
@@ -8173,7 +8173,7 @@
           <ReprojectionError2D WireName="6:M3_m3" ErrorPx="0.778264 0.314518"/>
           <ReprojectionError2D WireName="1:H5_h5" ErrorPx="-2.26244 0.729583"/>
           <ReprojectionError2D WireName="2:L5_i5" ErrorPx="-0.255639 0.392183"/>
-          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.73153 -0.190241"/>
+          <ReprojectionError2D WireName="3:M5_m5" ErrorPx="-1.73153 -0.190242"/>
         </ReprojectionError2DList>
         <TrackedFrame Timestamp="874.457" ImageDataValid="true" NumberOfBits="8" FrameSize="820 616">
           <CustomFrameField Name="ProbeToTrackerTransform" Value="0.0552521 -0.179156 0.982268 -53.5984 0.0422436 -0.98247 -0.181569 143.816 0.997578 0.0515266 -0.0467154 -1093.23 0 0 0 1"/>
@@ -8201,5 +8201,5 @@
       <Frame Index="199" SegmentationStatus="Failed"/>
     </CalibrationData>
   </ErrorReport>
-  <CalibrationFile Timestamp="021713_002307" FileName="021713_002307.Calibration.results.xml"/>
+  <CalibrationFile Timestamp="021713_155645" FileName="021713_155645.Calibration.results.xml"/>
 </ProbeCalibrationResult>

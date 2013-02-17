@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
@@ -49,8 +49,8 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
   this->ImageToProbeTransformMatrix = NULL;
   this->SetImageToProbeTransformMatrix(imageToProbeTransformMatrix); 
 
-  this->DataPositionsInImageFrame.clear();
-  this->DataPositionsInProbeFrame.clear();
+  this->CalibrationMiddleWireIntersectionPointsPos_Image.clear();
+  this->CalibrationMiddleWireIntersectionPointsPos_Probe.clear();
 
   this->ErrorConfidenceLevel = 0.95;
 
@@ -94,7 +94,6 @@ vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo()
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
@@ -148,7 +147,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-  
+
   // Optimization options
   if (this->SpatialCalibrationOptimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)
   {
@@ -160,7 +159,6 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
@@ -169,7 +167,6 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
@@ -211,10 +208,10 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 
   this->NWires = nWires;
 
-  this->DataPositionsInImageFrame.clear();
-  this->DataPositionsInProbeFrame.clear();
+  this->CalibrationMiddleWireIntersectionPointsPos_Image.clear();
+  this->CalibrationMiddleWireIntersectionPointsPos_Probe.clear();
 
-  this->SegmentedPointsInImageFrame.clear();
+  this->CalibrationAllWiresIntersectionPointsPos_Image.clear();
   this->ProbeToPhantomTransforms.clear();
 
   this->ValidationMiddleWirePositionsInPhantomFrame.clear();
@@ -243,15 +240,15 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     }
   }
 
-  if ( this->DataPositionsInImageFrame.empty() )
+  if ( this->CalibrationMiddleWireIntersectionPointsPos_Image.empty() )
   {
     LOG_ERROR("Unable to perform calibration - calibration data is empty!"); 
     return PLUS_FAIL; 
   }
 
   // Do calibration for all dimensions and assemble output matrix
-  const int m = this->DataPositionsInImageFrame.size();
-  const int n = this->DataPositionsInImageFrame.begin()->size();
+  const int m = this->CalibrationMiddleWireIntersectionPointsPos_Image.size();
+  const int n = this->CalibrationMiddleWireIntersectionPointsPos_Image.begin()->size();
 
   // If we attempt to run least square with not enough points then vnl_lsqr crashes. Return with an error if there are very few frames to avoid crashing.
   if ( m/this->NWires.size() < MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES)
@@ -270,12 +267,12 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     vnl_vector<double> nonOutliers(m);
     for (int i=0; i < m; ++i)
     {
-      probePositionRowVector[i] = this->DataPositionsInProbeFrame[i][row];
+      probePositionRowVector[i] = this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][row];
       nonOutliers.put(i,i);
     }
 
     vnl_vector<double> resultVector(n,0);
-    if ( PlusMath::LSQRMinimize(this->DataPositionsInImageFrame, probePositionRowVector, resultVector, NULL, NULL, &nonOutliers) != PLUS_SUCCESS )
+    if ( PlusMath::LSQRMinimize(this->CalibrationMiddleWireIntersectionPointsPos_Image, probePositionRowVector, resultVector, NULL, NULL, &nonOutliers) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to run LSQRMinimize!"); 
       return PLUS_FAIL;
@@ -311,10 +308,10 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     switch (this->SpatialCalibrationOptimizer->GetOptimizationMethod())
     {
     case vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D:
-      this->SpatialCalibrationOptimizer->SetOptimizerDataUsingNWires(&this->SegmentedPointsInImageFrame,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl,&outliers);
+      this->SpatialCalibrationOptimizer->SetOptimizerDataUsingNWires(&this->CalibrationAllWiresIntersectionPointsPos_Image,&this->NWires,&this->ProbeToPhantomTransforms,&imageToProbeTransformMatrixVnl,&outliers);
       break;
     case vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D:
-      this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->DataPositionsInImageFrame,&this->DataPositionsInProbeFrame,&imageToProbeTransformMatrixVnl,&outliers);
+      this->SpatialCalibrationOptimizer->SetInputDataForMiddlePointMethod(&this->CalibrationMiddleWireIntersectionPointsPos_Image,&this->CalibrationMiddleWireIntersectionPointsPos_Probe,&imageToProbeTransformMatrixVnl,&outliers);
       break;
     }
     this->SpatialCalibrationOptimizer->Update();
@@ -377,178 +374,169 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
-  // Get segmentation points and check its validity
-  vtkPoints* segmentedPointsVtk = trackedFrame->GetFiducialPointsCoordinatePx();
-
-  if (segmentedPointsVtk == NULL)
+  // Get position of segmented fiducial points in the image
+  std::vector<vnl_vector<double> > segmentedWireIntersectionPointsPos_Image;
   {
-    LOG_WARNING("Segmentation has not been run on frame!");
-    return PLUS_FAIL;
-  }
-  if (segmentedPointsVtk->GetNumberOfPoints() == 0)
-  {
-    LOG_DEBUG("Segmentation failed on frame, so it will be ignored");
-    return PLUS_SUCCESS;
-  }
-  if (segmentedPointsVtk->GetNumberOfPoints() % 3 != 0)
-  {
-    LOG_ERROR("Frame does not contain N-Wires only!");
-    return PLUS_FAIL;
-  }
-
-  bool valid = false;
-
-  // Assemble matrices and add them to the calibration input
-  PlusTransformName probeToReferenceTransformName(this->ProbeCoordinateFrame, this->ReferenceCoordinateFrame);
-  vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  transformRepository->SetTransforms(*trackedFrame); 
-  if ( (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-  {
-    std::string transformName; 
-    probeToReferenceTransformName.GetTransformName(transformName); 
-    LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
-    return PLUS_FAIL;
-  }
-
-  // Convert segmented points to vnl
-  std::vector<vnl_vector<double> > segmentedPoints;
-  for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); i++)
-  {
-    vnl_vector<double> vnlPoint(4,0);
-    double point[3];
-    segmentedPointsVtk->GetPoint(i, point);
-    vnlPoint[0] = point[0];
-    vnlPoint[1] = point[1];
-    vnlPoint[2] = 0.0;
-    vnlPoint[3] = 1.0;
-    segmentedPoints.push_back(vnlPoint);
+    vtkPoints* segmentedPointsVtk = trackedFrame->GetFiducialPointsCoordinatePx();
+    if (segmentedPointsVtk == NULL)
+    {
+      LOG_WARNING("Segmentation has not been run on frame!");
+      return PLUS_FAIL;
+    }
+    if (segmentedPointsVtk->GetNumberOfPoints() == 0)
+    {
+      LOG_DEBUG("Segmentation failed on frame, so it will be ignored");
+      return PLUS_SUCCESS;
+    }
+    if (segmentedPointsVtk->GetNumberOfPoints() % 3 != 0)
+    {
+      LOG_ERROR("Frame does not contain N-Wires only!");
+      return PLUS_FAIL;
+    }
+    // Convert to vnl  
+    for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); i++)
+    {
+      vnl_vector<double> vnlPoint(4,0);
+      double* point=segmentedPointsVtk->GetPoint(i);
+      vnlPoint[0] = point[0];
+      vnlPoint[1] = point[1];
+      vnlPoint[2] = 0.0;
+      vnlPoint[3] = 1.0;
+      segmentedWireIntersectionPointsPos_Image.push_back(vnlPoint);
+    }
   }
 
-  // Get phantom registration matrix and convert it to vnl
-  PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
-  vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrixVtk, &valid) != PLUS_SUCCESS) || (!valid) )
+  // Compute PhantomToProbe transform 
+  vnl_matrix_fixed<double,4,4> phantomToProbeTransformMatrix;
   {
-    LOG_ERROR("No valid transform found from phantom to reference");
-    return PLUS_FAIL;
+    PlusTransformName probeToReferenceTransformName(this->ProbeCoordinateFrame, this->ReferenceCoordinateFrame);
+    vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    transformRepository->SetTransforms(*trackedFrame);
+    bool transformValid = false;
+    if ( (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceVtkTransformMatrix, &transformValid) != PLUS_SUCCESS) || (!transformValid) )
+    {
+      std::string transformName; 
+      probeToReferenceTransformName.GetTransformName(transformName); 
+      LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
+      return PLUS_FAIL;
+    }
+
+    // Get phantom registration matrix and convert it to vnl
+    PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+    vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrixVtk, &transformValid) != PLUS_SUCCESS) || (!transformValid) )
+    {
+      LOG_ERROR("No valid transform found from phantom to reference");
+      return PLUS_FAIL;
+    }
+
+    vnl_matrix_fixed<double,4,4> phantomToReferenceTransformMatrix;
+    PlusMath::ConvertVtkMatrixToVnlMatrix(phantomToReferenceTransformMatrixVtk, phantomToReferenceTransformMatrix);
+
+    // Get reference to probe transform in vnl
+    vnl_matrix_fixed<double,4,4> probeToReferenceTransformMatrix;
+    PlusMath::ConvertVtkMatrixToVnlMatrix(probeToReferenceVtkTransformMatrix, probeToReferenceTransformMatrix); 
+
+    vnl_matrix_fixed<double,4,4> referenceToProbeTransformMatrix = vnl_inverse(probeToReferenceTransformMatrix);
+
+    // Make sure the last row in homogeneous transform is [0 0 0 1]
+    vnl_vector<double> lastRow(4,0);
+    lastRow.put(3, 1);
+    referenceToProbeTransformMatrix.set_row(3, lastRow);    
+    LOG_DEBUG("Reference to probe transform = \n" << referenceToProbeTransformMatrix);
+
+    phantomToProbeTransformMatrix = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix;
   }
-
-  vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(phantomToReferenceTransformMatrixVtk, phantomToReferenceTransformMatrix);
-
-  // Get reference to probe transform in vnl
-  vnl_matrix<double> probeToReferenceTransformMatrix(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(probeToReferenceVtkTransformMatrix, probeToReferenceTransformMatrix); 
-
-  vnl_matrix_inverse<double> inverseMatrix(probeToReferenceTransformMatrix);
-  vnl_matrix<double> referenceToProbeTransformMatrix = inverseMatrix.inverse();
-
-  // Make sure the last row in homogeneous transform is [0 0 0 1]
-  vnl_vector<double> lastRow(4,0);
-  lastRow.put(3, 1);
-  referenceToProbeTransformMatrix.set_row(3, lastRow);
-  LOG_DEBUG("Reference to probe transform = \n" << referenceToProbeTransformMatrix);
-
-  std::vector< vnl_vector<double> > middleWirePositionsInPhantomFramePerImage;
 
   if (!isValidation)
   {
-      // Store all the probe to phantom transforms, used only in 2D minimization
-      PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
-      vtkSmartPointer<vtkMatrix4x4> probeToPhantomVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    // Store all the probe to phantom transforms, used only in 2D minimization
+    PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
+    vtkSmartPointer<vtkMatrix4x4> probeToPhantomVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-      if ( (transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-      {
-        std::string transformName; 
-        probeToPhantomTransformName.GetTransformName(transformName); 
-        LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
-        return PLUS_FAIL;
-      }
-      // Get  probe to phantome transform in vnl
-      vnl_matrix<double> probeToPhantomTransformMatrix(4,4);
-      PlusMath::ConvertVtkMatrixToVnlMatrix(probeToPhantomVtkTransformMatrix, probeToPhantomTransformMatrix); 
-      this->ProbeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
-  
+    bool transformValid = false;
+    if ( (transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &transformValid) != PLUS_SUCCESS) || (!transformValid) )
+    {
+      std::string transformName; 
+      probeToPhantomTransformName.GetTransformName(transformName); 
+      LOG_ERROR("Cannot get frame transform '" << transformName << "' from tracked frame!");
+      return PLUS_FAIL;
+    }
+    // Get  probe to phantome transform in vnl
+    vnl_matrix<double> probeToPhantomTransformMatrix(4,4);
+    PlusMath::ConvertVtkMatrixToVnlMatrix(probeToPhantomVtkTransformMatrix, probeToPhantomTransformMatrix); 
+    this->ProbeToPhantomTransforms.push_back(probeToPhantomTransformMatrix);
   }
- 
+
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
-  for (int n = 0; n < this->NWires.size(); ++n)
+  std::vector< vnl_vector<double> > middleWireIntersectionPointsPos_Phantom;
+  for (int nWireIndex = 0; nWireIndex < this->NWires.size(); ++nWireIndex)
   {
-    // Calcuate the alpha value
-    vnl_vector<double> vectorCi2Xi = segmentedPoints[n*3 + 1] - segmentedPoints[n*3];
-    vnl_vector<double> vectorCi2Cii = segmentedPoints[n*3 + 2] - segmentedPoints[n*3];
-    double alpha = (double)vectorCi2Xi.magnitude() / vectorCi2Cii.magnitude();
+    int wire1Index=nWireIndex*3+0;
+    int wire2Index=nWireIndex*3+1;
+    int wire3Index=nWireIndex*3+2;
+
+    // Calcuate the alpha value (how far the middle point is from the two side points)
+    vnl_vector<double> wire12vector_Image = segmentedWireIntersectionPointsPos_Image[wire2Index] - segmentedWireIntersectionPointsPos_Image[wire1Index];
+    vnl_vector<double> wire13vector_Image = segmentedWireIntersectionPointsPos_Image[wire3Index] - segmentedWireIntersectionPointsPos_Image[wire1Index];
+    double alpha = (double)wire12vector_Image.magnitude() / wire13vector_Image.magnitude();
 
     // Compute middle point position in phantom frame using alpha and the imaginary intersection points
-    vnl_vector<double> positionInPhantomFrame(4);
-    vnl_vector<double> intersectPosW12(4);
-    vnl_vector<double> intersectPosW32(4);
+    vnl_vector<double> middleWireIntersectionPointPos_Phantom(4);
+    vnl_vector_fixed<double,4> intersectPosW12_Phantom(this->NWires[nWireIndex].IntersectPosW12[0], this->NWires[nWireIndex].IntersectPosW12[1], this->NWires[nWireIndex].IntersectPosW12[2], 1.0);
+    vnl_vector_fixed<double,4> intersectPosW32_Phantom(this->NWires[nWireIndex].IntersectPosW32[0], this->NWires[nWireIndex].IntersectPosW32[1], this->NWires[nWireIndex].IntersectPosW32[2], 1.0);
+    middleWireIntersectionPointPos_Phantom = intersectPosW12_Phantom + alpha * ( intersectPosW32_Phantom - intersectPosW12_Phantom );
 
-    for (int i=0; i<3; ++i)
-    {
-      intersectPosW12[i] = this->NWires[n].IntersectPosW12[i];
-      intersectPosW32[i] = this->NWires[n].IntersectPosW32[i];
-    }
+    middleWireIntersectionPointsPos_Phantom.push_back( middleWireIntersectionPointPos_Phantom );
 
-    intersectPosW12[3] = 1.0;
-    intersectPosW32[3] = 1.0;
-
-    positionInPhantomFrame = intersectPosW12 + alpha * ( intersectPosW32 - intersectPosW12 );
-    positionInPhantomFrame[3] = 1.0;
-
-    middleWirePositionsInPhantomFramePerImage.push_back( positionInPhantomFrame );
-
-    LOG_DEBUG("NWire #" << n);
-    LOG_DEBUG("  Segmented point #" << n*3 << " = " << segmentedPoints[n*3]);
-    LOG_DEBUG("  Segmented point #" << n*3+1 << " = " << segmentedPoints[n*3+1] << " (middle wire)");
-    LOG_DEBUG("  Segmented point #" << n*3+2 << " = " << segmentedPoints[n*3+2]);
+    LOG_DEBUG("NWire #" << nWireIndex);
+    LOG_DEBUG("  Segmented point #" << wire1Index << " = " << segmentedWireIntersectionPointsPos_Image[wire1Index]);
+    LOG_DEBUG("  Segmented point #" << wire2Index << " = " << segmentedWireIntersectionPointsPos_Image[wire2Index] << " (middle wire)");
+    LOG_DEBUG("  Segmented point #" << wire3Index << " = " << segmentedWireIntersectionPointsPos_Image[wire3Index]);
     LOG_DEBUG("  Alpha = " << alpha);
-    LOG_DEBUG("  Middle wire position in phantom frame = " << positionInPhantomFrame);
+    LOG_DEBUG("  Middle wire position in phantom frame = " << middleWireIntersectionPointPos_Phantom);
 
     if (!isValidation)
     {
       // Compute middle point position in probe frame
-      vnl_vector<double> positionInProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * positionInPhantomFrame;
+      vnl_vector<double> middleWireIntersectionPointPos_Probe =  phantomToProbeTransformMatrix * middleWireIntersectionPointPos_Phantom;
 
-      LOG_DEBUG("  Middle wire position in probe frame = " << positionInProbeFrame);
+      LOG_DEBUG("  Middle wire position in probe frame = " << middleWireIntersectionPointPos_Probe);
 
       // Store into the list of positions in the image frame and the probe frame
-      this->DataPositionsInImageFrame.push_back( segmentedPoints[n*3+1] );
-      this->DataPositionsInProbeFrame.push_back( positionInProbeFrame );
+      this->CalibrationMiddleWireIntersectionPointsPos_Image.push_back( segmentedWireIntersectionPointsPos_Image[wire2Index] );
+      this->CalibrationMiddleWireIntersectionPointsPos_Probe.push_back( middleWireIntersectionPointPos_Probe );
 
-
-	     // Store all the segmented points, used only in 2D minimization
-       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3]);
-       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+1]);
-       this->SegmentedPointsInImageFrame.push_back(segmentedPoints[n*3+2]);
+      // Store all the segmented points, used only in 2D minimization
+      this->CalibrationAllWiresIntersectionPointsPos_Image.push_back(segmentedWireIntersectionPointsPos_Image[wire1Index]);
+      this->CalibrationAllWiresIntersectionPointsPos_Image.push_back(segmentedWireIntersectionPointsPos_Image[wire2Index]);
+      this->CalibrationAllWiresIntersectionPointsPos_Image.push_back(segmentedWireIntersectionPointsPos_Image[wire3Index]);
 
     }
   }
 
   if (isValidation)
   {
-    this->ValidationMiddleWirePositionsInPhantomFrame.push_back( middleWirePositionsInPhantomFramePerImage );
+    this->ValidationMiddleWirePositionsInPhantomFrame.push_back( middleWireIntersectionPointsPos_Phantom );
   }
   else
   {
-    this->CalibrationMiddleWirePositionsInPhantomFrame.push_back( middleWirePositionsInPhantomFramePerImage );
+    this->CalibrationMiddleWirePositionsInPhantomFrame.push_back( middleWireIntersectionPointsPos_Phantom );
   }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-
 void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool computeImageToProbeTransformZaxis )
 {
   vtkSmartPointer<vtkMatrix4x4> imageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransformMatrixVnl,imageToProbeMatrix);
-  
+
   // Check orthogonality
   double xVector[3] = { imageToProbeMatrix->GetElement(0,0), imageToProbeMatrix->GetElement(1,0), imageToProbeMatrix->GetElement(2,0) }; 
   double yVector[3] = { imageToProbeMatrix->GetElement(0,1), imageToProbeMatrix->GetElement(1,1), imageToProbeMatrix->GetElement(2,1) };  
@@ -590,9 +578,7 @@ void vtkProbeCalibrationAlgo::SetAndValidateImageToProbeTransform( const vnl_mat
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
 }
 
-
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D");
@@ -651,11 +637,11 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
     // Compute 3D error for each NWire
     bool valid = false;
 
-    for (int n = 0; n < this->NWires.size(); ++n)
+    for (int nWireIndex = 0; nWireIndex < this->NWires.size(); ++nWireIndex)
     {
       // Transform point to phantom frame
       double point[3];
-      segmentedPointsVtk->GetPoint(3*n+1, point);
+      segmentedPointsVtk->GetPoint(3*nWireIndex+1, point);
       double segmentedPointInImageFrame[4];
       segmentedPointInImageFrame[0] = point[0];
       segmentedPointInImageFrame[1] = point[1];
@@ -680,10 +666,10 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
       double computedPointInPhantomFrame[4];
       for (int i=0; i<4; ++i)
       {
-        computedPointInPhantomFrame[i] = middleWirePositionsIt->at(n).get(i);
+        computedPointInPhantomFrame[i] = middleWirePositionsIt->at(nWireIndex).get(i);
       }
 
-      reprojectionError3Ds->at(n).push_back( sqrt( vtkMath::Distance2BetweenPoints(segmentedPointInPhantomFrame, computedPointInPhantomFrame) ) );
+      reprojectionError3Ds->at(nWireIndex).push_back( sqrt( vtkMath::Distance2BetweenPoints(segmentedPointInPhantomFrame, computedPointInPhantomFrame) ) );
 
     } // For all NWires
 
@@ -725,7 +711,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
     }
   }
   (*reprojectionError3DMean) = sum / (reprojectionError3Ds->size() * numberOfTopRankedData);
-    
+
   double squareDiffSum = 0;
   for (int i=0; i<reprojectionError3Ds->size(); ++i)
   {
@@ -742,7 +728,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors3D( vtkTrackedFrame
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, bool isValidation )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D");
@@ -869,11 +854,11 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
     totalRmsError2D += allReprojection2DErrors.at(i)*allReprojection2DErrors.at(i);
   }
   totalRmsError2D = sqrt(totalRmsError2D/numberOfReprojections);
-  
-	  // estimate the standar deviation
+
+  // estimate the standar deviation
   for(int i=0;i<numberOfReprojections;i++)
   {
-	  double diff = allReprojection2DErrors.at(i) - totalRmsError2D;
+    double diff = allReprojection2DErrors.at(i) - totalRmsError2D;
     totalRmsError2DSD += diff * diff;
   }
   totalRmsError2DSD = sqrt(totalRmsError2DSD/numberOfReprojections);
@@ -881,17 +866,17 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
   if (isValidation)
   {
     this->ValidationRmsError2D = totalRmsError2D;
-	LOG_INFO("\n Validation 2D rms error = " << totalRmsError2D << " pixels");
-	this->ValidationRmsError2DSD = totalRmsError2DSD;
-	LOG_INFO("\n Validation 2D standard deviation = " << totalRmsError2DSD << " pixels");
+    LOG_INFO("\n Validation 2D rms error = " << totalRmsError2D << " pixels");
+    this->ValidationRmsError2DSD = totalRmsError2DSD;
+    LOG_INFO("\n Validation 2D standard deviation = " << totalRmsError2DSD << " pixels");
   }
   else
   {
-	this->CalibrationRmsError2D = totalRmsError2D;
-	LOG_INFO("\n Calibration 2D rms error = " << totalRmsError2D << " pixels");
+    this->CalibrationRmsError2D = totalRmsError2D;
+    LOG_INFO("\n Calibration 2D rms error = " << totalRmsError2D << " pixels");
 
     this->CalibrationRmsError2DSD = totalRmsError2DSD;
-	LOG_INFO("\n Calibration 2D standard deviation = " << totalRmsError2DSD << " pixels");
+    LOG_INFO("\n Calibration 2D standard deviation = " << totalRmsError2DSD << " pixels");
   }
 
 
@@ -936,7 +921,7 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
         sum += reprojectionError2Ds->at(i)[ (*sortedReprojectionError2DIndices)[i][j] ][k];
       }
       reprojectionError2DMeans->at(i).push_back( sum / numberOfTopRankedData );
-      
+
       double squareDiffSum = 0;
       for (int j=0; j<numberOfTopRankedData; ++j)
       {
@@ -952,7 +937,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeReprojectionErrors2D( vtkTrackedFrame
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation)
 {
   xMean = yMean = xStdDev = yStdDev = -1.0;
@@ -984,7 +968,6 @@ PlusStatus vtkProbeCalibrationAlgo::GetReprojectionError2DStatistics(double &xMe
 }
 
 //-----------------------------------------------------------------------------
-
 std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
@@ -1012,7 +995,7 @@ std::string vtkProbeCalibrationAlgo::GetResultString(int precision/* = 3*/)
   errorsStringStream << "2D Reprojection Errors (px)" << std::endl;;
   for (int i=0; i<this->NWires.size()*3; ++i)
   {
-      errorsStringStream << std::fixed << std::setprecision(precision-1) <<
+    errorsStringStream << std::fixed << std::setprecision(precision-1) <<
       "Wire #" << i << " (" << this->NWires[i/3].Wires[i%3].Name << ")" << std::endl <<
       " M:(" << this->ValidationReprojectionError2DMeans[i][0] << "," << this->ValidationReprojectionError2DMeans[i][1] << ")" <<
       " SD:(" << this->ValidationReprojectionError2DStdDevs[i][0] << "," << this->ValidationReprojectionError2DStdDevs[i][1] << ")" << std::endl;
@@ -1047,7 +1030,7 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   calibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 
   PlusStatus status = this->GetXMLCalibrationResultAndErrorReport(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame, probeCalibrationResult); 
-  
+
   if ( status == PLUS_SUCCESS )
   {
     probeCalibrationResult->AddNestedElement( calibrationFile );
@@ -1058,7 +1041,6 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult)
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport");
@@ -1170,8 +1152,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     frame->SetAttribute("SegmentationStatus", "OK");
 
     // SegmentedPoints
-    vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    segmentedPoints->SetName("SegmentedPoints");
+    vtkSmartPointer<vtkXMLDataElement> segmentedWireIntersectionPointsPos_Image = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    segmentedWireIntersectionPointsPos_Image->SetName("SegmentedPoints");
 
     int numberOfSegmentedPoints = segmentedPointsVtk->GetNumberOfPoints();
     for (int i=0; i<numberOfSegmentedPoints; i++)
@@ -1183,7 +1165,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       pointElement->SetName("Point");
       pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
-      segmentedPoints->AddNestedElement( pointElement );
+      segmentedWireIntersectionPointsPos_Image->AddNestedElement( pointElement );
     }
 
     // ReprojectionError3Ds
@@ -1213,7 +1195,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
     }
 
-    frame->AddNestedElement( segmentedPoints );
+    frame->AddNestedElement( segmentedWireIntersectionPointsPos_Image );
     frame->AddNestedElement( reprojectionError3Ds );
     frame->AddNestedElement( reprojectionError2Ds );
 
@@ -1263,8 +1245,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     frame->SetAttribute("SegmentationStatus", "OK");
 
     // SegmentedPoints
-    vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-    segmentedPoints->SetName("SegmentedPoints");
+    vtkSmartPointer<vtkXMLDataElement> segmentedWireIntersectionPointsPos_Image = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    segmentedWireIntersectionPointsPos_Image->SetName("SegmentedPoints");
 
     int numberOfSegmentedPoints = segmentedPointsVtk->GetNumberOfPoints();
     for (int i=0; i<numberOfSegmentedPoints; i++)
@@ -1276,7 +1258,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       pointElement->SetName("Point");
       pointElement->SetAttribute("WireName", this->NWires[i/3].Wires[i%3].Name.c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
-      segmentedPoints->AddNestedElement( pointElement );
+      segmentedWireIntersectionPointsPos_Image->AddNestedElement( pointElement );
     }
 
     // MiddleWire
@@ -1292,8 +1274,8 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       double middleWirePositionInProbeFrame[4];
       for (int k=0; k<4; ++k)
       {
-        middleWirePositionInImageFrame[k] = this->DataPositionsInImageFrame[i].get(k);
-        middleWirePositionInProbeFrame[k] = this->DataPositionsInProbeFrame[i].get(k);
+        middleWirePositionInImageFrame[k] = this->CalibrationMiddleWireIntersectionPointsPos_Image[i].get(k);
+        middleWirePositionInProbeFrame[k] = this->CalibrationMiddleWireIntersectionPointsPos_Probe[i].get(k);
       }
       middleWire->SetVectorAttribute("PositionInImageFrame", 4, middleWirePositionInImageFrame);
       middleWire->SetVectorAttribute("PositionInProbeFrame", 4, middleWirePositionInProbeFrame);
@@ -1327,7 +1309,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
     }
 
-    frame->AddNestedElement( segmentedPoints );
+    frame->AddNestedElement( segmentedWireIntersectionPointsPos_Image );
     frame->AddNestedElement( middleWires );
     frame->AddNestedElement( reprojectionError3Ds );
     frame->AddNestedElement( reprojectionError2Ds );
@@ -1356,14 +1338,15 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 
 //------------------------------------------------------------------------------------------------------
 PlusStatus vtkProbeCalibrationAlgo::GetCalibrationReport(std::vector<double> *calibError,
-  std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl) 
+  std::vector<double> *validError,
+  vnl_matrix<double> *imageToProbeTransformMatrixVnl) 
 {
   // Write the results to be easily processed
   calibError->push_back(this->CalibrationRmsError2D);
   calibError->push_back(this->CalibrationRmsError2DSD);
   validError->push_back(this->ValidationRmsError2D);
   validError->push_back(this->ValidationRmsError2DSD);
-  
+
   //*imageToProbeTransformMatrixVnl = this->SpatialCalibrationOptimizer->GetOptimizedImageToProbeTransformMatrix();
   // Convert the transform to vnl
   PlusMath::ConvertVtkMatrixToVnlMatrix(this->ImageToProbeTransformMatrix,*imageToProbeTransformMatrixVnl);
