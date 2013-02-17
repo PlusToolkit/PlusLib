@@ -27,9 +27,9 @@ vtkPlusChannel::vtkPlusChannel(void)
 : VideoSource(NULL)
 , OwnerDevice(NULL)
 , ChannelId(NULL)
-, SaveRfProcessingParameters(false)
 , RfProcessor(vtkRfProcessor::New())
 , BlankImage(vtkImageData::New())
+, SaveRfProcessingParameters(false)
 {
   // Default size for brightness frame
   this->BrightnessFrameSize[0] = 640;
