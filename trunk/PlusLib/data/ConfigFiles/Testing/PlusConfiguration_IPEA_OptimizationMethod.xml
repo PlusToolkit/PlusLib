@@ -1,26 +1,25 @@
-<PlusConfiguration version="2.1" PlusRevision="1.7.1.2174">
+<PlusConfiguration version="2.1" PlusRevision="2.0.0.2503">
   <DataCollection StartupDelaySec="1">
     <DeviceSet 
-      Name="SonixTouch + PolarisTracker L14-5 + Reference + Stylus Calibration+ Phantom Calibration  2.0 01/06 CalibrationSequence_Depth15_20130107_024735" 
-      Description="SonixTouch + PolarisTracker + Stylus Calibration + Phantom 2.0 calibration 01/06 CalibrationSequence_Depth15_20130107_024735 "
-    />
-    <Device 
-      Id="VideoDevice" 
-      Type="SavedDataset" 
-      SequenceMetafile="CalibrationSequence_Depth15_20130107_024735.mha" 
-      UseData="IMAGE_AND_TRANSFORM" 
-      UseOriginalTimestamps="TRUE" 
-      RepeatEnabled="TRUE" 
-      LocalTimeOffsetSec="0" >
+      Name="SonixTouch + PolarisTracker IPEA" 
+      Description="SonixTouch + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth"
+    />    
+    
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"      
+      SequenceMetafile="FreehandCalibration3NWires_fCal2.0_Depth15_1.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="275" />
+        <DataSource Type="Video" Id="Video" BufferSize="200" />
       </DataSources>
-      
       <OutputChannels>
-        <OutputChannel Id="VideoOutput" VideoDataSourceId="Video" />
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-
+    
     <!--
     <Device 
       Id="TrackedVideoDevice" 
@@ -84,15 +83,16 @@
       </OutputChannels>
     </Device>
     -->
+    
   </DataCollection>
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
-        -0.0236898	-0.00639646	0.282565	-19.4062
-        0.284629	-0.0115514	0.0232038	-119.148
-        0.0121088	0.281045	0.00738477	108.85
+        -0.00357153	-0.00390728	0.285324	-26.6702
+        0.287228	-0.0112942	0.00338596	-168.562
+        0.011413	0.283017	0.00407425	106.648
         0	0	0	1"
-       Error="0.850684" Date="010713_024345"/>
+       Error="0.961919" Date="021513_103745"/>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
         1	0	0	-410
@@ -116,11 +116,11 @@
        Error="0.222091" Date="010713_020912"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
-        0.285918	0	0	0
-        0	0.281306	0	0
-        0	0	0.283613	0
+        0.287477	0	0	0
+        0	0.283269	0	0
+        0	0	0.285373	0
         0	0	0	1"
-       Date="010713_024345"/>
+       Date="021513_103746"/>
   </CoordinateDefinitions>
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
@@ -208,10 +208,16 @@
     TemporalCalibrationDurationSec="10"/>
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
   <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" OptimizationMethod="2D" IsotropicPixelSpacing="FALSE"/>
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    OptimizationMethod="2D"
+    IsotropicPixelSpacing="FALSE"/>
   <Segmentation
     ApproximateSpacingMmPerPixel="0.28692"
-    MorphologicalOpeningCircleRadiusMm="0.41"
+    MorphologicalOpeningCircleRadiusMm="0.15"
     MorphologicalOpeningBarSizeMm="10"
     RegionOfInterest="221 132 617 455"
     MaxLinePairDistanceErrorPercent="10"
@@ -219,9 +225,9 @@
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    ThresholdImagePercent="15.1"
+    ThresholdImagePercent="50.1"
     CollinearPointsMaxDistanceFromLineMm="3.1"
     UseOriginalImageIntensityForDotIntensityScore="1"
     MaxLineShiftMm="10"
-    MaxCandidates="35"/>
+    NumberOfMaximumFiducialPointCandidates="35"/>
 </PlusConfiguration>

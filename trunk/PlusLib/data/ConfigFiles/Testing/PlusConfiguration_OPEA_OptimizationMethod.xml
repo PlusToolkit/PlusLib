@@ -1,26 +1,24 @@
 <PlusConfiguration version="2.1" PlusRevision="1.7.1.2174">
   <DataCollection StartupDelaySec="1">
     <DeviceSet 
-      Name="SonixTouch + PolarisTracker L14-5 + Reference + Stylus Calibration+ Phantom Calibration  2.0 01/06 CalibrationSequence_Depth15_20130107_024735"
-      Description="SonixTouch + PolarisTracker + Stylus Calibration + Phantom 2.0 calibration 01/06 CalibrationSequence_Depth15_20130107_024735 "
+      Name="SonixTouch + PolarisTracker OPEA" 
+      Description="SonixTouch + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth"
     />
 
-    <Device 
-      Id="VideoDevice" 
-      Type="SavedDataset" 
-      SequenceMetafile="CalibrationSequence_Depth15_20130107_024735.mha" 
-      UseData="IMAGE_AND_TRANSFORM" 
-      UseOriginalTimestamps="TRUE" 
-      RepeatEnabled="TRUE" 
-      LocalTimeOffsetSec="0" >
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"      
+      SequenceMetafile="FreehandCalibration3NWires_fCal2.0_Depth15_1.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="275" />
+        <DataSource Type="Video" Id="Video" BufferSize="200" />
       </DataSources>
-      
       <OutputChannels>
-        <OutputChannel Id="VideoOutput" VideoDataSourceId="Video" />
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
-    </Device>
+    </Device>    
 
     <!--
     <Device 
@@ -209,10 +207,16 @@
     TemporalCalibrationDurationSec="10"/>
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
   <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" OptimizationMethod="3D" IsotropicPixelSpacing="FALSE"/>
+  <vtkProbeCalibrationAlgo 
+    ImageCoordinateFrame="Image" 
+    ProbeCoordinateFrame="Probe" 
+    PhantomCoordinateFrame="Phantom" 
+    ReferenceCoordinateFrame="Reference" 
+    OptimizationMethod="3D" 
+    IsotropicPixelSpacing="FALSE"/>
   <Segmentation
     ApproximateSpacingMmPerPixel="0.28692"
-    MorphologicalOpeningCircleRadiusMm="0.41"
+    MorphologicalOpeningCircleRadiusMm="0.15"
     MorphologicalOpeningBarSizeMm="10"
     RegionOfInterest="221 132 617 455"
     MaxLinePairDistanceErrorPercent="10"
@@ -220,9 +224,9 @@
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    ThresholdImagePercent="15.1"
+    ThresholdImagePercent="50.1"
     CollinearPointsMaxDistanceFromLineMm="3.1"
     UseOriginalImageIntensityForDotIntensityScore="1"
     MaxLineShiftMm="10"
-    MaxCandidates="35"/>
+    NumberOfMaximumFiducialPointCandidates="35"/>
 </PlusConfiguration>

@@ -99,8 +99,8 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_
 ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
 		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEI_OptimizationMethod.xml
-		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
-		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+		--validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
 		--baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -108,8 +108,8 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIE
 ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
 		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEA_OptimizationMethod.xml
-		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
-		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+		--validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
 		--baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -117,8 +117,8 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIE
 ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
 		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEI_OptimizationMethod.xml
-		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
-		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+		--validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
 		--baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -126,8 +126,8 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIE
 ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
 		--config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEA_OptimizationMethod.xml
-		--calibration-seq-file=${TestDataDir}/calibrationSequenceOptimizationMethods.mha 
-		--validation-seq-file=${TestDataDir}/validationSequenceOptimizationMethods.mha 
+		--calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+		--validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
 		--baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
