@@ -453,7 +453,6 @@ std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 }
 
 //----------------------------------------------------------------------------
-
 std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
 {
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
@@ -462,9 +461,21 @@ std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
   return PlusMath::GetTransformParametersString(transform); 
 }
 
+//----------------------------------------------------------------------------
+void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix )
+{
+	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
+
+	for (int row = 0; row < 4; row++)
+	{
+		for (int column = 0; column < 4; column++)
+		{
+			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
+		}
+	}
+}
 
 //----------------------------------------------------------------------------
-
 void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
@@ -479,7 +490,6 @@ void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_
 }
 
 //----------------------------------------------------------------------------
-
 void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
