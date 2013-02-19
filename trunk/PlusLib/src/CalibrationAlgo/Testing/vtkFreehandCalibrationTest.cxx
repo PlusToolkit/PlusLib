@@ -602,7 +602,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPosition[i] - cPosition[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]<<" (point "<<pointIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -654,7 +654,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               double absoluteError = fabs(blErrorMm - cErrorMm);
               if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD || absoluteError > absoluteErrorTolerance )
               {
-                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm<<" (error index "<<reprojectionError3DIndex<<" in frame "<< frameIndex<<")");
                 ++numberOfFailures;
                 continue;
               }
@@ -707,7 +707,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]<<" (error index "<<reprojectionError2DIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -797,7 +797,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPosition[i] - cPosition[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]<<" (point "<<pointIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -844,7 +844,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPositionInImageFrame[i] - cPositionInImageFrame[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
+                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]<<" (middleWire "<<middleWireIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -866,7 +866,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPositionInProbeFrame[i] - cPositionInProbeFrame[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
+                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]<<" (middleWire "<<middleWireIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -918,7 +918,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               double absoluteError = fabs(blErrorMm - cErrorMm);
               if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
               {
-                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm<<" (error index "<<reprojectionError3DIndex<<" in frame "<< frameIndex<<")");
                 ++numberOfFailures;
                 continue;
               }
@@ -971,7 +971,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]<<" (error index "<<reprojectionError2DIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }

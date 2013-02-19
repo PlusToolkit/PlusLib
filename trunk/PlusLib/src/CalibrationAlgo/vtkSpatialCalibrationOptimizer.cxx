@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "vtkSpatialCalibrationOptimizer.h"
+#include "vtkProbeCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
 
 #include "vtkObjectFactory.h"
@@ -13,9 +14,6 @@ See License.txt for details.
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
 #include "itkAmoebaOptimizer.h"
-
-#include "vtkLine.h"
-#include "vtkPlane.h"
 
 typedef  itk::AmoebaOptimizer  OptimizerType;
 
@@ -127,10 +125,11 @@ public:
   {
     vnl_matrix<double> imageToProbeTransform_vnl;
     GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeTransformParameters);    
-    double rmsError=0.0;
-    double rmsErrorSd=0.0;
-    m_CalibrationOptimizer->ComputeRmsError(imageToProbeTransform_vnl, rmsError, rmsErrorSd);
-    return rmsError;
+    double errorMean=0.0;
+    double errorStDev=0.0;
+    double errorRms=0.0;
+    m_CalibrationOptimizer->ComputeError(imageToProbeTransform_vnl, errorMean, errorStDev, errorRms);
+    return errorRms;
   }
 
   void GetDerivative( const ParametersType & parameters, DerivativeType  & derivative ) const
@@ -207,6 +206,7 @@ vtkStandardNewMacro(vtkSpatialCalibrationOptimizer);
 //-----------------------------------------------------------------------------
 vtkSpatialCalibrationOptimizer::vtkSpatialCalibrationOptimizer()
 : IsotropicPixelSpacing(true)
+, ProbeCalibrationAlgo(NULL)
 {  
 }
 
@@ -216,116 +216,25 @@ vtkSpatialCalibrationOptimizer::~vtkSpatialCalibrationOptimizer()
 }
 
 //-----------------------------------------------------------------------------
-double vtkSpatialCalibrationOptimizer::PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2 )
+void vtkSpatialCalibrationOptimizer::SetProbeCalibrationAlgo(vtkProbeCalibrationAlgo* probeCalibrationAlgo)
 {
-  // Convert point from vnl to vtk format
-  double wireP0[3] = {aLineEndPoint1[0], aLineEndPoint1[1], aLineEndPoint1[2]};
-  double wireP1[3] = {aLineEndPoint2[0], aLineEndPoint2[1], aLineEndPoint2[2]};
-  double segmentedPoint[3] = {aPoint(0),aPoint(1),aPoint(2)};
-  double distanceToWire = sqrt(vtkLine::DistanceToLine(segmentedPoint, wireP0, wireP1));
-  return distanceToWire;
+  this->ProbeCalibrationAlgo=probeCalibrationAlgo;
 }
 
-// --------------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::ComputeRmsError(const vnl_matrix<double> &transformationMatrix, double &aRmsError, double &aRmsErrorSD)
+//--------------------------------------------------------------------------------
+void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix<double> &transformationMatrix, double &errorMean, double &errorStDev, double &errorRms)
 {
-  int numberOfFrames = 0;
-  double rmsError = 0;
-  double px,py,pz,dx,dy,dz =0;
-  double squaredDistanceToMiddleWire=0;
-  std::vector<double> reprojectionErrors;
-
   switch (this->OptimizationMethod)
   {
-
   case MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D:
-    {
-      numberOfFrames = this->CalibrationMiddleWireIntersectionPointsPos_Image.size();
-      for(int i=0;i<numberOfFrames;i++)
-      {
-        px = transformationMatrix[0][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[0][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
-          transformationMatrix[0][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[0][3];
-        py = transformationMatrix[1][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[1][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
-          transformationMatrix[1][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[1][3];
-        pz = transformationMatrix[2][0]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][0] + transformationMatrix[2][1]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][1] + 
-          transformationMatrix[2][2]*this->CalibrationMiddleWireIntersectionPointsPos_Image[i][2] + transformationMatrix[2][3];
-
-        dx = px - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][0];
-        dy = py - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][1];
-        dz = pz - this->CalibrationMiddleWireIntersectionPointsPos_Probe[i][2];
-
-        squaredDistanceToMiddleWire = dx*dx + dy*dy + dz*dz;
-        rmsError += squaredDistanceToMiddleWire;
-        reprojectionErrors.push_back(sqrt(squaredDistanceToMiddleWire));
-      }
-      rmsError = sqrt(rmsError/numberOfFrames);
-      break;
-    }
+    this->ProbeCalibrationAlgo->ComputeError3d(transformationMatrix, errorMean, errorStDev, errorRms);
+    break;
   case MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D:
-    {
-      int nWires = this->NWires.size(); 
-      int m = this->CalibrationAllWiresIntersectionPointsPos_Image.size()/(3*nWires); //number of frames
-      double residual=0;
-
-      vnl_vector<double> segmentedInProbeFrame_vnl(4), segmentedInPhantomFrame_vnl(4);
-      vnl_vector<double> wireFrontPoint_vnl(3), wireBackPoint_vnl(3);
-      int currentSegmentedPoint = 0;
-
-      for(int i=0;i<m;i++) // for each frame
-      {
-        vnl_matrix<double> probeToPhantomTransform_vnl = this->ProbeToPhantomTransforms[i];
-
-        for (int j=0;j<3*nWires;j++)  // for each segmented point
-        {
-          // Find the projection in the probe frame 
-          px = transformationMatrix[0][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[0][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
-            transformationMatrix[0][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[0][3];
-          py = transformationMatrix[1][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[1][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
-            transformationMatrix[1][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[1][3];
-          pz = transformationMatrix[2][0]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][0] + transformationMatrix[2][1]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][1] + 
-            transformationMatrix[2][2]*this->CalibrationAllWiresIntersectionPointsPos_Image[3*nWires*i+j][2]+ transformationMatrix[2][3];
-
-          segmentedInProbeFrame_vnl[0] = px; 
-          segmentedInProbeFrame_vnl[1] = py; 
-          segmentedInProbeFrame_vnl[2] = pz; 
-          segmentedInProbeFrame_vnl[3] = 1;
-
-          // Transform points from image to phantom frame
-          segmentedInPhantomFrame_vnl = probeToPhantomTransform_vnl * segmentedInProbeFrame_vnl;
-
-          // compute distance to wire
-          int line = j%3;
-          int w = j/3; 
-
-          wireFrontPoint_vnl[0]= this->NWires[w].Wires[line].EndPointFront[0];
-          wireFrontPoint_vnl[1]= this->NWires[w].Wires[line].EndPointFront[1];
-          wireFrontPoint_vnl[2]= this->NWires[w].Wires[line].EndPointFront[2];
-          wireBackPoint_vnl[0]= this->NWires[w].Wires[line].EndPointBack[0];
-          wireBackPoint_vnl[1]= this->NWires[w].Wires[line].EndPointBack[1];
-          wireBackPoint_vnl[2]= this->NWires[w].Wires[line].EndPointBack[2];
-
-          double distanceToWire = vtkSpatialCalibrationOptimizer::PointToWireDistance(segmentedInPhantomFrame_vnl.extract(3,0), wireFrontPoint_vnl, wireBackPoint_vnl );
-          reprojectionErrors.push_back(distanceToWire);
-          rmsError += distanceToWire*distanceToWire;
-        }
-      }
-      rmsError = sqrt(rmsError/(3*nWires*m));
-      break;
-    }
+    this->ProbeCalibrationAlgo->ComputeError2d(transformationMatrix, errorMean, errorStDev, errorRms);
+    break;
   default:
     LOG_ERROR("Invalid cost function");
   }
-
-  double squareDiffSum = 0;
-  int numberOfProjecterPoints = reprojectionErrors.size();
-  for (int j=0; j<numberOfProjecterPoints; ++j)
-  {
-    double diff = reprojectionErrors.at(j) - rmsError;
-    squareDiffSum += diff * diff;
-  }
-  double variance = squareDiffSum / numberOfProjecterPoints;
-  aRmsError = rmsError;
-  aRmsErrorSD = sqrt(variance);
 }
 
 //-----------------------------------------------------------------------------
@@ -347,47 +256,13 @@ PlusStatus vtkSpatialCalibrationOptimizer::ShowTransformation(const vnl_matrix<d
   double xyAxesAngleDeg=vtkMath::DegreesFromRadians(acos(dot_product(xAxis,yAxis)));
   LOG_INFO("XY axes angle = " << xyAxesAngleDeg << " deg");
 
-  double rmsError =0, rmsErrorSD = 0;
-  ComputeRmsError(imageToProbeTransformationMatrix, rmsError, rmsErrorSD);
-  LOG_INFO("rmsError = " << rmsError << " mm");
+  double errorMean=0.0;
+  double errorStDev=0.0;
+  double errorRms=0.0;
+  ComputeError(imageToProbeTransformationMatrix, errorMean, errorStDev, errorRms);
+  LOG_INFO("Error (mm): mean=" << errorMean<< ", stdev="<<errorStDev<<", rms="<<errorRms);
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::StoreAndShowResults()
-{
-  LOG_INFO("Cost function = " << GetOptimizationMethodAsString(this->OptimizationMethod));
-
-  LOG_INFO("Without optimization:");
-  ShowTransformation(this->ImageToProbeSeedTransformMatrixVnl);
-
-  LOG_INFO("With optimization:");
-  ShowTransformation(this->ImageToProbeTransformMatrixVnl);
-
-  vtkSmartPointer<vtkMatrix4x4> imageToProbeSeedTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
-  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrixVnl,imageToProbeSeedTransformMatrixVtk);
-  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrixVnl,imageToProbeTransformMatrixVtk);
-  double angleDifference = PlusMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
-  LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
-
-  LOG_INFO("Optimization details:");
-  // Print how the residual error changed during the optimization (limit to max. 30 samples)
-  int stepSize=std::max<int>(1,this->MinimizationResiduals.size()/30);
-  for( int i=0; i < this->MinimizationResiduals.size() ; i+=stepSize )
-  {
-    LOG_DEBUG("FunctionEvaluation " << i << ":  rmsError = " << this->MinimizationResiduals[i]);
-  }
-  if (this->MinimizationResiduals.size()>0)
-  {
-    LOG_DEBUG("First Iteration: rmsError = " << this->MinimizationResiduals[1] << " pixels");
-    LOG_DEBUG("Last Iteration (" << this->MinimizationResiduals.size() << "):  rmsError = " << this->MinimizationResiduals[this->MinimizationResiduals.size()-1] << " pixels");
-  }
-  else
-  {
-    LOG_ERROR("No error metrics are available");
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -398,10 +273,11 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   DistanceToWiresCostFunction::ParametersType imageToProbeSeedTransformParameters(costFunction->GetNumberOfParameters());
   DistanceToWiresCostFunction::GetTransformParameters(imageToProbeSeedTransformParameters, this->ImageToProbeSeedTransformMatrixVnl);
 
-  double rmsError=0.0;
-  double rmsErrorSd=0.0;
-  ComputeRmsError(this->ImageToProbeSeedTransformMatrixVnl, rmsError, rmsErrorSd);
-  LOG_INFO("Initial cost function value with unconstrained matrix = " << rmsError );
+  double errorMean=0.0;
+  double errorStDev=0.0;
+  double errorRms=0.0;
+  ComputeError(this->ImageToProbeSeedTransformMatrixVnl, errorMean, errorStDev, errorRms);
+  LOG_INFO("Initial cost function value with unconstrained matrix = " << errorRms );
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrixVnl, vtkMatrix); 
@@ -499,60 +375,39 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   }
 
   // Store the optimized parameters and show the results
-  StoreAndShowResults();
+  LOG_INFO("Cost function = " << GetOptimizationMethodAsString(this->OptimizationMethod));
+
+  LOG_INFO("Without optimization:");
+  ShowTransformation(this->ImageToProbeSeedTransformMatrixVnl);
+
+  LOG_INFO("With optimization:");
+  ShowTransformation(this->ImageToProbeTransformMatrixVnl);
+
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeSeedTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
+  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrixVnl,imageToProbeSeedTransformMatrixVtk);
+  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrixVnl,imageToProbeTransformMatrixVtk);
+  double angleDifference = PlusMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
+  LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
+
+  LOG_INFO("Optimization details:");
+  // Print how the residual error changed during the optimization (limit to max. 30 samples)
+  int stepSize=std::max<int>(1,this->MinimizationResiduals.size()/30);
+  for( int i=0; i < this->MinimizationResiduals.size() ; i+=stepSize )
+  {
+    LOG_DEBUG("FunctionEvaluation " << i << ":  rmsError = " << this->MinimizationResiduals[i]);
+  }
+  if (this->MinimizationResiduals.size()>0)
+  {
+    LOG_DEBUG("First Iteration: rmsError = " << this->MinimizationResiduals[1] << " pixels");
+    LOG_DEBUG("Last Iteration (" << this->MinimizationResiduals.size() << "):  rmsError = " << this->MinimizationResiduals[this->MinimizationResiduals.size()-1] << " pixels");
+  }
+  else
+  {
+    LOG_ERROR("No error metrics are available");
+  }
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::SetInputDataForMiddlePointMethod(
-  std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Image, 
-  std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Probe, 
-  vnl_matrix<double> *imageToProbeTransformMatrixVnl,
-  std::set<int>* outliers)
-{
-  for(int i=0;i<calibrationMiddleWireIntersectionPointsPos_Image->size();i++)
-  { 
-    if(outliers->find(i) == outliers->end()) // if is not an outlier
-    {
-      this->CalibrationMiddleWireIntersectionPointsPos_Image.push_back(calibrationMiddleWireIntersectionPointsPos_Image->at(i));
-      this->CalibrationMiddleWireIntersectionPointsPos_Probe.push_back(calibrationMiddleWireIntersectionPointsPos_Probe->at(i));
-    }
-  }
-  this->ImageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *calibrationAllWiresIntersectionPointsPos_Image, std::vector<NWire> *nWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl,std::set<int>* outliers)
-{
-  std::set<int> outliersProbeToPhantomTransforms;
-
-  int numberOfWires = nWires->size();
-  for (std::set<int>::const_iterator it = outliers->begin();it != outliers->end(); ++it)
-  {
-    outliersProbeToPhantomTransforms.insert(*it / numberOfWires);
-  }
-
-  LOG_INFO(outliersProbeToPhantomTransforms.size() << " probe to phantom transforms outliers were found");
-
-  for(int i=0;i<probeToPhantomTransforms->size();i++)
-  { 
-    if(outliersProbeToPhantomTransforms.find(i) == outliersProbeToPhantomTransforms.end()) // if is not an outlier
-    {
-      this->ProbeToPhantomTransforms.push_back(probeToPhantomTransforms->at(i));
-      for (int j=0;j<3*numberOfWires;j++)
-      {
-        this->CalibrationAllWiresIntersectionPointsPos_Image.push_back(calibrationAllWiresIntersectionPointsPos_Image->at(3*numberOfWires*i+j));
-      }
-    }
-  }
-
-  this->NWires = * nWires;
-  this->ImageToProbeSeedTransformMatrixVnl= *imageToProbeTransformMatrixVnl;
-
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -560,6 +415,13 @@ vnl_matrix<double> vtkSpatialCalibrationOptimizer::GetOptimizedImageToProbeTrans
 {
   return this->ImageToProbeTransformMatrixVnl;
 }
+
+//----------------------------------------------------------------------------
+void vtkSpatialCalibrationOptimizer::SetImageToProbeSeedTransform(const vnl_matrix<double> &imageToProbeTransformMatrixVnl)
+{
+  this->ImageToProbeSeedTransformMatrixVnl=imageToProbeTransformMatrixVnl;
+}
+
 
 //----------------------------------------------------------------------------
 bool vtkSpatialCalibrationOptimizer::Enabled()
