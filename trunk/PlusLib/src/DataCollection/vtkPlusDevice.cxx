@@ -68,6 +68,7 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
+, ForceSingleThreaded(false)
 {
   this->SetNumberOfInputPorts(0);
 
@@ -812,6 +813,15 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     this->SetDefaultOutputChannel(this->OutputChannels[0]->GetChannelId());
   }
 
+  const char* forceSingle = deviceXMLElement->GetAttribute("ForceSingleThreaded");
+  if ( forceSingle != NULL )
+  {
+    if( STRCASECMP(forceSingle, "true") == 0 )
+    {
+      this->SetForceSingleThreaded(true);
+    }
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -824,23 +834,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* deviceDataElement = NULL;
-  for ( int device = 0; device < dataCollectionConfig->GetNumberOfNestedElements(); device++ )
-  {
-    vtkXMLDataElement* anElement = dataCollectionConfig->GetNestedElement(device);
-    if( STRCASECMP(anElement->GetName(), "Device") == 0 && anElement->GetAttribute("Id") != NULL && STRCASECMP(anElement->GetAttribute("Id"), this->GetDeviceId()) == 0 )
-    {
-      deviceDataElement = anElement;
-      break;
-    }
-  }
+  vtkXMLDataElement* deviceDataElement = this->FindThisDeviceElement(config);
 
   if ( deviceDataElement == NULL )
   {
@@ -884,6 +878,18 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
   this->InternalWriteOutputChannels(config);
 
   this->InternalWriteInputChannels(config);
+
+  deviceDataElement->SetIntAttribute("AcquisitionRate", this->GetAcquisitionRate());
+  
+  deviceDataElement->SetAttribute("UsImageOrientation", PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation()));
+  if( this->VideoSources.size() != 0 )
+  {
+    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetVideoLocalTimeOffsetSec());
+  }
+  else if( this->Tools.size() != 0 )
+  {
+    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetToolLocalTimeOffsetSec());
+  }
 
   return PLUS_SUCCESS;
 }
@@ -963,9 +969,12 @@ PlusStatus vtkPlusDevice::StartRecording()
 
   this->Recording = 1;
 
-  this->ThreadId =
-    this->Threader->SpawnThread((vtkThreadFunctionType)\
-    &vtkDataCaptureThread,this);
+  if( !this->ForceSingleThreaded )
+  {
+    this->ThreadId =
+      this->Threader->SpawnThread((vtkThreadFunctionType)\
+      &vtkDataCaptureThread,this);
+  }
 
   this->Modified();
 
@@ -988,12 +997,15 @@ PlusStatus vtkPlusDevice::StopRecording()
   this->ThreadId = -1;
   this->Recording = 0;
 
-  // Let's give a chance to the thread to stop before we kill the connection
-  while ( this->ThreadAlive )
+  if( !this->GetForceSingleThreaded() )
   {
-    vtkAccurateTimer::Delay(0.1);
+    // Let's give a chance to the thread to stop before we kill the connection
+    while ( this->ThreadAlive )
+    {
+      vtkAccurateTimer::Delay(0.1);
+    }
+    this->ThreadId = -1; 
   }
-  this->ThreadId = -1; 
 
   if ( this->InternalStopRecording() != PLUS_SUCCESS )
   {

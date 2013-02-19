@@ -68,13 +68,8 @@ protected:
   */
 	PlusStatus InternalStartRecording();
 
-	/*! Start the tracking */
-	PlusStatus StartRecording();
-
 	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
 	PlusStatus InternalStopRecording();
-  /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus StopRecording();
 
 	/*! Cause the device to beep the specified number of times. */
 	PlusStatus InternalBeep(int n);
