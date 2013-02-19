@@ -141,6 +141,8 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  this->SetForceSingleThreaded(true);
 }
 
 vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource() 

@@ -85,6 +85,9 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
+  // The Sonix video device should use the callback mechanism unless overwritten by the configuration
+  this->SetForceSingleThreaded(true);
+
   this->Reset();
 }
 
