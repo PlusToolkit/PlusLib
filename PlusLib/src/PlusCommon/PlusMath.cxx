@@ -29,7 +29,7 @@ PlusMath::~PlusMath()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/,vnl_vector<double> *notOutliersIndices/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/,vnl_vector<unsigned int> *notOutliersIndices/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -65,7 +65,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices /*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<unsigned int>* notOutliersIndices /*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -106,7 +106,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatr
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices/*NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<unsigned int>* notOutliersIndices/*NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -198,7 +198,7 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
                                             double thresholdMultiplier/* = 3.0*/, 
                                             double* mean/*=NULL*/, 
                                             double* stdev/*=NULL*/,
-											vnl_vector<double>* nonOutlierIndices /*NULL*/)
+											vnl_vector<unsigned int>* nonOutlierIndices /*NULL*/)
 {
   // Set outlierFound flag to false by default 
   outlierFound = false; 
@@ -585,4 +585,42 @@ PlusStatus PlusMath::ComputeMeanAndStdev(const std::vector<double> &values, doub
   }
   stdev=sqrt(variance/double(values.size())); 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusMath::ComputeRms(const std::vector<double> &values, double &rms)
+{
+  if (values.empty())
+  {
+    LOG_ERROR("PlusMath::ComputeRms failed, the input vector is empty");
+    return PLUS_FAIL;
+  }
+  double sumSquares=0;
+  for (std::vector<double>::const_iterator it=values.begin(); it!=values.end(); ++it)
+  {
+    sumSquares+=(*it) * (*it);
+  }
+  double meanSquares=sumSquares/double(values.size());
+  rms=sqrt(meanSquares); 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+static PlusStatus ComputePercentile(const std::vector<double> &values, double percentile, double &foundValue)
+{
+  std::vector<double> valuesCopy=values;
+  if (percentile>=0.5)
+  {
+    // find the n-th largest value    
+    int n = ROUND( (double)valuesCopy.size() * (1.0-percentile) );
+    std::nth_element(valuesCopy.begin(), valuesCopy.begin()+n, valuesCopy.end(), std::greater<double>());
+    foundValue=valuesCopy[n];
+  }
+  else
+  {
+    // find the n-th smallest value    
+    int n = ROUND( (double)valuesCopy.size() * percentile );
+    std::nth_element(valuesCopy.begin(), valuesCopy.begin()+n, valuesCopy.end(), std::less<double>());
+    foundValue=valuesCopy[n];
+  }
 }

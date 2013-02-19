@@ -38,7 +38,7 @@ See License.txt for details.
 
 class vtkTransformRepository;
 class vtkXMLDataElement;
-class NWire;
+class vtkProbeCalibrationAlgo;
 
 //-----------------------------------------------------------------------------
 
@@ -62,9 +62,7 @@ public:
     MINIMIZE_NONE,
     MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D,
     MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D
-  };
-  
-  static double PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2);
+  };  
 
   vtkTypeRevisionMacro(vtkSpatialCalibrationOptimizer,vtkObject);
   static vtkSpatialCalibrationOptimizer *New();
@@ -86,7 +84,7 @@ public:
   /*! Get optimized Image to Probe matrix */
   vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix();
 
-  void ComputeRmsError(const vnl_matrix<double> &transformationMatrix, double &rmsError, double &rmsErrorSD);
+  void ComputeError(const vnl_matrix<double> &transformationMatrix, double &errorMean, double &errorStDev, double &errorRms);
 
   bool GetIsotropicPixelSpacing() { return this->IsotropicPixelSpacing; }
   void SetIsotropicPixelSpacing(bool isotropicPixelSpacing) { this->IsotropicPixelSpacing=isotropicPixelSpacing; }
@@ -95,10 +93,13 @@ public:
   void SetOptimizationMethod(OptimizationMethodType optimizationMethod) { this->OptimizationMethod=optimizationMethod; }
   static char* GetOptimizationMethodAsString(OptimizationMethodType type);
 
+  void SetImageToProbeSeedTransform(const vnl_matrix<double> &imageToProbeTransformMatrixVnl);
+
+  void SetProbeCalibrationAlgo(vtkProbeCalibrationAlgo* probeCalibrationAlgo);
+
 protected:
 
   PlusStatus ShowTransformation(const vnl_matrix<double> &transformationMatrix);
-  void StoreAndShowResults();  
   
   vtkSpatialCalibrationOptimizer();
   virtual  ~vtkSpatialCalibrationOptimizer();
@@ -110,21 +111,6 @@ protected:
   /*! Cost function to minimize during the optimization */
   OptimizationMethodType OptimizationMethod;
 
-  /*! Positions of segmented points in image frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Image;
-
-  /*! Positions of segmented points in probe frame - input of optimization algorithm */
-  std::vector< vnl_vector<double> > CalibrationMiddleWireIntersectionPointsPos_Probe;
-
-  /*! Positions of ALL the segmented points in image frame - input to the second cost function (distance to wires) */
-  std::vector< vnl_vector<double> > CalibrationAllWiresIntersectionPointsPos_Image;
-
-  /* Contains all the probe to phantom transforms used during calibration */
-  std::vector< vnl_matrix<double> > ProbeToPhantomTransforms;
-
-  /*! List of NWires used for calibration and error computation */
-  std::vector<NWire> NWires;
-
   /*! Store the seed for the optimization process */
   vnl_matrix<double> ImageToProbeSeedTransformMatrixVnl;
 
@@ -133,6 +119,8 @@ protected:
    
   /*! store the residuals used during the optimization */
   std::vector<double> MinimizationResiduals;
+
+  vtkProbeCalibrationAlgo* ProbeCalibrationAlgo;
 
 };
 

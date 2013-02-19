@@ -309,6 +309,7 @@ int main (int argc, char* argv[])
         }
 
         freehandCalibration->GetCalibrationReport(&calibError, &validError, &imageToProbeTransformMatrixVnl); 
+        // TODO: double-check if the reported values matches the expected values
 
         outputFile << "Calibration error = ";
         outputFile << calibError.at(0) << " " << calibError.at(1) << " ";
