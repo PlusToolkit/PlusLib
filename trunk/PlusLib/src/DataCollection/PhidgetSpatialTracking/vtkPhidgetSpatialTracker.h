@@ -72,13 +72,6 @@ public:
   */
   PlusStatus Probe();
 
-  /*!
-  Get an update from the tracking system and push the new transforms
-  to the tools.  This should only be used within vtkTracker.cxx.
-  This method is called by the tracker thread.
-  */
-  PlusStatus InternalUpdate();
-
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 

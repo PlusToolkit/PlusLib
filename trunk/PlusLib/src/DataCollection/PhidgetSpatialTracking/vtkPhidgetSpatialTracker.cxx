@@ -58,6 +58,8 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  this->SetForceSingleThreaded(true);
 }
 
 //-------------------------------------------------------------------------
@@ -439,13 +441,6 @@ PlusStatus vtkPhidgetSpatialTracker::InternalStartRecording()
 PlusStatus vtkPhidgetSpatialTracker::InternalStopRecording()
 {
   LOG_TRACE( "vtkPhidgetSpatialTracker::InternalStopRecording" );   
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::InternalUpdate()
-{
-  LOG_TRACE( "vtkPhidgetSpatialTracker::InternalUpdate" ); 
   return PLUS_SUCCESS;
 }
 
