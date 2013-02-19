@@ -439,6 +439,9 @@ protected:
 
   vtkSetStringMacro(DefaultOutputChannel);
 
+  vtkSetMacro(ForceSingleThreaded, bool);
+  vtkGetMacro(ForceSingleThreaded, bool);
+
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
 
@@ -499,6 +502,9 @@ protected:
 
   /*! Is this device correctly configured? */
   bool CorrectlyConfigured;
+
+  /*! Force single threaded for this device, used for callback based acquisition */
+  bool ForceSingleThreaded;
 
 protected:
   /*
