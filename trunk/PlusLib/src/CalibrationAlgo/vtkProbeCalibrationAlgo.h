@@ -93,6 +93,8 @@ public:
   /*! Set/get the calibration date and time in string format */
   vtkGetStringMacro(CalibrationDate);
 
+  double GetCalibrationReprojectionError3DMean();
+
   /*! Get mean validation 3D reprojection error */
   //vtkGetMacro(ValidationReprojectionError3DMean, double);
   /*! Get standard deviation of validation 3D reprojection errors */
@@ -121,15 +123,15 @@ public:
   PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
 
 
-  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix<double> *imageToProbeTransformMatrixVnl); 
+  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrixVnl); 
 
   vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
   {
     return SpatialCalibrationOptimizer;
   };
 
-  void ComputeError2d(const vnl_matrix<double> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
-  void ComputeError3d(const vnl_matrix<double> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
+  void ComputeError2d(const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
+  void ComputeError3d(const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
 
 protected:
 
@@ -141,6 +143,11 @@ protected:
     LAST_PREPROCESSED_WIRE_POS_ID // this must be the last type
   };
 
+  void ComputeError3d(std::vector<double> &reprojectionErrors, PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix);
+
+  void ComputeError2d(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, 
+    double &errorMean, double &errorStDev, double &errorRms,
+    std::vector< std::vector< vnl_vector_fixed<double,2> > >* ReprojectionError2Ds=NULL);
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
@@ -157,8 +164,8 @@ protected:
     \param endFrame Last frame that is used from the tracked frame list for the error computation (in case of -1 it starts with the last)
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the input tracked frame list is of calibration or validation
-  */
-  PlusStatus ComputeReprojectionErrors3D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType);
+  */  
+  PlusStatus ComputeReprojectionErrors3D(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
 
   /*!
     Calculate 2D reprojection errors
@@ -168,15 +175,14 @@ protected:
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the input tracked frame list is of calibration or validation
   */
-  PlusStatus ComputeReprojectionErrors2D( vtkTrackedFrameList* trackedFrameList, int startFrame, int endFrame, vtkTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType);
+  PlusStatus ComputeReprojectionErrors2D(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
 
   /*! 
     Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
     \param imageToProbeTransformMatrixVnl the calculated image to probe matrix
-    \param transformRepository the transform repository to populate
-    \param computeImageToProbeTransformZaxis if true then the z axis in the image to prove transform is computed as a cross product of x and y axis, with an average length of x and y axes
+    \param transformRepository the transform repository to populate   
   */
-  void SetAndValidateImageToProbeTransform( const vnl_matrix<double> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository, bool computeImageToProbeTransformZaxis = true );
+  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository);
 
   /*! 
     Save results and error report to XML 
@@ -186,13 +192,9 @@ protected:
   /*!
     \param outliers indices of the measurement points that was found to be an outlier when computing any matrix row
   */
-  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod(vnl_matrix<double> &imageToProbeTransformMatrixVnl, std::set<int> &outliers);
+  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod(vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrixVnl, std::set<int> &outliers);
 
-  /*! Updates these arrays by removing outliers:
-  NonOutlierCalibrationMiddleWireIntersectionPointsPos_Image
-  NonOutlierCalibrationMiddleWireIntersectionPointsPos_Probe
-  NonOutlierProbeToPhantomTransforms
-  NonOutlierCalibrationAllWiresIntersectionPointsPos_Image
+  /*! Remove outliers from calibration data
   */
   void UpdateNonOutlierData(const std::set<int>& outliers);
 
@@ -249,12 +251,6 @@ protected:
     std::vector< vnl_vector_fixed<double,4> > MiddleWireIntersectionPointsPos_Probe;
 
     /*! 
-      These positions come from the segmented positions and the phantom geometry. 
-      nwire values
-    */
-    std::vector< vnl_vector_fixed<double,4> > MiddleWireIntersectionPointsPos_Phantom;
-
-    /*! 
       Vector containing all Probe to Phantom transforms 
     */
     vnl_matrix_fixed<double,4,4> ProbeToPhantomTransform;
@@ -271,21 +267,29 @@ protected:
     /*! 
       Vector holding the 2D reprojection errors for each wire in all validation images (outermost vector holds the wires, the one inside it holds the images, and the inner holds the X and Y errors)
       Computed as X and Y distances between the actual segmented position of the wires and the intersections of the wires with the image planes
+      indices: [frame][wire][x/y]
     */
-    std::vector< std::vector< std::vector<double> > > ReprojectionError2Ds;
+    std::vector< std::vector< vnl_vector_fixed<double,2> > > ReprojectionError2Ds;
 
-    /*! Mean validation 2D reprojection error for each wire (two elements, first for the X axis and the other for Y) */
-    std::vector< std::vector<double> > ReprojectionError2DMeans;
+    /*! Mean validation 2D reprojection error for each wire (two elements, first for the X axis and the other for Y) (using confidence interval) 
+    indices: [wire][x/y]
+    */
+    std::vector< vnl_vector_fixed<double,2> > ReprojectionError2DMeans;
 
-    /*! Standard deviation of validation 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) */
-    std::vector< std::vector<double> > ReprojectionError2DStdDevs;
+    /*! Standard deviation of validation 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) (using confidence interval) 
+    indices: [wire][x/y]
+    */
+    std::vector< vnl_vector_fixed<double,2> > ReprojectionError2DStdDevs;
 
-    /*! Mean validation 3D reprojection error */
+    /*! Mean validation 3D reprojection error (using confidence interval) */
     double ReprojectionError3DMean;
 
-    /*! Standard deviation of validation 3D reprojection errors */
+    /*! Standard deviation of validation 3D reprojection errors (using confidence interval) */
     double ReprojectionError3DStdDev;
 
+    /*! Maximum 3D reprojection error (using confidence interval) */
+    double ReprojectionError3DMax;
+    
     double RmsError2D;
 
     NWireErrorType()
