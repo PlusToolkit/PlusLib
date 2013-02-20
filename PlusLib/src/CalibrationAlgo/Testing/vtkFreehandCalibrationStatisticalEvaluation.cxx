@@ -273,7 +273,7 @@ int main (int argc, char* argv[])
   outputFile << "Number of methods = "  << numberOfMethods << "\n";
   std::vector<double> calibError;
   std::vector<double> validError;
-  vnl_matrix<double> imageToProbeTransformMatrixVnl(4,4);
+  vnl_matrix_fixed<double,4,4> imageToProbeTransformMatrixVnl;
   int *frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
   outputFile << "Frame size = "  << frameSize[0] << " " << frameSize[1] << "\n";
   for (int i=0; i<numberOfConfigurations; i++)

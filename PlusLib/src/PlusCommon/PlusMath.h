@@ -234,10 +234,9 @@ public:
   /*! 
   Convenience function to compute a percentile (percentile % of the values are smaller than the computed value)
   \param values Input values
-  \param percentile Percentile value (between 0.0 and 1.0)
+  \param percentile Percents of values to keep (between 0.0 and 1.0)
   */
-  static PlusStatus ComputePercentile(const std::vector<double> &values, double percentile, double &foundValue);
-
+  static PlusStatus ComputePercentile(const std::vector<double> &values, double percentileToKeep, double &valueMax, double &valueMean, double &valueStdev);
 
 protected:
   PlusMath(); 

@@ -606,21 +606,16 @@ PlusStatus PlusMath::ComputeRms(const std::vector<double> &values, double &rms)
 }
 
 //----------------------------------------------------------------------------
-static PlusStatus ComputePercentile(const std::vector<double> &values, double percentile, double &foundValue)
+PlusStatus PlusMath::ComputePercentile(const std::vector<double> &values, double percentileToKeep, double &valueMax, double &valueMean, double &valueStdev)
 {
-  std::vector<double> valuesCopy=values;
-  if (percentile>=0.5)
-  {
-    // find the n-th largest value    
-    int n = ROUND( (double)valuesCopy.size() * (1.0-percentile) );
-    std::nth_element(valuesCopy.begin(), valuesCopy.begin()+n, valuesCopy.end(), std::greater<double>());
-    foundValue=valuesCopy[n];
-  }
-  else
-  {
-    // find the n-th smallest value    
-    int n = ROUND( (double)valuesCopy.size() * percentile );
-    std::nth_element(valuesCopy.begin(), valuesCopy.begin()+n, valuesCopy.end(), std::less<double>());
-    foundValue=valuesCopy[n];
-  }
+  std::vector<double> sortedValues=values;
+  std::sort(sortedValues.begin(), sortedValues.end());
+
+  int numberOfKeptValues = ROUND( (double)sortedValues.size() * percentileToKeep );
+  sortedValues.erase(sortedValues.begin()+numberOfKeptValues, sortedValues.end());
+
+  valueMax=sortedValues.back();
+  ComputeMeanAndStdev(sortedValues, valueMean, valueStdev);
+
+  return PLUS_SUCCESS;
 }
