@@ -273,7 +273,7 @@ int main (int argc, char* argv[])
   outputFile << "Number of methods = "  << numberOfMethods << "\n";
   std::vector<double> calibError;
   std::vector<double> validError;
-  vnl_matrix_fixed<double,4,4> imageToProbeTransformMatrixVnl;
+  vnl_matrix_fixed<double,4,4> imageToProbeTransformMatrix;
   int *frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
   outputFile << "Frame size = "  << frameSize[0] << " " << frameSize[1] << "\n";
   for (int i=0; i<numberOfConfigurations; i++)
@@ -308,7 +308,7 @@ int main (int argc, char* argv[])
           //return EXIT_FAILURE;
         }
 
-        freehandCalibration->GetCalibrationReport(&calibError, &validError, &imageToProbeTransformMatrixVnl); 
+        freehandCalibration->GetCalibrationReport(&calibError, &validError, &imageToProbeTransformMatrix); 
         // TODO: double-check if the reported values matches the expected values
 
         outputFile << "Calibration error = ";
@@ -321,7 +321,7 @@ int main (int argc, char* argv[])
         {
           for (int n=0; n<4;n++)
           {
-            outputFile << imageToProbeTransformMatrixVnl(m,n) << " ";
+            outputFile << imageToProbeTransformMatrix(m,n) << " ";
           }
           outputFile << "\n ";
         }

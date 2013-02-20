@@ -43,9 +43,8 @@ public:
     m_CalibrationOptimizer=calibrationOptimizer;
   }
 
-  static PlusStatus GetTransformMatrix(vnl_matrix<double>& imageToProbeTransform_vnl, const ParametersType & imageToProbeTransformParameters)
+  static PlusStatus GetTransformMatrix(vnl_matrix_fixed<double,4,4>& imageToProbeTransform_vnl, const ParametersType & imageToProbeTransformParameters)
   {
-    imageToProbeTransform_vnl.set_size(4,4);
     imageToProbeTransform_vnl.set_identity();
 
     if (imageToProbeTransformParameters.GetSize()!=7 && imageToProbeTransformParameters.GetSize()!=8)
@@ -79,7 +78,7 @@ public:
     return PLUS_SUCCESS;
   }
 
-  static PlusStatus GetTransformParameters(ParametersType& imageToProbeTransformParameters, const vnl_matrix<double>& imageToProbeTransform_vnl)
+  static PlusStatus GetTransformParameters(ParametersType& imageToProbeTransformParameters, const vnl_matrix_fixed<double,4,4>& imageToProbeTransform_vnl)
   {
     if (imageToProbeTransformParameters.GetSize()!=7 && imageToProbeTransformParameters.GetSize()!=8)
     {
@@ -88,9 +87,9 @@ public:
     }    
 
     // Decompose the initial calibration matrix to an orthogonal transformation matrix, scaling vector, and translation vector
-    vnl_matrix<double> rotationMatrix= imageToProbeTransform_vnl.extract(3,3);
+    vnl_matrix_fixed<double,3,3> rotationMatrix= imageToProbeTransform_vnl.extract(3,3);
     vnl_svd<double> svd(rotationMatrix);
-    vnl_matrix<double> orthogonalizedRotationMatrix(3, 3);
+    vnl_matrix<double> orthogonalizedRotationMatrix;
     orthogonalizedRotationMatrix = svd.U() * svd.V().transpose(); 
     double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
 
@@ -123,7 +122,7 @@ public:
 
   double GetValue( const ParametersType & imageToProbeTransformParameters ) const
   {
-    vnl_matrix<double> imageToProbeTransform_vnl;
+    vnl_matrix_fixed<double,4,4> imageToProbeTransform_vnl;
     GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeTransformParameters);    
     double errorMean=0.0;
     double errorStDev=0.0;
@@ -222,15 +221,15 @@ void vtkSpatialCalibrationOptimizer::SetProbeCalibrationAlgo(vtkProbeCalibration
 }
 
 //--------------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix<double> &transformationMatrix, double &errorMean, double &errorStDev, double &errorRms)
+void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix, double &errorMean, double &errorStDev, double &errorRms)
 {
   switch (this->OptimizationMethod)
   {
   case MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D:
-    this->ProbeCalibrationAlgo->ComputeError3d(transformationMatrix, errorMean, errorStDev, errorRms);
+    this->ProbeCalibrationAlgo->ComputeError3d(imageToProbeTransformationMatrix, errorMean, errorStDev, errorRms);
     break;
   case MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D:
-    this->ProbeCalibrationAlgo->ComputeError2d(transformationMatrix, errorMean, errorStDev, errorRms);
+    this->ProbeCalibrationAlgo->ComputeError2d(imageToProbeTransformationMatrix, errorMean, errorStDev, errorRms);
     break;
   default:
     LOG_ERROR("Invalid cost function");
@@ -238,13 +237,13 @@ void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix<double> &tran
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::ShowTransformation(const vnl_matrix<double> &imageToProbeTransformationMatrix)
+PlusStatus vtkSpatialCalibrationOptimizer::ShowTransformation(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix)
 {
   LOG_INFO("Translation = [" << imageToProbeTransformationMatrix.get(0,3) << " " << imageToProbeTransformationMatrix.get(1,3) << " " << imageToProbeTransformationMatrix.get(2,3) << " ]");
 
-  vnl_matrix<double> rotationMatrix=imageToProbeTransformationMatrix.extract(3,3);
+  vnl_matrix_fixed<double,3,3> rotationMatrix=imageToProbeTransformationMatrix.extract(3,3);
   vnl_svd<double> svd(rotationMatrix);
-  vnl_matrix<double> orthogonalizedRotationMatrix(3, 3);
+  vnl_matrix<double> orthogonalizedRotationMatrix;
   orthogonalizedRotationMatrix = svd.U() * svd.V().transpose(); 
   double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
   LOG_INFO("Scale = [" << scale[0] << " " << scale[1] << " " << scale[2] << " ]");
@@ -271,23 +270,23 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   DistanceToWiresCostFunction::Pointer costFunction = new DistanceToWiresCostFunction(this);
 
   DistanceToWiresCostFunction::ParametersType imageToProbeSeedTransformParameters(costFunction->GetNumberOfParameters());
-  DistanceToWiresCostFunction::GetTransformParameters(imageToProbeSeedTransformParameters, this->ImageToProbeSeedTransformMatrixVnl);
+  DistanceToWiresCostFunction::GetTransformParameters(imageToProbeSeedTransformParameters, this->ImageToProbeSeedTransformMatrix);
 
   double errorMean=0.0;
   double errorStDev=0.0;
   double errorRms=0.0;
-  ComputeError(this->ImageToProbeSeedTransformMatrixVnl, errorMean, errorStDev, errorRms);
+  ComputeError(this->ImageToProbeSeedTransformMatrix, errorMean, errorStDev, errorRms);
   LOG_INFO("Initial cost function value with unconstrained matrix = " << errorRms );
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrixVnl, vtkMatrix); 
+    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix, vtkMatrix); 
     PlusMath::LogVtkMatrix(vtkMatrix);
   }
 
   double initialError=costFunction->GetValue(imageToProbeSeedTransformParameters);
   LOG_INFO("Initial cost function value with constrained matrix= " << initialError );
   {
-    vnl_matrix<double> imageToProbeTransform_vnl;
+    vnl_matrix_fixed<double,4,4> imageToProbeTransform_vnl;
     DistanceToWiresCostFunction::GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeSeedTransformParameters);
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransform_vnl, vtkMatrix); 
@@ -367,10 +366,10 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 
   // Store the matrix
 
-  costFunction->GetTransformMatrix(this->ImageToProbeTransformMatrixVnl, optimizer->GetCurrentPosition());
+  costFunction->GetTransformMatrix(this->ImageToProbeTransformMatrix, optimizer->GetCurrentPosition());
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrixVnl, vtkMatrix); 
+    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix, vtkMatrix); 
     PlusMath::LogVtkMatrix(vtkMatrix);
   }
 
@@ -378,15 +377,15 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   LOG_INFO("Cost function = " << GetOptimizationMethodAsString(this->OptimizationMethod));
 
   LOG_INFO("Without optimization:");
-  ShowTransformation(this->ImageToProbeSeedTransformMatrixVnl);
+  ShowTransformation(this->ImageToProbeSeedTransformMatrix);
 
   LOG_INFO("With optimization:");
-  ShowTransformation(this->ImageToProbeTransformMatrixVnl);
+  ShowTransformation(this->ImageToProbeTransformMatrix);
 
   vtkSmartPointer<vtkMatrix4x4> imageToProbeSeedTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
-  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrixVnl,imageToProbeSeedTransformMatrixVtk);
-  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrixVnl,imageToProbeTransformMatrixVtk);
+  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix,imageToProbeSeedTransformMatrixVtk);
+  PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix,imageToProbeTransformMatrixVtk);
   double angleDifference = PlusMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
   LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
 
@@ -411,15 +410,15 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 }
 
 //----------------------------------------------------------------------------
-vnl_matrix<double> vtkSpatialCalibrationOptimizer::GetOptimizedImageToProbeTransformMatrix()
+vnl_matrix_fixed<double,4,4> vtkSpatialCalibrationOptimizer::GetOptimizedImageToProbeTransformMatrix()
 {
-  return this->ImageToProbeTransformMatrixVnl;
+  return this->ImageToProbeTransformMatrix;
 }
 
 //----------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::SetImageToProbeSeedTransform(const vnl_matrix<double> &imageToProbeTransformMatrixVnl)
+void vtkSpatialCalibrationOptimizer::SetImageToProbeSeedTransform(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix)
 {
-  this->ImageToProbeSeedTransformMatrixVnl=imageToProbeTransformMatrixVnl;
+  this->ImageToProbeSeedTransformMatrix=imageToProbeTransformMatrix;
 }
 
 
