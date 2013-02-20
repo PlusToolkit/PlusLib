@@ -94,15 +94,10 @@ public:
   vtkGetStringMacro(CalibrationDate);
 
   double GetCalibrationReprojectionError3DMean();
+  double GetCalibrationReprojectionError3DStdDev();
 
-  /*! Get mean validation 3D reprojection error */
-  //vtkGetMacro(ValidationReprojectionError3DMean, double);
-  /*! Get standard deviation of validation 3D reprojection errors */
-  //vtkGetMacro(ValidationReprojectionError3DStdDev, double);
-  /*! Get mean calibration 3D reprojection error */
-  //vtkGetMacro(CalibrationReprojectionError3DMean, double);
-  /*! Get standard deviation of calibration 3D reprojection errors */
-  //vtkGetMacro(CalibrationReprojectionError3DStdDev, double);
+  double GetValidationReprojectionError3DMean();
+  double GetValidationReprojectionError3DStdDev();
 
   /*! Get the image coordinate frame name */
   vtkGetStringMacro(ImageCoordinateFrame);
@@ -259,13 +254,14 @@ protected:
     /*! 
       Vector holding the 3D reprojection errors for each NWire in all validation images (outer vector is for the NWires, inner one is for the images)
       Computed as a distance between the actual segmented position of the middle wire transformed into phantom frame and the computed positions (see MiddleWirePositionsInPhantomFrame)
+      indices: [wire][frame]
     */
     std::vector< std::vector<double> > ReprojectionError3Ds;
 
     /*! 
       Vector holding the 2D reprojection errors for each wire in all validation images (outermost vector holds the wires, the one inside it holds the images, and the inner holds the X and Y errors)
       Computed as X and Y distances between the actual segmented position of the wires and the intersections of the wires with the image planes
-      indices: [frame][wire][x/y]
+      indices: [wire][frame][x/y]
     */
     std::vector< std::vector< vnl_vector_fixed<double,2> > > ReprojectionError2Ds;
 

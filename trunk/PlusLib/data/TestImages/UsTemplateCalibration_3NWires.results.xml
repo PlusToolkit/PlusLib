@@ -9,17 +9,17 @@
       />
   </CalibrationResults>
   <ErrorReport>
-    <ReprojectionError3DStatistics ValidationMeanMm="2.17086" ValidationStdDevMm="1.15027" CalibrationMeanMm="2.25279" CalibrationStdDevMm="0.996715"/>
+    <ReprojectionError3DStatistics ValidationMeanMm="2.15308" ValidationStdDevMm="1.11495" CalibrationMeanMm="2.24501" CalibrationStdDevMm="0.983864"/>
     <ReprojectionError2DStatistics>
-      <Wire Name="Wire1" ValidationMeanPx="1.04848 -4.19673" ValidationStdDevPx="2.44843 4.31786" CalibrationMeanPx="0.0991941 -0.299816" CalibrationStdDevPx="4.01445 7.68423"/>
-      <Wire Name="Wire2" ValidationMeanPx="2.13317 -4.65848" ValidationStdDevPx="3.0486 5.07817" CalibrationMeanPx="-0.586544 0.203423" CalibrationStdDevPx="6.72236 6.88255"/>
-      <Wire Name="Wire3" ValidationMeanPx="1.04062 0.135485" ValidationStdDevPx="2.20971 5.86044" CalibrationMeanPx="-0.520528 6.78474" CalibrationStdDevPx="4.86473 6.84125"/>
-      <Wire Name="Wire4" ValidationMeanPx="0.674686 -6.96157" ValidationStdDevPx="3.46726 4.40605" CalibrationMeanPx="0.0435225 -2.46779" CalibrationStdDevPx="5.23364 7.67646"/>
-      <Wire Name="Wire5" ValidationMeanPx="-3.90692 -5.5121" ValidationStdDevPx="3.81711 5.42406" CalibrationMeanPx="-1.26157 -0.335095" CalibrationStdDevPx="3.05289 8.21448"/>
-      <Wire Name="Wire6" ValidationMeanPx="0.421168 -1.77185" ValidationStdDevPx="3.14043 5.7825" CalibrationMeanPx="0.20428 4.99337" CalibrationStdDevPx="5.27379 6.9053"/>
-      <Wire Name="Wire7" ValidationMeanPx="-0.856302 -7.33104" ValidationStdDevPx="4.57159 4.71558" CalibrationMeanPx="-0.727933 -2.32911" CalibrationStdDevPx="6.17184 7.32996"/>
-      <Wire Name="Wire8" ValidationMeanPx="1.2325 -5.45873" ValidationStdDevPx="4.7793 4.95035" CalibrationMeanPx="0.583469 -0.58379" CalibrationStdDevPx="7.6892 6.46092"/>
-      <Wire Name="Wire9" ValidationMeanPx="1.01017 -2.76246" ValidationStdDevPx="4.63116 6.16244" CalibrationMeanPx="1.9386 2.76142" CalibrationStdDevPx="5.82068 6.75452"/>
+      <Wire Name="Wire1" ValidationMeanPx="0.974958 -4.49155" ValidationStdDevPx="2.41053 4.40964" CalibrationMeanPx="-0.0195985 -0.329874" CalibrationStdDevPx="4.11252 7.96966"/>
+      <Wire Name="Wire2" ValidationMeanPx="2.39579 -4.90968" ValidationStdDevPx="3.21961 5.0884" CalibrationMeanPx="-1.31209 0.695461" CalibrationStdDevPx="7.31209 7.06103"/>
+      <Wire Name="Wire3" ValidationMeanPx="0.777832 0.772538" ValidationStdDevPx="2.45055 6.37473" CalibrationMeanPx="-0.984493 7.23964" CalibrationStdDevPx="5.17454 6.97373"/>
+      <Wire Name="Wire4" ValidationMeanPx="0.578025 -7.28513" ValidationStdDevPx="3.4093 4.53183" CalibrationMeanPx="0.285496 -3.11944" CalibrationStdDevPx="5.22103 8.03003"/>
+      <Wire Name="Wire5" ValidationMeanPx="-4.14555 -5.86682" ValidationStdDevPx="3.87984 5.51973" CalibrationMeanPx="-1.54859 -0.248571" CalibrationStdDevPx="3.3126 8.50801"/>
+      <Wire Name="Wire6" ValidationMeanPx="0.205719 -1.12378" ValidationStdDevPx="3.20938 6.32862" CalibrationMeanPx="-0.306754 5.45018" CalibrationStdDevPx="5.62553 7.03631"/>
+      <Wire Name="Wire7" ValidationMeanPx="-0.950271 -7.67337" ValidationStdDevPx="4.47903 4.84409" CalibrationMeanPx="-0.384061 -2.96657" CalibrationStdDevPx="6.21267 7.69083"/>
+      <Wire Name="Wire8" ValidationMeanPx="1.22253 -5.85148" ValidationStdDevPx="4.66521 5.13357" CalibrationMeanPx="0.216807 -0.479368" CalibrationStdDevPx="8.09153 6.61184"/>
+      <Wire Name="Wire9" ValidationMeanPx="0.797602 -3.19082" ValidationStdDevPx="4.61619 6.30414" CalibrationMeanPx="1.38947 3.21058" CalibrationStdDevPx="6.18156 6.88532"/>
     </ReprojectionError2DStatistics>
     <ValidationData>
       <Frame Index="0" SegmentationStatus="OK">
@@ -145,7 +145,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="0.444822"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="3.00607"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="1.67117"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="1.67118"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="1.2712 -1.34413"/>
@@ -468,8 +468,8 @@
         </SegmentedPoints>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="1.63708"/>
-          <ReprojectionError3D WireName="Wire5" ErrorMm="0.592847"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="0.729206"/>
+          <ReprojectionError3D WireName="Wire5" ErrorMm="0.592848"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="0.729207"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="0.65078 -1.67915"/>
@@ -522,7 +522,7 @@
         </SegmentedPoints>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="2.19329"/>
-          <ReprojectionError3D WireName="Wire5" ErrorMm="0.825423"/>
+          <ReprojectionError3D WireName="Wire5" ErrorMm="0.825424"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.08484"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
@@ -629,7 +629,7 @@
           <Point WireName="Wire9" Position="283.938 480.554 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="0.882202"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="0.882203"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="1.53569"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.82265"/>
         </ReprojectionError3DList>
@@ -683,7 +683,7 @@
           <Point WireName="Wire9" Position="283.489 479.384 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="0.90596"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="0.905961"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="2.24671"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.51427"/>
         </ReprojectionError3DList>
@@ -737,7 +737,7 @@
           <Point WireName="Wire9" Position="282.237 479.197 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="0.999487"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="0.999488"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="2.49037"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.59214"/>
         </ReprojectionError3DList>
@@ -901,7 +901,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="1.25649"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="2.3774"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="1.88447"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="1.88448"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="-1.29716 -6.21879"/>
@@ -1169,7 +1169,7 @@
           <Point WireName="Wire9" Position="283.761 477.77 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="1.30778"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="1.30779"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="3.46535"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.63103"/>
         </ReprojectionError3DList>
@@ -1333,7 +1333,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="1.34439"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="3.44356"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="1.62496"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="1.62497"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="0.63546 -6.91995"/>
@@ -1439,7 +1439,7 @@
           <Point WireName="Wire9" Position="285.384 477.311 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="1.55029"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="1.5503"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="2.62811"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="1.50546"/>
         </ReprojectionError3DList>
@@ -1549,7 +1549,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="1.60679"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="2.70413"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="1.49693"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="1.49694"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="2.6487 -7.55139"/>
@@ -2360,7 +2360,7 @@
           <Point WireName="Wire9" Position="281.364 475.683 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="2.47987"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="2.47988"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="4.68786"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="5.12686"/>
         </ReprojectionError3DList>
@@ -2792,7 +2792,7 @@
           <Point WireName="Wire9" Position="282.15 476.964 0"/>
         </SegmentedPoints>
         <ReprojectionError3DList>
-          <ReprojectionError3D WireName="Wire2" ErrorMm="2.15284"/>
+          <ReprojectionError3D WireName="Wire2" ErrorMm="2.15285"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="4.24425"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="3.28502"/>
         </ReprojectionError3DList>
@@ -2847,7 +2847,7 @@
         </SegmentedPoints>
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="2.24753"/>
-          <ReprojectionError3D WireName="Wire5" ErrorMm="4.30533"/>
+          <ReprojectionError3D WireName="Wire5" ErrorMm="4.30534"/>
           <ReprojectionError3D WireName="Wire8" ErrorMm="3.30273"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
@@ -2956,7 +2956,7 @@
         <ReprojectionError3DList>
           <ReprojectionError3D WireName="Wire2" ErrorMm="2.06013"/>
           <ReprojectionError3D WireName="Wire5" ErrorMm="4.85102"/>
-          <ReprojectionError3D WireName="Wire8" ErrorMm="3.40027"/>
+          <ReprojectionError3D WireName="Wire8" ErrorMm="3.40028"/>
         </ReprojectionError3DList>
         <ReprojectionError2DList>
           <ReprojectionError2D WireName="Wire1" ErrorPx="-1.66752 -6.90208"/>
@@ -17809,5 +17809,5 @@
       </Frame>
     </CalibrationData>
   </ErrorReport>
-  <CalibrationFile Timestamp="091712_100110" FileName="091712_100110.Calibration.results.xml"/>
+  <CalibrationFile Timestamp="022013_140908" FileName="022013_140908.Calibration.results.xml"/>
 </ProbeCalibrationResult>
