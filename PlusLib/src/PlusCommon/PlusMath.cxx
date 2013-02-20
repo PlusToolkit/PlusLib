@@ -476,21 +476,7 @@ void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_
 }
 
 //----------------------------------------------------------------------------
-void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
-{
-	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
-
-	for (int row = 0; row < 4; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
-		}
-	}
-}
-
-//----------------------------------------------------------------------------
-void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
+void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
 
@@ -506,7 +492,6 @@ void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix
 }
 
 //----------------------------------------------------------------------------
-
 void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision/* = 3*/)
 {
 	LOG_TRACE("PlusMath::PrintVtkMatrix");
@@ -522,7 +507,14 @@ void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, 
 }
 
 //----------------------------------------------------------------------------
+void PlusMath::PrintMatrix(vnl_matrix_fixed<double,4,4> matrix, std::ostringstream &stream, int precision/* = 3*/)
+{
+  vtkSmartPointer<vtkMatrix4x4> matrixVtk=vtkSmartPointer<vtkMatrix4x4>::New();
+  ConvertVnlMatrixToVtkMatrix(matrix,matrixVtk);
+  PrintVtkMatrix(matrixVtk, stream, precision);
+}
 
+//----------------------------------------------------------------------------
 void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix, int precision/* = 3*/)
 {
 	LOG_TRACE("PlusMath::LogVtkMatrix");
@@ -533,7 +525,14 @@ void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix, int precision/* = 3*/)
 }
 
 //----------------------------------------------------------------------------
+void PlusMath::LogMatrix(const vnl_matrix_fixed<double,4,4>& matrix, int precision/* = 3*/)
+{
+  vtkSmartPointer<vtkMatrix4x4> matrixVtk=vtkSmartPointer<vtkMatrix4x4>::New();
+  ConvertVnlMatrixToVtkMatrix(matrix,matrixVtk);
+  LogVtkMatrix(matrixVtk, precision);
+}
 
+//----------------------------------------------------------------------------
 // Description
 // Calculate distance between a line (defined by two points) and a point
 double PlusMath::ComputeDistanceLinePoint( const double x[3], // linepoint 1

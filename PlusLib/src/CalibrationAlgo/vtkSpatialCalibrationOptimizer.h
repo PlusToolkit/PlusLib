@@ -76,15 +76,15 @@ public:
   PlusStatus Update();
 
   /*! Provides to the class the information necessary make the optimization */
-  PlusStatus SetInputDataForMiddlePointMethod(std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Image, std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Probe, vnl_matrix<double> *imageToProbeTransformMatrixVnl, std::set<int>* outliers);
+  PlusStatus SetInputDataForMiddlePointMethod(std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Image, std::vector< vnl_vector<double> > *calibrationMiddleWireIntersectionPointsPos_Probe, vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix, std::set<int>* outliers);
 
   /*! Provides to the class the information necessary make the optimization */
-  PlusStatus SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *calibrationAllWiresIntersectionPointsPos_Image, std::vector<NWire> *nWires, std::vector< vnl_matrix<double> > *probeToPhantomTransforms, vnl_matrix<double> *imageToProbeTransformMatrixVnl, std::set<int>* outliers);
+  PlusStatus SetOptimizerDataUsingNWires(std::vector< vnl_vector<double> > *calibrationAllWiresIntersectionPointsPos_Image, std::vector<NWire> *nWires, std::vector< vnl_matrix_fixed<double,4,4> > *probeToPhantomTransforms, vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix, std::set<int>* outliers);
 
   /*! Get optimized Image to Probe matrix */
-  vnl_matrix<double> GetOptimizedImageToProbeTransformMatrix();
+  vnl_matrix_fixed<double,4,4> GetOptimizedImageToProbeTransformMatrix();
 
-  void ComputeError(const vnl_matrix<double> &transformationMatrix, double &errorMean, double &errorStDev, double &errorRms);
+  void ComputeError(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix, double &errorMean, double &errorStDev, double &errorRms);
 
   bool GetIsotropicPixelSpacing() { return this->IsotropicPixelSpacing; }
   void SetIsotropicPixelSpacing(bool isotropicPixelSpacing) { this->IsotropicPixelSpacing=isotropicPixelSpacing; }
@@ -93,13 +93,13 @@ public:
   void SetOptimizationMethod(OptimizationMethodType optimizationMethod) { this->OptimizationMethod=optimizationMethod; }
   static char* GetOptimizationMethodAsString(OptimizationMethodType type);
 
-  void SetImageToProbeSeedTransform(const vnl_matrix<double> &imageToProbeTransformMatrixVnl);
+  void SetImageToProbeSeedTransform(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
 
   void SetProbeCalibrationAlgo(vtkProbeCalibrationAlgo* probeCalibrationAlgo);
 
 protected:
 
-  PlusStatus ShowTransformation(const vnl_matrix<double> &transformationMatrix);
+  PlusStatus ShowTransformation(const vnl_matrix_fixed<double,4,4> &transformationMatrix);
   
   vtkSpatialCalibrationOptimizer();
   virtual  ~vtkSpatialCalibrationOptimizer();
@@ -112,10 +112,10 @@ protected:
   OptimizationMethodType OptimizationMethod;
 
   /*! Store the seed for the optimization process */
-  vnl_matrix<double> ImageToProbeSeedTransformMatrixVnl;
+  vnl_matrix_fixed<double,4,4> ImageToProbeSeedTransformMatrix;
 
   /*! Store the result of the optimization process */
-  vnl_matrix<double> ImageToProbeTransformMatrixVnl;
+  vnl_matrix_fixed<double,4,4> ImageToProbeTransformMatrix;
    
   /*! store the residuals used during the optimization */
   std::vector<double> MinimizationResiduals;

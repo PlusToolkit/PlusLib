@@ -85,16 +85,19 @@ public:
   static std::string GetTransformParametersString(vtkMatrix4x4* matrix); 
 
   /*! Convert matrix between VTK and VNL */
-	static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
-	static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
+	static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
   static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix );
 
 
   /*! Print VTK matrix into STL stream */
   static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision = 3);
+  static void PrintMatrix(vnl_matrix_fixed<double,4,4> matrix, std::ostringstream &stream, int precision = 3);
 
   /*! Print VTK matrix into log as info */
   static void LogVtkMatrix(vtkMatrix4x4* matrix, int precision = 3);
+
+  /*! Print VTK matrix into log as info */
+  static void LogMatrix(const vnl_matrix_fixed<double,4,4>& matrix, int precision = 3);
   
   // Fast floor implementation. Adopted from vtkImageReslice.
 

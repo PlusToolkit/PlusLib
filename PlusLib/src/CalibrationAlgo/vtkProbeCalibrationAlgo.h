@@ -114,16 +114,14 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   
   /*! Get/set the calibration result transformation matrix */
-  vtkGetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
-  /*! Get/set the calibration result transformation matrix */
-  vtkSetObjectMacro(ImageToProbeTransformMatrix, vtkMatrix4x4);
+  void GetImageToProbeTransformMatrix(vtkMatrix4x4* imageToProbeMatrix);
 
 public:
   /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
   PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
 
 
-  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrixVnl); 
+  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix); 
 
   vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
   {
@@ -179,10 +177,10 @@ protected:
 
   /*! 
     Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
-    \param imageToProbeTransformMatrixVnl the calculated image to probe matrix
+    \param imageToProbeTransformMatrix the calculated image to probe matrix
     \param transformRepository the transform repository to populate   
   */
-  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrixVnl, vtkTransformRepository* transformRepository);
+  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix, vtkTransformRepository* transformRepository);
 
   /*! 
     Save results and error report to XML 
@@ -192,7 +190,7 @@ protected:
   /*!
     \param outliers indices of the measurement points that was found to be an outlier when computing any matrix row
   */
-  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod(vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrixVnl, std::set<int> &outliers);
+  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod(vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix, std::set<int> &outliers);
 
   /*! Remove outliers from calibration data
   */
@@ -231,7 +229,7 @@ protected:
   char* ReferenceCoordinateFrame;
 
   /*! The result of the calibration */
-  vtkMatrix4x4* ImageToProbeTransformMatrix;
+  vnl_matrix_fixed<double,4,4> ImageToProbeTransformMatrix;
 
   /*! List of NWires used for calibration and error computation */
   std::vector<NWire> NWires;
