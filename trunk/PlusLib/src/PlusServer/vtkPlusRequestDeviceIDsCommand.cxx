@@ -90,23 +90,14 @@ PlusStatus vtkPlusRequestDeviceIDsCommand::Execute()
     else
     {
       LOG_ERROR("Unable to retrieve device list.");
-      reply << "Unable to retrieve device list,";
+      reply << "Unable to retrieve device list, failed.";
       status = PLUS_FAIL;
     }    
   }
   else
   {
-    reply << "Unknown command,";
+    reply << "Unknown command, failed.";
     SetCommandCompleted(PLUS_FAIL, reply.str());
-  }
-
-  if (status == PLUS_SUCCESS)
-  {
-    reply << " completed successfully.";
-  }
-  else
-  {
-    reply << " failed.";
   }
 
   SetCommandCompleted(status, reply.str());
