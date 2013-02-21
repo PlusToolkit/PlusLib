@@ -5,18 +5,17 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-
-#include "vtkObjectFactory.h"
-#include "vtkXMLUtilities.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-
-#include "vtkPlusCommandProcessor.h"
-#include "vtkRecursiveCriticalSection.h"
-
+#include "vtkObjectFactory.h"
 #include "vtkPlusCommand.h"
-#include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
+#include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusRequestDeviceIDsCommand.h"
+#include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkXMLUtilities.h"
 
 vtkStandardNewMacro( vtkPlusCommandProcessor );
 
@@ -36,6 +35,16 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   }
   {
     vtkPlusCommand* cmd=vtkPlusReconstructVolumeCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd=vtkPlusRequestDeviceIDsCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd=vtkPlusRequestChannelIDsCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
