@@ -1382,9 +1382,9 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+    for ( int tool = 0; tool < dataSourcesElement->GetNumberOfNestedElements(); tool++ )
     {
-      vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+      vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(tool); 
       if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
       {
         // if this is not a data source element, skip it
