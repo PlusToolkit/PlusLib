@@ -879,18 +879,6 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
 
   this->InternalWriteInputChannels(config);
 
-  deviceDataElement->SetIntAttribute("AcquisitionRate", this->GetAcquisitionRate());
-  
-  deviceDataElement->SetAttribute("UsImageOrientation", PlusVideoFrame::GetStringFromUsImageOrientation(this->GetDeviceImageOrientation()));
-  if( this->VideoSources.size() != 0 )
-  {
-    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetVideoLocalTimeOffsetSec());
-  }
-  else if( this->Tools.size() != 0 )
-  {
-    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetToolLocalTimeOffsetSec());
-  }
-
   return PLUS_SUCCESS;
 }
 
