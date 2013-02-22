@@ -324,6 +324,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 
   this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
   this->Internal->BKcmdCtrlSettings = this->Internal->pBKcmdCtrl->GetCmdCtrlSettings();    // Get what has not failed !!!
+  this->Internal->BKcmdCtrlSettings.autoUpdate = true;
 
   this->Internal->InitializeParametersFromOEM();
 
@@ -342,6 +343,9 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
   this->Internal->BKAcqSettings.SetLinesPerFrame(numLines);
   this->Internal->BKAcqSettings.SetRFLineLength(numSamples);  
   this->Internal->BKAcqSettings.SetFramesToGrab(0); // continuous
+
+  std::cout << "Before subscribe to scan plane events" << std::endl;
+  this->Internal->pBKcmdCtrl->SubscribeScanPlaneEvents();
 
   if (!this->Internal->BKAcqSapera.Init(this->Internal->BKAcqSettings))
   {
