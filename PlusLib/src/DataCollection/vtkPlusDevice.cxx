@@ -820,6 +820,10 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     {
       this->SetForceSingleThreaded(true);
     }
+    else if( STRCASECMP(forceSingle, "false") == 0 )
+    {
+      this->SetForceSingleThreaded(false);
+    }
   }
 
   return PLUS_SUCCESS;
