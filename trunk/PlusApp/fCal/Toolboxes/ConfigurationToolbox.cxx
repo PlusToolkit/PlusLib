@@ -635,7 +635,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
   if( fCalElement != NULL )
   {
     // default selected device
-    const char* selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
+    selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
   }
 
   vtkPlusDevice* aDevice(NULL);

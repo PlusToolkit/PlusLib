@@ -9,19 +9,19 @@
     <Device
       Id="TrackerDevice"
       Type="PolarisTracker"
-      SerialPort="4"
+      SerialPort="3"
       BaudRate="115200"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Probe" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
         <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
         <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
       </DataSources>
 
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
-          <DataSource Id="Tool"/>
+          <DataSource Id="Probe"/>
           <DataSource Id="Reference"/>
           <DataSource Id="Stylus"/>
         </OutputChannel>
