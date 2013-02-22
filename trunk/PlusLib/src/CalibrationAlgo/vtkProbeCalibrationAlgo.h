@@ -9,16 +9,13 @@
 
 #include "vtkObject.h"
 
-#include "vtkTransform.h"
+#include <string>
+#include <vector>
+#include <set>
 
 #include "vnl/vnl_matrix.h"
 
-#include <string>
-#include <vector>
-
 #include "vtkSpatialCalibrationOptimizer.h"
-
-#include <set>
 
 class TrackedFrame; 
 class vtkTrackedFrameList; 
@@ -44,6 +41,16 @@ public:
   */
   PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
+  /*! Get the image coordinate frame name */
+  vtkGetStringMacro(ImageCoordinateFrame);
+  /*! Get the probe coordinate frame name */
+  vtkGetStringMacro(ProbeCoordinateFrame);
+  /*! Get the phantom coordinate frame name */
+  vtkGetStringMacro(PhantomCoordinateFrame);
+  /*! Get the reference coordinate frame name */
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+
+
   /*!
     Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
     \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
@@ -66,7 +73,30 @@ public:
   */
   PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, vtkTransformRepository* transformRepository, const std::vector<NWire> &nWires ); 
 
-  /*!
+  /*! Get the calibration result transformation matrix */
+  void GetImageToProbeTransformMatrix(vtkMatrix4x4* imageToProbeMatrix);
+
+  /*! Set the calibration date and time in string format */
+  vtkSetStringMacro(CalibrationDate); 
+  /*! Get the calibration date and time in string format */
+  vtkGetStringMacro(CalibrationDate);
+
+  /*! Get the mean 3D out-of-plane error (OPE), computed from all calibration frames, taking into account the confidence interval. */
+  double GetCalibrationReprojectionError3DMean();
+  /*! Get the 3D out-of-plane error (OPE) standard deviation, computed from all calibration frames, taking into account the confidence interval. */
+  double GetCalibrationReprojectionError3DStdDev();
+
+  /*! Get the mean 3D out-of-plane error (OPE), computed from all validation frames, taking into account the confidence interval. */
+  double GetValidationReprojectionError3DMean();
+  /*! Get the 3D out-of-plane error (OPE) standard deviation, computed from all validation frames, taking into account the confidence interval. */
+  double GetValidationReprojectionError3DStdDev();
+  
+  /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
+  PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
+
+  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix); 
+
+    /*!
     Assembles the result string to display
     \param precision Number of decimals printed in the string
     \return String containing results
@@ -84,39 +114,7 @@ public:
     \param probeCalibrationResult Output XML data element 
   */
   PlusStatus GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, 
-    int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, 
-    vtkXMLDataElement* probeCalibrationResult); 
-
-public:
-  /*! Set/get the calibration date and time in string format */
-  vtkSetStringMacro(CalibrationDate); 
-  /*! Set/get the calibration date and time in string format */
-  vtkGetStringMacro(CalibrationDate);
-
-  double GetCalibrationReprojectionError3DMean();
-  double GetCalibrationReprojectionError3DStdDev();
-
-  double GetValidationReprojectionError3DMean();
-  double GetValidationReprojectionError3DStdDev();
-
-  /*! Get the image coordinate frame name */
-  vtkGetStringMacro(ImageCoordinateFrame);
-  /*! Get the probe coordinate frame name */
-  vtkGetStringMacro(ProbeCoordinateFrame);
-  /*! Get the phantom coordinate frame name */
-  vtkGetStringMacro(PhantomCoordinateFrame);
-  /*! Get the reference coordinate frame name */
-  vtkGetStringMacro(ReferenceCoordinateFrame);
-  
-  /*! Get/set the calibration result transformation matrix */
-  void GetImageToProbeTransformMatrix(vtkMatrix4x4* imageToProbeMatrix);
-
-public:
-  /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
-  PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
-
-
-  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix); 
+    int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult); 
 
   vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
   {

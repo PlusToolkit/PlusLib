@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
   std::string resultConfigFileName = "";
 
 #ifndef _WIN32
-  double inputTranslationErrorThreshold(LINUXTOLERANCE);
+  double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // IPEI method on linux can have up to 0.6mm error
   double inputRotationErrorThreshold(LINUXTOLERANCE);
 #else
   double inputTranslationErrorThreshold(0);
