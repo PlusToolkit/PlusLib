@@ -7,18 +7,12 @@ INCLUDE(${QT_USE_FILE})
 # Sources
 
 SET (CaptureClient_SRCS
-  CaptureClientMain.cxx
-  CaptureClientWindow.cxx
+  CaptureClientMain.cxx 
+  CaptureClientWindow.cxx 
   )
 
-if (WIN32)  
-  SET (CaptureClient_SRCS
-    ${CaptureClient_SRCS}
-    )
-endif (WIN32)  
-
 SET (CaptureClient_UI_HDRS
-    CaptureClientWindow.h
+    CaptureClientWindow.h 
   )
 
 SET (CaptureClient_UI_SRCS
@@ -56,16 +50,7 @@ SET (CaptureClient_LIBS
     ${QT_LIBRARIES} 
     CommonWidgets
     vtkPlusCommon
-    ITKIO
-    itkvnl 
-    itkvnl_algo 
-    vtkCommon 
-    vtkRendering 
-    vtkHybrid 
-    vtkCharts
-    vtkCalibrationAlgo 
     vtkDataCollection 
-    vtkVolumeReconstruction
     )
 
 IF (PLUS_USE_OpenIGTLink)

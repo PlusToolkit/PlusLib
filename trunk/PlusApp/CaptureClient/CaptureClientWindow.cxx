@@ -5,8 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CaptureClientWindow.h"
+#include "CaptureControlWidget.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
+#include "vtkVirtualStreamDiscCapture.h"
 #include "vtkXMLUtilities.h"
 #include <QDialog>
 
@@ -118,6 +120,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
         }
       }
 
+      this->ConfigureCaptureWidgets();
+
       // Close dialog
       connectDialog->done(0);
       connectDialog->hide();
@@ -129,6 +133,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
   else // Disconnect
   {
     m_DataCollector->Disconnect();
+
+    this->ConfigureCaptureWidgets();
 
     ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
     ui.deviceSetSelectorWidget->ShowResetTrackerButton(false);
@@ -172,6 +178,42 @@ PlusStatus CaptureClientWindow::StartDataCollection()
 PlusStatus CaptureClientWindow::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   // TODO : any reading that needs to be done
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus CaptureClientWindow::ConfigureCaptureWidgets()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    ui.captureWidgetGrid->removeWidget(*it);
+    delete *it;
+  }
+  m_CaptureWidgets.clear();
+
+  if( m_DataCollector->GetConnected() )
+  {
+    DeviceCollection aCollection;
+    if( m_DataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve list of devices.");
+      return PLUS_FAIL;
+    }
+
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
+    {
+      vtkPlusDevice* aDevice = *it;
+      if( dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice) != NULL )
+      {
+        vtkVirtualStreamDiscCapture* capDevice = dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice);
+        CaptureControlWidget* aWidget = new CaptureControlWidget(this, NULL);
+        aWidget->SetCaptureDevice(*capDevice);
+        ui.captureWidgetGrid->addWidget(aWidget);
+        m_CaptureWidgets.push_back(aWidget);
+      }
+    }
+  }
 
   return PLUS_SUCCESS;
 }

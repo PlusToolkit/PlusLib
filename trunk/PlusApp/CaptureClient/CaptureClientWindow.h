@@ -11,8 +11,9 @@ See License.txt for details.
 #include "ui_CaptureClientWindow.h"
 #include <QtGui/QMainWindow>
 
-class vtkPlusChannel;
+class CaptureControlWidget;
 class vtkDataCollector;
+class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
@@ -51,11 +52,15 @@ public:
     void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
 protected:
+  PlusStatus ConfigureCaptureWidgets();
+
   PlusStatus StartDataCollection();
 
   vtkDataCollector* m_DataCollector;
 
   vtkPlusChannel* m_SelectedChannel;
+
+  std::vector<CaptureControlWidget*> m_CaptureWidgets;
 
 private:
   Ui::CaptureClientMainWindow	ui;

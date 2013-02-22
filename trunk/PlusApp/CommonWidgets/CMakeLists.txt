@@ -18,6 +18,7 @@ SET (CommonWidgets_SRCS
   vtkDisplayableObject.cxx
   vtkImageVisualizer.cxx
   vtk3DObjectVisualizer.cxx
+  CaptureControlWidget.cxx 
   )
 
 if (WIN32)	
@@ -36,12 +37,14 @@ SET (CommonWidgets_UI_HDRS
     vtkDisplayableObject.h
     vtkImageVisualizer.h
     vtk3DObjectVisualizer.h
+    CaptureControlWidget.h 
   )
 
 SET (CommonWidgets_UI_SRCS
   DeviceSetSelectorWidget.ui
   ConfigFileSaverDialog.ui
   SegmentationParameterDialog.ui
+  CaptureControlWidget.ui 
   )	
 
 SET (QT_Resources
