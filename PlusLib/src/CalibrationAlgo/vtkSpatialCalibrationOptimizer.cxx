@@ -306,7 +306,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 
   optimizer->SetMaximumNumberOfIterations( 30000 ); // default: 500, but often convergence needs 10000+ iterations
   optimizer->SetParametersConvergenceTolerance( 1e-10 ); // default: 1e-8
-  optimizer->SetFunctionConvergenceTolerance( 1e-4 ); // default: 1e-4
+  optimizer->SetFunctionConvergenceTolerance( 1e-6 ); // default: 1e-4
   
   const double rotationParametersScale=1.0;
   const double translationParametersScale=0.005;
