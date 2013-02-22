@@ -43,7 +43,7 @@ public:
 
   virtual double GetMaximumFrameRate() const;
 
-  virtual void SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice){ m_Device = &aDevice; }
+  virtual void SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice);
 
 protected:
   /*!
@@ -58,9 +58,14 @@ protected:
   */
   void WriteToFile(QString& aFilename);
 
+  protected slots:
+    void StartStopButtonPressed();
+
+    void Update();
+
 protected:
   /*! Timer triggering the */
-  QTimer* m_RecordingTimer;
+  QTimer* m_UpdateTimer;
 
   /*! device to interact with */
   vtkVirtualStreamDiscCapture* m_Device;

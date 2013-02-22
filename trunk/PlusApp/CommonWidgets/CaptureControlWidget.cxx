@@ -15,14 +15,22 @@ See License.txt for details.
 //-----------------------------------------------------------------------------
 CaptureControlWidget::CaptureControlWidget(QWidget* aParent, Qt::WFlags aFlags)
 : QWidget(aParent, aFlags)
-, m_RecordingTimer(NULL)
+, m_UpdateTimer(NULL)
 , m_Device(NULL)
 {
   ui.setupUi(this);
 
   // Create and connect recording timer
-  m_RecordingTimer = new QTimer(this); 
-  connect(m_RecordingTimer, SIGNAL(timeout()), this, SLOT(Capture()) );
+  m_UpdateTimer = new QTimer(this); 
+  connect(m_UpdateTimer, SIGNAL(timeout()), this, SLOT(Update()) );
+
+  m_UpdateTimer->start(200);
+
+  connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
+
+  ui.startStopButton->setText("Start");
+
+  ui.startStopButton->setPaletteBackgroundColor(QColor::fromRgb(255, 255, 255));
 }
 
 //-----------------------------------------------------------------------------
@@ -95,11 +103,73 @@ double CaptureControlWidget::GetMaximumFrameRate() const
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::Reset()
 {
+  if( m_Device != NULL )
+  {
+    ui.startStopButton->setEnabled(true);
 
+    vtkPlusChannel* aChannel = (*m_Device->GetOutputChannelsStart());
+    std::stringstream ss;
+    ss << m_Device->GetDeviceId() << "::" << aChannel->GetChannelId();
+    ui.channelIdentifierLabel->setText(QString(ss.str().c_str()));
+
+    if( m_Device->GetEnableCapturing() )
+    {
+      ui.startStopButton->setText("Stop");
+      ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(0, 255, 0));
+      ui.recordStatusLabel->setText(QString("Recording"));
+    }
+    else
+    {
+      ui.startStopButton->setText("Start");
+      ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
+      ui.recordStatusLabel->setText(QString("Stopped"));
+    }
+    ui.extraInformationLabel->setText("");
+  }
+  else
+  {
+    ui.startStopButton->setEnabled(false);
+    ui.channelIdentifierLabel->setText("");
+    ui.recordStatusLabel->setText("");
+    ui.extraInformationLabel->setText("");
+  }
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus CaptureControlWidget::SaveToMetafile( std::string aOutput )
 {
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::Update()
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::StartStopButtonPressed()
+{
+  if( m_Device != NULL )
+  {
+    QString text = ui.startStopButton->text();
+    if( QString::compare(text, QString("Start")) == 0 )
+    {
+      m_Device->SetEnableCapturing(true);
+    }
+    else
+    {
+      m_Device->SetEnableCapturing(false);
+    }
+
+    this->Reset();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice)
+{
+  m_Device = &aDevice;
+
+  this->Reset();
 }
