@@ -100,18 +100,11 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
           return;
         }
 
-        //m_ParentMainWindow->BuildChannelOwners(aCollection);
-
         // Read configuration
         if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to read fCal configuration");
         }
-
-        //m_ParentMainWindow->GetVisualizationController()->AssignDataCollector(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
-
-        // Allow object visualizer to load anything it needs
-        //m_ParentMainWindow->GetVisualizationController()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
         // Successful connection
         ui.deviceSetSelectorWidget->SetConnectionSuccessful(true);
@@ -123,13 +116,6 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
           ui.toolStateDisplayWidget->setMinimumHeight(ui.toolStateDisplayWidget->GetDesiredHeight());
           ui.toolStateDisplayWidget->setMaximumHeight(ui.toolStateDisplayWidget->GetDesiredHeight());
         }
-
-        /*
-        if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
-        {
-          LOG_WARNING("Unable to initialize phantom wires visualization");
-        }
-        */
       }
 
       // Close dialog
@@ -138,39 +124,15 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
       delete connectDialog;
     }
 
-    // Rebuild the devices menu to 
-    //m_ParentMainWindow->BuildChannelMenu();
-
-    // Re-enable main window
     this->setEnabled(true);
-
-    // Re-enable manipulation buttons
-    //m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
-    //if( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetVideoEnabled() )
-    //{
-//      m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
-    //}
   }
   else // Disconnect
   {
     m_DataCollector->Disconnect();
-    //m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
-    //m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
-    //m_ParentMainWindow->ResetShowDevices();
-    //m_ParentMainWindow->ResetAllToolboxes();
-    //m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
-    //m_ParentMainWindow->GetVisualizationController()->Reset();
-    //m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
     ui.deviceSetSelectorWidget->ShowResetTrackerButton(false);
     ui.toolStateDisplayWidget->InitializeTools(NULL, false);
-
-    //DeviceCollection emptyCollection;
-    //this->m_ParentMainWindow->BuildChannelOwners(emptyCollection);
-
-    // Rebuild the devices menu to clear out any previous devices
-    //m_ParentMainWindow->BuildChannelMenu();
   }
 
   QApplication::restoreOverrideCursor();
