@@ -13,9 +13,10 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
-#include "itkAmoebaOptimizer.h"
 
-typedef  itk::AmoebaOptimizer  OptimizerType;
+#include "itkPowellOptimizer.h"
+
+typedef  itk::PowellOptimizer  OptimizerType;
 
 //-----------------------------------------------------------------------------
 class DistanceToWiresCostFunction : public itk::SingleValuedCostFunction 
@@ -153,52 +154,6 @@ private:
 }; 
 
 //-----------------------------------------------------------------------------
-class CommandIterationUpdate : public itk::Command 
-{
-public:
-  typedef CommandIterationUpdate Self;
-  typedef itk::Command Superclass;
-  typedef itk::SmartPointer<Self> Pointer;
-  itkNewMacro( Self );
-protected:
-  CommandIterationUpdate() 
-  {
-    m_IterationNumber=0;
-  }
-public:
-  void Execute(itk::Object *caller, const itk::EventObject & event)
-  {
-    Execute( (const itk::Object *)caller, event);
-  }
-  void Execute(const itk::Object * object, const itk::EventObject & event)
-  {
-    LOG_DEBUG( "Observer::Execute()");
-    const OptimizerType* optimizer = dynamic_cast< const OptimizerType* >( object );
-    if( m_FunctionEvent.CheckEvent( &event ) )
-    {
-      LOG_DEBUG( m_IterationNumber++ );
-      LOG_DEBUG( optimizer->GetCachedValue() );
-      LOG_DEBUG( optimizer->GetCachedCurrentPosition());
-      OptimizerType::MeasureType errorValue=optimizer->GetCachedValue();
-      m_ErrorValues.push_back(errorValue);      
-    }
-    else if( m_GradientEvent.CheckEvent( &event ) )
-    {
-      LOG_DEBUG("Gradient " << optimizer->GetCachedDerivative() << "   ");
-    }
-  }
-  const std::vector<double>& GetErrorValues()
-  {
-    return m_ErrorValues;
-  }
-private:
-  unsigned long m_IterationNumber;
-  itk::FunctionEvaluationIterationEvent m_FunctionEvent;
-  itk::GradientEvaluationIterationEvent m_GradientEvent;
-  std::vector<double> m_ErrorValues;
-};
-
-//-----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkSpatialCalibrationOptimizer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkSpatialCalibrationOptimizer);
 
@@ -304,12 +259,14 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
     return PLUS_FAIL;
   }
 
-  optimizer->SetMaximumNumberOfIterations( 30000 ); // default: 500, but often convergence needs 10000+ iterations
-  optimizer->SetParametersConvergenceTolerance( 1e-10 ); // default: 1e-8
-  optimizer->SetFunctionConvergenceTolerance( 1e-6 ); // default: 1e-4
-  
+  optimizer->SetStepLength( 10 );
+  optimizer->SetStepTolerance( 1e-8 );
+  optimizer->SetValueTolerance( 1e-8 );
+  optimizer->SetMaximumIteration( 300 );
+
+
   const double rotationParametersScale=1.0;
-  const double translationParametersScale=0.005;
+  const double translationParametersScale=0.5;
   const double scalesParametersScale=10.0;
 
   // Scale the translation components of the transform in the Optimizer
@@ -343,9 +300,6 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 
   optimizer->SetInitialPosition(imageToProbeSeedTransformParameters);
 
-  CommandIterationUpdate::Pointer observer =  CommandIterationUpdate::New();
-  optimizer->AddObserver( itk::IterationEvent(), observer );
-  optimizer->AddObserver( itk::FunctionEvaluationIterationEvent(), observer );
   try 
   {
     optimizer->StartOptimization();
@@ -357,12 +311,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   }
 
   std::string stopCondition=optimizer->GetStopConditionDescription();
-  LOG_INFO("Optimization stopping condition: "<<stopCondition);
-
-  // save residuals (that was stored temporarily in the observer)
-  this->MinimizationResiduals = observer->GetErrorValues();
-
-  LOG_DEBUG( "Stop description   = " << optimizer->GetStopConditionDescription());
+  LOG_INFO("Optimization stopping condition: "<<stopCondition<<". Number of iterations: " << optimizer->GetCurrentIteration());
 
   // Store the matrix
 
@@ -388,23 +337,6 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
   PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix,imageToProbeTransformMatrixVtk);
   double angleDifference = PlusMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
   LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
-
-  LOG_INFO("Optimization details:");
-  // Print how the residual error changed during the optimization (limit to max. 30 samples)
-  int stepSize=std::max<int>(1,this->MinimizationResiduals.size()/30);
-  for( int i=0; i < this->MinimizationResiduals.size() ; i+=stepSize )
-  {
-    LOG_DEBUG("FunctionEvaluation " << i << ":  rmsError = " << this->MinimizationResiduals[i]);
-  }
-  if (this->MinimizationResiduals.size()>0)
-  {
-    LOG_DEBUG("First Iteration: rmsError = " << this->MinimizationResiduals[1] << " pixels");
-    LOG_DEBUG("Last Iteration (" << this->MinimizationResiduals.size() << "):  rmsError = " << this->MinimizationResiduals[this->MinimizationResiduals.size()-1] << " pixels");
-  }
-  else
-  {
-    LOG_ERROR("No error metrics are available");
-  }
 
   return PLUS_SUCCESS; 
 }
