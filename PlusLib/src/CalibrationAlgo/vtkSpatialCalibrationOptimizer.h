@@ -117,9 +117,6 @@ protected:
   /*! Store the result of the optimization process */
   vnl_matrix_fixed<double,4,4> ImageToProbeTransformMatrix;
    
-  /*! store the residuals used during the optimization */
-  std::vector<double> MinimizationResiduals;
-
   vtkProbeCalibrationAlgo* ProbeCalibrationAlgo;
 
 };

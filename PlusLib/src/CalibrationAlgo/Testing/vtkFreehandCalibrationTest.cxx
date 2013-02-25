@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
   std::string resultConfigFileName = "";
 
 #ifndef _WIN32
-  double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // IPEI method on linux can have up to 0.6mm error
+  double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // *PE* methods on linux can have up to about 0.7mm translation error
   double inputRotationErrorThreshold(LINUXTOLERANCE);
 #else
   double inputTranslationErrorThreshold(0);
@@ -210,7 +210,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   int numberOfFailures=0;
 
 #ifndef _WIN32
-  double absoluteErrorTolerance = LINUXTOLERANCE;
+  double absoluteErrorTolerance = LINUXTOLERANCE*2; // *PE* methods on linux can have up to about 0.7mm translation error
 #else
   double absoluteErrorTolerance = 50;
 #endif
