@@ -286,6 +286,9 @@ PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
   if ( this->OutputChannels[0]->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    // an error occurred while trying to get the frames
+    // to increase the chance of recovery forget about all the previous frames and just try to collect data from now on
+    m_LastRecordedFrameTimestamp=vtkAccurateTimer::GetSystemTime();
     return PLUS_FAIL;
   }
 
