@@ -367,11 +367,11 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
           continue;
         }
 
-        // Send status message
-        igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();
-        replyMsg->SetDeviceName("RTS_REXEC"); 
-        replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
-        replyMsg->SetStatusString(replyIt->ReplyString.c_str());
+        // Send command reply
+        igtl::StringMessage::Pointer replyMsg = igtl::StringMessage::New();
+        replyMsg->SetDeviceName(replyIt->DeviceName.c_str()); 
+        // TODO: send the replyIt->Status as well?
+        replyMsg->SetString(replyIt->ReplyString.c_str());
         replyMsg->Pack(); 
         clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackSize());
 
@@ -511,17 +511,16 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         // Just ping server, we can skip message and respond
         client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
 
-        igtl::StatusMessage::Pointer statusMsg = igtl::StatusMessage::New(); 
-        statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
-        statusMsg->Pack(); 
-        client.ClientSocket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackBodySize()); 
+        igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New(); 
+        replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+        replyMsg->Pack(); 
+        client.ClientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackBodySize()); 
       }
-      else if ( (strcmp(headerMsg->GetDeviceType(), "STRING") == 0) &&
-        (strcmp(headerMsg->GetDeviceName(), "GET_REXEC") == 0))
+      else if ( (strcmp(headerMsg->GetDeviceType(), "STRING") == 0) )
       {
         // Received a remote command execution message
         // The command is encoded in in an XML string in a STRING message body
-        // (a STRING message body is used because the OpenIGTLink implementation does not contain a specific REXEC message type)        
+
         igtl::StringMessage::Pointer commandMsg = igtl::StringMessage::New(); 
         commandMsg->SetMessageHeader(headerMsg); 
         commandMsg->AllocatePack(); 
@@ -530,17 +529,28 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
-          LOG_INFO("Received command: "<<commandMsg->GetString());
-          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString());
+          const char* deviceName="UNKNOWN";
+          if (headerMsg->GetDeviceName()!=NULL)
+          {
+            deviceName=headerMsg->GetDeviceName();
+          }
+          else
+          {
+            LOG_ERROR("Received message from unknown device");
+          }
+          LOG_INFO("Received command from device "<<deviceName<<": "<<commandMsg->GetString());
+
+          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString(), deviceName);
         }
         else
         {
-          LOG_ERROR("GET_REXEC message unpacking failed");
+          LOG_ERROR("STRING message unpacking failed");
         }        
       }
       else
       {
         // if the device type is unknown, skip reading. 
+        LOG_WARNING("Unknown OpenIGTLink message is received. Device type: "<<headerMsg->GetDeviceType()<<". Device name: "<<headerMsg->GetDeviceName()<<".");
         client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
         continue; 
       }
@@ -680,22 +690,22 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
   {
     PlusIgtlClientInfo client = (*clientIterator);
 
-    igtl::StatusMessage::Pointer statusMsg = igtl::StatusMessage::New(); 
-    statusMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
-    statusMsg->Pack(); 
+    igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New(); 
+    replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+    replyMsg->Pack(); 
 
     int retValue = 0;
     RETRY_UNTIL_TRUE( 
-      (retValue = client.ClientSocket->Send( statusMsg->GetPackPointer(), statusMsg->GetPackSize() ))!=0,
+      (retValue = client.ClientSocket->Send( replyMsg->GetPackPointer(), replyMsg->GetPackSize() ))!=0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
     bool clientDisconnected = false; 
     if ( retValue == 0 )
     {
       clientDisconnected = true; 
       igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New(); 
-      statusMsg->GetTimeStamp(ts); 
+      replyMsg->GetTimeStamp(ts); 
 
-      LOG_DEBUG( "Client disconnected - could not send " << statusMsg->GetDeviceType() << " message to client (device name: " << statusMsg->GetDeviceName()
+      LOG_DEBUG( "Client disconnected - could not send " << replyMsg->GetDeviceType() << " message to client (device name: " << replyMsg->GetDeviceName()
         << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
     }
 

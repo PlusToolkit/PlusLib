@@ -16,6 +16,7 @@ vtkPlusCommand::vtkPlusCommand()
 , ClientId(0)
 , Id(0)
 , Name(NULL)
+, DeviceName(NULL)
 {
 }
 
@@ -23,6 +24,7 @@ vtkPlusCommand::vtkPlusCommand()
 vtkPlusCommand::~vtkPlusCommand()
 {  
   SetName(NULL);
+  SetDeviceName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -87,6 +89,12 @@ void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
 {
+  return SetCommandCompleted(replyStatus, replyString, GetDefaultReplyDeviceName());
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName)
+{
   if (this->CommandProcessor==NULL)
   {
     LOG_ERROR("vtkPlusCommand::SetCommandCompleted failed, command processor is invalid");
@@ -94,7 +102,7 @@ PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std
   }
   else
   {
-    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString);
+    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, replyDeviceName);
   }
   this->Completed=true;
   return PLUS_FAIL;
@@ -155,4 +163,11 @@ PlusStatus vtkPlusCommand::ValidateName()
   }
   LOG_ERROR("Command name "<<this->Name<<" is not recognized");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetDefaultReplyDeviceName()
+{ 
+  std::string replyDeviceName=std::string(this->DeviceName)+"Reply";
+  return replyDeviceName;
 }
