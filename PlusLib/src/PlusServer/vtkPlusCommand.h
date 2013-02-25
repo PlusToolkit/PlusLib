@@ -62,12 +62,21 @@ public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
+  vtkGetStringMacro(DeviceName);
+  vtkSetStringMacro(DeviceName);
+
   vtkGetMacro(Id, int);
   vtkSetMacro(Id, int);
+
+  /*! Returns the default reply device name, which is the same as receiver device name with the "Reply" appended to the end */
+  std::string GetDefaultReplyDeviceName();
 
 protected:
 
   /*! Send a reply to the caller and set the status of the command completed (so it can be removed from the queue) */
+  PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName);
+
+  /*! Sends a reply to the default reply device with the default reply device name */
   PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString);
 
   /*! Convenience function for getting a pointer to the data collector */
@@ -82,6 +91,9 @@ protected:
   vtkPlusCommandProcessor* CommandProcessor;
   bool Completed;
   int ClientId;
+  
+  // Device name of the received command. Reply device name is DeviceNameReply by default.
+  char* DeviceName;
   
   // Unique identifier of the command. It can be used to match commands and replies.
   int Id;

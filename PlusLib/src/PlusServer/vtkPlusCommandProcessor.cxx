@@ -258,7 +258,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName)
 {  
   if (commandString.empty())
   {
@@ -273,6 +273,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   }
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
+  cmd->SetDeviceName(deviceName.c_str());
   {
     // Add command to the execution queue
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -282,11 +283,13 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const char* imageName/*=NULL*/, vtkImageData* imageData/*=NULL*/, vtkMatrix4x4* imageToReferenceTransform/*=NULL*/)
+void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName, const char* imageName/*=NULL*/, vtkImageData* imageData/*=NULL*/, vtkMatrix4x4* imageToReferenceTransform/*=NULL*/)
 {
   PlusCommandReply reply;
   reply.ClientId=clientId;
+  reply.DeviceName=replyDeviceName;
   reply.ReplyString=replyString;
+  reply.Status=replyStatus;
   if (imageName!=NULL)
   {
     reply.ImageName=imageName;
