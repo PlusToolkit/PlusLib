@@ -373,7 +373,7 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
 
   this->SetDataCollector(aCollector);
 
-  if( aCollector != NULL )
+  if( aCollector != NULL && this->SelectedChannel != NULL )
   {
     if (this->SelectedChannel->GetOwnerDevice()->GetConnected() == false)
     {

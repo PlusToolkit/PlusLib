@@ -209,6 +209,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
           LOG_ERROR("Failed to read fCal configuration");
         }
 
+        this->ChannelChanged(*m_ParentMainWindow->GetSelectedChannel());
+
         m_ParentMainWindow->GetVisualizationController()->AssignDataCollector(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
 
         // Allow object visualizer to load anything it needs
@@ -218,8 +220,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
         m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-
-        this->ChannelChanged(*m_ParentMainWindow->GetSelectedChannel());
 
         if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
         {
@@ -628,6 +628,26 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
   }
 
   DeviceCollection aCollection;
+  if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("No devices to choose from! Cannot update configuration toolbox to match the new channel.");
+    return PLUS_FAIL;
+  }
+
+  if( selectedChannelId == NULL )
+  {
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+    {
+      vtkPlusDevice* aDevice = *it;
+      if( aDevice->OutputChannelCount() > 0 )
+      {
+        aChannel = *(aDevice->GetOutputChannelsStart());
+        LOG_WARNING("No default channel selected, first channel found is now active.");
+        return PLUS_SUCCESS;
+      }
+    }
+  }
+  
   if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
   {
     for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
