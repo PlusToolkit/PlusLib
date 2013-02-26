@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkSpatialCalibrationOptimizer.h"
+#include "vtkProbeCalibrationOptimizerAlgo.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
 
@@ -39,7 +39,7 @@ public:
   {
   }
 
-  DistanceToWiresCostFunction(vtkSpatialCalibrationOptimizer* calibrationOptimizer) 
+  DistanceToWiresCostFunction(vtkProbeCalibrationOptimizerAlgo* calibrationOptimizer) 
   {
     m_CalibrationOptimizer=calibrationOptimizer;
   }
@@ -150,33 +150,33 @@ public:
   }
 
 private:
-  vtkSpatialCalibrationOptimizer* m_CalibrationOptimizer;
+  vtkProbeCalibrationOptimizerAlgo* m_CalibrationOptimizer;
 }; 
 
 //-----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkSpatialCalibrationOptimizer, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkSpatialCalibrationOptimizer);
+vtkCxxRevisionMacro(vtkProbeCalibrationOptimizerAlgo, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkProbeCalibrationOptimizerAlgo);
 
 //-----------------------------------------------------------------------------
-vtkSpatialCalibrationOptimizer::vtkSpatialCalibrationOptimizer()
+vtkProbeCalibrationOptimizerAlgo::vtkProbeCalibrationOptimizerAlgo()
 : IsotropicPixelSpacing(true)
 , ProbeCalibrationAlgo(NULL)
 {  
 }
 
 //-----------------------------------------------------------------------------
-vtkSpatialCalibrationOptimizer::~vtkSpatialCalibrationOptimizer()
+vtkProbeCalibrationOptimizerAlgo::~vtkProbeCalibrationOptimizerAlgo()
 {
 }
 
 //-----------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::SetProbeCalibrationAlgo(vtkProbeCalibrationAlgo* probeCalibrationAlgo)
+void vtkProbeCalibrationOptimizerAlgo::SetProbeCalibrationAlgo(vtkProbeCalibrationAlgo* probeCalibrationAlgo)
 {
   this->ProbeCalibrationAlgo=probeCalibrationAlgo;
 }
 
 //--------------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix, double &errorMean, double &errorStDev, double &errorRms)
+void vtkProbeCalibrationOptimizerAlgo::ComputeError(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix, double &errorMean, double &errorStDev, double &errorRms)
 {
   switch (this->OptimizationMethod)
   {
@@ -192,7 +192,7 @@ void vtkSpatialCalibrationOptimizer::ComputeError(const vnl_matrix_fixed<double,
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::ShowTransformation(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix)
+PlusStatus vtkProbeCalibrationOptimizerAlgo::ShowTransformation(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformationMatrix)
 {
   LOG_INFO("Translation = [" << imageToProbeTransformationMatrix.get(0,3) << " " << imageToProbeTransformationMatrix.get(1,3) << " " << imageToProbeTransformationMatrix.get(2,3) << " ]");
 
@@ -220,7 +220,7 @@ PlusStatus vtkSpatialCalibrationOptimizer::ShowTransformation(const vnl_matrix_f
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::Update()
+PlusStatus vtkProbeCalibrationOptimizerAlgo::Update()
 {  
   DistanceToWiresCostFunction::Pointer costFunction = new DistanceToWiresCostFunction(this);
 
@@ -342,20 +342,20 @@ PlusStatus vtkSpatialCalibrationOptimizer::Update()
 }
 
 //----------------------------------------------------------------------------
-vnl_matrix_fixed<double,4,4> vtkSpatialCalibrationOptimizer::GetOptimizedImageToProbeTransformMatrix()
+vnl_matrix_fixed<double,4,4> vtkProbeCalibrationOptimizerAlgo::GetOptimizedImageToProbeTransformMatrix()
 {
   return this->ImageToProbeTransformMatrix;
 }
 
 //----------------------------------------------------------------------------
-void vtkSpatialCalibrationOptimizer::SetImageToProbeSeedTransform(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix)
+void vtkProbeCalibrationOptimizerAlgo::SetImageToProbeSeedTransform(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix)
 {
   this->ImageToProbeSeedTransformMatrix=imageToProbeTransformMatrix;
 }
 
 
 //----------------------------------------------------------------------------
-bool vtkSpatialCalibrationOptimizer::Enabled()
+bool vtkProbeCalibrationOptimizerAlgo::Enabled()
 {
   if (this->OptimizationMethod==MINIMIZE_NONE)
   {
@@ -365,7 +365,7 @@ bool vtkSpatialCalibrationOptimizer::Enabled()
 }
 
 //----------------------------------------------------------------------------
-char* vtkSpatialCalibrationOptimizer::GetOptimizationMethodAsString(OptimizationMethodType type)
+char* vtkProbeCalibrationOptimizerAlgo::GetOptimizationMethodAsString(OptimizationMethodType type)
 {
   switch (type)
   {
@@ -379,16 +379,16 @@ char* vtkSpatialCalibrationOptimizer::GetOptimizationMethodAsString(Optimization
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpatialCalibrationOptimizer::ReadConfiguration( vtkXMLDataElement* aConfig )
+PlusStatus vtkProbeCalibrationOptimizerAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  LOG_TRACE("vtkSpatialCalibrationOptimizer::ReadConfiguration"); 
+  LOG_TRACE("vtkProbeCalibrationOptimizerAlgo::ReadConfiguration"); 
   if ( aConfig == NULL )
   {
     LOG_ERROR("Unable to read configuration"); 
     return PLUS_FAIL; 
   }
 
-  // vtkSpatialCalibrationOptimizer section
+  // vtkProbeCalibrationOptimizerAlgo section
   const char* optimizationMethod=aConfig->GetAttribute("OptimizationMethod");
   if (optimizationMethod==NULL)
   {

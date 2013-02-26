@@ -15,7 +15,7 @@
 
 #include "vnl/vnl_matrix.h"
 
-#include "vtkSpatialCalibrationOptimizer.h"
+#include "vtkProbeCalibrationOptimizerAlgo.h"
 
 class TrackedFrame; 
 class vtkTrackedFrameList; 
@@ -116,9 +116,9 @@ public:
   PlusStatus GetXMLCalibrationResultAndErrorReport(vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, 
     int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult); 
 
-  vtkSpatialCalibrationOptimizer* GetSpatialCalibrationOptimizer()
+  vtkProbeCalibrationOptimizerAlgo* GetOptimizer()
   {
-    return SpatialCalibrationOptimizer;
+    return this->Optimizer;
   };
 
   void ComputeError2d(const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
@@ -316,7 +316,7 @@ protected:
   */
   double ErrorConfidenceLevel;
 
-  vtkSpatialCalibrationOptimizer* SpatialCalibrationOptimizer;
+  vtkProbeCalibrationOptimizerAlgo* Optimizer;
 
 private:
   vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);

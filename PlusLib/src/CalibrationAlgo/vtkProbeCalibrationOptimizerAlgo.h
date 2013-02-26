@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkSpatialCalibrationOptimizer_h
-#define __vtkSpatialCalibrationOptimizer_h
+#ifndef __vtkProbeCalibrationOptimizerAlgo_h
+#define __vtkProbeCalibrationOptimizerAlgo_h
 
 #include "PlusConfigure.h"
 
@@ -43,15 +43,19 @@ class vtkProbeCalibrationAlgo;
 //-----------------------------------------------------------------------------
 
 /*!
-  \class vtkSpatialCalibrationOptimizer 
-  \brief Optimizing an image to probe transform.
+  \class vtkProbeCalibrationOptimizerAlgo 
+  \brief Refines the image to probe transform using non-linear optimization
 
-  It uses the OptimizationMethod (NONE/2D/3D) and IsotropicPixelSpacing (TRUE/FALSE) attributes of the 
-  probe calibration algorithm element to configure the optimization.
+  This class tunes the image to probe transformation that is computed by the linear least squares (LS) method.
+  The LS method cannot guarantee an orthogonal image to probe transformation matrix and it can only optimize
+  the out-of-plane (3D) error. Out-of-plane error computation assumes that the uncertainty of the fiducial
+  detecion is isotropic, while actually the uncertainty is much higher in elevation direction. Therefore
+  it is more accurate to optimize the in-plane (2D) error. Also this optimizer enforces orthogonality of the image to
+  probe matrix and optionally it can enforce isotropic image pixel spacing.
 
   \ingroup PlusLibCalibrationAlgo
 */
-class vtkSpatialCalibrationOptimizer : public vtkObject
+class vtkProbeCalibrationOptimizerAlgo : public vtkObject
 {
 
 public:
@@ -64,8 +68,8 @@ public:
     MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D
   };  
 
-  vtkTypeRevisionMacro(vtkSpatialCalibrationOptimizer,vtkObject);
-  static vtkSpatialCalibrationOptimizer *New();
+  vtkTypeRevisionMacro(vtkProbeCalibrationOptimizerAlgo,vtkObject);
+  static vtkProbeCalibrationOptimizerAlgo *New();
 
   PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
 
@@ -101,8 +105,8 @@ protected:
 
   PlusStatus ShowTransformation(const vnl_matrix_fixed<double,4,4> &transformationMatrix);
   
-  vtkSpatialCalibrationOptimizer();
-  virtual  ~vtkSpatialCalibrationOptimizer();
+  vtkProbeCalibrationOptimizerAlgo();
+  virtual  ~vtkProbeCalibrationOptimizerAlgo();
 
 protected:
   /*! If true then X and Y pixel spacing is forced to be the same during the optimization */

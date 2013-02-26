@@ -375,30 +375,30 @@ PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vec
 //-------------------------------------------------------------------------------------------------
 PlusStatus SetOptimizationMethod( vtkProbeCalibrationAlgo* freehandCalibration, std::string method)
 {
-  vtkSpatialCalibrationOptimizer* optimizer = freehandCalibration->GetSpatialCalibrationOptimizer();
+  vtkProbeCalibrationOptimizerAlgo* optimizer = freehandCalibration->GetOptimizer();
 
   if ( STRCASECMP(method.c_str(), "NO_OPTIMIZATION" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkSpatialCalibrationOptimizer::MINIMIZE_NONE);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_NONE);
   }
   else if ( STRCASECMP(method.c_str(), "7param2D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
     optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "7param3D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
     optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "8param2D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
     optimizer->SetIsotropicPixelSpacing(false);
   }
   else if ( STRCASECMP(method.c_str(), "8param3D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkSpatialCalibrationOptimizer::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
     optimizer->SetIsotropicPixelSpacing(false);
   }
   return PLUS_SUCCESS;
