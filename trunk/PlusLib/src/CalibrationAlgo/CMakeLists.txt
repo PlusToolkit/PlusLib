@@ -12,7 +12,7 @@ SET (CalibrationAlgo_SRCS
   TemporalCalibrationAlgo.cxx
   vtkLineSegmentationAlgo.cxx 
   vtkPrincipalMotionDetectionAlgo.cxx 
-  vtkSpatialCalibrationOptimizer.cxx
+  vtkProbeCalibrationOptimizerAlgo.cxx
   itkFiducialTransformComputation.cxx
 	)
 
@@ -29,7 +29,7 @@ IF (WIN32)
     TemporalCalibrationAlgo.h
     vtkLineSegmentationAlgo.h
     vtkPrincipalMotionDetectionAlgo.h
-    vtkSpatialCalibrationOptimizer.h
+    vtkProbeCalibrationOptimizerAlgo.h
     itkFiducialTransformComputation.h
     )
 ENDIF (WIN32)

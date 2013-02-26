@@ -48,17 +48,17 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 , ReferenceCoordinateFrame(NULL)
 , ErrorConfidenceLevel(DEFAULT_ERROR_CONFIDENCE_INTERVAL)
 {
-  this->SpatialCalibrationOptimizer = vtkSpatialCalibrationOptimizer::New();
-  this->SpatialCalibrationOptimizer->SetProbeCalibrationAlgo(this);
+  this->Optimizer = vtkProbeCalibrationOptimizerAlgo::New();
+  this->Optimizer->SetProbeCalibrationAlgo(this);
 }
 
 //----------------------------------------------------------------------------
 vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
-  if (this->SpatialCalibrationOptimizer)
+  if (this->Optimizer)
   {
-    this->SpatialCalibrationOptimizer->Delete();
-    this->SpatialCalibrationOptimizer = NULL;
+    this->Optimizer->Delete();
+    this->Optimizer = NULL;
   }
 }
 
@@ -118,9 +118,9 @@ PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
 
   // Optimization options
-  if (this->SpatialCalibrationOptimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)
+  if (this->Optimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR("vtkSpatialCalibrationOptimizer is not well specified in vtkSpatialCalibrationOptimizer element of the configuration!");
+    LOG_ERROR("vtkProbeCalibrationOptimizerAlgo is not well specified in vtkProbeCalibrationOptimizerAlgo element of the configuration!");
     return PLUS_FAIL;     
   }   
 
@@ -331,13 +331,13 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
   // Validate calibration result and set it to member variable and transform repository
   SetAndValidateImageToProbeTransform( imageToProbeTransformMatrix, transformRepository);
 
-  if (this->SpatialCalibrationOptimizer->Enabled())
+  if (this->Optimizer->Enabled())
   {
     LOG_INFO("Additional calibration optimization is requested");
     UpdateNonOutlierData(outliers);
-    this->SpatialCalibrationOptimizer->SetImageToProbeSeedTransform(imageToProbeTransformMatrix);
-    this->SpatialCalibrationOptimizer->Update();
-    imageToProbeTransformMatrix = this->SpatialCalibrationOptimizer->GetOptimizedImageToProbeTransformMatrix();
+    this->Optimizer->SetImageToProbeSeedTransform(imageToProbeTransformMatrix);
+    this->Optimizer->Update();
+    imageToProbeTransformMatrix = this->Optimizer->GetOptimizedImageToProbeTransformMatrix();
     SetAndValidateImageToProbeTransform( imageToProbeTransformMatrix, transformRepository);
   }
 
