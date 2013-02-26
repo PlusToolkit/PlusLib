@@ -32,8 +32,12 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
+  virtual bool HasUnsavedData() const;
+
+  virtual PlusStatus ClearRecordedFrames();
+
   /*! Output file name */
-  virtual void SetFilename(const char* filename) { m_Filename=filename; }
+  virtual void SetFilename(const char* filename);
 
   /*! Open the output file for writing */
   virtual PlusStatus OpenFile();

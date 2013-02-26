@@ -67,7 +67,8 @@ int main(int argc, char **argv)
     LOG_ERROR("Couldn't read sequence metafile: " <<  inputImageSequenceFileName ); 
   	return EXIT_FAILURE;
 	}		
-  vtkTrackedFrameList* trackedFrameList=reader->GetTrackedFrameList();
+  vtkTrackedFrameList* trackedFrameList = reader->GetTrackedFrameList();
+
   if (trackedFrameList==NULL)
 	{
 		LOG_ERROR("Unable to get trackedFrameList!"); 
@@ -94,9 +95,9 @@ int main(int argc, char **argv)
   // Test writing
 
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  writer->UseCompressionOn();
 	writer->SetFileName(outputImageSequenceFileName.c_str());
 	writer->SetTrackedFrameList(trackedFrameList); 
-	writer->UseCompressionOn();
 
 	LOG_INFO("Test SetFrameTransform method ..."); 
 	// Add the transformation matrix to metafile
