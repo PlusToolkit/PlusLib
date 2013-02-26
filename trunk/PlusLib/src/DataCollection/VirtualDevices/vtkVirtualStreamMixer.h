@@ -24,11 +24,22 @@ public:
   vtkTypeRevisionMacro(vtkVirtualStreamMixer,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /*! Answer if device is a tracker */
+  virtual bool IsTracker() const;
+
+  /*!
+    Return whether or not the device can be reset
+  */
+  virtual bool IsResettable();
+
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   // Virtual stream mixers output only one stream
   vtkPlusChannel* GetChannel() const;
+
+  /*! Reset any input devices */
+  virtual PlusStatus Reset();
 
   virtual PlusStatus NotifyConfigured();
 

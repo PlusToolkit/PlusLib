@@ -13,8 +13,8 @@ See License.txt for details.
 #include <QTimer>
 
 //-----------------------------------------------------------------------------
-CaptureControlWidget::CaptureControlWidget(QWidget* aParent, Qt::WFlags aFlags)
-: QWidget(aParent, aFlags)
+CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
+: QWidget(aParent)
 , m_UpdateTimer(NULL)
 , m_Device(NULL)
 {
@@ -27,6 +27,7 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent, Qt::WFlags aFlags)
   m_UpdateTimer->start(200);
 
   connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
+  connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(SaveButtonPressed()) );
 
   ui.startStopButton->setText("Start");
 
@@ -36,6 +37,7 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent, Qt::WFlags aFlags)
 //-----------------------------------------------------------------------------
 CaptureControlWidget::~CaptureControlWidget()
 {
+  delete m_UpdateTimer;
 }
 
 //-----------------------------------------------------------------------------
@@ -101,7 +103,7 @@ double CaptureControlWidget::GetMaximumFrameRate() const
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::Reset()
+void CaptureControlWidget::UpdateBasedOnState()
 {
   if( m_Device != NULL )
   {
@@ -111,6 +113,8 @@ void CaptureControlWidget::Reset()
     std::stringstream ss;
     ss << m_Device->GetDeviceId() << "::" << aChannel->GetChannelId();
     ui.channelIdentifierLabel->setText(QString(ss.str().c_str()));
+
+    ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
 
     if( m_Device->GetEnableCapturing() )
     {
@@ -129,6 +133,7 @@ void CaptureControlWidget::Reset()
   else
   {
     ui.startStopButton->setEnabled(false);
+    ui.saveButton->setEnabled(false);
     ui.channelIdentifierLabel->setText("");
     ui.recordStatusLabel->setText("");
     ui.extraInformationLabel->setText("");
@@ -144,7 +149,7 @@ PlusStatus CaptureControlWidget::SaveToMetafile( std::string aOutput )
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::Update()
 {
-
+  this->UpdateBasedOnState();
 }
 
 //-----------------------------------------------------------------------------
@@ -162,7 +167,7 @@ void CaptureControlWidget::StartStopButtonPressed()
       m_Device->SetEnableCapturing(false);
     }
 
-    this->Reset();
+    this->UpdateBasedOnState();
   }
 }
 
@@ -171,5 +176,48 @@ void CaptureControlWidget::SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice
 {
   m_Device = &aDevice;
 
-  this->Reset();
+  this->UpdateBasedOnState();
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SaveButtonPressed()
+{
+  bool isCapturing = m_Device->GetEnableCapturing();
+
+  // Stop recording
+  m_Device->SetEnableCapturing(false);
+
+  // Present dialog, get filename
+  QFileDialog* dialog = new QFileDialog(this, QString("Select save file"), QString(vtkPlusConfig::GetInstance()->GetOutputDirectory()), QString("All MetaSequence files (*.mha *.mhd)") );
+  dialog->setMinimumSize(QSize(640, 480));
+  dialog->setAcceptMode(QFileDialog::AcceptSave);
+  dialog->setFileMode(QFileDialog::AnyFile);
+  dialog->setViewMode(QFileDialog::Detail);
+  dialog->setDefaultSuffix("mha");
+  dialog->exec();
+
+  QApplication::processEvents();
+
+  if( dialog->selectedFiles().size() == 0 )
+  {
+    m_Device->SetEnableCapturing(isCapturing);
+    delete dialog;
+    return;
+  }
+
+  QString fileName = dialog->selectedFiles().first();
+  delete dialog;
+
+  m_Device->SetFilename(fileName.toLatin1());
+
+  // Save
+  if( m_Device->CloseFile() != PLUS_SUCCESS )
+  {
+    ui.extraInformationLabel->setText(QString("Saving failed. Unable to close device."));
+    return;
+  }
+
+  m_Device->ClearRecordedFrames();
+
+  this->UpdateBasedOnState();
 }

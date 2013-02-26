@@ -21,7 +21,7 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <item row="0" column="2">
+    <item row="0" column="2" rowspan="3">
      <widget class="QFrame" name="frame">
       <property name="minimumSize">
        <size>
@@ -114,7 +114,7 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="3">
+    <item row="0" column="3" rowspan="2">
      <widget class="QFrame" name="captureWidgetFrame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -122,17 +122,46 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
+      <widget class="Line" name="line_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>680</y>
+         <width>801</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
       <widget class="QWidget" name="gridLayoutWidget_2">
        <property name="geometry">
         <rect>
          <x>9</x>
          <y>9</y>
          <width>781</width>
-         <height>701</height>
+         <height>671</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="captureWidgetGrid"/>
       </widget>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QFrame" name="frame_2">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
      </widget>
     </item>
    </layout>

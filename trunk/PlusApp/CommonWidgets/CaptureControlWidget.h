@@ -31,15 +31,14 @@ public:
   * \param aParent Parent main window
   * \param aFlags widget flag
   */
-  CaptureControlWidget(QWidget* aParent, Qt::WFlags aFlags = 0);
+  CaptureControlWidget(QWidget* aParent);
 
   /*!
   * Destructor
   */
   ~CaptureControlWidget();
 
-  /*! \brief Reset toolbox to initial state - */
-  virtual void Reset();
+  virtual void UpdateBasedOnState();
 
   virtual double GetMaximumFrameRate() const;
 
@@ -62,6 +61,8 @@ protected:
     void StartStopButtonPressed();
 
     void Update();
+
+    void SaveButtonPressed();
 
 protected:
   /*! Timer triggering the */

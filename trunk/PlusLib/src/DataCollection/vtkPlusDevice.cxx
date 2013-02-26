@@ -48,7 +48,6 @@ vtkPlusDevice::vtkPlusDevice()
 , CurrentStreamBufferItem(new StreamBufferItem())
 , ToolReferenceFrameName(NULL)
 , DeviceId(NULL)
-, DefaultOutputChannel(NULL)
 , DeviceImageOrientation(US_IMG_ORIENT_XX)
 , AcquisitionRate(30)
 , Recording(0)
@@ -96,12 +95,6 @@ vtkPlusDevice::~vtkPlusDevice()
   delete this->CurrentStreamBufferItem; this->CurrentStreamBufferItem = NULL;
 
   delete this->DeviceId; this->DeviceId = NULL;
-
-  if( this->DefaultOutputChannel != NULL )
-  {
-    delete this->DefaultOutputChannel;
-    this->DefaultOutputChannel = NULL;
-  }
 
   DELETE_IF_NOT_NULL(this->Threader);
 
@@ -792,25 +785,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     LOG_INFO("No output channels defined for device: " << this->GetDeviceId() );
     return PLUS_SUCCESS;
-  }
-
-  const char* defaultOutputChannel = deviceXMLElement->GetAttribute("DefaultOutputChannelId");
-  if( defaultOutputChannel != NULL )
-  {
-    vtkPlusChannel* aChannel(NULL);
-    if( this->GetOutputChannelByName(aChannel, defaultOutputChannel) == PLUS_SUCCESS )
-    {
-      this->SetDefaultOutputChannel(defaultOutputChannel);
-    }
-    else
-    {
-      LOG_ERROR("Default output channel " << defaultOutputChannel << " does not exist for device: " << this->GetDeviceId() );
-      this->SetDefaultOutputChannel(this->OutputChannels[0]->GetChannelId());
-    }
-  }
-  else
-  {
-    this->SetDefaultOutputChannel(this->OutputChannels[0]->GetChannelId());
   }
 
   const char* forceSingle = deviceXMLElement->GetAttribute("ForceSingleThreaded");
@@ -1837,4 +1811,11 @@ PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aF
   aToolReferenceFrameName = frameName;
 
   return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPlusDevice::IsTracker() const
+{
+  LOG_ERROR("Calling base IsTracker. Override in the derived classes.");
+  return false;
 }

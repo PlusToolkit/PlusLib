@@ -429,9 +429,9 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder,
   {
     trackedSequenceDataFileName+=".mhd";
   }
+  writer->SetUseCompression(useCompression);
   writer->SetFileName(trackedSequenceDataFileName.c_str());
   writer->SetTrackedFrameList(this);
-  writer->SetUseCompression(useCompression);
   if (writer->Write()!=PLUS_SUCCESS)
   {		
     LOG_ERROR("Couldn't write sequence metafile: " <<  trackedSequenceDataFileName ); 

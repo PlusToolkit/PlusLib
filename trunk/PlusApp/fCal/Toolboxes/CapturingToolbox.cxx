@@ -116,9 +116,8 @@ void CapturingToolbox::SetDisplayAccordingToState()
     {
       if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
+        LOG_WARNING("Unable to switch to 2D visualization. No video feed to capture.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();
-        this->m_State = ToolboxState_Error;
       }
       else
       {

@@ -61,6 +61,9 @@ public:
   */
   void SetDisplayAccordingToState();
 
+  /*! Update the toolstate display widget because the channel changed */
+  void ChannelChanged(vtkPlusChannel& aChannel);
+
 protected:
   /*!
   * Read fCal configuration

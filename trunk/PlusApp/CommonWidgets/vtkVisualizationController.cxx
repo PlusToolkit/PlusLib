@@ -275,9 +275,9 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
     this->HideRenderer();
   }
 
-  this->ConnectInput();
-
   CurrentMode = aMode;
+
+  this->ConnectInput();
 
   return PLUS_SUCCESS;
 }
@@ -585,10 +585,9 @@ PlusStatus vtkVisualizationController::DisconnectInput()
   if( this->GetImageActor() != NULL )
   {
     this->GetImageActor()->SetInput(NULL);
-    return PLUS_SUCCESS;
   }
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -599,10 +598,9 @@ PlusStatus vtkVisualizationController::ConnectInput()
   if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
   {
     this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
-    return PLUS_SUCCESS;
   }
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -613,7 +611,7 @@ vtkImageActor* vtkVisualizationController::GetImageActor()
   {
     return this->ImageVisualizer->GetImageActor();
   }
-  else if( this->PerspectiveVisualizer != NULL )
+  else if( this->CurrentMode == DISPLAY_MODE_3D && this->PerspectiveVisualizer != NULL )
   {
     return this->PerspectiveVisualizer->GetImageActor();
   }

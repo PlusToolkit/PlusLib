@@ -840,6 +840,16 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
   }
 
   this->BuildChannelMenu();
+
+  ConfigurationToolbox* aToolbox = dynamic_cast<ConfigurationToolbox*>(this->m_ToolboxList[ToolboxType_Configuration]);
+  if( aToolbox != NULL )
+  {
+    aToolbox->ChannelChanged(*aChannel); 
+  }
+  else
+  {
+    LOG_ERROR("Expecting configuration toolbox at index: " << ToolboxType_Configuration << " but didn't find it.");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -864,4 +874,6 @@ void fCalMainWindow::SetSelectedChannel( vtkPlusChannel& aChannel )
   m_SelectedChannel = &aChannel;
 
   this->GetVisualizationController()->SetSelectedChannel(&aChannel);
+
+  this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 }

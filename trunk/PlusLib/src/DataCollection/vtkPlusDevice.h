@@ -109,6 +109,9 @@ public:
   /*! Get recording start time */
   virtual double GetStartTime();
 
+  /*! Is this device a tracker */
+  virtual bool IsTracker() const;
+
   /*!
     Reset the device
   */
@@ -301,9 +304,6 @@ public:
   /*! Get the timestamp for the video frame returned with desired timestamping */
   vtkGetMacro(TimestampClosestToDesired, double);
 
-  /*! Return the default output channel to connect to */
-  vtkGetStringMacro(DefaultOutputChannel);
-
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
 
@@ -437,8 +437,6 @@ protected:
 
   vtkSetMacro(CorrectlyConfigured, bool);
 
-  vtkSetStringMacro(DefaultOutputChannel);
-
   vtkSetMacro(ForceSingleThreaded, bool);
   vtkGetMacro(ForceSingleThreaded, bool);
 
@@ -473,9 +471,6 @@ protected:
 
   /*! Id of the device */
   char* DeviceId;
-
-  /*! The channel to activate on start up */
-  char* DefaultOutputChannel;
 
   /*! The orientation of the image in the buffer if there is one */
   US_IMAGE_ORIENTATION DeviceImageOrientation; 

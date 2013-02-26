@@ -523,6 +523,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
+  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   if( m_ParentMainWindow->GetVisualizationController()->DisconnectInput() != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to disconnect input. Cannot show input in SegmentationParameterDialog.");
@@ -547,6 +548,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   {
     LOG_WARNING("Unable to reconnect input. Image will no longer show in main window.");
   }
+  this->SetDisplayAccordingToState();
 
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)

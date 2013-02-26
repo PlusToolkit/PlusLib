@@ -95,7 +95,7 @@ public:
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.
   */
-  virtual void SetFileName(const char* aFilename);
+  virtual PlusStatus SetFileName(const char* aFilename);
   /*! Get input/output file name. */
 	vtkGetStringMacro(FileName); 
 
@@ -112,7 +112,10 @@ public:
 protected:
   vtkMetaImageSequenceIO();
   virtual ~vtkMetaImageSequenceIO();
-  
+
+  /* Create a temp filename */
+  PlusStatus CreateTemporaryFilename(char*& aFilenameToFill, const char* aSuffix = NULL );
+
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
   PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
 

@@ -156,16 +156,13 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
   }
   else
   {
+    path = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + "/";
     std::stringstream ss;
-    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << m_Filename;
+    ss << path << m_Filename;
     m_Filename = ss.str();
   }
 
   m_Writer->SetFileName(m_Filename.c_str());
-
-  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
-  std::string configFileName = path + filename + "_config.xml";
-  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   return PLUS_SUCCESS;
 }
@@ -195,6 +192,13 @@ PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
 
   m_Writer->Close();
 
+  m_Writer->SetTrackedFrameList(NULL);
+
+  std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
+  std::string configFileName = path + "/" + filename + "_config.xml";
+  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
   if( m_EnableFileCompression )
   {
     if( this->CompressFile() != PLUS_SUCCESS )
@@ -204,7 +208,7 @@ PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
     }
   }
 
-  m_HeaderPrepared=false;
+  m_HeaderPrepared = false;
   m_RecordedFrames->Clear();
   
   return PLUS_SUCCESS;
@@ -271,7 +275,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
 
   m_TotalFramesRecorded += m_RecordedFrames->GetNumberOfTrackedFrames();
   m_LastRecordedFrameTimestamp = m_RecordedFrames->GetMostRecentTimestamp();
-  m_RecordedFrames->Clear(); // de-allocate frames
+  this->ClearRecordedFrames();
 
   return PLUS_SUCCESS;
 }
@@ -299,7 +303,7 @@ PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
 
 PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
 {
-  vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   reader->SetFileName(m_Filename.c_str());
 
   LOG_DEBUG("Read input sequence metafile: " << m_Filename ); 
@@ -312,6 +316,7 @@ PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
 
   // Now write to disc using compression
   reader->SetUseCompression(true);
+  reader->SetFileName(m_Filename.c_str());
 
   if (reader->Write() != PLUS_SUCCESS)
   {		
@@ -332,9 +337,36 @@ PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
     this->OutputChannels.clear();
   }
 
+  if( this->InputChannels.size() == 0 )
+  {
+    LOG_ERROR("No input channel sent to vtkVirtualStreamDiscCapture. Unable to save anything.");
+    return PLUS_FAIL;
+  }
+
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
   this->OutputChannels.push_back(this->InputChannels[0]);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkVirtualStreamDiscCapture::SetFilename( const char* filename )
+{
+  m_Filename = std::string(filename);
+  this->m_Writer->SetFileName(m_Filename.c_str());
+}
+
+//-----------------------------------------------------------------------------
+bool vtkVirtualStreamDiscCapture::HasUnsavedData() const
+{
+  return m_HeaderPrepared;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualStreamDiscCapture::ClearRecordedFrames()
+{
+  m_RecordedFrames->Clear();
 
   return PLUS_SUCCESS;
 }

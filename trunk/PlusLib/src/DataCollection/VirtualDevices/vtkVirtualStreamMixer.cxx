@@ -150,3 +150,49 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+bool vtkVirtualStreamMixer::IsTracker() const
+{
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  {
+    vtkPlusChannel* aChannel = *it;
+    if( aChannel->GetOwnerDevice()->IsTracker() )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVirtualStreamMixer::Reset()
+{
+  int numErrors(0);
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  {
+    vtkPlusChannel* aChannel = *it;
+    if( aChannel->GetOwnerDevice()->Reset() != PLUS_SUCCESS )
+    {
+      numErrors++;
+    }
+  }
+
+  return numErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkVirtualStreamMixer::IsResettable()
+{
+  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  {
+    vtkPlusChannel* aChannel = *it;
+    if( aChannel->GetOwnerDevice()->IsResettable() )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}

@@ -680,31 +680,6 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   if (GetCustomString("ElementSpacing")==NULL) { SetCustomString("ElementSpacing", "1 1 1"); }
   if (GetCustomString("AnatomicalOrientation")==NULL) { SetCustomString("AnatomicalOrientation", "RAI"); }
 
-  std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
-  if (STRCASECMP(fileExt.c_str(),".mha")==0)
-  {
-    SetPixelDataFileName(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL);
-  }
-  else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
-  {
-    std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
-    if (this->UseCompression)
-    {
-      pixFileName+=".zraw";
-    }
-    else
-    {
-      pixFileName+=".raw";
-    }
-
-    SetPixelDataFileName(pixFileName.c_str());
-  }
-  else
-  {
-    LOG_ERROR("Writing sequence metafile with "<<fileExt<<" extension is not supported");
-    return PLUS_FAIL;
-  }
-
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName, "wb" ) != PLUS_SUCCESS )
@@ -1384,7 +1359,7 @@ PlusStatus vtkMetaImageSequenceIO::Close()
 }
 
 //----------------------------------------------------------------------------
-void vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
+PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 {
   if( this->FileName != NULL )
   {
@@ -1395,25 +1370,47 @@ void vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
     size_t n = strlen(aFilename) + 1;
     this->FileName = new char[n];
     strcpy(this->FileName, aFilename);
-
-    if( this->TempHeaderFileName != NULL )
+    
+    // Set pixel data filename at the same time
+    std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
+    if (STRCASECMP(fileExt.c_str(),".mha")==0)
     {
-      delete this->TempHeaderFileName;
+      this->SetPixelDataFileName(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL);
     }
-    n = strlen(aFilename) + 1 + 7;
-    this->TempHeaderFileName = new char[n];
-    strcpy(this->TempHeaderFileName, aFilename);
-    strcat(this->TempHeaderFileName, "_header");
-
-    if( this->TempImageFileName != NULL )
+    else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
     {
-      delete this->TempImageFileName;
+      std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
+      if (this->UseCompression)
+      {
+        pixFileName+=".zraw";
+      }
+      else
+      {
+        pixFileName+=".raw";
+      }
+
+      this->SetPixelDataFileName(pixFileName.c_str());
     }
-    n = strlen(aFilename) + 1 + 7;
-    this->TempImageFileName = new char[n];
-    strcpy(this->TempImageFileName, aFilename);
-    strcat(this->TempImageFileName, "_images");
+    else
+    {
+      LOG_ERROR("Writing sequence metafile with " << fileExt << " extension is not supported");
+      return PLUS_FAIL;
+    }
+
+    bool headerFound = false;
+
+    if( this->TempHeaderFileName == NULL )
+    {
+      CreateTemporaryFilename(this->TempHeaderFileName, "_header");
+    }
+
+    if( this->TempImageFileName == NULL )
+    {
+      CreateTemporaryFilename(this->TempImageFileName, "_images");
+    }
   }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1452,5 +1449,47 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
       LOG_WARNING("Unable to remove the file: " << srcFilename);
     }
   }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( char*& aFilenameToFill, const char* aSuffix )
+{
+  bool filenameFound(false);
+  char * buffer(NULL);
+
+  int n = L_tmpnam_s + (aSuffix == NULL ? 0 : strlen(aSuffix)) + strlen( vtkPlusConfig::GetInstance()->GetOutputDirectory() ) + 1;
+
+  while( !filenameFound )
+  {
+    buffer = new char[n];
+    buffer[0] = 0;
+
+    char* junk = new char[L_tmpnam_s];
+    tmpnam_s(junk, L_tmpnam_s);
+    strcat(buffer, vtkPlusConfig::GetInstance()->GetOutputDirectory() );
+    strcat(buffer, junk);
+    if( aSuffix != NULL )
+    {
+      strcat(buffer, aSuffix);
+    }
+    delete junk;
+
+    std::ifstream tmpFileStream;
+    tmpFileStream.open(buffer);
+
+    if( !tmpFileStream.is_open() )
+    {
+      filenameFound = true;
+    }
+    else
+    {
+      delete buffer;
+      buffer = NULL;
+    }
+  }
+
+  aFilenameToFill = buffer;
+
   return PLUS_SUCCESS;
 }

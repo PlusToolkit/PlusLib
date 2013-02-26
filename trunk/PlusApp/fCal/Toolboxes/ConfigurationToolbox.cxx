@@ -219,11 +219,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetSelectedChannel(), true))
-        {
-          ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-          ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-        }
+        this->ChannelChanged(*m_ParentMainWindow->GetSelectedChannel());
 
         if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
         {
@@ -235,11 +231,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->done(0);
       connectDialog->hide();
       delete connectDialog;
-
-      if( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackingEnabled() )
-      {
-        m_DeviceSetSelectorWidget->ShowResetTrackerButton(m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->IsResettable());
-      }
     }
 
     // Rebuild the devices menu to 
@@ -608,12 +599,11 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 }
 
 //-----------------------------------------------------------------------------
-
 void ConfigurationToolbox::ResetTracker()
 {
   if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
   {
-    vtkPlusChannel* aChannel = NULL;
+    vtkPlusChannel* aChannel = m_ParentMainWindow->GetSelectedChannel();
     if( m_ParentMainWindow->GetSelectedChannel() == NULL )
     {
       LOG_ERROR("No selected channel. Unable to reset tracker.");
@@ -628,43 +618,39 @@ void ConfigurationToolbox::ResetTracker()
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement)
 {
-  const char* selectedDeviceId(NULL);
+  const char* selectedChannelId(NULL);
   if( fCalElement != NULL )
   {
     // default selected device
-    selectedDeviceId = fCalElement->GetAttribute("DefaultSelectedDeviceId");
+    selectedChannelId = fCalElement->GetAttribute("DefaultSelectedChannelId");
   }
 
-  vtkPlusDevice* aDevice(NULL);
-  if( selectedDeviceId == NULL || this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevice(aDevice, std::string(selectedDeviceId)) != PLUS_SUCCESS)
+  DeviceCollection aCollection;
+  if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
   {
-    DeviceCollection aCollection;
-    if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
     {
-      aDevice = aCollection[0];
-    }
-    else
-    {
-      LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
-      return PLUS_FAIL;
+      vtkPlusDevice* aDevice = *it;
+      if( aDevice->GetOutputChannelByName(aChannel, selectedChannelId) == PLUS_SUCCESS )
+      {
+        return PLUS_SUCCESS;
+      }
     }
   }
 
-  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+void ConfigurationToolbox::ChannelChanged( vtkPlusChannel& aChannel )
+{
+  if (m_ToolStateDisplayWidget->InitializeTools(&aChannel, true))
   {
-    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
-    {
-      aChannel = *(aDevice->GetOutputChannelsStart());
-    }
-    else
-    {
-      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
-      return PLUS_FAIL;
-    }
+    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
   }
 
-  return PLUS_SUCCESS;
+  m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel.GetOwnerDevice()->IsResettable());
 }

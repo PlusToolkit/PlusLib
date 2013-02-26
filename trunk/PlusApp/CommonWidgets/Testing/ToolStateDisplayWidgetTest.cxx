@@ -238,18 +238,15 @@ PlusStatus ToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
     return PLUS_FAIL;
   }
 
-  if( aDevice->GetOutputChannelByName(aChannel, aDevice->GetDefaultOutputChannel()) != PLUS_SUCCESS )
+  if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
   {
-    if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
-    {
-      aChannel = *(aDevice->GetOutputChannelsStart());
-    }
-    else
-    {
-      LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ". channel id: " << aChannel->GetChannelId());
-      return PLUS_FAIL;
-    }
+    aChannel = *(aDevice->GetOutputChannelsStart());
+  }
+  else
+  {
+    LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ".");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
-}
+  }

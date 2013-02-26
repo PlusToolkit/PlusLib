@@ -22,8 +22,6 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
   ui.setupUi(this);
 
   connect( ui.deviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
-
-  m_DataCollector = vtkDataCollector::New();
 }
 
 //-----------------------------------------------------------------------------
@@ -147,6 +145,13 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
 //-----------------------------------------------------------------------------
 PlusStatus CaptureClientWindow::StartDataCollection()
 {
+  if( this->m_DataCollector != NULL )
+  {
+    DELETE_IF_NOT_NULL(this->m_DataCollector);
+  }
+
+  this->m_DataCollector = vtkDataCollector::New();
+
   if (this->m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -207,7 +212,7 @@ PlusStatus CaptureClientWindow::ConfigureCaptureWidgets()
       if( dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice) != NULL )
       {
         vtkVirtualStreamDiscCapture* capDevice = dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice);
-        CaptureControlWidget* aWidget = new CaptureControlWidget(this, NULL);
+        CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
         aWidget->SetCaptureDevice(*capDevice);
         ui.captureWidgetGrid->addWidget(aWidget);
         m_CaptureWidgets.push_back(aWidget);
