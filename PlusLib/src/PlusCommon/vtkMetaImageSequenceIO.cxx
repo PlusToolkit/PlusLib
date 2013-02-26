@@ -383,7 +383,17 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   if (this->UseCompression)
   {    
     unsigned int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
-    allFramesPixelBuffer.resize(allFramesPixelBufferSize);
+
+    try
+    {
+      allFramesPixelBuffer.resize(allFramesPixelBufferSize);
+    }
+    catch(std::bad_alloc& e)
+    {
+      cerr << e.what() << endl;
+      LOG_ERROR("vtkMetaImageSequenceIO::ReadImagePixels failed due to out of memory. Try to reduce image buffer sizes or use a 64-bit build of Plus.");
+      return PLUS_FAIL;
+    }
 
     unsigned int allFramesCompressedPixelBufferSize=0;
     PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
