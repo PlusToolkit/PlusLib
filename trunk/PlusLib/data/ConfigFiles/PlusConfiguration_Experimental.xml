@@ -12,7 +12,6 @@
       SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" 
       UseData="IMAGE_AND_TRANSFORM" 
       UseOriginalTimestamps="TRUE" 
-	  DefaultOutputChannelId="FinalOutput" 
       RepeatEnabled="TRUE" >
 
       <DataSources>
@@ -20,7 +19,7 @@
       </DataSources>
 
       <OutputChannels>        
-        <OutputChannel Id="FinalOutput" VideoDataSourceId="VideoFeed" />
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="VideoFeed" />
       </OutputChannels>
     </Device>
   </DataCollection>
@@ -170,6 +169,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream"
   />
 
 

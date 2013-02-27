@@ -139,7 +139,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    DefaultDeviceIdOnConnect="TrackerDevice"
+    DefaultSelectedChannelId="TrackerStream"
   />
 
 
