@@ -1399,12 +1399,14 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 
     if( this->TempHeaderFileName == NULL )
     {
-      CreateTemporaryFilename(this->TempHeaderFileName, "_header");
+      std::string tempFilename = CreateTemporaryFilename("_header");
+      this->SetTempHeaderFileName(tempFilename.c_str());
     }
 
     if( this->TempImageFileName == NULL )
     {
-      CreateTemporaryFilename(this->TempImageFileName, "_images");
+      std::string tempFilename = CreateTemporaryFilename("_images");
+      this->SetTempImageFileName(tempFilename.c_str());
     }
   }
 
@@ -1451,54 +1453,38 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( char*& aFilenameToFill, const char* aSuffix )
+std::string vtkMetaImageSequenceIO::CreateTemporaryFilename( const char* aSuffix )
 {
   bool filenameFound(false);
-  char * buffer(NULL);
 
 #ifdef _WIN32
-  int baseValue = L_tmpnam_s;
+  int tmpFilenameSize = L_tmpnam_s;
 #else
-  int baseValue = L_tmpnam;
+  int tmpFilenameSize = L_tmpnam;
 #endif
 
-
-  int n = baseValue + (aSuffix == NULL ? 0 : strlen(aSuffix)) + strlen( vtkPlusConfig::GetInstance()->GetOutputDirectory() ) + 1;
+  std::stringstream ss;
 
   while( !filenameFound )
   {
-    buffer = new char[n];
-    buffer[0] = 0;
-
-    char* junk = new char[baseValue];
+    char* junk = new char[tmpFilenameSize];
 #ifdef _WIN32
-    tmpnam_s(junk, baseValue);
+    tmpnam_s(junk, tmpFilenameSize);
 #else
     tmpnam(junk);
 #endif
-    strcat(buffer, vtkPlusConfig::GetInstance()->GetOutputDirectory() );
-    strcat(buffer, junk);
-    if( aSuffix != NULL )
-    {
-      strcat(buffer, aSuffix);
-    }
+    
+    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << junk << aSuffix == NULL ? "" : aSuffix;
     delete junk;
 
     std::ifstream tmpFileStream;
-    tmpFileStream.open(buffer);
+    tmpFileStream.open(ss.str().c_str());
 
     if( !tmpFileStream.is_open() )
     {
       filenameFound = true;
     }
-    else
-    {
-      delete buffer;
-      buffer = NULL;
-    }
   }
 
-  aFilenameToFill = buffer;
-
-  return PLUS_SUCCESS;
+  return ss.str();
 }
