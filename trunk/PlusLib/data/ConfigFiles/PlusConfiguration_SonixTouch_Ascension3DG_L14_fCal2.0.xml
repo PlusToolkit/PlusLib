@@ -193,7 +193,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10" 
-	DefaultSelectedDeviceId="TrackedVideoDevice" 
+	  DefaultSelectedChannelId="TrackedVideoStream" 
   />
 
 
