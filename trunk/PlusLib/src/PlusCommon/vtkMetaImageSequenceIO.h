@@ -114,7 +114,7 @@ protected:
   virtual ~vtkMetaImageSequenceIO();
 
   /* Create a temp filename */
-  PlusStatus CreateTemporaryFilename(char*& aFilenameToFill, const char* aSuffix = NULL );
+  std::string CreateTemporaryFilename(const char* aSuffix = NULL);
 
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
   PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
