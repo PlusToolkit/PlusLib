@@ -10,8 +10,8 @@
 #include "vtkMetaImageSequenceIO.h"
 #include <iomanip>
 #include <iostream>
+#include <stdio.h>
 
-//#include <stdio.h>
   
 #ifdef _WIN32
   #define FSEEK _fseeki64
@@ -1397,8 +1397,6 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
       return PLUS_FAIL;
     }
 
-    bool headerFound = false;
-
     if( this->TempHeaderFileName == NULL )
     {
       CreateTemporaryFilename(this->TempHeaderFileName, "_header");
@@ -1458,15 +1456,26 @@ PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( char*& aFilenameToFi
   bool filenameFound(false);
   char * buffer(NULL);
 
-  int n = L_tmpnam_s + (aSuffix == NULL ? 0 : strlen(aSuffix)) + strlen( vtkPlusConfig::GetInstance()->GetOutputDirectory() ) + 1;
+#ifdef _WIN32
+  int baseValue = L_tmpnam_s;
+#else
+  int baseValue = L_tmpnam;
+#endif
+
+
+  int n = baseValue + (aSuffix == NULL ? 0 : strlen(aSuffix)) + strlen( vtkPlusConfig::GetInstance()->GetOutputDirectory() ) + 1;
 
   while( !filenameFound )
   {
     buffer = new char[n];
     buffer[0] = 0;
 
-    char* junk = new char[L_tmpnam_s];
-    tmpnam_s(junk, L_tmpnam_s);
+    char* junk = new char[baseValue];
+#ifdef _WIN32
+    tmpnam_s(junk, baseValue);
+#else
+    tmpnam(junk);
+#endif
     strcat(buffer, vtkPlusConfig::GetInstance()->GetOutputDirectory() );
     strcat(buffer, junk);
     if( aSuffix != NULL )
