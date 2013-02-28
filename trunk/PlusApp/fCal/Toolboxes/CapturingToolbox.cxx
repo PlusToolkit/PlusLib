@@ -16,14 +16,16 @@ See License.txt for details.
 #include <QMessageBox>
 #include <QTimer>
 
-//-----------------------------------------------------------------------------
+static const int MAX_ALLOWED_RECORDING_LAG_SEC=3.0; // if the recording lags more than this then it'll skip frames to catch up
 
+//-----------------------------------------------------------------------------
 CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_RecordedFrames(NULL)
 , m_RecordingTimer(NULL)
-, m_LastRecordedFrameTimestamp(0.0)
+, m_RecordingLastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
+, m_RecordingNextFrameToBeRecordedTimestamp(0.0)
 , m_SamplingFrameRate(8)
 , m_RequestedFrameRate(0.0)
 , m_ActualFrameRate(0.0)
@@ -54,7 +56,6 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 }
 
 //-----------------------------------------------------------------------------
-
 CapturingToolbox::~CapturingToolbox()
 {
   if (m_RecordedFrames != NULL) {
@@ -64,7 +65,6 @@ CapturingToolbox::~CapturingToolbox()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated"); 
@@ -89,7 +89,6 @@ void CapturingToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::RefreshContent()
 {
   //LOG_TRACE("CapturingToolbox::RefreshContent");
@@ -102,7 +101,6 @@ void CapturingToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
@@ -217,7 +215,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
 
     SamplingRateChanged(ui.horizontalSlider_SamplingRate->value());
 
-    ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
+    ui.label_ActualRecordingFrameRate->setText(tr("0.00"));
     ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText("0");
@@ -250,7 +248,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     ui.pushButton_SaveAs->setEnabled(true);
     ui.horizontalSlider_SamplingRate->setEnabled(true);
 
-    ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
+    ui.label_ActualRecordingFrameRate->setText("0.00");
     ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
@@ -271,7 +269,6 @@ void CapturingToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::TakeSnapshot()
 {
   LOG_TRACE("CapturingToolbox::TakeSnapshot"); 
@@ -327,27 +324,28 @@ void CapturingToolbox::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Record()
 {
   LOG_INFO("Capturing started");
 
   m_ParentMainWindow->SetToolboxesEnabled(false);
+  m_ActualFrameRate=0.0; // display 0.00 until a real estimation is available
 
   // Reset accessory members
-  m_FirstRecordedFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
+  m_RecordingFirstFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
 
   ui.plainTextEdit_saveResult->clear();
 
-  m_ParentMainWindow->GetSelectedChannel()->GetMostRecentTimestamp(m_LastRecordedFrameTimestamp);
+  m_RecordingNextFrameToBeRecordedTimestamp=vtkAccurateTimer::GetSystemTime();
+  m_RecordingLastAlreadyRecordedFrameTimestamp=UNDEFINED_TIMESTAMP; // none yet
 
   // Start capturing
   SetState(ToolboxState_InProgress);
-  m_RecordingTimer->start(GetSamplingPeriodMsec()); 
+  double samplingPeriodMsec=GetSamplingPeriodSec()*1000.0;
+  m_RecordingTimer->start(samplingPeriodMsec);
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Capture()
 {
   //LOG_TRACE("CapturingToolbox::Capture");
@@ -362,7 +360,7 @@ void CapturingToolbox::Capture()
   }
   
   // Record
-  double maxProcessingTimeSec = (GetSamplingPeriodMsec()*1000.0) * 2; // put a hard limit on the max processing time to make sure the application remains responsive during recording (as a maximum of 2x the update timer period)
+  double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
   double requestedFramePeriodSec=0.1;
   if (m_RequestedFrameRate>0)
   {
@@ -372,18 +370,20 @@ void CapturingToolbox::Capture()
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
-  if ( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  int nbFramesBefore=m_RecordedFrames->GetNumberOfTrackedFrames();
+  if ( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameListSampled(m_RecordingLastAlreadyRecordedFrameTimestamp, m_RecordingNextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingNextFrameToBeRecordedTimestamp ); 
   }
+  int nbFramesAfter=m_RecordedFrames->GetNumberOfTrackedFrames();
 
   // Compute the average frame rate from the ratio of recently acquired frames
   int frame1Index=m_RecordedFrames->GetNumberOfTrackedFrames()-1; // index of the latest frame
-  int frame2Index=frame1Index-m_RequestedFrameRate*2.0-1; // index of an earlier acquired frame (go back by approximately 2 seconds + one frame)
-  if (frame2Index<m_FirstRecordedFrameIndexInThisSegment)
+  int frame2Index=frame1Index-m_RequestedFrameRate*5.0-1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index<m_RecordingFirstFrameIndexInThisSegment)
   {
     // make sure we stay in the current recording segment
-    frame2Index=m_FirstRecordedFrameIndexInThisSegment;
+    frame2Index=m_RecordingFirstFrameIndexInThisSegment;
   }
   if (frame1Index>frame2Index)
   {   
@@ -404,15 +404,20 @@ void CapturingToolbox::Capture()
   }
 
   // Check whether the recording needed more time than the sampling interval
-  double recordingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
-  if (recordingTimeMs > GetSamplingPeriodMsec())
+  double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
+  if (recordingTimeSec > GetSamplingPeriodSec())
   {
-    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeMs<<"ms instead of the allocated "<<GetSamplingPeriodMsec()<<"ms). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeSec<<"sec instead of the allocated "<<GetSamplingPeriodSec()<<"sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+  }
+  double recordingLagSec=vtkAccurateTimer::GetSystemTime()-m_RecordingNextFrameToBeRecordedTimestamp;
+  if (recordingLagSec>MAX_ALLOWED_RECORDING_LAG_SEC)
+  {
+    LOG_ERROR("Recording cannot keep up with the acquisition. Skip "<<recordingLagSec<<" seconds of the data stream to catch up.");
+    m_RecordingNextFrameToBeRecordedTimestamp=vtkAccurateTimer::GetSystemTime();
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Stop()
 {
   LOG_INFO("Capturing stopped");
@@ -424,7 +429,6 @@ void CapturingToolbox::Stop()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Save()
 {
   LOG_TRACE("CapturingToolbox::Save"); 
@@ -439,7 +443,6 @@ void CapturingToolbox::Save()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SaveAs()
 {
   LOG_TRACE("CapturingToolbox::SaveAs"); 
@@ -457,7 +460,6 @@ void CapturingToolbox::SaveAs()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::WriteToFile( QString& aFilename )
 {
   if (! aFilename.isNull() )
@@ -513,7 +515,6 @@ void CapturingToolbox::WriteToFile( QString& aFilename )
 
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::ClearRecordedFrames()
 {
   LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
@@ -529,7 +530,6 @@ void CapturingToolbox::ClearRecordedFrames()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SamplingRateChanged(int aValue)
 {
   LOG_TRACE("CapturingToolbox::RecordingFrameRateChanged(" << aValue << ")"); 
@@ -554,7 +554,6 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 }
 
 //-----------------------------------------------------------------------------
-
 double CapturingToolbox::GetMaximumFrameRate()
 {
   LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
@@ -569,7 +568,6 @@ double CapturingToolbox::GetMaximumFrameRate()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Reset()
 {
   AbstractToolbox::Reset();
@@ -578,7 +576,6 @@ void CapturingToolbox::Reset()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::ClearRecordedFramesInternal()
 {
   m_RecordedFrames->Clear();
@@ -587,17 +584,16 @@ void CapturingToolbox::ClearRecordedFramesInternal()
 }
 
 //-----------------------------------------------------------------------------
-
-double CapturingToolbox::GetSamplingPeriodMsec()
+double CapturingToolbox::GetSamplingPeriodSec()
 {
-  double samplingPeriodMsec=100;
+  double samplingPeriodSec=0.1;
   if (m_SamplingFrameRate>0)
   {
-    samplingPeriodMsec=1000.0/m_SamplingFrameRate;
+    samplingPeriodSec=1.0/m_SamplingFrameRate;
   }
   else
   {
-    LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate);
+    LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate<<". Use default sampling period of "<<samplingPeriodSec<<" sec");
   }
-  return samplingPeriodMsec;
+  return samplingPeriodSec;
 }

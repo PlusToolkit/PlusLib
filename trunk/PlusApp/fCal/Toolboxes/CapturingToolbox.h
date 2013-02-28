@@ -82,8 +82,8 @@ protected:
   */
   void WriteToFile(QString& aFilename);
 
-  /*! Get the sampling period length in msec */
-  double GetSamplingPeriodMsec();
+  /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
+  double GetSamplingPeriodSec();
   
 protected slots:
   /*!
@@ -134,8 +134,11 @@ protected:
   /*! Timer triggering the */
   QTimer* m_RecordingTimer;
 
-  /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
-  double m_LastRecordedFrameTimestamp;
+  /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
+  double m_RecordingLastAlreadyRecordedFrameTimestamp;
+
+  /*! Desired timestamp of the next frame to be recorded */
+  double m_RecordingNextFrameToBeRecordedTimestamp;
 
   /*! Frame rate of the sampling */
   const int m_SamplingFrameRate;
@@ -152,7 +155,7 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_FirstRecordedFrameIndexInThisSegment;
+  int m_RecordingFirstFrameIndexInThisSegment;
 
   /*! String to hold the last location of data saved */
   QString m_LastSaveLocation;
