@@ -19,7 +19,8 @@ vtkStandardNewMacro(vtkPlusChannel);
 
 //----------------------------------------------------------------------------
 // If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
-// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up
+// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up.
+// This time should be long enough to comfortably retrieve a frame from the buffer.
 static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1; 
 
 //----------------------------------------------------------------------------
@@ -785,13 +786,13 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec/*=-1*/)
+PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec/*=-1*/)
 {
-  LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled(" << aTimestamp << ", " << aSamplingRateSec << ")"); 
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled: aTimestampOfLastFrameAlreadyGot="<<aTimestampOfLastFrameAlreadyGot<<", aTimestampOfNextFrameToBeAdded="<<aTimestampOfNextFrameToBeAdded<<", aSamplingPeriodSec="<< aSamplingPeriodSec); 
 
   if ( aTrackedFrameList == NULL )
   {
-    LOG_ERROR("Unable to get tracked frame list - output tracked frame list is NULL!"); 
+    LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled failed: unable to get tracked frame list. Output tracked frame list is NULL."); 
     return PLUS_FAIL; 
   }
 
@@ -800,71 +801,66 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestamp, vtkTra
   double mostRecentTimestamp(0); 
   if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to get most recent timestamp!"); 
+    LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled failed: unable to get most recent timestamp. Probably no frames have been acquired yet."); 
     return PLUS_FAIL; 
-  }
-  // If the user provided a 0 or undefined timestamp then just set the timestamp to start data collection from now
-  // (GetTrackedFrameListSampled will start collecting data if it is called again)
-  if ( aTimestamp < 0.0001 || aTimestamp==UNDEFINED_TIMESTAMP)
-  {
-    aTimestamp = mostRecentTimestamp; 
-    return PLUS_SUCCESS;
-  }
-
-  // Check if there are less frames than it would be needed according to the sampling rate
-  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(aTimestamp, mostRecentTimestamp);
-  int numberOfSampledFrames = (int)((mostRecentTimestamp - aTimestamp) / aSamplingRateSec);
-
-  if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
-  {
-    LOG_WARNING("Unable to add frames at the requested sampling rate because the acquisition frame rate (" << numberOfFramesSinceTimestamp / (mostRecentTimestamp - aTimestamp) << ") is lower than the requested sampling rate ("<<1.0/aSamplingRateSec<<"fps). Reduce the sampling rate or increase the acquisition rate to resolve the issue.");
   }
 
   PlusStatus status=PLUS_SUCCESS;
   // Add frames to input trackedFrameList
-  double latestAddedTimestamp=UNDEFINED_TIMESTAMP;
-  for (;aTimestamp + aSamplingRateSec <= mostRecentTimestamp && (vtkAccurateTimer::GetSystemTime() - startTimeSec) < maxTimeLimitSec; aTimestamp += aSamplingRateSec)
-  {
+  for (; aTimestampOfNextFrameToBeAdded <= mostRecentTimestamp; aTimestampOfNextFrameToBeAdded += aSamplingPeriodSec)
+  {       
+    // If the time that is allowed for adding of frames is expired then stop the processing now
+    if (maxTimeLimitSec>0 && vtkAccurateTimer::GetSystemTime() - startTimeSec > maxTimeLimitSec)
+    {
+      LOG_DEBUG("Reached maximum time that is allowed for sampling frames");
+      break;
+    }
+
+    // Make sure the next frame to be added is still in the buffer:
+    // If the frame will be removed from the buffer really soon, then jump ahead in time (and skip some frames),
+    // instead of trying to retrieve from the buffer (and then fail becuase the frame is not avilable anymore).
     double oldestTimestamp=0;
     if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+      LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Failed to get oldest timestamp from buffer. Probably no frames have been acquired yet."); 
       return PLUS_FAIL; 
     }
-    const double skippingMargin = ceil(SAMPLING_SKIPPING_MARGIN_SEC / aSamplingRateSec) * aSamplingRateSec;
-    if (aTimestamp < oldestTimestamp+skippingMargin)
-    {
-      // the frame will be removed from the buffer really soon, so instead of trying to retrieve from the buffer and failing skip some frames
-      double skipTime=ceil( (oldestTimestamp + skippingMargin + aSamplingRateSec - aTimestamp) / aSamplingRateSec) * aSamplingRateSec;
-      aTimestamp += skipTime;
-      LOG_WARNING("Frames are not available any more at time: " << std::fixed << aTimestamp <<". Skipping " << skipTime << " seconds."); 
+    if (aTimestampOfNextFrameToBeAdded < oldestTimestamp+SAMPLING_SKIPPING_MARGIN_SEC)
+    {      
+      double newTimestampOfFrameToBeAdded = oldestTimestamp + SAMPLING_SKIPPING_MARGIN_SEC;
+      LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Frames in the buffer are not available any more at time: " << std::fixed << aTimestampOfNextFrameToBeAdded <<". Skipping " << newTimestampOfFrameToBeAdded-aTimestampOfNextFrameToBeAdded << " seconds from the recording to catch up. Increase the buffer size or decrease the acquisition rate to avoid this situation.");
+      aTimestampOfNextFrameToBeAdded = newTimestampOfFrameToBeAdded;
       continue;
     }
-    double closestTimestamp = GetClosestTrackedFrameTimestampByTime(aTimestamp);
-    if ( latestAddedTimestamp != UNDEFINED_TIMESTAMP && closestTimestamp != UNDEFINED_TIMESTAMP && closestTimestamp <= latestAddedTimestamp )
+
+    // Get the closest frame to the timestamp of the next frame to be added
+    double closestTimestamp = GetClosestTrackedFrameTimestampByTime(aTimestampOfNextFrameToBeAdded);
+    if (closestTimestamp == UNDEFINED_TIMESTAMP)
     {
-      // This frame has been already added.
-      // Continue to avoid running GetTrackedFrameByTime (that copies the frame pixels from the device buffer).
+      LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Failed to get closest timestamp from buffer for the next frame. Probably no frames have been acquired yet."); 
+      return PLUS_FAIL; 
+    }
+    if ( aTimestampOfLastFrameAlreadyGot != UNDEFINED_TIMESTAMP && closestTimestamp <= aTimestampOfLastFrameAlreadyGot )
+    {
+      // This frame has been already added. Don't spend time with retrieving this frame, just jump to the next
       continue;
     }
-    // Get tracked frame from buffer
+    // Get tracked frame from buffer (actually copies pixel and field data)
     TrackedFrame trackedFrame; 
     if ( GetTrackedFrameByTime(closestTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Unable retrieve frame from the devices for time: " << std::fixed << aTimestamp <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
+      LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Unable retrieve frame from the devices for time: " << std::fixed << aTimestampOfNextFrameToBeAdded <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
       continue;
     }
-    latestAddedTimestamp=trackedFrame.GetTimestamp();
+    aTimestampOfLastFrameAlreadyGot=trackedFrame.GetTimestamp();
     // Add tracked frame to the list 
     if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Unable to add tracked frame to the list" ); 
       status=PLUS_FAIL; 
     }
   }
 
-  // return the latest added timestamp so next time GetTrackedFrameListSampled is called the frames will be added from this one
-  aTimestamp=latestAddedTimestamp;
 
   return status;
 }
@@ -906,9 +902,9 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
   }
 
   // ********************* tracker timestamp **********************
-  double oldestTrackerTimestamp(0); 
+  double oldestTrackerTimestamp(0);   
   if ( this->GetTrackingEnabled() )
-  {
+  {    
     // Get the first tool
     vtkPlusDataSource* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
@@ -916,7 +912,6 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
       LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
       return PLUS_FAIL; 
     }
-
     vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
 
     if ( trackerBuffer == NULL )
@@ -931,7 +926,6 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
       // Always use the oldestItemUid + 1 to be able to interpolate transforms
       uid = uid + 1; 
     }
-
     // Get the oldest valid timestamp from the tracker buffer
     if ( trackerBuffer->GetTimeStamp(uid, oldestTrackerTimestamp ) != ITEM_OK )
     {
@@ -939,7 +933,6 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
       return PLUS_FAIL;
     }
   }
-
   if ( !this->GetVideoDataAvailable() )
   {
     oldestVideoTimestamp = oldestTrackerTimestamp; 
@@ -975,9 +968,9 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
       return PLUS_FAIL; 
     }
   }
-
+  
   ts = oldestVideoTimestamp; 
-
+  
   return PLUS_SUCCESS;
 }
 
@@ -1083,7 +1076,7 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   // Now check any and all tool buffers
   for( DataSourceContainerConstIterator toolIt = this->GetToolsStartConstIterator(); toolIt != this->GetToolsEndConstIterator(); ++toolIt)
   {
-    vtkSmartPointer<vtkPlusDataSource> tool = toolIt->second;
+    vtkPlusDataSource* tool = toolIt->second;
     StreamBufferItem item;
     if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
     {
@@ -1101,32 +1094,21 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
 //----------------------------------------------------------------------------
 bool vtkPlusChannel::GetVideoDataAvailable()
 {
+  if( !this->HasVideoSource() )
+  {
+    return false;
+  }
   vtkPlusDataSource* aSource = NULL;
-  if( this->HasVideoSource() && this->GetVideoSource(aSource) == PLUS_SUCCESS )
+  if (this->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    StreamBufferItem item;
-    if( aSource->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidVideoData() )
-    {
-      return true;
-    }
+    return false;
   }
-
-  // Now check any and all tool buffers
-  for( DataSourceContainerConstIterator toolIt = this->GetToolsStartConstIterator(); toolIt != this->GetToolsEndConstIterator(); ++toolIt)
+  StreamBufferItem item;
+  if( aSource->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK)
   {
-    vtkSmartPointer<vtkPlusDataSource> tool = toolIt->second;
-    StreamBufferItem item;
-    if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
-    {
-      continue;
-    }
-    if( item.HasValidVideoData() )
-    {
-      return true;
-    }
+    return false;
   }
-
-  return false;
+  return item.HasValidVideoData();
 }
 
 //----------------------------------------------------------------------------
