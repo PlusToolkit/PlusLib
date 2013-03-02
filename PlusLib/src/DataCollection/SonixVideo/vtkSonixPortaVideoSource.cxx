@@ -142,7 +142,7 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
-  this->SetForceSingleThreaded(true);
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
 vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource() 

@@ -197,7 +197,7 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
-  this->ForceSingleThreaded=true; // no need to have a data acquisition thread, as we are notified about each new frame
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
 //----------------------------------------------------------------------------

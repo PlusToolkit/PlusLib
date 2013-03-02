@@ -85,8 +85,7 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
-  // The Sonix video device should use the callback mechanism unless overwritten by the configuration
-  this->SetForceSingleThreaded(true);
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 
   this->Reset();
 }

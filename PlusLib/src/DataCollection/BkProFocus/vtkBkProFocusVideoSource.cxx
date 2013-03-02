@@ -269,6 +269,8 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
   this->ImagingMode=RfMode;
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
+
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
 //----------------------------------------------------------------------------
