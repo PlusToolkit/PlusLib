@@ -60,6 +60,11 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   this->RotationScales[2]=0.001;
 
   this->OperatingMode=JOYSTICK_MODE;
+
+  // Although there is a callback function, it is not called regularly (when the joystick is moved 
+  // then it is called too frequently, other times it's not called at all), so we use the capture 
+  // thread to provide regular transform updates
+  this->StartThreadForInternalUpdates=true; 
 }
 
 //-------------------------------------------------------------------------

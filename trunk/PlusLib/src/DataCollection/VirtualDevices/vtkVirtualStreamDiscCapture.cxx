@@ -31,6 +31,9 @@ vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
 {
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
+
+  // The data capture thread will be used to regularly read the frames and write to disk
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------

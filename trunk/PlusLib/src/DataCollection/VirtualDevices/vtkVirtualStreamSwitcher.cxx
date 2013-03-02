@@ -24,6 +24,9 @@ vtkVirtualStreamSwitcher::vtkVirtualStreamSwitcher()
 , FramesWhileInactive(0)
 {
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
+
+  // The data capture thread will be used to regularly check the input devices and generate and update the output
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------

@@ -42,6 +42,9 @@ vtkSavedDataSource::vtkSavedDataSource()
   this->RequireUsImageOrientationInDeviceSetConfiguration = false; // was true for video
   this->RequireRfElementInDeviceSetConfiguration = false;
   this->RequireDeviceImageOrientationInDeviceSetConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------

@@ -437,8 +437,8 @@ protected:
 
   vtkSetMacro(CorrectlyConfigured, bool);
 
-  vtkSetMacro(ForceSingleThreaded, bool);
-  vtkGetMacro(ForceSingleThreaded, bool);
+  vtkSetMacro(StartThreadForInternalUpdates, bool);
+  vtkGetMacro(StartThreadForInternalUpdates, bool);
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
@@ -498,8 +498,11 @@ protected:
   /*! Is this device correctly configured? */
   bool CorrectlyConfigured;
 
-  /*! Force single threaded for this device, used for callback based acquisition */
-  bool ForceSingleThreaded;
+  /*!
+    If enabled, then a data capture thread is created when the device is connected that regularly calls InternalUpdate.
+    This update mechanism is useful for devices that don't provide callback functions but require polling.
+  */
+  bool StartThreadForInternalUpdates;
 
 protected:
   /*

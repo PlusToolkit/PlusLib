@@ -67,7 +67,7 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
-, ForceSingleThreaded(false)
+, StartThreadForInternalUpdates(false)
 {
   this->SetNumberOfInputPorts(0);
 
@@ -787,19 +787,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     return PLUS_SUCCESS;
   }
 
-  const char* forceSingle = deviceXMLElement->GetAttribute("ForceSingleThreaded");
-  if ( forceSingle != NULL )
-  {
-    if( STRCASECMP(forceSingle, "true") == 0 )
-    {
-      this->SetForceSingleThreaded(true);
-    }
-    else if( STRCASECMP(forceSingle, "false") == 0 )
-    {
-      this->SetForceSingleThreaded(false);
-    }
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -935,7 +922,7 @@ PlusStatus vtkPlusDevice::StartRecording()
 
   this->Recording = 1;
 
-  if( !this->ForceSingleThreaded )
+  if( this->StartThreadForInternalUpdates )
   {
     this->ThreadId =
       this->Threader->SpawnThread((vtkThreadFunctionType)\
@@ -963,7 +950,7 @@ PlusStatus vtkPlusDevice::StopRecording()
   this->ThreadId = -1;
   this->Recording = 0;
 
-  if( !this->GetForceSingleThreaded() )
+  if( this->GetStartThreadForInternalUpdates() )
   {
     // Let's give a chance to the thread to stop before we kill the connection
     while ( this->ThreadAlive )

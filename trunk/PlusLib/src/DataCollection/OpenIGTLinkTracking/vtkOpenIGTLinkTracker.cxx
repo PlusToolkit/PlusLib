@@ -48,6 +48,9 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->RequireRfElementInDeviceSetConfiguration = false;
   this->TrackerInternalCoordinateSystemName=NULL;
   SetTrackerInternalCoordinateSystemName("Reference");
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------

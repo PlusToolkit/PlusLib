@@ -20,6 +20,8 @@ vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 , OutputChannel(NULL)
 {
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
+
+  // No need for StartThreadForInternalUpdates, as capturing is performed in other devices, here we just collect references to buffers
 }
 
 //----------------------------------------------------------------------------
