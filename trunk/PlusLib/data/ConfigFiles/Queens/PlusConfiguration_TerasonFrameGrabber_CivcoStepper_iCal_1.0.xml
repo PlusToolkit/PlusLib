@@ -57,7 +57,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
     
     <Device 
       Id="TrackedVideoDevice"
-      Type="VirtualStreamMixer" >
+      Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />

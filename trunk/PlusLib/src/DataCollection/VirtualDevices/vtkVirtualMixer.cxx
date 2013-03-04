@@ -7,15 +7,15 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
-#include "vtkVirtualStreamMixer.h"
+#include "vtkVirtualMixer.h"
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualStreamMixer, "$Revision: 1.0$");
-vtkStandardNewMacro(vtkVirtualStreamMixer);
+vtkCxxRevisionMacro(vtkVirtualMixer, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkVirtualMixer);
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamMixer::vtkVirtualStreamMixer()
+vtkVirtualMixer::vtkVirtualMixer()
 : vtkPlusDevice()
 , OutputChannel(NULL)
 {
@@ -25,25 +25,25 @@ vtkVirtualStreamMixer::vtkVirtualStreamMixer()
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamMixer::~vtkVirtualStreamMixer()
+vtkVirtualMixer::~vtkVirtualMixer()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualStreamMixer::PrintSelf(ostream& os, vtkIndent indent)
+void vtkVirtualMixer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-vtkPlusChannel* vtkVirtualStreamMixer::GetChannel() const
+vtkPlusChannel* vtkVirtualMixer::GetChannel() const
 {
   // Virtual stream mixers always have exactly one output stream
   return this->GetOutputChannel();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
+PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* element)
 {
   if( Superclass::ReadConfiguration(element) == PLUS_FAIL )
   {
@@ -52,7 +52,7 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
 
   if (this->OutputChannels.empty())
   {
-    LOG_WARNING("vtkVirtualStreamMixer device "<<this->GetDeviceId()<<" does not have any output channels");
+    LOG_WARNING("vtkVirtualMixer device "<<this->GetDeviceId()<<" does not have any output channels");
   }
   else
   {
@@ -63,7 +63,7 @@ PlusStatus vtkVirtualStreamMixer::ReadConfiguration( vtkXMLDataElement* element)
 }
 
 //----------------------------------------------------------------------------
-double vtkVirtualStreamMixer::GetAcquisitionRate() const
+double vtkVirtualMixer::GetAcquisitionRate() const
 {
   // Determine frame rate from the video input device with the lowest frame rate  
   bool lowestRateKnown=false;
@@ -102,7 +102,7 @@ double vtkVirtualStreamMixer::GetAcquisitionRate() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
+PlusStatus vtkVirtualMixer::NotifyConfigured()
 {
   // First, empty whatever is there, because this can be called at any point after a configuration
   this->GetOutputChannel()->RemoveTools();
@@ -154,7 +154,7 @@ PlusStatus vtkVirtualStreamMixer::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-bool vtkVirtualStreamMixer::IsTracker() const
+bool vtkVirtualMixer::IsTracker() const
 {
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
@@ -169,7 +169,7 @@ bool vtkVirtualStreamMixer::IsTracker() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamMixer::Reset()
+PlusStatus vtkVirtualMixer::Reset()
 {
   int numErrors(0);
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
@@ -185,7 +185,7 @@ PlusStatus vtkVirtualStreamMixer::Reset()
 }
 
 //----------------------------------------------------------------------------
-bool vtkVirtualStreamMixer::IsResettable()
+bool vtkVirtualMixer::IsResettable()
 {
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {

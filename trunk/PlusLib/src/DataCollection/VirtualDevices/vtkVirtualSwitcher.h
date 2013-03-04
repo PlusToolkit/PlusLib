@@ -4,24 +4,24 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkVirtualStreamSwitcher_h
-#define __vtkVirtualStreamSwitcher_h
+#ifndef __vtkVirtualSwitcher_h
+#define __vtkVirtualSwitcher_h
 
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
 #include <string>
 
 /*!
-\class vtkVirtualStreamSwitcher
+\class vtkVirtualSwitcher
 \brief 
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualStreamSwitcher : public vtkPlusDevice
+class VTK_EXPORT vtkVirtualSwitcher : public vtkPlusDevice
 {
 public:
-  static vtkVirtualStreamSwitcher *New();
-  vtkTypeRevisionMacro(vtkVirtualStreamSwitcher, vtkPlusDevice);
+  static vtkVirtualSwitcher *New();
+  vtkTypeRevisionMacro(vtkVirtualSwitcher, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
@@ -45,8 +45,8 @@ protected:
 
   PlusStatus CopyInputStreamToOutputStream();
 
-  vtkVirtualStreamSwitcher();
-  virtual ~vtkVirtualStreamSwitcher();
+  vtkVirtualSwitcher();
+  virtual ~vtkVirtualSwitcher();
 
   vtkGetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
   vtkSetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
@@ -60,8 +60,8 @@ protected:
   unsigned long FramesWhileInactive;
 
 private:
-  vtkVirtualStreamSwitcher(const vtkVirtualStreamSwitcher&);
-  void operator=(const vtkVirtualStreamSwitcher&);
+  vtkVirtualSwitcher(const vtkVirtualSwitcher&);
+  void operator=(const vtkVirtualSwitcher&);
 };
 
-#endif //__vtkVirtualStreamSwitcher_h
+#endif //__vtkVirtualSwitcher_h

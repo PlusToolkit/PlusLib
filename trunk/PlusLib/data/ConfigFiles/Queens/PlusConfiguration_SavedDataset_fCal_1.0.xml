@@ -50,7 +50,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
     <Device 
       Id="TrackedVideoDevice" 
-      Type="VirtualStreamMixer" >
+      Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />

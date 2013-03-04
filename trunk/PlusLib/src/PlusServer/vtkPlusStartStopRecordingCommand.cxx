@@ -8,7 +8,7 @@ See License.txt for details.
 
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusStartStopRecordingCommand.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtkDataCollector.h"
 
 vtkStandardNewMacro( vtkPlusStartStopRecordingCommand );
@@ -134,7 +134,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const char* captureDeviceId)
+vtkVirtualDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const char* captureDeviceId)
 {
   vtkDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
@@ -142,7 +142,7 @@ vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(
     LOG_ERROR("Data collector is invalid");    
     return NULL;
   }
-  vtkVirtualStreamDiscCapture *captureDevice=NULL;
+  vtkVirtualDiscCapture *captureDevice=NULL;
   if (captureDeviceId!=NULL)
   {
     // Capture device ID is specified
@@ -153,7 +153,7 @@ vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(
       return NULL;
     }
     // device found
-    captureDevice = dynamic_cast<vtkVirtualStreamDiscCapture*>(device);
+    captureDevice = dynamic_cast<vtkVirtualDiscCapture*>(device);
     if (captureDevice==NULL)
     {
       // wrong type
@@ -166,7 +166,7 @@ vtkVirtualStreamDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(
     // No capture device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      captureDevice = dynamic_cast<vtkVirtualStreamDiscCapture*>(*it);
+      captureDevice = dynamic_cast<vtkVirtualDiscCapture*>(*it);
       if (captureDevice!=NULL)
       {      
         // found a recording device
@@ -192,7 +192,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkVirtualStreamDiscCapture *captureDevice=GetCaptureDevice(this->CaptureDeviceId);
+  vtkVirtualDiscCapture *captureDevice=GetCaptureDevice(this->CaptureDeviceId);
   if (captureDevice==NULL)
   {            
     std::string reply="VirtualStreamCapture has not been found (";

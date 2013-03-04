@@ -50,7 +50,7 @@
 
     <Device 
       Id="TrackedVideoDevice" 
-      Type="VirtualStreamMixer" >
+      Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />

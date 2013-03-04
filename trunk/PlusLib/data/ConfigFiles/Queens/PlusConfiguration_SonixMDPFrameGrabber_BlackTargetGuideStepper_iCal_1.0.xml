@@ -45,7 +45,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
     <Device 
       Id="TrackedVideoDevice" 
-      Type="VirtualStreamMixer" >
+      Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />

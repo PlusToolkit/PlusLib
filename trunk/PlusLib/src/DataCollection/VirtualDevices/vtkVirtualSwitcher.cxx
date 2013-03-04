@@ -7,17 +7,17 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
-#include "vtkVirtualStreamSwitcher.h"
+#include "vtkVirtualSwitcher.h"
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualStreamSwitcher, "$Revision: 1.0$");
-vtkStandardNewMacro(vtkVirtualStreamSwitcher);
+vtkCxxRevisionMacro(vtkVirtualSwitcher, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkVirtualSwitcher);
 
 const int FRAME_COUNT_BEFORE_INACTIVE = 25;
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamSwitcher::vtkVirtualStreamSwitcher()
+vtkVirtualSwitcher::vtkVirtualSwitcher()
 : vtkPlusDevice()
 , CurrentActiveInputStream(NULL)
 , OutputStream(NULL)
@@ -30,12 +30,12 @@ vtkVirtualStreamSwitcher::vtkVirtualStreamSwitcher()
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamSwitcher::~vtkVirtualStreamSwitcher()
+vtkVirtualSwitcher::~vtkVirtualSwitcher()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
+void vtkVirtualSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -53,7 +53,7 @@ void vtkVirtualStreamSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::GetStream(vtkPlusChannel* &aStream) const
+PlusStatus vtkVirtualSwitcher::GetStream(vtkPlusChannel* &aStream) const
 {
   if( this->CurrentActiveInputStream != NULL )
   {
@@ -66,7 +66,7 @@ PlusStatus vtkVirtualStreamSwitcher::GetStream(vtkPlusChannel* &aStream) const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::InternalUpdate()
+PlusStatus vtkVirtualSwitcher::InternalUpdate()
 {
   // if this device runs faster than input device, we might falsely detect that the device is not active because the latest timestamp hasn't changed
   //    correctly detect this situation and wait a few frames before switching
@@ -116,7 +116,7 @@ PlusStatus vtkVirtualStreamSwitcher::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
+PlusStatus vtkVirtualSwitcher::SelectActiveStream()
 {
   std::vector<vtkPlusChannel*> ActiveStreams;
 
@@ -157,7 +157,7 @@ PlusStatus vtkVirtualStreamSwitcher::SelectActiveStream()
 }
 
 //----------------------------------------------------------------------------
-double vtkVirtualStreamSwitcher::GetAcquisitionRate() const
+double vtkVirtualSwitcher::GetAcquisitionRate() const
 {
   vtkPlusChannel* aStream = NULL;
   if( this->GetStream(aStream) == PLUS_SUCCESS )
@@ -169,7 +169,7 @@ double vtkVirtualStreamSwitcher::GetAcquisitionRate() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::ReadConfiguration( vtkXMLDataElement* element)
+PlusStatus vtkVirtualSwitcher::ReadConfiguration( vtkXMLDataElement* element)
 {
   if( Superclass::ReadConfiguration(element) == PLUS_FAIL )
   {
@@ -182,7 +182,7 @@ PlusStatus vtkVirtualStreamSwitcher::ReadConfiguration( vtkXMLDataElement* eleme
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::NotifyConfigured()
+PlusStatus vtkVirtualSwitcher::NotifyConfigured()
 {
   this->LastRecordedTimestampMap.clear();
 
@@ -196,7 +196,7 @@ PlusStatus vtkVirtualStreamSwitcher::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamSwitcher::CopyInputStreamToOutputStream()
+PlusStatus vtkVirtualSwitcher::CopyInputStreamToOutputStream()
 {
   // Only destroy if things have to change
   if( this->CurrentActiveInputStream != NULL )

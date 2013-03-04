@@ -10,9 +10,9 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // Virtual devices
-#include "vtkVirtualStreamMixer.h"
-#include "vtkVirtualStreamSwitcher.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualMixer.h"
+#include "vtkVirtualSwitcher.h"
+#include "vtkVirtualDiscCapture.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -148,9 +148,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif 
 
   // Virtual Devices
-  DeviceTypes["VirtualStreamMixer"]=(PointerToDevice)&vtkVirtualStreamMixer::New;
-  DeviceTypes["VirtualStreamSwitcher"]=(PointerToDevice)&vtkVirtualStreamSwitcher::New;
-  DeviceTypes["VirtualStreamCapture"]=(PointerToDevice)&vtkVirtualStreamDiscCapture::New;
+  DeviceTypes["VirtualMixer"]=(PointerToDevice)&vtkVirtualMixer::New;
+  DeviceTypes["VirtualSwitcher"]=(PointerToDevice)&vtkVirtualSwitcher::New;
+  DeviceTypes["VirtualDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
 }
 
 //----------------------------------------------------------------------------

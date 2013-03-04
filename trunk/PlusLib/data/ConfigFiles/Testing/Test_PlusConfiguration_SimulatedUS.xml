@@ -107,7 +107,7 @@
 
     <Device 
       Id="TrackedVideoDevice" 
-      Type="VirtualStreamMixer" >
+      Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
@@ -120,7 +120,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualStreamCapture"
+      Type="VirtualDiscCapture"
       Filename="RecordingTest.mha"
       EnableCapturing="FALSE" >
       <InputChannels>
