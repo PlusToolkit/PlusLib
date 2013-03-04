@@ -14,7 +14,7 @@ See License.txt for details.
 
 class TrackedFrame;
 class vtkTrackedFrameList;
-class vtkVirtualStreamMixer;
+class vtkVirtualMixer;
 class vtkXMLDataElement;
 
 /*!

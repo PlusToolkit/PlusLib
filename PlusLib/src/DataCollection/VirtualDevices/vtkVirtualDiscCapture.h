@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkVirtualStreamDiscCapture_h
-#define __vtkVirtualStreamDiscCapture_h
+#ifndef __vtkVirtualDiscCapture_h
+#define __vtkVirtualDiscCapture_h
 
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkPlusDevice.h"
@@ -13,16 +13,16 @@ See License.txt for details.
 #include <string>
 
 /*!
-\class vtkVirtualStreamDiscCapture 
+\class vtkVirtualDiscCapture 
 \brief 
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualStreamDiscCapture : public vtkPlusDevice
+class VTK_EXPORT vtkVirtualDiscCapture : public vtkPlusDevice
 {
 public:
-  static vtkVirtualStreamDiscCapture *New();
-  vtkTypeRevisionMacro(vtkVirtualStreamDiscCapture, vtkPlusDevice);
+  static vtkVirtualDiscCapture *New();
+  vtkTypeRevisionMacro(vtkVirtualDiscCapture, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
@@ -58,8 +58,8 @@ protected:
   /*! Read the sequence metafile, re-write it with compression */
   PlusStatus CompressFile();
 
-  vtkVirtualStreamDiscCapture();
-  virtual ~vtkVirtualStreamDiscCapture();
+  vtkVirtualDiscCapture();
+  virtual ~vtkVirtualDiscCapture();
 
   /*! Recorded tracked frame list */
   vtkTrackedFrameList* m_RecordedFrames;
@@ -88,8 +88,8 @@ protected:
   vtkSmartPointer<vtkRecursiveCriticalSection> WriterAccessMutex;
 
 private:
-  vtkVirtualStreamDiscCapture(const vtkVirtualStreamDiscCapture&);  // Not implemented.
-  void operator=(const vtkVirtualStreamDiscCapture&);  // Not implemented. 
+  vtkVirtualDiscCapture(const vtkVirtualDiscCapture&);  // Not implemented.
+  void operator=(const vtkVirtualDiscCapture&);  // Not implemented. 
 };
 
 #endif

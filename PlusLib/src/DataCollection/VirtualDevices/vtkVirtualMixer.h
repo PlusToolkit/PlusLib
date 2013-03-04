@@ -4,24 +4,24 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkVirtualStreamMixer_h
-#define __vtkVirtualStreamMixer_h
+#ifndef __vtkVirtualMixer_h
+#define __vtkVirtualMixer_h
 
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
 #include <string>
 
 /*!
-\class vtkVirtualStreamMixer 
+\class vtkVirtualMixer 
 \brief 
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualStreamMixer : public vtkPlusDevice
+class VTK_EXPORT vtkVirtualMixer : public vtkPlusDevice
 {
 public:
-  static vtkVirtualStreamMixer *New();
-  vtkTypeRevisionMacro(vtkVirtualStreamMixer,vtkPlusDevice);
+  static vtkVirtualMixer *New();
+  vtkTypeRevisionMacro(vtkVirtualMixer,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Answer if device is a tracker */
@@ -45,8 +45,8 @@ public:
 
   virtual double GetAcquisitionRate() const;
 protected:
-  vtkVirtualStreamMixer();
-  virtual ~vtkVirtualStreamMixer();
+  vtkVirtualMixer();
+  virtual ~vtkVirtualMixer();
 
   vtkGetObjectConstMacro(OutputChannel, vtkPlusChannel);
   vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
@@ -54,8 +54,8 @@ protected:
   vtkPlusChannel*  OutputChannel;
 
 private:
-  vtkVirtualStreamMixer(const vtkVirtualStreamMixer&);  // Not implemented.
-  void operator=(const vtkVirtualStreamMixer&);  // Not implemented. 
+  vtkVirtualMixer(const vtkVirtualMixer&);  // Not implemented.
+  void operator=(const vtkVirtualMixer&);  // Not implemented. 
 };
 
 #endif

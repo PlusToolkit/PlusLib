@@ -12,7 +12,7 @@ class vtkPlusChannel;
 class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkPlusDataSource;
-class vtkVirtualStreamMixer;
+class vtkVirtualMixer;
 
 #include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"

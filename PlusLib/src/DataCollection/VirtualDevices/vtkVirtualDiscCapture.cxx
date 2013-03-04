@@ -8,16 +8,16 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualStreamDiscCapture, "$Revision: 1.0$");
-vtkStandardNewMacro(vtkVirtualStreamDiscCapture);
+vtkCxxRevisionMacro(vtkVirtualDiscCapture, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkVirtualDiscCapture);
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
+vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 : vtkPlusDevice()
 , m_RecordedFrames(vtkTrackedFrameList::New())
 , m_LastRecordedFrameTimestamp(0.0)
@@ -37,7 +37,7 @@ vtkVirtualStreamDiscCapture::vtkVirtualStreamDiscCapture()
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualStreamDiscCapture::~vtkVirtualStreamDiscCapture()
+vtkVirtualDiscCapture::~vtkVirtualDiscCapture()
 {
   if (m_RecordedFrames != NULL) {
     m_RecordedFrames->Delete();
@@ -52,13 +52,13 @@ vtkVirtualStreamDiscCapture::~vtkVirtualStreamDiscCapture()
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualStreamDiscCapture::PrintSelf(ostream& os, vtkIndent indent)
+void vtkVirtualDiscCapture::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfig)
+PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfig)
 {
   if( Superclass::ReadConfiguration(rootConfig) == PLUS_FAIL )
   {
@@ -94,7 +94,7 @@ PlusStatus vtkVirtualStreamDiscCapture::ReadConfiguration( vtkXMLDataElement* ro
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
+PlusStatus vtkVirtualDiscCapture::InternalConnect()
 {
   bool lowestRateKnown=false;
   double lowestRate=30; // just a usual value (FPS)
@@ -113,7 +113,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
   }
   else
   {
-    LOG_WARNING("vtkVirtualStreamDiscCapture acquisition rate is not known");
+    LOG_WARNING("vtkVirtualDiscCapture acquisition rate is not known");
   }
 
   if (this->EnableCapturing)
@@ -129,7 +129,7 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
+PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
 { 
   this->EnableCapturing=false;
   PlusStatus status=CloseFile();
@@ -137,11 +137,11 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
+PlusStatus vtkVirtualDiscCapture::OpenFile()
 {
   if ( m_Filename.empty() )
   {
-    LOG_ERROR("vtkVirtualStreamDiscCapture: Cannot open file, filename is not specified");
+    LOG_ERROR("vtkVirtualDiscCapture: Cannot open file, filename is not specified");
     return PLUS_FAIL;
   }
 
@@ -171,7 +171,7 @@ PlusStatus vtkVirtualStreamDiscCapture::OpenFile()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
+PlusStatus vtkVirtualDiscCapture::CloseFile()
 {
   // Fix the header to write the correct number of frames
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
@@ -219,7 +219,7 @@ PlusStatus vtkVirtualStreamDiscCapture::CloseFile()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
+PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 {
   if (!this->EnableCapturing)
   {
@@ -285,9 +285,9 @@ PlusStatus vtkVirtualStreamDiscCapture::InternalUpdate()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
+PlusStatus vtkVirtualDiscCapture::BuildNewTrackedFrameList()
 {
-  //LOG_TRACE("vtkVirtualStreamDiscCapture::AppendNewFrames");
+  //LOG_TRACE("vtkVirtualDiscCapture::AppendNewFrames");
 
   // Record
   if ( this->OutputChannels[0]->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
@@ -304,7 +304,7 @@ PlusStatus vtkVirtualStreamDiscCapture::BuildNewTrackedFrameList()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
+PlusStatus vtkVirtualDiscCapture::CompressFile()
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   reader->SetFileName(m_Filename.c_str());
@@ -332,17 +332,17 @@ PlusStatus vtkVirtualStreamDiscCapture::CompressFile()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
+PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 0 )
   {
-    LOG_WARNING("vtkVirtualStreamDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped.");
+    LOG_WARNING("vtkVirtualDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped.");
     this->OutputChannels.clear();
   }
 
   if( this->InputChannels.size() == 0 )
   {
-    LOG_ERROR("No input channel sent to vtkVirtualStreamDiscCapture. Unable to save anything.");
+    LOG_ERROR("No input channel sent to vtkVirtualDiscCapture. Unable to save anything.");
     return PLUS_FAIL;
   }
 
@@ -354,20 +354,20 @@ PlusStatus vtkVirtualStreamDiscCapture::NotifyConfigured()
 }
 
 //-----------------------------------------------------------------------------
-void vtkVirtualStreamDiscCapture::SetFilename( const char* filename )
+void vtkVirtualDiscCapture::SetFilename( const char* filename )
 {
   m_Filename = std::string(filename);
   this->m_Writer->SetFileName(m_Filename.c_str());
 }
 
 //-----------------------------------------------------------------------------
-bool vtkVirtualStreamDiscCapture::HasUnsavedData() const
+bool vtkVirtualDiscCapture::HasUnsavedData() const
 {
   return m_HeaderPrepared;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualStreamDiscCapture::ClearRecordedFrames()
+PlusStatus vtkVirtualDiscCapture::ClearRecordedFrames()
 {
   m_RecordedFrames->Clear();
 
