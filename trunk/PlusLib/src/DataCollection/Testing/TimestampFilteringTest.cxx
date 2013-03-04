@@ -11,7 +11,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkTrackedFrameList.h"
@@ -82,10 +82,10 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  vtkSmartPointer<vtkPlusStreamBuffer> trackerBuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
+  vtkSmartPointer<vtkPlusBuffer> trackerBuffer = vtkSmartPointer<vtkPlusBuffer>::New(); 
   trackerBuffer->SetTimeStampReporting(true);
   // compute filtered timestamps now to test the filtering
-  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusStreamBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyTransformFromTrackedFrameList(trackerFrameList, vtkPlusBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS, transformName)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;

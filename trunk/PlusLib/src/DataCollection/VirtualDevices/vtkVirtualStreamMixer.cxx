@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkVirtualStreamMixer.h"
 

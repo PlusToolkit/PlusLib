@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"

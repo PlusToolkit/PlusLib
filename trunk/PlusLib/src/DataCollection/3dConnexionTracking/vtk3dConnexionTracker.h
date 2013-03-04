@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkMatrix4x4;
 

@@ -9,7 +9,7 @@
 // The vtkPlusDataSource provides an interface between a tracked object or video stream in
 // the real world and a virtual object.
 // .SECTION see also
-// vtkPlusDevice vtkPlusStreamBuffer vtkPlusChannel
+// vtkPlusDevice vtkPlusBuffer vtkPlusChannel
 
 #ifndef __vtkPlusDataSource_h
 #define __vtkPlusDataSource_h
@@ -24,7 +24,7 @@
 \ingroup PlusLibDataCollection
 */
 
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 enum DataSourceType
 {
   DATA_SOURCE_TYPE_NONE,
@@ -57,7 +57,7 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Get the buffer */
-  virtual vtkPlusStreamBuffer* GetBuffer() const { return this->Buffer; }
+  virtual vtkPlusBuffer* GetBuffer() const { return this->Buffer; }
 
   /*! Get the tracker which owns this source. */
   // TODO : consider a re-design of this idea
@@ -145,7 +145,7 @@ protected:
   char *SourceId; 
   char *ReferenceCoordinateFrameName;
 
-  vtkPlusStreamBuffer* Buffer;
+  vtkPlusBuffer* Buffer;
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);

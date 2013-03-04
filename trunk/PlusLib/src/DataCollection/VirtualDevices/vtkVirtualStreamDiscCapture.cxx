@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkVirtualStreamDiscCapture.h"
 #include "vtksys/SystemTools.hxx"

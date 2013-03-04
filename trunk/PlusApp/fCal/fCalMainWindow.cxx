@@ -489,7 +489,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           menu = new QMenu(tr("Options"), ui.pushButton_Tools);
           menu->addActions(ui.pushButton_Tools->actions());
-          menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
+          menu->move( QPoint( ui.pushButton_Tools->x() + 10, ui.pushButton_Tools->y() + 33 ) );
         }
       }
       else if( obj == ui.pushButton_ImageOrientation )
@@ -511,7 +511,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
+        menu->move( QPoint( ui.pushButton_ImageOrientation->x() + 10, ui.pushButton_ImageOrientation->y() + 33 ) );
       }
       else
       {
@@ -533,7 +533,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ShowDevices->x(), ui.pushButton_ShowDevices->y() + 23 ) );
+        menu->move( QPoint( ui.pushButton_ShowDevices->x() + 10, ui.pushButton_ShowDevices->y() + 33 ) );
       }
 
       menu->exec();

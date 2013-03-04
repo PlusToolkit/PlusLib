@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include <phidget21.h>
 
-class vtkPlusStreamBuffer; 
+class vtkPlusBuffer; 
 class AhrsAlgo;
 
 /*!

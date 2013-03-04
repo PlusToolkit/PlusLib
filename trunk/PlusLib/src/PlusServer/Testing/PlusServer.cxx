@@ -15,7 +15,7 @@ happens between two threads. In real life, it happens between two programs.
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"

@@ -12,7 +12,7 @@
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceTypes.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"

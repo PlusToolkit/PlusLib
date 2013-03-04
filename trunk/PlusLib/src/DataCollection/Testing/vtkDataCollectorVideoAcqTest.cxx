@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
 
 	LOG_INFO("Copy video buffer"); 
-	vtkPlusStreamBuffer* buffer = vtkPlusStreamBuffer::New(); 
+	vtkPlusBuffer* buffer = vtkPlusBuffer::New(); 
   vtkPlusDevice* device = NULL;
   if( dataCollector->GetDevice(device, "VideoDevice") != PLUS_SUCCESS )
   {

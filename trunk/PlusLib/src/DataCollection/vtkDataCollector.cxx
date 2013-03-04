@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
@@ -440,7 +440,7 @@ PlusStatus vtkDataCollector::GetTrackingData(vtkPlusChannel* aRequestedChannel, 
     return PLUS_FAIL; 
   }
 
-  vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+  vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
   if ( trackerBuffer == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - Failed to get first active tool!"); 

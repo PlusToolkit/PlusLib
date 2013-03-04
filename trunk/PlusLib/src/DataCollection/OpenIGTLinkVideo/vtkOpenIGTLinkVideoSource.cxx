@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 #include <vector>

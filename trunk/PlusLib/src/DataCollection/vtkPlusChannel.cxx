@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkRfProcessor.h"
 
 //----------------------------------------------------------------------------
@@ -447,7 +447,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
     }
 
     StreamBufferItem bufferItem;
-    ItemStatus result = aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED );
+    ItemStatus result = aTool->GetBuffer()->GetStreamBufferItemFromTime(synchronizedTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED );
     if ( result != ITEM_OK )
     {
       double latestTimestamp(0); 
@@ -631,7 +631,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
         return PLUS_FAIL; 
       }
-      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
         LOG_ERROR("Failed to get first active tool!"); 
@@ -753,7 +753,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
         return PLUS_FAIL; 
       }
 
-      vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
         LOG_ERROR("Failed to get first active tool!"); 
@@ -912,7 +912,7 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
       LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
       return PLUS_FAIL; 
     }
-    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
 
     if ( trackerBuffer == NULL )
     {
@@ -1003,7 +1003,7 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
     if ( uid > 1 )
     {
@@ -1148,13 +1148,13 @@ int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, do
   if ( this->GetVideoDataAvailable() )
   {
     StreamBufferItem vFromItem; 
-    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusStreamBuffer::EXACT_TIME) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusBuffer::EXACT_TIME) != ITEM_OK )
     {
       return 0;
     }
 
     StreamBufferItem vToItem; 
-    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusStreamBuffer::EXACT_TIME) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusBuffer::EXACT_TIME) != ITEM_OK )
     {
       return 0;
     }
@@ -1171,23 +1171,23 @@ int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, do
       return PLUS_FAIL; 
     }
 
-    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
       LOG_ERROR("Failed to get first active tool!"); 
       return 0; 
     }
 
-    // vtkPlusStreamBuffer::INTERPOLATED will give the closest item UID  
+    // vtkPlusBuffer::INTERPOLATED will give the closest item UID  
     StreamBufferItem tFromItem; 
-    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampFrom, &tFromItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
+    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampFrom, &tFromItem, vtkPlusBuffer::INTERPOLATED) != ITEM_OK )
     {
       return 0;
     } 
 
-    // vtkPlusStreamBuffer::INTERPOLATED will give the closest item UID 
+    // vtkPlusBuffer::INTERPOLATED will give the closest item UID 
     StreamBufferItem tToItem; 
-    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampTo, &tToItem, vtkPlusStreamBuffer::INTERPOLATED) != ITEM_OK )
+    if (trackerBuffer->GetStreamBufferItemFromTime(aTimestampTo, &tToItem, vtkPlusBuffer::INTERPOLATED) != ITEM_OK )
     {
       return 0;
     }
@@ -1225,7 +1225,7 @@ double vtkPlusChannel::GetClosestTrackedFrameTimestampByTime(double time)
       // there is no active tool
       return UNDEFINED_TIMESTAMP; 
     }
-    vtkPlusStreamBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
       // there is no buffer

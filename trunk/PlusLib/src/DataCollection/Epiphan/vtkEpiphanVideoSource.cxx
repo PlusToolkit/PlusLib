@@ -11,7 +11,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");

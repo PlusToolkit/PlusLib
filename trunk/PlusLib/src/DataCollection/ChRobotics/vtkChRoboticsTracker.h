@@ -10,7 +10,7 @@ See License.txt for details.
 #include "ChrDataItem.h"
 #include "vtkPlusDevice.h"
 
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class SerialLine;
 class ChrSerialPacket;
 
