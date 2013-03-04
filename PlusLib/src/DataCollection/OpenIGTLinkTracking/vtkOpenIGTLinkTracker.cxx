@@ -14,7 +14,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkOpenIGTLinkTracker.h"
 #include "vtkPlusIgtlMessageCommon.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"

@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSavedDataSource.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     vtksys::SystemTools::Delay(1000); 
   }
 
-  vtkSmartPointer<vtkPlusStreamBuffer> videobuffer = vtkSmartPointer<vtkPlusStreamBuffer>::New(); 
+  vtkSmartPointer<vtkPlusBuffer> videobuffer = vtkSmartPointer<vtkPlusBuffer>::New(); 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
   if( videoDevice == NULL || videoDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )

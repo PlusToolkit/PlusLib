@@ -24,7 +24,7 @@ enum ToolStatus;
 
 class vtkTrackedFrameList;
 
-class VTK_EXPORT vtkPlusStreamBuffer : public vtkObject
+class VTK_EXPORT vtkPlusBuffer : public vtkObject
 {
 public:	
   enum TIMESTAMP_FILTERING_OPTION
@@ -41,8 +41,8 @@ public:
     INTERPOLATED /*!< returns interpolated transform (requires valid transform at the requested timestamp) */
   };
 
-  static vtkPlusStreamBuffer *New();
-  vtkTypeRevisionMacro(vtkPlusStreamBuffer,vtkObject);
+  static vtkPlusBuffer *New();
+  vtkTypeRevisionMacro(vtkPlusBuffer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
@@ -157,7 +157,7 @@ public:
 
 
   /*! Make this buffer into a copy of another buffer.  You should Lock both of the buffers before doing this. */
-  virtual void DeepCopy(vtkPlusStreamBuffer* buffer); 
+  virtual void DeepCopy(vtkPlusBuffer* buffer); 
 
   /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 
@@ -214,8 +214,8 @@ public:
   virtual PlusStatus WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
 protected:
-  vtkPlusStreamBuffer();
-  ~vtkPlusStreamBuffer();
+  vtkPlusBuffer();
+  ~vtkPlusBuffer();
 
   /*! Update video buffer by setting the frame format for each frame  */
   virtual PlusStatus AllocateMemoryForFrames(); 
@@ -262,8 +262,8 @@ protected:
   double MaxAllowedTimeDifference;
 
 private:
-  vtkPlusStreamBuffer(const vtkPlusStreamBuffer&);
-  void operator=(const vtkPlusStreamBuffer&);
+  vtkPlusBuffer(const vtkPlusBuffer&);
+  void operator=(const vtkPlusBuffer&);
 };
 
 #endif

@@ -18,7 +18,7 @@ See License.txt for details.
 class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
 class vtkPlusChannel;
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
 
@@ -93,7 +93,7 @@ public:
 	  There must always be a valid buffer in the data object, therefore
     the input parameter shall not be NULL.
   */
-  //virtual PlusStatus SetBuffer(vtkPlusStreamBuffer* newBuffer);
+  //virtual PlusStatus SetBuffer(vtkPlusBuffer* newBuffer);
 
   /*! 
     Set size of the internal frame buffer, i.e. the number of most recent frames that

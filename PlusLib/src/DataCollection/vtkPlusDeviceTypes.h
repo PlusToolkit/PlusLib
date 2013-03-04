@@ -9,7 +9,7 @@ See License.txt for details.
 
 class vtkPlusDevice;
 class vtkPlusChannel;
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkPlusDataSource;
 class vtkVirtualStreamMixer;
@@ -45,11 +45,11 @@ typedef std::vector<vtkPlusChannel*> ChannelContainer;
 typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
 typedef ChannelContainer::iterator ChannelContainerIterator;
 
-typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
+typedef std::vector<vtkPlusBuffer*> StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
 typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
 
-typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
+typedef std::map<int, vtkPlusBuffer*> StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 

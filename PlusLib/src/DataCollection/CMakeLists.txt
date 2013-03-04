@@ -30,7 +30,7 @@ SET (DataCollection_SRCS
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
-  vtkPlusStreamBuffer.cxx 
+  vtkPlusBuffer.cxx 
   UsSimulatorVideo/vtkUsSimulatorVideoSource.cxx
   )
 
@@ -48,11 +48,11 @@ if (WIN32)
     SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualStreamMixer.h
     VirtualDevices/vtkVirtualStreamSwitcher.h
-	VirtualDevices/vtkVirtualStreamDiscCapture.h
+	  VirtualDevices/vtkVirtualStreamDiscCapture.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h
-    vtkPlusStreamBuffer.h 
+    vtkPlusBuffer.h 
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
     )
 endif (WIN32)  

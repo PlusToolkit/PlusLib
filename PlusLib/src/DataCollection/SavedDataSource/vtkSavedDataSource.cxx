@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
@@ -196,7 +196,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
         {
           vtkPlusDataSource* tool=it->second;
           StreamBufferItem bufferItem;  
-          ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
+          ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED); 
           if ( itemStatus != ITEM_OK )
           {
             if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
@@ -298,7 +298,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
       {
         vtkPlusDataSource* tool=it->second;
         StreamBufferItem bufferItem;  
-        ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusStreamBuffer::INTERPOLATED); 
+        ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED); 
         if ( itemStatus != ITEM_OK )
         {
           if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
@@ -486,14 +486,14 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
 
   // Set up a new local buffer
   DeleteLocalBuffers();
-  this->LocalVideoBuffer = vtkPlusStreamBuffer::New(); 
+  this->LocalVideoBuffer = vtkPlusBuffer::New(); 
   
   // Copy all the settings from the video buffer 
   this->LocalVideoBuffer->DeepCopy( this->GetOutputBuffer() );
 
   // Fill local video buffer
 
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 
   this->GetOutputBuffer()->Clear();
@@ -544,10 +544,10 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
     // a transform with the same name as the tool name has been found in the savedDataBuffer
     tool->GetBuffer()->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
 
-    vtkSmartPointer<vtkPlusStreamBuffer> buffer=vtkSmartPointer<vtkPlusStreamBuffer>::New();
+    vtkSmartPointer<vtkPlusBuffer> buffer=vtkSmartPointer<vtkPlusBuffer>::New();
     // Copy all the settings from the default tool buffer 
     buffer->DeepCopy( tool->GetBuffer() ); 
-    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusStreamBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
+    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetSourceId());
       return PLUS_FAIL;
@@ -830,7 +830,7 @@ BufferItemUidType vtkSavedDataSource::GetClosestFrameUidWithinTimeRange(double t
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalTrackerBuffer()
+vtkPlusBuffer* vtkSavedDataSource::GetLocalTrackerBuffer()
 {
   // Get the first tool - the first active tool determines the timestamp
   vtkPlusDataSource* firstActiveTool = NULL; 
@@ -851,7 +851,7 @@ void vtkSavedDataSource::DeleteLocalBuffers()
     this->LocalVideoBuffer = NULL; 
   }
 
-  for (std::map<std::string, vtkPlusStreamBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
+  for (std::map<std::string, vtkPlusBuffer*>::iterator it=this->LocalTrackerBuffers.begin(); it!=this->LocalTrackerBuffers.end(); ++it)
   {    
     if ( (*it).second != NULL )
     {
@@ -864,9 +864,9 @@ void vtkSavedDataSource::DeleteLocalBuffers()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalBuffer()
+vtkPlusBuffer* vtkSavedDataSource::GetLocalBuffer()
 {
-  vtkPlusStreamBuffer* buff=NULL;
+  vtkPlusBuffer* buff=NULL;
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
@@ -886,9 +886,9 @@ vtkPlusStreamBuffer* vtkSavedDataSource::GetLocalBuffer()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusStreamBuffer* vtkSavedDataSource::GetOutputBuffer()
+vtkPlusBuffer* vtkSavedDataSource::GetOutputBuffer()
 {
-  vtkPlusStreamBuffer* buff=NULL;
+  vtkPlusBuffer* buff=NULL;
 
   switch (this->SimulatedStream)
   {

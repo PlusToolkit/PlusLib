@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTransform.h"
 
 vtkStandardNewMacro(vtkPlusDataSource);
@@ -27,7 +27,7 @@ vtkPlusDataSource::vtkPlusDataSource()
 , ToolManufacturer(NULL)
 , SourceId(NULL)
 , ReferenceCoordinateFrameName(NULL)
-, Buffer(vtkPlusStreamBuffer::New())
+, Buffer(vtkPlusBuffer::New())
 {
 }
 

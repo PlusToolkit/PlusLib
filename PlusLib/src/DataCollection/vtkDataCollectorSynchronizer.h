@@ -11,7 +11,7 @@
 #include "vtkTransform.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkXMLDataElement.h"
 #include <vector>
 
@@ -48,12 +48,12 @@ public:
 	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 	
 	/*! Set/get video buffer  */
-	vtkSetObjectMacro(VideoBuffer, vtkPlusStreamBuffer); 
-	vtkGetObjectMacro(VideoBuffer, vtkPlusStreamBuffer); 
+	vtkSetObjectMacro(VideoBuffer, vtkPlusBuffer); 
+	vtkGetObjectMacro(VideoBuffer, vtkPlusBuffer); 
 
 	/*! Set/get tracker buffer  */
-	vtkSetObjectMacro(TrackerBuffer, vtkPlusStreamBuffer); 
-	vtkGetObjectMacro(TrackerBuffer, vtkPlusStreamBuffer); 
+	vtkSetObjectMacro(TrackerBuffer, vtkPlusBuffer); 
+	vtkGetObjectMacro(TrackerBuffer, vtkPlusBuffer); 
 
 	/*! Set/get base frame to compare  */
 	vtkSetObjectMacro(BaseFrame, vtkImageData); 
@@ -197,7 +197,7 @@ protected:
   double StillFrameTimeInterval;
   int StillFrameIndexInterval; 
 
-	vtkPlusStreamBuffer* VideoBuffer; 
+	vtkPlusBuffer* VideoBuffer; 
 	int CurrentVideoBufferIndex; 
 	double FrameDifferenceMean; 
 	double FrameDifferenceThreshold; 
@@ -206,7 +206,7 @@ protected:
 	double MaxFrameDifference; 
 	double VideoOffset; 
 
-	vtkPlusStreamBuffer* TrackerBuffer; 
+	vtkPlusBuffer* TrackerBuffer; 
 	int CurrentTrackerBufferIndex; 
 	PositionContainer PositionTransformMean;
 	PositionContainer PositionTransformThreshold;

@@ -17,7 +17,7 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 // Tracker devices
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkTracker.h" 
 #endif

@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
 #include "vtkXMLUtilities.h"
