@@ -11,7 +11,7 @@
 #include "vtkImageImport.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkRfProcessor.h"
 #include "vtkUsScanConvertCurvilinear.h"
 #include "vtkUsScanConvertLinear.h"

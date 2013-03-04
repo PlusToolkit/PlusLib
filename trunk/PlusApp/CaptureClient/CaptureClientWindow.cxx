@@ -8,7 +8,7 @@ See License.txt for details.
 #include "CaptureControlWidget.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtkXMLUtilities.h"
 #include <QDialog>
 
@@ -209,9 +209,9 @@ PlusStatus CaptureClientWindow::ConfigureCaptureWidgets()
     for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
     {
       vtkPlusDevice* aDevice = *it;
-      if( dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice) != NULL )
+      if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
       {
-        vtkVirtualStreamDiscCapture* capDevice = dynamic_cast<vtkVirtualStreamDiscCapture*>(aDevice);
+        vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
         CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
         aWidget->SetCaptureDevice(*capDevice);
         ui.captureWidgetGrid->addWidget(aWidget);

@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_CaptureControlWidget.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include <QString>
 #include <QWidget>
 
@@ -18,7 +18,7 @@ class QTimer;
 //-----------------------------------------------------------------------------
 
 /*! \class CaptureControlWidget 
-* \brief Control vtkVirtualStreamDiscCapture devices
+* \brief Control vtkVirtualDiscCapture devices
 * \ingroup PlusAppCaptureClient
 */
 class CaptureControlWidget : public QWidget
@@ -42,7 +42,7 @@ public:
 
   virtual double GetMaximumFrameRate() const;
 
-  virtual void SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice);
+  virtual void SetCaptureDevice(vtkVirtualDiscCapture& aDevice);
 
 protected:
   /*!
@@ -69,7 +69,7 @@ protected:
   QTimer* m_UpdateTimer;
 
   /*! device to interact with */
-  vtkVirtualStreamDiscCapture* m_Device;
+  vtkVirtualDiscCapture* m_Device;
 
 protected:
   Ui::CaptureControlWidget ui;

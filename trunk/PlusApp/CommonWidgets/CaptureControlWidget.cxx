@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "CaptureControlWidget.h"
 #include "vtkPlusChannel.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
 #include <QMessageBox>
@@ -172,7 +172,7 @@ void CaptureControlWidget::StartStopButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SetCaptureDevice(vtkVirtualStreamDiscCapture& aDevice)
+void CaptureControlWidget::SetCaptureDevice(vtkVirtualDiscCapture& aDevice)
 {
   m_Device = &aDevice;
 

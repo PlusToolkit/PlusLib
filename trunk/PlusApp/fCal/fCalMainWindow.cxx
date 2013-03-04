@@ -16,7 +16,7 @@ See License.txt for details.
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkRenderWindow.h"
-#include "vtkVirtualStreamMixer.h"
+#include "vtkVirtualMixer.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QLabel>
