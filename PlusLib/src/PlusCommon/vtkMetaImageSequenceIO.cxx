@@ -1399,13 +1399,23 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 
     if( this->TempHeaderFileName == NULL )
     {
-      std::string tempFilename = CreateTemporaryFilename("_header");
+      std::string tempFilename;
+      if( CreateTemporaryFilename(tempFilename, "_header") != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to create temporary header file. Check write access.");
+        return PLUS_FAIL;
+      }
       this->SetTempHeaderFileName(tempFilename.c_str());
     }
 
     if( this->TempImageFileName == NULL )
     {
-      std::string tempFilename = CreateTemporaryFilename("_images");
+      std::string tempFilename;
+      if( CreateTemporaryFilename(tempFilename, "_images") != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to create temporary image file. Check write access.");
+        return PLUS_FAIL;
+      }
       this->SetTempImageFileName(tempFilename.c_str());
     }
   }
@@ -1453,38 +1463,38 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMetaImageSequenceIO::CreateTemporaryFilename( const char* aSuffix )
+PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( std::string& aString, const char* aSuffix )
 {
-  bool filenameFound(false);
+  int maxRetryCount = 50;
+  int tryCount = 0;
 
 #ifdef _WIN32
-  int tmpFilenameSize = L_tmpnam_s;
+  char candidateFilename[L_tmpnam_s];
 #else
-  int tmpFilenameSize = L_tmpnam;
+  char candidateFilename[L_tmpnam];
 #endif
 
   std::stringstream ss;
 
-  while( !filenameFound )
+  while( tryCount < maxRetryCount)
   {
-    char* junk = new char[tmpFilenameSize];
 #ifdef _WIN32
-    tmpnam_s(junk, tmpFilenameSize);
+    tmpnam_s(candidateFilename, L_tmpnam_s);
 #else
-    tmpnam(junk);
+    tmpnam(candidateFilename);
 #endif
     
-    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << junk << aSuffix == NULL ? "" : aSuffix;
-    delete junk;
+    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << candidateFilename << aSuffix == NULL ? "" : aSuffix;
 
-    std::ifstream tmpFileStream;
-    tmpFileStream.open(ss.str().c_str());
-
-    if( !tmpFileStream.is_open() )
+    if( !vtksys::SystemTools::FileExists(ss.str().c_str()) )
     {
-      filenameFound = true;
+      aString = ss.str();
+      return PLUS_SUCCESS;
     }
+
+    ss.clear();
   }
 
-  return ss.str();
+  aString = "";
+  return PLUS_FAIL;
 }
