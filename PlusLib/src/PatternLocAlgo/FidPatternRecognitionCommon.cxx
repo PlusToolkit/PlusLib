@@ -12,8 +12,8 @@
 PatternRecognitionResult::PatternRecognitionResult()
 {
   this->m_DotsFound = false;
-	this->m_Intensity = -1;
-	this->m_NumDots = -1;
+  this->m_Intensity = -1;
+  this->m_NumDots = -1;
 }
 
 //-----------------------------------------------------------------------------
@@ -51,20 +51,20 @@ double Line::ComputeAngleRad(const Line& line1, const Line& line2)
 
 bool Dot::IntensityLessThan( const Dot &dot1, const Dot &dot2 )
 {
-	/* Use > to get descending. */
-	return dot1.GetDotIntensity() > dot2.GetDotIntensity();
+  /* Use > to get descending. */
+  return dot1.GetDotIntensity() > dot2.GetDotIntensity();
 }
 
 //-----------------------------------------------------------------------------
 
 bool Dot::PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 )
 {
-	/* Use > to get descending. */
-	return b1->GetX() > b2->GetX();
+  /* Use > to get descending. */
+  return b1->GetX() > b2->GetX();
 }
 
 //-----------------------------------------------------------------------------
-double	Dot::GetDistanceFrom(Dot &d) 
+double  Dot::GetDistanceFrom(Dot &d) 
 { 
   return sqrt((m_X-d.m_X)*(m_X-d.m_X)+(m_Y-d.m_Y)*(m_Y-d.m_Y)); 
 }
@@ -73,8 +73,8 @@ double	Dot::GetDistanceFrom(Dot &d)
 
 bool Line::lessThan(const Line& line1, const Line& line2)
 {
-	/* Use > to get descending. */
-	return line1.GetIntensity() > line2.GetIntensity();
+  /* Use > to get descending. */
+  return line1.GetIntensity() > line2.GetIntensity();
 }
 
 //-----------------------------------------------------------------------------
@@ -83,28 +83,28 @@ bool Line::compareLines(const Line& line1, const Line& line2)
 {
   //make sure the lines are not the same, dot-wise
   for (unsigned int i=0; i<line1.GetPoints().size(); i++)
-	{
-		if ( line1.GetPoint(i) < line2.GetPoint(i) )
-		{
-			return true;
-		}
-		else if ( line1.GetPoint(i) > line2.GetPoint(i) )
-		{
-			return false;
-		}
-	}
-	return false;
+  {
+    if ( line1.GetPoint(i) < line2.GetPoint(i) )
+    {
+      return true;
+    }
+    else if ( line1.GetPoint(i) > line2.GetPoint(i) )
+    {
+      return false;
+    }
+  }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
 
 void PatternRecognitionResult::Clear()
 {
-	m_DotsFound = false;
-	m_Intensity = -1;
-	m_FoundDotsCoordinateValue.clear();
-	m_NumDots = 1;
-	m_CandidateFidValues.clear(); 
+  m_DotsFound = false;
+  m_Intensity = -1;
+  m_FoundDotsCoordinateValue.clear();
+  m_NumDots = 1;
+  m_CandidateFidValues.clear(); 
 }
 
 //-----------------------------------------------------------------------------

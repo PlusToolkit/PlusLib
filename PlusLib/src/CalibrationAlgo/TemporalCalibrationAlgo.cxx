@@ -184,7 +184,7 @@ PlusStatus TemporalCalibration::GetBestCorrelation( double &videoCorrelation )
     LOG_ERROR("You must first call the \"Update()\" to compute the best correlation metric.");
     return PLUS_FAIL;
   }
-	videoCorrelation = m_BestCorrelationValue;
+  videoCorrelation = m_BestCorrelationValue;
   return PLUS_SUCCESS;
 }
 
@@ -431,14 +431,14 @@ void TemporalCalibration::ComputeCorrelationBetweenFixedAndMovingSignal(double m
   // We will let the tracker metric be the "sliding" metric and let the video metric be the "fixed" metric. Since we are assuming a maximum offset between the two streams.
   // NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor);
 
-	//	Constuct piecewise function for tracker signal
-	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	double midpoint = 0.5;
-	double sharpness = 0;
-	for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
-	{
-		trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.signalTimestamps.at(i), m_MovingSignal.signalValues.at(i), midpoint, sharpness);
-	}
+  //  Constuct piecewise function for tracker signal
+  vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  double midpoint = 0.5;
+  double sharpness = 0;
+  for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
+  {
+    trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.signalTimestamps.at(i), m_MovingSignal.signalValues.at(i), midpoint, sharpness);
+  }
 
   // Compute alignment metric for each offset
   std::deque<double> normalizationFactors;
@@ -449,37 +449,37 @@ void TemporalCalibration::ComputeCorrelationBetweenFixedAndMovingSignal(double m
   }
   std::deque<double> slidingSignalTimestamps(m_FixedSignal.signalTimestamps.size()); 
   std::deque<double> resampledTrackerPositionMetric;
-	for(double offsetValueSec = minTrackerLagSec; offsetValueSec <= maxTrackerLagSec; offsetValueSec+=stepSizeSec)
-	{
+  for(double offsetValueSec = minTrackerLagSec; offsetValueSec <= maxTrackerLagSec; offsetValueSec+=stepSizeSec)
+  {
     //LOG_DEBUG("offsetValueSec = " << offsetValueSec);
     corrTimeOffsets.push_back(offsetValueSec);
-		for(int i = 0; i < slidingSignalTimestamps.size(); ++i)
-		{
-			slidingSignalTimestamps.at(i) =  m_FixedSignal.signalTimestamps.at(i)+offsetValueSec;
-		}
+    for(int i = 0; i < slidingSignalTimestamps.size(); ++i)
+    {
+      slidingSignalTimestamps.at(i) =  m_FixedSignal.signalTimestamps.at(i)+offsetValueSec;
+    }
 
     NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, slidingSignalTimestamps.front(), slidingSignalTimestamps.back(), m_FixedSignal.signalTimestamps);
 
-		ResampleSignalLinearly(slidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
-		double normalizationFactor=1.0;
-		NormalizeMetricValues(resampledTrackerPositionMetric, normalizationFactor);
-		normalizationFactors.push_back(normalizationFactor);
+    ResampleSignalLinearly(slidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
+    double normalizationFactor=1.0;
+    NormalizeMetricValues(resampledTrackerPositionMetric, normalizationFactor);
+    normalizationFactors.push_back(normalizationFactor);
 
     corrValues.push_back(ComputeAlignmentMetric(m_FixedSignal.signalValues, resampledTrackerPositionMetric));
-		
-	}
+    
+  }
 
   // Find the time offset that has the best alignment metric value
   bestCorrelationValue = corrValues.at(0);
   bestCorrelationTimeOffset = corrTimeOffsets.at(0);
-	bestCorrelationNormalizationFactor = normalizationFactors.at(0);
+  bestCorrelationNormalizationFactor = normalizationFactors.at(0);
   for(int i = 1; i < corrValues.size(); ++i)
   {
     if(corrValues.at(i) > bestCorrelationValue)
     {
       bestCorrelationValue = corrValues.at(i);
       bestCorrelationTimeOffset = corrTimeOffsets.at(i);
-			bestCorrelationNormalizationFactor = normalizationFactors.at(i);
+      bestCorrelationNormalizationFactor = normalizationFactors.at(i);
     }
   }
   LOG_DEBUG("bestCorrelationValue="<<bestCorrelationValue);
@@ -706,13 +706,13 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
   ComputeCorrelationBetweenFixedAndMovingSignal(bestCorrelationTimeOffsetInvertedTracker-searchRangeFineStep,bestCorrelationTimeOffsetInvertedTracker+searchRangeFineStep,m_SamplingResolutionSec,bestCorrelationValueInvertedTracker,bestCorrelationTimeOffsetInvertedTracker,bestCorrelationNormalizationFactorInvertedTracker, corrTimeOffsetsInvertedTrackerFine, corrValuesInvertedTrackerFine);  
   LOG_DEBUG("Time offset with sign convention #2: " << bestCorrelationTimeOffsetInvertedTracker);
   
-	// Adopt the smallest tracker lag
+  // Adopt the smallest tracker lag
   if(std::abs(bestCorrelationTimeOffset) < std::abs(bestCorrelationTimeOffsetInvertedTracker))
   {
     m_TrackerLagSec = bestCorrelationTimeOffset;
     m_BestCorrelationTimeOffset = bestCorrelationTimeOffset;
     m_BestCorrelationValue = bestCorrelationValue;
-		m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactor;
+    m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactor;
     m_CorrTimeOffsets=corrTimeOffsets;
     m_CorrValues=corrValues;
     m_CorrTimeOffsetsFine=corrTimeOffsetsFine;
@@ -729,56 +729,56 @@ PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
     m_TrackerLagSec = bestCorrelationTimeOffsetInvertedTracker;
     m_BestCorrelationTimeOffset = bestCorrelationTimeOffsetInvertedTracker;
     m_BestCorrelationValue = bestCorrelationValueInvertedTracker;
-		m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorInvertedTracker;
+    m_BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorInvertedTracker;
     m_CorrTimeOffsets=corrTimeOffsetsInvertedTracker;
     m_CorrValues=corrValuesInvertedTracker;
     m_CorrTimeOffsetsFine=corrTimeOffsetsInvertedTrackerFine;
     m_CorrValuesFine=corrValuesInvertedTrackerFine;
   }
-	   
+     
   //NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignal.signalTimestamps.front()-m_TrackerLagSec, m_MovingSignal.signalTimestamps.back()-m_TrackerLagSec, m_FixedSignal.signalTimestamps);
 
   // Normalize the tracker metric based on the best index offset (only considering the overlap "window"
-	for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
-	{
+  for(int i = 0; i < m_MovingSignal.signalTimestamps.size(); ++i)
+  {
     if(m_MovingSignal.signalTimestamps.at(i) > m_FixedSignal.signalTimestamps.at(0) + m_TrackerLagSec && m_MovingSignal.signalTimestamps.at(i) < m_FixedSignal.signalTimestamps.at(m_FixedSignal.signalTimestamps.size() -1) + m_TrackerLagSec)
-		{
+    {
       m_MovingSignal.normalizedSignalValues.push_back(m_MovingSignal.signalValues.at(i));
-			m_MovingSignal.normalizedSignalTimestamps.push_back(m_MovingSignal.signalTimestamps.at(i));
-		}
-	}
+      m_MovingSignal.normalizedSignalTimestamps.push_back(m_MovingSignal.signalTimestamps.at(i));
+    }
+  }
 
-	// Get a normalized tracker position metric that can be displayed
-	 double unusedNormFactor=1.0;
-	 NormalizeMetricValues(m_MovingSignal.normalizedSignalValues, unusedNormFactor);
+  // Get a normalized tracker position metric that can be displayed
+   double unusedNormFactor=1.0;
+   NormalizeMetricValues(m_MovingSignal.normalizedSignalValues, unusedNormFactor);
 
-	m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
+  m_CalibrationError=sqrt(-m_BestCorrelationValue)/m_BestCorrelationNormalizationFactor; // RMSE in mm
 
   LOG_DEBUG("Tracker stream lags image stream by: " << m_TrackerLagSec << " [s]");
 
 
   // Get maximum calibration error
 
-	//	Get the timestamps of the sliding signal (i.e. cropped video signal) shifted by the best-found offset
-	std::deque<double> shiftedSlidingSignalTimestamps;
-	for(int i = 0; i < m_FixedSignal.signalTimestamps.size(); ++i)
-	{
-		shiftedSlidingSignalTimestamps.push_back(m_FixedSignal.signalTimestamps.at(i) + m_TrackerLagSec); // TODO: check this
-	}
+  //  Get the timestamps of the sliding signal (i.e. cropped video signal) shifted by the best-found offset
+  std::deque<double> shiftedSlidingSignalTimestamps;
+  for(int i = 0; i < m_FixedSignal.signalTimestamps.size(); ++i)
+  {
+    shiftedSlidingSignalTimestamps.push_back(m_FixedSignal.signalTimestamps.at(i) + m_TrackerLagSec); // TODO: check this
+  }
 
-	//	Get the values of the tracker metric at the offset sliding signal values
+  //  Get the values of the tracker metric at the offset sliding signal values
 
-	//	Constuct piecewise function for tracker signal
-	vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	double midpoint = 0.5;
-	double sharpness = 0;
-	for(int i = 0; i < m_MovingSignal.normalizedSignalTimestamps.size(); ++i)
-	{
-		trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.normalizedSignalTimestamps.at(i), m_MovingSignal.normalizedSignalValues.at(i), midpoint, sharpness);
-	}
+  //  Constuct piecewise function for tracker signal
+  vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  double midpoint = 0.5;
+  double sharpness = 0;
+  for(int i = 0; i < m_MovingSignal.normalizedSignalTimestamps.size(); ++i)
+  {
+    trackerPositionPiecewiseSignal->AddPoint(m_MovingSignal.normalizedSignalTimestamps.at(i), m_MovingSignal.normalizedSignalValues.at(i), midpoint, sharpness);
+  }
 
-	std::deque<double> resampledNormalizedTrackerPositionMetric;
-	ResampleSignalLinearly(shiftedSlidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledNormalizedTrackerPositionMetric);
+  std::deque<double> resampledNormalizedTrackerPositionMetric;
+  ResampleSignalLinearly(shiftedSlidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledNormalizedTrackerPositionMetric);
 
   for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {

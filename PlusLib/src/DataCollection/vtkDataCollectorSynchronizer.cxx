@@ -349,7 +349,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
 
       // Find the moved image timestamp 
       double movedFrameTimestamp(0); 
-      if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )	
+      if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )  
       {
         // Save the frame and transform timestamp 
         this->FrameTimestamp.push_back(movedFrameTimestamp); 
@@ -382,7 +382,7 @@ void vtkDataCollectorSynchronizer::RemoveOutliers()
 
   int numOfElements = this->FrameTimestamp.size(); 
   for ( int i = numOfElements - 1; i >= 0; --i )
-  {	
+  {  
     double offset = this->TransformTimestamp[i] - this->FrameTimestamp[i]; 
 
     if ( abs(meanVideoOffset - offset) > 2.0 * stdevVideoOffset )
@@ -417,14 +417,14 @@ void vtkDataCollectorSynchronizer::GetOffsetStatistics(double &meanVideoOffset, 
     }
 
     meanVideoOffset += offset / (1.0*this->FrameTimestamp.size()); 
-  }	
+  }  
 
   stdevVideoOffset = 0; 
   for ( unsigned int i = 0; i < this->FrameTimestamp.size(); i++ )
   {
     double offset = this->TransformTimestamp[i] - this->FrameTimestamp[i]; 
     stdevVideoOffset += pow((meanVideoOffset - offset), 2.0) / (1.0*this->FrameTimestamp.size()); 
-  }	
+  }  
   stdevVideoOffset = sqrt(stdevVideoOffset); 
 }
 
@@ -509,12 +509,12 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   }
 
   deviationTransform.Rx = sqrt(deviationTransform.Rx); 
-  deviationTransform.Ry =	sqrt(deviationTransform.Ry); 
-  deviationTransform.Rz =	sqrt(deviationTransform.Rz); 
+  deviationTransform.Ry =  sqrt(deviationTransform.Ry); 
+  deviationTransform.Rz =  sqrt(deviationTransform.Rz); 
 
-  deviationTransform.Tx =	sqrt(deviationTransform.Tx); 
-  deviationTransform.Ty =	sqrt(deviationTransform.Ty); 
-  deviationTransform.Tz =	sqrt(deviationTransform.Tz); 
+  deviationTransform.Tx =  sqrt(deviationTransform.Tx); 
+  deviationTransform.Ty =  sqrt(deviationTransform.Ty); 
+  deviationTransform.Tz =  sqrt(deviationTransform.Tz); 
 
 
   // compute the threshold values for rotation and translation axes
@@ -852,7 +852,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
     }
 
     if ( this->GetVideoBuffer()->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
-    {	
+    {  
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from frame UID: " << bufferIndex); 
       bufferIndex++; 
       continue; 
@@ -1171,18 +1171,18 @@ PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* ro
     return PLUS_FAIL; 
   }
 
-	vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
   vtkXMLDataElement* synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
   if (synchronizationConfig == NULL) 
   {
     LOG_ERROR("Cannot find Synchronization element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   int synchronizationTimeLength = 0; 

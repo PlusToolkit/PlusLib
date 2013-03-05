@@ -91,46 +91,46 @@ vtk3dConnexionTracker::~vtk3dConnexionTracker()
 PlusStatus vtk3dConnexionTracker::RegisterDevice()
 {
   // Get a list of all attached raw input devices
-	UINT nDevices=0;
-	if (GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST)) != 0)
-	{ 
+  UINT nDevices=0;
+  if (GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST)) != 0)
+  { 
     LOG_ERROR("No RawInput devices attached");
     return PLUS_FAIL;
-	}
+  }
   PRAWINPUTDEVICELIST pRawInputDeviceList=NULL;
-	if ((pRawInputDeviceList = (PRAWINPUTDEVICELIST)malloc(sizeof(RAWINPUTDEVICELIST) * nDevices)) == NULL)
-	{
+  if ((pRawInputDeviceList = (PRAWINPUTDEVICELIST)malloc(sizeof(RAWINPUTDEVICELIST) * nDevices)) == NULL)
+  {
     LOG_ERROR("Error allocating memory for device list");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
-	// Now get the data on the attached devices
-	if (GetRawInputDeviceList(pRawInputDeviceList, &nDevices, sizeof(RAWINPUTDEVICELIST)) == -1) 
-	{
+  // Now get the data on the attached devices
+  if (GetRawInputDeviceList(pRawInputDeviceList, &nDevices, sizeof(RAWINPUTDEVICELIST)) == -1) 
+  {
     LOG_ERROR("Error getting raw input device list");
     free(pRawInputDeviceList);
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
-	this->RegisteredRawInputDevices = (PRAWINPUTDEVICE)malloc( nDevices * sizeof(RAWINPUTDEVICE) );
-	this->NumberOfRegisteredRawInputDevices = 0;
+  this->RegisteredRawInputDevices = (PRAWINPUTDEVICE)malloc( nDevices * sizeof(RAWINPUTDEVICE) );
+  this->NumberOfRegisteredRawInputDevices = 0;
 
-	// Look through device list for RIM_TYPEHID devices with UsagePage == 1, Usage == 8
-	for(UINT i=0; i<nDevices; i++)
-	{
-		if (pRawInputDeviceList[i].dwType == RIM_TYPEHID)
-		{
-			UINT nchars = 300;
-			TCHAR deviceName[300];
-			if (GetRawInputDeviceInfo( pRawInputDeviceList[i].hDevice, RIDI_DEVICENAME, deviceName, &nchars) >= 0)
+  // Look through device list for RIM_TYPEHID devices with UsagePage == 1, Usage == 8
+  for(UINT i=0; i<nDevices; i++)
+  {
+    if (pRawInputDeviceList[i].dwType == RIM_TYPEHID)
+    {
+      UINT nchars = 300;
+      TCHAR deviceName[300];
+      if (GetRawInputDeviceInfo( pRawInputDeviceList[i].hDevice, RIDI_DEVICENAME, deviceName, &nchars) >= 0)
       {
-			  LOG_DEBUG("Device["<<i<<"]: handle="<<pRawInputDeviceList[i].hDevice<<" name = "<<deviceName);
+        LOG_DEBUG("Device["<<i<<"]: handle="<<pRawInputDeviceList[i].hDevice<<" name = "<<deviceName);
       }
 
-			RID_DEVICE_INFO dinfo;
-			UINT sizeofdinfo = sizeof(dinfo);
-			dinfo.cbSize = sizeofdinfo;
-			if (GetRawInputDeviceInfo( pRawInputDeviceList[i].hDevice, RIDI_DEVICEINFO, &dinfo, &sizeofdinfo ) < 0)
+      RID_DEVICE_INFO dinfo;
+      UINT sizeofdinfo = sizeof(dinfo);
+      dinfo.cbSize = sizeofdinfo;
+      if (GetRawInputDeviceInfo( pRawInputDeviceList[i].hDevice, RIDI_DEVICEINFO, &dinfo, &sizeofdinfo ) < 0)
       {
         continue;
       }
@@ -159,19 +159,19 @@ PlusStatus vtk3dConnexionTracker::RegisterDevice()
         this->RegisteredRawInputDevices[this->NumberOfRegisteredRawInputDevices].hwndTarget  = this->CaptureWindowHandle;
         this->NumberOfRegisteredRawInputDevices++;
       }
-    }		
-	}
+    }    
+  }
 
   free(pRawInputDeviceList);
 
-	// Register for input from the devices in the list
-	if (RegisterRawInputDevices( this->RegisteredRawInputDevices, this->NumberOfRegisteredRawInputDevices, sizeof(RAWINPUTDEVICE) ) == FALSE )
-	{
-		LOG_ERROR("Error calling RegisterRawInputDevices");
-		return PLUS_FAIL;
-	}
+  // Register for input from the devices in the list
+  if (RegisterRawInputDevices( this->RegisteredRawInputDevices, this->NumberOfRegisteredRawInputDevices, sizeof(RAWINPUTDEVICE) ) == FALSE )
+  {
+    LOG_ERROR("Error calling RegisterRawInputDevices");
+    return PLUS_FAIL;
+  }
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
@@ -188,7 +188,7 @@ void vtk3dConnexionTracker::UnregisterDevice()
     {
       LOG_ERROR("Error unregistering input devices");
     }
-	  free(this->RegisteredRawInputDevices);
+    free(this->RegisteredRawInputDevices);
     this->RegisteredRawInputDevices=NULL;
     this->NumberOfRegisteredRawInputDevices=0;
   }
@@ -214,26 +214,26 @@ LONG FAR PASCAL vtk3dConnexionTrackerWinProc(HWND hwnd, UINT message, WPARAM wPa
 //----------------------------------------------------------------------------
 void vtk3dConnexionTracker::ProcessDeviceInputEvent( LPARAM lParam )
 {
-	LOG_TRACE("WM_INPUT lParam="<<lParam);
+  LOG_TRACE("WM_INPUT lParam="<<lParam);
 
-	RAWINPUTHEADER header;
-	UINT size = sizeof(header);
-	if ( GetRawInputData( (HRAWINPUT)lParam, RID_HEADER, &header,  &size, sizeof(RAWINPUTHEADER) ) == -1)
-	{
-		LOG_ERROR("Error from GetRawInputData(RID_HEADER)");
-		return;
-	}
+  RAWINPUTHEADER header;
+  UINT size = sizeof(header);
+  if ( GetRawInputData( (HRAWINPUT)lParam, RID_HEADER, &header,  &size, sizeof(RAWINPUTHEADER) ) == -1)
+  {
+    LOG_ERROR("Error from GetRawInputData(RID_HEADER)");
+    return;
+  }
 
   LOG_TRACE("rawEvent.header: hDevice = "<<header.hDevice);
 
-	// Set aside enough memory for the full event
-	size = header.dwSize;
-	LPRAWINPUT event = (LPRAWINPUT)malloc(size);
-	if (GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, event, &size, sizeof(RAWINPUTHEADER) ) == -1)
-	{
-		LOG_ERROR("Error from GetRawInputData(RID_INPUT)");
-		return;
-	}
+  // Set aside enough memory for the full event
+  size = header.dwSize;
+  LPRAWINPUT event = (LPRAWINPUT)malloc(size);
+  if (GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, event, &size, sizeof(RAWINPUTHEADER) ) == -1)
+  {
+    LOG_ERROR("Error from GetRawInputData(RID_INPUT)");
+    return;
+  }
   if (event->header.dwType != RIM_TYPEHID)
   {
     // not a human interface device message

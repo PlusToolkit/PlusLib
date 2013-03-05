@@ -198,7 +198,7 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
                                             double thresholdMultiplier/* = 3.0*/, 
                                             double* mean/*=NULL*/, 
                                             double* stdev/*=NULL*/,
-											vnl_vector<unsigned int>* nonOutlierIndices /*NULL*/)
+                      vnl_vector<unsigned int>* nonOutlierIndices /*NULL*/)
 {
   // Set outlierFound flag to false by default 
   outlierFound = false; 
@@ -285,10 +285,10 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
       matrixRowsData.push_back(rowData); 
       matrixRowsIndecies.push_back(rowIndecies); 
       bVector.push_back(vectorRightSide[row]); 
-	    if (nonOutlierIndices != NULL)
-	    {
-	      auxiliarNonOutlierIndicesVector.push_back(nonOutlierIndices->get(row));
-	    }
+      if (nonOutlierIndices != NULL)
+      {
+        auxiliarNonOutlierIndicesVector.push_back(nonOutlierIndices->get(row));
+      }
     }
     else
     {
@@ -309,15 +309,15 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
       vectorRightSide.put(i, bVector[i]); 
     }
 
-	if (nonOutlierIndices != NULL)
-	{
-	  (*nonOutlierIndices).clear();
+  if (nonOutlierIndices != NULL)
+  {
+    (*nonOutlierIndices).clear();
       (*nonOutlierIndices).set_size(auxiliarNonOutlierIndicesVector.size());
-	  for ( unsigned int i = 0; i < auxiliarNonOutlierIndicesVector.size(); ++i )
+    for ( unsigned int i = 0; i < auxiliarNonOutlierIndicesVector.size(); ++i )
       {
-	    (*nonOutlierIndices).put(i,auxiliarNonOutlierIndicesVector[i]);
+      (*nonOutlierIndices).put(i,auxiliarNonOutlierIndicesVector[i]);
       }
-	}
+  }
 
 
     sparseMatrixLeftSide.resize(matrixRowsData.size(), numberOfUnknowns); 
@@ -384,7 +384,7 @@ double PlusMath::GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* b
 // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
 // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path. True is recommended, otherwise the interpolation sometimes give unexpected results. 
 // References: From Adv Anim and Rendering Tech. Pg 364
-void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/) 	
+void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/)   
 {
   const double* p = from; // just an alias to match q
 
@@ -464,46 +464,46 @@ std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
 //----------------------------------------------------------------------------
 void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix )
 {
-	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
+  LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
 
-	for (int row = 0; row < 4; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
-		}
-	}
+  for (int row = 0; row < 4; row++)
+  {
+    for (int column = 0; column < 4; column++)
+    {
+      outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
 {
-	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
+  LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
 
-	outVtkMatrix->Identity(); 
+  outVtkMatrix->Identity(); 
 
-	for (int row = 0; row < 3; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
-		}
-	}
+  for (int row = 0; row < 3; row++)
+  {
+    for (int column = 0; column < 4; column++)
+    {
+      outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision/* = 3*/)
 {
-	LOG_TRACE("PlusMath::PrintVtkMatrix");
+  LOG_TRACE("PlusMath::PrintVtkMatrix");
 
   for ( int i = 0; i < 4; i++ )
-	{
-		stream << std::endl;
-		for ( int j = 0; j < 4; j++ )
-		{
-			stream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << matrix->GetElement(i,j) << " ";
-		}
-	}
+  {
+    stream << std::endl;
+    for ( int j = 0; j < 4; j++ )
+    {
+      stream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << matrix->GetElement(i,j) << " ";
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -517,7 +517,7 @@ void PlusMath::PrintMatrix(vnl_matrix_fixed<double,4,4> matrix, std::ostringstre
 //----------------------------------------------------------------------------
 void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix, int precision/* = 3*/)
 {
-	LOG_TRACE("PlusMath::LogVtkMatrix");
+  LOG_TRACE("PlusMath::LogVtkMatrix");
 
   std::ostringstream matrixStream; 
   PlusMath::PrintVtkMatrix(matrix, matrixStream, precision);

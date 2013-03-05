@@ -34,57 +34,57 @@ vtkAccurateTimerCleanup::vtkAccurateTimerCleanup(){}
 
 vtkAccurateTimerCleanup::~vtkAccurateTimerCleanup()
 {
-	// Destroy any remaining output window.
-	vtkAccurateTimer::SetInstance(NULL);
+  // Destroy any remaining output window.
+  vtkAccurateTimer::SetInstance(NULL);
 }
 
 //----------------------------------------------------------------------------
 vtkAccurateTimer* vtkAccurateTimer::GetInstance()
 {
-	if (!vtkAccurateTimer::Instance)
-	{
-		vtkAccurateTimer::Instance = static_cast<vtkAccurateTimer *>(
-			vtkObjectFactory::CreateInstance("vtkAccurateTimer"));
-		if (!vtkAccurateTimer::Instance)
-		{
-			vtkAccurateTimer::Instance = new vtkAccurateTimer;
-		}
+  if (!vtkAccurateTimer::Instance)
+  {
+    vtkAccurateTimer::Instance = static_cast<vtkAccurateTimer *>(
+      vtkObjectFactory::CreateInstance("vtkAccurateTimer"));
+    if (!vtkAccurateTimer::Instance)
+    {
+      vtkAccurateTimer::Instance = new vtkAccurateTimer;
+    }
     vtkAccurateTimer::Instance->SystemStartTime = vtkAccurateTimer::Instance->GetInternalSystemTime();
     vtkAccurateTimer::Instance->UniversalStartTime = vtkTimerLog::GetUniversalTime(); 
     LOG_DEBUG("AccurateTimer universal start time: "<<GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkAccurateTimer::UniversalStartTime));
-	}
-	return vtkAccurateTimer::Instance;
+  }
+  return vtkAccurateTimer::Instance;
 }
 
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::SetInstance(vtkAccurateTimer* instance)
 {
-	if (vtkAccurateTimer::Instance == instance)
-	{
-		return;
-	}
+  if (vtkAccurateTimer::Instance == instance)
+  {
+    return;
+  }
 
-	if (vtkAccurateTimer::Instance)
-	{
-		vtkAccurateTimer::Instance->Delete();
-	}
+  if (vtkAccurateTimer::Instance)
+  {
+    vtkAccurateTimer::Instance->Delete();
+  }
 
-	vtkAccurateTimer::Instance = instance;
+  vtkAccurateTimer::Instance = instance;
 
-	// User will call ->Delete() after setting instance
+  // User will call ->Delete() after setting instance
 
-	if (instance)
-	{
-		instance->Register(NULL);
-	}
+  if (instance)
+  {
+    instance->Register(NULL);
+  }
 }
 
 //----------------------------------------------------------------------------
 vtkAccurateTimer* vtkAccurateTimer::New()
 {
-	vtkAccurateTimer* ret = vtkAccurateTimer::GetInstance();
-	ret->Register(NULL);
-	return ret;
+  vtkAccurateTimer* ret = vtkAccurateTimer::GetInstance();
+  ret->Register(NULL);
+  return ret;
 } 
 
 //----------------------------------------------------------------------------
@@ -102,17 +102,17 @@ vtkAccurateTimer::~vtkAccurateTimer()
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::Delay(double sec)
 {
 #ifdef _WIN32
-	WindowsAccurateTimer* timer = WindowsAccurateTimer::Instance();
-	timer->Wait( sec * 1000 ); 
+  WindowsAccurateTimer* timer = WindowsAccurateTimer::Instance();
+  timer->Wait( sec * 1000 ); 
 #else
-	vtksys::SystemTools::Delay( sec * 1000 ); 
+  vtksys::SystemTools::Delay( sec * 1000 ); 
 #endif
 }
 
@@ -120,9 +120,9 @@ void vtkAccurateTimer::Delay(double sec)
 double vtkAccurateTimer::GetInternalSystemTime()
 {
 #ifdef _WIN32
-	return WindowsAccurateTimer::GetSystemTime(); 
+  return WindowsAccurateTimer::GetSystemTime(); 
 #else
-	return vtkTimerLog::GetUniversalTime();
+  return vtkTimerLog::GetUniversalTime();
 #endif
 }
 

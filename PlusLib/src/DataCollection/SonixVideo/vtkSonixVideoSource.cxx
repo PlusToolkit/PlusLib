@@ -286,7 +286,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       // a previous connection setup attempt failed after connection has been made, so
       // disconnect before trying to connect again
-	  this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
+    this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
       this->Ult.disconnect();
       this->UlteriusConnected=false;
     }
@@ -1002,8 +1002,8 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
 
   if ( !this->Ult.getParamValue("frame rate", aFrameRate) )
   {
-	 LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
-	 return PLUS_FAIL;
+   LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
+   return PLUS_FAIL;
   }
   
   return PLUS_SUCCESS;
@@ -1014,13 +1014,13 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameSize(int &aFrameWidth, int &aFr
   if (!this->UlteriusConnected)
   {
     LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: not connected");
-	return PLUS_FAIL;
+  return PLUS_FAIL;
   }
 
   if(!this->Ult.getDataDescriptor((uData)this->AcquisitionDataType, this->DataDescriptor))
   {
-	  LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: cannot retrieve displayed frame size.");
-	  return PLUS_FAIL;
+    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: cannot retrieve displayed frame size.");
+    return PLUS_FAIL;
   }
   
   aFrameWidth =  this->DataDescriptor.w;
@@ -1038,8 +1038,8 @@ PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
   }
   if ( !this->Ult.setParamValue("rf-rf decimation", decimation) )
   {
-	 LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
-	 return PLUS_FAIL;
+   LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
+   return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1054,8 +1054,8 @@ PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
   }
   if ( !this->Ult.setParamValue("b-filter type", filterIndex) )
   {
-	 LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: cannot set filter value.");
-	 return PLUS_FAIL;
+   LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: cannot set filter value.");
+   return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1070,8 +1070,8 @@ PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
   }
   if ( !this->Ult.setParamValue("max fr", frLimit) )
   {
-	 LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: cannot set maximum frame rate limit value.");
-	 return PLUS_FAIL;
+   LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: cannot set maximum frame rate limit value.");
+   return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

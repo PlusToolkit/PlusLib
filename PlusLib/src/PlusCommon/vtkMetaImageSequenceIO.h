@@ -31,9 +31,9 @@ class PLUS_EXPORT vtkMetaImageSequenceIO : public vtkObject
 {
 public:
 
-	static vtkMetaImageSequenceIO *New();
-	vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
-	virtual void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkMetaImageSequenceIO *New();
+  vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Set the TrackedFrameList where the images are stored */
   virtual void SetTrackedFrameList(vtkTrackedFrameList *trackedFrameList);
@@ -97,14 +97,14 @@ public:
   */
   virtual PlusStatus SetFileName(const char* aFilename);
   /*! Get input/output file name. */
-	vtkGetStringMacro(FileName); 
+  vtkGetStringMacro(FileName); 
 
   /*! Flag to enable/disable compression of image data */
-	vtkGetMacro(UseCompression, bool);
+  vtkGetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-	vtkSetMacro(UseCompression, bool);
+  vtkSetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-	vtkBooleanMacro(UseCompression, bool);
+  vtkBooleanMacro(UseCompression, bool);
 
   /*! Return the dimensions of the sequence */
   vtkGetMacro(Dimensions, int*);
@@ -155,7 +155,7 @@ protected:
   /*! Set file name for storing the pixel data */
   vtkSetStringMacro(PixelDataFileName); 
   /*! Get file name for storing the pixel data */
-	vtkGetStringMacro(PixelDataFileName); 
+  vtkGetStringMacro(PixelDataFileName); 
 
   vtkSetStringMacro(TempHeaderFileName); 
   vtkGetStringMacro(TempHeaderFileName); 

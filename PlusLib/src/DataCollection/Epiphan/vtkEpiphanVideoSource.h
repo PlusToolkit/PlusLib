@@ -17,9 +17,9 @@
 class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusDevice
 {
 public:
-	static vtkEpiphanVideoSource *New();
-	vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusDevice);
-	void PrintSelf(ostream& os, vtkIndent indent);   
+  static vtkEpiphanVideoSource *New();
+  vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);   
 
   enum VideoFormatType
   {
@@ -30,14 +30,14 @@ public:
 
   virtual bool IsTracker() const { return false; }
 
-  /*! Read configuration from xml data */	
+  /*! Read configuration from xml data */  
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
   /*! Set the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
-	vtkSetMacro(VideoFormat,VideoFormatType); 
+  vtkSetMacro(VideoFormat,VideoFormatType); 
   /*! Get the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
-	vtkGetMacro(VideoFormat,VideoFormatType);  
+  vtkGetMacro(VideoFormat,VideoFormatType);  
 
   /*!
     Set the Epiphan device location. If no location parameter is specified then the device is attempted to be detected automatically.
@@ -47,9 +47,9 @@ public:
     sn:SERIAL Specifies a local or network frame grabber with the specified serial number. Checks the local framegrabbers first.
     id:INDEX Specifies a local frame grabber with the specified index.
   */
-	vtkSetStringMacro(GrabberLocation); 
+  vtkSetStringMacro(GrabberLocation); 
   /*! Get the Epiphan device location */
-	vtkGetStringMacro(GrabberLocation); 
+  vtkGetStringMacro(GrabberLocation); 
 
   /*!
     Set the clip rectangle size to apply to the image in pixel coordinates.
@@ -76,47 +76,47 @@ public:
 
 protected:
   /*! Constructor */
-	vtkEpiphanVideoSource();
+  vtkEpiphanVideoSource();
   /*! Destructor */
-	~vtkEpiphanVideoSource();
+  ~vtkEpiphanVideoSource();
 
   /*! Device-specific connect */
-	virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalConnect();
 
   /*! Device-specific disconnect */
-	virtual PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! Device-specific recording start */
-	virtual PlusStatus InternalStartRecording();
+  virtual PlusStatus InternalStartRecording();
 
   /*! Device-specific recording stop */
-	virtual PlusStatus InternalStopRecording();
+  virtual PlusStatus InternalStopRecording();
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalUpdate();
+  PlusStatus InternalUpdate();
 
   /*! Video format (e.g. Y8) */
-	VideoFormatType VideoFormat;
+  VideoFormatType VideoFormat;
 
 
   /*! Crop rectangle origin for the grabber (in pixels) */
-	int ClipRectangleOrigin[2];
+  int ClipRectangleOrigin[2];
 
   /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
-	int ClipRectangleSize[2];
+  int ClipRectangleSize[2];
 
   /*! String to specify the framegrabber to connect to (auto-detection is attempted if unspecified) */
-	char* GrabberLocation;
+  char* GrabberLocation;
 
   /*! Epiphan Pointer to the grabber */
-	void* FrameGrabber;
+  void* FrameGrabber;
 
   /*! Frame size of the captured image */
-	int FrameSize[2];
+  int FrameSize[2];
 
 private:
-	vtkEpiphanVideoSource(const vtkEpiphanVideoSource&);  // Not implemented.
-	void operator=(const vtkEpiphanVideoSource&);  // Not implemented.
+  vtkEpiphanVideoSource(const vtkEpiphanVideoSource&);  // Not implemented.
+  void operator=(const vtkEpiphanVideoSource&);  // Not implemented.
 };
 
 #endif

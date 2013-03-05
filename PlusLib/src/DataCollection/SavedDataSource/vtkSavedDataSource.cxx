@@ -214,7 +214,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
             status=PLUS_FAIL;
             continue;
           }
-          // Get default transfom	
+          // Get default transfom  
           vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
           if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
           {
@@ -316,7 +316,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
           status=PLUS_FAIL;
           continue;
         }
-        // Get default transfom	
+        // Get default transfom  
         vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
         if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
         {

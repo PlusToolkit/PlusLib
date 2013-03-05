@@ -103,7 +103,7 @@ PlusStatus CivcoBrachyStepper::GetEncoderValues(double &PPosition,
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
 {
   // Increase the m_PositionNumber on every position request
-	PositionRequestNumber = ++m_PositionRequestNumber; 
+  PositionRequestNumber = ++m_PositionRequestNumber; 
 
   // Probe position 
   PPosition = 0.0; 
@@ -183,9 +183,9 @@ double CivcoBrachyStepper::ConvertFloatToDecimal( long floatPoint )
 PlusStatus CivcoBrachyStepper::GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial )
 {
   long lModel = 0;
-	long lSerialNumber = 0;
-	long lVersion = 0;
-	long lAddress = 0;
+  long lSerialNumber = 0;
+  long lVersion = 0;
+  long lAddress = 0;
   if ( this->GetSeiDeviceInfo(this->m_DeviceNumber, lModel, lSerialNumber, lVersion, lAddress) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get SEI device info for device number: " << this->m_DeviceNumber ); 

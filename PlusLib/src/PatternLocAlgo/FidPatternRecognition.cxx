@@ -100,7 +100,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   m_FidSegmentation.Cluster(patternRecognitionError);
   //End of the segmentation
 
-  m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
+  m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());   
 
   m_FidLineFinder.SetCandidateFidValues(m_FidSegmentation.GetCandidateFidValues());
   m_FidLineFinder.SetDotsVector(m_FidSegmentation.GetDotsVector());

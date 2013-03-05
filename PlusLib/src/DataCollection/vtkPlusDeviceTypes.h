@@ -30,7 +30,7 @@ enum {
 /*! Flags for tool statuses */
 enum ToolStatus 
 {
-  TOOL_OK,			      /*!< Tool OK */
+  TOOL_OK,            /*!< Tool OK */
   TOOL_MISSING,       /*!< Tool or tool port is not available */
   TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
   TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */

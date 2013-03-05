@@ -19,7 +19,7 @@
 
 #define STX 2
 #define ETX 3
-#define MAXTRIES 5	
+#define MAXTRIES 5  
 
 static const int MAX_REPEATED_POSITION_ERROR_COUNT = 15;
 
@@ -90,34 +90,34 @@ static CmsBrachyStepper::STEPPERRESPCODE SRC_COUNTERS_INVALID = "29";
 //----------------------------------------------------------------------------
 CmsBrachyStepper::CmsBrachyStepper( unsigned long COMPort/*=1*/, unsigned long BaudRate/*=19200*/)
 {
-	m_StepperCOMPort = new SerialLine(); 
+  m_StepperCOMPort = new SerialLine(); 
   this->SetCOMPort(COMPort); 
   this->SetBaudRate(BaudRate); 
-	m_StepperCOMPort->SetMaxReplyTime(1000);
+  m_StepperCOMPort->SetMaxReplyTime(1000);
 
   m_ProbeScale = 0; 
-	m_GridScale = 0; 
-	m_RotationScale = 0; 
+  m_GridScale = 0; 
+  m_RotationScale = 0; 
 
   m_IsCalibrated = false; 
-	m_RepeatedPositionErrorCount = 0; 
+  m_RepeatedPositionErrorCount = 0; 
 
-	m_BrachyStepperType = BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
+  m_BrachyStepperType = BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
-	InitializeCriticalSection(&m_CriticalSection);
+  InitializeCriticalSection(&m_CriticalSection);
 }
 
 //----------------------------------------------------------------------------
 CmsBrachyStepper::~CmsBrachyStepper()
 {
-	if (m_StepperCOMPort->IsHandleAlive())
-	{
-		m_StepperCOMPort->Close();
-		delete m_StepperCOMPort; 
-		m_StepperCOMPort = NULL; 
-	}
+  if (m_StepperCOMPort->IsHandleAlive())
+  {
+    m_StepperCOMPort->Close();
+    delete m_StepperCOMPort; 
+    m_StepperCOMPort = NULL; 
+  }
 
-	DeleteCriticalSection(&m_CriticalSection);
+  DeleteCriticalSection(&m_CriticalSection);
 }
 
 //----------------------------------------------------------------------------
@@ -154,10 +154,10 @@ PlusStatus CmsBrachyStepper::SetBaudRate(unsigned long BaudRate)
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::Connect()
 {
-	if (!this->m_StepperCOMPort->IsHandleAlive())
-	{
-		this->m_StepperCOMPort->Open(); 
-	}
+  if (!this->m_StepperCOMPort->IsHandleAlive())
+  {
+    this->m_StepperCOMPort->Open(); 
+  }
 
   if ( this->IsStepperAlive() != PLUS_SUCCESS )
   {
@@ -166,7 +166,7 @@ PlusStatus CmsBrachyStepper::Connect()
   }
 
   if (!this->m_StepperCOMPort->IsHandleAlive())  
-  {	
+  {  
     LOG_ERROR("Stepper COM port handle is not alive");
     return PLUS_FAIL; 
   }
@@ -182,7 +182,7 @@ PlusStatus CmsBrachyStepper::Connect()
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::Disconnect()
 {
-	this->m_StepperCOMPort->Close();
+  this->m_StepperCOMPort->Close();
 
   return PLUS_SUCCESS; 
 }
@@ -215,397 +215,397 @@ PlusStatus CmsBrachyStepper::GetDeviceModelInfo( std::string& version, std::stri
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetStatusInfo(unsigned int &Status)
 {
-	std::vector<BYTE> vDecodedMessage;
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection); 
-	for ( int i = 0; i < MAXTRIES; i++)
-	{
-		SendStepperCommand(SC_STATUS_INFO, SRC_STATUS_INFO, vDecodedMessage);
+  std::vector<BYTE> vDecodedMessage;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection); 
+  for ( int i = 0; i < MAXTRIES; i++)
+  {
+    SendStepperCommand(SC_STATUS_INFO, SRC_STATUS_INFO, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 2 )
-		{
-			Status = vDecodedMessage[1];
-			retValue = PLUS_SUCCESS;
-			break; 
-		} 
-	}
-	LeaveCriticalSection(&m_CriticalSection); 
-	return retValue;
+    if (vDecodedMessage.size() >= 2 )
+    {
+      Status = vDecodedMessage[1];
+      retValue = PLUS_SUCCESS;
+      break; 
+    } 
+  }
+  LeaveCriticalSection(&m_CriticalSection); 
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum)
 {
-	std::vector<BYTE> vDecodedMessage; 
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection); 
-	for ( int i = 0; i < MAXTRIES; i++)
-	{
-		SendStepperCommand(SC_VERSION_INFO, SRC_VERSION_INFO, vDecodedMessage);
+  std::vector<BYTE> vDecodedMessage; 
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection); 
+  for ( int i = 0; i < MAXTRIES; i++)
+  {
+    SendStepperCommand(SC_VERSION_INFO, SRC_VERSION_INFO, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 7 )
-		{
-			iVerHi = vDecodedMessage[1];
-			iVerLo = vDecodedMessage[2];
-			iModelNum = vDecodedMessage[3] * 256 + vDecodedMessage[4];
-			iSerialNum = vDecodedMessage[5] * 256 + vDecodedMessage[6];
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-	}
-	LeaveCriticalSection(&m_CriticalSection); 
-	return retValue;
+    if (vDecodedMessage.size() >= 7 )
+    {
+      iVerHi = vDecodedMessage[1];
+      iVerLo = vDecodedMessage[2];
+      iModelNum = vDecodedMessage[3] * 256 + vDecodedMessage[4];
+      iSerialNum = vDecodedMessage[5] * 256 + vDecodedMessage[6];
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+  }
+  LeaveCriticalSection(&m_CriticalSection); 
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale)
 {
-	std::vector<BYTE> vDecodedMessage; 
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection); 
-	for ( int i = 0; i < MAXTRIES; i++)
-	{
-		SendStepperCommand(command, respcode, vDecodedMessage);
+  std::vector<BYTE> vDecodedMessage; 
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection); 
+  for ( int i = 0; i < MAXTRIES; i++)
+  {
+    SendStepperCommand(command, respcode, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 5) 
-		{
-			count = vDecodedMessage[1] * 256 + vDecodedMessage[2];
-			dist = vDecodedMessage[3] * 256 + vDecodedMessage[4];
-			scale = (double)(dist/100.0) / (double)count;
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-	}
-	LeaveCriticalSection(&m_CriticalSection); 
-	return retValue;
+    if (vDecodedMessage.size() >= 5) 
+    {
+      count = vDecodedMessage[1] * 256 + vDecodedMessage[2];
+      dist = vDecodedMessage[3] * 256 + vDecodedMessage[4];
+      scale = (double)(dist/100.0) / (double)count;
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+  }
+  LeaveCriticalSection(&m_CriticalSection); 
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetProbeReferenceData(double &count, double &dist, double &scale)
-{	
-	count = 0; dist = 0; scale = 0; 
-	if (GetReferenceData(SC_PROBE_REFERENCE_DATA,SRC_PROBE_REFERENCE_DATA,count, dist, scale))
-	{
-		m_ProbeScale = scale;
-		return PLUS_SUCCESS;
-	}
+{  
+  count = 0; dist = 0; scale = 0; 
+  if (GetReferenceData(SC_PROBE_REFERENCE_DATA,SRC_PROBE_REFERENCE_DATA,count, dist, scale))
+  {
+    m_ProbeScale = scale;
+    return PLUS_SUCCESS;
+  }
 
-	return PLUS_FAIL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetGridReferenceData(double &count, double &dist, double &scale)
 {
-	count = 0; dist = 0; scale = 0; 
-	if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS) 
-	{
-		m_GridScale = scale;
-		return PLUS_SUCCESS;
-	}
+  count = 0; dist = 0; scale = 0; 
+  if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS) 
+  {
+    m_GridScale = scale;
+    return PLUS_SUCCESS;
+  }
 
-	return PLUS_FAIL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
 {
-	count = 0; dist = 0; scale = 0; 
-	if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS)
-	{
-		m_RotationScale = scale;
-		return PLUS_SUCCESS;
-	}
+  count = 0; dist = 0; scale = 0; 
+  if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS)
+  {
+    m_RotationScale = scale;
+    return PLUS_SUCCESS;
+  }
 
-	return PLUS_FAIL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetEncoderValues(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
 {
-	// Increase the m_PositionNumber on every position request
-	PositionRequestNumber = ++m_PositionRequestNumber; 
+  // Increase the m_PositionNumber on every position request
+  PositionRequestNumber = ++m_PositionRequestNumber; 
 
-	if ( ! m_IsCalibrated )
-	{
+  if ( ! m_IsCalibrated )
+  {
     LOG_ERROR("Cannot get encoder values, the stepper is not calibrated");
-		return PLUS_FAIL; 
-	}
+    return PLUS_FAIL; 
+  }
 
-	if ( m_ProbeScale == 0 || m_GridScale == 0 || m_RotationScale == 0 )
-	{
-		this->SetScalingParameters(); 
-	}
+  if ( m_ProbeScale == 0 || m_GridScale == 0 || m_RotationScale == 0 )
+  {
+    this->SetScalingParameters(); 
+  }
 
-	std::vector<BYTE> vDecodedMessage; 
-	
-	PlusStatus retValue(PLUS_FAIL); 
+  std::vector<BYTE> vDecodedMessage; 
+  
+  PlusStatus retValue(PLUS_FAIL); 
 
-	EnterCriticalSection(&m_CriticalSection); 
-	SendPositionRequestCommand(SC_POSITION_DATA_1, vDecodedMessage);
-	LeaveCriticalSection(&m_CriticalSection); 
+  EnterCriticalSection(&m_CriticalSection); 
+  SendPositionRequestCommand(SC_POSITION_DATA_1, vDecodedMessage);
+  LeaveCriticalSection(&m_CriticalSection); 
 
-	if (vDecodedMessage.size() >= 7) 
-	{
-		PPosition = (static_cast<short>(vDecodedMessage[1]*256 + vDecodedMessage[2]))*m_ProbeScale;
-		GPosition = (static_cast<short>(vDecodedMessage[3]*256 + vDecodedMessage[4]))*m_GridScale;
-		RPosition = (static_cast<short>(vDecodedMessage[5]*256 + vDecodedMessage[6]))*m_RotationScale;
-		m_RepeatedPositionErrorCount = 0; 
-		retValue = PLUS_SUCCESS;
-	}
-	else
-	{
-		m_RepeatedPositionErrorCount++; 
-	}
+  if (vDecodedMessage.size() >= 7) 
+  {
+    PPosition = (static_cast<short>(vDecodedMessage[1]*256 + vDecodedMessage[2]))*m_ProbeScale;
+    GPosition = (static_cast<short>(vDecodedMessage[3]*256 + vDecodedMessage[4]))*m_GridScale;
+    RPosition = (static_cast<short>(vDecodedMessage[5]*256 + vDecodedMessage[6]))*m_RotationScale;
+    m_RepeatedPositionErrorCount = 0; 
+    retValue = PLUS_SUCCESS;
+  }
+  else
+  {
+    m_RepeatedPositionErrorCount++; 
+  }
 
-	if ( m_RepeatedPositionErrorCount >= MAX_REPEATED_POSITION_ERROR_COUNT )
-	{
-		m_RepeatedPositionErrorCount = 0; 
-		this->Disconnect(); 
-		this->Connect(); 
-	}
+  if ( m_RepeatedPositionErrorCount >= MAX_REPEATED_POSITION_ERROR_COUNT )
+  {
+    m_RepeatedPositionErrorCount = 0; 
+    this->Disconnect(); 
+    this->Connect(); 
+  }
 
-	return retValue;
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetCalibrationState(int &PState, int &GState, int &RState)
 {
-	std::vector<BYTE> vDecodedMessage; 
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection); 
-	for ( int i = 0; i < MAXTRIES; i++)
-	{
-		SendStepperCommand(SC_CALIBRATION_STATES, SRC_CALIBRATION_STATES, vDecodedMessage);
+  std::vector<BYTE> vDecodedMessage; 
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection); 
+  for ( int i = 0; i < MAXTRIES; i++)
+  {
+    SendStepperCommand(SC_CALIBRATION_STATES, SRC_CALIBRATION_STATES, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 4) 
-		{
-			PState = vDecodedMessage[1];
-			GState = vDecodedMessage[2];
-			RState = vDecodedMessage[3];
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+    if (vDecodedMessage.size() >= 4) 
+    {
+      PState = vDecodedMessage[1];
+      GState = vDecodedMessage[2];
+      RState = vDecodedMessage[3];
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetRotateState(int &State)
 {
-	std::vector<BYTE> vDecodedMessage; 
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i < MAXTRIES; i++)
-	{
-		SendStepperCommand(SC_ROTATE_STATE, SRC_ROTATE_STATE, vDecodedMessage);
+  std::vector<BYTE> vDecodedMessage; 
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i < MAXTRIES; i++)
+  {
+    SendStepperCommand(SC_ROTATE_STATE, SRC_ROTATE_STATE, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 2) 
-		{
-			State = vDecodedMessage[1];
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+    if (vDecodedMessage.size() >= 2) 
+    {
+      State = vDecodedMessage[1];
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 
 }
 
 //----------------------------------------------------------------------------
 bool CmsBrachyStepper::IsStepperCalibrated()
 {
-	int PState = 0, GState = 0, RState = 0;
-	this->m_IsCalibrated = false; 
+  int PState = 0, GState = 0, RState = 0;
+  this->m_IsCalibrated = false; 
 
-	this->GetCalibrationState(PState, GState, RState);
+  this->GetCalibrationState(PState, GState, RState);
 
-	if( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
-		&& 
-		PState == 5 && GState == 5 && RState == 9)
-	{
-		this->m_IsCalibrated = true; 
-		this->SetScalingParameters();
-	}
-	else if ( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER
-		&& 
-		PState == 0 && GState == 5 && RState == 9)
-	{
-		this->m_IsCalibrated = true; 
-		this->SetScalingParameters();
-	} 
-	else if ( m_BrachyStepperType == CMS_ACCUSEED_DS300 )
-	{
-		this->m_IsCalibrated = true; 
-		this->SetScalingParameters();
-	}
+  if( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
+    && 
+    PState == 5 && GState == 5 && RState == 9)
+  {
+    this->m_IsCalibrated = true; 
+    this->SetScalingParameters();
+  }
+  else if ( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER
+    && 
+    PState == 0 && GState == 5 && RState == 9)
+  {
+    this->m_IsCalibrated = true; 
+    this->SetScalingParameters();
+  } 
+  else if ( m_BrachyStepperType == CMS_ACCUSEED_DS300 )
+  {
+    this->m_IsCalibrated = true; 
+    this->SetScalingParameters();
+  }
 
-	return this->m_IsCalibrated;
+  return this->m_IsCalibrated;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::IsStepperAlive()
 {
-	unsigned int Status;
-	if (!this->GetStatusInfo(Status))
-	{
-		return PLUS_FAIL; 
-	}
-	return PLUS_SUCCESS; 
+  unsigned int Status;
+  if (!this->GetStatusInfo(Status))
+  {
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::InitializeStepper(std::string &CalibMsg)
 {
-	int PState = 0, GState = 0, RState = 0;
-	this->GetCalibrationState(PState, GState, RState);
-	this->m_IsCalibrated = false;
+  int PState = 0, GState = 0, RState = 0;
+  this->GetCalibrationState(PState, GState, RState);
+  this->m_IsCalibrated = false;
 
-	if ((PState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER))
-	{
-		switch (PState) 
-		{
-		case 1:
-		case 2:
-			CalibMsg = CALIB_MSG_PROBE_TO_REF;
-			break;
-		case 3:
-		case 4:
-			CalibMsg = CALIB_MSG_PROBE_TO_HOME;
-			break;
-		default:
-			CalibMsg = CALIB_MSG_PROBE_TO_BASE;
-		}
-		return PLUS_FAIL;
-	}
-	else if ((GState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER)) //TODO: does motorized stepper need this? It works without it and does not flash the green light either
-	{
-		switch (GState) 
-		{
-		case 1:
-		case 2:
-			CalibMsg = CALIB_MSG_GRID_TO_REF;
-			break;
-		case 3:
-		case 4:
-			CalibMsg = CALIB_MSG_GRID_TO_HOME;
-			break;
-		default:
-			CalibMsg = CALIB_MSG_GRID_TO_BASE;
-		}
-		return PLUS_FAIL;
-	}
-	else if (RState < 9)
-	{
-		switch (RState) 
-		{
-		case 1:
-		case 2:
-			CalibMsg = CALIB_MSG_ROTATION_TO_REF;
-			break;
-		case 4:
-			CalibMsg = CALIB_MSG_ROTATION_TO_HOME;
-			break;
-		default:
-			CalibMsg = CALIB_MSG_ROTATION_TO_BASE;
-		}
-		return PLUS_FAIL;
-	}
-	CalibMsg = CALIB_MSG_COMPLETED;
-	this->SetScalingParameters();
-	this->m_IsCalibrated = true;
-	return PLUS_SUCCESS;
+  if ((PState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER))
+  {
+    switch (PState) 
+    {
+    case 1:
+    case 2:
+      CalibMsg = CALIB_MSG_PROBE_TO_REF;
+      break;
+    case 3:
+    case 4:
+      CalibMsg = CALIB_MSG_PROBE_TO_HOME;
+      break;
+    default:
+      CalibMsg = CALIB_MSG_PROBE_TO_BASE;
+    }
+    return PLUS_FAIL;
+  }
+  else if ((GState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER)) //TODO: does motorized stepper need this? It works without it and does not flash the green light either
+  {
+    switch (GState) 
+    {
+    case 1:
+    case 2:
+      CalibMsg = CALIB_MSG_GRID_TO_REF;
+      break;
+    case 3:
+    case 4:
+      CalibMsg = CALIB_MSG_GRID_TO_HOME;
+      break;
+    default:
+      CalibMsg = CALIB_MSG_GRID_TO_BASE;
+    }
+    return PLUS_FAIL;
+  }
+  else if (RState < 9)
+  {
+    switch (RState) 
+    {
+    case 1:
+    case 2:
+      CalibMsg = CALIB_MSG_ROTATION_TO_REF;
+      break;
+    case 4:
+      CalibMsg = CALIB_MSG_ROTATION_TO_HOME;
+      break;
+    default:
+      CalibMsg = CALIB_MSG_ROTATION_TO_BASE;
+    }
+    return PLUS_FAIL;
+  }
+  CalibMsg = CALIB_MSG_COMPLETED;
+  this->SetScalingParameters();
+  this->m_IsCalibrated = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::ResetStepper()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		std::vector<BYTE> ackMessage; 
-		this->StepperInstruction(SC_RESET_SYSTEM);
-		if(IsStepperACKRecieved(ackMessage, SC_RESET_SYSTEM))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    std::vector<BYTE> ackMessage; 
+    this->StepperInstruction(SC_RESET_SYSTEM);
+    if(IsStepperACKRecieved(ackMessage, SC_RESET_SYSTEM))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::TurnMotorOn()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		std::vector<BYTE> ackMessage; 
-		this->StepperInstruction(SC_MOTOR_ON);
-		if(IsStepperACKRecieved(ackMessage, SC_MOTOR_ON))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    std::vector<BYTE> ackMessage; 
+    this->StepperInstruction(SC_MOTOR_ON);
+    if(IsStepperACKRecieved(ackMessage, SC_MOTOR_ON))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::TurnMotorOff()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		std::vector<BYTE> ackMessage; 
-		this->StepperInstruction(SC_MOTOR_OFF);
-		if(IsStepperACKRecieved(ackMessage, SC_MOTOR_OFF))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    std::vector<BYTE> ackMessage; 
+    this->StepperInstruction(SC_MOTOR_OFF);
+    if(IsStepperACKRecieved(ackMessage, SC_MOTOR_OFF))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::GetMotorizationScaleFactor(int &scaleFactor)
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		std::vector<BYTE> vDecodedMessage; 
-		vDecodedMessage.reserve(50);
-		SendStepperCommand(SC_IS_MOTORIZED, SRC_MOTORIZATION_CODE, vDecodedMessage);
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    std::vector<BYTE> vDecodedMessage; 
+    vDecodedMessage.reserve(50);
+    SendStepperCommand(SC_IS_MOTORIZED, SRC_MOTORIZATION_CODE, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 2) 
-		{
-			scaleFactor = vDecodedMessage[1];
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
+    if (vDecodedMessage.size() >= 2) 
+    {
+      scaleFactor = vDecodedMessage[1];
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
 
-	return retValue;
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 bool CmsBrachyStepper::IsStepperMotorized()
 {
-	int scaleFactor(0); 
-	this->GetMotorizationScaleFactor(scaleFactor); 
+  int scaleFactor(0); 
+  this->GetMotorizationScaleFactor(scaleFactor); 
 
   // scaleFactor==0 for non-motorized steppers, scaleFactor>0 for motorized steppers
   return ( scaleFactor > 0 );
@@ -615,240 +615,240 @@ bool CmsBrachyStepper::IsStepperMotorized()
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 {
-	if ( !this->IsStepperMotorized() )
-	{
-		LOG_ERROR("Cannot move probe, the stepper is not motorized");
-		return PLUS_FAIL; 
-	}
+  if ( !this->IsStepperMotorized() )
+  {
+    LOG_ERROR("Cannot move probe, the stepper is not motorized");
+    return PLUS_FAIL; 
+  }
 
-	this->TurnMotorOn(); 
+  this->TurnMotorOn(); 
 
-	// Get probe reference data
-	double count (0), dist(0), scale(0);
-	if ( !this->GetProbeReferenceData(count, dist, scale) )
-	{
-		LOG_ERROR("Unable to get probe reference data");
-		return PLUS_FAIL; 
-	}
+  // Get probe reference data
+  double count (0), dist(0), scale(0);
+  if ( !this->GetProbeReferenceData(count, dist, scale) )
+  {
+    LOG_ERROR("Unable to get probe reference data");
+    return PLUS_FAIL; 
+  }
 
-	int scaleFactor(0); 
-	this->GetMotorizationScaleFactor(scaleFactor); 
+  int scaleFactor(0); 
+  this->GetMotorizationScaleFactor(scaleFactor); 
 
-	double pPosition(0), gPosition(0), pRotation(0); 
-	unsigned long positionRequestNumber(0); 
-	if ( !this->GetEncoderValues(pPosition, gPosition, pRotation, positionRequestNumber) )
-	{
-		LOG_ERROR("Unable to get probe position");
-		return PLUS_FAIL; 
-	}
-	
-	// Calculate position distance
-	double deltaPosMm = (PositionInMm - pPosition); 
+  double pPosition(0), gPosition(0), pRotation(0); 
+  unsigned long positionRequestNumber(0); 
+  if ( !this->GetEncoderValues(pPosition, gPosition, pRotation, positionRequestNumber) )
+  {
+    LOG_ERROR("Unable to get probe position");
+    return PLUS_FAIL; 
+  }
+  
+  // Calculate position distance
+  double deltaPosMm = (PositionInMm - pPosition); 
 
-	// Calculate direction 
-	const int direction = (deltaPosMm >= 0.0 ? 1 : 0 );
+  // Calculate direction 
+  const int direction = (deltaPosMm >= 0.0 ? 1 : 0 );
 
-	// Calculate steps
-	const int steps = static_cast<int>(fabs(deltaPosMm*scaleFactor)+0.5); 
+  // Calculate steps
+  const int steps = static_cast<int>(fabs(deltaPosMm*scaleFactor)+0.5); 
 
-	// Create stepper command
-	unsigned int ck;
-	unsigned char c1,c2, c3, c4, c5, c6, c7, c8;
-	std::string sMessage; 
-	
-	sMessage.push_back('7'); 
-	sMessage.push_back('C'); 
-	this->BinToAscii((direction & 0xff),&c1,&c2);
-	sMessage.push_back(c1); 
-	sMessage.push_back(c2); 
-	this->BinToAscii(steps/256, &c3, &c4);
-	sMessage.push_back(c3);
-	sMessage.push_back(c4);
-	this->BinToAscii(steps%256, &c5, &c6);
-	sMessage.push_back(c5);
-	sMessage.push_back(c6);
-	ck = 0x7c + direction + (steps/256) + (steps%256);
+  // Create stepper command
+  unsigned int ck;
+  unsigned char c1,c2, c3, c4, c5, c6, c7, c8;
+  std::string sMessage; 
+  
+  sMessage.push_back('7'); 
+  sMessage.push_back('C'); 
+  this->BinToAscii((direction & 0xff),&c1,&c2);
+  sMessage.push_back(c1); 
+  sMessage.push_back(c2); 
+  this->BinToAscii(steps/256, &c3, &c4);
+  sMessage.push_back(c3);
+  sMessage.push_back(c4);
+  this->BinToAscii(steps%256, &c5, &c6);
+  sMessage.push_back(c5);
+  sMessage.push_back(c6);
+  ck = 0x7c + direction + (steps/256) + (steps%256);
     ck &= 0xff;
-	this->BinToAscii(ck,&c7,&c8);
-	sMessage.push_back(c7);
-	sMessage.push_back(c8);
+  this->BinToAscii(ck,&c7,&c8);
+  sMessage.push_back(c7);
+  sMessage.push_back(c8);
 
-	// Send probe to desired position
-	STEPPERCOMMAND moveProbe = (static_cast<STEPPERCOMMAND>(sMessage.c_str()));
+  // Send probe to desired position
+  STEPPERCOMMAND moveProbe = (static_cast<STEPPERCOMMAND>(sMessage.c_str()));
 
-	std::vector<BYTE> vDecodedMessage;
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection); 
-	ReturnCode = -1; 
-	StepperInstruction(moveProbe);
+  std::vector<BYTE> vDecodedMessage;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection); 
+  ReturnCode = -1; 
+  StepperInstruction(moveProbe);
 
-	while ( ReturnCode == -1 )
-	{
-		GetStepperMessage(moveProbe, SRC_MOVE_COMPLETE, vDecodedMessage);
+  while ( ReturnCode == -1 )
+  {
+    GetStepperMessage(moveProbe, SRC_MOVE_COMPLETE, vDecodedMessage);
 
-		if (vDecodedMessage.size() >= 2 )
-		{
-			ReturnCode = vDecodedMessage[1];
-			retValue = PLUS_SUCCESS;
-			break; 
-		} 
-		vtkAccurateTimer::GetInstance()->Delay(0.5); 
-	}
-	LeaveCriticalSection(&m_CriticalSection); 
-	
-	this->TurnMotorOff(); 
-	
-	return retValue;
+    if (vDecodedMessage.size() >= 2 )
+    {
+      ReturnCode = vDecodedMessage[1];
+      retValue = PLUS_SUCCESS;
+      break; 
+    } 
+    vtkAccurateTimer::GetInstance()->Delay(0.5); 
+  }
+  LeaveCriticalSection(&m_CriticalSection); 
+  
+  this->TurnMotorOff(); 
+  
+  return retValue;
 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::StepperButtonEnable()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		this->StepperInstruction(SC_BUTTON_ENABLE);
-		std::vector<BYTE> ackMessage; 
-		if(IsStepperACKRecieved(ackMessage, SC_BUTTON_ENABLE))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    this->StepperInstruction(SC_BUTTON_ENABLE);
+    std::vector<BYTE> ackMessage; 
+    if(IsStepperACKRecieved(ackMessage, SC_BUTTON_ENABLE))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::StepperButtonDisable()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		this->StepperInstruction(SC_BUTTON_DISABLE);
-		std::vector<BYTE> ackMessage; 	
-		if(IsStepperACKRecieved(ackMessage, SC_BUTTON_DISABLE))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    this->StepperInstruction(SC_BUTTON_DISABLE);
+    std::vector<BYTE> ackMessage;   
+    if(IsStepperACKRecieved(ackMessage, SC_BUTTON_DISABLE))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::StepperRotateCalibrationEnable()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		this->StepperInstruction(SC_ENABLE_ROTATE_CALIBRATION);
-		std::vector<BYTE> ackMessage; 
-		if(IsStepperACKRecieved(ackMessage, SC_ENABLE_ROTATE_CALIBRATION))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    this->StepperInstruction(SC_ENABLE_ROTATE_CALIBRATION);
+    std::vector<BYTE> ackMessage; 
+    if(IsStepperACKRecieved(ackMessage, SC_ENABLE_ROTATE_CALIBRATION))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::StepperRotateCalibrationDisable()
 {
-	PlusStatus retValue(PLUS_FAIL); 
-	EnterCriticalSection(&m_CriticalSection);
-	for ( int i = 0; i<MAXTRIES; i++)
-	{
-		this->StepperInstruction(SC_DISABLE_ROTATE_CALIBRATION);
-		std::vector<BYTE> ackMessage; 
-		if(IsStepperACKRecieved(ackMessage, SC_DISABLE_ROTATE_CALIBRATION))
-		{
-			retValue = PLUS_SUCCESS;
-			break; 
-		}
-		ClearBuffer(); 
-	}
-	LeaveCriticalSection(&m_CriticalSection);
-	return retValue;
+  PlusStatus retValue(PLUS_FAIL); 
+  EnterCriticalSection(&m_CriticalSection);
+  for ( int i = 0; i<MAXTRIES; i++)
+  {
+    this->StepperInstruction(SC_DISABLE_ROTATE_CALIBRATION);
+    std::vector<BYTE> ackMessage; 
+    if(IsStepperACKRecieved(ackMessage, SC_DISABLE_ROTATE_CALIBRATION))
+    {
+      retValue = PLUS_SUCCESS;
+      break; 
+    }
+    ClearBuffer(); 
+  }
+  LeaveCriticalSection(&m_CriticalSection);
+  return retValue;
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::SendStepperCommand(STEPPERCOMMAND command, STEPPERRESPCODE Response, std::vector<BYTE> &vRawMessage)
 {
-	vRawMessage.clear(); 
+  vRawMessage.clear(); 
 
-	StepperInstruction(command);
+  StepperInstruction(command);
 
-	GetStepperMessage(command, Response, vRawMessage);
+  GetStepperMessage(command, Response, vRawMessage);
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::SendPositionRequestCommand(STEPPERCOMMAND command, std::vector<BYTE> &vRawMessage)
 {
-	vRawMessage.clear(); 
+  vRawMessage.clear(); 
 
-	if ( ! m_IsCalibrated )
-	{
-		return; 
-	}
+  if ( ! m_IsCalibrated )
+  {
+    return; 
+  }
 
-	StepperInstruction(command);
-	std::vector<BYTE> StepperMessage; 
-	bool ack = IsStepperACKRecieved(StepperMessage, command);
-	if( ack )
-	{
-		StepperMessage.clear(); 
-		this->ReadStepperAnswer(StepperMessage);
-	}
+  StepperInstruction(command);
+  std::vector<BYTE> StepperMessage; 
+  bool ack = IsStepperACKRecieved(StepperMessage, command);
+  if( ack )
+  {
+    StepperMessage.clear(); 
+    this->ReadStepperAnswer(StepperMessage);
+  }
 
-	GetPositionMessage(StepperMessage, vRawMessage);
+  GetPositionMessage(StepperMessage, vRawMessage);
 
-	if ( !ack )
-	{
-		IsStepperACKRecieved(StepperMessage, command);
-	}
+  if ( !ack )
+  {
+    IsStepperACKRecieved(StepperMessage, command);
+  }
 
 #if STEPPERDEBUGMSG
-			std::cout<< "\n" << std::flush; 
+      std::cout<< "\n" << std::flush; 
 #endif
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::StepperInstruction(STEPPERCOMMAND command)
 {
-	const char* p = command; 
+  const char* p = command; 
 
-	m_StepperCOMPort->Write(STX);
-
-#if STEPPERDEBUGMSG
-	std::cout << "->" << std::flush; 
-#endif
-
-	while (*p != 0)
-	{
-		m_StepperCOMPort->Write((BYTE)*p);
+  m_StepperCOMPort->Write(STX);
 
 #if STEPPERDEBUGMSG
-		BYTE b  = (byte)*p;
-		std::cout << b << std::flush; 
+  std::cout << "->" << std::flush; 
 #endif
-		p++;
+
+  while (*p != 0)
+  {
+    m_StepperCOMPort->Write((BYTE)*p);
+
+#if STEPPERDEBUGMSG
+    BYTE b  = (byte)*p;
+    std::cout << b << std::flush; 
+#endif
+    p++;
 }
 
-	m_StepperCOMPort->Write(ETX);
+  m_StepperCOMPort->Write(ETX);
 
 #if STEPPERDEBUGMSG
-	std::cout << " " << std::flush; 
+  std::cout << " " << std::flush; 
 #endif
 
 }
@@ -856,32 +856,32 @@ void CmsBrachyStepper::StepperInstruction(STEPPERCOMMAND command)
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::ReadStepperAnswer(std::vector<BYTE> &stepperAnswer)
 {
-	stepperAnswer.clear(); 
-	BYTE buff = 0;
+  stepperAnswer.clear(); 
+  BYTE buff = 0;
 
 #if STEPPERDEBUGMSG
-	std::cout << "<-" << std::flush; 
+  std::cout << "<-" << std::flush; 
 #endif
 
-	while ( m_StepperCOMPort->Read(buff) && buff != ETX)
-	{
-		if (stepperAnswer.max_size() > stepperAnswer.size())
-		{
-			stepperAnswer.push_back(buff);
-		}
+  while ( m_StepperCOMPort->Read(buff) && buff != ETX)
+  {
+    if (stepperAnswer.max_size() > stepperAnswer.size())
+    {
+      stepperAnswer.push_back(buff);
+    }
 #if STEPPERDEBUGMSG
-		std::cout << buff << std::flush;
+    std::cout << buff << std::flush;
 #endif
 
-	}
+  }
 
-	if (buff == ETX)
-	{
-		stepperAnswer.push_back(buff);
-	}
+  if (buff == ETX)
+  {
+    stepperAnswer.push_back(buff);
+  }
 
 #if STEPPERDEBUGMSG
-	std::cout << " " << std::flush;
+  std::cout << " " << std::flush;
 #endif
 
 }
@@ -889,66 +889,66 @@ void CmsBrachyStepper::ReadStepperAnswer(std::vector<BYTE> &stepperAnswer)
 //----------------------------------------------------------------------------
 bool CmsBrachyStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMMAND command )
 {
-	this->ReadStepperAnswer(ackMessage);
+  this->ReadStepperAnswer(ackMessage);
 
-	if (ackMessage.size() >= 5 
-		&& 
-		( ackMessage[1] == 'F' && ackMessage[2] == 'A' ) )
-	{
-		
-		if ( command[0] == ackMessage[3] && command[1] == ackMessage[4] )
-		{
-			// recieved the expected ack 
-			return PLUS_SUCCESS;
-		}
-		else
-		{
-			// recieved another ACK read the message and respond
-			std::vector<BYTE> StepperMessage; 
-			this->ReadStepperAnswer(StepperMessage);
-			this->SendAckMessage(StepperMessage);
-			return PLUS_FAIL; 
-		}
-	}
+  if (ackMessage.size() >= 5 
+    && 
+    ( ackMessage[1] == 'F' && ackMessage[2] == 'A' ) )
+  {
+    
+    if ( command[0] == ackMessage[3] && command[1] == ackMessage[4] )
+    {
+      // recieved the expected ack 
+      return PLUS_SUCCESS;
+    }
+    else
+    {
+      // recieved another ACK read the message and respond
+      std::vector<BYTE> StepperMessage; 
+      this->ReadStepperAnswer(StepperMessage);
+      this->SendAckMessage(StepperMessage);
+      return PLUS_FAIL; 
+    }
+  }
 
-	return PLUS_FAIL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::GetStepperMessage(STEPPERCOMMAND command, const char* Response, std::vector<BYTE> &DecodedMessage )
 {
-	DecodedMessage.clear(); 
+  DecodedMessage.clear(); 
 
-	std::vector<BYTE> StepperMessage;
-	StepperMessage.reserve(50);
+  std::vector<BYTE> StepperMessage;
+  StepperMessage.reserve(50);
 
-	bool ack = IsStepperACKRecieved(StepperMessage, command); 
+  bool ack = IsStepperACKRecieved(StepperMessage, command); 
 
-	if ( ack )
-	{
-		StepperMessage.clear(); 
-		this->ReadStepperAnswer(StepperMessage);
-	}
+  if ( ack )
+  {
+    StepperMessage.clear(); 
+    this->ReadStepperAnswer(StepperMessage);
+  }
 
-	if (StepperMessage.size() >= 3 ) 
-	{
-		if (StepperMessage[0] == STX && 
-			StepperMessage[1] == Response[0] && 
-			StepperMessage[2] == Response[1])
-		{
-			DecodeStepperMessage(StepperMessage, DecodedMessage);
-		}
-		
-		this->SendAckMessage(StepperMessage);
-	}
+  if (StepperMessage.size() >= 3 ) 
+  {
+    if (StepperMessage[0] == STX && 
+      StepperMessage[1] == Response[0] && 
+      StepperMessage[2] == Response[1])
+    {
+      DecodeStepperMessage(StepperMessage, DecodedMessage);
+    }
+    
+    this->SendAckMessage(StepperMessage);
+  }
 
-	if ( !ack )
-	{
-		IsStepperACKRecieved(StepperMessage, command);
-	}
+  if ( !ack )
+  {
+    IsStepperACKRecieved(StepperMessage, command);
+  }
 
 #if STEPPERDEBUGMSG
-	std::cout<< "\n" << std::flush; 
+  std::cout<< "\n" << std::flush; 
 #endif
 
 }
@@ -956,163 +956,163 @@ void CmsBrachyStepper::GetStepperMessage(STEPPERCOMMAND command, const char* Res
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::SendAckMessage(std::vector<BYTE> StepperMessage)
 {
-	// Don't respond ack to an ack message
-	if ( StepperMessage.size() < 2 || StepperMessage[1] == 'F' )
-	{
-		return; 
-	}
+  // Don't respond ack to an ack message
+  if ( StepperMessage.size() < 2 || StepperMessage[1] == 'F' )
+  {
+    return; 
+  }
 
-	std::vector<BYTE> DecodedMessage;
+  std::vector<BYTE> DecodedMessage;
 
-	this->DecodeStepperMessage(StepperMessage, DecodedMessage);
+  this->DecodeStepperMessage(StepperMessage, DecodedMessage);
 
-	std::string message; 
-	this->CreateAckMessage(DecodedMessage[0], &message);
-	this->StepperInstruction(static_cast<STEPPERCOMMAND>(message.c_str()));
+  std::string message; 
+  this->CreateAckMessage(DecodedMessage[0], &message);
+  this->StepperInstruction(static_cast<STEPPERCOMMAND>(message.c_str()));
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::GetPositionMessage(std::vector<BYTE> &StepperMessage, std::vector<BYTE> &DecodedMessage)
 {
-	DecodedMessage.clear(); 
+  DecodedMessage.clear(); 
 
-	if (StepperMessage.size() >= 3 ) 
-	{
-		if ( StepperMessage[0] == STX && 
-			(
-			(StepperMessage[1] == SRC_POSITION_DATA_BUTTON_ON[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_ON[1])
-			||
-			(StepperMessage[1] == SRC_POSITION_DATA_BUTTON_OFF[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_OFF[1])
-			||
-			(StepperMessage[1] == SRC_POSITION_DATA_BUTTON_LATCH[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_LATCH[1])
-			))
-		{
-			DecodeStepperMessage(StepperMessage, DecodedMessage);
-			std::string message; 
-			CreateAckMessage(DecodedMessage[0], &message);
-			this->StepperInstruction(static_cast<STEPPERCOMMAND>(message.c_str()));
-			return; 
-		}
-		else if (StepperMessage[0] == STX 
-			&& 
-			( StepperMessage[1] == SRC_COUNTERS_INVALID[0] && StepperMessage[2] == SRC_COUNTERS_INVALID[1]) )
-		{
-			this->SetScalingParameters(); 
-			this->SendAckMessage(StepperMessage);
-			return; 
+  if (StepperMessage.size() >= 3 ) 
+  {
+    if ( StepperMessage[0] == STX && 
+      (
+      (StepperMessage[1] == SRC_POSITION_DATA_BUTTON_ON[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_ON[1])
+      ||
+      (StepperMessage[1] == SRC_POSITION_DATA_BUTTON_OFF[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_OFF[1])
+      ||
+      (StepperMessage[1] == SRC_POSITION_DATA_BUTTON_LATCH[0] && StepperMessage[2] == SRC_POSITION_DATA_BUTTON_LATCH[1])
+      ))
+    {
+      DecodeStepperMessage(StepperMessage, DecodedMessage);
+      std::string message; 
+      CreateAckMessage(DecodedMessage[0], &message);
+      this->StepperInstruction(static_cast<STEPPERCOMMAND>(message.c_str()));
+      return; 
+    }
+    else if (StepperMessage[0] == STX 
+      && 
+      ( StepperMessage[1] == SRC_COUNTERS_INVALID[0] && StepperMessage[2] == SRC_COUNTERS_INVALID[1]) )
+    {
+      this->SetScalingParameters(); 
+      this->SendAckMessage(StepperMessage);
+      return; 
 
-		}
-			// Wrong message received 
-			this->SendAckMessage(StepperMessage);
-	}
+    }
+      // Wrong message received 
+      this->SendAckMessage(StepperMessage);
+  }
 
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::DecodeStepperMessage(std::vector<BYTE> StepperMessage, std::vector<BYTE> &DecodedMessage)
 {
-	DecodedMessage.clear(); 
-	DecodedMessage.reserve(50);
+  DecodedMessage.clear(); 
+  DecodedMessage.reserve(50);
 
-	if ( StepperMessage.size() < 3 )
-	{
-		return; 
-	}
+  if ( StepperMessage.size() < 3 )
+  {
+    return; 
+  }
 
-	unsigned int i = 1; 
-	unsigned int msglen = this->AsciiToBin(StepperMessage[i], StepperMessage[i+1]);
-	DecodedMessage.push_back(msglen);
-	msglen = msglen & 0x7;
+  unsigned int i = 1; 
+  unsigned int msglen = this->AsciiToBin(StepperMessage[i], StepperMessage[i+1]);
+  DecodedMessage.push_back(msglen);
+  msglen = msglen & 0x7;
 
-	for( msglen ; msglen != 0; --msglen)
-	{
-		i = i+2;
-		if ( StepperMessage.size() > i+1)
-		{
-			DecodedMessage.push_back(this->AsciiToBin(StepperMessage[i], StepperMessage[i+1]));
-		}
-	}
+  for( msglen ; msglen != 0; --msglen)
+  {
+    i = i+2;
+    if ( StepperMessage.size() > i+1)
+    {
+      DecodedMessage.push_back(this->AsciiToBin(StepperMessage[i], StepperMessage[i+1]));
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::SetScalingParameters()
 {
-	// get reference data for scaling
-	double count = 0, dist = 0, scale = 0;
+  // get reference data for scaling
+  double count = 0, dist = 0, scale = 0;
 
-	this->GetProbeReferenceData(count, dist, scale);
-	this->GetGridReferenceData(count, dist, scale);
-	this->GetRotationReferenceData(count, dist, scale);
+  this->GetProbeReferenceData(count, dist, scale);
+  this->GetGridReferenceData(count, dist, scale);
+  this->GetRotationReferenceData(count, dist, scale);
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::ClearBuffer()
 {
-	BYTE buff;
-	while ( m_StepperCOMPort->Read(buff)){}
+  BYTE buff;
+  while ( m_StepperCOMPort->Read(buff)){}
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::CreateAckMessage(BYTE opcode, std::string *sMessage)
 {
-	unsigned int ck;
-	unsigned char c1,c2, c3, c4, c5, c6;
+  unsigned int ck;
+  unsigned char c1,c2, c3, c4, c5, c6;
 
-	ck = 0xfa + static_cast<unsigned int>(opcode);
-	ck &= 0xff;              
-	this->BinToAscii(0xfa,&c1,&c2);
-	sMessage->push_back(c1);
-	sMessage->push_back(c2);
+  ck = 0xfa + static_cast<unsigned int>(opcode);
+  ck &= 0xff;              
+  this->BinToAscii(0xfa,&c1,&c2);
+  sMessage->push_back(c1);
+  sMessage->push_back(c2);
 
-	this->BinToAscii(opcode,&c3,&c4);
-	sMessage->push_back(c3);
-	sMessage->push_back(c4);
+  this->BinToAscii(opcode,&c3,&c4);
+  sMessage->push_back(c3);
+  sMessage->push_back(c4);
 
-	this->BinToAscii(ck,&c5,&c6);
-	sMessage->push_back(c5);
-	sMessage->push_back(c6);
+  this->BinToAscii(ck,&c5,&c6);
+  sMessage->push_back(c5);
+  sMessage->push_back(c6);
 
 }
 
 //----------------------------------------------------------------------------
 unsigned int CmsBrachyStepper::AsciiToBin(unsigned int i, unsigned int j)
 {
-	i -= 0x30;
-	if (i > 9)
-	{
-		i -= 7;
-	}
+  i -= 0x30;
+  if (i > 9)
+  {
+    i -= 7;
+  }
 
-	j -= 0x30;
-	if (j > 9) 
-	{
-		j -= 7;
-	}
+  j -= 0x30;
+  if (j > 9) 
+  {
+    j -= 7;
+  }
 
-	return (i*16 + j);
+  return (i*16 + j);
 }
 
 //----------------------------------------------------------------------------
 void CmsBrachyStepper::BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2)
 {                                                                                                                                         
-	unsigned int t1,t2;
-	t1 = (n/16);
-	t2 = (n%16);
-	t1 += 0x30;
+  unsigned int t1,t2;
+  t1 = (n/16);
+  t2 = (n%16);
+  t1 += 0x30;
 
-	if (t1 > 0x39)
-	{
-		t1 += 7;
-	}
+  if (t1 > 0x39)
+  {
+    t1 += 7;
+  }
 
-	t2 += 0x30;             
+  t2 += 0x30;             
 
-	if (t2 > 0x39)
-	{
-		t2 += 7;
-	}
+  if (t2 > 0x39)
+  {
+    t2 += 7;
+  }
 
-	*c1 = (char)t1;
-	*c2 = (char)t2;
+  *c1 = (char)t1;
+  *c2 = (char)t2;
 }                 
 

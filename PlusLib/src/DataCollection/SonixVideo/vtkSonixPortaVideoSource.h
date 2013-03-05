@@ -152,8 +152,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   PlusStatus SetStepPerFrame(int aStepPerFrame);
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
-	
-	/*! Set the Timeout (ms) value for network function calls. */
+  
+  /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
 
 
@@ -168,7 +168,7 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetPortaMotorStartPosition(int& aMotorStartPosition);
 
-	/*! Set the start position */
+  /*! Set the start position */
   void SetPortaMotorStartPosition( double v );
   
   /*! Return the start position */
@@ -225,11 +225,11 @@ protected:
   int ImagingMode;
   int Timeout; 
 
-	/*! Porta initialization parameters */
-	int Usm;
-	int Pci;
-	int HighVoltage;
-	int Channels;
+  /*! Porta initialization parameters */
+  int Usm;
+  int Pci;
+  int HighVoltage;
+  int Channels;
   
   /*! for internal use only */
   PlusStatus AddFrameToBuffer( void *param, int id );
@@ -239,7 +239,7 @@ protected:
   /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
-			  
+        
 private:
  
   // data members
@@ -257,7 +257,7 @@ private:
 #endif
 
   // vtkSonixPortaVideoSource(const vtkSonixPortaVideoSource&);  // Not implemented.
-  // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.							
+  // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.              
   
   /*! Update porta parameters */
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
@@ -309,11 +309,11 @@ private:
   /*!  The number of steps the motor will move while acuqiring a single frame */
   int StepPerFrame;
 
-	/*! Probe information */
-	probeInfo ProbeInformation;
+  /*! Probe information */
+  probeInfo ProbeInformation;
 
-	/*! Motor rotation per step (in degrees) */
-	double MotorRotationPerStepDeg;
+  /*! Motor rotation per step (in degrees) */
+  double MotorRotationPerStepDeg;
 
   
 };

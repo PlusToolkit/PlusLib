@@ -14,7 +14,7 @@ EXPORTS ndiDeviceName
         ndiGetThreadMode
         ndiGetErrorCallback
         ndiGetErrorCallbackData
-	ndiGetPHRQHandle
+        ndiGetPHRQHandle
         ndiGetPHSRNumberOfHandles
         ndiGetPHSRHandle
         ndiGetPHSRInformation

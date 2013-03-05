@@ -68,8 +68,8 @@ protected:
   FcsvData m_FcsvDataObject;
 
 private:
-  FcsvWriter(const Self&);		//purposely not implemented
-  Self& operator=(const Self&);	//purposely not implemented
+  FcsvWriter(const Self&);    //purposely not implemented
+  Self& operator=(const Self&);  //purposely not implemented
 };
 
 

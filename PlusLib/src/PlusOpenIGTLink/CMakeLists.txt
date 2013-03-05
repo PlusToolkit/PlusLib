@@ -1,28 +1,28 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (PlusOpenIGTLink_SRCS 
-	igtlStringMessage1.cxx
-	igtlPlusClientInfoMessage.cxx
-	igtlPlusUsMessage.cxx 
-	igtlPlusTrackedFrameMessage.cxx 
-	PlusIgtlClientInfo.cxx 
-	vtkPlusIgtlMessageFactory.cxx 
-	vtkPlusIgtlMessageCommon.cxx 
-	vtkIGTLMessageQueue.cxx
-	)
-	
-IF (WIN32)	
-	SET (PlusOpenIGTLink_HDRS 
-		igtlStringMessage1.h
-		igtlPlusClientInfoMessage.h
-		igtlPlusUsMessage.h
-		igtlPlusTrackedFrameMessage.h
-		PlusIgtlClientInfo.h 
-		vtkPlusIgtlMessageFactory.h
-		vtkPlusIgtlMessageCommon.h
-		vtkIGTLMessageQueue.h
-		)
-ENDIF (WIN32)	
+  igtlStringMessage1.cxx
+  igtlPlusClientInfoMessage.cxx
+  igtlPlusUsMessage.cxx 
+  igtlPlusTrackedFrameMessage.cxx 
+  PlusIgtlClientInfo.cxx 
+  vtkPlusIgtlMessageFactory.cxx 
+  vtkPlusIgtlMessageCommon.cxx 
+  vtkIGTLMessageQueue.cxx
+  )
+  
+IF (WIN32)
+  SET (PlusOpenIGTLink_HDRS 
+    igtlStringMessage1.h
+    igtlPlusClientInfoMessage.h
+    igtlPlusUsMessage.h
+    igtlPlusTrackedFrameMessage.h
+    PlusIgtlClientInfo.h 
+    vtkPlusIgtlMessageFactory.h
+    vtkPlusIgtlMessageCommon.h
+    vtkIGTLMessageQueue.h
+    )
+ENDIF (WIN32)
 
 SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
@@ -61,5 +61,5 @@ INSTALL(TARGETS vtkPlusOpenIGTLink
 #
 
 IF (BUILD_TESTING)
-	SUBDIRS (Testing)
+  SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)

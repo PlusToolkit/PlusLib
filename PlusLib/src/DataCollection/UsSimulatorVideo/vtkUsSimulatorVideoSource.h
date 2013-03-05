@@ -23,12 +23,12 @@ class VTK_EXPORT vtkUsSimulatorVideoSource;
 class VTK_EXPORT vtkUsSimulatorVideoSource : public vtkPlusDevice
 {
 public:
-	vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);
-	void PrintSelf(ostream& os, vtkIndent indent);   
-	static vtkUsSimulatorVideoSource* New();
+  vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);   
+  static vtkUsSimulatorVideoSource* New();
 
   /*! Read configuration from xml data */
-	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Get ultrasound simulator */
   vtkGetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
@@ -46,22 +46,22 @@ protected:
   vtkSetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
 
   /*! Set transform repository */
-	vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
 
 protected:
-	/*! Constructor */
-	vtkUsSimulatorVideoSource();
-	/*! Destructor */
-	virtual ~vtkUsSimulatorVideoSource();
+  /*! Constructor */
+  vtkUsSimulatorVideoSource();
+  /*! Destructor */
+  virtual ~vtkUsSimulatorVideoSource();
 
   /*! Connect to device */
-	virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalConnect();
 
   /*! Disconnect from device */
-	virtual PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! The internal function which actually does the grab.  */
-	virtual PlusStatus InternalUpdate();
+  virtual PlusStatus InternalUpdate();
 
 protected:
   /*! Ultrasound simulator */
@@ -77,9 +77,9 @@ protected:
   double LastProcessedTrackingDataTimestamp;
 
 private:
-	static vtkUsSimulatorVideoSource* Instance;
-	vtkUsSimulatorVideoSource(const vtkUsSimulatorVideoSource&);  // Not implemented.
-	void operator=(const vtkUsSimulatorVideoSource&);  // Not implemented.
+  static vtkUsSimulatorVideoSource* Instance;
+  vtkUsSimulatorVideoSource(const vtkUsSimulatorVideoSource&);  // Not implemented.
+  void operator=(const vtkUsSimulatorVideoSource&);  // Not implemented.
 };
 
 #endif

@@ -150,7 +150,7 @@ public:
   PlusStatus GetCalibrationError(double &error);
 
   PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedvideoPositionSignal);
-	PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedvideoPositionSignal);
+  PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedvideoPositionSignal);
   PlusStatus GetVideoPositionSignal(vtkTable* TrackerPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
   PlusStatus GetCorrelationSignalFine(vtkTable* correlationSignal);
@@ -170,14 +170,14 @@ private:
   PlusStatus ComputeTrackerLagSec(TEMPORAL_CALIBRATION_ERROR &error);  
   PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, int startIndex=0, int stopIndex=-1);
   PlusStatus NormalizeMetricValues(std::deque<double> &signal, double &normalizationFactor, double startTime, double stopTime, const std::deque<double> &timestamps);
-	void ComputeCorrelationBetweenFixedAndMovingSignal(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues);
+  void ComputeCorrelationBetweenFixedAndMovingSignal(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues);
 
   double ComputeAlignmentMetric(const std::deque<double> &signalA, const std::deque<double> &signalB);
 
   PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
   PlusStatus ConstructTableSignal(std::deque<double> &x, std::deque<double> &y, vtkTable* table, double timeCorrection); 
 
-	PlusStatus ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps, const vtkSmartPointer<vtkPiecewiseFunction>& signalFunction, std::deque<double>& resampledSignalValues);
+  PlusStatus ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps, const vtkSmartPointer<vtkPiecewiseFunction>& signalFunction, std::deque<double>& resampledSignalValues);
 
   SignalType m_FixedSignal;
   SignalType m_MovingSignal;
@@ -198,19 +198,19 @@ private:
   /*! The computed signal correlation values (corresponding to the better sign convention) */
   std::deque<double> m_CorrValues;
   /*! The time-offsets used to compute the correlations */
-	std::deque<double> m_CorrTimeOffsets;
+  std::deque<double> m_CorrTimeOffsets;
 
   /*! The computed signal correlation values (corresponding to the better sign convention, in the second phase with fine resolution) */
   std::deque<double> m_CorrValuesFine;
   /*! The time-offsets used to compute the correlations (in the second phase with fine resolution) */
-	std::deque<double> m_CorrTimeOffsetsFine;
-	
-	/*! The highest correlation value for the tested time-offsets */
-	double m_BestCorrelationValue;
+  std::deque<double> m_CorrTimeOffsetsFine;
+  
+  /*! The highest correlation value for the tested time-offsets */
+  double m_BestCorrelationValue;
   /*! Given index for the calculated best fit */
   double m_BestCorrelationLagIndex;
   /*! Given time offset for the calculated best fit */
-	double m_BestCorrelationTimeOffset;
+  double m_BestCorrelationTimeOffset;
   
   std::deque<double> m_CalibrationErrorVector;
 

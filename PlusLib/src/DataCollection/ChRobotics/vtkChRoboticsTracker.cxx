@@ -122,7 +122,7 @@ PlusStatus vtkChRoboticsTracker::InternalConnect()
   }
 
   if (!this->Serial->IsHandleAlive())  
-  {	
+  {  
     LOG_ERROR("COM port handle is not alive "<<strComPort);
     return PLUS_FAIL; 
   }
@@ -631,7 +631,7 @@ PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* config)
   const char* firmwareDirectory = trackerConfig->GetAttribute("FirmwareDirectory"); 
   if ( firmwareDirectory != NULL )
   { 
-  	this->FirmwareDirectory=firmwareDirectory;
+    this->FirmwareDirectory=firmwareDirectory;
   }
 
   return PLUS_SUCCESS;

@@ -26,7 +26,7 @@ class vtkPoints;
 */
 enum TrackedFrameFieldStatus 
 {
-  FIELD_OK,			      /*!< Field is valid */
+  FIELD_OK,            /*!< Field is valid */
   FIELD_INVALID       /*!< Field is invalid */
 };
 
@@ -187,13 +187,13 @@ enum TrackedFrameValidationRequirements
   \ingroup PlusLibCommon
 */ 
 class TrackedFrameTimestampFinder
-{	
+{  
 public:
-  TrackedFrameTimestampFinder(TrackedFrame* frame): mTrackedFrame(frame){}; 	
-  bool operator()( TrackedFrame *newFrame )	
-  {		
-    return newFrame->GetTimestamp() == mTrackedFrame->GetTimestamp();	
-  }	
+  TrackedFrameTimestampFinder(TrackedFrame* frame): mTrackedFrame(frame){};   
+  bool operator()( TrackedFrame *newFrame )  
+  {    
+    return newFrame->GetTimestamp() == mTrackedFrame->GetTimestamp();  
+  }  
   TrackedFrame* mTrackedFrame;
 };
 
@@ -205,7 +205,7 @@ public:
   \ingroup PlusLibCommon
 */ 
 class TrackedFrameEncoderPositionFinder
-{	
+{  
 public:
   TrackedFrameEncoderPositionFinder(TrackedFrame* frame, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
   ~TrackedFrameEncoderPositionFinder(); 
@@ -217,7 +217,7 @@ public:
     Predicate unary function for std::find_if to validate encoder position 
     \return Returning true if the encoder position difference is less than required 
   */
-  bool operator()( TrackedFrame *newFrame ); 	
+  bool operator()( TrackedFrame *newFrame );   
 
 protected: 
   TrackedFrame* mTrackedFrame;
@@ -233,7 +233,7 @@ protected:
   \ingroup PlusLibCommon
 */ 
 class TrackedFrameTransformFinder
-{	
+{  
 public:
   TrackedFrameTransformFinder(TrackedFrame* frame, const PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
   ~TrackedFrameTransformFinder(); 

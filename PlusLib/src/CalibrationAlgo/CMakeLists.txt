@@ -14,10 +14,10 @@ SET (CalibrationAlgo_SRCS
   vtkPrincipalMotionDetectionAlgo.cxx 
   vtkProbeCalibrationOptimizerAlgo.cxx
   itkFiducialTransformComputation.cxx
-	)
+  )
 
-SET (CalibrationAlgo_HDRS)	
-IF (WIN32)	
+SET (CalibrationAlgo_HDRS)  
+IF (WIN32)  
   SET (CalibrationAlgo_HDRS
     vtkProbeCalibrationAlgo.h
     vtkMeanShiftClustering.h
@@ -74,5 +74,5 @@ SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/Cali
 #
 
 IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY (Testing)
+  ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)

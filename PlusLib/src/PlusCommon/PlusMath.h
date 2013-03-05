@@ -34,7 +34,7 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
-	\param notOutlierIndices Row that were not removed during the outliers rejection process
+  \param notOutlierIndices Row that were not removed during the outliers rejection process
   */
   static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<unsigned int>* notOutliersIndices=NULL); 
   /*!
@@ -44,7 +44,7 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
-	\param notOutlierIndices Row that were not removed during the outliers rejection process
+  \param notOutlierIndices Row that were not removed during the outliers rejection process
   */
   static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL , vnl_vector<unsigned int>* notOutliersIndices=NULL); 
   /*!
@@ -85,7 +85,7 @@ public:
   static std::string GetTransformParametersString(vtkMatrix4x4* matrix); 
 
   /*! Convert matrix between VTK and VNL */
-	static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
+  static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
   static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix );
 
 
@@ -255,7 +255,7 @@ protected:
     double* mean = NULL, 
     double* stdev = NULL,
     vnl_vector<unsigned int>* nonOutlierIndices = NULL
-	); 
+  ); 
 
 private: 
   PlusMath(PlusMath const&);

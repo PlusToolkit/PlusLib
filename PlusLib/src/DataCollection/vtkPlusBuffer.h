@@ -26,7 +26,7 @@ class vtkTrackedFrameList;
 
 class VTK_EXPORT vtkPlusBuffer : public vtkObject
 {
-public:	
+public:  
   enum TIMESTAMP_FILTERING_OPTION
   {
     READ_FILTERED_AND_UNFILTERED_TIMESTAMPS = 0,
@@ -78,7 +78,7 @@ public:
     then the frame is not added to the buffer.
   */
   virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
-    int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!

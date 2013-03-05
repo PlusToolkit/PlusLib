@@ -263,7 +263,7 @@ bool vtkTrackedFrameList::ValidateEncoderPosition( TrackedFrame* trackedFrame )
     LOG_DEBUG("Tracked frame encoder position validation result: we've already inserted this frame to container!"); 
     return false; 
   }
-  return true; 	
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -288,7 +288,7 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
     return false; 
   }
 
-  return true; 	
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -408,11 +408,11 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   reader->SetFileName(trackedSequenceDataFileName);
   reader->SetTrackedFrameList(this);
   if (reader->Read()!=PLUS_SUCCESS)
-  {		
+  {
     LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
-  }	
-  
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -433,7 +433,7 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder,
   writer->SetFileName(trackedSequenceDataFileName.c_str());
   writer->SetTrackedFrameList(this);
   if (writer->Write()!=PLUS_SUCCESS)
-  {		
+  {
     LOG_ERROR("Couldn't write sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
   }
@@ -572,7 +572,7 @@ void vtkTrackedFrameList::SetCustomTransform( const char* frameTransformName, do
 {
   std::ostringstream transform; 
 
-  transform	<< transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
+  transform  << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
     << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
     << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
     << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 

@@ -218,10 +218,10 @@ PlusStatus CreateAndAllocateImageGeneric(PlusVideoFrame::ImageBasePointer &resul
     image->Allocate();
   }
   catch (itk::ExceptionObject & err) 
-  {		
+  {    
     LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
     return PLUS_FAIL;
-  }	
+  }  
 
   resultImage=image;
 
@@ -1100,7 +1100,7 @@ PlusStatus PlusVideoFrame::SaveImageToFile(const itk::Image< unsigned char, 2 >:
   try    
   {
     writer->Update();
-  }	
+  }  
   catch (itk::ExceptionObject & e)
   {
     LOG_ERROR(e.GetDescription());
@@ -1122,7 +1122,7 @@ PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char*
   try    
   {
     reader->Update();
-  }	
+  }  
   catch (itk::ExceptionObject & e)
   {
     LOG_ERROR(e.GetDescription());
