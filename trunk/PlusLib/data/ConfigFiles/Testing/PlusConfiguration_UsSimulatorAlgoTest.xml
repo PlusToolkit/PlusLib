@@ -1,5 +1,4 @@
-<PlusConfiguration version="2.1">
-
+<PlusConfiguration version="2.2">
   <!-- Used by vtkUsSimulatorAlgoTest -->
 
   <CoordinateDefinitions>
@@ -23,23 +22,38 @@
     BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
+
     NumberOfScanlines="256"
     NumberOfSamplesPerScanline="1000"
+
     ModelFileName="SpinePhantom2Model.stl"
     ModelToReferenceTransform="
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 0 0 1"
-    >
+      0 0 0 1" >
     <RfProcessing>
-      <ScanConversion TransducerName="Ultrasonix_L9-4/38"
+
+      <ScanConversion
+        TransducerName="Ultrasonix_L9-4/38"
         TransducerGeometry="LINEAR"
-        ImagingDepthMm="616.0"
-        TransducerWidthMm="820.0"
-        OutputImageSizePixel="820 616"
-        OutputImageSpacingMmPerPixel="1.0 1.0"        
-        />
+        ImagingDepthMm="60.0"
+        TransducerWidthMm="40.0"
+        OutputImageSizePixel="476 689"
+        OutputImageSpacingMmPerPixel="0.084 0.087"/>
+
+      <!-- Example for a curvilinear transducer: -->
+      <xScanConversion
+        TransducerName="BK_8848-axial"
+        TransducerGeometry="CURVILINEAR"
+        RadiusStartMm="5.0"
+        RadiusStopMm="60.0"
+        ThetaStartDeg="-60.0"
+        ThetaStopDeg="60.0"
+        OutputImageStartDepthMm="2.0"
+        OutputImageSizePixel="1200 800"
+        OutputImageSpacingMmPerPixel="0.084 0.087" />       
+
     </RfProcessing>  
   </vtkUsSimulatorAlgo>
   
