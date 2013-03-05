@@ -142,6 +142,11 @@ private:
 
   std::vector<double> InsideObjectReflection;
   std::vector<double> OutsideObjectReflection;
+
+  /*! Color used for CONSTANT_INTENSITY image generation */
+  unsigned char InsideObjectColour;
+  /*! Color used for CONSTANT_INTENSITY image generation */
+  unsigned char OutsideObjectColour;
 };
 
 #endif // __vtkUsSimulatorAlgo_h

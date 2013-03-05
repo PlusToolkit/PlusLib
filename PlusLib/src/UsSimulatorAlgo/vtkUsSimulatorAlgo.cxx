@@ -33,6 +33,10 @@ See License.txt for details.
 
 #define CONSTANT_INTENSITY
 
+const unsigned char INSIDE_OBJECT_COLOUR = 20; 
+const unsigned char OUTSIDE_OBJECT_COLOUR = 155;
+
+
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
@@ -69,6 +73,8 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
     this->OutsideObjectReflection.push_back(0.004);
   }
 
+  this->InsideObjectColour=INSIDE_OBJECT_COLOUR;
+  this->OutsideObjectColour=OUTSIDE_OBJECT_COLOUR;
 }
 
 //-----------------------------------------------------------------------------
@@ -182,11 +188,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     vtkIdType numIntersectionPoints = intersectionPoints->GetNumberOfPoints(); 
 
     double scanLineIntersectionPoint_Image[4] = {0,0,0,1}; 
-
-    
-    const unsigned char INSIDE_OBJECT_COLOUR = 20; 
-    const unsigned char OUTSIDE_OBJECT_COLOUR = 155; 
-
+   
     unsigned char pixelColour = OUTSIDE_OBJECT_COLOUR; // grey
 
     int currentPixelIndex=0;
@@ -216,7 +218,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         // last segment, after all the intersection points
         endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
       }
-      pixelColour=isInsideObject?INSIDE_OBJECT_COLOUR:OUTSIDE_OBJECT_COLOUR;
+      pixelColour=isInsideObject?this->InsideObjectColour:this->OutsideObjectColour;
 
       //LOG_DEBUG("Segment from "<<currentPixelIndex<<" to "<<endOfSegmentPixelIndex);
 
@@ -363,6 +365,18 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;     
   }
   this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
+  int insideObjectColour = 0;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("InsideObjectColour", insideObjectColour )) 
+  {
+    this->InsideObjectColour=insideObjectColour; 
+  }
+
+  int outsideObjectColour = 0;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("OutsideObjectColour", outsideObjectColour )) 
+  {
+    this->OutsideObjectColour=outsideObjectColour; 
+  }
 
   this->RfProcessor->ReadConfiguration(usSimulatorAlgoElement);
 
