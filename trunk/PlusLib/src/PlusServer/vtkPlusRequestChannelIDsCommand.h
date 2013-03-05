@@ -40,15 +40,10 @@ public:
   /*! Write command parameters to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
-  vtkGetStringMacro(DeviceId);
-  vtkSetStringMacro(DeviceId);
-
 protected:
 
   vtkPlusRequestChannelIDsCommand();
   virtual ~vtkPlusRequestChannelIDsCommand();
-  
-  char* DeviceId;
 
 private:
 

@@ -15,7 +15,6 @@ See License.txt for details.
 
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
-#include "vtkPlusRequestDeviceIDsCommand.h"
 #include "vtkPlusRequestChannelIDsCommand.h"
 
 // Normally a client should generate unique command IDs for each executed command
@@ -180,22 +179,11 @@ int main( int argc, char** argv )
     cmd->SetReferencedCommandId(COMMAND_ID);
     client->SendCommand(cmd);
   }
-  else if (STRCASECMP(command.c_str(), "GET_DEVICE_IDS")==0)
-  {
-    vtkSmartPointer<vtkPlusRequestDeviceIDsCommand> cmd=vtkSmartPointer<vtkPlusRequestDeviceIDsCommand>::New();
-    cmd->SetNameToRequestDeviceIDs();
-    cmd->SetId(COMMAND_ID);
-    client->SendCommand(cmd);
-  }
   else if (STRCASECMP(command.c_str(), "GET_CHANNEL_IDS")==0)
   {
     vtkSmartPointer<vtkPlusRequestChannelIDsCommand> cmd=vtkSmartPointer<vtkPlusRequestChannelIDsCommand>::New();
     cmd->SetNameToRequestChannelIDs();
     cmd->SetId(COMMAND_ID);
-    if ( !deviceId.empty() )
-    {
-      cmd->SetDeviceId(deviceId.c_str());
-    }
     client->SendCommand(cmd);
   }
   else
