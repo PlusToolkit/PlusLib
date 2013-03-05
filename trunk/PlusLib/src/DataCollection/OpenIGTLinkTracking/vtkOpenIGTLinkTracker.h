@@ -21,28 +21,28 @@ class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkPlusDevice
 {
 public:
 
-	static vtkOpenIGTLinkTracker *New();
-	vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
-	void PrintSelf( ostream& os, vtkIndent indent );
+  static vtkOpenIGTLinkTracker *New();
+  vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
+  void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! OpenIGTLink version. */
   virtual std::string GetSdkVersion();
 
-	/*! Connect to device */
-	PlusStatus InternalConnect();
+  /*! Connect to device */
+  PlusStatus InternalConnect();
 
-	/*! Disconnect from device */
-	virtual PlusStatus InternalDisconnect();
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
 
-	/*! Probe to see if the tracking system is present on the specified address. */
-	PlusStatus Probe();
+  /*! Probe to see if the tracking system is present on the specified address. */
+  PlusStatus Probe();
 
-	/*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
-	PlusStatus InternalUpdate();
+  /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
+  PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
-	
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+  
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
 
@@ -78,17 +78,17 @@ public:
   vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
 
 protected:
-	vtkOpenIGTLinkTracker();
-	~vtkOpenIGTLinkTracker();
+  vtkOpenIGTLinkTracker();
+  ~vtkOpenIGTLinkTracker();
 
   /*! 
     Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
     The device will only be reset if communication cannot be established without a reset.
   */
-	PlusStatus InternalStartRecording();
+  PlusStatus InternalStartRecording();
 
-	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
-	PlusStatus InternalStopRecording();
+  /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
+  PlusStatus InternalStopRecording();
 
   /*! Set the ReconnectOnNoData flag */
   vtkSetMacro(ReconnectOnReceiveTimeout, bool);
@@ -126,7 +126,7 @@ protected:
 private:  
   
   vtkOpenIGTLinkTracker( const vtkOpenIGTLinkTracker& );
-	void operator=( const vtkOpenIGTLinkTracker& );    
+  void operator=( const vtkOpenIGTLinkTracker& );    
 };
 
 #endif

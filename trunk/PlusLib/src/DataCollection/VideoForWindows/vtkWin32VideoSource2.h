@@ -71,7 +71,7 @@ public:
   void OnParentWndDestroy();
 
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. Public to allow calling from static function. */
-	PlusStatus AddFrameToBuffer(void *lpVideoHeader);
+  PlusStatus AddFrameToBuffer(void *lpVideoHeader);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -84,16 +84,16 @@ protected:
   ~vtkWin32VideoSource2();
 
   /*! Device-specific connect */
-	virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalConnect();
 
   /*! Device-specific disconnect */
-	virtual PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! Device-specific recording start */
-	virtual PlusStatus InternalStartRecording();
+  virtual PlusStatus InternalStartRecording();
 
   /*! Device-specific recording stop */
-	virtual PlusStatus InternalStopRecording();
+  virtual PlusStatus InternalStopRecording();
 
   /*!
     The internal function which actually grabs one frame.

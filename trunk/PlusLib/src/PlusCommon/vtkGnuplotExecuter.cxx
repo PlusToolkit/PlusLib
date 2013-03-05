@@ -153,7 +153,7 @@ PlusStatus vtkGnuplotExecuter::Execute()
     LOG_DEBUG("Set working directory to: " << this->GetWorkingDirectory()); 
     vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
     if ( dir->Open(this->GetWorkingDirectory()) == 0 ) 
-    {	
+    {  
       LOG_DEBUG("Make directoty: " << this->GetWorkingDirectory()); 
       dir->MakeDirectory(this->GetWorkingDirectory()); 
     }

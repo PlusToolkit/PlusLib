@@ -275,7 +275,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   }
   
   if(this->TrackedFrameList->GetCustomString("CompressedData")!=NULL
-	  && STRCASECMP(this->TrackedFrameList->GetCustomString("CompressedData"),"true")==0)
+    && STRCASECMP(this->TrackedFrameList->GetCustomString("CompressedData"),"true")==0)
   {
     SetUseCompression(true);
   }

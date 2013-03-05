@@ -402,7 +402,7 @@ PlusStatus vtkNDITracker::InternalStartRecording()
   errnum = ndiGetError(this->Device);
   if (errnum) 
   {
-	LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum) );
+    LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum) );
     ndiClose(this->Device);
     this->Device = 0;
     return PLUS_FAIL;

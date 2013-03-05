@@ -32,7 +32,7 @@ vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
 
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
-{	
+{
   this->AddMessageType("NONE", NULL); 
   this->AddMessageType("IMAGE", (PointerToMessageBaseNew)&igtl::ImageMessage::New); 
   this->AddMessageType("TRANSFORM", (PointerToMessageBaseNew)&igtl::TransformMessage::New); 

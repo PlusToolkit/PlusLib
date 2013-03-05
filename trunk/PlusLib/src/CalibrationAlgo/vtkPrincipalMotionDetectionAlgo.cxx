@@ -133,7 +133,7 @@ PlusStatus vtkPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
     trackerPositionSum[2] = trackerPositionSum[2] + probeToReferenceTransform->GetElement(2, 3);
     ++numberOfValidFrames;
 
-		m_SignalTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
+    m_SignalTimestamps.push_back(trackedFrame->GetTimestamp()); // These timestamps will be in the desired time range
   }
 
   // Calculate the principal axis of motion (using PCA)

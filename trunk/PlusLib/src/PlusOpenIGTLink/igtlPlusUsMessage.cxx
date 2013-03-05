@@ -7,7 +7,7 @@ namespace igtl
   //----------------------------------------------------------------------------
   PlusUsMessage::PlusUsMessage():ImageMessage()
   {
-    m_DeviceName 	="USMessage";		
+    m_DeviceName ="USMessage";
   }
 
   //----------------------------------------------------------------------------

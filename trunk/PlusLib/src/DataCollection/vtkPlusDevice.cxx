@@ -438,11 +438,11 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
       frame->Allocate();
     }
     catch (itk::ExceptionObject & err) 
-    {		
+    {    
       LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
       status=PLUS_FAIL;
       continue; 
-    }	
+    }  
 
     TrackedFrame trackedFrame; 
     trackedFrame.GetImageData()->SetITKImageBase(frame);

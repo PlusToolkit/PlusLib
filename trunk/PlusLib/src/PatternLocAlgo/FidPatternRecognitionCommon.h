@@ -42,7 +42,7 @@ public:
   double GetX() const { return m_X; };
 
   /*! Set the y coordinate of the dot */
-  void	SetY(double value) { m_Y = value; };
+  void  SetY(double value) { m_Y = value; };
 
   /*! Get the y coordinate of the dot */
   double GetY() const { return m_Y; };
@@ -60,9 +60,9 @@ public:
   bool operator== (const Dot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
 
 protected:
-  double	m_X;
-  double	m_Y;
-  double	m_DotIntensity;
+  double  m_X;
+  double  m_Y;
+  double  m_DotIntensity;
 };
 
 //-----------------------------------------------------------------------------
@@ -95,10 +95,10 @@ public:
   void SetPoint(int aIndex, int aValue) { m_Points[aIndex] = aValue; };
 
   /*! Get the point of the line that has index aIndex */
-  int	GetPoint(int aIndex) const { return m_Points[aIndex]; };
+  int  GetPoint(int aIndex) const { return m_Points[aIndex]; };
 
   /*! Get the vector of dots making the line */
-  const std::vector<int>&	GetPoints() const { return m_Points; };
+  const std::vector<int>&  GetPoints() const { return m_Points; };
 
   /*! Set the intensity of the line, which is the sum of its dots intensity */
   void SetIntensity(double value) { m_Intensity = value; };
@@ -116,7 +116,7 @@ public:
   void SetDirectionVector(int aIndex, double aValue) { m_DirectionVector[aIndex] = aValue; };
 
   /*! Get the direction vector that defines the line */
-  const double*	GetDirectionVector() const { return m_DirectionVector; };
+  const double*  GetDirectionVector() const { return m_DirectionVector; };
 
   /*! Set the start point index of the line. It is an index in the m_DotsVector */
   void  SetStartPointIndex(int index) { m_StartPointIndex = index; };
@@ -230,7 +230,7 @@ public:
   void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
 
   /*! Get the coordinates of the found dots */
-  std::vector< std::vector<double> >&	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+  std::vector< std::vector<double> >&  GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
   /*! Set the cumulate intensity of all dots in the pattern */
   void SetIntensity(double value) { m_Intensity = value; };
@@ -255,7 +255,7 @@ protected:
   bool m_DotsFound;
 
   /*! X and Y values of found dots. */
-  std::vector< std::vector<double> >	m_FoundDotsCoordinateValue;
+  std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;
 
   /*! The combined intensity of the dots. This is the sum of the pixel
   values after the morphological operations, with the pixel values on the
@@ -267,7 +267,7 @@ protected:
   double m_NumDots; 
 
   /*! pointer to the fiducial candidates coordinates */
-  std::vector<Dot>	m_CandidateFidValues; 
+  std::vector<Dot>  m_CandidateFidValues; 
 };
 
 #endif //_FIDUCIAL_ALGORITHM_COMMON_H

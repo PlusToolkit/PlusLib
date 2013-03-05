@@ -312,17 +312,17 @@ PlusStatus vtkVirtualDiscCapture::CompressFile()
   LOG_DEBUG("Read input sequence metafile: " << m_Filename ); 
 
   if (reader->Read() != PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't read sequence metafile: " <<  m_Filename ); 
     return PLUS_FAIL;
-  }	
+  }  
 
   // Now write to disc using compression
   reader->SetUseCompression(true);
   reader->SetFileName(m_Filename.c_str());
 
   if (reader->Write() != PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't write sequence metafile: " <<  reader->GetFileName() ); 
     return PLUS_FAIL;
   }

@@ -4,23 +4,23 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (VolumeReconstruction_SRCS
-	vtkPasteSliceIntoVolume.cxx 
-	vtkVolumeReconstructor.cxx 
-	vtkFillHolesInVolume.cxx
-	)
+  vtkPasteSliceIntoVolume.cxx 
+  vtkVolumeReconstructor.cxx 
+  vtkFillHolesInVolume.cxx
+  )
 
 SET (VolumeReconstruction_HDRS)
-if (WIN32)	
-	SET (VolumeReconstruction_HDRS
-		fixed.h
-		vtkPasteSliceIntoVolume.h 
-		vtkPasteSliceIntoVolumeHelperCommon.h 
-		vtkPasteSliceIntoVolumeHelperOptimized.h 
-		vtkPasteSliceIntoVolumeHelperUnoptimized.h 
-		vtkVolumeReconstructor.h 
-		vtkFillHolesInVolume.h
-		)
-endif (WIN32)	
+if (WIN32)  
+  SET (VolumeReconstruction_HDRS
+    fixed.h
+    vtkPasteSliceIntoVolume.h 
+    vtkPasteSliceIntoVolumeHelperCommon.h 
+    vtkPasteSliceIntoVolumeHelperOptimized.h 
+    vtkPasteSliceIntoVolumeHelperUnoptimized.h 
+    vtkVolumeReconstructor.h 
+    vtkFillHolesInVolume.h
+    )
+endif (WIN32)  
 
 SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
 
@@ -38,7 +38,7 @@ SET (VolumeReconstruction_LIBS
 
 INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkVolumeReconstruction ${VolumeReconstruction_SRCS} ${VolumeReconstruction_HDRS})
-TARGET_LINK_LIBRARIES(	vtkVolumeReconstruction  ${VolumeReconstruction_LIBS} )
+TARGET_LINK_LIBRARIES(  vtkVolumeReconstruction  ${VolumeReconstruction_LIBS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project 
@@ -61,5 +61,5 @@ INSTALL(TARGETS vtkVolumeReconstruction
 #
 
 IF (BUILD_TESTING)
-	SUBDIRS (Testing)
+  SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)

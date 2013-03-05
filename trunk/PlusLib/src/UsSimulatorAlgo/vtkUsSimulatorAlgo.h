@@ -27,7 +27,7 @@ class vtkRfProcessor;
 class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
 {
 public:
-  vtkTypeRevisionMacro(vtkUsSimulatorAlgo,vtkImageAlgorithm);	
+  vtkTypeRevisionMacro(vtkUsSimulatorAlgo,vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
   static vtkUsSimulatorAlgo *New();
 

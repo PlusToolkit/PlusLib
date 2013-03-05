@@ -246,7 +246,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
           {
             case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
               f = fdx[j];
-              r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);	// added division by double, since this always returned 0 otherwise
+              r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
               a = f + r;
               PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
               break;
@@ -360,68 +360,68 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
   \param clipRectangleSize = {x, y} size of the clipping rectangle in the image, in pixels
 */
 void GetClipExtent(int clipExt[6],
-										   vtkFloatingPointType inOrigin[3],
-										   vtkFloatingPointType inSpacing[3],
-										   const int inExt[6],
+                       vtkFloatingPointType inOrigin[3],
+                       vtkFloatingPointType inSpacing[3],
+                       const int inExt[6],
                        double clipRectangleOrigin[2],
                        double clipRectangleSize[2])
 {
-	// Map the clip rectangle (millimetres) to pixels
-	// --> number of pixels (+ or -) from the origin
+  // Map the clip rectangle (millimetres) to pixels
+  // --> number of pixels (+ or -) from the origin
 
-	int x0 = (int)ceil((clipRectangleOrigin[0]-inOrigin[0])/inSpacing[0]);
-	int x1 = (int)floor((clipRectangleOrigin[0]-inOrigin[0]+clipRectangleSize[0])/inSpacing[0]);
-	int y0 = (int)ceil((clipRectangleOrigin[1]-inOrigin[1])/inSpacing[1]);
-	int y1 = (int)floor((clipRectangleOrigin[1]-inOrigin[1]+clipRectangleSize[1])/inSpacing[1]);
+  int x0 = (int)ceil((clipRectangleOrigin[0]-inOrigin[0])/inSpacing[0]);
+  int x1 = (int)floor((clipRectangleOrigin[0]-inOrigin[0]+clipRectangleSize[0])/inSpacing[0]);
+  int y0 = (int)ceil((clipRectangleOrigin[1]-inOrigin[1])/inSpacing[1]);
+  int y1 = (int)floor((clipRectangleOrigin[1]-inOrigin[1]+clipRectangleSize[1])/inSpacing[1]);
 
-	// Make sure that x0 <= x1 and y0 <= y1
-	if (x0 > x1)
-	{
-		int tmp = x0; x0 = x1; x1 = tmp;
-	}
-	if (y0 > y1)
-	{
-		int tmp = y0; y0 = y1; y1 = tmp;
-	}
+  // Make sure that x0 <= x1 and y0 <= y1
+  if (x0 > x1)
+  {
+    int tmp = x0; x0 = x1; x1 = tmp;
+  }
+  if (y0 > y1)
+  {
+    int tmp = y0; y0 = y1; y1 = tmp;
+  }
 
-	// make sure the clip extent lies within the input extent
-	if (x0 < inExt[0])
-	{
-		x0 = inExt[0];
-	}
-	if (x1 > inExt[1])
-	{
-		x1 = inExt[1];
-	}
-	// clip extent was outside of range of input extent
-	if (x0 > x1)
-	{
-		x0 = inExt[0];
-		x1 = inExt[0]-1;
-	}
+  // make sure the clip extent lies within the input extent
+  if (x0 < inExt[0])
+  {
+    x0 = inExt[0];
+  }
+  if (x1 > inExt[1])
+  {
+    x1 = inExt[1];
+  }
+  // clip extent was outside of range of input extent
+  if (x0 > x1)
+  {
+    x0 = inExt[0];
+    x1 = inExt[0]-1;
+  }
 
-	if (y0 < inExt[2])
-	{
-		y0 = inExt[2];
-	}
-	if (y1 > inExt[3])
-	{
-		y1 = inExt[3];
-	}
-	// clip extent was outside of range of input extent
-	if (y0 > y1)
-	{
-		y0 = inExt[2];
-		y1 = inExt[2]-1;
-	}
+  if (y0 < inExt[2])
+  {
+    y0 = inExt[2];
+  }
+  if (y1 > inExt[3])
+  {
+    y1 = inExt[3];
+  }
+  // clip extent was outside of range of input extent
+  if (y0 > y1)
+  {
+    y0 = inExt[2];
+    y1 = inExt[2]-1;
+  }
 
-	// Set the clip extent
-	clipExt[0] = x0;
-	clipExt[1] = x1;
-	clipExt[2] = y0;
-	clipExt[3] = y1;
-	clipExt[4] = inExt[4];
-	clipExt[5] = inExt[5];
+  // Set the clip extent
+  clipExt[0] = x0;
+  clipExt[1] = x1;
+  clipExt[2] = y0;
+  clipExt[3] = y1;
+  clipExt[4] = inExt[4];
+  clipExt[5] = inExt[5];
 }
 
 #endif

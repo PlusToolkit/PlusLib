@@ -84,8 +84,8 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     return PLUS_FAIL; 
   }
   
- 	trackedFrame->SetName("TrackedFrame"); 
-	trackedFrame->SetDoubleAttribute("Timestamp", this->Timestamp); 
+  trackedFrame->SetName("TrackedFrame"); 
+  trackedFrame->SetDoubleAttribute("Timestamp", this->Timestamp); 
   trackedFrame->SetAttribute("ImageDataValid", (this->GetImageData()->IsImageValid()?"true":"false")); 
   if ( this->GetImageData()->IsImageValid() )
   {
@@ -120,19 +120,19 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     }
     
     vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  segmentedPoints->SetName("SegmentedPoints");
+    segmentedPoints->SetName("SegmentedPoints");
 
     for (int i=0; i<FiducialPointsCoordinatePx->GetNumberOfPoints(); i++)
-	  {
+    {
       double point[3]={0};
       FiducialPointsCoordinatePx->GetPoint(i, point);
 
-	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    pointElement->SetName("Point");
+      vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      pointElement->SetName("Point");
       pointElement->SetIntAttribute("ID", i);
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
-	  }
+    }
     segmentation->AddNestedElement(segmentedPoints); 
     trackedFrame->AddNestedElement(segmentation); 
   }
@@ -542,7 +542,7 @@ std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus sta
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker)
 {
-  typedef unsigned char			PixelType; 
+  typedef unsigned char      PixelType; 
   typedef itk::Image< PixelType, 2 > Image2dType; 
   typedef itk::Image< PixelType, 3 > Image3dType; 
 
@@ -589,7 +589,7 @@ PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* 
     writeImage->Update(); 
   }
   catch (itk::ExceptionObject & err) 
-  {		
+  {    
     LOG_ERROR(" Exception! writer did not update. Error: "<< err); 
     return PLUS_FAIL;
   }
@@ -717,7 +717,7 @@ PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFr
 }
 
 //----------------------------------------------------------------------------
-bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )	
+bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )  
 {
   if (mMinRequiredTranslationDifferenceMm<=0 || mMinRequiredAngleDifferenceDeg<=0)
   {
@@ -750,7 +750,7 @@ bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )
     return true; 
   }
   return false; 
-}	
+}  
 
 
 

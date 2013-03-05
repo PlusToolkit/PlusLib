@@ -427,7 +427,7 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   const char* messageType = trackerConfig->GetAttribute("MessageType"); 

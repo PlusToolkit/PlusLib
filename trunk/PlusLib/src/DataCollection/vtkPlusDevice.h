@@ -89,8 +89,8 @@ public:
 
   /*! 
     Get the buffer that is used to hold the data
-	  There are cases when multiple externally controlled buffers are needed.
-	  There must always be a valid buffer in the data object, therefore
+    There are cases when multiple externally controlled buffers are needed.
+    There must always be a valid buffer in the data object, therefore
     the input parameter shall not be NULL.
   */
   //virtual PlusStatus SetBuffer(vtkPlusBuffer* newBuffer);

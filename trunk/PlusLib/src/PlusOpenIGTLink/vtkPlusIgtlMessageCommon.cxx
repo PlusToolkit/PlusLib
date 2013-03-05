@@ -22,7 +22,7 @@ vtkStandardNewMacro(vtkPlusIgtlMessageCommon);
 
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageCommon::vtkPlusIgtlMessageCommon()
-{	
+{
 }
 
 //----------------------------------------------------------------------------

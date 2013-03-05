@@ -68,7 +68,7 @@ public:
   void DrawResults(PixelType* image);
 
   /*! Get the FidSegmentation element, this element handles the segmentation part of the algorithm */
-  FidSegmentation*	GetFidSegmentation() { return	& m_FidSegmentation; };
+  FidSegmentation*  GetFidSegmentation() { return  & m_FidSegmentation; };
 
   /*!  Get the FidLineFinder element, this element finds the n-points lines from the segmented dots */
   FidLineFinder* GetFidLineFinder() { return & m_FidLineFinder; };

@@ -26,7 +26,7 @@ vtkCxxRevisionMacro(vtkPlusBuffer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPlusBuffer);
 
 //----------------------------------------------------------------------------
-//						DataBufferItem
+//            DataBufferItem
 //----------------------------------------------------------------------------
 StreamBufferItem::StreamBufferItem()
 : Matrix(vtkSmartPointer<vtkMatrix4x4>::New())
@@ -265,7 +265,7 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::IT
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-                                        const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int	numberOfBytesToSkip, long frameNumber,  
+                                        const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
                                         double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                         const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {

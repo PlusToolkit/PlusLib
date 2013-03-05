@@ -76,7 +76,7 @@ protected:
   virtual PlusStatus InternalStartRecording(); 
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalUpdate();
+  PlusStatus InternalUpdate();
 
   /*! OpenIGTLink message type */
   char* MessageType; 

@@ -330,18 +330,18 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
-  }	
+  }  
   
   const char* templateDirectory = trackerConfig->GetAttribute("TemplateDirectory"); 
   if ( templateDirectory != NULL )
   { 
-  	this->TemplateDirectory=templateDirectory;
+    this->TemplateDirectory=templateDirectory;
   }
 
   const char* iniFile = trackerConfig->GetAttribute("IniFile"); 
   if ( iniFile!= NULL )
   { 
-	  this->IniFile=iniFile;
+    this->IniFile=iniFile;
   }
 
   return PLUS_SUCCESS;

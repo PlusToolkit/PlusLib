@@ -48,7 +48,7 @@ if (WIN32)
     SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualMixer.h
     VirtualDevices/vtkVirtualSwitcher.h
-	  VirtualDevices/vtkVirtualDiscCapture.h
+    VirtualDevices/vtkVirtualDiscCapture.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h

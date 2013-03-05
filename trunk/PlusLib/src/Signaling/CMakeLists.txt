@@ -12,13 +12,13 @@ SET ( Signaling_SRCS
   )
 
 SET (Signaling_HDRS)
-if (WIN32)	
+if (WIN32)
   SET (Signaling_HDRS
     vtkSignalBox.h
     )
-endif (WIN32)	
+endif (WIN32)
 
-SET (Signaling_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE	)
+SET (Signaling_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE  )
 
 # --------------------------------------------------------------------------
 # Heart Signal Box support
@@ -27,7 +27,7 @@ IF (PLUS_USE_HEARTSIGNALBOX)
   SET (Signaling_SRCS ${Signaling_SRCS}
     vtkHeartSignalBox.cxx
     )
-  IF (WIN32)	
+  IF (WIN32)
     SET (Signaling_HDRS ${Signaling_HDRS}
     vtkHeartSignalBox.h
     )
@@ -47,7 +47,7 @@ IF (PLUS_USE_USBECGBOX)
   SET ( Signaling_SRCS ${Signaling_SRCS}
     vtkUSBECGBox.cxx
     )
-  IF (WIN32)	
+  IF (WIN32)
     SET (Signaling_HDRS ${Signaling_HDRS}
     vtkUSBECGBox.h
     )
@@ -72,7 +72,7 @@ SET (Signaling_LIBS ${Signaling_LIBS}
 
 INCLUDE_DIRECTORIES( ${Signaling_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkSignaling ${Signaling_SRCS} ${Signaling_HDRS})
-TARGET_LINK_LIBRARIES(	vtkSignaling ${Signaling_LIBS} )
+TARGET_LINK_LIBRARIES(  vtkSignaling ${Signaling_LIBS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project 
@@ -88,7 +88,7 @@ SET(vcProj_vtkSignaling vtkSignaling;"${PlusLib_BINARY_DIR}/src/Signaling/vtkSig
 INSTALL(FILES ${External_Libraries_Install}
   DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
-	
+
 INSTALL(TARGETS vtkSignaling
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries

@@ -30,8 +30,8 @@ public:
     the constructor of vtkOutputWindow, which forces to create a vtkOutputWindow instance
     that writes log messages on the console.
   */
-	static vtkConsoleOutputWindow* New() 
-	{ return new vtkConsoleOutputWindow; } 
+  static vtkConsoleOutputWindow* New() 
+  { return new vtkConsoleOutputWindow; } 
 };
 
 /*!
@@ -84,8 +84,8 @@ class VTK_EXPORT vtkPlusLogger : public vtkObject
 
 public:
   /*! Logging level to control the verbosity of the logging */
-	enum LogLevelType
-	{
+  enum LogLevelType
+  {
     /*!
       Indicates an error. Whenever a method fails and returns with 
       PLUS_FAIL it shall log a message with this error level before
@@ -93,19 +93,19 @@ public:
       returns with PLUS_FAIL because a called method returned with
       PLUS_FAIL.
     */
-		LOG_LEVEL_ERROR=1,
+    LOG_LEVEL_ERROR=1,
     /*!
       Indicates a potential error: there is a chance that an
       error occurred, but from the available data it
       cannot be determined for sure.
     */
-		LOG_LEVEL_WARNING=2,
+    LOG_LEVEL_WARNING=2,
     /*! Used for logging information that may be useful for a user. */
-		LOG_LEVEL_INFO=3,
+    LOG_LEVEL_INFO=3,
     /*! Used for logging information that may be useful for a developer. */
-		LOG_LEVEL_DEBUG=4,
+    LOG_LEVEL_DEBUG=4,
     /*! Detailed debugging information. */
-		LOG_LEVEL_TRACE=5,
+    LOG_LEVEL_TRACE=5,
     /*! Default logging level to be applied when it is not set explicitly by the application. */
     LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO,
     /*!
@@ -113,10 +113,10 @@ public:
       will be kept.
     */
     LOG_LEVEL_UNDEFINED=100
-	};
+  };
 
   /*!  Get a pointer to the single existing object instance */
-	static vtkPlusLogger* Instance(); 
+  static vtkPlusLogger* Instance(); 
 
   /*!
     Add a new message to the log. Instead of using this method directly it is advisable
@@ -126,18 +126,18 @@ public:
     \param fileName Name of the file where the message comes from
     \param lineNumber Line number within the file where the message comes from
   */
-	void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber); 
-	
+  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber); 
+  
   /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
-	int GetLogLevel();	
+  int GetLogLevel();  
   /*! Set the current log level. Messages that has a higher level than the current log level are ignored. */
-	void SetLogLevel(int logLevel);
+  void SetLogLevel(int logLevel);
 
   /*! 
     Helper function to print a progress bar on the console 
     \param percent Percentage completed. Minimum value is 0, maximum value is 100.
   */
-	static void PrintProgressbar( int percent ); 
+  static void PrintProgressbar( int percent ); 
 
   /*! 
     Set the name of the file where the messages will be logged to. 
@@ -149,20 +149,20 @@ public:
   std::string GetLogFileName(); 
 
 protected:
-	vtkPlusLogger(); 
-	~vtkPlusLogger();
+  vtkPlusLogger(); 
+  ~vtkPlusLogger();
 
   /*! Writes the messages that are cached in memory to the log file and clears the cache. */
   void Flush(); 
 
 private: 
-	vtkPlusLogger(vtkPlusLogger const&);
-	vtkPlusLogger& operator=(vtkPlusLogger const&);
-	
+  vtkPlusLogger(vtkPlusLogger const&);
+  vtkPlusLogger& operator=(vtkPlusLogger const&);
+  
   /*! Pointer to the singleton instance */
-	static vtkPlusLogger* m_pInstance;
+  static vtkPlusLogger* m_pInstance;
   /*! Log level used for controlling the verbosity of the logging */
-	int m_LogLevel;
+  int m_LogLevel;
   /*! Cache for storing messages that have not yet been written to file */
   std::ostringstream m_LogStream;
   /*! Stream object of the log output file */
