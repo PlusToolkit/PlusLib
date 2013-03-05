@@ -176,7 +176,7 @@
     Compounding="On"
     FillHoles="Off"/>
   <fCal
-    SelectedDeviceId="FinalMixer"
+    DefaultSelectedChannelId="TrackedVideoStream"
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
     TransducerModelId="ProbeModel"
