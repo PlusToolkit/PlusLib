@@ -700,6 +700,9 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
         )                
+    FILE(COPY ${External_Libraries_Debug}
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+        )        
 ELSE()
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
