@@ -1112,6 +1112,9 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
     // cannot get two neighbors, so cannot do interpolation
     // it may be normal (e.g., when tracker out of view), so don't return with an error   
     ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
+    // Update the timestamp to match the requested time
+    bufferItem->SetFilteredTimestamp(time); 
+    bufferItem->SetUnfilteredTimestamp(time);
     if ( status != ITEM_OK )
     {
       LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ")" ); 
@@ -1148,6 +1151,8 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
   {
     // exact time match, no need for interpolation
     bufferItem->DeepCopy(&itemA);
+    bufferItem->SetFilteredTimestamp(time); 
+    bufferItem->SetUnfilteredTimestamp(time);
     return ITEM_OK;    
   }
 
