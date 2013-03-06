@@ -14,7 +14,7 @@ SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_
 
 # --------------------------------------------------------------------------
 # User options
-#
+# --------------------------------------------------------------------------
 
 # Standard CMake option for testing.
 OPTION(BUILD_TESTING
