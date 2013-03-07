@@ -313,9 +313,17 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
 	)
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
+        ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+        )
 
 STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
 	)
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
+        ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
+        )
