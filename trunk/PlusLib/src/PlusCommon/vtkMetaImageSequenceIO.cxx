@@ -1484,7 +1484,11 @@ PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( std::string& aString
     tmpnam(candidateFilename);
 #endif
     
+#ifdef _WIN32
     ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << candidateFilename << aSuffix == NULL ? "" : aSuffix;
+#else
+    ss << candidateFilename << aSuffix == NULL ? "" : aSuffix;
+#endif
 
     if( !vtksys::SystemTools::FileExists(ss.str().c_str()) )
     {
