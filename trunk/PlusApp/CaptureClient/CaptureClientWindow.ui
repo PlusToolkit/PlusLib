@@ -210,19 +210,19 @@
   <customwidget>
    <class>DeviceSetSelectorWidget</class>
    <extends>QWidget</extends>
-   <header>devicesetselectorwidget.h</header>
+   <header>DeviceSetSelectorWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ToolStateDisplayWidget</class>
    <extends>QWidget</extends>
-   <header>toolstatedisplaywidget.h</header>
+   <header>ToolStateDisplayWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>StatusIcon</class>
    <extends>QWidget</extends>
-   <header>statusicon.h</header>
+   <header>StatusIcon.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
