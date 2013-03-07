@@ -183,6 +183,10 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
 	)
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
+        ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+        )
 #-----------------------------------------------------------------------------
 # Install files 
 INCLUDE(InstallFiles.cmake)    
