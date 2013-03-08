@@ -86,18 +86,12 @@ void vtkRfProcessor::SetScanConverter(vtkUsScanConvert* scanConverter)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElement)
 {
-  if ( config == NULL )
+  if ( rfProcessingElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
     return PLUS_FAIL; 
-  }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
-  {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree, will use default values!");    
-    return PLUS_FAIL;
   }
 
   PlusStatus status=PLUS_SUCCESS;

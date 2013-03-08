@@ -38,7 +38,7 @@ public:
   virtual vtkImageData* GetBrightessScanConvertedImage(); 
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfElement); 
 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
