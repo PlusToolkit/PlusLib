@@ -374,3 +374,10 @@ PlusStatus vtkVirtualDiscCapture::ClearRecordedFrames()
   return PLUS_SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+void vtkVirtualDiscCapture::InternalWriteOutputChannels( vtkXMLDataElement* rootXMLElement )
+{
+  // Do not write anything out, disc capture devices don't have output channels in the config
+  return PLUS_SUCCESS;
+}
+

@@ -49,6 +49,11 @@ public:
   vtkGetMacro(EnableCapturing, bool);
   vtkSetMacro(EnableCapturing, bool);
 
+  /*!
+    Method that writes output streams to XML
+  */
+  virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
+
 protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
