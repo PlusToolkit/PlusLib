@@ -1400,7 +1400,7 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
     if( this->TempHeaderFileName == NULL )
     {
       std::string tempFilename;
-      if( CreateTemporaryFilename(tempFilename, "_header") != PLUS_SUCCESS )
+      if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to create temporary header file. Check write access.");
         return PLUS_FAIL;
@@ -1411,7 +1411,7 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
     if( this->TempImageFileName == NULL )
     {
       std::string tempFilename;
-      if( CreateTemporaryFilename(tempFilename, "_images") != PLUS_SUCCESS )
+      if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to create temporary image file. Check write access.");
         return PLUS_FAIL;
@@ -1463,40 +1463,54 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( std::string& aString, const char* aSuffix )
+PlusStatus vtkMetaImageSequenceIO::CreateTemporaryFilename( std::string& aString )
 {
   int maxRetryCount = 50;
   int tryCount = 0;
 
 #ifdef _WIN32
-  char candidateFilename[L_tmpnam_s];
+  char candidateFilename[MAX_PATH];
 #else
   char candidateFilename[L_tmpnam];
 #endif
 
-  std::stringstream ss;
-
   while( tryCount < maxRetryCount)
   {
-#ifdef _WIN32
-    tmpnam_s(candidateFilename, L_tmpnam_s);
-#else
-    tmpnam(candidateFilename);
-#endif
-    
-#ifdef _WIN32
-    ss << vtkPlusConfig::GetInstance()->GetOutputDirectory() << candidateFilename << aSuffix == NULL ? "" : aSuffix;
-#else
-    ss << candidateFilename << aSuffix == NULL ? "" : aSuffix;
-#endif
+    tryCount++;
 
-    if( !vtksys::SystemTools::FileExists(ss.str().c_str()) )
+#ifdef _WIN32
+    UINT uRetVal = GetTempFileName(vtkPlusConfig::GetInstance()->GetOutputDirectory(), "", 0, candidateFilename);  // buffer for name
+    if( uRetVal == ERROR_BUFFER_OVERFLOW )
     {
-      aString = ss.str();
-      return PLUS_SUCCESS;
+      if( vtksys::SystemTools::FileExists(candidateFilename) )
+      {
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+      }
+      LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+      continue;
     }
 
-    ss.clear();
+    aString = candidateFilename;
+    return PLUS_SUCCESS;
+#else
+    tmpnam(candidateFilename);
+
+    if( !vtksys::SystemTools::FileExists(candidateFilename) )
+    {
+      ofstream aFile(candidateFilename);
+      if( aFile.is_open() )
+      {
+        aFile.close();
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+        aString = candidateFilename;
+        return PLUS_SUCCESS;
+      }
+      else
+      {
+        LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
+      }
+    }
+#endif
   }
 
   aString = "";

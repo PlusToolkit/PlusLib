@@ -1,0 +1,150 @@
+<PlusConfiguration version="2.2">
+
+    <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="BK ProFocus RF-mode + PhidgetSpatial with raw sensor data + Epiphan framegrabber + 2 mixers + 2 captures of mixed streams 2.1 March 8"
+      Description="BK ProFocus ultrasound with transrectal probe (RF-mode) and Epiphan image
+      acquisition. Support of both transverse and linear arrays. PhidgetSpatial rotation tracking." 
+    />
+	
+  <Device
+   Type="BkProFocus"
+   Id="BKVideoDevice"
+   IniFileName="BkSettings/IniFile.ini"
+   UsImageOrientation="FM"
+   AcquisitionRate="30"
+   LocalTimeOffsetSec="0"
+   Selectable="false"
+   ImagingMode="RfMode">
+   
+
+   <DataSources>
+     <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+   </DataSources>
+   
+   <OutputChannels>
+      <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video">
+        <RfProcessing>
+          <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+          <ScanConversion 
+            TransducerName="BK_8848-sagittal"
+            TransducerGeometry="LINEAR"
+            ImagingDepthMm="56.0"
+            TransducerWidthMm="60.0"
+            OutputImageSizePixel="840 800"
+            OutputImageSpacingMmPerPixel="0.1 0.1"        
+          />
+        </RfProcessing> 
+      </OutputChannel>
+    </OutputChannels>
+  </Device>
+
+  <!-- Epihphan frame grabber -->
+   <Device
+      Type="Epiphan"
+      Id="EpiphanVideoDevice" 
+      AcquisitionRate="30" 
+      UsImageOrientation="MF">
+    <DataSources>
+      <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" /> 
+    </DataSources>
+    <OutputChannels>
+      <OutputChannel Id="EpiphanVideoStream" VideoDataSourceId="Video"/>
+    </OutputChannels>
+    
+    </Device>
+
+  <!-- PhidgetSpatial tracker -->
+  <Device
+   Type="PhidgetSpatial"
+   Id="TrackerDevice"
+   AhrsAlgorithm="MADGWICK_MARG" 
+   AhrsAlgorithmGain="1.5" 
+   TiltSensorWestAxisIndex="1"   
+   AcquisitionRate="125" 
+   LocalTimeOffsetSec="0.0">
+   
+   <DataSources>
+    <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>                           
+   </DataSources>
+   
+   <OutputChannels>
+    <OutputChannel Id="TrackerStream" >
+     <DataSource Id="Accelerometer"/>
+     <DataSource Id="Gyroscope"/>
+     <DataSource Id="Magnetometer"/>
+     <DataSource Id="TiltSensor"/>
+     <DataSource Id="OrientationSensor"/>                           
+    </OutputChannel>
+   </OutputChannels>
+  </Device>
+  
+  <Device Id="BKTrackedVideoDevice" Type="VirtualMixer">
+    <InputChannels>
+      <InputChannel Id="TrackerStream" />
+      <InputChannel Id="BKVideoStream" />
+    </InputChannels>
+    
+    <OutputChannels>
+      <OutputChannel Id="BKTrackedVideoStream" />
+    </OutputChannels>        
+  </Device>
+
+    <Device Id="EpiphanTrackedVideoDevice" Type="VirtualMixer">
+    <InputChannels>
+      <InputChannel Id="TrackerStream" />
+      <InputChannel Id="EpiphanVideoStream" />
+    </InputChannels>
+    
+    <OutputChannels>
+      <OutputChannel Id="EpiphanTrackedVideoStream"/>
+    </OutputChannels>    
+    
+  </Device>
+  
+    <Device
+      Id="EpiphanCaptureDevice"
+      Type="VirtualDiscCapture"
+      Filename="RecordingTestEpiphan.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="EpiphanTrackedVideoStream" />
+      </InputChannels>
+    </Device>
+    
+    <Device
+      Id="BKCaptureDevice"
+      Type="VirtualDiscCapture"
+      Filename="RecordingTestBK.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="BKTrackedVideoStream" />
+      </InputChannels>
+    </Device>
+ 
+  </DataCollection>
+  
+<xfCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="140"
+    NumberOfValidationImagesToAcquire="70"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+    DefaultDeviceIdOnConnect="EpiphanMixer"
+  />
+</PlusConfiguration>
