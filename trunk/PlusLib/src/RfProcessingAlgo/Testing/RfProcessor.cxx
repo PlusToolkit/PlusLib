@@ -105,9 +105,16 @@ int main(int argc, char **argv)
       continue;
     }
 
+    vtkXMLDataElement* rfProcesingElement = outputChannelElement->FindNestedElementWithName("RfProcessing");
+    if (rfProcesingElement == NULL)
+    {
+      LOG_ERROR("Cannot find RfProcessing element in channel tag!");
+      return PLUS_FAIL;
+    }
+
     // Create converter
     vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
-    if ( rfProcessor->ReadConfiguration(outputChannelElement) != PLUS_SUCCESS )
+    if ( rfProcessor->ReadConfiguration(rfProcesingElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
       exit(EXIT_FAILURE); 
