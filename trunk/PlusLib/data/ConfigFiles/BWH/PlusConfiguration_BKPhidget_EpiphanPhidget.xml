@@ -90,7 +90,18 @@
     </InputChannels>
     
     <OutputChannels>
-      <OutputChannel Id="BKTrackedVideoStream" />
+      <OutputChannel Id="BKTrackedVideoStream">
+        <RfProcessing>
+          <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
+          <ScanConversion 
+            TransducerName="BK_8848-sagittal"
+            TransducerGeometry="LINEAR"
+            ImagingDepthMm="56.0"
+            TransducerWidthMm="60.0"
+            OutputImageSizePixel="840 800"
+            OutputImageSpacingMmPerPixel="0.1 0.1"/>
+        </RfProcessing>
+      </OutputChannel>
     </OutputChannels>        
   </Device>
 
@@ -110,7 +121,7 @@
       Id="EpiphanCaptureDevice"
       Type="VirtualDiscCapture"
       Filename="RecordingTestEpiphan.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturing="TRUE" >
       <InputChannels>
         <InputChannel Id="EpiphanTrackedVideoStream" />
       </InputChannels>
