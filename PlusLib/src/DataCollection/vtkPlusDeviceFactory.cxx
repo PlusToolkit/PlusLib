@@ -203,7 +203,23 @@ PlusStatus vtkPlusDeviceFactory::CreateInstance( const char* aDeviceType, vtkPlu
 
   if ( DeviceTypes.find(aDeviceType) == DeviceTypes.end() )
   {
-    LOG_ERROR("Unknown device type: " << aDeviceType);
+    std::string listOfSupportedDevices;
+    std::map<std::string,PointerToDevice>::iterator it; 
+    for ( it = DeviceTypes.begin(); it != DeviceTypes.end(); ++it)
+    {
+      if ( it->second != NULL )
+      {
+        vtkPlusDevice* device = (*it->second)(); 
+        if (!listOfSupportedDevices.empty())
+        {
+          listOfSupportedDevices.append(", ");
+        }
+        listOfSupportedDevices.append(it->first); 
+        device->Delete();
+        device = NULL;
+      }
+    }
+    LOG_ERROR("Unknown device type: " << aDeviceType<<". Supported devices: "<<listOfSupportedDevices);
     return PLUS_FAIL; 
   }
 
