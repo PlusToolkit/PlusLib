@@ -378,7 +378,14 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     this->OutsideObjectColour=outsideObjectColour; 
   }
 
-  this->RfProcessor->ReadConfiguration(usSimulatorAlgoElement);
+  vtkXMLDataElement* rfProcesingElement = usSimulatorAlgoElement->FindNestedElementWithName("RfProcessing");
+  if (rfProcesingElement == NULL)
+  {
+    LOG_ERROR("Cannot find RfProcessing element in channel tag!");
+    return PLUS_FAIL;
+  }
+
+  this->RfProcessor->ReadConfiguration(rfProcesingElement);
 
   return PLUS_SUCCESS;
 }
