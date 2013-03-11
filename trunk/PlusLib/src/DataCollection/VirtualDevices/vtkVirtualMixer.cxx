@@ -27,6 +27,8 @@ vtkVirtualMixer::vtkVirtualMixer()
 //----------------------------------------------------------------------------
 vtkVirtualMixer::~vtkVirtualMixer()
 {
+  // Clear reference to rf processor
+  this->OutputChannel->SetRfProcessor(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -52,7 +54,7 @@ PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* element)
 
   if (this->OutputChannels.empty())
   {
-    LOG_WARNING("vtkVirtualMixer device "<<this->GetDeviceId()<<" does not have any output channels");
+    LOG_WARNING("vtkVirtualMixer device " << this->GetDeviceId() << " does not have any output channels");
   }
   else
   {
@@ -147,6 +149,15 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
         this->GetOutputChannel()->AddTool(anInputTool);
         this->AddTool(anInputTool);
       }
+    }
+
+    if( anInputChannel->GetRfProcessor() != NULL && this->GetOutputChannel()->GetRfProcessor() == NULL )
+    {
+      this->GetOutputChannel()->SetRfProcessor(anInputChannel->GetRfProcessor());
+    }
+    else if( this->GetOutputChannel()->GetRfProcessor() != NULL )
+    {
+      LOG_WARNING("Multiple RfProcessors defined in InputChannels to mixer: " << this->GetDeviceId() << ". Check input configuration.");
     }
   }
 

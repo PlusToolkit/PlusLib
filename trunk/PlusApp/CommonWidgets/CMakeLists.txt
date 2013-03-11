@@ -19,6 +19,7 @@ SET (CommonWidgets_SRCS
   vtkImageVisualizer.cxx
   vtk3DObjectVisualizer.cxx
   CaptureControlWidget.cxx 
+  QCustomAction.cxx 
   )
 
 if (WIN32)	
@@ -38,6 +39,7 @@ SET (CommonWidgets_UI_HDRS
     vtkImageVisualizer.h
     vtk3DObjectVisualizer.h
     CaptureControlWidget.h 
+    QCustomAction.h 
   )
 
 SET (CommonWidgets_UI_SRCS

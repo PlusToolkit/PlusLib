@@ -22,6 +22,7 @@ SET (CaptureClient_UI_SRCS
 SET (CaptureClient_QT_Resources
   CaptureClient.qrc
   ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  ${PlusApp_SOURCE_DIR}/fCal/fCal.qrc
   )
   
 

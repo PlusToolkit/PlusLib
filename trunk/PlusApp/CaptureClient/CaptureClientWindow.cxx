@@ -6,27 +6,50 @@ See License.txt for details.
 
 #include "CaptureClientWindow.h"
 #include "CaptureControlWidget.h"
+#include "QCustomAction.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDevice.h"
 #include "vtkVirtualDiscCapture.h"
+#include "vtkVisualizationController.h"
 #include "vtkXMLUtilities.h"
 #include <QDialog>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
 : QMainWindow(parent, flags)
 , m_DataCollector(NULL)
 , m_SelectedChannel(NULL)
+, m_VisualizationController(NULL)
+, m_UiRefreshTimer(new QTimer(this))
 {
   // Set up UI
   ui.setupUi(this);
 
   connect( ui.deviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+  connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
+
+  // Create visualizer
+  m_VisualizationController = vtkVisualizationController::New();
+  m_VisualizationController->SetCanvas(ui.canvas);
+
+  // Hide it until we have something to show
+  ui.canvas->setVisible(false);
+
+  ui.channelSelectButton->installEventFilter(this);
+  ui.channelSelectButton->setEnabled(false);
+
+  m_UiRefreshTimer->start(50);
 }
 
 //-----------------------------------------------------------------------------
 CaptureClientWindow::~CaptureClientWindow()
 {
+  m_VisualizationController->SetDataCollector(NULL);
+  DELETE_IF_NOT_NULL(m_VisualizationController);
   DELETE_IF_NOT_NULL(m_DataCollector);
 }
 
@@ -90,6 +113,9 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
         LOG_ERROR("Unable to start collecting data!");
         ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
         ui.toolStateDisplayWidget->InitializeTools(NULL, false);
+
+        ui.canvas->setVisible(false);
+        ui.channelSelectButton->setEnabled(false);
       }
       else
       {
@@ -106,16 +132,25 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
           LOG_ERROR("Failed to read fCal configuration");
         }
 
+        // Allow object visualizer to load anything it needs
+        m_VisualizationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+        m_VisualizationController->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
+
         // Successful connection
         ui.deviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+
+        this->BuildChannelMenu();
+        ui.channelSelectButton->setEnabled(m_3DActionList.size() > 0);
 
         if (ui.toolStateDisplayWidget->InitializeTools(m_SelectedChannel, true))
         {
           ui.toolStateDisplayWidget->setMinimumHeight(ui.toolStateDisplayWidget->GetDesiredHeight());
           ui.toolStateDisplayWidget->setMaximumHeight(ui.toolStateDisplayWidget->GetDesiredHeight());
         }
+
+        ui.canvas->setVisible(true);
       }
 
       this->ConfigureCaptureWidgets();
@@ -130,10 +165,14 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
+    ui.canvas->setVisible(false);
+    ui.channelSelectButton->setEnabled(false);
     m_DataCollector->Disconnect();
 
     this->ConfigureCaptureWidgets();
 
+    this->m_VisualizationController->Reset();
+    this->m_VisualizationController->ClearTransformRepository();
     ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
     ui.deviceSetSelectorWidget->ShowResetTrackerButton(false);
     ui.toolStateDisplayWidget->InitializeTools(NULL, false);
@@ -147,6 +186,8 @@ PlusStatus CaptureClientWindow::StartDataCollection()
 {
   if( this->m_DataCollector != NULL )
   {
+    m_VisualizationController->SetDataCollector(NULL);
+    m_VisualizationController->AssignDataCollector(NULL);
     DELETE_IF_NOT_NULL(this->m_DataCollector);
   }
 
@@ -174,7 +215,20 @@ PlusStatus CaptureClientWindow::StartDataCollection()
   }
 
   vtkPlusDevice* aDevice = *(m_DataCollector->GetDeviceConstIteratorBegin());
+  if( aDevice == NULL )
+  {
+    LOG_ERROR("No device connected, can't select a device to visualize.");
+    return PLUS_FAIL;
+  }
   m_SelectedChannel = *(aDevice->GetOutputChannelsStart());
+  if( m_SelectedChannel == NULL )
+  {
+    LOG_ERROR("Device " << aDevice->GetDeviceId() << " has no channels to visualize.");
+    return PLUS_FAIL;
+  }
+  m_VisualizationController->SetDataCollector(m_DataCollector);
+  this->ChannelSelected(m_SelectedChannel->GetOwnerDevice(), m_SelectedChannel);
+  m_VisualizationController->AssignDataCollector(m_DataCollector);
 
   return PLUS_SUCCESS;
 }
@@ -221,4 +275,154 @@ PlusStatus CaptureClientWindow::ConfigureCaptureWidgets()
   }
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::BuildChannelMenu()
+{
+  for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
+  {
+    QCustomAction* action = *it;
+    disconnect(action, SIGNAL(triggered()));
+    delete(action);
+  }
+  m_3DActionList.clear();
+
+  DeviceCollection aCollection;
+  if( this->m_VisualizationController == NULL || this->m_VisualizationController->GetDataCollector() == NULL || 
+    !this->m_VisualizationController->GetDataCollector()->GetConnected() || this->m_VisualizationController->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+  {
+    // Data collector might be disconnected
+    return;
+  }
+
+  // Determine total number of output channels
+  int numChannels(0);
+  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  {
+    vtkPlusDevice* device = *it;
+    numChannels += device->OutputChannelCount();
+  }
+
+  // now add an entry for each device
+  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  {
+    vtkPlusDevice* device = *it;
+    for( ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter )
+    {
+      vtkPlusChannel* aChannel = *channelIter;
+      std::stringstream ss;
+      ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
+      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.channelSelectButton, false, device, aChannel);
+      action->setCheckable(true);
+      action->setDisabled(numChannels == 1);
+      vtkPlusChannel* currentChannel(NULL);
+      action->setChecked(this->GetSelectedChannel() == aChannel);
+      connect(action, SIGNAL(triggered()), action, SLOT(activated()));
+      connect(action, SIGNAL(channelSelected(vtkPlusDevice*, vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusDevice*, vtkPlusChannel*)));
+      m_3DActionList.push_back(action);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool CaptureClientWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+  if (ev->type() == QEvent::MouseButtonRelease)
+  {
+    QPushButton *button = static_cast<QPushButton*>(obj);
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
+    if ( mouseEvent->button() == Qt::LeftButton )
+    {
+      QMenu* menu = NULL;
+      if( obj == ui.channelSelectButton )
+      {
+        if( !ui.channelSelectButton->isEnabled() )
+        {
+          return true;
+        }
+        menu = new QMenu(tr("Actions"), ui.channelSelectButton);
+
+        for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
+        {
+          QCustomAction* action = (*it);
+          if( action->IsSeparator() )
+          {
+            menu->addSeparator();
+          }
+          else
+          {
+            menu->addAction(action);
+          }
+        }
+        menu->move( QPoint( ui.channelSelectButton->x() - 40, ui.channelSelectButton->y() - (20*m_3DActionList.size()) ) );
+      }
+
+      menu->exec();
+      delete menu;
+
+      button->setDown(false);
+
+      return true;
+    }
+  }
+
+  // Pass the event on to the parent class
+  return QWidget::eventFilter( obj, ev );
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::SetSelectedChannel( vtkPlusChannel& aChannel )
+{
+  m_SelectedChannel = &aChannel;
+  this->m_VisualizationController->SetSelectedChannel(&aChannel);
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aChannel )
+{
+  LOG_TRACE("CaptureClientWindow::ChannelSelected(" << aDevice->GetDeviceId() << ", channel: " << aChannel->GetChannelId() << ")");
+
+  if( this->m_VisualizationController != NULL && this->m_VisualizationController->GetDataCollector() != NULL )
+  {
+    this->SetSelectedChannel(*aChannel);
+  }
+  if( aChannel->GetVideoDataAvailable() )
+  {
+    this->m_VisualizationController->SetInput( aChannel->GetBrightnessOutput() );
+  }
+  else
+  {
+    this->m_VisualizationController->DisconnectInput();
+  }
+
+  this->BuildChannelMenu();
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::resizeEvent(QResizeEvent* aEvent)
+{
+  LOG_TRACE("CaptureClientWindow::resizeEvent");
+
+  if( m_VisualizationController != NULL )
+  {
+    m_VisualizationController->resizeEvent(aEvent);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::UpdateGUI()
+{
+  //LOG_TRACE("CaptureClientWindow::UpdateGUI");
+
+  // We do not update the GUI when a mouse button is pressed
+  if (QApplication::mouseButtons() != Qt::NoButton)
+  {
+    return;
+  }
+
+  if( m_VisualizationController != NULL && m_VisualizationController->GetDataCollector() != NULL && m_VisualizationController->GetDataCollector()->GetConnected() )
+  {
+    ui.canvas->update();
+  }
 }

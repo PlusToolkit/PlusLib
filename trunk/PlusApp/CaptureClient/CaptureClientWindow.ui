@@ -126,40 +126,6 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="3" rowspan="2">
-     <widget class="QFrame" name="captureWidgetFrame">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <widget class="Line" name="line_3">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>690</y>
-         <width>801</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-      <widget class="QWidget" name="gridLayoutWidget_2">
-       <property name="geometry">
-        <rect>
-         <x>9</x>
-         <y>9</y>
-         <width>781</width>
-         <height>681</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="captureWidgetGrid"/>
-      </widget>
-     </widget>
-    </item>
     <item row="2" column="3">
      <widget class="QFrame" name="statusBarFrame">
       <property name="maximumSize">
@@ -200,6 +166,82 @@
         </rect>
        </property>
       </widget>
+      <widget class="QPushButton" name="channelSelectButton">
+       <property name="geometry">
+        <rect>
+         <x>752</x>
+         <y>0</y>
+         <width>22</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../fCal/fCal.qrc">
+         <normaloff>:/icons/Resources/icon_ObjectMode.png</normaloff>:/icons/Resources/icon_ObjectMode.png</iconset>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QVTKWidget" name="canvas" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>795</width>
+        <height>600</height>
+       </size>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>4</width>
+        <height>3</height>
+       </size>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QFrame" name="captureWidgetFrame">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="Line" name="line_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>690</y>
+         <width>801</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>771</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="captureWidgetGrid"/>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -225,9 +267,15 @@
    <header>StatusIcon.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QVTKWidget.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="CaptureClient.qrc"/>
+  <include location="../fCal/fCal.qrc"/>
  </resources>
  <connections/>
 </ui>

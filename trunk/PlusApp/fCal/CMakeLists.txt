@@ -10,7 +10,6 @@ INCLUDE(${QT_USE_FILE})
 SET (fCal_SRCS
   fCalMain.cxx
   fCalMainWindow.cxx
-  QCustomAction.cxx
   Toolboxes/ConfigurationToolbox.cxx
   Toolboxes/CapturingToolbox.cxx
   Toolboxes/SpatialCalibrationToolbox.cxx
@@ -28,7 +27,6 @@ endif (WIN32)
 
 SET (fCal_UI_HDRS
     fCalMainWindow.h
-    QCustomAction.h
     Toolboxes/AbstractToolbox.h
     Toolboxes/ConfigurationToolbox.h
     Toolboxes/CapturingToolbox.h
