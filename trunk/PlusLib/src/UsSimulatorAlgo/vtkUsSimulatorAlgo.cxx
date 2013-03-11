@@ -182,7 +182,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     intersectionPoints->Reset();
     
     //const double startTime = vtkAccurateTimer::GetSystemTime(); 
-    this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model,NULL,intersectionPoints,NULL);
+    this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, 0.0,intersectionPoints,NULL);
     //const double stopTime = vtkAccurateTimer::GetSystemTime(); 
     //LOG_INFO("this->ModelLocalizer->IntersectWithLine: "<<(stopTime-startTime)*1000<<" msec");
     vtkIdType numIntersectionPoints = intersectionPoints->GetNumberOfPoints(); 
@@ -195,7 +195,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     bool isInsideObject=false;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
-    double beamIntensity=50000; // TODO: magic number
+    //double beamIntensity=50000; // TODO: magic number
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
