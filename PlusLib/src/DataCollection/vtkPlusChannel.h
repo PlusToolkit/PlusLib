@@ -10,9 +10,9 @@
 #include "PlusConfigure.h"
 #include "vtkDataObject.h"
 #include "vtkPlusDevice.h"
+#include "vtkRfProcessor.h"
 
 class vtkPlusDevice;
-class vtkRfProcessor;
 
 /*!
   \class vtkPlusChannel 
@@ -116,6 +116,7 @@ public:
   vtkGetStringMacro(ChannelId);
 
   vtkGetObjectMacro(RfProcessor, vtkRfProcessor);
+  vtkSetObjectMacro(RfProcessor, vtkRfProcessor);
 
   vtkSetMacro(SaveRfProcessingParameters, bool);
 

@@ -6,11 +6,9 @@ See License.txt for details.
 
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h"
-#include "vtkRfProcessor.h"
 
 //----------------------------------------------------------------------------
 
