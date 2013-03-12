@@ -26,7 +26,7 @@ vtkPlusChannel::vtkPlusChannel(void)
 : VideoSource(NULL)
 , OwnerDevice(NULL)
 , ChannelId(NULL)
-, RfProcessor(vtkRfProcessor::New())
+, RfProcessor(NULL)
 , BlankImage(vtkImageData::New())
 , SaveRfProcessingParameters(false)
 {
@@ -121,6 +121,7 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
   vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName("RfProcessing");
   if (rfElement != NULL)
   {
+    this->RfProcessor = vtkRfProcessor::New();
     this->RfProcessor->ReadConfiguration(rfElement);
     this->SaveRfProcessingParameters = true;
   }
