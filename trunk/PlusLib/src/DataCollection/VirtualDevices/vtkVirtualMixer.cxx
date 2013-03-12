@@ -79,22 +79,16 @@ double vtkVirtualMixer::GetAcquisitionRate() const
     vtkPlusChannel* anInputChannel = (*it);
 
     // Get the lowest rate from all image streams
-    vtkPlusDataSource* videoSource = NULL;
     if( anInputChannel->HasVideoSource() )
     {
       lowestRate = anInputChannel->GetOwnerDevice()->GetAcquisitionRate();
-      lowestRateKnown=true;
+      lowestRateKnown = true;
     }
 
-    // Get the lowest rate from all tool streams
-    for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
+    if (anInputChannel->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
     {
-      vtkPlusDataSource* anTool = inputToolIter->second;
-      if (anInputChannel->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
-      {
-        lowestRate = anInputChannel->GetOwnerDevice()->GetAcquisitionRate();
-        lowestRateKnown=true;
-      }
+      lowestRate = anInputChannel->GetOwnerDevice()->GetAcquisitionRate();
+      lowestRateKnown = true;
     }
   }
 
