@@ -36,7 +36,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      UsImageOrientation="UF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
@@ -55,7 +54,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="UF"/>
       </OutputChannels>
     </Device>
 

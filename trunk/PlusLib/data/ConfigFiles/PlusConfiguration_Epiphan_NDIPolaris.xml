@@ -31,14 +31,13 @@
     <Device
       Id="VideoDevice" 
       Type="Epiphan"
-      AcquisitionRate="30" 
-      UsImageOrientation="MF" >
+      AcquisitionRate="30" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF" />
       </OutputChannels>
     </Device>
 

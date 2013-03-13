@@ -32,7 +32,6 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      UsImageOrientation="UF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
@@ -51,7 +50,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="UF"/>
       </OutputChannels>
     </Device>
 

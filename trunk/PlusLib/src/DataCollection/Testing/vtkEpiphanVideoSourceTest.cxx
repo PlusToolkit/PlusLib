@@ -5,15 +5,16 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
+#include "vtkCallbackCommand.h"
+#include "vtkCommand.h"
 #include "vtkEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
+#include "vtkPlusChannel.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkCommand.h"
-#include "vtkCallbackCommand.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
 
@@ -97,7 +98,14 @@ int main(int argc, char **argv)
     frameGrabber->SetClipRectangleSize(clipRectSize[0],clipRectSize[1]);
   }
  
-  frameGrabber->SetDeviceImageOrientation(US_IMG_ORIENT_MN);
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    return NULL;
+  }
+  aChannel->SetImageOrientation( US_IMG_ORIENT_MN );
 
 	// Add an observer to warning and error events for redirecting it to the stdout 
 	vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();

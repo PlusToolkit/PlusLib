@@ -51,7 +51,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
-      UsImageOrientation="MF"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
@@ -59,7 +58,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
     

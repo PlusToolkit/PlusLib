@@ -277,7 +277,6 @@ int main(int argc, char* argv[])
   portaGrabber->SetPortaFirmwarePath(PortaFirmwarePath.c_str());
   portaGrabber->SetPortaLicensePath(LicensePath.c_str());
   portaGrabber->SetPortaSettingPath(PortaSettingPath.c_str());
-  portaGrabber->SetDeviceImageOrientation( US_IMG_ORIENT_UF );
 
   DisplayMode displayMode=SHOW_IMAGE;
   
@@ -293,6 +292,7 @@ int main(int argc, char* argv[])
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;
   }
+  aChannel->SetImageOrientation( US_IMG_ORIENT_UF );
   if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer size!"); 

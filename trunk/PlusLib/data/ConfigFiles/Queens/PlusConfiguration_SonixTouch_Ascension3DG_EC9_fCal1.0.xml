@@ -30,7 +30,6 @@
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      UsImageOrientation="UF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
@@ -49,7 +48,7 @@
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="UF"/>
       </OutputChannels>
     </Device>
 

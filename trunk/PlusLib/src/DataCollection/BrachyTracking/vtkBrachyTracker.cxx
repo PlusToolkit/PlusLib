@@ -71,7 +71,7 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->SetProbeRotationAxisOrientation(0,0,1); 
   this->SetProbeRotationEncoderScale(1.0); 
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;

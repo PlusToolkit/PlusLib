@@ -850,6 +850,9 @@ void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aC
   {
     LOG_ERROR("Expecting configuration toolbox at index: " << ToolboxType_Configuration << " but didn't find it.");
   }
+
+  this->m_ToolboxList[m_ActiveToolbox]->Reset();
+  this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------

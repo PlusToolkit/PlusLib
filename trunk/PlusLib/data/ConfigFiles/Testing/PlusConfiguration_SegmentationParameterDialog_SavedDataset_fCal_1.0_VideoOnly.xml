@@ -13,14 +13,13 @@
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.12" 
       SequenceMetafile="AllSegmentablefCal.mha"
-      UsImageOrientation="MF"
       RepeatEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
 
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF" />
       </OutputChannels>
     </Device>
   </DataCollection>

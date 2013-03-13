@@ -30,7 +30,6 @@
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      UsImageOrientation="MF"
       AcquisitionRate="-1" 
       IP="130.15.7.20" 
       ImagingMode="BMode"
@@ -48,7 +47,7 @@
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
         

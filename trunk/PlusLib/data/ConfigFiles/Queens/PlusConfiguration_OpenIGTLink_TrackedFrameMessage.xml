@@ -12,7 +12,6 @@
       ServerAddress="127.0.0.1"
       ServerPort="18944"
       IgtlMessageCrcCheckEnabled="false"
-      UsImageOrientation="MF"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0" >
       <DataSources>
@@ -20,7 +19,7 @@
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
   </DataCollection>

@@ -29,14 +29,13 @@
 
     <Device
       Id="VideoDevice" 
-      Type="VFWVideo"
-      UsImageOrientation="MF" >
+      Type="VFWVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />     
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
 

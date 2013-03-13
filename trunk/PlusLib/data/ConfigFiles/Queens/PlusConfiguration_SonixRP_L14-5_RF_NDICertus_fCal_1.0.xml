@@ -32,7 +32,6 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      UsImageOrientation="FM"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
@@ -52,7 +51,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="FM">
           <RfProcessing>
             <RfToBrightnessConversion 
               NumberOfHilbertFilterCoeffs="32.0" 

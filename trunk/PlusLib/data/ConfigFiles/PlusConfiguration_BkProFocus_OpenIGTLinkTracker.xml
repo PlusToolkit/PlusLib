@@ -11,7 +11,6 @@
       Id="VideoDevice"
       Type="BkProFocus"
       IniFileName="BkSettings/IniFile.ini"
-      UsImageOrientation="FM"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0"
       ImagingMode="RfMode" >
@@ -20,7 +19,7 @@
       </DataSources>
 
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="FM" >
           <RfProcessing>
             <RfToBrightnessConversion 
               NumberOfHilbertFilterCoeffs="32.0" 

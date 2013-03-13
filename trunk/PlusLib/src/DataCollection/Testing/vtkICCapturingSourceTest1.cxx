@@ -5,15 +5,16 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
+#include "vtkCallbackCommand.h"
+#include "vtkCommand.h"
 #include "vtkICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
+#include "vtkPlusChannel.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkCommand.h"
-#include "vtkCallbackCommand.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 class vtkMyCallback : public vtkCommand
 {
@@ -74,7 +75,14 @@ int main(int argc, char **argv)
   frameGrabber->SetVideoFormat(videoFormat.c_str()); 
   frameGrabber->SetInputChannel(inputChannel.c_str()); 
 
-  frameGrabber->SetDeviceImageOrientation(US_IMG_ORIENT_MF);
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDataSource* aSource(NULL);
+  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    return NULL;
+  }
+  aChannel->SetImageOrientation( US_IMG_ORIENT_MF );
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 

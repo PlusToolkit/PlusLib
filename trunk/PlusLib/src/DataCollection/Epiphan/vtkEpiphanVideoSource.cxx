@@ -27,7 +27,7 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[1]=0;
   this->GrabberLocation = NULL;
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
@@ -240,7 +240,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
     else
     {
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf , (*it)->GetImageOrientation(), FrameSize, itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;

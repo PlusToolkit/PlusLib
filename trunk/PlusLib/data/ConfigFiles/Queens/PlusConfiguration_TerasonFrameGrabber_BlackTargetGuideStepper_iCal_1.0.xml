@@ -36,7 +36,6 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     <Device
       Id="VideoDevice" 
       Type="ICCapturing"      
-      UsImageOrientation="MF"
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.13"
       DeviceName="DFG/USB2-lt"
@@ -49,7 +48,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
 

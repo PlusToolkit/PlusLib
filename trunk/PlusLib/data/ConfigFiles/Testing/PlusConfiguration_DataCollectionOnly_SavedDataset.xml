@@ -31,14 +31,13 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      UsImageOrientation="MF"
       SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
       </OutputChannels>
     </Device>
     

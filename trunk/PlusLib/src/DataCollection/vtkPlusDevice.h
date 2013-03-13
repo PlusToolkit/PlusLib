@@ -247,11 +247,6 @@ public:
   // Set the device Id
   vtkSetStringMacro(DeviceId);
 
-  /*! Set the native ultrasound image orientation that the device acquires */
-  vtkSetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION); 
-  /*! Get the native ultrasound image orientation that the device acquires */
-  vtkGetMacro(DeviceImageOrientation, US_IMAGE_ORIENTATION);
-
     /*! 
     Set the number of frames to copy to the output on each execute.
     The frames will be concatenated along the Z dimension, with the 
@@ -472,9 +467,6 @@ protected:
   /*! Id of the device */
   char* DeviceId;
 
-  /*! The orientation of the image in the buffer if there is one */
-  US_IMAGE_ORIENTATION DeviceImageOrientation; 
-
   /*! Acquisition rate */
   double AcquisitionRate;
 
@@ -509,7 +501,7 @@ protected:
     When defining a device, it may be a tracker or imaging device
     These variables allow a device to define which section of the configuration it is expecting
   */
-  bool RequireDeviceImageOrientationInDeviceSetConfiguration;
+  bool RequireImageOrientationInConfiguration;
   bool RequireFrameBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
