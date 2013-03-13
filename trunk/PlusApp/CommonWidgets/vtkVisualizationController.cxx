@@ -551,7 +551,7 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
   {
     if (this->SelectedChannel == NULL || this->SelectedChannel->GetTrackingDataAvailable() == false)
     {
-      LOG_ERROR("SelectedChannel object is invalid or not tracking!");
+      LOG_WARNING("SelectedChannel object is invalid or the selected channel does not contain tracking data!");
       return PLUS_FAIL;
     }
 
