@@ -14,8 +14,9 @@ happens between two threads. In real life, it happens between two programs.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
-#include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusBuffer.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -259,7 +260,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     vtkPlusChannel* aChannel = *(client->GetOutputChannelsStart());
     client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    client->SetDeviceImageOrientation( US_IMG_ORIENT_MF );
+    aChannel->SetImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {

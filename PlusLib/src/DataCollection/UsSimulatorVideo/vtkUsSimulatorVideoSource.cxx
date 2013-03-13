@@ -33,7 +33,7 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
@@ -133,7 +133,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   }
 
   PlusStatus status = aSource->GetBuffer()->AddItem(
-    this->UsSimulator->GetOutput(), this->GetDeviceImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
+    this->UsSimulator->GetOutput(), this->OutputChannels[0]->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
@@ -145,7 +145,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
   // Set to default MF internal image orientation
-  this->SetDeviceImageOrientation(US_IMG_ORIENT_MF); 
+  this->OutputChannels[0]->SetImageOrientation(US_IMG_ORIENT_MF); 
 
   vtkPlusDataSource* aSource(NULL);
   if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )

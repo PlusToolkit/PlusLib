@@ -48,7 +48,6 @@ vtkPlusDevice::vtkPlusDevice()
 , CurrentStreamBufferItem(new StreamBufferItem())
 , ToolReferenceFrameName(NULL)
 , DeviceId(NULL)
-, DeviceImageOrientation(US_IMG_ORIENT_XX)
 , AcquisitionRate(30)
 , Recording(0)
 , DesiredTimestamp(-1)
@@ -59,7 +58,7 @@ vtkPlusDevice::vtkPlusDevice()
 , NumberOfOutputFrames(1)
 , OutputNeedsInitialization(1)
 , CorrectlyConfigured(true)
-, RequireDeviceImageOrientationInDeviceSetConfiguration(false)
+, RequireImageOrientationInConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
 , RequireAveragedItemsForFilteringInDeviceSetConfiguration(false)
@@ -731,21 +730,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
   }
 
-  const char* usImageOrientation = deviceXMLElement->GetAttribute("UsImageOrientation");
-  if ( usImageOrientation != NULL )
-  {
-    LOG_INFO("Selected US image orientation: " << usImageOrientation );
-    this->SetDeviceImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
-    if ( this->GetDeviceImageOrientation() == US_IMG_ORIENT_XX )
-    {
-      LOG_ERROR("Ultrasound image orientation is undefined - please set UsImageOrientation in the video source configuration");
-    }
-  }
-  else if (this->RequireDeviceImageOrientationInDeviceSetConfiguration)
-  {
-    LOG_ERROR("Ultrasound image orientation is not defined in the device element - please set UsImageOrientation in the device configuration");
-  }
-
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
   if( outputChannelsElement != NULL )
   {
@@ -761,7 +745,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
-      aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration);
+      aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration);
 
 
       this->OutputChannels.push_back(aChannel);

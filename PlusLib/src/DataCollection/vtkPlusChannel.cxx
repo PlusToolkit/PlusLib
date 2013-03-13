@@ -28,7 +28,8 @@ vtkPlusChannel::vtkPlusChannel(void)
 , ChannelId(NULL)
 , RfProcessor(NULL)
 , BlankImage(vtkImageData::New())
-, SaveRfProcessingParameters(false)
+, SaveRfProcessingParameters(false)\
+, ImageOrientation(US_IMG_ORIENT_XX)
 {
   // Default size for brightness frame
   this->BrightnessFrameSize[0] = 640;
@@ -57,7 +58,7 @@ vtkPlusChannel::~vtkPlusChannel(void)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration )
+PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -110,6 +111,22 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
 
   if( aChannelElement->GetAttribute("VideoDataSourceId") != NULL && this->OwnerDevice->GetVideoSource(aChannelElement->GetAttribute("VideoDataSourceId"), aSource) == PLUS_SUCCESS )
   {
+    // Has a video source, check for image orientation
+    const char* usImageOrientation = aChannelElement->GetAttribute("UsImageOrientation");
+    if ( usImageOrientation != NULL )
+    {
+      LOG_INFO("Selected US image orientation: " << usImageOrientation );
+      this->SetImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
+      if ( this->GetImageOrientation() == US_IMG_ORIENT_XX )
+      {
+        LOG_ERROR("Ultrasound image orientation is undefined - please set UsImageOrientation in the channel configuration");
+      }
+    }
+    else if (RequireImageOrientationInChannelConfiguration)
+    {
+      LOG_ERROR("Ultrasound image orientation is not defined in the channel \'" << this->GetChannelId() << "\' element - please set UsImageOrientation in the channel configuration");
+    }
+
     this->VideoSource = aSource;
   }
   else if( aChannelElement->GetAttribute("VideoDataSourceId") != NULL )

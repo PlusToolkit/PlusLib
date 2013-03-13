@@ -32,7 +32,7 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->FilterLargeChange = 0;
   this->FilterAlpha = false;
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = true;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
