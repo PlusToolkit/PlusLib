@@ -47,7 +47,7 @@ public:
 
   /*! Enables capturing frames. It can be used for pausing the recording. */
   vtkGetMacro(EnableCapturing, bool);
-  vtkSetMacro(EnableCapturing, bool);
+  void SetEnableCapturing(bool aValue);
 
   /*!
     Method that writes output streams to XML
@@ -108,6 +108,10 @@ protected:
     frame rate computation.
   */
   int m_RecordingFirstFrameIndexInThisSegment;
+
+  /* Time waited in update */
+  double m_TimeWaited;
+  double m_LastUpdateTime;
 
   /*! File to write */
   std::string m_Filename;
