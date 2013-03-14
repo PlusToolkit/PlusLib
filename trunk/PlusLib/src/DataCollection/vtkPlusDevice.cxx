@@ -309,31 +309,33 @@ void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
 }
 
 //----------------------------------------------------------------------------
-double vtkPlusDevice::GetToolLocalTimeOffsetSec()
+PlusStatus vtkPlusDevice::GetToolLocalTimeOffsetSec(double &anOffset)
 {
   // local tools
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkPlusDataSource* tool = it->second;
     double aTimeOffsetSec=tool->GetBuffer()->GetLocalTimeOffsetSec();
-    return aTimeOffsetSec;
+    anOffset = aTimeOffsetSec;
+    return PLUS_SUCCESS;
   }
-  LOG_ERROR("Failed to get tool local time offset");
-  return 0.0;
+  anOffset = 0.0;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-double vtkPlusDevice::GetVideoLocalTimeOffsetSec()
+PlusStatus vtkPlusDevice::GetVideoLocalTimeOffsetSec(double &anOffset)
 {
   // local images
   for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
   {
     vtkPlusDataSource* image = it->second;
     double aTimeOffsetSec = image->GetBuffer()->GetLocalTimeOffsetSec();
-    return aTimeOffsetSec;
+    anOffset = aTimeOffsetSec;
+    return PLUS_SUCCESS;
   }
-  LOG_ERROR("Failed to get image local time offset");
-  return 0.0;
+  anOffset = 0.0;
+  return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
@@ -827,6 +829,16 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
   this->InternalWriteOutputChannels(config);
 
   this->InternalWriteInputChannels(config);
+
+  double offset;
+  if( this->GetVideoLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
+  {
+    config->SetDoubleAttribute("LocalTimeOffsetSec", offset);
+  }
+  else if( this->GetToolLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
+  {
+    config->SetDoubleAttribute("LocalTimeOffsetSec", offset);
+  }
 
   return PLUS_SUCCESS;
 }

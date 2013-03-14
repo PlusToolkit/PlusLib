@@ -16,7 +16,7 @@ See License.txt for details.
 #include <QMessageBox>
 #include <QTimer>
 
-static const int MAX_ALLOWED_RECORDING_LAG_SEC=3.0; // if the recording lags more than this then it'll skip frames to catch up
+static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
 
 //-----------------------------------------------------------------------------
 CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
@@ -361,44 +361,44 @@ void CapturingToolbox::Capture()
   
   // Record
   double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
-  double requestedFramePeriodSec=0.1;
-  if (m_RequestedFrameRate>0)
+  double requestedFramePeriodSec = 0.1;
+  if (m_RequestedFrameRate > 0)
   {
-    requestedFramePeriodSec=1.0 / m_RequestedFrameRate;
+    requestedFramePeriodSec = 1.0 / m_RequestedFrameRate;
   }
   else
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
-  int nbFramesBefore=m_RecordedFrames->GetNumberOfTrackedFrames();
+  int nbFramesBefore = m_RecordedFrames->GetNumberOfTrackedFrames();
   if ( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameListSampled(m_RecordingLastAlreadyRecordedFrameTimestamp, m_RecordingNextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingNextFrameToBeRecordedTimestamp ); 
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingNextFrameToBeRecordedTimestamp ); 
   }
-  int nbFramesAfter=m_RecordedFrames->GetNumberOfTrackedFrames();
+  int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
 
   // Compute the average frame rate from the ratio of recently acquired frames
-  int frame1Index=m_RecordedFrames->GetNumberOfTrackedFrames()-1; // index of the latest frame
-  int frame2Index=frame1Index-m_RequestedFrameRate*5.0-1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
-  if (frame2Index<m_RecordingFirstFrameIndexInThisSegment)
+  int frame1Index = m_RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
+  int frame2Index = frame1Index - m_RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index < m_RecordingFirstFrameIndexInThisSegment)
   {
     // make sure we stay in the current recording segment
-    frame2Index=m_RecordingFirstFrameIndexInThisSegment;
+    frame2Index = m_RecordingFirstFrameIndexInThisSegment;
   }
-  if (frame1Index>frame2Index)
+  if (frame1Index > frame2Index)
   {   
-    TrackedFrame *frame1=m_RecordedFrames->GetTrackedFrame(frame1Index);
-    TrackedFrame *frame2=m_RecordedFrames->GetTrackedFrame(frame2Index);
-    if (frame1!=NULL && frame2!=NULL)
+    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1 != NULL && frame2 != NULL)
     {
-      double frameTimeDiff=frame1->GetTimestamp()-frame2->GetTimestamp();
-      if (frameTimeDiff>0)
+      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
+      if (frameTimeDiff > 0)
       {
-        m_ActualFrameRate = (frame1Index-frame2Index)/frameTimeDiff;
+        m_ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
       }
       else
       {
-        m_ActualFrameRate=0;
+        m_ActualFrameRate = 0;
       }
     }    
   }
@@ -407,13 +407,13 @@ void CapturingToolbox::Capture()
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
   if (recordingTimeSec > GetSamplingPeriodSec())
   {
-    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeSec<<"sec instead of the allocated "<<GetSamplingPeriodSec()<<"sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
-  double recordingLagSec=vtkAccurateTimer::GetSystemTime()-m_RecordingNextFrameToBeRecordedTimestamp;
-  if (recordingLagSec>MAX_ALLOWED_RECORDING_LAG_SEC)
+  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_RecordingNextFrameToBeRecordedTimestamp;
+  if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
   {
-    LOG_ERROR("Recording cannot keep up with the acquisition. Skip "<<recordingLagSec<<" seconds of the data stream to catch up.");
-    m_RecordingNextFrameToBeRecordedTimestamp=vtkAccurateTimer::GetSystemTime();
+    LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+    m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 }
 

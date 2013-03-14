@@ -195,8 +195,8 @@ public:
   /*! Set local time offset of all available buffers */
   virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
-  virtual double GetToolLocalTimeOffsetSec();
-  virtual double GetVideoLocalTimeOffsetSec();
+  virtual PlusStatus GetToolLocalTimeOffsetSec(double &anOffset);
+  virtual PlusStatus GetVideoLocalTimeOffsetSec(double &anOffset);
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);

@@ -249,7 +249,10 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     {
       if ( m_ParentMainWindow->GetSelectedChannel() != NULL )
       {
-        videoTimeOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec();
+        if( m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(videoTimeOffset) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Unable to request video local time offset from channel " << m_ParentMainWindow->GetSelectedChannel()->GetChannelId() );
+        }
       }
     }
 
@@ -353,8 +356,14 @@ void TemporalCalibrationToolbox::StartCalibration()
   }
   else if ( m_ParentMainWindow->GetSelectedChannel()->GetVideoDataAvailable() )
   {
-    m_PreviousTrackerOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolLocalTimeOffsetSec(); 
-    m_PreviousVideoOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(); 
+    if( m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolLocalTimeOffsetSec(m_PreviousTrackerOffset) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve previous tracker offset.");
+    }
+    if( m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetVideoLocalTimeOffsetSec(m_PreviousVideoOffset) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve previous video offset.");
+    }
     // TODO : verify this is the correct conversion to make
     m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetVideoLocalTimeOffsetSec(0.0); 
     m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetToolLocalTimeOffsetSec(0.0);

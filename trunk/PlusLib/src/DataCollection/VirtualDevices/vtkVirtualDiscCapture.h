@@ -54,11 +54,28 @@ public:
   */
   virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
+  vtkSetMacro(m_RequestedFrameRate, double);
+  vtkGetMacro(m_RequestedFrameRate, double);
+
+  vtkGetMacro(m_ActualFrameRate, double);
+
 protected:
+
+  vtkSetMacro(m_ActualFrameRate, double);
+
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
   virtual PlusStatus BuildNewTrackedFrameList();
+
+  /*!
+  * Get the maximum frame rate from the video source. If there is none then the tracker
+  * \return Maximum frame rate
+  */
+  double GetMaximumFrameRate();
+
+  /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
+  double GetSamplingPeriodSec();
 
   /*! Read the sequence metafile, re-write it with compression */
   PlusStatus CompressFile();
@@ -69,8 +86,28 @@ protected:
   /*! Recorded tracked frame list */
   vtkTrackedFrameList* m_RecordedFrames;
 
-  /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
-  double m_LastRecordedFrameTimestamp;
+  /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
+  double m_RecordingLastAlreadyRecordedFrameTimestamp;
+
+  /*! Desired timestamp of the next frame to be recorded */
+  double m_RecordingNextFrameToBeRecordedTimestamp;
+
+  /*! Frame rate of the sampling */
+  const int m_SamplingFrameRate;
+
+  /*! Requested frame rate (frames per second) */
+  double m_RequestedFrameRate;
+
+  /*! Actual frame rate (frames per second) */
+  double m_ActualFrameRate;
+  
+  /*!
+    Frame index of the first frame that is recorded in this segment (since pressed the record button).
+    It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,
+    those that were acquired in a different recording segment) will not be taken into account in the actual
+    frame rate computation.
+  */
+  int m_RecordingFirstFrameIndexInThisSegment;
 
   /*! File to write */
   std::string m_Filename;
