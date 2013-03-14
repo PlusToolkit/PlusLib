@@ -336,12 +336,12 @@ void CapturingToolbox::Record()
 
   ui.plainTextEdit_saveResult->clear();
 
-  m_RecordingNextFrameToBeRecordedTimestamp=vtkAccurateTimer::GetSystemTime();
+  m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   m_RecordingLastAlreadyRecordedFrameTimestamp=UNDEFINED_TIMESTAMP; // none yet
 
   // Start capturing
   SetState(ToolboxState_InProgress);
-  double samplingPeriodMsec=GetSamplingPeriodSec()*1000.0;
+  double samplingPeriodMsec = GetSamplingPeriodSec()*1000.0;
   m_RecordingTimer->start(samplingPeriodMsec);
 }
 
@@ -358,7 +358,7 @@ void CapturingToolbox::Capture()
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
   }
-  
+
   // Record
   double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
   double requestedFramePeriodSec = 0.1;

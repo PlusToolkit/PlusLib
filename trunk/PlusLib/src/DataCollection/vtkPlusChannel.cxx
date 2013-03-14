@@ -834,7 +834,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
 
     // Make sure the next frame to be added is still in the buffer:
     // If the frame will be removed from the buffer really soon, then jump ahead in time (and skip some frames),
-    // instead of trying to retrieve from the buffer (and then fail becuase the frame is not avilable anymore).
+    // instead of trying to retrieve from the buffer (and then fail because the frame is not available anymore).
     double oldestTimestamp=0;
     if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
     {

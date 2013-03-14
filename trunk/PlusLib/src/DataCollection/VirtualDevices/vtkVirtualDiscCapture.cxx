@@ -16,6 +16,8 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkVirtualDiscCapture, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualDiscCapture);
 
+static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
+
 //----------------------------------------------------------------------------
 vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 : vtkPlusDevice()
@@ -25,6 +27,8 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_SamplingFrameRate(8)
 , m_RequestedFrameRate(0.0)
 , m_ActualFrameRate(0.0)
+, m_TimeWaited(0.0)
+, m_LastUpdateTime(0.0)
 , m_Filename("")
 , m_Writer(vtkMetaImageSequenceIO::New())
 , m_EnableFileCompression(false)
@@ -37,7 +41,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 
   // The data capture thread will be used to regularly read the frames and write to disk
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
 }
 
 //----------------------------------------------------------------------------
@@ -123,11 +127,13 @@ PlusStatus vtkVirtualDiscCapture::InternalConnect()
   if (this->EnableCapturing)
   {
     // Capturing enabled, so we have to open the file now
-    if (OpenFile()!=PLUS_SUCCESS)
+    if (OpenFile() != PLUS_SUCCESS)
     {
       return PLUS_FAIL;
     }
   }
+
+  m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -231,6 +237,17 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  /*
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
+
+  m_TimeWaited += startTimeSec - m_LastUpdateTime;
+
+  if( m_TimeWaited < GetSamplingPeriodSec() )
+  {
+    // Nothing to do yet
+    return PLUS_SUCCESS;
+  }
+
   // capturing toolbox uses timer to fire at the right rate
   // this will have to check if enough time has elapsed to run again
   // if not, sleep for a certain duration
@@ -240,6 +257,72 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
   // If frames exist that haven't been recorded, record them (compare with last recorded timestamp)
   // Allocates frames
+  // Record
+  double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
+  double requestedFramePeriodSec = 0.1;
+  if (m_RequestedFrameRate > 0)
+  {
+    requestedFramePeriodSec = 1.0 / m_RequestedFrameRate;
+  }
+  else
+  {
+    LOG_WARNING("RequestedFrameRate is invalid");
+  }
+  int nbFramesBefore = m_RecordedFrames->GetNumberOfTrackedFrames();
+  if ( this->OutputChannels[0]->GetTrackedFrameListSampled(m_RecordingLastAlreadyRecordedFrameTimestamp, m_RecordingNextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingNextFrameToBeRecordedTimestamp ); 
+  }
+  int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
+
+  if (!this->EnableCapturing)
+  {
+    // While this thread was working on getting the frames, capturing was disabled, so cancel the update now
+    return PLUS_SUCCESS;
+  }
+
+  // Compute the average frame rate from the ratio of recently acquired frames
+  int frame1Index = m_RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
+  int frame2Index = frame1Index - m_RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index < m_RecordingFirstFrameIndexInThisSegment)
+  {
+    // make sure we stay in the current recording segment
+    frame2Index = m_RecordingFirstFrameIndexInThisSegment;
+  }
+  if (frame1Index > frame2Index)
+  {   
+    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1 != NULL && frame2 != NULL)
+    {
+      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
+      if (frameTimeDiff > 0)
+      {
+        m_ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
+      }
+      else
+      {
+        m_ActualFrameRate = 0;
+      }
+    }    
+  }
+
+  // Check whether the recording needed more time than the sampling interval
+  double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
+  if (recordingTimeSec > GetSamplingPeriodSec())
+  {
+    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+  }
+  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_RecordingNextFrameToBeRecordedTimestamp;
+  if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
+  {
+    LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+    m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
+  }
+
+  m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
+  */
+  
   if( this->BuildNewTrackedFrameList() != PLUS_SUCCESS )
   {
     if (!this->EnableCapturing)
@@ -412,4 +495,16 @@ double vtkVirtualDiscCapture::GetSamplingPeriodSec()
     LOG_WARNING("m_SamplingFrameRate value is invalid " << m_SamplingFrameRate << ". Use default sampling period of " << samplingPeriodSec << " sec");
   }
   return samplingPeriodSec;
+}
+
+//-----------------------------------------------------------------------------
+void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
+{
+  this->EnableCapturing = aValue;
+
+  if( aValue )
+  {
+    m_LastUpdateTime = 0.0;
+    m_TimeWaited = 0.0;
+  }
 }
