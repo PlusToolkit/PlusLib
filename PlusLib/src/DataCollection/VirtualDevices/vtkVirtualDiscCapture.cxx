@@ -20,7 +20,11 @@ vtkStandardNewMacro(vtkVirtualDiscCapture);
 vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 : vtkPlusDevice()
 , m_RecordedFrames(vtkTrackedFrameList::New())
-, m_LastRecordedFrameTimestamp(0.0)
+, m_RecordingLastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
+, m_RecordingNextFrameToBeRecordedTimestamp(0.0)
+, m_SamplingFrameRate(8)
+, m_RequestedFrameRate(0.0)
+, m_ActualFrameRate(0.0)
 , m_Filename("")
 , m_Writer(vtkMetaImageSequenceIO::New())
 , m_EnableFileCompression(false)
@@ -227,6 +231,13 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  // capturing toolbox uses timer to fire at the right rate
+  // this will have to check if enough time has elapsed to run again
+  // if not, sleep for a certain duration
+
+  // once it's time, can do a copy of capturing toolbox acquisition
+  // except that we have a new frame list every time, not a slowly growing list
+
   // If frames exist that haven't been recorded, record them (compare with last recorded timestamp)
   // Allocates frames
   if( this->BuildNewTrackedFrameList() != PLUS_SUCCESS )
@@ -271,13 +282,13 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   }
   if( m_Writer->AppendImages() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastRecordedFrameTimestamp );
+    LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_RecordingLastAlreadyRecordedFrameTimestamp );
     this->Disconnect();
     return PLUS_FAIL;
   }
 
   m_TotalFramesRecorded += m_RecordedFrames->GetNumberOfTrackedFrames();
-  m_LastRecordedFrameTimestamp = m_RecordedFrames->GetMostRecentTimestamp();
+  m_RecordingLastAlreadyRecordedFrameTimestamp = m_RecordedFrames->GetMostRecentTimestamp();
   this->ClearRecordedFrames();
 
   return PLUS_SUCCESS;
@@ -290,12 +301,12 @@ PlusStatus vtkVirtualDiscCapture::BuildNewTrackedFrameList()
   //LOG_TRACE("vtkVirtualDiscCapture::AppendNewFrames");
 
   // Record
-  if ( this->OutputChannels[0]->GetTrackedFrameList(m_LastRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
+  if ( this->OutputChannels[0]->GetTrackedFrameList(m_RecordingLastAlreadyRecordedFrameTimestamp, m_RecordedFrames, 100) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingLastAlreadyRecordedFrameTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     // an error occurred while trying to get the frames
     // to increase the chance of recovery forget about all the previous frames and just try to collect data from now on
-    m_LastRecordedFrameTimestamp=vtkAccurateTimer::GetSystemTime();
+    m_RecordingLastAlreadyRecordedFrameTimestamp = vtkAccurateTimer::GetSystemTime();
     return PLUS_FAIL;
   }
 
@@ -380,3 +391,25 @@ void vtkVirtualDiscCapture::InternalWriteOutputChannels( vtkXMLDataElement* root
   // Do not write anything out, disc capture devices don't have output channels in the config
 }
 
+//-----------------------------------------------------------------------------
+double vtkVirtualDiscCapture::GetMaximumFrameRate()
+{
+  LOG_TRACE("vtkVirtualDiscCapture::GetMaximumFrameRate");
+
+  return this->GetAcquisitionRate();
+}
+
+//-----------------------------------------------------------------------------
+double vtkVirtualDiscCapture::GetSamplingPeriodSec()
+{
+  double samplingPeriodSec=0.1;
+  if (m_SamplingFrameRate>0)
+  {
+    samplingPeriodSec=1.0/m_SamplingFrameRate;
+  }
+  else
+  {
+    LOG_WARNING("m_SamplingFrameRate value is invalid " << m_SamplingFrameRate << ". Use default sampling period of " << samplingPeriodSec << " sec");
+  }
+  return samplingPeriodSec;
+}
