@@ -111,9 +111,10 @@ void CaptureControlWidget::UpdateBasedOnState()
     ui.startStopButton->setEnabled(true);
 
     vtkPlusChannel* aChannel = (*m_Device->GetOutputChannelsStart());
-    std::stringstream ss;
-    ss << m_Device->GetDeviceId() << "::" << aChannel->GetChannelId();
-    ui.channelIdentifierLabel->setText(QString(ss.str().c_str()));
+    std::string aString(aChannel->GetChannelId());
+    aString += ":";
+    ui.channelIdentifierLabel->setText(QString(aString.c_str()));
+    ui.extraInformationLabel->setText(QString("Normal"));
 
     ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
 

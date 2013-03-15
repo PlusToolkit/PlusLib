@@ -19,6 +19,16 @@
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
+	
+	<Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      Filename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
   </DataCollection>
 
   <CoordinateDefinitions>

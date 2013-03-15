@@ -16,6 +16,7 @@ See License.txt for details.
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkRenderWindow.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtkVirtualMixer.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
@@ -803,6 +804,10 @@ void fCalMainWindow::BuildChannelMenu()
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
     vtkPlusDevice* device = *it;
+    if( dynamic_cast<vtkVirtualDiscCapture*>(device) != NULL )
+    {
+      continue;
+    }
     for( ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter )
     {
       vtkPlusChannel* aChannel = *channelIter;

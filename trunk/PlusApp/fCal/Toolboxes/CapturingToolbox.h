@@ -7,19 +7,17 @@ See License.txt for details.
 #ifndef CAPTURINGTOOLBOX_H
 #define CAPTURINGTOOLBOX_H
 
-#include "ui_CapturingToolbox.h"
-
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
+#include "ui_CapturingToolbox.h"
 #include "vtkTimestampedCircularBuffer.h"
-
-#include <QWidget>
 #include <QString>
-
+#include <QWidget>
 #include <deque>
 
-class vtkTrackedFrameList;
+class CaptureControlWidget;
 class QTimer;
+class vtkTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -159,6 +157,9 @@ protected:
 
   /*! String to hold the last location of data saved */
   QString m_LastSaveLocation;
+
+  /* Container holding capture widgets */
+  std::vector<CaptureControlWidget*>  m_CaptureWidgets;
 
 protected:
   Ui::CapturingToolbox ui;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>380</width>
-    <height>60</height>
+    <width>230</width>
+    <height>90</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,15 @@
     <rect>
      <x>5</x>
      <y>4</y>
-     <width>191</width>
+     <width>101</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
    </property>
    <property name="text">
     <string>TextLabel</string>
@@ -29,10 +35,10 @@
   <widget class="QPushButton" name="startStopButton">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>3</y>
-     <width>75</width>
-     <height>23</height>
+     <x>5</x>
+     <y>64</y>
+     <width>51</width>
+     <height>24</height>
     </rect>
    </property>
    <property name="text">
@@ -42,10 +48,10 @@
   <widget class="QFrame" name="recordStatusFrame">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>2</y>
+     <x>60</x>
+     <y>65</y>
      <width>71</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -58,9 +64,9 @@
     <property name="geometry">
      <rect>
       <x>5</x>
-      <y>3</y>
+      <y>1</y>
       <width>61</width>
-      <height>20</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="palette">
@@ -114,9 +120,9 @@
   <widget class="QLabel" name="extraInformationLabel">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>34</y>
-     <width>181</width>
+     <x>110</x>
+     <y>4</y>
+     <width>111</width>
      <height>21</height>
     </rect>
    </property>
@@ -127,10 +133,10 @@
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>345</x>
-     <y>1</y>
-     <width>27</width>
-     <height>27</height>
+     <x>132</x>
+     <y>64</y>
+     <width>25</width>
+     <height>25</height>
     </rect>
    </property>
    <property name="text">
@@ -173,6 +179,30 @@
     <string>Requested Frame Rate:</string>
    </property>
   </widget>
+  <widget class="QFrame" name="frame">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>230</width>
+     <height>90</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Sunken</enum>
+   </property>
+  </widget>
+  <zorder>frame</zorder>
+  <zorder>channelIdentifierLabel</zorder>
+  <zorder>startStopButton</zorder>
+  <zorder>recordStatusFrame</zorder>
+  <zorder>extraInformationLabel</zorder>
+  <zorder>saveButton</zorder>
+  <zorder>requestedFrameRateSpinBox</zorder>
+  <zorder>requestedFrameRateLabel</zorder>
  </widget>
  <resources>
   <include location="CommonWidgets.qrc"/>

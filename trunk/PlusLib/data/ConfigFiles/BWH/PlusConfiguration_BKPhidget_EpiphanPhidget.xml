@@ -14,8 +14,7 @@
    AcquisitionRate="30"
    LocalTimeOffsetSec="0"
    Selectable="false"
-   ImagingMode="RfMode">
-   
+   ImagingMode="RfMode" >
 
    <DataSources>
      <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />

@@ -4,6 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "CaptureControlWidget.h"
 #include "CapturingToolbox.h"
 #include "TrackedFrame.h"
 #include "VolumeReconstructionToolbox.h"
@@ -69,6 +70,12 @@ void CapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated"); 
 
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    ui.captureWidgetLayout->removeWidget(*it);
+    delete *it;
+  }
+
   if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
@@ -80,6 +87,23 @@ void CapturingToolbox::OnActivated()
     else
     {
       SetDisplayAccordingToState();
+    }
+
+    DeviceCollection aCollection;
+    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
+    {
+      for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
+      {
+        vtkPlusDevice* aDevice = *it;
+        if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
+        {
+          vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
+          CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
+          aWidget->SetCaptureDevice(*capDevice);
+          ui.captureWidgetLayout->addWidget(aWidget);
+          m_CaptureWidgets.push_back(aWidget);
+        }
+      }
     }
   }
   else

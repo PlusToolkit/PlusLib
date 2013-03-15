@@ -1295,6 +1295,28 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
     this->ImageType=this->TrackedFrameList->GetImageType();
   }
 
+  if( this->TempHeaderFileName == NULL )
+  {
+    std::string tempFilename;
+    if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to create temporary header file. Check write access.");
+      return PLUS_FAIL;
+    }
+    this->SetTempHeaderFileName(tempFilename.c_str());
+  }
+
+  if( this->TempImageFileName == NULL )
+  {
+    std::string tempFilename;
+    if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to create temporary image file. Check write access.");
+      return PLUS_FAIL;
+    }
+    this->SetTempImageFileName(tempFilename.c_str());
+  }
+
   if ( OpenImageHeader() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -1395,28 +1417,6 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
     {
       LOG_ERROR("Writing sequence metafile with " << fileExt << " extension is not supported");
       return PLUS_FAIL;
-    }
-
-    if( this->TempHeaderFileName == NULL )
-    {
-      std::string tempFilename;
-      if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to create temporary header file. Check write access.");
-        return PLUS_FAIL;
-      }
-      this->SetTempHeaderFileName(tempFilename.c_str());
-    }
-
-    if( this->TempImageFileName == NULL )
-    {
-      std::string tempFilename;
-      if( CreateTemporaryFilename(tempFilename) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to create temporary image file. Check write access.");
-        return PLUS_FAIL;
-      }
-      this->SetTempImageFileName(tempFilename.c_str());
     }
   }
 

@@ -27,6 +27,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_SamplingFrameRate(8)
 , RequestedFrameRate(0.0)
 , ActualFrameRate(0.0)
+, m_RecordingFirstFrameIndexInThisSegment(0.0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
 , m_Filename("")
@@ -265,6 +266,10 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  if( m_LastUpdateTime == 0.0 )
+  {
+    m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
+  }
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   m_TimeWaited += startTimeSec - m_LastUpdateTime;
@@ -411,7 +416,6 @@ PlusStatus vtkVirtualDiscCapture::CompressFile()
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 0 )
@@ -471,10 +475,10 @@ double vtkVirtualDiscCapture::GetMaximumFrameRate()
 //-----------------------------------------------------------------------------
 double vtkVirtualDiscCapture::GetSamplingPeriodSec()
 {
-  double samplingPeriodSec=0.1;
-  if (m_SamplingFrameRate>0)
+  double samplingPeriodSec = 0.1;
+  if (m_SamplingFrameRate > 0)
   {
-    samplingPeriodSec=1.0/m_SamplingFrameRate;
+    samplingPeriodSec = 1.0 / m_SamplingFrameRate;
   }
   else
   {
