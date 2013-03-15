@@ -11,7 +11,6 @@
    Type="BkProFocus"
    Id="BKVideoDevice"
    IniFileName="BkSettings/IniFile.ini"
-   UsImageOrientation="FM"
    AcquisitionRate="30"
    LocalTimeOffsetSec="0"
    Selectable="false"
@@ -23,7 +22,7 @@
    </DataSources>
    
    <OutputChannels>
-      <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video">
+      <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video" UsImageOrientation="FM">
         <RfProcessing>
           <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
           <ScanConversion 
@@ -43,13 +42,12 @@
    <Device
       Type="Epiphan"
       Id="EpiphanVideoDevice" 
-      AcquisitionRate="30" 
-      UsImageOrientation="MF">
+      AcquisitionRate="30" >
     <DataSources>
       <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" /> 
     </DataSources>
     <OutputChannels>
-      <OutputChannel Id="EpiphanVideoStream" VideoDataSourceId="Video"/>
+      <OutputChannel Id="EpiphanVideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
     </OutputChannels>
     
     </Device>
@@ -90,18 +88,7 @@
     </InputChannels>
     
     <OutputChannels>
-      <OutputChannel Id="BKTrackedVideoStream">
-        <RfProcessing>
-          <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
-          <ScanConversion 
-            TransducerName="BK_8848-sagittal"
-            TransducerGeometry="LINEAR"
-            ImagingDepthMm="56.0"
-            TransducerWidthMm="60.0"
-            OutputImageSizePixel="840 800"
-            OutputImageSpacingMmPerPixel="0.1 0.1"/>
-        </RfProcessing>
-      </OutputChannel>
+      <OutputChannel Id="BKTrackedVideoStream" />
     </OutputChannels>        
   </Device>
 
