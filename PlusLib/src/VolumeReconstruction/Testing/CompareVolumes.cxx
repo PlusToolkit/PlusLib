@@ -5,10 +5,7 @@
 =========================================================Plus=header=end*/
 
 /**
-* This program creates a vtkPolyData model that represents tracked ultrasound
-* image slices in their tracked positions.
-* It can be used to debug geometry problems in volume reconstruction.
-* 
+* This program creates or adds to a csv file some information about the quality of hole filling in volume reconstruction.
 */
 
 #include "PlusConfigure.h"
@@ -22,15 +19,7 @@
 #include "vtkDataSetWriter.h"
 #include "vtkImageData.h"
 #include "vtkImageClip.h"
-#include "vtkImageFFT.h"
-#include "vtkImageMagnitude.h"
-#include "vtkImageFourierCenter.h"
-#include "vtkImageLogarithmicScale.h"
 #include "vtkMetaImageReader.h"
-//#include "vtkMetaImageWriter.h"
-//#include "vtkImageMathematics.h"
-//#include "vtkImageLogic.h"
-//#include "vtkImageAccumulator.h"
 
 #include "vtkCompareVolumes.h"
 
@@ -57,15 +46,15 @@ int main( int argc, char** argv )
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--input-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTFileName, "The ground truth volume being compared against");
-  args.AddArgument("--input-ground-truth-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTAlphaFileName, "The ground truth volume's alpha component");
-  args.AddArgument("--input-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
-  args.AddArgument("--input-testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
-  args.AddArgument("--input-slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
+  args.AddArgument("--ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTFileName, "The ground truth volume being compared against");
+  args.AddArgument("--ground-truth-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGTAlphaFileName, "The ground truth volume's alpha component");
+  args.AddArgument("--testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
+  args.AddArgument("--testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
+  args.AddArgument("--slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
+  args.AddArgument("--roi-extent", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiExtentV, "The six values describing the extent of the region of interest (ROI): minX maxX minY maxY minZ maxZ");
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");
   args.AddArgument("--output-diff-volume-true", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrueDiffFileName, "Save the true difference volume to this file");
   args.AddArgument("--output-diff-volume-absolute", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputAbsoluteDiffFileName, "Save the absolute difference volume to this file");
-  args.AddArgument("--roi-extent", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiExtentV, "The six values describing the extent of the region of interest (ROI): minX maxX minY maxY minZ maxZ");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
 
@@ -238,12 +227,8 @@ int main( int argc, char** argv )
     testingImageCropped = testingImage;
     testingAlphaCropped = testingAlpha;
     slicesAlphaCropped = slicesAlpha;
-	roiExtentV.push_back(-1);
-	roiExtentV.push_back(-1);
-	roiExtentV.push_back(-1);
-	roiExtentV.push_back(-1);
-	roiExtentV.push_back(-1);
-	roiExtentV.push_back(-1);
+	for (int extentIndex = 0; extentIndex < 6; extentIndex++)
+		roiExtentV.push_back(extentGT[extentIndex]);
   }
 
   // calculate the histogram for the difference image
