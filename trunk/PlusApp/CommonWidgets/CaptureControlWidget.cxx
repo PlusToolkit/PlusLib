@@ -229,5 +229,5 @@ void CaptureControlWidget::SaveButtonPressed()
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::RequestedFrameRateChanged( int aValue )
 {
-  //this->m_Device->SetRequestedFrameRate(aValue);
+  this->m_Device->SetRequestedFrameRate(aValue);
 }

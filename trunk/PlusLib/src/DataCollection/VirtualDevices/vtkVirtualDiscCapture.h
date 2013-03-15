@@ -28,6 +28,9 @@ public:
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
+  /*! write main configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
+
   virtual PlusStatus InternalUpdate();
 
   virtual PlusStatus NotifyConfigured();
@@ -54,19 +57,17 @@ public:
   */
   virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
-  vtkSetMacro(m_RequestedFrameRate, double);
-  vtkGetMacro(m_RequestedFrameRate, double);
+  void SetRequestedFrameRate(double aValue);
+  vtkGetMacro(RequestedFrameRate, double);
 
-  vtkGetMacro(m_ActualFrameRate, double);
+  vtkGetMacro(ActualFrameRate, double);
 
 protected:
 
-  vtkSetMacro(m_ActualFrameRate, double);
+  vtkSetMacro(ActualFrameRate, double);
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
-
-  virtual PlusStatus BuildNewTrackedFrameList();
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
@@ -96,10 +97,10 @@ protected:
   const int m_SamplingFrameRate;
 
   /*! Requested frame rate (frames per second) */
-  double m_RequestedFrameRate;
+  double RequestedFrameRate;
 
   /*! Actual frame rate (frames per second) */
-  double m_ActualFrameRate;
+  double ActualFrameRate;
   
   /*!
     Frame index of the first frame that is recorded in this segment (since pressed the record button).
