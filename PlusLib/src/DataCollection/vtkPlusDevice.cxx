@@ -58,6 +58,7 @@ vtkPlusDevice::vtkPlusDevice()
 , NumberOfOutputFrames(1)
 , OutputNeedsInitialization(1)
 , CorrectlyConfigured(true)
+, StartThreadForInternalUpdates(false)
 , RequireImageOrientationInConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -66,7 +67,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
-, StartThreadForInternalUpdates(false)
 {
   this->SetNumberOfInputPorts(0);
 
