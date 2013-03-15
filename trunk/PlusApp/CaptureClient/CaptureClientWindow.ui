@@ -211,25 +211,6 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="3">
-     <widget class="QVTKWidget" name="canvas" native="true">
-      <property name="maximumSize">
-       <size>
-        <width>795</width>
-        <height>600</height>
-       </size>
-      </property>
-      <property name="sizeIncrement">
-       <size>
-        <width>4</width>
-        <height>3</height>
-       </size>
-      </property>
-      <property name="focusPolicy">
-       <enum>Qt::ClickFocus</enum>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="3">
      <widget class="QFrame" name="captureWidgetFrame">
       <property name="maximumSize">
@@ -292,11 +273,6 @@
    <extends>QWidget</extends>
    <header>StatusIcon.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QVTKWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">QVTKWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

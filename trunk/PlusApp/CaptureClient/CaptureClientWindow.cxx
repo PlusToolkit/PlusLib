@@ -23,7 +23,7 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
 : QMainWindow(parent, flags)
 , m_DataCollector(NULL)
 , m_SelectedChannel(NULL)
-, m_VisualizationController(NULL)
+//, m_VisualizationController(NULL)
 , m_UiRefreshTimer(new QTimer(this))
 {
   // Set up UI
@@ -35,11 +35,11 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
   connect( ui.stopAllButton, SIGNAL(clicked()), this, SLOT(StopAll()));
 
   // Create visualizer
-  m_VisualizationController = vtkVisualizationController::New();
-  m_VisualizationController->SetCanvas(ui.canvas);
+  //m_VisualizationController = vtkVisualizationController::New();
+  //m_VisualizationController->SetCanvas(ui.canvas);
 
   // Hide it until we have something to show
-  ui.canvas->setVisible(false);
+  //ui.canvas->setVisible(false);
 
   ui.channelSelectButton->installEventFilter(this);
   ui.channelSelectButton->setEnabled(false);
@@ -52,8 +52,8 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
 //-----------------------------------------------------------------------------
 CaptureClientWindow::~CaptureClientWindow()
 {
-  m_VisualizationController->SetDataCollector(NULL);
-  DELETE_IF_NOT_NULL(m_VisualizationController);
+  //m_VisualizationController->SetDataCollector(NULL);
+  //DELETE_IF_NOT_NULL(m_VisualizationController);
   DELETE_IF_NOT_NULL(m_DataCollector);
 }
 
@@ -118,7 +118,7 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
         ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
         ui.toolStateDisplayWidget->InitializeTools(NULL, false);
 
-        ui.canvas->setVisible(false);
+        //ui.canvas->setVisible(false);
         ui.channelSelectButton->setEnabled(false);
       }
       else
@@ -137,8 +137,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
         }
 
         // Allow object visualizer to load anything it needs
-        m_VisualizationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-        m_VisualizationController->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
+        //m_VisualizationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+        //m_VisualizationController->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
 
         // Successful connection
         ui.deviceSetSelectorWidget->SetConnectionSuccessful(true);
@@ -156,7 +156,7 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
           ui.toolStateDisplayWidget->setMaximumHeight(ui.toolStateDisplayWidget->GetDesiredHeight());
         }
 
-        ui.canvas->setVisible(true);
+        //ui.canvas->setVisible(true);
       }
 
       this->ConfigureCaptureWidgets();
@@ -171,7 +171,7 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
-    ui.canvas->setVisible(false);
+    //ui.canvas->setVisible(false);
     ui.channelSelectButton->setEnabled(false);
     ui.startAllButton->setEnabled(false);
     ui.stopAllButton->setEnabled(false);
@@ -179,8 +179,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
     this->ConfigureCaptureWidgets();
 
-    this->m_VisualizationController->Reset();
-    this->m_VisualizationController->ClearTransformRepository();
+    //this->m_VisualizationController->Reset();
+    //this->m_VisualizationController->ClearTransformRepository();
     ui.deviceSetSelectorWidget->SetConnectionSuccessful(false);
     ui.deviceSetSelectorWidget->ShowResetTrackerButton(false);
     ui.toolStateDisplayWidget->InitializeTools(NULL, false);
@@ -194,8 +194,8 @@ PlusStatus CaptureClientWindow::StartDataCollection()
 {
   if( this->m_DataCollector != NULL )
   {
-    m_VisualizationController->SetDataCollector(NULL);
-    m_VisualizationController->AssignDataCollector(NULL);
+    //m_VisualizationController->SetDataCollector(NULL);
+    //m_VisualizationController->AssignDataCollector(NULL);
     DELETE_IF_NOT_NULL(this->m_DataCollector);
   }
 
@@ -234,9 +234,9 @@ PlusStatus CaptureClientWindow::StartDataCollection()
     LOG_ERROR("Device " << aDevice->GetDeviceId() << " has no channels to visualize.");
     return PLUS_FAIL;
   }
-  m_VisualizationController->SetDataCollector(m_DataCollector);
+  //m_VisualizationController->SetDataCollector(m_DataCollector);
   this->ChannelSelected(m_SelectedChannel->GetOwnerDevice(), m_SelectedChannel);
-  m_VisualizationController->AssignDataCollector(m_DataCollector);
+  //m_VisualizationController->AssignDataCollector(m_DataCollector);
 
   return PLUS_SUCCESS;
 }
@@ -288,6 +288,7 @@ PlusStatus CaptureClientWindow::ConfigureCaptureWidgets()
 //-----------------------------------------------------------------------------
 void CaptureClientWindow::BuildChannelMenu()
 {
+  /*
   for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
   {
     QCustomAction* action = *it;
@@ -331,6 +332,7 @@ void CaptureClientWindow::BuildChannelMenu()
       m_3DActionList.push_back(action);
     }
   }
+  */
 }
 
 //-----------------------------------------------------------------------------
@@ -383,7 +385,7 @@ bool CaptureClientWindow::eventFilter(QObject *obj, QEvent *ev)
 void CaptureClientWindow::SetSelectedChannel( vtkPlusChannel& aChannel )
 {
   m_SelectedChannel = &aChannel;
-  this->m_VisualizationController->SetSelectedChannel(&aChannel);
+  //this->m_VisualizationController->SetSelectedChannel(&aChannel);
 }
 
 //-----------------------------------------------------------------------------
@@ -391,17 +393,17 @@ void CaptureClientWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChanne
 {
   LOG_TRACE("CaptureClientWindow::ChannelSelected(" << aDevice->GetDeviceId() << ", channel: " << aChannel->GetChannelId() << ")");
 
-  if( this->m_VisualizationController != NULL && this->m_VisualizationController->GetDataCollector() != NULL )
+  //if( this->m_VisualizationController != NULL && this->m_VisualizationController->GetDataCollector() != NULL )
   {
     this->SetSelectedChannel(*aChannel);
   }
   if( aChannel->GetVideoDataAvailable() )
   {
-    this->m_VisualizationController->SetInput( aChannel->GetBrightnessOutput() );
+    //this->m_VisualizationController->SetInput( aChannel->GetBrightnessOutput() );
   }
   else
   {
-    this->m_VisualizationController->DisconnectInput();
+    //this->m_VisualizationController->DisconnectInput();
   }
 
   this->BuildChannelMenu();
@@ -412,9 +414,9 @@ void CaptureClientWindow::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("CaptureClientWindow::resizeEvent");
 
-  if( m_VisualizationController != NULL )
+  //if( m_VisualizationController != NULL )
   {
-    m_VisualizationController->resizeEvent(aEvent);
+    //m_VisualizationController->resizeEvent(aEvent);
   }
 }
 
@@ -429,9 +431,9 @@ void CaptureClientWindow::UpdateGUI()
     return;
   }
 
-  if( m_VisualizationController != NULL && m_VisualizationController->GetDataCollector() != NULL && m_VisualizationController->GetDataCollector()->GetConnected() )
+  //if( m_VisualizationController != NULL && m_VisualizationController->GetDataCollector() != NULL && m_VisualizationController->GetDataCollector()->GetConnected() )
   {
-    ui.canvas->update();
+    //ui.canvas->update();
   }
 }
 

@@ -101,7 +101,7 @@ protected:
 
   std::vector<CaptureControlWidget*> m_CaptureWidgets;
 
-  vtkVisualizationController* m_VisualizationController;
+  //vtkVisualizationController* m_VisualizationController;
 
   /*! Reference to all actions that will show up in ROI list */
   std::vector<QCustomAction*> m_3DActionList;
