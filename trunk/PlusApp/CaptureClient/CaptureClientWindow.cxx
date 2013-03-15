@@ -31,6 +31,8 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
 
   connect( ui.deviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
+  connect( ui.startAllButton, SIGNAL(clicked()), this, SLOT(StartAll()));
+  connect( ui.stopAllButton, SIGNAL(clicked()), this, SLOT(StopAll()));
 
   // Create visualizer
   m_VisualizationController = vtkVisualizationController::New();
@@ -41,6 +43,8 @@ CaptureClientWindow::CaptureClientWindow(QWidget *parent, Qt::WFlags flags)
 
   ui.channelSelectButton->installEventFilter(this);
   ui.channelSelectButton->setEnabled(false);
+  ui.startAllButton->setEnabled(false);
+  ui.stopAllButton->setEnabled(false);
 
   m_UiRefreshTimer->start(50);
 }
@@ -143,6 +147,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         this->BuildChannelMenu();
         ui.channelSelectButton->setEnabled(m_3DActionList.size() > 0);
+        ui.startAllButton->setEnabled(true);
+        ui.stopAllButton->setEnabled(true);
 
         if (ui.toolStateDisplayWidget->InitializeTools(m_SelectedChannel, true))
         {
@@ -167,6 +173,8 @@ void CaptureClientWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
   {
     ui.canvas->setVisible(false);
     ui.channelSelectButton->setEnabled(false);
+    ui.startAllButton->setEnabled(false);
+    ui.stopAllButton->setEnabled(false);
     m_DataCollector->Disconnect();
 
     this->ConfigureCaptureWidgets();
@@ -424,5 +432,27 @@ void CaptureClientWindow::UpdateGUI()
   if( m_VisualizationController != NULL && m_VisualizationController->GetDataCollector() != NULL && m_VisualizationController->GetDataCollector()->GetConnected() )
   {
     ui.canvas->update();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::StartAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* aWidget = *it;
+
+    aWidget->GetCaptureDevice()->SetEnableCapturing(true);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureClientWindow::StopAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* aWidget = *it;
+
+    aWidget->GetCaptureDevice()->SetEnableCapturing(false);
   }
 }

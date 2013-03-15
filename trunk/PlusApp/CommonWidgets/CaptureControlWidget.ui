@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>550</width>
-    <height>30</height>
+    <width>380</width>
+    <height>60</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -114,9 +114,9 @@
   <widget class="QLabel" name="extraInformationLabel">
    <property name="geometry">
     <rect>
-     <x>375</x>
-     <y>4</y>
-     <width>171</width>
+     <x>190</x>
+     <y>34</y>
+     <width>181</width>
      <height>21</height>
     </rect>
    </property>
@@ -138,9 +138,39 @@
    </property>
    <property name="icon">
     <iconset resource="CommonWidgets.qrc">
-     <normaloff>:/icons/Resources/icon_Save.png</normaloff>
-     :/icons/Resources/icon_Save.png
-    </iconset>
+     <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="requestedFrameRateSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>30</y>
+     <width>51</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="maximum">
+    <number>500</number>
+   </property>
+   <property name="value">
+    <number>15</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="requestedFrameRateLabel">
+   <property name="geometry">
+    <rect>
+     <x>5</x>
+     <y>34</y>
+     <width>121</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Requested Frame Rate:</string>
    </property>
   </widget>
  </widget>

@@ -44,6 +44,8 @@ public:
 
   virtual void SetCaptureDevice(vtkVirtualDiscCapture& aDevice);
 
+  virtual vtkVirtualDiscCapture* GetCaptureDevice(){ return m_Device; }
+
 protected:
   /*!
   * Saves recorded tracked frame list to file
@@ -63,6 +65,8 @@ protected:
     void Update();
 
     void SaveButtonPressed();
+
+    void RequestedFrameRateChanged(int aValue);
 
 protected:
   /*! Timer triggering the */

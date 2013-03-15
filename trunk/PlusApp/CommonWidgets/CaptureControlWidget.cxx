@@ -28,6 +28,7 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 
   connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
   connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(SaveButtonPressed()) );
+  connect(ui.requestedFrameRateSpinBox, SIGNAL(valueChanged(int) ), this, SLOT( RequestedFrameRateChanged(int) ) );
 
   ui.startStopButton->setText("Start");
 
@@ -121,12 +122,14 @@ void CaptureControlWidget::UpdateBasedOnState()
       ui.startStopButton->setText("Stop");
       ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(0, 255, 0));
       ui.recordStatusLabel->setText(QString("Recording"));
+      ui.requestedFrameRateSpinBox->setEnabled(true);
     }
     else
     {
       ui.startStopButton->setText("Start");
       ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
       ui.recordStatusLabel->setText(QString("Stopped"));
+      ui.requestedFrameRateSpinBox->setEnabled(false);
     }
     ui.extraInformationLabel->setText("");
   }
@@ -137,6 +140,7 @@ void CaptureControlWidget::UpdateBasedOnState()
     ui.channelIdentifierLabel->setText("");
     ui.recordStatusLabel->setText("");
     ui.extraInformationLabel->setText("");
+    ui.requestedFrameRateSpinBox->setEnabled(false);
   }
 }
 
@@ -220,4 +224,10 @@ void CaptureControlWidget::SaveButtonPressed()
   m_Device->ClearRecordedFrames();
 
   this->UpdateBasedOnState();
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::RequestedFrameRateChanged( int aValue )
+{
+  //this->m_Device->SetRequestedFrameRate(aValue);
 }

@@ -71,6 +71,10 @@ public:
     */
     void UpdateGUI();
 
+    void StartAll();
+
+    void StopAll();
+
 protected:
   PlusStatus ConfigureCaptureWidgets();
 
