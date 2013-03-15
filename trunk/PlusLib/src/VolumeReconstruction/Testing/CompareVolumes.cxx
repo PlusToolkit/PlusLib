@@ -274,7 +274,7 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << "_"
+                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << ","
 				   << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
@@ -306,7 +306,7 @@ int main( int argc, char** argv )
     { // need to create the file and write to it. First give it a header row.
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str());
-      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
+      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Extent,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
       }
@@ -323,7 +323,7 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << "_"
+                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
