@@ -31,7 +31,16 @@ See License.txt for details.
 
 #include "vtkModifiedBSPTree.h"
 
+// Select various algorithm options (TODO: keep only one variant or parametrize all from config file)
 #define CONSTANT_INTENSITY
+//#define ADD_NOISE
+
+#ifdef ADD_NOISE
+  #include "vtkLineSource.h"
+  #include "vtkPerlinNoise.h"
+  #include "vtkProbeFilter.h"
+  #include "vtkSampleFunction.h"
+#endif
 
 const unsigned char INSIDE_OBJECT_COLOUR = 20; 
 const unsigned char OUTSIDE_OBJECT_COLOUR = 155;
@@ -168,6 +177,31 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   double distanceBetweenScanlineSamplePointsMm=scanConverter->GetDistanceBetweenScanlineSamplePointsMm();
 
+#ifdef ADD_NOISE
+  vtkSmartPointer<vtkLineSource> noiseSamplerLine_Model = vtkSmartPointer<vtkLineSource>::New(); // TODO: should be in _RAS instead of _Model
+  noiseSamplerLine_Model->SetResolution(this->NumberOfSamplesPerScanline-1);
+
+  vtkSmartPointer<vtkPerlinNoise> noiseFunction=vtkSmartPointer<vtkPerlinNoise>::New();
+  //noiseFunction->SetFrequency(35,45,22);
+  noiseFunction->SetFrequency(5,7,2);
+  noiseFunction->SetPhase(50,20,0);
+  noiseFunction->SetAmplitude(0.1);
+
+/*
+  vtkSmartPointer<vtkSampleFunction> sample=vtkSmartPointer<vtkSampleFunction>::New();
+  sample->SetImplicitFunction(noiseFunction);
+  sample->SetSampleDimensions(400,600,5);
+  //    sample->SetModelBounds(-2,2,-3,3,-20,20);
+  sample->SetModelBounds(modelModel->GetBounds());  
+  sample->ComputeNormalsOff();
+  sample->Update();
+
+  vtkSmartPointer<vtkProbeFilter> lineProbe=vtkSmartPointer<vtkProbeFilter>::New();
+  lineProbe->SetInputConnection(noiseSamplerLine_Model->GetOutputPort());
+  lineProbe->SetSource(sample->GetOutput());
+*/
+#endif
+
   vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New(); 
   for(int scanLineIndex=0;scanLineIndex<this->NumberOfScanlines; scanLineIndex++)
   {
@@ -181,6 +215,19 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     imageToModelMatrix->MultiplyPoint(scanLineEndPoint_Image,scanLineEndPoint_Model);
     intersectionPoints->Reset();
     
+#ifdef ADD_NOISE
+    noiseSamplerLine_Model->SetPoint1(scanLineStartPoint_Model);
+    noiseSamplerLine_Model->SetPoint2(scanLineEndPoint_Model);
+    noiseSamplerLine_Model->Update();
+    vtkPoints* samplePointPositions_Model=noiseSamplerLine_Model->GetOutput()->GetPoints();
+    double samplePointPosition_Model[3]={0,0,0};
+    /*
+    lineProbe->Update();
+    vtkPointData* noisePointData=lineProbe->GetOutput()->GetPointData();
+    vtkDataArray* noisePointDataArray=noisePointData->GetArray(0);
+    */
+#endif
+
     //const double startTime = vtkAccurateTimer::GetSystemTime(); 
     this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, 0.0,intersectionPoints,NULL);
     //const double stopTime = vtkAccurateTimer::GetSystemTime(); 
@@ -195,7 +242,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     bool isInsideObject=false;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
-    //double beamIntensity=50000; // TODO: magic number
+    double beamIntensity=50000; // TODO: magic number
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
@@ -226,10 +273,20 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
 #ifdef CONSTANT_INTENSITY
       // fill the segment with const values
-      
+
+#ifndef ADD_NOISE      
       memset(dstPixelAddress,pixelColour,numberOfFilledPixels);
       dstPixelAddress+=numberOfFilledPixels;
-#else
+#else      
+      for (int pixelIndex=0; pixelIndex<numberOfFilledPixels;pixelIndex++)
+      {
+        samplePointPositions_Model->GetPoint(currentPixelIndex+pixelIndex, samplePointPosition_Model);
+        double fillColor=pixelColour*(1+noiseFunction->EvaluateFunction(samplePointPosition_Model));
+        (*dstPixelAddress++)=fillColor;
+      }
+#endif // ADD_NOISE
+
+#else // not CONSTANT_INTENSITY
       std::vector<double> *reflectionVector;
       if (isInsideObject)
       {
@@ -244,7 +301,16 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       for (; pixelIndex<reflectionVector->size() && pixelIndex<numberOfFilledPixels; pixelIndex++)
       {
         double reflectionFactor=(*reflectionVector)[pixelIndex];
+
+#ifndef ADD_NOISE      
         unsigned char pixelIntensity=std::min(beamIntensity*reflectionFactor,255.0);
+#else
+        samplePointPositions_Model->GetPoint(currentPixelIndex+pixelIndex, samplePointPosition_Model);
+        double noise=noiseFunction->EvaluateFunction(samplePointPosition_Model);        
+        //double noise=noisePointDataArray->GetTuple1(currentPixelIndex+pixelIndex);
+        unsigned char pixelIntensity=std::max(std::min(10+beamIntensity*reflectionFactor*(1+noise)-noise*100,255.0),0.0);
+#endif
+
         (*dstPixelAddress++)=pixelIntensity;
         //(*dstPixelAddress++)=190;
         //LOG_INFO("Pixel: "<<pixelIntensity);
