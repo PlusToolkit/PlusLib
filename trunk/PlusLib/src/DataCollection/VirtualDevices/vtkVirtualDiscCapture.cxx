@@ -280,6 +280,9 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  LOG_INFO("time waited: " << m_TimeWaited );
+  m_TimeWaited = 0.0;
+
   double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
   double requestedFramePeriodSec = 0.1;
   if (this->RequestedFrameRate > 0)
