@@ -24,7 +24,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       Filename="RecordingTest.mha"
-      EnableCapturing="TRUE" >
+      EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
