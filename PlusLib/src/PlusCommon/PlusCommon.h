@@ -11,6 +11,8 @@
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
+#include "vtksys/SystemTools.hxx"
+//#include <stdio.h>
 #include <strstream>
 
 enum PlusStatus
@@ -141,6 +143,62 @@ namespace PlusCommon
   typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
   typedef int VTKScalarPixelType;
   typedef int IGTLScalarPixelType; 
+
+
+  //----------------------------------------------------------------------------
+  static PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
+  {
+    int maxRetryCount = 50;
+    int tryCount = 0;
+
+#ifdef _WIN32
+    char candidateFilename[MAX_PATH];
+#else
+    char candidateFilename[L_tmpnam];
+#endif
+
+    while( tryCount < maxRetryCount)
+    {
+      tryCount++;
+
+#ifdef _WIN32
+      UINT uRetVal = GetTempFileName(anOutputDirectory.c_str(), "", 0, candidateFilename);  // buffer for name
+      if( uRetVal == ERROR_BUFFER_OVERFLOW )
+      {
+        if( vtksys::SystemTools::FileExists(candidateFilename) )
+        {
+          vtksys::SystemTools::RemoveFile(candidateFilename);
+        }
+        LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+        continue;
+      }
+
+      aString = candidateFilename;
+      return PLUS_SUCCESS;
+#else
+      tmpnam(candidateFilename);
+
+      if( !vtksys::SystemTools::FileExists(candidateFilename) )
+      {
+        ofstream aFile(candidateFilename);
+        if( aFile.is_open() )
+        {
+          aFile.close();
+          vtksys::SystemTools::RemoveFile(candidateFilename);
+          aString = candidateFilename;
+          return PLUS_SUCCESS;
+        }
+        else
+        {
+          LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
+        }
+      }
+#endif
+    }
+
+    aString = "";
+    return PLUS_FAIL;
+  }
 
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
