@@ -576,4 +576,6 @@ PlusStatus vtkVirtualDiscCapture::Reset()
   }
 
   m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
+
+  return PLUS_SUCCESS;
 }
