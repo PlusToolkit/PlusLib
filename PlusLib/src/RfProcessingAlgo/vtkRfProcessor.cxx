@@ -158,9 +158,9 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElem
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfElement)
 {
-  if ( config == NULL )
+  if ( rfElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
     return PLUS_FAIL; 
@@ -169,41 +169,36 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
   // RfProcessing
   //  - BrightnessConversion
   //  - ScanConversion
-  vtkXMLDataElement* rfProcessingElement = PlusXmlUtils::GetNestedElementWithName(config, "RfProcessing"); 
-  if (rfProcessingElement == NULL) 
-  {  
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "RfToBrightnessConversion"); 
+  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "RfToBrightnessConversion"); 
   if (brightnessConversionElement == NULL) 
   {  
     return PLUS_FAIL;
   }  
-  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "ScanConversion"); 
+  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "ScanConversion"); 
   if (scanConversionElement == NULL) 
   {  
     return PLUS_FAIL;
   }  
 
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status(PLUS_SUCCESS);
 
-  if (this->RfToBrightnessConverter->WriteConfiguration(brightnessConversionElement)!=PLUS_SUCCESS)
+  if ( this->RfToBrightnessConverter->WriteConfiguration(brightnessConversionElement) != PLUS_SUCCESS )
   {
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }  
 
-  if (this->ScanConverter!=NULL)
+  if (this->ScanConverter != NULL)
   {
-    if (this->ScanConverter->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+    if ( this->ScanConverter->WriteConfiguration(scanConversionElement) != PLUS_SUCCESS)
     {
-      status=PLUS_FAIL;
+      status = PLUS_FAIL;
     }
   }
   else
   {
     scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
     LOG_ERROR("Unknown transducer geometry");
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   return status;
