@@ -41,7 +41,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfElement); 
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rfElement); 
   
   /*! Set the scan converter object. The class will keep a reference to this object. */
   virtual void SetScanConverter(vtkUsScanConvert* scanConverter);
