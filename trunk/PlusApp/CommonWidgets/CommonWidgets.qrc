@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>Resources/icon_Fail.png</file>
+    <file>Resources/icon_Success.png</file>
     <file>Resources/icon_Save.png</file>
     <file>Resources/icon_Connect.png</file>
     <file>Resources/icon_OpenFile.png</file>

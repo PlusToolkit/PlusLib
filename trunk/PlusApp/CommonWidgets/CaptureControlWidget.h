@@ -59,14 +59,23 @@ protected:
   */
   void WriteToFile(QString& aFilename);
 
-  protected slots:
-    void StartStopButtonPressed();
+  /*!
+  * Display a result icon for a set duration
+  */
+  void ShowResultIcon(bool success, int timerInMSec = 2000);
 
-    void Update();
+protected slots:
+  void StartStopButtonPressed();
 
-    void SaveButtonPressed();
+  void Update();
 
-    void RequestedFrameRateChanged(int aValue);
+  void UpdateResultIcon();
+
+  void SaveButtonPressed();
+
+  void SamplingRateChanged(int aValue);
+
+  void ClearButtonPressed();
 
 protected:
   /*! Timer triggering the */
@@ -74,6 +83,10 @@ protected:
 
   /*! device to interact with */
   vtkVirtualDiscCapture* m_Device;
+
+  QTimer* m_ResultDisplayTimer;
+
+  bool m_ResultTimerActive;
 
 protected:
   Ui::CaptureControlWidget ui;

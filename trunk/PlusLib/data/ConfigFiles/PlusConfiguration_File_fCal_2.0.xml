@@ -19,12 +19,12 @@
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-	
-	<Device
+    
+    <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       Filename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturing="TRUE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

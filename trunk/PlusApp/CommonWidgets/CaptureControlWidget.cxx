@@ -17,6 +17,8 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 : QWidget(aParent)
 , m_UpdateTimer(NULL)
 , m_Device(NULL)
+, m_ResultDisplayTimer(NULL)
+, m_ResultTimerActive(false)
 {
   ui.setupUi(this);
 
@@ -28,7 +30,8 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 
   connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
   connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(SaveButtonPressed()) );
-  connect(ui.requestedFrameRateSpinBox, SIGNAL(valueChanged(int) ), this, SLOT( RequestedFrameRateChanged(int) ) );
+  connect(ui.clearRecordedFramesButton, SIGNAL(clicked()), this, SLOT(ClearButtonPressed()) );
+  connect(ui.samplingRateSlider, SIGNAL(valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
 
   ui.startStopButton->setText("Start");
 
@@ -77,7 +80,8 @@ void CaptureControlWidget::WriteToFile( QString& aFilename )
 
     QString result = "File saved to\n";
     result += aFilename;
-    ui.extraInformationLabel->setText(result);
+    std::string output(result.toLatin1());
+    LOG_INFO(output);
 
     // Save config file next to the tracked frame list
     std::string configFileName = path + "/" + filename + "_config.xml";
@@ -114,34 +118,36 @@ void CaptureControlWidget::UpdateBasedOnState()
     std::string aString(aChannel->GetChannelId());
     aString += ":";
     ui.channelIdentifierLabel->setText(QString(aString.c_str()));
-    ui.extraInformationLabel->setText(QString("Normal"));
 
     ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
+    ui.clearRecordedFramesButton->setEnabled( m_Device->HasUnsavedData() );
 
     if( m_Device->GetEnableCapturing() )
     {
       ui.startStopButton->setText("Stop");
       ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(0, 255, 0));
       ui.recordStatusLabel->setText(QString("Recording"));
-      ui.requestedFrameRateSpinBox->setEnabled(true);
+      ui.actualFrameRateValueLabel->setText( QString::number(m_Device->GetActualFrameRate(), 'f', 2) );
+      ui.samplingRateSlider->setEnabled(false);
     }
     else
     {
       ui.startStopButton->setText("Start");
       ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
       ui.recordStatusLabel->setText(QString("Stopped"));
-      ui.requestedFrameRateSpinBox->setEnabled(false);
+      ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
+      ui.samplingRateSlider->setEnabled(true);
     }
-    ui.extraInformationLabel->setText("");
   }
   else
   {
     ui.startStopButton->setEnabled(false);
     ui.saveButton->setEnabled(false);
+    ui.clearRecordedFramesButton->setEnabled(false);
     ui.channelIdentifierLabel->setText("");
     ui.recordStatusLabel->setText("");
-    ui.extraInformationLabel->setText("");
-    ui.requestedFrameRateSpinBox->setEnabled(false);
+    ui.samplingRateSlider->setEnabled(false);
+    ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
   }
 }
 
@@ -170,6 +176,7 @@ void CaptureControlWidget::StartStopButtonPressed()
     else
     {
       m_Device->SetEnableCapturing(false);
+      ui.actualFrameRateValueLabel->setText(QString("0.0"));
     }
 
     this->UpdateBasedOnState();
@@ -180,6 +187,8 @@ void CaptureControlWidget::StartStopButtonPressed()
 void CaptureControlWidget::SetCaptureDevice(vtkVirtualDiscCapture& aDevice)
 {
   m_Device = &aDevice;
+
+  this->SamplingRateChanged(10);
 
   this->UpdateBasedOnState();
 }
@@ -218,17 +227,93 @@ void CaptureControlWidget::SaveButtonPressed()
   // Save
   if( m_Device->CloseFile() != PLUS_SUCCESS )
   {
-    ui.extraInformationLabel->setText(QString("Saving failed. Unable to close device."));
+    this->ShowResultIcon(false, 2000);
+    LOG_ERROR("Saving failed. Unable to close device.");
     return;
   }
 
-  m_Device->ClearRecordedFrames();
-
   this->UpdateBasedOnState();
+
+  this->ShowResultIcon(true, 2000);
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::RequestedFrameRateChanged( int aValue )
+void CaptureControlWidget::SamplingRateChanged( int aValue )
 {
-  this->m_Device->SetRequestedFrameRate(aValue);
+  LOG_TRACE("CaptureControlWidget::RecordingFrameRateChanged(" << aValue << ")"); 
+
+  double maxFrameRate = GetMaximumFrameRate();
+  int samplingRate = (int)(pow(2.0, ui.samplingRateSlider->maxValue() - aValue));
+  double requestedFrameRate(0.0);
+
+  if (samplingRate>0)
+  {
+    requestedFrameRate = maxFrameRate / (double)samplingRate;
+  }
+  else
+  {
+    LOG_WARNING("samplingRate value is invalid");
+    requestedFrameRate = maxFrameRate;
+  }
+
+  ui.samplingRateSlider->setToolTip(tr("1 / ").append(QString::number((int)samplingRate)));
+  ui.requestedFrameRateValueLabel->setText(QString::number(requestedFrameRate, 'f', 2));
+
+  LOG_INFO("Sampling rate changed to " << aValue << " (matching requested frame rate is " << requestedFrameRate << ")");
+  this->m_Device->SetRequestedFrameRate(requestedFrameRate);
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::ClearButtonPressed()
+{
+  m_Device->SetEnableCapturing(false);
+  m_Device->Reset();
+
+  this->UpdateBasedOnState();
+
+  this->ShowResultIcon(true, 2000);
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::ShowResultIcon( bool success, int timerInMSec /*= 2000*/ )
+{
+  if( m_ResultTimerActive )
+  {
+    return;
+  }
+
+  m_ResultTimerActive = true;
+  m_ResultDisplayTimer = new QTimer(this);
+  connect(m_ResultDisplayTimer, SIGNAL(timeout()), this, SLOT(UpdateResultIcon()) );
+
+  QPixmap pixmap;
+
+  if( success )
+  {
+    if (!pixmap.load( ":/icons/Resources/icon_Success.png" )) {
+      LOG_ERROR("Failed to load images/icon_Success.png");
+    }
+
+  }
+  else
+  {
+    if (!pixmap.load( ":/icons/Resources/icon_Fail.png" )) {
+      LOG_ERROR("Failed to load images/icon_Fail.png");
+    }
+  }
+
+  if( !pixmap.isNull() )
+  {
+    ui.resultIconLabel->setPixmap(pixmap);
+  }
+
+  m_ResultDisplayTimer->start(timerInMSec);
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::UpdateResultIcon()
+{
+  ui.resultIconLabel->setPixmap(NULL);
+  delete m_ResultDisplayTimer;
+  m_ResultTimerActive = false;
 }

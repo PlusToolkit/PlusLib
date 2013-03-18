@@ -37,7 +37,7 @@ public:
 
   virtual bool HasUnsavedData() const;
 
-  virtual PlusStatus ClearRecordedFrames();
+  virtual double GetAcquisitionRate() const;
 
   /*! Output file name */
   virtual void SetFilename(const char* filename);
@@ -47,6 +47,8 @@ public:
 
   /*! Close the output file */
   virtual PlusStatus CloseFile();
+
+  virtual PlusStatus Reset();
 
   /*! Enables capturing frames. It can be used for pausing the recording. */
   vtkGetMacro(EnableCapturing, bool);
@@ -63,6 +65,7 @@ public:
   vtkGetMacro(ActualFrameRate, double);
 
 protected:
+  virtual PlusStatus ClearRecordedFrames();
 
   vtkSetMacro(ActualFrameRate, double);
 
@@ -88,10 +91,10 @@ protected:
   vtkTrackedFrameList* m_RecordedFrames;
 
   /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
-  double m_RecordingLastAlreadyRecordedFrameTimestamp;
+  double m_LastAlreadyRecordedFrameTimestamp;
 
   /*! Desired timestamp of the next frame to be recorded */
-  double m_RecordingNextFrameToBeRecordedTimestamp;
+  double m_NextFrameToBeRecordedTimestamp;
 
   /*! Frame rate of the sampling */
   const int m_SamplingFrameRate;
@@ -108,7 +111,7 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_RecordingFirstFrameIndexInThisSegment;
+  int m_FirstFrameIndexInThisSegment;
 
   /* Time waited in update */
   double m_TimeWaited;
@@ -116,6 +119,7 @@ protected:
 
   /*! File to write */
   std::string m_Filename;
+  std::string m_OriginalFilename;
 
   /*! Meta sequence to write to */
   vtkMetaImageSequenceIO* m_Writer;
