@@ -39,7 +39,8 @@ int main( int argc, char** argv )
   std::string outputFourierGroundTruthFileName;
   std::string outputCroppedGTFileName;
   std::string outputCroppedTestFileName;
-  std::vector<int> roiExtentV;
+  std::vector<int> roiOriginV;
+  std::vector<int> roiSizeV;
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -51,7 +52,8 @@ int main( int argc, char** argv )
   args.AddArgument("--testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
   args.AddArgument("--testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
   args.AddArgument("--slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
-  args.AddArgument("--roi-extent", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiExtentV, "The six values describing the extent of the region of interest (ROI): minX maxX minY maxY minZ maxZ");
+  args.AddArgument("--roi-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiOriginV, "The three x y z values describing the origin for the region of interest's extent, in volume IJK coordinates");
+  args.AddArgument("--roi-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiSizeV, "The three x y z values describing the size for the region of interest's extent, in volume IJK coordinates");
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");
   args.AddArgument("--output-diff-volume-true", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrueDiffFileName, "Save the true difference volume to this file");
   args.AddArgument("--output-diff-volume-absolute", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputAbsoluteDiffFileName, "Save the absolute difference volume to this file");
@@ -73,7 +75,7 @@ int main( int argc, char** argv )
     exit(EXIT_SUCCESS); 
   }
 
-  /************************************************************/	
+  /************************************************************/    
   
   // record the start time for data recording, see http://www.cplusplus.com/reference/clibrary/ctime/localtime/
   time_t rawtime;
@@ -156,33 +158,44 @@ int main( int argc, char** argv )
   vtkSmartPointer<vtkImageData> testingAlphaCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> slicesAlphaCropped = vtkSmartPointer<vtkImageData>::New();
 
-  bool useWholeExtent((roiExtentV.size() == 0)?true:false);
+  bool useWholeExtent;
 
+  if (roiOriginV.size() == 0 && roiSizeV.size() == 0)
+    useWholeExtent = true;
+  else if (roiOriginV.size() == 0) {
+    useWholeExtent = false;
+    LOG_WARNING("The region of interest's origin is defined, but the size is not. No region of interest will be used.");
+  } else if (roiSizeV.size() == 0) {
+    useWholeExtent = false;
+    LOG_WARNING("The region of interest's size is defined, but the origin is not. No region of interest will be used.");
+  } else
+    useWholeExtent = false;
+
+  int roiExtent[6]; // array format of roi extent
   if (!useWholeExtent) {
-    int roiExtent[6]; // array format of roi extent
 
     // parse and check size
-    if (roiExtentV.size() == 6)
-	{
-		roiExtent[0] = roiExtentV[0];
-		roiExtent[1] = roiExtentV[1];
-		roiExtent[2] = roiExtentV[2];
-		roiExtent[3] = roiExtentV[3];
-		roiExtent[4] = roiExtentV[4];
-		roiExtent[5] = roiExtentV[5];
-	}
-	else
+    if (roiOriginV.size() == 3 && roiSizeV.size() == 3)
     {
-		LOG_ERROR("Size needs to be 6 values: minX maxX minY maxY minZ maxZ");
-        exit(EXIT_FAILURE);
+      roiExtent[0] = roiOriginV[0];
+      roiExtent[1] = roiOriginV[0] + roiSizeV[0] - 1;
+      roiExtent[2] = roiOriginV[1];
+      roiExtent[3] = roiOriginV[1] + roiSizeV[1] - 1;
+      roiExtent[4] = roiOriginV[2];
+      roiExtent[5] = roiOriginV[2] + roiSizeV[2] - 1;
+    }
+    else
+    {
+      LOG_ERROR("ROI size and origin each need to be 3 values in volume IJK coordinates: X Y Z");
+      exit(EXIT_FAILURE);
     } 
 
     // check new extents
-	if (roiExtent[0] < extentGT[0] || roiExtent[1] >= extentGT[1] ||
-        roiExtent[2] < extentGT[2] || roiExtent[3] >= extentGT[3] ||
-        roiExtent[4] < extentGT[4] || roiExtent[5] >= extentGT[5]) {
-          LOG_ERROR("Region of interest contains data outside the original volume! Extents are: " << roiExtent[0] << " " << roiExtent[1] << " " << roiExtent[2] << " " << roiExtent[3] << " " << roiExtent[4] << " " << roiExtent[5] << "\n" << "Original extent is: " << extentGT[0] << " " << extentGT[1] << " " << extentGT[2] << " " << extentGT[3] << " " << extentGT[4] << " " << extentGT[5]);
-          exit(EXIT_FAILURE);
+    if (roiExtent[0] < extentGT[0] || roiExtent[1] >= extentGT[1] ||
+      roiExtent[2] < extentGT[2] || roiExtent[3] >= extentGT[3] ||
+      roiExtent[4] < extentGT[4] || roiExtent[5] >= extentGT[5]) {
+        LOG_ERROR("Region of interest contains data outside the original volume's IJK coordinates! Extents are: " << roiExtent[0] << " " << roiExtent[1] << " " << roiExtent[2] << " " << roiExtent[3] << " " << roiExtent[4] << " " << roiExtent[5] << "\n" << "Original extent is: " << extentGT[0] << " " << extentGT[1] << " " << extentGT[2] << " " << extentGT[3] << " " << extentGT[4] << " " << extentGT[5]);
+        exit(EXIT_FAILURE);
     }
 
     vtkSmartPointer<vtkImageClip> clipGT = vtkSmartPointer<vtkImageClip>::New();
@@ -227,8 +240,8 @@ int main( int argc, char** argv )
     testingImageCropped = testingImage;
     testingAlphaCropped = testingAlpha;
     slicesAlphaCropped = slicesAlpha;
-	for (int extentIndex = 0; extentIndex < 6; extentIndex++)
-		roiExtentV.push_back(extentGT[extentIndex]);
+    for (int extentIndex = 0; extentIndex < 6; extentIndex++)
+        roiExtent[extentIndex] = extentGT[extentIndex];
   }
 
   // calculate the histogram for the difference image
@@ -259,8 +272,8 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << ","
-				   << histogramGenerator->GetNumberOfHoles() << "," 
+                   << roiExtent[0] << "_" << roiExtent[1] << "_" << roiExtent[2] << "_" << roiExtent[3] << "_" << roiExtent[4] << "_" << roiExtent[5] << ","
+                   << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
                    << histogramGenerator->GetTrueMaximum() << ","
@@ -308,7 +321,7 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << roiExtentV[0] << "_" << roiExtentV[1] << "_" << roiExtentV[2] << "_" << roiExtentV[3] << "_" << roiExtentV[4] << "_" << roiExtentV[5] << ","
+                   << roiExtent[0] << "_" << roiExtent[1] << "_" << roiExtent[2] << "_" << roiExtent[3] << "_" << roiExtent[4] << "_" << roiExtent[5] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
