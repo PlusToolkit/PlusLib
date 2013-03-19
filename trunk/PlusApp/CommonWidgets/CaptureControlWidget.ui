@@ -66,7 +66,7 @@
   <widget class="QPushButton" name="saveAsButton">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>140</x>
      <y>64</y>
      <width>41</width>
      <height>24</height>
@@ -183,7 +183,7 @@
    <widget class="QPushButton" name="clearRecordedFramesButton">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>187</x>
       <y>64</y>
       <width>40</width>
       <height>24</height>
@@ -233,28 +233,6 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="resultIconLabel">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>205</x>
-      <y>68</y>
-      <width>17</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="scaledContents">
-     <bool>true</bool>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QLabel" name="numberOfRecordedFramesLabel">
     <property name="geometry">
      <rect>
@@ -300,7 +278,7 @@
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>110</x>
      <y>64</y>
      <width>24</width>
      <height>24</height>

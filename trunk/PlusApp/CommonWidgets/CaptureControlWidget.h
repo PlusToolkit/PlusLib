@@ -62,14 +62,15 @@ protected:
   /*!
   * Display a result icon for a set duration
   */
-  void ShowResultIcon(bool success, int timerInMSec = 2000);
+  void SendStatusMessage(const std::string& aMessage);
+
+signals:
+  void EmitStatusMessage(const std::string&);
 
 protected slots:
   void StartStopButtonPressed();
 
   void Update();
-
-  void UpdateResultIcon();
 
   void SaveButtonPressed();
 
@@ -85,10 +86,6 @@ protected:
 
   /*! device to interact with */
   vtkVirtualDiscCapture* m_Device;
-
-  QTimer* m_ResultDisplayTimer;
-
-  bool m_ResultTimerActive;
 
 protected:
   Ui::CaptureControlWidget ui;

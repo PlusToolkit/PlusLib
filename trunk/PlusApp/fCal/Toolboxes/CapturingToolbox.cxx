@@ -72,6 +72,7 @@ void CapturingToolbox::OnActivated()
 
   for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
+    disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
     ui.captureWidgetLayout->removeWidget(*it);
     delete *it;
   }
@@ -102,6 +103,7 @@ void CapturingToolbox::OnActivated()
           aWidget->SetCaptureDevice(*capDevice);
           ui.captureWidgetLayout->addWidget(aWidget);
           m_CaptureWidgets.push_back(aWidget);
+          connect(aWidget, SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
         }
       }
     }
@@ -514,6 +516,7 @@ void CapturingToolbox::WriteToFile( QString& aFilename )
 
     QString result = "File saved to\n";
     result += aFilename;
+    ui.plainTextEdit_saveResult->clear();
     ui.plainTextEdit_saveResult->insertPlainText(result);
 
     // Add file name to image list in Volume reconstruction toolbox
@@ -620,4 +623,12 @@ double CapturingToolbox::GetSamplingPeriodSec()
     LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate<<". Use default sampling period of "<<samplingPeriodSec<<" sec");
   }
   return samplingPeriodSec;
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::HandleStatusMessage( const std::string& aMessage )
+{
+  ui.plainTextEdit_saveResult->clear();
+  QString message(aMessage.c_str());
+  ui.plainTextEdit_saveResult->insertPlainText(message);
 }

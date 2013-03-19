@@ -125,6 +125,11 @@ protected slots:
   */
   void Capture();
 
+  /*!
+  * Handle status message from any sub capture widgets
+  */
+  void HandleStatusMessage(const std::string& aMessage);
+
 protected:
   /*! Recorded tracked frame list */
   vtkTrackedFrameList* m_RecordedFrames;

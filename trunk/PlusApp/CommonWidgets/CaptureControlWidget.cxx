@@ -17,8 +17,6 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 : QWidget(aParent)
 , m_UpdateTimer(NULL)
 , m_Device(NULL)
-, m_ResultDisplayTimer(NULL)
-, m_ResultTimerActive(false)
 {
   ui.setupUi(this);
 
@@ -85,6 +83,7 @@ void CaptureControlWidget::UpdateBasedOnState()
     ui.saveAsButton->setEnabled( m_Device->HasUnsavedData() );
     ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
     ui.clearRecordedFramesButton->setEnabled( m_Device->HasUnsavedData() );
+    ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
 
     if( m_Device->GetEnableCapturing() )
     {
@@ -93,8 +92,6 @@ void CaptureControlWidget::UpdateBasedOnState()
       ui.startStopButton->setText(QString("Stop"));
       ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
       ui.startStopButton->setEnabled(true);
-
-      ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
     }
     else
     {
@@ -104,7 +101,6 @@ void CaptureControlWidget::UpdateBasedOnState()
       ui.startStopButton->setEnabled(true);
 
       ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
-      ui.numberOfRecordedFramesValueLabel->setText( QString::number(0, 10) );
       ui.samplingRateSlider->setEnabled(true);
     }
   }
@@ -176,8 +172,19 @@ void CaptureControlWidget::SaveButtonPressed()
 
   QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
 
-  this->ShowResultIcon(this->WriteToFile(fileName) != PLUS_FAIL, 2000);
+  std::string message("");
+  if( this->WriteToFile(fileName) != PLUS_FAIL )
+  {
+    message += "Successfully wrote: ";
+    message += fileName.toLatin1();
+  }
+  else
+  {
+    message += "Failed to write: ";
+    message += fileName.toLatin1();
+  }
 
+  this->SendStatusMessage(message);
   this->UpdateBasedOnState();
 
   LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().begin() << "'");
@@ -212,7 +219,17 @@ void CaptureControlWidget::SaveAsButtonPressed()
   QString fileName = dialog->selectedFiles().first();
   delete dialog;
 
-  this->ShowResultIcon(this->WriteToFile(fileName) != PLUS_FAIL, 2000);
+  std::string message("");
+  if( this->WriteToFile(fileName) != PLUS_FAIL )
+  {
+    message += "Successfully wrote: ";
+    message += fileName.toLatin1();
+  }
+  else
+  {
+    message += "Failed to write: ";
+    message += fileName.toLatin1();
+  }
 
   this->UpdateBasedOnState();
 }
@@ -251,49 +268,13 @@ void CaptureControlWidget::ClearButtonPressed()
 
   this->UpdateBasedOnState();
 
-  this->ShowResultIcon(true, 2000);
+  std::string aMessage("Successfully cleared data for device: ");
+  aMessage += this->m_Device->GetDeviceId();
+  this->SendStatusMessage(aMessage);
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::ShowResultIcon( bool success, int timerInMSec /*= 2000*/ )
+void CaptureControlWidget::SendStatusMessage( const std::string& aMessage )
 {
-  if( m_ResultTimerActive )
-  {
-    return;
-  }
-
-  m_ResultTimerActive = true;
-  m_ResultDisplayTimer = new QTimer(this);
-  connect(m_ResultDisplayTimer, SIGNAL(timeout()), this, SLOT(UpdateResultIcon()) );
-
-  QPixmap pixmap;
-
-  if( success )
-  {
-    if (!pixmap.load( ":/icons/Resources/icon_Success.png" )) {
-      LOG_ERROR("Failed to load images/icon_Success.png");
-    }
-
-  }
-  else
-  {
-    if (!pixmap.load( ":/icons/Resources/icon_Fail.png" )) {
-      LOG_ERROR("Failed to load images/icon_Fail.png");
-    }
-  }
-
-  if( !pixmap.isNull() )
-  {
-    ui.resultIconLabel->setPixmap(pixmap);
-  }
-
-  m_ResultDisplayTimer->start(timerInMSec);
-}
-
-//-----------------------------------------------------------------------------
-void CaptureControlWidget::UpdateResultIcon()
-{
-  ui.resultIconLabel->setPixmap(NULL);
-  delete m_ResultDisplayTimer;
-  m_ResultTimerActive = false;
+  emit EmitStatusMessage(aMessage);
 }
