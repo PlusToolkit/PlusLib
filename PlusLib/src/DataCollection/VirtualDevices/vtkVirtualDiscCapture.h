@@ -63,6 +63,7 @@ public:
   vtkGetMacro(RequestedFrameRate, double);
 
   vtkGetMacro(ActualFrameRate, double);
+  vtkGetMacro(TotalFramesRecorded, long int);
 
 protected:
   virtual PlusStatus ClearRecordedFrames();
@@ -131,7 +132,7 @@ protected:
   bool m_HeaderPrepared;
 
   /*! Record the number of frames captured */
-  long int m_TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
+  long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
   bool EnableCapturing;
 

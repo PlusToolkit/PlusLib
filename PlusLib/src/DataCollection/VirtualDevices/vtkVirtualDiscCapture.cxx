@@ -35,7 +35,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_Writer(vtkMetaImageSequenceIO::New())
 , m_EnableFileCompression(false)
 , m_HeaderPrepared(false)
-, m_TotalFramesRecorded(0)
+, TotalFramesRecorded(0)
 , EnableCapturing(true)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 {
@@ -226,7 +226,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
   int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
   dimensions[1] = m_Writer->GetDimensions()[1];
-  dimensions[2] = m_TotalFramesRecorded;
+  dimensions[2] = TotalFramesRecorded;
   dimSizeStr << dimensions[0] << " " << dimensions[1] << " " << dimensions[2];
   m_Writer->GetTrackedFrameList()->SetCustomString("DimSize", dimSizeStr.str().c_str());
   m_Writer->UpdateFieldInImageHeader("DimSize");
@@ -250,6 +250,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
   }
 
   m_HeaderPrepared = false;
+  this->TotalFramesRecorded = 0;
   m_RecordedFrames->Clear();
 
   return PLUS_SUCCESS;
@@ -370,7 +371,7 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  m_TotalFramesRecorded += m_RecordedFrames->GetNumberOfTrackedFrames();
+  TotalFramesRecorded += m_RecordedFrames->GetNumberOfTrackedFrames();
   this->ClearRecordedFrames();
 
   // Check whether the recording needed more time than the sampling interval
@@ -565,7 +566,7 @@ PlusStatus vtkVirtualDiscCapture::Reset()
     this->ClearRecordedFrames();
     this->m_Writer->GetTrackedFrameList()->Clear();
     m_HeaderPrepared = false;
-    m_TotalFramesRecorded = 0;
+    TotalFramesRecorded = 0;
   }
 
   this->m_Filename = this->m_OriginalFilename;
