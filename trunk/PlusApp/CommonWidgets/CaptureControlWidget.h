@@ -57,7 +57,7 @@ protected:
   /*!
   * Save data to file
   */
-  void WriteToFile(QString& aFilename);
+  PlusStatus WriteToFile(QString& aFilename);
 
   /*!
   * Display a result icon for a set duration
@@ -72,6 +72,8 @@ protected slots:
   void UpdateResultIcon();
 
   void SaveButtonPressed();
+
+  void SaveAsButtonPressed();
 
   void SamplingRateChanged(int aValue);
 

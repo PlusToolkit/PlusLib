@@ -7,9 +7,6 @@
     <file>Resources/icon_Tools.png</file>
     <file>Resources/icon_ImageControl.png</file>
     <file>Resources/icon_Save.png</file>
-    <file>Resources/icon_Snapshot.png</file>
-    <file>Resources/icon_Record.png</file>
-    <file>Resources/icon_Stop.png</file>
     <file>Resources/icon_ShowDevices.png</file>
     <file>Resources/icon_DownArrow.png</file>
     <file>../CommonWidgets/Resources/icon_OpenFile.png</file>

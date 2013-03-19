@@ -30,6 +30,7 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 
   connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
   connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(SaveButtonPressed()) );
+  connect(ui.saveAsButton, SIGNAL(clicked()), this, SLOT(SaveAsButtonPressed()) );
   connect(ui.clearRecordedFramesButton, SIGNAL(clicked()), this, SLOT(ClearButtonPressed()) );
   connect(ui.samplingRateSlider, SIGNAL(valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
 
@@ -45,52 +46,18 @@ CaptureControlWidget::~CaptureControlWidget()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::WriteToFile( QString& aFilename )
+PlusStatus CaptureControlWidget::WriteToFile( QString& aFilename )
 {
-  if (! aFilename.isNull() )
+  m_Device->SetFilename(aFilename.toLatin1());
+
+  // Save
+  if( m_Device->CloseFile() != PLUS_SUCCESS )
   {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    LOG_ERROR("Saving failed. Unable to close device.");
+    return PLUS_FAIL;
+  }
 
-    // Actual saving
-    std::string filePath(aFilename.toLatin1().data());
-    std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
-    std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
-    std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
-
-    vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-    if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
-    }
-    else
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
-    }
-
-    vtkTrackedFrameList* aList = vtkTrackedFrameList::New();
-    vtkPlusChannel* aChannel = *m_Device->GetOutputChannelsStart();
-    double timestampFrom;
-    aChannel->GetTrackedFrameList(timestampFrom, aList, 200);
-
-    if ( aList->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return;
-    }
-
-    QString result = "File saved to\n";
-    result += aFilename;
-    std::string output(result.toLatin1());
-    LOG_INFO(output);
-
-    // Save config file next to the tracked frame list
-    std::string configFileName = path + "/" + filename + "_config.xml";
-    PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-    aList->Delete();
-
-    QApplication::restoreOverrideCursor();
-  }	
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -113,41 +80,47 @@ void CaptureControlWidget::UpdateBasedOnState()
   if( m_Device != NULL )
   {
     ui.startStopButton->setEnabled(true);
+    ui.channelIdentifierLabel->setText(QString(m_Device->GetDeviceId()));
 
-    vtkPlusChannel* aChannel = (*m_Device->GetOutputChannelsStart());
-    std::string aString(aChannel->GetChannelId());
-    aString += ":";
-    ui.channelIdentifierLabel->setText(QString(aString.c_str()));
-
+    ui.saveAsButton->setEnabled( m_Device->HasUnsavedData() );
     ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
     ui.clearRecordedFramesButton->setEnabled( m_Device->HasUnsavedData() );
 
     if( m_Device->GetEnableCapturing() )
     {
-      ui.startStopButton->setText("Stop");
-      ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(0, 255, 0));
-      ui.recordStatusLabel->setText(QString("Recording"));
       ui.actualFrameRateValueLabel->setText( QString::number(m_Device->GetActualFrameRate(), 'f', 2) );
       ui.samplingRateSlider->setEnabled(false);
+      ui.startStopButton->setText(QString("Stop"));
+      ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
+      ui.startStopButton->setEnabled(true);
+
+      ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
     }
     else
     {
-      ui.startStopButton->setText("Start");
-      ui.recordStatusLabel->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
-      ui.recordStatusLabel->setText(QString("Stopped"));
+      ui.startStopButton->setText(QString("Record"));
+      ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
+      ui.startStopButton->setFocus();
+      ui.startStopButton->setEnabled(true);
+
       ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
+      ui.numberOfRecordedFramesValueLabel->setText( QString::number(0, 10) );
       ui.samplingRateSlider->setEnabled(true);
     }
   }
   else
   {
+    ui.startStopButton->setText("Record");
+    ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
+    ui.startStopButton->setEnabled(false);
+
     ui.startStopButton->setEnabled(false);
     ui.saveButton->setEnabled(false);
     ui.clearRecordedFramesButton->setEnabled(false);
     ui.channelIdentifierLabel->setText("");
-    ui.recordStatusLabel->setText("");
     ui.samplingRateSlider->setEnabled(false);
     ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
+    ui.numberOfRecordedFramesValueLabel->setText( QString::number(0, 10) );
   }
 }
 
@@ -169,7 +142,7 @@ void CaptureControlWidget::StartStopButtonPressed()
   if( m_Device != NULL )
   {
     QString text = ui.startStopButton->text();
-    if( QString::compare(text, QString("Start")) == 0 )
+    if( QString::compare(text, QString("Record")) == 0 )
     {
       m_Device->SetEnableCapturing(true);
     }
@@ -195,6 +168,23 @@ void CaptureControlWidget::SetCaptureDevice(vtkVirtualDiscCapture& aDevice)
 
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::SaveButtonPressed()
+{
+  LOG_TRACE("CaptureControlWidget::SaveButtonPressed"); 
+
+  // Stop recording
+  m_Device->SetEnableCapturing(false);
+
+  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+
+  this->ShowResultIcon(this->WriteToFile(fileName) != PLUS_FAIL, 2000);
+
+  this->UpdateBasedOnState();
+
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().begin() << "'");
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SaveAsButtonPressed()
 {
   bool isCapturing = m_Device->GetEnableCapturing();
 
@@ -222,19 +212,9 @@ void CaptureControlWidget::SaveButtonPressed()
   QString fileName = dialog->selectedFiles().first();
   delete dialog;
 
-  m_Device->SetFilename(fileName.toLatin1());
-
-  // Save
-  if( m_Device->CloseFile() != PLUS_SUCCESS )
-  {
-    this->ShowResultIcon(false, 2000);
-    LOG_ERROR("Saving failed. Unable to close device.");
-    return;
-  }
+  this->ShowResultIcon(this->WriteToFile(fileName) != PLUS_FAIL, 2000);
 
   this->UpdateBasedOnState();
-
-  this->ShowResultIcon(true, 2000);
 }
 
 //-----------------------------------------------------------------------------

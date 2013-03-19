@@ -18,13 +18,14 @@
     <rect>
      <x>5</x>
      <y>4</y>
-     <width>101</width>
+     <width>121</width>
      <height>17</height>
     </rect>
    </property>
    <property name="font">
     <font>
      <weight>50</weight>
+     <italic>true</italic>
      <bold>false</bold>
     </font>
    </property>
@@ -37,110 +38,42 @@
     <rect>
      <x>5</x>
      <y>64</y>
-     <width>51</width>
+     <width>71</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string>Start</string>
+    <string>Record</string>
    </property>
-  </widget>
-  <widget class="QFrame" name="recordStatusFrame">
-   <property name="geometry">
-    <rect>
-     <x>60</x>
-     <y>64</y>
-     <width>71</width>
-     <height>25</height>
-    </rect>
+   <property name="icon">
+    <iconset resource="CommonWidgets.qrc">
+     <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
    </property>
-   <property name="frameShape">
-    <enum>QFrame::Box</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Sunken</enum>
-   </property>
-   <widget class="QLabel" name="recordStatusLabel">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>1</y>
-      <width>61</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="palette">
-     <palette>
-      <active>
-       <colorrole role="WindowText">
-        <brush brushstyle="SolidPattern">
-         <color alpha="255">
-          <red>85</red>
-          <green>170</green>
-          <blue>0</blue>
-         </color>
-        </brush>
-       </colorrole>
-      </active>
-      <inactive>
-       <colorrole role="WindowText">
-        <brush brushstyle="SolidPattern">
-         <color alpha="255">
-          <red>85</red>
-          <green>170</green>
-          <blue>0</blue>
-         </color>
-        </brush>
-       </colorrole>
-      </inactive>
-      <disabled>
-       <colorrole role="WindowText">
-        <brush brushstyle="SolidPattern">
-         <color alpha="255">
-          <red>120</red>
-          <green>120</green>
-          <blue>120</blue>
-         </color>
-        </brush>
-       </colorrole>
-      </disabled>
-     </palette>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Recording</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QLabel" name="actualFrameRateLabel">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>130</x>
      <y>4</y>
-     <width>91</width>
+     <width>61</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>Actual Rate (FPS):</string>
+    <string>Actual FPS:</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="saveButton">
+  <widget class="QPushButton" name="saveAsButton">
    <property name="geometry">
     <rect>
-     <x>132</x>
+     <x>110</x>
      <y>64</y>
-     <width>24</width>
+     <width>41</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>...</string>
    </property>
    <property name="icon">
     <iconset resource="CommonWidgets.qrc">
@@ -216,8 +149,8 @@
     <property name="geometry">
      <rect>
       <x>5</x>
-      <y>23</y>
-      <width>141</width>
+      <y>22</y>
+      <width>81</width>
       <height>17</height>
      </rect>
     </property>
@@ -228,14 +161,14 @@
      </size>
     </property>
     <property name="text">
-     <string>Requested frame rate (FPS):</string>
+     <string>Requested FPS:</string>
     </property>
    </widget>
    <widget class="QLabel" name="requestedFrameRateValueLabel">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>23</y>
+      <x>80</x>
+      <y>22</y>
       <width>31</width>
       <height>17</height>
      </rect>
@@ -322,14 +255,72 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLabel" name="numberOfRecordedFramesLabel">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>22</y>
+      <width>41</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Frames:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="numberOfRecordedFramesValueLabel">
+    <property name="geometry">
+     <rect>
+      <x>177</x>
+      <y>22</y>
+      <width>49</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="saveButton">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>64</y>
+     <width>24</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="CommonWidgets.qrc">
+     <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+   </property>
   </widget>
   <zorder>frame</zorder>
   <zorder>channelIdentifierLabel</zorder>
   <zorder>startStopButton</zorder>
-  <zorder>recordStatusFrame</zorder>
   <zorder>actualFrameRateLabel</zorder>
-  <zorder>saveButton</zorder>
+  <zorder>saveAsButton</zorder>
   <zorder>requestedSamplingRate</zorder>
+  <zorder>saveButton</zorder>
  </widget>
  <resources>
   <include location="CommonWidgets.qrc"/>

@@ -12,5 +12,8 @@
     <file>Resources/icon_PopOut.png</file>
     <file>Resources/icon_Refresh.png</file>
     <file>Resources/icon_Edit.png</file>
+    <file>Resources/icon_Snapshot.png</file>
+    <file>Resources/icon_Record.png</file>
+    <file>Resources/icon_Stop.png</file>
   </qresource>
 </RCC>
