@@ -38,7 +38,7 @@
     <rect>
      <x>5</x>
      <y>64</y>
-     <width>71</width>
+     <width>63</width>
      <height>24</height>
     </rect>
    </property>
@@ -274,11 +274,28 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
+   <widget class="QPushButton" name="snapshotButton">
+    <property name="geometry">
+     <rect>
+      <x>75</x>
+      <y>64</y>
+      <width>30</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="CommonWidgets.qrc">
+      <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>112</x>
      <y>64</y>
      <width>24</width>
      <height>24</height>

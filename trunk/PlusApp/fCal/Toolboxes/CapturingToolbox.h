@@ -105,6 +105,16 @@ protected slots:
   void ClearRecordedFrames();
 
   /*!
+  * Slot handling clear recorded frames button click
+  */
+  void ClearAll();
+
+  /*!
+  * Slot handling start/stop all capture devices
+  */
+  void StartStopAll();
+
+  /*!
   * Slot handling Save button click
   */
   void Save();
@@ -113,6 +123,11 @@ protected slots:
   * Slot handling Save As button click
   */
   void SaveAs();
+
+  /*!
+  * Slot handling Save As button click
+  */
+  void SaveAll();
 
   /*!
   * Slot handling value change of sampling rate slider

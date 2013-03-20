@@ -43,7 +43,9 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   connect( ui.pushButton_ClearRecordedFrames, SIGNAL( clicked() ), this, SLOT( ClearRecordedFrames() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
   connect( ui.pushButton_SaveAs, SIGNAL( clicked() ), this, SLOT( SaveAs() ) );
-
+  connect( ui.pushButton_SaveAll, SIGNAL( clicked() ), this, SLOT( SaveAll() ) );
+  connect( ui.pushButton_ClearAll, SIGNAL( clicked() ), this, SLOT( ClearAll() ) );
+  connect( ui.pushButton_StartStopAll, SIGNAL( clicked() ), this, SLOT( StartStopAll() ) );
   connect( ui.horizontalSlider_SamplingRate, SIGNAL( valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
 
   // Create and connect recording timer
@@ -52,6 +54,10 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 
   ui.pushButton_Save->setEnabled(m_RecordedFrames->GetNumberOfTrackedFrames() > 0);
   ui.pushButton_SaveAs->setEnabled(m_RecordedFrames->GetNumberOfTrackedFrames() > 0);
+
+  ui.pushButton_StartStopAll->setEnabled(false);
+  ui.pushButton_SaveAll->setEnabled(false);
+  ui.pushButton_ClearAll->setEnabled(false);
 
   m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
 }
@@ -123,6 +129,26 @@ void CapturingToolbox::RefreshContent()
   {
     ui.label_ActualRecordingFrameRate->setText(QString::number(m_ActualFrameRate, 'f', 2));
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
+  }
+
+  ui.pushButton_SaveAll->setEnabled(false);
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    if( widget->CanSave() )
+    {
+      ui.pushButton_SaveAll->setEnabled(true);
+      break;
+    }
+  }
+
+  ui.pushButton_ClearAll->setEnabled( m_CaptureWidgets.size() > 0 );
+  ui.pushButton_StartStopAll->setEnabled( m_CaptureWidgets.size() > 0 );
+
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->UpdateBasedOnState();
   }
 }
 
@@ -631,4 +657,48 @@ void CapturingToolbox::HandleStatusMessage( const std::string& aMessage )
   ui.plainTextEdit_saveResult->clear();
   QString message(aMessage.c_str());
   ui.plainTextEdit_saveResult->insertPlainText(message);
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::StartStopAll()
+{
+  QString text = ui.pushButton_StartStopAll->text();
+  bool enable(true);
+  if( QString::compare(text, QString("Record All")) == 0 )
+  {
+    ui.pushButton_StartStopAll->setText(QString("Stop All"));
+    ui.pushButton_StartStopAll->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
+  }
+  else
+  {
+    ui.pushButton_StartStopAll->setText(QString("Record All"));
+    ui.pushButton_StartStopAll->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
+    enable = false;
+  }
+
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->SetEnableCapturing(enable);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::ClearAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->Clear();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::SaveAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->SaveFile();
+  }
 }

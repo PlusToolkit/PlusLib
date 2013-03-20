@@ -46,6 +46,16 @@ public:
 
   virtual vtkVirtualDiscCapture* GetCaptureDevice(){ return m_Device; }
 
+  virtual void SetEnableCapturing(bool aCapturing);
+
+  virtual void SaveFile();
+
+  virtual void Clear();
+
+  virtual bool CanSave() const;
+
+  virtual bool CanRecord() const;
+
 protected:
   /*!
   * Saves recorded tracked frame list to file
@@ -68,9 +78,12 @@ signals:
   void EmitStatusMessage(const std::string&);
 
 protected slots:
-  void StartStopButtonPressed();
+  /*!
+  * Take snapshot (record the current frame only)
+  */
+  void TakeSnapshot();
 
-  void Update();
+  void StartStopButtonPressed();
 
   void SaveButtonPressed();
 
@@ -81,9 +94,6 @@ protected slots:
   void ClearButtonPressed();
 
 protected:
-  /*! Timer triggering the */
-  QTimer* m_UpdateTimer;
-
   /*! device to interact with */
   vtkVirtualDiscCapture* m_Device;
 

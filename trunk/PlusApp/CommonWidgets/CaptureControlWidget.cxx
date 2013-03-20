@@ -15,22 +15,16 @@ See License.txt for details.
 //-----------------------------------------------------------------------------
 CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 : QWidget(aParent)
-, m_UpdateTimer(NULL)
 , m_Device(NULL)
 {
   ui.setupUi(this);
-
-  // Create and connect recording timer
-  m_UpdateTimer = new QTimer(this); 
-  connect(m_UpdateTimer, SIGNAL(timeout()), this, SLOT(Update()) );
-
-  m_UpdateTimer->start(200);
 
   connect(ui.startStopButton, SIGNAL(clicked()), this, SLOT(StartStopButtonPressed()) );
   connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(SaveButtonPressed()) );
   connect(ui.saveAsButton, SIGNAL(clicked()), this, SLOT(SaveAsButtonPressed()) );
   connect(ui.clearRecordedFramesButton, SIGNAL(clicked()), this, SLOT(ClearButtonPressed()) );
   connect(ui.samplingRateSlider, SIGNAL(valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
+  connect(ui.snapshotButton, SIGNAL(clicked()), this, SLOT(TakeSnapshot()) );
 
   ui.startStopButton->setText("Start");
 
@@ -40,7 +34,6 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 //-----------------------------------------------------------------------------
 CaptureControlWidget::~CaptureControlWidget()
 {
-  delete m_UpdateTimer;
 }
 
 //-----------------------------------------------------------------------------
@@ -80,8 +73,8 @@ void CaptureControlWidget::UpdateBasedOnState()
     ui.startStopButton->setEnabled(true);
     ui.channelIdentifierLabel->setText(QString(m_Device->GetDeviceId()));
 
-    ui.saveAsButton->setEnabled( m_Device->HasUnsavedData() );
-    ui.saveButton->setEnabled( m_Device->HasUnsavedData() );
+    ui.saveAsButton->setEnabled( this->CanSave() );
+    ui.saveButton->setEnabled( this->CanSave() );
     ui.clearRecordedFramesButton->setEnabled( m_Device->HasUnsavedData() );
     ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
 
@@ -127,12 +120,6 @@ PlusStatus CaptureControlWidget::SaveToMetafile( std::string aOutput )
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::Update()
-{
-  this->UpdateBasedOnState();
-}
-
-//-----------------------------------------------------------------------------
 void CaptureControlWidget::StartStopButtonPressed()
 {
   if( m_Device != NULL )
@@ -165,29 +152,7 @@ void CaptureControlWidget::SetCaptureDevice(vtkVirtualDiscCapture& aDevice)
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::SaveButtonPressed()
 {
-  LOG_TRACE("CaptureControlWidget::SaveButtonPressed"); 
-
-  // Stop recording
-  m_Device->SetEnableCapturing(false);
-
-  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
-
-  std::string message("");
-  if( this->WriteToFile(fileName) != PLUS_FAIL )
-  {
-    message += "Successfully wrote: ";
-    message += fileName.toLatin1();
-  }
-  else
-  {
-    message += "Failed to write: ";
-    message += fileName.toLatin1();
-  }
-
-  this->SendStatusMessage(message);
-  this->UpdateBasedOnState();
-
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().begin() << "'");
+  this->SaveFile();
 }
 
 //-----------------------------------------------------------------------------
@@ -263,6 +228,132 @@ void CaptureControlWidget::SamplingRateChanged( int aValue )
 //-----------------------------------------------------------------------------
 void CaptureControlWidget::ClearButtonPressed()
 {
+  this->Clear();
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SendStatusMessage( const std::string& aMessage )
+{
+  emit EmitStatusMessage(aMessage);
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::TakeSnapshot()
+{
+  LOG_TRACE("CaptureControlWidget::TakeSnapshot"); 
+
+  vtkPlusChannel* aChannel = (*m_Device->GetOutputChannelsStart());
+  TrackedFrame frame;
+  if( aChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
+  {
+    std::string aMessage("Unable to retrieve tracked frame for device: ");
+    aMessage += this->m_Device->GetDeviceId();
+    this->SendStatusMessage(aMessage);
+    LOG_ERROR(aMessage);
+    return;
+  }
+
+  // Check if there are any valid transforms
+  std::vector<PlusTransformName> transformNames;
+  frame.GetCustomFrameTransformNameList(transformNames);
+  bool validFrame = false;
+
+  if (transformNames.size() == 0)
+  {
+    validFrame = true;
+  }
+  else
+  {
+    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+    {
+      TrackedFrameFieldStatus status = FIELD_INVALID;
+      frame.GetCustomFrameTransformStatus(*it, status);
+
+      if ( status == FIELD_OK )
+      {
+        validFrame = true;
+        break;
+      }
+    }
+  }
+
+  if ( !validFrame )
+  {
+    std::string aMessage("Warning: Snapshot frame for device ");
+    aMessage += this->m_Device->GetDeviceId();
+    aMessage += " has no transforms. Success.";
+    this->SendStatusMessage(aMessage);
+    LOG_WARNING(aMessage); 
+  }
+
+  vtkTrackedFrameList* list = vtkTrackedFrameList::New();
+  list->AddTrackedFrame(&frame);
+
+  vtkMetaImageSequenceIO* writer = vtkMetaImageSequenceIO::New();
+  QString fileName = QString("%1/TrackedImageSequence_Snapshot_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+  writer->SetFileName(fileName.toLatin1());
+  writer->SetTrackedFrameList(list);
+  if( writer->Write() != PLUS_SUCCESS )
+  {
+    std::string aMessage("Unable to write frame for device ");
+    aMessage += this->m_Device->GetDeviceId();
+    this->SendStatusMessage(aMessage);
+    LOG_ERROR(aMessage); 
+  }
+
+  std::string aMessage("Snapshot taken for device ");
+  aMessage += this->m_Device->GetDeviceId();
+  aMessage += " to file: ";
+  aMessage += fileName;
+  this->SendStatusMessage(aMessage);
+  LOG_INFO(aMessage); 
+
+  list->Delete();
+  writer->Delete();
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SetEnableCapturing( bool aCapturing )
+{
+  if( m_Device != NULL )
+  {
+    this->m_Device->SetEnableCapturing(aCapturing);
+
+    this->UpdateBasedOnState();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::SaveFile()
+{
+  LOG_TRACE("CaptureControlWidget::SaveFile"); 
+
+  // Stop recording
+  m_Device->SetEnableCapturing(false);
+
+  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+
+  std::string message("");
+  if( this->WriteToFile(fileName) != PLUS_FAIL )
+  {
+    message += "Successfully wrote: ";
+    message += fileName.toLatin1();
+  }
+  else
+  {
+    message += "Failed to write: ";
+    message += fileName.toLatin1();
+  }
+
+  this->SendStatusMessage(message);
+  this->UpdateBasedOnState();
+
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().begin() << "'");
+}
+
+//-----------------------------------------------------------------------------
+void CaptureControlWidget::Clear()
+{
   m_Device->SetEnableCapturing(false);
   m_Device->Reset();
 
@@ -274,7 +365,13 @@ void CaptureControlWidget::ClearButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SendStatusMessage( const std::string& aMessage )
+bool CaptureControlWidget::CanSave() const
 {
-  emit EmitStatusMessage(aMessage);
+  return m_Device->HasUnsavedData();
+}
+
+//-----------------------------------------------------------------------------
+bool CaptureControlWidget::CanRecord() const
+{
+  return m_Device != NULL;
 }
