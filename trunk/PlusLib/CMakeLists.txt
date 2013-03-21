@@ -61,3 +61,7 @@ configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
         ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
         )
+
+        
+        
+        
