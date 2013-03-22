@@ -44,7 +44,7 @@ DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 
 PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toAscii().data() << ")");
+  LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toLatin1().constData() << ")");
 
   // Try to parse up directory and set UI according to the result
   if (ParseDirectory(aDirectory))
@@ -84,7 +84,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
   if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS)
   {
     // Save the selected directory to config object
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toAscii().data());
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toLatin1().constData());
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
   else
@@ -107,7 +107,7 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
   ui.pushButton_Connect->setEnabled(false);
 
-  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
+  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
   LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
 
-  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toAscii().data(); 
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toLatin1().constData(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
-  emit DeviceSetSelected( configurationFilePath.toAscii().data() ); 
+  emit DeviceSetSelected( configurationFilePath.toLatin1().constData() ); 
 }
 
 //-----------------------------------------------------------------------------
@@ -184,7 +184,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 
       // Set last used device set config file
-      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
+      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toLatin1().constData());
     }
     else
     {
@@ -231,7 +231,7 @@ bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toAscii().data() << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toLatin1().constData() << ")"); 
 
   QDir configDir(aDirectory);
   QStringList fileList(configDir.entryList());
@@ -310,7 +310,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       QString name(elem.attribute("Name"));
       if (name.isEmpty())
       {
-        LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toAscii().data() << "', it is not added to the list");
+        LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toLatin1().constData() << "', it is not added to the list");
         continue;
       }
 
@@ -318,7 +318,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
       if (foundIndex > -1)
       {
-        LOG_WARNING("Device set with name '" << name.toAscii().data() << "' already found, configuration file '" << fileName.toAscii().data() << "' is not added to the list");
+        LOG_WARNING("Device set with name '" << name.toLatin1().constData() << "' already found, configuration file '" << fileName.toLatin1().constData() << "' is not added to the list");
         continue;
       }
 
@@ -343,7 +343,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   // If no valid configuration files have been parsed then warn user
   if (ui.comboBox_DeviceSet->count() < 1)
   {
-    LOG_ERROR("Selected directory ("<<aDirectory.toAscii().data()<<") does not contain valid device set configuration files!");
+    LOG_ERROR("Selected directory ("<<aDirectory.toLatin1().constData()<<") does not contain valid device set configuration files!");
     return PLUS_FAIL;
   }
 

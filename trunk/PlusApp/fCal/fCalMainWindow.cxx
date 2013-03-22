@@ -349,7 +349,7 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
   m_ToolboxList[m_ActiveToolbox]->OnActivated();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 
-  LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().data());
+  LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -565,12 +565,12 @@ void fCalMainWindow::DumpBuffers()
     return;
   }
 
-  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
+  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toLatin1().constData()) != PLUS_SUCCESS) )
   {
-    LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
+    LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toLatin1().constData() << ")!");
   }
 
-  LOG_INFO("Raw buffers dumped into directory '" << dirName.toAscii().data() << "'");
+  LOG_INFO("Raw buffers dumped into directory '" << dirName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------

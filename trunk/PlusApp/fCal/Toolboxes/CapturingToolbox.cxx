@@ -491,7 +491,7 @@ void CapturingToolbox::Save()
 
   WriteToFile(fileName);
 
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -508,7 +508,7 @@ void CapturingToolbox::SaveAs()
 
   WriteToFile(fileName);
 
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -519,7 +519,7 @@ void CapturingToolbox::WriteToFile( QString& aFilename )
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     // Actual saving
-    std::string filePath(aFilename.toLatin1().data());
+    std::string filePath(aFilename.toLatin1().constData());
     std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
     std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
     std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 

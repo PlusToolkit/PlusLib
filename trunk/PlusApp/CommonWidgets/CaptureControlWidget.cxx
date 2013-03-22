@@ -39,7 +39,7 @@ CaptureControlWidget::~CaptureControlWidget()
 //-----------------------------------------------------------------------------
 PlusStatus CaptureControlWidget::WriteToFile( QString& aFilename )
 {
-  m_Device->SetFilename(aFilename.toLatin1());
+  m_Device->SetFilename(aFilename.toLatin1().constData());
 
   // Save
   if( m_Device->CloseFile() != PLUS_SUCCESS )
@@ -188,12 +188,12 @@ void CaptureControlWidget::SaveAsButtonPressed()
   if( this->WriteToFile(fileName) != PLUS_FAIL )
   {
     message += "Successfully wrote: ";
-    message += fileName.toLatin1();
+    message += fileName.toLatin1().constData();
   }
   else
   {
     message += "Failed to write: ";
-    message += fileName.toLatin1();
+    message += fileName.toLatin1().constData();
   }
 
   this->UpdateBasedOnState();
@@ -291,7 +291,7 @@ void CaptureControlWidget::TakeSnapshot()
 
   vtkMetaImageSequenceIO* writer = vtkMetaImageSequenceIO::New();
   QString fileName = QString("%1/TrackedImageSequence_Snapshot_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
-  writer->SetFileName(fileName.toLatin1());
+  writer->SetFileName(fileName.toLatin1().constData());
   writer->SetTrackedFrameList(list);
   if( writer->Write() != PLUS_SUCCESS )
   {
@@ -337,18 +337,18 @@ void CaptureControlWidget::SaveFile()
   if( this->WriteToFile(fileName) != PLUS_FAIL )
   {
     message += "Successfully wrote: ";
-    message += fileName.toLatin1();
+    message += fileName.toLatin1().constData();
   }
   else
   {
     message += "Failed to write: ";
-    message += fileName.toLatin1();
+    message += fileName.toLatin1().constData();
   }
 
   this->SendStatusMessage(message);
   this->UpdateBasedOnState();
 
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().begin() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------

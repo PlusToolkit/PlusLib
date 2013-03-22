@@ -262,10 +262,10 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -274,7 +274,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
   {
     m_VolumeReconstructionConfigFileLoaded = false;
 
-    LOG_ERROR("Failed to import volume reconstruction settings from " << fileName.toAscii().data());
+    LOG_ERROR("Failed to import volume reconstruction settings from " << fileName.toLatin1().constData());
     return;
   }
 
@@ -282,7 +282,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 
   SetState(ToolboxState_Idle);
 
-  LOG_INFO("Volume reconstruction configuration imported in volume reconstruction toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Volume reconstruction configuration imported in volume reconstruction toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -308,7 +308,7 @@ void VolumeReconstructionToolbox::OpenInputImage()
 
   SetState(ToolboxState_Idle);
 
-  LOG_INFO("Input image '" << fileName.toAscii().data() << "' opened");
+  LOG_INFO("Input image '" << fileName.toLatin1().constData() << "' opened");
 }
 
 //-----------------------------------------------------------------------------
@@ -350,7 +350,7 @@ void VolumeReconstructionToolbox::Save()
 
     QApplication::restoreOverrideCursor();
 
-    LOG_INFO("Reconstructed volume saved into file '" << fileName.toAscii().data() << "'");
+    LOG_INFO("Reconstructed volume saved into file '" << fileName.toLatin1().constData() << "'");
   }
 }
 
@@ -390,7 +390,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
     trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ).toLatin1() ) != PLUS_SUCCESS)
+    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;
@@ -478,12 +478,12 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 
 PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 {
-  LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toAscii().data() << ")"); 
+  LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toLatin1().constData() << ")"); 
 
   // Write out to file
   if (aOutput.right(3).toLower() == QString("vtk"))
   {
-    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1()) != PLUS_SUCCESS)
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save reconstructed volume in VTK file!");
       return PLUS_FAIL;
@@ -491,7 +491,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
   }
   else if (aOutput.right(3).toLower() == QString("mha"))
   {
-    if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1()) != PLUS_SUCCESS)
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
       return PLUS_FAIL;
@@ -512,7 +512,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 
 void VolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
 {
-  LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toAscii().data() << ")");
+  LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toLatin1().constData() << ")");
 
   m_ImageFileNames.append(aImageFileName);
 }

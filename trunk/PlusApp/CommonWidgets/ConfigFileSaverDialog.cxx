@@ -48,7 +48,7 @@ void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 		return;
 	}
 
-  this->SetDestinationDirectory(dirName.toAscii().data()); 
+  this->SetDestinationDirectory(dirName.toLatin1().constData()); 
 
 	m_DestinationDirectory = dirName;
 
@@ -146,8 +146,8 @@ void ConfigFileSaverDialog::SaveClicked()
 		return;
 	}
   // Set name and description to XML
-	deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toLatin1());
-	deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toLatin1());
+	deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toLatin1().constData());
+	deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toLatin1().constData());
 
   // Display file save dialog and save XML
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -156,8 +156,8 @@ void ConfigFileSaverDialog::SaveClicked()
 
 	if (! fileName.isNull() )
   {
-    PlusCommon::PrintXML(fileName.toAscii().data(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-    LOG_INFO("Device set configuration saved as '" << fileName.toAscii().data() << "'");
+    PlusCommon::PrintXML(fileName.toLatin1().constData(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    LOG_INFO("Device set configuration saved as '" << fileName.toLatin1().constData() << "'");
 	}
 
   accept();

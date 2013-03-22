@@ -514,10 +514,10 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {  
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -571,7 +571,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   // Set to InProgress if both stylus calibration and phantom definition are available
   Start();
 
-  LOG_INFO("Stylus calibration imported in phantom registration toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Stylus calibration imported in phantom registration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------

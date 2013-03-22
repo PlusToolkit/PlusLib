@@ -431,10 +431,10 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {	
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -476,7 +476,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
 
   SetDisplayAccordingToState();
 
-  LOG_INFO("Phantom registration imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Phantom registration imported in freehand calibration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -494,10 +494,10 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -513,7 +513,7 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
 
   SetDisplayAccordingToState();
 
-  LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------

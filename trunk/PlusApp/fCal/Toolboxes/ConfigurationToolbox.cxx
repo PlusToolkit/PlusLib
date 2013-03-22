@@ -358,7 +358,7 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 
   vtkPlusLogger::Instance()->SetLogLevel(aLevel+1);
 
-  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toAscii().data() << " (" << aLevel+1 << ")" );
+  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toLatin1().constData() << " (" << aLevel+1 << ")" );
 
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 }
@@ -378,7 +378,7 @@ void ConfigurationToolbox::SelectEditorApplicationExecutable()
 
   m_LastEditorLocation = fileName.mid(0, fileName.lastIndexOf('/'));
 
-  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toAscii().data());
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toLatin1().constData());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_EditorApplicationExecutable->setText(fileName);
@@ -399,7 +399,7 @@ void ConfigurationToolbox::SelectImageDirectory()
   m_LastImageDirectoryLocation = dirName;
 
   // Save the selected directory to config object
-  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toAscii().data());
+  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toLatin1().constData());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_ImageDirectory->setText(dirName);
