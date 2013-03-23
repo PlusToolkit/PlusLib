@@ -28,12 +28,14 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include "vtkRfProcessor.h"
 #include "vtkUsScanConvert.h"
+#include "SpatialModel.h"
 
 #include "vtkModifiedBSPTree.h"
 
 // Select various algorithm options (TODO: keep only one variant or parametrize all from config file)
 #define CONSTANT_INTENSITY
 //#define ADD_NOISE
+//#define USE_SPATIAL_MODELS
 
 #ifdef ADD_NOISE
   #include "vtkLineSource.h"
@@ -84,6 +86,9 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->InsideObjectColour=INSIDE_OBJECT_COLOUR;
   this->OutsideObjectColour=OUTSIDE_OBJECT_COLOUR;
+
+  this->BackgroundSpatialModel = new SpatialModel(); //= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
+  this->BoneSpatialModel = new SpatialModel();//= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -243,6 +248,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
     double beamIntensity=50000; // TODO: magic number
+	double intensityToPixelConversionFactor = beamIntensity/256; // num pixel values.
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
@@ -286,7 +292,29 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       }
 #endif // ADD_NOISE
 
+#elif defined USE_SPATIAL_MODELS
+	  // use attenuation and impedence from config file
+
+	  this->BoneSpatialModel->SetIncomingIntensityWattsPerCm2(beamIntensity);
+
+for (int pixelIndex=0; pixelIndex<numberOfFilledPixels;pixelIndex++)
+      {
+		 if (pixelIndex<10)
+		 {
+			double backImp = this->BackgroundSpatialModel->GetAcousticImpedence;
+			 double intensityLoss = this->BoneSpatialModel->CalculateIntensity(backImp,distanceOfIntersectionPointFromScanLineStartPointMm);
+		 }
+			double intensityLoss = this->BoneSpatialModel->CalculateIntensity(this->BoneSpatialModel->GetAcousticImpedence,distanceOfIntersectionPointFromScanLineStartPointMm);
+		 beamIntensity = beamIntensity - intensityLoss;
+		 
+		  double fillColor= std::floor(beamIntensity/intensityToPixelConversionFactor)-1; // 0 - 255,think you have to -1
+        (*dstPixelAddress++)=fillColor;
+      }
+
+dstPixelAddress+=(numberOfFilledPixels-pixelIndex);
+
 #else // not CONSTANT_INTENSITY
+
       std::vector<double> *reflectionVector;
       if (isInsideObject)
       {
@@ -348,14 +376,17 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
+  
   // vtkUsSimulatorAlgo section
-  vtkXMLDataElement* usSimulatorAlgoElement = config->FindNestedElementWithName("vtkUsSimulatorAlgo"); 
+  
+  vtkXMLDataElement* usSimulatorAlgoElement = config->LookupElementWithName("vtkUsSimulatorAlgo"); 
 
   if (usSimulatorAlgoElement == NULL)
   {
     LOG_ERROR("Unable to find vtkUsSimulatorAlgo element in XML tree!"); 
     return PLUS_FAIL;     
   }
+
 
   // Background value
   int backgroundValue = -1;
@@ -387,6 +418,50 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   {
     this->SetIncomingIntensityWattsPerCm2(incomingIntensityWpercm2); 
   }
+
+  double bkgdDensityKgPerM3  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BkgdDensityKgPerM3", bkgdDensityKgPerM3 )) 
+  {
+	  this->BackgroundSpatialModel->SetDensityKgPerM3(bkgdDensityKgPerM3);
+  }
+
+    double bkgdSoundVelocityMPerSec  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BkgdSoundVelocityMPerSec", bkgdSoundVelocityMPerSec )) 
+  {
+	  this->BackgroundSpatialModel->SetSoundVelocityMPerSec(bkgdSoundVelocityMPerSec);
+  }
+
+      double bkgdAttentuationCoefficientNpPerCm  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BkgdAttentuationCoefficientNpPerCm", bkgdAttentuationCoefficientNpPerCm )) 
+  {
+	  this->BackgroundSpatialModel->SetAttenuationCoefficientNpPerCm(bkgdAttentuationCoefficientNpPerCm);
+  }
+
+  double densityKgPerM3  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("DensityKgPerM3", densityKgPerM3 )) 
+  {
+	  this->BoneSpatialModel->SetDensityKgPerM3(densityKgPerM3);
+  }
+
+    double soundVelocityMPerSec  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("SoundVelocityMPerSec", soundVelocityMPerSec )) 
+  {
+	  this->BoneSpatialModel->SetSoundVelocityMPerSec(soundVelocityMPerSec);
+  }
+
+      double attentuationCoefficientNpPerCm  = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("AttentuationCoefficientNpPerCm", attentuationCoefficientNpPerCm )) 
+  {
+	  this->BoneSpatialModel->SetAttenuationCoefficientNpPerCm(attentuationCoefficientNpPerCm);
+  } 
+/*
+
+
+DensityKgPerM3" 
+SoundVelocityMPerSec
+AttentuationCoefficientNpPerCm */
+
+
   // Model file name
 
   const char* modelFileName = usSimulatorAlgoElement->GetAttribute("ModelFileName");

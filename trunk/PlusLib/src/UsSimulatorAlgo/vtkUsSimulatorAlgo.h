@@ -17,6 +17,7 @@ class vtkTriangleFilter;
 class vtkStripper;
 class vtkModifiedBSPTree;
 class vtkRfProcessor;
+class SpatialModel; 
 
 /*!
   \class vtkUsSimulatorAlgo 
@@ -142,6 +143,8 @@ private:
 
   std::vector<double> InsideObjectReflection;
   std::vector<double> OutsideObjectReflection;
+  SpatialModel *BackgroundSpatialModel;
+  SpatialModel *BoneSpatialModel;
 
   /*! Color used for CONSTANT_INTENSITY image generation */
   unsigned char InsideObjectColour;

@@ -23,10 +23,17 @@ public:
  
   void SetFrequencyMHz(double frequencyMHz); 
 
+  void SetSoundVelocityMPerSec(double soundVelocityMPerSec);
+
+  void SetDensityKgPerM3(double densityKgPerM3);
+
+  void SetAttenuationCoefficientNpPerCm(double attenuationCoefficientNpPerCm);
+
   void SetIncomingIntensityWattsPerCm2(double incomingIntensityWattsPerCm2); 
 
   double GetIncomingIntensityWattsPerCm2(); 
 
+  double GetAcousticImpedence();
   
   // acousticImpedenceNeighbouringMaterial-> perform check to see if it is the same
   double CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm);
