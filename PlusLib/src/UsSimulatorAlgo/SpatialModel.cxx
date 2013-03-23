@@ -96,6 +96,21 @@ void SpatialModel::SetFrequencyMHz(double frequencyMHz)
 }
 
 
+void SpatialModel::SetAttenuationCoefficientNpPerCm(double attenuationCoefficientNpPerCm)
+{
+  this->AttenuationCoefficientNpPerCm = attenuationCoefficientNpPerCm; 
+}
+
+void SpatialModel::SetDensityKgPerM3(double densityKgPerM3)
+{
+  this->DensityKgPerM3 = densityKgPerM3; 
+}
+
+void SpatialModel::SetSoundVelocityMPerSec(double soundVelocityMPerSec)
+{
+  this->SoundVelocityMPerSec = soundVelocityMPerSec; 
+}
+
 void SpatialModel::SetIncomingIntensityWattsPerCm2(double incomingIntensityWattsPerCm2)
 {
   this->IncomingIntensityWattsPerCm2 = incomingIntensityWattsPerCm2; 
@@ -104,6 +119,11 @@ void SpatialModel::SetIncomingIntensityWattsPerCm2(double incomingIntensityWatts
 double SpatialModel::GetIncomingIntensityWattsPerCm2()
 {
   return this->IncomingIntensityWattsPerCm2;
+}
+
+double SpatialModel::GetAcousticImpedence()
+{
+	return ((this->DensityKgPerM3 * this->SoundVelocityMPerSec)/ CONVERSION_TO_MEGARAYLS);
 }
 
 double SpatialModel::CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
