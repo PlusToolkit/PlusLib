@@ -17,6 +17,7 @@ vtkCxxRevisionMacro(vtkVirtualDiscCapture, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualDiscCapture);
 
 static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
+static const int DISABLE_FRAME_BUFFER = -1;
 
 //----------------------------------------------------------------------------
 vtkVirtualDiscCapture::vtkVirtualDiscCapture()
@@ -37,6 +38,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_HeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(true)
+, FrameBufferSize(DISABLE_FRAME_BUFFER)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 {
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
@@ -110,6 +112,13 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
     this->SetRequestedFrameRate(15.0);
   }
 
+  int frameBufferSize;
+  if( deviceElement->GetScalarAttribute("FrameBufferSize", frameBufferSize) && frameBufferSize > 0 )
+  {
+    // This is a buffered disc capture device
+    this->SetFrameBufferSize(frameBufferSize);
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -171,8 +180,27 @@ PlusStatus vtkVirtualDiscCapture::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
 { 
-  this->EnableCapturing=false;
-  PlusStatus status=CloseFile();
+  this->EnableCapturing = false;
+
+  // If outstanding frames to be written, deal with them
+  if( m_RecordedFrames->GetNumberOfTrackedFrames() != 0 && m_HeaderPrepared )
+  {
+    if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to append image data to header.");
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+    if( m_Writer->AppendImages() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastAlreadyRecordedFrameTimestamp );
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+
+    this->ClearRecordedFrames();
+  }
+  PlusStatus status = CloseFile();
   return status;
 }
 
@@ -296,12 +324,31 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
+  
+  PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  if (!this->EnableCapturing)
+  {
+    // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
+    return PLUS_SUCCESS;
+  }
+
   int nbFramesBefore = m_RecordedFrames->GetNumberOfTrackedFrames();
   if ( this->OutputChannels[0]->GetTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_NextFrameToBeRecordedTimestamp ); 
   }
   int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
+
+  if( !m_HeaderPrepared && m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
+  {
+    if( m_Writer->PrepareHeader() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to prepare header.");
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+    m_HeaderPrepared = true;
+  }
 
   if (!this->EnableCapturing)
   {
@@ -340,39 +387,26 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
-  if (!this->EnableCapturing)
+  if( !this->IsFrameBuffered() || 
+    ( this->IsFrameBuffered() && m_RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
   {
-    // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
-    return PLUS_SUCCESS;
-  }
-
-  if( !m_HeaderPrepared )
-  {
-    if( m_Writer->PrepareHeader() != PLUS_SUCCESS )
+    if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to prepare header.");
+      LOG_ERROR("Unable to append image data to header.");
       this->Disconnect();
       return PLUS_FAIL;
     }
-    m_HeaderPrepared = true;
+    if( m_Writer->AppendImages() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastAlreadyRecordedFrameTimestamp );
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+
+    this->ClearRecordedFrames();
   }
 
-  if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to append image data to header.");
-    this->Disconnect();
-    return PLUS_FAIL;
-  }
-  if( m_Writer->AppendImages() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastAlreadyRecordedFrameTimestamp );
-    this->Disconnect();
-    return PLUS_FAIL;
-  }
-
-  TotalFramesRecorded += m_RecordedFrames->GetNumberOfTrackedFrames();
-  this->ClearRecordedFrames();
+  TotalFramesRecorded += nbFramesAfter - nbFramesBefore;
 
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
@@ -554,12 +588,14 @@ PlusStatus vtkVirtualDiscCapture::Reset()
       {
         // Risky, file with extension ".mha" might exist... no way to use windows utility to change extension
         // In reality, probably will never be an issue
-        tempFilename.replace(tempFilename.end()-3, tempFilename.end(), "mha");
-        this->m_Writer->SetFileName(tempFilename.c_str());
+        std::string mhaFilename(tempFilename);
+        mhaFilename.replace(mhaFilename.end()-3, mhaFilename.end(), "mha");
+        this->m_Writer->SetFileName(mhaFilename.c_str());
 
         this->m_Writer->Close();
 
         vtksys::SystemTools::RemoveFile(tempFilename.c_str());
+        vtksys::SystemTools::RemoveFile(mhaFilename.c_str());
       }
     }
 
@@ -579,4 +615,10 @@ PlusStatus vtkVirtualDiscCapture::Reset()
   m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkVirtualDiscCapture::IsFrameBuffered() const
+{
+  return this->FrameBufferSize != DISABLE_FRAME_BUFFER;
 }

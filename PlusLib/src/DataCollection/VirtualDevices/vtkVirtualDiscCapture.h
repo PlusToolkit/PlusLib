@@ -69,9 +69,13 @@ protected:
   virtual PlusStatus ClearRecordedFrames();
 
   vtkSetMacro(ActualFrameRate, double);
+  vtkSetMacro(FrameBufferSize, int);
+  vtkGetMacro(FrameBufferSize, int);
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
+
+  virtual bool IsFrameBuffered() const;
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
@@ -135,6 +139,8 @@ protected:
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
   bool EnableCapturing;
+
+  int FrameBufferSize;
 
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> WriterAccessMutex;
