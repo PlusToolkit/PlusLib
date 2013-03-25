@@ -185,8 +185,8 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   // Read superclass configuration
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
+  if (deviceConfig == NULL) 
   {
     LOG_ERROR("Unable to find US simulator device element in configuration XML structure!");
     return PLUS_FAIL;
@@ -194,7 +194,7 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   // Read US simulator configuration
   if ( !this->UsSimulator
-    || this->UsSimulator->ReadConfiguration(imageAcquisitionConfig) != PLUS_SUCCESS)
+    || this->UsSimulator->ReadConfiguration(deviceConfig) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read US simulator configuration!");
     return PLUS_FAIL;
