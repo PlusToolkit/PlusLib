@@ -20,11 +20,11 @@ vtkStandardNewMacro( vtkPlusCommandProcessor );
 
 //----------------------------------------------------------------------------
 vtkPlusCommandProcessor::vtkPlusCommandProcessor()
-: Threader(vtkSmartPointer<vtkMultiThreader>::New())
+: PlusServer(NULL)
+, Threader(vtkSmartPointer<vtkMultiThreader>::New())
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
-, CommandExecutionThreadId(-1)
 , CommandExecutionActive(std::make_pair(false,false))
-, PlusServer(NULL)
+, CommandExecutionThreadId(-1)
 {
   // Register default commands
   {
