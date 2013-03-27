@@ -59,7 +59,7 @@
     TemplateHolderCoordinateFrame="TemplateHolder"
     CenterOfRotationCoordinateFrame="CenterOfRotation"
     PhantomWiresCoordinateFrame="PhantomWires"
-    >
+    BrachyTrackerId="TrackerDevice" >
     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="ProbeToStepperHome" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />

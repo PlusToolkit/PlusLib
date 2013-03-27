@@ -835,11 +835,11 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
   double offset;
   if( this->GetVideoLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
   {
-    config->SetDoubleAttribute("LocalTimeOffsetSec", offset);
+    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", offset);
   }
   else if( this->GetToolLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
   {
-    config->SetDoubleAttribute("LocalTimeOffsetSec", offset);
+    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", offset);
   }
 
   return PLUS_SUCCESS;

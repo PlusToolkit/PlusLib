@@ -18,4 +18,5 @@ QCustomAction::QCustomAction(const QString &text, QObject* parent, bool aIsSepar
 void QCustomAction::activated()
 {
   emit channelSelected(m_OwnerDevice, m_OwnerChannel);
+  emit channelSelected(m_OwnerChannel);
 }

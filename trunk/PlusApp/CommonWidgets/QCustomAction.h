@@ -23,6 +23,7 @@ public slots:
 
 signals:
   void channelSelected(vtkPlusDevice* aDevice, vtkPlusChannel* aChannel);
+  void channelSelected(vtkPlusChannel* aChannel);
 
 private:
   bool m_IsSeparator;
