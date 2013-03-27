@@ -1008,10 +1008,51 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
     }
   }
 
-  double latestTrackerTimestamp(0); 
+  double latestTrackerTimestamp(0); // the latest tracker timestamp that is available for all tools
   if ( this->GetTrackingEnabled() )
-  {
-    // Get the first tool
+  {      
+    bool mostRecentTrackerTimestampRetrieved=false;
+    for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+    {
+      vtkPlusDataSource* tool=it->second;
+      if (tool==NULL)
+      {
+        LOG_ERROR("Invalid tool "<<it->first);
+        continue;
+      }
+      vtkPlusBuffer* trackerBuffer = tool->GetBuffer(); 
+      if ( trackerBuffer == NULL )
+      {
+        LOG_ERROR("Failed to get buffer of tool "<<it->first); 
+        continue;
+      }
+      BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
+      // Get the most recent valid timestamp from the tracker buffer
+      double latestTrackerTimestampForCurrentTool=0;
+      if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestampForCurrentTool ) != ITEM_OK )
+      {
+        LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+        continue;
+      }
+      if (!mostRecentTrackerTimestampRetrieved)
+      {
+        // first tool
+        latestTrackerTimestamp=latestTrackerTimestampForCurrentTool;
+        mostRecentTrackerTimestampRetrieved=true;
+      }
+      else if (latestTrackerTimestampForCurrentTool<latestTrackerTimestamp)
+      {
+        latestTrackerTimestamp=latestTrackerTimestampForCurrentTool;
+      }
+    }
+
+    if (!mostRecentTrackerTimestampRetrieved)
+    {
+      LOG_ERROR("Failed to get most recent timestamp from all the tracker tools"); 
+      return PLUS_FAIL; 
+    }
+
+    // Get the first tool. The first tool determines the sampling times, the other tools are interpolated.
     vtkPlusDataSource* firstActiveTool = NULL; 
     if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
     {
@@ -1020,19 +1061,26 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
     }
 
     vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
-    BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
+    BufferItemUidType uid = 0;
+    if (trackerBuffer->GetItemUidFromTime(latestTrackerTimestamp, uid) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestTrackerTimestamp ); 
+      return PLUS_FAIL; 
+    }
     if ( uid > 1 )
     {
       // Always use the latestItemUid - 1 to be able to interpolate transforms
       uid = uid - 1; 
     }
-
+ 
+    double latestTrackerTimestampForFirstActiveTool=0;
     // Get the most recent valid timestamp from the tracker buffer
-    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestamp ) != ITEM_OK )
+    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestampForFirstActiveTool ) != ITEM_OK )
     {
       LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
       return PLUS_FAIL;
     }
+    latestTrackerTimestamp=latestTrackerTimestampForFirstActiveTool;
   }
 
   if ( !this->GetVideoDataAvailable() )
