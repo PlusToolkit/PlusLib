@@ -758,7 +758,9 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   double localTimeOffsetSec = 0;
   if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
-    LOG_INFO("Device local time offset: " << 1000*localTimeOffsetSec << "ms" );
+    LOG_INFO("Device local time offset for "
+      <<(this->GetDeviceId()==NULL?"an unknown device":this->GetDeviceId())
+      <<": " << 1000*localTimeOffsetSec << "ms" );
     this->SetVideoLocalTimeOffsetSec(localTimeOffsetSec);
     this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
   }
