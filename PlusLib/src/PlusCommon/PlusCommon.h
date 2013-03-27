@@ -152,9 +152,9 @@ namespace PlusCommon
     int tryCount = 0;
 
 #ifdef _WIN32
-    char candidateFilename[MAX_PATH];
+    char candidateFilename[MAX_PATH]="";
 #else
-    char candidateFilename[L_tmpnam];
+    char candidateFilename[L_tmpnam]="";
 #endif
 
     while( tryCount < maxRetryCount)
@@ -162,7 +162,8 @@ namespace PlusCommon
       tryCount++;
 
 #ifdef _WIN32
-      UINT uRetVal = GetTempFileName(anOutputDirectory.c_str(), "", 0, candidateFilename);  // buffer for name
+      std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
+      UINT uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
       if( uRetVal == ERROR_BUFFER_OVERFLOW )
       {
         if( vtksys::SystemTools::FileExists(candidateFilename) )
@@ -170,6 +171,11 @@ namespace PlusCommon
           vtksys::SystemTools::RemoveFile(candidateFilename);
         }
         LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+        continue;
+      }
+      else if (uRetVal==0)
+      {
+        LOG_ERROR("Failed to generate temporary filename. Error code:" << GetLastError());
         continue;
       }
 
