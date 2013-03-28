@@ -163,7 +163,7 @@ namespace PlusCommon
       tryCount++;
 
 #ifdef _WIN32
-      UINT uRetVal;
+      UINT uRetVal(0);
       if( !anOutputDirectory.empty() )
       {
         std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
