@@ -1297,7 +1297,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
   if( this->TempHeaderFileName == NULL )
   {
     std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to create temporary header file. Check write access.");
       return PLUS_FAIL;
@@ -1308,7 +1308,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
   if( this->TempImageFileName == NULL )
   {
     std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to create temporary image file. Check write access.");
       return PLUS_FAIL;

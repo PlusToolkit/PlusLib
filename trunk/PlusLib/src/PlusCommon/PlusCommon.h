@@ -148,6 +148,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   static PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
   {
+    aString = "";
     int maxRetryCount = 50;
     int tryCount = 0;
 
@@ -155,15 +156,31 @@ namespace PlusCommon
     char candidateFilename[MAX_PATH]="";
 #else
     char candidateFilename[L_tmpnam]="";
-#endif
+#endif/
 
     while( tryCount < maxRetryCount)
     {
       tryCount++;
 
 #ifdef _WIN32
-      std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
-      UINT uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+      UINT uRetVal;
+      if( !anOutputDirectory.empty() )
+      {
+        std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
+        uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+      }
+      else
+      {
+        char tempPath[MAX_PATH]="";
+        if( GetTempPath(MAX_PATH, tempPath) == 0 )
+        {
+          LOG_ERROR("Unable to retrieve temp path: " << GetLastError() );
+          return PLUS_FAIL;
+        }
+        uRetVal = GetTempFileName(tempPath, "", 0, candidateFilename);
+      }
+      
+      
       if( uRetVal == ERROR_BUFFER_OVERFLOW )
       {
         if( vtksys::SystemTools::FileExists(candidateFilename) )
@@ -202,7 +219,6 @@ namespace PlusCommon
 #endif
     }
 
-    aString = "";
     return PLUS_FAIL;
   }
 

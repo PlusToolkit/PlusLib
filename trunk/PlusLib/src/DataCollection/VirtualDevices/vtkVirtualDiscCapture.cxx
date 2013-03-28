@@ -580,7 +580,7 @@ PlusStatus vtkVirtualDiscCapture::Reset()
     {
       // Change the filename to a temporary filename
       std::string tempFilename;
-      if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
+      if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to create temporary file. Check write access.");
       }
