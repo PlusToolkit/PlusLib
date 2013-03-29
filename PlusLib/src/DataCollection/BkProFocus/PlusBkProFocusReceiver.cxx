@@ -45,6 +45,8 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 
   // initialize parameters
   m_MaxNumberOfLines = maxNumberOfLines;
+  // adding 6 fixes the issue of mismatch between the prepared and received buffers. Perhaps this is
+  // due to a header that is not accounted for.
   m_NumberOfRfSamplesPerLine = numberOfRfSamplesPerLine+6;
   
   if (m_Frame != NULL)
