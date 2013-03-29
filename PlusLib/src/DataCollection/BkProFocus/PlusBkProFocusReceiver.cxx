@@ -45,7 +45,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 
   // initialize parameters
   m_MaxNumberOfLines = maxNumberOfLines;
-  m_NumberOfRfSamplesPerLine = numberOfRfSamplesPerLine;
+  m_NumberOfRfSamplesPerLine = numberOfRfSamplesPerLine+6;
   
   if (m_Frame != NULL)
   {
@@ -110,7 +110,7 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
   }
   else if (numberOfSamplePairsInOutput<numberOfSamplePairsInInput)
   {
-//	  LOG_WARNING("Not enough space allocated to store all the RF samples. Input: "<<numberOfSamplePairsInInput<<", output: "<<numberOfSamplePairsInOutput);
+	  LOG_WARNING("Not enough space allocated to store all the RF samples. Input: "<<numberOfSamplePairsInInput<<", output: "<<numberOfSamplePairsInOutput);
     numberOfSamplePairsToCopy=numberOfSamplePairsInOutput;
   }
   else // numberOfSamplePairsInInput < numberOfSamplePairsInOutput
