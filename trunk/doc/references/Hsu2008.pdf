@@ -1,0 +1,799 @@
+
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<script src="//cdn.optimizely.com/js/204774041.js"></script>
+<script> var ts1 = new Date().getTime(); </script>
+<!-- static const char articletmpl_sccsId[] = "%W%  %G% %U%  Retrieved: %H% %T%"; -->
+<meta name="robots" content="NOARCHIVE">
+<meta name="robots" content="noodp" />
+<meta name="robots" content="noydir" />
+<link rel="canonical" href="http://www.sciencedirect.com/science/article/pii/S0301562907003900">
+
+
+<link rel="shortcut icon" href="http://cdn.els-cdn.com/sd/faviconSD.ico" type="image/x-icon">
+<title>ScienceDirect.com - Ultrasound in Medicine & Biology - Real-Time Freehand 3D Ultrasound Calibration</title>
+
+<link type="text/css" rel="StyleSheet" href="http://www.sciencedirect.com/gadgetservices/gadgets/v3_1/css/gadgets_ext,gadgets,toolbar,SDArticleGadgetOverRide,jquery-ui-1.8.4.custom.css">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" type="text/css">
+<link rel="stylesheet" Title="Default Styles" href="http://cdn.els-cdn.com/sd/css/article_123R8.css" type="text/css">
+<link rel="stylesheet" Title="Default Styles" href="http://cdn.els-cdn.com/sd/css/articleSprite_123R8.css" type="text/css">
+
+<script>
+if( typeof(ts1) == "undefined" ){ ts1= new Date().getTime(); }
+Array.prototype.rt = function(label,ts){this.push( "{lbl:"+label+",ts:"+(ts||ts==0?ts:new Date().getTime())+"}" );}
+var prs = [];
+prs.rt( "head", ts1 );
+function loadPDF(){}
+</script>
+
+</head>
+
+<body>
+
+
+<script>prs.rt('body_start');</script>
+<script>
+var refLinkURL = "http://www.sciencedirect.com/science/relLink/ajaxReq?_eid=1-s2.0-S0301562907003900";
+var updatedCitedBy = "http://www.sciencedirect.com/science/referenceResolution/ajaxRefResol?_updateCitedBy=";
+var refResolvePath = "http://www.sciencedirect.com/science/referenceResolution/ajaxRefResol?_eid=1-s2.0-S0301562907003900&_refCnt=32&_docType=article";
+
+// these variables handle the reference resolution. Please ignore the naming.
+// the first variable myMap will hold an associative array of links by bibID
+// the second variable myXabsCounts holds the scopus counts.
+var myMap = []; // html of links for references.
+var myXabsCounts = []; // scopus counts
+</script>
+<div id="header-area">
+  <div id="header" class="outerWrapper">
+<div style="background-color:#FFFFFF;position:relative;" class="outerWrapper" >
+<div id="masthead" >
+
+<!-- INSERTS THE TEMPLATE VARIABLES POPULATED FROM DB for SCIVERSE and PRODUCT labels -->
+
+<div class="logoSciVerseBlk"> <a href="http://www.sciencedirect.com/" <span class="logoSciVerseImg">&nbsp;</span></a> </div> <div class="logoScienceDirectBlk"><a href="http://www.sciencedirect.com/" title="ScienceDirect -The world's leading full-text scientific database"><span class="logoScienceDirectImg" >&nbsp;</span></a></div>
+
+</div >
+<div id="suites" class="clearfix" aria-label="SciVerse" role="navigation" >
+<ul class="suites"><li><a href="http://www.hub.sciverse.com/action/home" title="Hub - SciVerse's integrated search">Hub</a></li><li><a title="ScienceDirect - the world's leading full-text scientific database" class="selected">ScienceDirect</a></li><li><a href="http://www.scopus.com" title="Scopus - the largest abstract and citation database of research literature and quality web sources">Scopus</a></li><li><a href="http://www.applications.sciverse.com/action/userhome" title=" Applications - SciVerse Applications" class="last">Applications</a></li></ul>
+</div>
+</div>		
+
+     <!-- if not logged in -->
+	   
+
+			
+
+    <div id="login" class="clearfix">
+    	<ul>
+		<li>
+    
+      <a href="https://www.sciencedirect.com/science?_ob=RegistrationURL&_method=display&_type=guest&_returnURL=http%3A%2F%2Fwww.sciencedirect.com%2Fscience%2Flogin&_acct=C000228598&_version=1&_userid=10&md5=7a418779018b97e81107a337f97128c0" target="_top" title="Register a ScienceDirect username and password for using alerts and other personal features" >Register</a>
+    
+  </li>
+  <!--top right widget-->
+  <li class="login " id="loginPlus"><a href="javascript:LoginBox.flipLogin('loginBox',null);" title="Login to ScienceDirect" class="novisit plus nojs" id="loginPlusScript" >Login</a><noscript><a href="http://www.sciencedirect.com/science?_ob=HomePageURL&_method=userHomePage&_fl=y&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=fa138b10330ea810e5335bf77fe1d551" title="Open the Login Box" class="plus" id="loginPlusNoScript" >Login</a></noscript>
+  </li>
+           
+           <li class="last"><a href="http://www.scival.com" title="Go to SciVal Suite" >Go to SciVal Suite</a></li> 
+        </ul>
+    </div>
+    
+	<div id="loginBox" style="display:none;">
+        <div class="padding" style="padding-top:10px;">
+            <form name="sdLogin" method="POST" action="https://www.sciencedirect.com/science/login" id="login-box-form" style="margin:0;">
+			<input type="hidden" name="login" value="login">
+            <div>
+			<label for="username"><span style="text-align:right;">Username:</span>
+            <input id="username" type="text" name="userid" title="Please enter your username here" /></label>
+            </div>
+            
+            <div style="margin-top:2px;">
+            <label for="password"><span style="text-align:right;">Password:</span>
+            <input id="password" type="password" name="password" maxlength="20" title="Please enter your password here" onkeypress="if(13==event.keyCode)this.form.submit();if (13==event.keyCode)return false;"/></label>
+            </div>
+                   
+                       
+			
+			<div class="remember">
+			<input type="checkbox" checked name="rememberid" id="rememberMe" value="Y" class="allCheck top2fix" title="Checking this option will log you in automatically next time you visit ScienceDirect"/>
+			<label for="rememberMe" title="Checking this option will log you in automatically next time you visit ScienceDirect">Remember me</label>
+			</div>
+            
+			<input type="hidden" name="_ob" value="MiamiLogonURL">
+			<input type="hidden" name="targetURL" value="http://www.sciencedirect.com/science/article/pii/S0301562907003900" >
+			<input type="hidden" name="returnURL" value="http://www.sciencedirect.com/science/article/pii/S0301562907003900" >
+            <div class="submit" >
+			
+			<div style="float:left;padding-left:0px;"><input class="button" type="Submit" name="arrow" alt="Login to ScienceDirect" title="Login to ScienceDirect" value="Login"/></div>
+        
+			
+			
+			<div class="notRegistered" ><span class="astPad">| </span><span><a href="https://www.sciencedirect.com/science?_ob=RegistrationURL&_method=display&_type=guest&_returnURL=http%3A%2F%2Fwww.sciencedirect.com%2Fscience%2Flogin&_acct=C000228598&_version=1&_userid=10&md5=7a418779018b97e81107a337f97128c0" title="Register a username and password for using alerts and other personal features" target="_top">Not Registered?</a></span></div>
+			
+			
+			
+            </div>
+			<div style="clear:both;"></div>
+            </form>
+            <div class="forgotpass">
+			<a href="http://www.sciencedirect.com/science?_ob=ReminderURL&_method=display&_acct=C000228598&_version=1&_userid=10&md5=47dd38b07cdc1f0f4c3ce0e1c7967215" target="passwd" onClick="var remindWin;remindWin=window.open('','passwd','scrollbars=yes,resizable=yes,directories=no,toolbar=n,menubar=no,status=no,width=650,height=300');" title="Click here for help in recovering your ScienceDirect access">Forgotten your username or password?</a>
+            </div>
+        </div>
+	
+        <div class="institutiontext">
+		
+		
+		<a href="/science?_ob=FederationURL&_method=display&_type=f&_acct=C000228598&_version=1&_userid=10&md5=4588277742fa8648d3a754e394556c55"title="Go to Athens/ Institution login">Go to Athens / Institution login</a>
+		
+        </div>
+	
+				
+		
+                  
+                    <div class="institutiontext">
+                    <a href="http://www.sciencedirect.com/science/activateaccess" title="Remote access activation">Remote access activation</a>
+                    </div>
+                  
+                
+        </div>
+
+	<!-- logged in -->
+	     
+
+
+
+<div id="navigationTop" class="clearfix" aria-label="ScienceDirect" role="navigation">
+        <ul class="nav main">
+           <li class="last"><a class=" canonHomeLink" href="http://www.sciencedirect.com" method="userHomePage" btn="Y" zone="TopNavBar" origin="home" target="_top" name="Home" title="Home" >Home</a></li>
+	    <li>
+            <!--<h1>-->
+		<a  href="http://www.sciencedirect.com/science/browse" type="all" auth="y" zone="TopNavBar" origin="article" target="_top" name="Publications"  title="Publications">Publications</a>
+		    <!--</h1>-->
+            </li>
+			
+			<li><a  href="http://www.sciencedirect.com/science?_ob=MiamiSearchURL&_method=requestForm&_btn=Y&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_urlVersion=1&_userid=10&md5=39b3eb2d7921081816953b8c126d4d1e" target="_top" name="Search" title="Search" >Search</a></li>
+
+
+      <li><a  href="http://www.sciencedirect.com/science?_ob=UserSubscriptionURL&_method=begin&_btn=Y&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_urlVersion=1&_userid=10&md5=7028052249c85a73d258a77d39038b36" target="_top" name="account" title="My settings" >My settings</a></li>
+
+
+      
+
+      <li><a  href="http://www.sciencedirect.com/science?_ob=MiamiSDIURL&_method=listAlerts&_btn=Y&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=5713335a2ad9c5aa94441b399aa83b5e" target="_top" name="alert" title="Alerts" >My alerts</a></li>
+
+      <li><a  href="http://www.sciencedirect.com/science?_ob=ShoppingCartURL&_method=display&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_userid=10&md5=970884c23c786181ae7d8e5cc2a321ad" target="_top" name="cart" title="Shopping Cart" >Shopping cart</a></li>  	           
+
+        </ul>
+        
+        <ul class="nav misc">
+                           
+                 <li class="last" style="margin-right:247px;" ><a href="http://www.sciencedirect.com/science?_ob=HelpURL&_file=browse_open_doc.htm&_btn=Y&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=00ae555385dab9ff9d6838b8a122fa9b" target="sdhelp" title="Help (Opens new window)" onClick="var helpWin; helpWin=window.open('http://www.sciencedirect.com/science?_ob=HelpURL&_file=browse_open_doc.htm&_btn=Y&_zone=TopNavBar&_origin=article&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=00ae555385dab9ff9d6838b8a122fa9b','sdhelp','scrollbars=yes,resizable=yes,directories=no,toolbar=no,menubar=no,status=no,width=760,height=570'); helpWin.focus(); return false" >Help</a></li>      
+         
+        </ul> 
+                                
+    
+        
+                            
+        <div id="bannerTop">                        
+                
+                    <a href="http://info.sciencedirect.com/using/access_article_display/guest/" onclick="openNS('http://info.sciencedirect.com/using/access_article_display/guest/'); return false;">
+                        <img src="http://www.sciencedirect.com/science/page/static/science/dynamic_scidir_home_guest_user.gif" border="0" />
+                    </a>
+                
+        </div>
+            
+        
+               
+</div>
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+<div id="page-area">
+  <div id="articleToolbar">
+    <div id="articleNav">
+  <ul aria-label="Article options" role="navigation">
+    <li>
+      <!-- return to gateway -->
+       
+      
+    </li>
+
+
+
+
+
+<li>
+      <div class="icon_exportarticlesci_dir" title="Export citation">
+        <div class="icon"></div>
+        <a href="/science?_ob=DownloadURL&_method=confirm&_eidkey=1-s2.0-S0301562907003900&count=1&_docType=FLA&zone=toolbar&_acct=C000228598&_version=1&_userid=10&md5=046f815b9d6107ee670047f3c3e75d4b" 
+        >Export citation</a>
+      </div>
+</li>
+  
+
+
+
+
+<li>
+  <div class="icon_pdf">
+    <div class="icon"></div>
+    <a id="pdfLink"  href="/science?_ob=ShoppingCartURL&_method=add&_eid=1-s2.0-S0301562907003900&originContentFamily=serial&_origin=article&_acct=C000228598&_version=1&_userid=10&_ts=1364786920&md5=2465e5aa0c4f91b61f1210d653f9b0cb" target=""      class="big pdf ext_sdlink" style="cursor:pointer" title="Purchase PDF" >Purchase </a>
+  </div>
+</li>
+ 
+ 
+
+
+
+<li class="optionsPos">
+      <div id="moreOptionsButton" title="Show article options">
+        <a href="#">More options...</a>
+        <div class="down_sci_dir"></div>
+      </div>
+
+<!-- More Options Starts-->
+<div id="moreOptionsMenu" class="articleOptions articleOptionssci_dir">
+<ul>
+
+
+
+
+
+<li>
+    <div class="emailsci_dir">
+        <div></div>
+        <a title="Email this article" href="/science?_ob=EmailFriendURL&_method=gatherInfo&refSource=abst&count=1&_eidkey=1-s2.0-S0301562907003900&_acct=C000228598&_version=1&_userid=10&md5=822a2b71eb9cdfe70d5637f914c0e619"  >Email article</a>
+    </div>
+</li>
+
+  
+
+
+
+
+   
+       <li>
+          <div id="alertOn" style="display:none;" class="alertsci_dir">
+            <div></div>
+            <span>
+            Signed up for journal alerts&nbsp;[<a href="/science?_ob=PublicationURL&newIssueAlert=2&_cid=271204&_pubType=J&_auth=y&originContentFamily=serial&_pii=S0301562907003900&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=cd2914dda76ad114e866f8c2872ec005">remove</a>]</span>
+          </div>
+          <div id="alertOff" style="display:inline;"  class="alertsci_dir">
+            <div></div>
+            <a title="Set new Volumes / Issues alert" href="/science?_ob=PublicationURL&newIssueAlert=2&_cid=271204&_pubType=J&_auth=y&originContentFamily=serial&_pii=S0301562907003900&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=cd2914dda76ad114e866f8c2872ec005"
+               >
+            Alert me about new articles in this journal
+            </a>
+          </div>
+          <div id="rsltInd" style="display:none;">
+            <div class="imgIcon"><h3><img src="http://cdn.els-cdn.com/sd/errorIcon.gif" alt="Failure" title="Failure"/></h3></div>
+            <div class="confirmMsgText">Your selection(s) could not be saved due to an internal error. Please try again.</div>
+          </div>          
+      </li>
+    
+
+
+</ul>
+<div id="articleOptionsAd" role="banner" class="ad"></div>
+</div>
+<!-- More options Ends -->
+</li>
+
+
+</ul>
+</div>
+
+<div class="sdSearch" aria-label="Quick search" role="search">
+    <fieldset>
+        <div class="left">
+            <input  id="quickSearch" type="text" name="quickSearch" value="" size="30" maxlength="450" title="Perform a quick search on ScienceDirect"><button class="submit"  title="Submit quick search">Search</button>
+        </div>
+        <div id="quickSearchButton" class="right" title="Show more quick search options">
+            <div  class="down_sci_dir"></div>
+        </div>
+    </fieldset>
+</div>
+<div class="clear"></div>
+<div class="quickSearch" id="sdQuickSearch" aria-label="Extended search" role="search">
+<div class="extSearch" role="search" aria-label="Quick Search">
+
+
+<form name="qkSrch" method="get" target="_top" action="/science" style="margin:0px;">
+<input type="hidden" name="_ob" value="QuickSearchURL">
+<input type="hidden" name="_method" value="submitForm">
+<input type="hidden" name="_acct" value="C000228598">
+<input type="hidden" name="_origin" value="article">
+<input type="hidden" name="_zone" value="qSearch">
+<input type="hidden" name="md5" value="89d09e911d3872e16ae140ceae8c0b3b">
+
+<table border="0" width="100%" cellpadding="0" cellspacing="0" style="margin: 0;">
+<tr valign="middle">
+
+<!-- Code related for toggling labels -->
+
+<td align="right"><label for="qs_all" id="fieldLabel">&nbsp;&nbsp;&nbsp;&nbsp;All fields</label></td>
+<td align="left"><input class="textbox qsinput xpstyle" type="text" name="qs_all" id="qs_all" value="" size="30" maxlength="450" title="For example: heart attack AND behavior?"></td>
+
+
+
+<td align="right"><label for="qs_author">&nbsp;&nbsp;&nbsp;&nbsp;Author</label></td>
+<td align="left" colspan="5"><input class="textbox qsinput xpstyle" type="text" name="qs_author" id="qs_author" value="" size="33" maxlength="450" title="e.g. J S Smith or John Smith or Smith JS" style="_width:100%"></td>
+<td nowrap="nowrap">
+
+</td><td></td><td></td>
+<td align="right" nowrap="nowrap" width="90%" valign="middle">
+<a href="http://www.sciencedirect.com/science?_ob=MiamiSearchURL&_method=requestForm&_btn=Y&_acct=C000228598&_version=1&_urlVersion=1&_userid=10&md5=18a1082f74248d90d465ee65804fd7db" style="vertical-align:bottom;font-size:0.92em;" >Advanced search</a>
+</td>
+</tr>
+<tr>
+
+<td align="right"><label for="qs_title">&nbsp;&nbsp;&nbsp;&nbsp;Journal/Book&nbsp;title</label></td>
+<td align="left"><input class="textbox qsinput xpstyle" type="text" id="qs_title" name="qs_title" value="" size="30" maxlength="450" title="For example: journal of molecular biology"></td>
+
+<td align="right" class="toggleQukSrch2"><label for="qs_vol" id="volField">&nbsp;&nbsp;&nbsp;&nbsp;Volume</label></td>
+<td align="left" class="toggleQukSrch"><input class="textbox qsinput xpstyle" type="text" name="qs_vol" id="qs_vol" value="" size="3" maxlength="10" style="width:30px;"></td>
+<td align="right" class="toggleQukSrch2"><label for="qs_issue" id="issueField">&nbsp;&nbsp;Issue</label></td>
+<td align="left" class="toggleQukSrch"><input class="textbox qsinput xpstyle" type="text" name="qs_issue" id="qs_issue" value="" size="3" maxlength="10" style="width:30px"></td>
+<td align="right" class="toggleQukSrch2"><label for="qs_pages" id="pageField">&nbsp;&nbsp;Page</label></td>
+<td align="right" class="toggleQukSrch"><input class="textbox qsinput xpstyle" type="text" name="qs_pages" id="qs_pages" value="" size="3" maxlength="10" title="For example: 14-27" style="width:30px"></td>
+
+<td  align="right" nowrap="nowrap">
+<input class="button" id="submit_search" type="Submit" alt="Submit Quick Search" title="Submit Quick Search" value="Search" name="sdSearch">
+</td> 
+<td align="right" nowrap="nowrap" colspan="8"  valign="bottom">
+<a class="icon_qmarkHelpsci_dir" href="http://www.sciencedirect.com/science?_ob=HelpURL&_origin=srch_form&_zone=TopNavBar&_file=qs_tips.htm&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=f15db24b506e33b76c987597749c8123" target="sdhelp" onMouseOver="window.status='Help is Available';return true" onMouseOut="window.status='';return true" onClick="var helpWin;helpWin=window.open('http://www.sciencedirect.com/science?_ob=HelpURL&_file=qs_tips.htm&_acct=C000228598&_version=1&_urlVersion=0&_userid=10&md5=2bd779305b31602341744eaa786e2f0a','sdhelp','scrollbars=yes,resizable=yes,directories=no,toolbar=no,menubar=no,status=no,width=760,height=570');helpWin.focus();return false" style="font-size:0.92em;padding-right:0;" >Search tips</a>
+</td>
+</tr>
+</table>
+</form>
+</div>
+
+
+
+ 
+</div>
+
+<div style="color : #FF0000; font-weight : bold;border:0px solid red;">
+  
+  
+  
+  
+</div>
+
+
+
+
+
+  </div>
+  <div style="clear:both;"></div>
+  <div id="leftCloseBar">
+      <div class="closed" title="Open to view article outline"></div>
+  </div>
+  <div id="leftPane" class="column" aria-label="table of contents" role="navigation">
+  <div id="leftPaneInner">
+    <div id="outline" class="outline">
+      <div class="outlineMsg">Article outline is loading...</div>
+      <noscript><div class="outlineMsg">JavaScript required for article outline</div></noscript>
+    </div>
+      <div id="leftOpenBar">
+        <div class="open" title="Open to view article outline"></div>
+      </div>
+  </div>
+  </div>
+  <div id="centerPane" class="column">
+    <div id="centerInner" class="centerInner svBigBox" aria-label="Article" role="main">
+      
+<script>prs.rt('data_start');</script>
+      <div class="head"><div class="publisherLogo"><img alt="" src="http://cdn.els-cdn.com/sd/elsevier.gif"></div><div class="publicationHead"><div class="title"><a title="Go to Ultrasound in Medicine &amp; Biology on SciVerse ScienceDirect" href="http://www.sciencedirect.com/science/journal/03015629" queryStr="?zone=centerPane" class="cLink"><span>Ultrasound in Medicine &amp; Biology</span></a></div><p class="volIssue"><a title="Go to table of contents for this volume/issue" href="http://www.sciencedirect.com/science/journal/03015629/34/2">Volume 34, Issue 2</a>, February 2008, Pages 239&ndash;251</p></div><div class="publicationCover"><a queryStr="?zone=publicationLogo" class="cLink" href="http://www.sciencedirect.com/science/journal/03015629/34/2"><img alt="Cover image" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907X03090-cov150h.gif" class="toprightlogo"></a></div></div><div id="" class="publicationType"><span id="">Original contribution</span></div><h1 class="svTitle" id="">Real-Time Freehand 3D Ultrasound Calibration</h1><ul class="authorGroup noCollab" id=""><li><a href="#" class="authorName" id="authname_N59662f10N592debf0" data-t="a">Po-Wei Hsu</a><a title="Corresponding author contact information" href="#cor1" id="bcor1" class="intra_ref"><img alt="Corresponding author contact information" src="http://cdn.els-cdn.com/sd/entities/REcor.gif"></a><sup>, </sup><a href="mailto:pwh24@cam.ac.uk"><img src="http://cdn.els-cdn.com/sd/entities/REemail.gif" alt="E-mail the corresponding author"></a>, </li><li><a href="#" class="authorName" id="authname_N59662f10N592dec80" data-t="a">Richard W. Prager</a>, </li><li><a href="#" class="authorName" id="authname_N59662f10N592ded10" data-t="a">Andrew H. Gee</a>, </li><li><a href="#" class="authorName" id="authname_N59662f10N592deda0" data-t="a">Graham M. Treece</a></li></ul><ul class="affiliation"><li> <span id="">Department of Engineering, University of Cambridge, Trumpington Street, Cambridge, United Kingdom</span></li></ul><dl class="correspondenceHidden" id="cor1hidden"><dt class="label topPadd"><a href="#bcor1" class="intra_ref"><sup><img border="0" src="http://cdn.els-cdn.com/sd/entities/REcor.gif" alt="Corresponding author contact information" title="Corresponding author contact information"></sup></a></dt><dd>Address correspondence to: Mr. Po-Wei Hsu, Department of Engineering, Trumpington Street, Cambridge CB2 1PZ, UK.</dd></dl><!--VALIDHTML--><dl class="articleDates"><dd>Received 8 October 2006</dd><dd>Revised 22 June 2007</dd><dd>Accepted 27 July 2007</dd><dd>Available online 23 October 2007</dd></dl><!--VALIDHTML--><ul class="articleDoi"><li><a id="ddDoi" href="http://dx.doi.org/10.1016/j.ultrasmedbio.2007.07.020" target="doilink" onclick="var doiWin; doiWin=window.open('http://dx.doi.org/10.1016/j.ultrasmedbio.2007.07.020','doilink','scrollbars=yes,resizable=yes,directories=yes,toolbar=yes,menubar=yes,status=yes'); doiWin.focus()">http://dx.doi.org/10.1016/j.ultrasmedbio.2007.07.020</a>, <a href="http://www.sciencedirect.com/science/help/doi.htm" target="sdhelp" onmouseover="window.status='Help is Available';return true" onclick="var helpWin; helpWin=window.open('http://www.sciencedirect.com/science/help/doi.htm','sdhelp','scrollbars=yes,resizable=yes,directories=no,toolbar=no,menubar=no,status=no,width=760,height=570'); helpWin.focus()">How to Cite or Link Using DOI</a></li></ul><!--VALIDHTML--><ul class="articleInfo"><li class="permissions" id="permissions"></li></ul><!--VALIDHTML--><a class="corpReq cLink" queryStr="?_rdoc=1&amp;_fmt=full&amp;_origin=&amp;md5=22543fb95e34d36391c44b9d9cd72533" href="http://www.sciencedirect.com/science/article/pii/S0301562907003900">View full text</a><div class="unentitledMSG"><a class="purchase" href="/science?_ob=ShoppingCartURL&_method=add&_eid=1-s2.0-S0301562907003900&_acct=C000228598&_version=1&_userid=10&_ts=1360857183&md5=d69cf7904253027baff28b04167b055d"><div class="artPurchase"><div></div><span>Purchase&nbsp;$31.50</span></div></a><div id="ppvMsg" class="ppvMsg"></div><!--unentitledMSG--></div><div class="articleOutlineHidden"><h2>Introduction</h2><h2>Spatial Calibration</h2><h2>Temporal Calibration</h2><h2>Conclusion</h2><h2>Appendix A</h2><h2>Appendix B</h2><h2>References</h2></div><!--VALIDHTML--><div id="refersToAndReferredToBy"><!--comment--></div><!--VALIDHTML--><hr id="author1"><div class="abstract svAbstract "><h2 class="secHeading" id="section_abstract">Abstract</h2><p id="simple-para0080">Z-fiducial phantoms allow three-dimensional ultrasound probe calibration with a single B-scan. One of the main difficulties in using this phantom is the need for reliable segmentation of the wires in the ultrasound images, which necessitates manual intervention. In this article, we have shown how we can solve this problem by mounting a thin rubber membrane on top of the phantom. The membrane is segmented automatically and the wires can be easily located as they are at known positions relative to the membrane. This enables us to segment the wires automatically at the full PAL frame rate of 25Hz, to produce calibrations in real-time, while achieving accuracies similar to those reported in the literature. We have also devised a technique to improve the estimation of the elevational offset (calibration parameter) by capturing a few images of the planar membrane. If spatial calibration is known, fully automatic wire segmentation allows the fiducials to be tracked in real-time. This also enables temporal calibration to be performed in real-time as the probe is moved away from the phantom. We have evaluated the performance of our phantom by calibrating a probe at 8 cm and 15 cm depth. The precision of the calibrations are 0.7 mm and 1.2 mm, respectively. The point reconstruction accuracies of fiducial points provided by the same Z-phantom are slightly below 1.5 mm. The point reconstruction accuracies obtained by scanning the end of a wire tip are 2.5 mm and 3.0 mm. These results match the accuracies achieved in the literature. It takes approximately 2 min to set up the experiment, submerge the phantom in the water bath, locate the phantom in space with a pointer and capture six images of the planar membrane. After this, spatial calibration can be performed in less than a second. Temporal calibration can be completed in approximately 3 s. (E-mail: <a href="mailto:pwh24@cam.ac.uk">pwh24@cam.ac.uk</a>)</p></div><!--VALIDHTML--><script>prs.rt("abs_end");</script><div id="SD_BA1P" class="sgfNoTitleBar sgfNoGadgetBorder svDoNotLink"></div><!--VALIDHTML--><h2 id="kwd_1">Key Words</h2><ul class="keyword" id=""><li id=""><span id="">Freehand three-dimensional ultrasound</span>; </li><li id=""><span id="">Calibration</span>; </li><li id=""><span id="">Real-time</span></li></ul><!--VALIDHTML--><hr><p>Figures and tables from this article:</p><div class="figTblUpiOuter svArticle" id="figure_fig1"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig1" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr1" title="Full-size image (14 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (14 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.jpg" height="132" width="219" data-thumbheight="132" data-thumbwidth="219" data-fullheight="213" data-fullwidth="353"><noscript hspace="2" height="132" border="0" align="middle" width="219" vspace="2" alt="Full-size image (14 K)" title="Full-size image (14 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.jpg"><img hspace="2" height="132" border="0" align="middle" width="219" vspace="2" alt="Full-size image (14 K)" title="Full-size image (14 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr1.jpg"></noscript></a></dt><dd id="labelCaptionfig1"><p class="caption">Fig. 1.&#xA0;<span id="simple-para0005">The coordinates associated with the scan plane and mobile part of the position sensor.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig1" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig2"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig2" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr2" title="Full-size image (14 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (14 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.jpg" height="69" width="219" data-thumbheight="69" data-thumbwidth="219" data-fullheight="160" data-fullwidth="508"><noscript hspace="2" height="69" border="0" align="middle" width="219" vspace="2" alt="Full-size image (14 K)" title="Full-size image (14 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.jpg"><img hspace="2" height="69" border="0" align="middle" width="219" vspace="2" alt="Full-size image (14 K)" title="Full-size image (14 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr2.jpg"></noscript></a></dt><dd id="labelCaptionfig2"><p class="caption">Fig. 2.&#xA0;<span id="simple-para0010">Both the ultrasound machine and the position sensor generate (G) data at their own frequencies. They are received and time-stamped (T) by the PC after an unknown, but fixed delay, where the transmission is shown by arrows. Here the ultrasound machine and the position sensor generated the data at the same time, but the two frames are time-stamped differently due to a delay. Temporal calibration finds the relative delay between the two data streams.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig2" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig3"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig3" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr3" title="Full-size image (39 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (39 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.jpg" height="163" width="83" data-thumbheight="163" data-thumbwidth="83" data-fullheight="694" data-fullwidth="354"><noscript hspace="2" height="163" border="0" align="middle" width="83" vspace="2" alt="Full-size image (39 K)" title="Full-size image (39 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.jpg"><img hspace="2" height="163" border="0" align="middle" width="83" vspace="2" alt="Full-size image (39 K)" title="Full-size image (39 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr3.jpg"></noscript></a></dt><dd id="labelCaptionfig3"><p class="caption">Fig. 3.&#xA0;<span id="simple-para0015">(a) An isometric view of the phantom. (b) Fiducial positions. The phantom consists of two rigid plastic plates that are held 75.6 mm apart by bolts at the four corners. A rubber membrane is clamped across the top and wires are threaded through holes in the plates to form the required pattern of Z shapes. The figure shows a 3D sketch of the positions of the wires and the membrane.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig3" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig4"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig4" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr4" title="Full-size image (40 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (40 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.jpg" height="164" width="46" data-thumbheight="164" data-thumbwidth="46" data-fullheight="818" data-fullwidth="230"><noscript hspace="2" height="164" border="0" align="middle" width="46" vspace="2" alt="Full-size image (40 K)" title="Full-size image (40 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.jpg"><img hspace="2" height="164" border="0" align="middle" width="46" vspace="2" alt="Full-size image (40 K)" title="Full-size image (40 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr4.jpg"></noscript></a></dt><dd id="labelCaptionfig4"><p class="caption">Fig. 4.&#xA0;<span id="simple-para0020">Flow chart of the calibration algorithm.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig4" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig5"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig5" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr5" title="Full-size image (16 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (16 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.jpg" height="115" width="219" data-thumbheight="115" data-thumbwidth="219" data-fullheight="185" data-fullwidth="352"><noscript hspace="2" height="115" border="0" align="middle" width="219" vspace="2" alt="Full-size image (16 K)" title="Full-size image (16 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.jpg"><img hspace="2" height="115" border="0" align="middle" width="219" vspace="2" alt="Full-size image (16 K)" title="Full-size image (16 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr5.jpg"></noscript></a></dt><dd id="labelCaptionfig5"><p class="caption">Fig. 5.&#xA0;<span id="simple-para0025">Wire segmentation of a typical B-scan image. The search regions are limited to five narrow strips at known depths beneath the rubber membrane.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig5" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig6"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig6" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr6" title="Full-size image (11 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (11 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.jpg" height="144" width="219" data-thumbheight="144" data-thumbwidth="219" data-fullheight="229" data-fullwidth="348"><noscript hspace="2" height="144" border="0" align="middle" width="219" vspace="2" alt="Full-size image (11 K)" title="Full-size image (11 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.jpg"><img hspace="2" height="144" border="0" align="middle" width="219" vspace="2" alt="Full-size image (11 K)" title="Full-size image (11 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr6.jpg"></noscript></a></dt><dd id="labelCaptionfig6"><p class="caption">Fig. 6.&#xA0;<span id="simple-para0030">The top view of a Z-fiducial intersecting the scan plane.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig6" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig7"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig7" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr7" title="Full-size image (21 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (21 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.jpg" height="164" width="207" data-thumbheight="164" data-thumbwidth="207" data-fullheight="279" data-fullwidth="353"><noscript hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (21 K)" title="Full-size image (21 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.jpg"><img hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (21 K)" title="Full-size image (21 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr7.jpg"></noscript></a></dt><dd id="labelCaptionfig7"><p class="caption">Fig. 7.&#xA0;<span id="simple-para0035">Variation of the error in terms of accuracy and precision as more frames are used in each calibration. Accuracy is calculated from the mean error of the located fiducials, and precision is calculated from the mean error of the five representative points&rsquo; locations.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig7" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig8"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig8" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr8" title="Full-size image (13 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (13 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.jpg" height="163" width="122" data-thumbheight="163" data-thumbwidth="122" data-fullheight="472" data-fullwidth="353"><noscript hspace="2" height="163" border="0" align="middle" width="122" vspace="2" alt="Full-size image (13 K)" title="Full-size image (13 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.jpg"><img hspace="2" height="163" border="0" align="middle" width="122" vspace="2" alt="Full-size image (13 K)" title="Full-size image (13 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr8.jpg"></noscript></a></dt><dd id="labelCaptionfig8"><p class="caption">Fig. 8.&#xA0;<span id="simple-para0040">The motions used to scan the membrane as a plane to improve the elevational error.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig8" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig9"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig9" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr9" title="Full-size image (19 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (19 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.jpg" height="164" width="207" data-thumbheight="164" data-thumbwidth="207" data-fullheight="279" data-fullwidth="353"><noscript hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (19 K)" title="Full-size image (19 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.jpg"><img hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (19 K)" title="Full-size image (19 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr9.jpg"></noscript></a></dt><dd id="labelCaptionfig9"><p class="caption">Fig. 9.&#xA0;<span id="simple-para0045">Precision and accuracy are improved due to a more accurate estimate of the elevational offset as more frames of the membrane are used.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig9" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig10"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig10" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr10" title="Full-size image (13 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (13 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.jpg" height="164" width="207" data-thumbheight="164" data-thumbwidth="207" data-fullheight="279" data-fullwidth="353"><noscript hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (13 K)" title="Full-size image (13 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.jpg"><img hspace="2" height="164" border="0" align="middle" width="207" vspace="2" alt="Full-size image (13 K)" title="Full-size image (13 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr10.jpg"></noscript></a></dt><dd id="labelCaptionfig10"><p class="caption">Fig. 10.&#xA0;<span id="simple-para0050">Mean 3D error of the fiducials when located in space using the position sensor readings at different temporal offsets.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig10" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="figure_fig11"><div class="&#10;                    textboxdefaultfig&#10;                "><dl class="figure" id="fig11" data-t="f"><dt class="autoScroll"><a class="figureLink" href="#gr11" title="Full-size image (8 K)"><img class="imgLazyJSB figure thumb" border="0" alt="Full-size image (8 K)" src="/sd/grey_pxl.gif" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.jpg" height="150" width="219" data-thumbheight="150" data-thumbwidth="219" data-fullheight="238" data-fullwidth="348"><noscript hspace="2" height="150" border="0" align="middle" width="219" vspace="2" alt="Full-size image (8 K)" title="Full-size image (8 K)" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.jpg"><img hspace="2" height="150" border="0" align="middle" width="219" vspace="2" alt="Full-size image (8 K)" title="Full-size image (8 K)" src="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.sml" data-thumbsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.sml" data-fullsrc="http://ars.els-cdn.com/content/image/1-s2.0-S0301562907003900-gr11.jpg"></noscript></a></dt><dd id="labelCaptionfig11"><p class="caption">Fig. 11.&#xA0;<span id="simple-para0055">The probe is translated steadily so that the wire tip remains in the scan plane to verify the temporal calibration.<!--Comment--></span><!--caption--></p></dd><dd class="menuButtonLinks"><div class="btnHolder"><a class="menuTitle" href="#">Figure options</a><div class="down_Btn"></div></div><ul class="menuButton"><li><a href="#fig11" class="viewWS" title="View in workspace">View in workspace</a></li></ul></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="table_tbl1"><div class="textboxdefaultfig"><dl id="tbl1" data-t="t" class="table " data-label="Table 1"><dd class="lblCap"><p class="caption"><span class="label">Table 1.
+        </span>Variation in the four corners and centre of the B-scan due to calibration imprecision.</p></dd><dd><img border="0" src="http://cdn.els-cdn.com/sd/sci_dir/tbl_icon.gif"></dd><dd><p class="legend">The dimensions are in millimetres.</p></dd><dd><a onmouseover="javascript:this.style.cursor='pointer'" href="/science/article/pii/S0301562907003900" class="cLink" queryStr="?_fmt=full&amp;_origin=&amp;md5=7bcf780d0ad55e08c858017474822c86" hashLoc="#N59662f10N592df0a0"><span class="viewWithinBtn">View Within Article</span></a></dd></dl></div></div><!--VALIDHTML--><div class="figTblUpiOuter svArticle" id="table_tbl2"><div class="textboxdefaultfig"><dl id="tbl2" data-t="t" class="table " data-label="Table 2"><dd class="lblCap"><p class="caption"><span class="label">Table 2.
+        </span>Comparison of calibration precision and accuracy.</p></dd><dd><img border="0" src="http://cdn.els-cdn.com/sd/sci_dir/tbl_icon.gif"></dd><dd><p class="legend">Figures are given in millimetres.</p></dd><dd><a onmouseover="javascript:this.style.cursor='pointer'" href="/science/article/pii/S0301562907003900" class="cLink" queryStr="?_fmt=full&amp;_origin=&amp;md5=7bcf780d0ad55e08c858017474822c86" hashLoc="#N59662f10N592df0a0"><span class="viewWithinBtn">View Within Article</span></a></dd></dl></div></div><!--VALIDHTML--><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><span class="referenceText"></span><div class="artFooterContent"><dl class="correspondence" id="cor1"><dt class="label topPadd"><a href="#bcor1" class="intra_ref"><sup><img border="0" src="http://cdn.els-cdn.com/sd/entities/REcor.gif" alt="Corresponding author contact information" title="Corresponding author contact information"></sup></a></dt><dd>Address correspondence to: Mr. Po-Wei Hsu, Department of Engineering, Trumpington Street, Cambridge CB2 1PZ, UK.</dd></dl><!--footerNotes--></div><p class="copyright">Copyright &copy; 2008 World Federation for Ultrasound in Medicine &amp; Biology. Published by Elsevier Inc. All rights reserved.</p><!--VALIDHTML-->
+<script>prs.rt('data_end');</script>
+       
+        
+    </div>
+ </div>
+ <div id="rightPane" class="column" aria-label="Related content" role="complementary">
+   <div class="toggleSideBar">
+      <a tabindex=0>
+         <div class="close" title="Open to view article outline"></div>
+      </a>
+    </div>
+    <div id="rightInner" class="rightInner">
+       <h2 class="accordionHead first-tab bibliographic">
+    <span class="showHideIcon"></span>
+    Bibliographic information
+</h2>
+<div class="accordionContent">
+    <div class="innerPadding js_bibliographic_content">
+
+    </div>
+</div>
+
+
+  <h2 class="accordionHead relatedArticles">
+    <span class="showHideIcon"></span>
+    Citing and related articles
+  </h2>
+  <div class="accordionContent">
+    <div class="innerPadding js_citation_content">
+      
+        
+     
+
+     
+     
+        <div class="articleList">
+             <h3>Related articles</h3>
+             <ol id="relArtList"><li class="note"><p>No articles found.</p></li></ol>
+        </div>
+     
+
+     
+         
+             <ol class="citedByLink"><div class="boxLink"><a href="/science?_ob=RedirectURL&_method=outwardLink&_partnerName=656&_eid=1-s2.0-S0301562907003900&_pii=S0301562907003900&_origin=article&_zone=art_page&_targetURL=http%3A%2F%2Fwww.scopus.com%2Finward%2Fcitedby.url%3Feid%3D2-s2.0-38349145967%26partnerID%3D10%26rel%3DR3.0.0%26md5%3D594a858459ce2116bef48efb55d30b24&_acct=C000228598&_version=1&_userid=10&md5=5ae5edaa9fcdf0349577b63df2be58be"  rel="nofollow" class="olSpawnWindow" target="outwardLink"><span class='scopus_logo_txt'>Cited by in Scopus (15)</span></a></div></ol>
+         
+     
+
+     
+         
+             <div class="articleList">
+                 <h3>Related reference work articles</h3>
+                 <ol id="relRefList"><li class="note"><p>No articles found.</p></li></ol>
+             </div>
+         
+      
+
+    </div>
+  </div>
+
+
+
+  <h2 class="accordionHead applications">
+    <span class="showHideIcon"></span>
+    Applications and tools
+  </h2>
+  <div class="accordionContent">
+    <div class="innerPaddingApp js_application_content">
+
+      
+        <div id="SD_AT1P" class="boxLink sgfNoTitleBar sgfNoGadgetBorder"></div>
+      
+
+      
+        <div id="SD_FTA1" class="boxLink sgfHorToolbar sgfShowMyApps sgfShowMoreLessApps"></div>
+      
+
+    </div>
+  </div>
+
+
+<h2 class="accordionHead last-tab workspace">
+    <span class="showHideIcon"></span>
+    Workspace
+</h2>
+<div class="accordionContent">
+    <div class="innerPadding js_workspace_content">
+        <div class="scrollArea">
+           <li class="note"><p>No content has been selected.</p></li>
+           <div id="workSpaceView"></div>
+        </div>
+    </div>
+    <div class="hidescrollbar"></div>
+</div>
+
+    </div>
+ </div>
+</div>
+<div style="clear:both;"></div>
+<div id="footer-area" aria-label="product support" role="contentinfo">
+  <div id="sdFoot">
+    <div id="footer">	
+  <div class="bottomArticle"></div>
+  <div class="padding">
+    <div id="linkArea">
+      <div class="padding">
+        <div style="float:left;width:0;height:1px;"></div>
+        <div id="banner-bottom">
+          <a href="http://www.elsevier.com" target="_blank"><img src="http://cdn.els-cdn.com/sd/wordmark_elsevier.png" alt="Elsevier homepage (opens in a new window)" title="Elsevier homepage (opens in a new window)"></a>
+        </div>
+        <ul class="col5">
+<li><a target="_blank" href="http://www.info.sciverse.com/sciencedirect?utm_source=sciencedirect&utm_medium=link&utm_campaign=aboutsd">About ScienceDirect</a></li>
+</ul>
+<ul class="col5">
+<li><a target="_blank" href="http://www.elsevier.com/?utm_source=sciencedirect&utm_medium=link&utm_campaign=aboutelsevier">About Elsevier</a></li>
+</ul>
+<ul class="col5">
+<li> <a target="_blank" href="http://www.sciencedirect.com/science/contactus">Contact and support</a></li>
+</ul>
+<ul class="col5">
+<li><a target="_blank" href="http://www.elsevierscitech.com/forms/sd/form.html?utm_source=sciencedirect&amp;utm_medium=link&amp;utm_campaign=advert">Information for advertisers</a></li>
+</ul>
+<ul class="col5">
+<li><a target="_blank" href="http://www.elsevier.com/locate/termsandconditions?utm_source=sciencedirect&utm_medium=link&utm_campaign=terms">Terms and conditions</a></li>
+</ul>
+<ul class="col5">
+<li><a target="_blank" href="http://www.elsevier.com/privacypolicy?utm_source=sciencedirect&utm_medium=link&utm_campaign=privacy">Privacy policy</a></li>
+</ul>
+        <div class="clear"></div>
+        <!-- CSAS will be providing the links-->
+      </div>
+      <div class="padding" style="padding-top:8px;padding-bottom:4px;font-size:11px;">
+        Copyright &copy; 2013 <a href="http://www.elsevier.com" target="_blank">Elsevier B.V.</a> All rights reserved.  SciVerse&reg; is a registered trademark of Elsevier Properties S.A., used under license. ScienceDirect&reg; is a registered trademark of Elsevier B.V.
+      </div>
+    </div>
+  </div>
+</div> <!--footer-->
+
+  </div><!--sdFooter-->
+</div><!--footer-area-->
+
+
+<form name="citationInfo" id ="citationInfo" method="POST" action="">
+    <input type="hidden" name="art_citation" value="Real-Time Freehand 3D Ultrasound Calibration
+Po-Wei Hsu, Richard W. Prager, Andrew H. Gee, Graham M. Treece
+Published in:
+Ultrasound in Medicine & Biology
+Volume 34, Issue 2, February 2008, Pages 239-251
+http://dx.doi.org/10.1016/j.ultrasmedbio.2007.07.020"/>
+</form>
+<div id="pdfModalWindow" class="pdfModalWindow" style="display:none;" onClick="pdfCite.closePopup();"></div>
+
+
+<!-- PDFKING/PDFCITE -->
+<div id="suggestedPdfList" style="display:none;">
+ 
+<div id="modalBoxDisplay" class="nojs" tabindex="0" role="dialog" aria-labelledby="hdSDSuggestions">
+<div class="pdfModalWindowMsgBox" id="pdfModalWindowMsgBox" >
+<div>
+        <div class = "close">
+          <a onClick="pdfCite.closePopup();" href = "#" title = "Close article suggestions" alt="Close article suggestions">
+            <img src = "http://cdn.els-cdn.com/sd/close-button.png" width = "25" height = "27" alt = "Close" />
+          </a>
+        </div>
+    <div class = "modal">
+      <div class = "header">
+        <h1 class = "headline" id="hdSDSuggestions">ScienceDirect article suggestions</h1>
+        <img class = "sd-bubbles" src = "http://cdn.els-cdn.com/sd/sd_bubbles.jpg" width = "125" height = "60" alt = "ScienceDirect" title = "" />
+      </div>
+      <div id="SuggestedArtList">
+      <ul class = "tabs group">
+        <li id="pdfkingTab" style="display:none;"><a href="#" onclick="pdfCite.toggleSuggestedTabs('#pdfking','#pdfcite',this);"> <h2>Related articles</h2></a>
+        </li>
+		
+      </ul>
+
+      <div id="pdfkingContent" style="display:none;">
+        <div class = "related-articles-msg">
+          <span>These articles have key terms similar to those in the article you downloaded.</span>
+           <!-- Tech comm team yet to give the help URL -->
+          <a class = "learn-more" href = "#" onclick="openNS('http://help.sciencedirect.com/flare/sdhelp_CSH.htm#related_art_lrn_more.htm');">Learn more</a>
+        </div>
+        <div class="popcontent">
+         </div>
+         <div id="relatedArtList" data-entitled="Y"></div>
+      </div>
+	  
+    </div>
+      <div class = "footer">
+        
+        <a class = "do-not-show" href="#" onClick="pdfCite.setOptOutFlag('http://www.sciencedirect.com/science/suggestedArt/optOut');" style="cursor: pointer;">Do not show again</a>
+      </div>
+    </div>
+    </div>
+</div>
+</div>
+
+
+</div>
+
+
+<script src="http://cdn.els-cdn.com/sd/js/sdX_123R8.js"></script>
+<script src="http://cdn.els-cdn.com/sd/js/sd_123R8.js"></script>
+
+<script>
+var sciverse="empty";
+var SDM=new Object;
+SDM.pm=new Object;
+SDM.pm.contentType = 'JL';
+SDM.doi = '10.1016/j.ultrasmedbio.2007.07.020';
+SDM.pm.issn_or_isbn = "03015629";
+SDM.pm.pii = 'S0301562907003900';
+SDM.pm.cid = '271204';
+SDM.pm.eid = '1-s2.0-S0301562907003900';
+
+
+
+
+SDM.pm.toc=new Object;
+SDM.pm.toc.retry = 20;
+SDM.pm.toc.retryDelay = 1000;
+SDM.pm.toc.retryFactor = 1.09;
+ SDM.tocJson = '{"PII":"S0301562907003900","EID":"1-s2.0-S0301562907003900","TIMESTAMP":"2011-06-08T02:22:34.075766-04:00","TOC":[{"sT":"Abstract", "sID":"section_abstract", "cT":[  ] }, {"sT":"Key Words", "sID":"kwd_1"}, {"sT":"Introduction", "sID":"sec1", "faID":[  ] , "cT":[ {"sT":"Spatial calibration", "sID":"sec1.1", "faID":[ {"fID":"fig1", "fT":"fig","fL":"Fig. 1", "fI":"gr1.sml","fIh":"132"} ] }, {"sT":"Temporal calibration", "sID":"sec1.2", "faID":[ {"fID":"fig2", "fT":"fig","fL":"Fig. 2", "fI":"gr2.sml","fIh":"69"} ] } ]}, {"sT":"Spatial Calibration", "sID":"sec2", "faID":[  ] , "cT":[ {"sT":"The calibration phantom and the principles behind its use", "sID":"sec2.1", "faID":[ {"fID":"fig3", "fT":"fig","fL":"Fig. 3", "fI":"gr3.sml","fIh":"163"},{"fID":"fig4", "fT":"fig","fL":"Fig. 4", "fI":"gr4.sml","fIh":"164"},{"fID":"fig5", "fT":"fig","fL":"Fig. 5", "fI":"gr5.sml","fIh":"115"},{"fID":"fig6", "fT":"fig","fL":"Fig. 6", "fI":"gr6.sml","fIh":"144"} ] }, {"sT":"Image segmentation and processing", "sID":"sec2.2", "faID":[  ] }, {"sT":"Precision and accuracy", "sID":"sec2.3", "faID":[  ] }, {"sT":"Spatial calibration experiments", "sID":"sec2.4", "faID":[  ] }, {"sT":"Results", "sID":"sec2.5", "faID":[ {"fID":"fig7", "fT":"fig","fL":"Fig. 7", "fI":"gr7.sml","fIh":"164"},{"fID":"tbl1", "fT":"tbl","fL":"Table 1"} ] }, {"sT":"Discussions", "sID":"sec2.6", "faID":[  ] }, {"sT":"Improving the elevational error", "sID":"sec2.7", "faID":[ {"fID":"fig8", "fT":"fig","fL":"Fig. 8", "fI":"gr8.sml","fIh":"163"},{"fID":"fig9", "fT":"fig","fL":"Fig. 9", "fI":"gr9.sml","fIh":"164"},{"fID":"tbl2", "fT":"tbl","fL":"Table 2"} ] } ]}, {"sT":"Temporal Calibration", "sID":"sec3", "faID":[  ] , "cT":[ {"sT":"Principles of temporal calibration", "sID":"sec3.1", "faID":[  ] }, {"sT":"Temporal calibration experiment", "sID":"sec3.2", "faID":[ {"fID":"fig10", "fT":"fig","fL":"Fig. 10", "fI":"gr10.sml","fIh":"164"},{"fID":"fig11", "fT":"fig","fL":"Fig. 11", "fI":"gr11.sml","fIh":"150"} ] }, {"sT":"Results and Discussion", "sID":"sec3.3", "faID":[  ] } ]}, {"sT":"Conclusion", "sID":"sec4", "faID":[  ] }, {"sT":"Appendix A", "sID":"appd001", "faID":[  ]  } , {"sT":"Appendix B", "sID":"appd002", "faID":[ {"fID":"", "fT":"","fL":""},{"fID":"", "fT":"","fL":""},{"fID":"", "fT":"","fL":""},{"fID":"", "fT":"","fL":""} ]  } , {"sT":"References", "sID":"bibl00bibliography0005"} ]}';
+ SDM.tocCacheAvail=true; 
+
+
+SDM.ep=new Object;
+SDM.ep.urlPrefix = "http://www.sciencedirect.com/science";
+SDM.ep.refLinkURL = "http://www.sciencedirect.com/science/relLink/ajaxReq?_eid=1-s2.0-S0301562907003900";
+SDM.ep.updatedCitedBy = "http://www.sciencedirect.com/science/referenceResolution/ajaxRefResol?_updateCitedBy=";
+SDM.ep.refResolvePath = "http://www.sciencedirect.com/science/referenceResolution/ajaxRefResol?_eid=1-s2.0-S0301562907003900&_refCnt=32&_docType=article";
+SDM.ep.crossMarkURL = "http://www.sciencedirect.com/science/crossMark";
+SDM.ep.crossMarkLib = "http://crossmark.crossref.org/javascripts/crossmark.min.js";
+SDM.ep.userActionURL = "http://www.sciencedirect.com/science/UserActions"
+SDM.ep.svShindigLib="http://sciverse-shindig.elsevier.com/gadgets/js/shindig-container:pubsub-2.js?c=1";
+SDM.ep.svSciverseLib="http://www.sciencedirect.com/gadgetservices/gadgets/v3_1/js/SciverseShindigService,GadgetToolBar,jquery-outside,jquery.ba-bbq.min,SciverseShindigContainer,ScienceDirectShindigServices.js";
+SDM.ep.downloadCsvURL = "http://services.elsevier.com/SDWebExport/export/table/csv";
+SDM.ep.downloadActionURL = "http://www.sciencedirect.com/science/downloadActions/keyEvent/S0301562907003900/03015629";
+
+  SDM.urlPrefix = "http://www.sciencedirect.com/science";
+  SDM.refLinkURL = "http://www.sciencedirect.com/science/relLink/ajaxReq?_eid=1-s2.0-S0301562907003900";
+SDM.attrImageUrl = "http://ars.els-cdn.com/content/image/";
+SDM.prodColor="sci_dir";if(SDM.prodColor=="sci_dir")SDM.prodColor="";
+SDM.pageTransKey = "03/31/2013 23:28:40 EDT#1849_002#2373#67.193.140.162";
+SDM.pageType = "article_abs";
+  SDM.pii = "S0301562907003900";
+  SDM.contentType = "JL";
+  SDM.issn_or_isbn = "03015629";
+  SDM.sds = "d2458a5cef690a26b92d17fec5d89ede27cdac5505efdd9f66b9d0d4f8b0fb000013b924d6339ffcd12ac04d4ec991f6";
+  SDM.tid = "3f3764e8-9a7c-11e2-bf05-00000aab0f6b";
+  SDM.pru = "http://pa.elsevier.com";
+  SDM.crossMarkURL = "http://www.sciencedirect.com/science/crossMark";
+  SDM.crossMarkLib = "http://crossmark.crossref.org/javascripts/crossmark.min.js";
+  SDM.keOriginContentFamily = "serial"
+  SDM.userActionURL = "http://www.sciencedirect.com/science/UserActions"
+  SDM.sciverseUrlPfx="http://www.sciencedirect.com";
+  SDM.sciverseJsonObject='';
+  SDM.sciverseGadgetDetailsID = "afe09a2d-c7cc-4d0a-8b18-7eebe0a8c8d6";
+SDM.imageLazyLoading = true;
+SDM.fullSize = true;
+SDM.outlineGraphics = true;
+SDM.outlineTab = "";
+SDM.outlineImgFence = true;
+SDM.entitled = false;
+SDM.urlTOCLink="http://www.sciencedirect.com/science/article/pii/S0301562907003900";
+SDM.urlTOCLinkQueryStr="?_rdoc=1&_fmt=full&_origin=&md5=22543fb95e34d36391c44b9d9cd72533";
+
+SDM.displayGadgets=true;
+SDM.euidCookieObject='88e708c6b22470713b5f0830509bccb22d1f7098f2675a0eb31bcf2d45afbf25b79056b90ef2818e';
+SDM.adArticleLeftURL="/science/advertisement/left/num/193775/mainCat/general/cat/general/acct/ddd49027ac058c4db14dac8cc0563abc/isn/03015629/doi/10.1016_j.ultrasmedbio.2007.07.020/page/article";
+SDM.adArticleOptionsURL="/science/advertisement/options/num/193775/mainCat/general/cat/general/acct/ddd49027ac058c4db14dac8cc0563abc/isn/03015629/doi/10.1016_j.ultrasmedbio.2007.07.020/page/article";
+SDM.adArticleRightSmURL="/science/advertisement/rightsm/num/193775/mainCat/general/cat/general/acct/ddd49027ac058c4db14dac8cc0563abc/isn/03015629/doi/10.1016_j.ultrasmedbio.2007.07.020/page/article";
+SDM.adArticleRightLgURL="/science/advertisement/rightlg/num/193775/mainCat/general/cat/general/acct/ddd49027ac058c4db14dac8cc0563abc/isn/03015629/doi/10.1016_j.ultrasmedbio.2007.07.020/page/article";
+SDM.adReqOutline=true;
+SDM.adReqOptions=false;
+SDM.relatedRefAvail=true;
+SDM.mlktAvail = true;
+SDM.citedByScAvail = false;
+SDM.crawlerAvail = false;
+SDM.outwardLinks = '<div class="olLeftMiddle"><div class="boxLink"><a href="/science?_ob=RedirectURL&_method=outwardLink&_partnerName=19979&_eid=1-s2.0-S0301562907003900&_pii=S0301562907003900&_origin=article&_zone=rightPane&_targetURL=http%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0301562907003900%3Fshowall%3Dtrue&_acct=C000228598&_version=1&_userid=10&md5=b326cb17e6b054b7e25d4f6f1f7494c3"  rel="nofollow" class="olSpawnWindow" target="outwardLink"><img src="http://www.sciencedirect.com/scidirimg/gw_rtn_ihub.gif" alt="Get Full Text Elsewhere" title="Get Full Text Elsewhere" border="0"></a></div></div><div class="tableFmDivider">&nbsp;</div><div class="olLeftMiddle"><div class="boxLink"><a href="/science?_ob=RedirectURL&_method=outwardLink&_partnerName=5978&_eid=1-s2.0-S0301562907003900&_pii=S0301562907003900&_origin=article&_zone=rightPane&_targetURL=http%3A%2F%2Flinkinghub.pangaea.de%2Felsevier%2FredirectToSupplement%2F10.1016%2Fj.ultrasmedbio.2007.07.020&_acct=C000228598&_version=1&_userid=10&md5=774fd32cef1b671f78d5a217c33926ba"  rel="nofollow" class="olSpawnWindow" target="outwardLink"><img src="http://linkinghub.pangaea.de/elsevier/supplementBanner/10.1016/j.ultrasmedbio.2007.07.020" alt="PANGAEA Supplementary Data" title="PANGAEA Supplementary Data" border="0"></a></div></div><div class="olLeftMiddle"><div class="boxLink SC_record"><a href="/science?_ob=RedirectURL&_method=outwardLink&_partnerName=655&_eid=1-s2.0-S0301562907003900&_pii=S0301562907003900&_origin=article&_zone=rightPane&_targetURL=http%3A%2F%2Fwww.scopus.com%2Finward%2Frecord.url%3Feid%3D2-s2.0-38349145967%26partnerID%3D10%26rel%3DR3.0.0%26md5%3D594a858459ce2116bef48efb55d30b24&_acct=C000228598&_version=1&_userid=10&md5=3b75a9a19fc48e1cb2d4a4f74633c767"  rel="nofollow" class="olSpawnWindow" target="outwardLink">View Record in Scopus</a></div></div>';
+   SDM.doi = '10.1016/j.ultrasmedbio.2007.07.020'; 
+ SDM.isSpecialIssue=false; 
+ SDM.hubEid = '1-s2.0-S0301562907X03090'; 
+
+
+ SDM.relatedCitingPanelAvail = true; 
+ SDM.applicationsPanelAvail=true; 
+ SDM.rerunJson =''; 
+ SDM.rerunAvail=true; 
+ SDM.helpUrlDomain="http://help.sciencedirect.com/flare"; 
+ SDM.permAndReprint='<div class="boxLink"><a href="/science?_ob=RedirectURL&_method=outwardLink&_partnerName=936&_eid=1-s2.0-S0301562907003900&_pii=S0301562907003900&_origin=article&_zone=art_page&_targetURL=https%3A%2F%2Fs100.copyright.com%2FAppDispatchServlet%3FpublisherName%3DELS%26contentID%3DS0301562907003900%26orderBeanReset%3Dtrue&_acct=C000228598&_version=1&_userid=10&md5=70716de1e94f72e094519a9c71c46a8e"  rel="nofollow" class="olSpawnWindow" target="outwardLink">Permissions & Reprints</a></div>'; 
+ SDM.ppvMsg='%3Cspan%20id%3D%22deepdyve%22%20style%3D%22display%3Anone%22%3E%0D%0A%20%20%3Ca%20id%3D%22dd_href%22%20target%3D%22DeepDyve%22%20href%3D%22%22%3E%3C%2Fa%3E%0D%0A%3C%2Fspan%3E'; 
+
+var googleAds = '';
+
+SDM.svapi = SVApi;
+
+</script>
+
+
+<script>
+
+initializeArticlePage();
+</script>
+
+
+
+<script>$(document).ready( ArticlePage.showLeftAd() );</script>
+
+
+<!-- START Nielsen Online SiteCensus V5.3 -->
+<!-- COPYRIGHT 2009 Nielsen Online -->
+<script type="text/javascript">
+var _rsCI="us-sciencedirect";
+var _rsCG="0";
+var _rsDN="//secure-us.imrworldwide.com/";
+var _rsPLfl=0;
+</script>
+<script type="text/javascript"
+src="//secure-us.imrworldwide.com/v53.js"></script>
+<noscript>
+<div><img
+src="//secure-us.imrworldwide.com/cgi-bin/m?ci=us-sciencedirect&amp;cg=0
+&amp;cc=1" alt=""/></div>
+</noscript>
+<!-- END Nielsen Online SiteCensus V5.3 -->
+
+
+
+
+<script>prs.rt('speedTrap_start');</script>
+<script>
+function getII() {
+var s = $(".publicationHead .title a").attr("href");
+if(s) {
+  var p = s.split("/");
+  return p[p.length-1];
+}
+return null;
+}
+function getDOI() {
+var d = $("#ddDoi").attr("href");
+if(d) {
+  return d.replace("http://dx.doi.org/", "");
+}
+return null;
+}
+function buildDD() {
+var i = getII();
+var d = unescape(getDOI());
+if(i==null || d== null) {return;}
+var p = new Array();
+var ip="/scidirimg/DeepDyve_SD_";
+p["4.99"]=ip+"499.gif";
+p["3.99"]=ip+"399.gif";
+p["2.99"]=ip+"299.gif";
+p["1.99"]=ip+"199.gif";
+p["0.99"]=ip+"099.gif";
+
+var dd = "http://www.deepdyve.com/rental-link";
+dd += "?docId=" + d;
+dd += "&journal=" + i;
+dd += "&fieldName=journal_doi";
+dd += "&affiliateId=elsevier&format=jsonp&callback=?";
+
+$.getJSON(dd, function(data) {
+if (data.status === "ok") {
+   if (p[data.price]) {
+    $("#dd_href").attr("href",data.url);
+    $("#dd_href").append('<img id="dd_img" src="' + p[data.price] + '"/>');
+    $("#deepdyve").show();
+   }
+}
+});
+}
+if(typeof SDM != 'undefined' && typeof SDM.pageType != 'undefined') {
+if(SDM.pageType=='article_abs' && $('#deepdyve').length==1) {buildDD();}
+}
+</script>
+<script>prs.rt('speedTrap_end');</script>
+
+
+<script>
+  prs.rt('body_end');
+  
+</script>
+
+</body></html>
