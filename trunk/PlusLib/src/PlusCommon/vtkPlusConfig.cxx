@@ -115,6 +115,7 @@ vtkPlusConfig::vtkPlusConfig()
   this->EditorApplicationExecutable = NULL;
   this->OutputDirectory = NULL;
   this->ProgramDirectory = NULL;
+  this->OriginalWorkingDirectory = NULL;
   this->ImageDirectory = NULL;
   this->ModelDirectory = NULL;
   this->GnuplotDirectory = NULL;
@@ -157,6 +158,7 @@ vtkPlusConfig::vtkPlusConfig()
   }
 #endif
 
+  this->SetOriginalWorkingDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -169,6 +171,7 @@ vtkPlusConfig::~vtkPlusConfig()
   this->SetApplicationConfigurationData(NULL);
   this->SetApplicationConfigurationFileName(NULL);
   this->SetEditorApplicationExecutable(NULL);
+  this->SetOriginalWorkingDirectory(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -931,4 +934,24 @@ PlusStatus vtkPlusConfig::GetAbsoluteModelPath(const char* aModelPath, std::stri
   aFoundAbsolutePath = "";
   LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<") nor in device set configuration directory ("<<absoluteDeviceSetConfigurationDirectoryPath<<")!");
   return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
+const char* vtkPlusConfig::GetOutputDirectory()
+{
+  if( this->OutputDirectory == NULL )
+  {
+    return NULL;
+  }
+  if( vtksys::SystemTools::FileIsFullPath(this->OutputDirectory) )
+  {
+    return this->OutputDirectory;
+  }
+
+  std::string cwd = vtksys::SystemTools::GetCurrentWorkingDirectory();
+  vtksys::SystemTools::ChangeDirectory(this->OriginalWorkingDirectory);
+  std::string result = vtksys::SystemTools::GetRealPath(this->OutputDirectory);
+  vtksys::SystemTools::ChangeDirectory(cwd.c_str());
+  return result.c_str();
 }

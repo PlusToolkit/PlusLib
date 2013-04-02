@@ -164,8 +164,8 @@ public:
   vtkSetStringMacro(EditorApplicationExecutable);
 
   /*! Get output directory path */
-  vtkGetStringMacro(OutputDirectory);
-  
+  const char* GetOutputDirectory();
+
   /*! Get program directory path */
   vtkGetStringMacro(ProgramDirectory);
 
@@ -188,6 +188,11 @@ public:
   vtkGetStringMacro(ScriptsDirectory);
   /*! Set scripts directory path */
   vtkSetStringMacro(ScriptsDirectory);
+
+  /*! Get original working directory path */
+  vtkGetStringMacro(OriginalWorkingDirectory);
+  /*! Set original working directory path */
+  vtkSetStringMacro(OriginalWorkingDirectory);
 
   /*! Get application start timestamp */
   vtkGetStringMacro(ApplicationStartTimestamp);
@@ -253,6 +258,9 @@ protected:
 
   /*! Program path */
   char*               ProgramDirectory;
+
+  /*! Original working path */
+  char*               OriginalWorkingDirectory;
 
   /*! Image directory path. It is used as home directory for images when the image path for a saved dataset is not an absolute path */  
   char*               ImageDirectory;
