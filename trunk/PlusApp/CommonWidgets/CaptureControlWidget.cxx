@@ -164,7 +164,7 @@ void CaptureControlWidget::SaveAsButtonPressed()
   m_Device->SetEnableCapturing(false);
 
   // Present dialog, get filename
-  QFileDialog* dialog = new QFileDialog(this, QString("Select save file"), QString(vtkPlusConfig::GetInstance()->GetOutputDirectory()), QString("All MetaSequence files (*.mha *.mhd)") );
+  QFileDialog* dialog = new QFileDialog(this, QString("Select save file"), QString(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str()), QString("All MetaSequence files (*.mha *.mhd)") );
   dialog->setMinimumSize(QSize(640, 480));
   dialog->setAcceptMode(QFileDialog::AcceptSave);
   dialog->setFileMode(QFileDialog::AnyFile);
@@ -290,7 +290,7 @@ void CaptureControlWidget::TakeSnapshot()
   list->AddTrackedFrame(&frame);
 
   vtkMetaImageSequenceIO* writer = vtkMetaImageSequenceIO::New();
-  QString fileName = QString("%1/TrackedImageSequence_Snapshot_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+  QString fileName = QString("%1/TrackedImageSequence_Snapshot_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
   writer->SetFileName(fileName.toLatin1().constData());
   writer->SetTrackedFrameList(list);
   if( writer->Write() != PLUS_SUCCESS )
@@ -331,7 +331,7 @@ void CaptureControlWidget::SaveFile()
   // Stop recording
   m_Device->SetEnableCapturing(false);
 
-  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
 
   std::string message("");
   if( this->WriteToFile(fileName) != PLUS_FAIL )

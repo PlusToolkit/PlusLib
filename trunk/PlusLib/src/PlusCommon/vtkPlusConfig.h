@@ -164,7 +164,7 @@ public:
   vtkSetStringMacro(EditorApplicationExecutable);
 
   /*! Get output directory path */
-  const char* GetOutputDirectory();
+  std::string GetOutputDirectory();
 
   /*! Get program directory path */
   vtkGetStringMacro(ProgramDirectory);

@@ -938,7 +938,7 @@ PlusStatus vtkPlusConfig::GetAbsoluteModelPath(const char* aModelPath, std::stri
 
 //-----------------------------------------------------------------------------
 
-const char* vtkPlusConfig::GetOutputDirectory()
+std::string vtkPlusConfig::GetOutputDirectory()
 {
   if( this->OutputDirectory == NULL )
   {
@@ -953,5 +953,5 @@ const char* vtkPlusConfig::GetOutputDirectory()
   vtksys::SystemTools::ChangeDirectory(this->OriginalWorkingDirectory);
   std::string result = vtksys::SystemTools::GetRealPath(this->OutputDirectory);
   vtksys::SystemTools::ChangeDirectory(cwd.c_str());
-  return result.c_str();
+  return result;
 }
