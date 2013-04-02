@@ -69,7 +69,7 @@ public:
   vtkSetMacro(Id, int);
 
   /*! Returns the default reply device name, which is the same as receiver device name with the "Reply" appended to the end */
-  std::string GetDefaultReplyDeviceName();
+  static std::string GetDefaultReplyDeviceName(const std::string& aDeviceName);
 
 protected:
 

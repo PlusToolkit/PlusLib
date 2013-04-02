@@ -89,7 +89,7 @@ void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
 {
-  return SetCommandCompleted(replyStatus, replyString, GetDefaultReplyDeviceName());
+  return SetCommandCompleted(replyStatus, replyString, vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName));
 }
 
 //----------------------------------------------------------------------------
@@ -166,8 +166,8 @@ PlusStatus vtkPlusCommand::ValidateName()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetDefaultReplyDeviceName()
+std::string vtkPlusCommand::GetDefaultReplyDeviceName(const std::string& aDeviceName)
 { 
-  std::string replyDeviceName=std::string(this->DeviceName)+"Reply";
+  std::string replyDeviceName = std::string(aDeviceName)+"Reply";
   return replyDeviceName;
 }
