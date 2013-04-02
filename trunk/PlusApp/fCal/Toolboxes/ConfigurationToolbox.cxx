@@ -648,7 +648,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
     }
   }
   
-  if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+  if( aCollection.size() > 0 )
   {
     for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
     {
@@ -659,7 +659,26 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
       }
     }
   }
+  else
+  {
+    LOG_ERROR("No devices in device list! Unable to select channel " << selectedChannelId);
+    return PLUS_FAIL;
+  }
 
+  // If it made it here, they've entered a default channel that doesn't exist... tsk stk
+  LOG_WARNING("DefaultSelectedChannelId: " << selectedChannelId << " is not a valid channel. Selecting first available.");
+  for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  {
+    vtkPlusDevice* aDevice = *it;
+    if( aDevice->OutputChannelCount() > 0 )
+    {
+      aChannel = *(aDevice->GetOutputChannelsStart());
+      LOG_WARNING("No default channel selected, first channel found is now active.");
+      return PLUS_SUCCESS;
+    }
+  }
+
+  LOG_ERROR("No devices have any output channels. Unable to visualize.");
   return PLUS_FAIL;
 }
 
