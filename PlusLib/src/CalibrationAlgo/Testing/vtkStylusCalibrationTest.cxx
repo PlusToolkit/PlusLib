@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--number-of-points-to-acquire", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfPointsToAcquire, "Number of acquired points during the pivot calibration");
+  cmdargs.AddArgument("--number-of-points-to-acquire", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfPointsToAcquire, "Number of acquired points during the pivot calibration (default: 100)");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
@@ -167,6 +167,7 @@ int main (int argc, char* argv[])
 
     pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
+  vtkPlusLogger::PrintProgressbar(100.0); 
 
   if (pivotCalibration->DoPivotCalibration(transformRepository) != PLUS_SUCCESS)
   {
@@ -179,18 +180,26 @@ int main (int argc, char* argv[])
   {
     LOG_ERROR("Failed to write pivot calibration result to configuration element!");
     exit(EXIT_FAILURE);
-  }
+  }  
 
   std::string calibrationResultFileName = "StylusCalibrationTest.xml";
+  LOG_INFO("Writing calibration result ("<<pivotCalibration->GetObjectPivotPointCoordinateFrame()<<" to "<<pivotCalibration->GetObjectMarkerCoordinateFrame()<<" transform) to "<<calibrationResultFileName);
   vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
   PlusCommon::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
-
-  // Compare to baseline
-  if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetObjectPivotPointCoordinateFrame() ) !=0 )
+  
+  if (!inputBaselineFileName.empty())
   {
-    LOG_ERROR("Comparison of calibration data to baseline failed");
-    std::cout << "Exit failure!!!" << std::endl;
-    return EXIT_FAILURE;
+    // Compare to baseline
+    if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetObjectPivotPointCoordinateFrame() ) !=0 )
+    {
+      LOG_ERROR("Comparison of calibration data to baseline failed");
+      std::cout << "Exit failure!!!" << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_DEBUG("Baseline file is not specified. Computed results are not compared to baseline results.");
   }
 
   std::cout << "Exit success!!!" << std::endl; 

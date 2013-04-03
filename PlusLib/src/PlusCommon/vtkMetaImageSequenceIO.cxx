@@ -326,6 +326,17 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(GetCustomString(SEQMETA_FIELD_US_IMG_TYPE)); 
   }
 
+  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  for(int i=0; i<3; i++)
+  {
+    int dimSize=0;
+    if (i<this->NumberOfDimensions)
+    {
+      issDimSize >> dimSize;    
+    }
+    this->Dimensions[i]=dimSize;
+  } 
+
   // If no specific image orientation is requested then determine it automatically from the image type
   // B-mode: MF
   // RF-mode: FM
@@ -342,21 +353,17 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       SetImageOrientationInMemory(US_IMG_ORIENT_FM);
       break;
     default:
-      LOG_WARNING("Cannot determine image orientation automatically, unknown image type "<<this->ImageType<<", use the same orientation in memory as in the file");
+      if (this->Dimensions[0]==0 && this->Dimensions[0]==0)
+      {
+        LOG_DEBUG("Only tracking data is available in the metafile");
+      }
+      else
+      {
+        LOG_WARNING("Cannot determine image orientation automatically, unknown image type "<<this->ImageType<<", use the same orientation in memory as in the file");
+      }
       SetImageOrientationInMemory(this->ImageOrientationInFile);
     }
   }
-
-  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
-  for(int i=0; i<3; i++)
-  {
-    int dimSize=0;
-    if (i<this->NumberOfDimensions)
-    {
-      issDimSize >> dimSize;    
-    }
-    this->Dimensions[i]=dimSize;
-  } 
 
   return PLUS_SUCCESS;
 }
