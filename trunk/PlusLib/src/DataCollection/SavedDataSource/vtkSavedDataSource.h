@@ -17,6 +17,15 @@ class VTK_EXPORT vtkSavedDataSource;
 \class vtkSavedDataSource 
 \brief Class for providing VTK video input interface from sequence metafile
 \ingroup PlusLibImageAcquisition
+
+Attributes:
+\li SequenceMetafile: source file to read the image/transform data from
+\li UseData: specifies what data to be use from the source metafile (IMAGE|IMAGE_AND_TRANSFORM|TRANSFORM)
+\li RepeatEnabled: if true then the sequence is played repeateadly (TRUE|FALSE)
+\li UseOriginalTimestamps: if true then the original timestamps (recorded originally in the source file) 
+  will be replayed exactly, otherwise only the timestamp difference will be replayed exactly, 
+  starting from the current time (TRUE|FALSE)
+
 */
 class VTK_EXPORT vtkSavedDataSource : public vtkPlusDevice
 {
