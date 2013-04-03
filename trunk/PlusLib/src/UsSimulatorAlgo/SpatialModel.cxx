@@ -128,19 +128,26 @@ double SpatialModel::GetAcousticImpedence()
 
 double SpatialModel::CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
 {
+	if (this->IncomingIntensityWattsPerCm2<1)
+	{
+		return this->IncomingIntensityWattsPerCm2 ;
+	}
+ 
+
+	
   double intensityAttenuationCoefficientNpPerCmPerHz = 0;
   intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
   
   // convert to intensityAttentuationCoefficient.
   double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
-  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientdBPerCmPerHz * DECIBEL_PER_NEPER; 
+  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientNpPerCmPerHz * DECIBEL_PER_NEPER; 
   
   // calculate intensity loss for transmitted wave( mu* frequency*distance traveled), which is equal to the loss caused by the reflected wave
   double intensityLossDuringWaveTransmissionDecibels = 0; 
   intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->ImagingFrequencyMHz*distanceUSWaveTravelledCm;
 
   //calcualte acoustic impedence from the denisty and velocity of the material 
-  double acousticImpedenceMegarayles = (this->DensityKgPerM3 * this->SoundVelocityMPerSec)/ CONVERSION_TO_MEGARAYLS; 
+  double acousticImpedenceMegarayles = (this->DensityKgPerM3 / this->SoundVelocityMPerSec); // / CONVERSION_TO_MEGARAYLS; 
  
   double totalIntensityLoss = 0; 
 
@@ -159,9 +166,19 @@ double SpatialModel::CalculateIntensity(double acousticImpedenceNeighbouringMate
 
   }
   //convert intensity to watts per cm^2
-  double totalIntensityLossWattsPerCm2 = 0; 
-  totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLossWattsPerCm2/10) * this->IncomingIntensityWattsPerCm2;
   
-  return totalIntensityLossWattsPerCm2; 
+  totalIntensityLoss = totalIntensityLoss*-1; 
+  double totalIntensityLossWattsPerCm2 = 0; 
+  totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLoss/10) * this->IncomingIntensityWattsPerCm2;
+  
+  if(totalIntensityLossWattsPerCm2> this->IncomingIntensityWattsPerCm2)
+  {
+	  return this->IncomingIntensityWattsPerCm2;
+  }
+
+  else
+  {
+	return totalIntensityLossWattsPerCm2; 
+  }
 
 }
