@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkBkProFocusVideoSource.h"
+#include "vtkBkProFocusCameraLinkVideoSource.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkImageData.h"
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkBkProFocusVideoSource help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkBkProFocusCameraLinkVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -71,18 +71,18 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkBkProFocusVideoSource help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkBkProFocusCameraLinkVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
 
-  vtkSmartPointer<vtkBkProFocusVideoSource> frameGrabber = vtkSmartPointer<vtkBkProFocusVideoSource>::New();
+  vtkSmartPointer<vtkBkProFocusCameraLinkVideoSource> frameGrabber = vtkSmartPointer<vtkBkProFocusCameraLinkVideoSource>::New();
 
   frameGrabber->SetIniFileName(iniFile.c_str());
 
   frameGrabber->SetShowBModeWindow(showBmode);
   frameGrabber->SetShowSaperaWindow(showSapera);
-  frameGrabber->SetImagingMode(vtkBkProFocusVideoSource::RfMode);
+  frameGrabber->SetImagingMode(vtkBkProFocusCameraLinkVideoSource::RfMode);
 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
   iren->Start();
 
 	frameGrabber->StopRecording(); 
-    frameGrabber->Disconnect();
+  frameGrabber->Disconnect();
 
   LOG_INFO("Exit successfully"); 
   return EXIT_SUCCESS; 

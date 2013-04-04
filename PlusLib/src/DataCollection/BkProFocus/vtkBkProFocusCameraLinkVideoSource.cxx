@@ -6,7 +6,7 @@
 
 #include "PlusBkProFocusReceiver.h"
 #include "PlusConfigure.h"
-#include "vtkBkProFocusVideoSource.h"
+#include "vtkBkProFocusCameraLinkVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageImport.h"
 #include "vtkPlusChannel.h"
@@ -28,8 +28,8 @@
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkBkProFocusVideoSource, "$Revision: 1.0$");
-vtkStandardNewMacro(vtkBkProFocusVideoSource);
+vtkCxxRevisionMacro(vtkBkProFocusCameraLinkVideoSource, "$Revision: 1.0$");
+vtkStandardNewMacro(vtkBkProFocusCameraLinkVideoSource);
 //----------------------------------------------------------------------------
 
 
@@ -68,10 +68,10 @@ std::string ParseResponseQuoted(std::string str,int item)
     return "";
 }
 
-class vtkBkProFocusVideoSource::vtkInternal
+class vtkBkProFocusCameraLinkVideoSource::vtkInternal
 {
 public:
-  vtkBkProFocusVideoSource *External;
+  vtkBkProFocusCameraLinkVideoSource *External;
   vtkPlusChannel* Channel;
 
   ParamConnectionSettings BKparamSettings; // parConnectSettings, for read/write settings from ini file
@@ -86,7 +86,7 @@ public:
   CmdCtrlSettings BKcmdCtrlSettings; // cmdCtrlSet
   CommandAndControl* pBKcmdCtrl; // cmdctrl
 
-  vtkBkProFocusVideoSource::vtkInternal::vtkInternal(vtkBkProFocusVideoSource* external) 
+  vtkBkProFocusCameraLinkVideoSource::vtkInternal::vtkInternal(vtkBkProFocusCameraLinkVideoSource* external) 
     : External(external)
     , pBKSaperaView(NULL)
     , pBKcmdCtrl(NULL)
@@ -94,7 +94,7 @@ public:
     this->PlusReceiver.SetPlusVideoSource(this->External);
   }
 
-  virtual vtkBkProFocusVideoSource::vtkInternal::~vtkInternal() 
+  virtual vtkBkProFocusCameraLinkVideoSource::vtkInternal::~vtkInternal() 
   {    
     this->PlusReceiver.SetPlusVideoSource(NULL);
     this->Channel = NULL;
@@ -105,7 +105,7 @@ public:
     this->External = NULL;
   }  
 
-  void vtkBkProFocusVideoSource::vtkInternal::InitializeParametersFromOEM()
+  void vtkBkProFocusCameraLinkVideoSource::vtkInternal::InitializeParametersFromOEM()
   {
     //WSAIF wsaif;
     TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
@@ -243,7 +243,7 @@ public:
     */
   }
 
-  std::string vtkBkProFocusVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
+  std::string vtkBkProFocusCameraLinkVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
   {
     std::string query;
     char buffer[1024];
@@ -258,7 +258,7 @@ public:
 };
 
 //----------------------------------------------------------------------------
-vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
+vtkBkProFocusCameraLinkVideoSource::vtkBkProFocusCameraLinkVideoSource()
 {
   this->Internal = new vtkInternal(this);
 
@@ -274,7 +274,7 @@ vtkBkProFocusVideoSource::vtkBkProFocusVideoSource()
 }
 
 //----------------------------------------------------------------------------
-vtkBkProFocusVideoSource::~vtkBkProFocusVideoSource()
+vtkBkProFocusCameraLinkVideoSource::~vtkBkProFocusCameraLinkVideoSource()
 {
   SetIniFileName(NULL);
 
@@ -283,26 +283,26 @@ vtkBkProFocusVideoSource::~vtkBkProFocusVideoSource()
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBkProFocusCameraLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 } 
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::LogInfoMessageCallback(char *msg)
+void vtkBkProFocusCameraLinkVideoSource::LogInfoMessageCallback(char *msg)
 {
   LOG_INFO(msg);
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::LogDebugMessageCallback(char *msg)
+void vtkBkProFocusCameraLinkVideoSource::LogDebugMessageCallback(char *msg)
 {
   LOG_INFO(msg);
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::InternalConnect()
+PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
 {
   std::string iniFilePath;
   GetFullIniFilePath(iniFilePath);
@@ -380,7 +380,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
+PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalDisconnect()
 {
   this->Internal->BKAcqSapera.Destroy();
 
@@ -404,7 +404,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::InternalStartRecording()
+PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalStartRecording()
 {
   if (!this->Internal->BKAcqSapera.StartGrabbing(&this->Internal->BKAcqInjector))
   {
@@ -415,7 +415,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
+PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalStopRecording()
 {
   /*
   Sleep(500);
@@ -429,7 +429,7 @@ PlusStatus vtkBkProFocusVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
+void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
 {
   // we may need to overwrite these, so create a copy that will be used internally
   int frameSizeInPix[2] = {
@@ -534,9 +534,9 @@ void vtkBkProFocusVideoSource::NewFrameCallback(void* pixelDataPtr, const int in
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
-  LOG_TRACE("vtkBkProFocusVideoSource::ReadConfiguration"); 
+  LOG_TRACE("vtkBkProFocusCameraLinkVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
     LOG_ERROR("Unable to configure BK ProFocus video source! (XML data element is NULL)"); 
@@ -582,7 +582,7 @@ PlusStatus vtkBkProFocusVideoSource::ReadConfiguration(vtkXMLDataElement* config
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBkProFocusCameraLinkVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
   // Write superclass configuration
   Superclass::WriteConfiguration(config); 
@@ -613,7 +613,7 @@ PlusStatus vtkBkProFocusVideoSource::WriteConfiguration(vtkXMLDataElement* confi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::GetFullIniFilePath(std::string &fullPath)
+PlusStatus vtkBkProFocusCameraLinkVideoSource::GetFullIniFilePath(std::string &fullPath)
 {
   if (this->IniFileName==NULL)
   {
@@ -625,7 +625,7 @@ PlusStatus vtkBkProFocusVideoSource::GetFullIniFilePath(std::string &fullPath)
 }
 
 //-----------------------------------------------------------------------------
-void vtkBkProFocusVideoSource::SetImagingMode(ImagingModeType imagingMode)
+void vtkBkProFocusCameraLinkVideoSource::SetImagingMode(ImagingModeType imagingMode)
 {
   this->ImagingMode=imagingMode;
   // always keep the receiver in RF mode and if B-mode image is requested then do the B-mode conversion in this class
@@ -633,16 +633,16 @@ void vtkBkProFocusVideoSource::SetImagingMode(ImagingModeType imagingMode)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusVideoSource::NotifyConfigured()
+PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 1 )
   {
-    LOG_WARNING("vtkBkProFocusVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkBkProFocusCameraLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if( this->OutputChannels.size() == 0 )
   {
-    LOG_ERROR("No output channels defined for vtkBkProFocusVideoSource. Cannot proceed." );
+    LOG_ERROR("No output channels defined for vtkBkProFocusCameraLinkVideoSource. Cannot proceed." );
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }

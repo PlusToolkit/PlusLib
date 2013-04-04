@@ -14,6 +14,8 @@ OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devi
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 
+OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer. " OFF)
+
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
@@ -555,18 +557,19 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     GrabbieLib
+    ${VTK_PNG_LIBRARIES}
     )  
 
   # CameraLink interface
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    BkProFocus/vtkBkProFocusVideoSource.cxx
+    BkProFocus/vtkBkProFocusCameraLinkVideoSource.cxx
     BkProFocus/PlusBkProFocusReceiver.cxx
     )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      BkProFocus/vtkBkProFocusVideoSource.h
-      BkProFocus/PlusBkProFocusReceiver.h
+      BkProFocus/vtkBkProFocusCameraLinkVideoSource.h
+      BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
   endif (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 

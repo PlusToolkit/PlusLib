@@ -335,6 +335,9 @@ public:
   /*! Get the image pixel type (B-mode, RF, ...) */
   virtual US_IMAGE_TYPE GetImageType(vtkPlusChannel& aChannel);
 
+  /*! Add an output channel */
+  PlusStatus AddOutputChannel(vtkPlusChannel* aChannel);
+
   /*! Access the available output channels */
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId);
 

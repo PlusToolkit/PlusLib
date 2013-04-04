@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkBkProFocusVideoSource_h
-#define __vtkBkProFocusVideoSource_h
+#ifndef __vtkBkProFocusCameraLinkVideoSource_h
+#define __vtkBkProFocusCameraLinkVideoSource_h
 
 // PLUS Includes
 #include "PlusConfigure.h"
@@ -14,11 +14,11 @@
 class PlusBkProFocusReceiver;
 
 /*!
-\class vtkBkProFocusVideoSource 
+\class vtkBkProFocusCameraLinkVideoSource 
 \brief Class for acquiring ultrasound images from BK ProFocus scanners
 \ingroup PlusLibImageAcquisition
 */
-class VTK_EXPORT vtkBkProFocusVideoSource : public vtkPlusDevice
+class VTK_EXPORT vtkBkProFocusCameraLinkVideoSource : public vtkPlusDevice
 {
 public:  
   enum ImagingModeType
@@ -27,10 +27,10 @@ public:
     RfMode
   };
 
-  vtkTypeRevisionMacro(vtkBkProFocusVideoSource,vtkPlusDevice);
+  vtkTypeRevisionMacro(vtkBkProFocusCameraLinkVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  static vtkBkProFocusVideoSource* New();
+  static vtkBkProFocusCameraLinkVideoSource* New();
 
   virtual bool IsTracker() const { return false; }
 
@@ -52,9 +52,9 @@ public:
   
 protected:
   /*! Constructor */
-  vtkBkProFocusVideoSource();
+  vtkBkProFocusCameraLinkVideoSource();
   /*! Destructor */
-  virtual ~vtkBkProFocusVideoSource();
+  virtual ~vtkBkProFocusCameraLinkVideoSource();
 
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
@@ -100,9 +100,9 @@ private:
   class vtkInternal;
   vtkInternal* Internal;  
 
-  static bool vtkBkProFocusVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
-  vtkBkProFocusVideoSource(const vtkBkProFocusVideoSource&);  // Not implemented.
-  void operator=(const vtkBkProFocusVideoSource&);  // Not implemented.
+  static bool vtkBkProFocusCameraLinkVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
+  vtkBkProFocusCameraLinkVideoSource(const vtkBkProFocusCameraLinkVideoSource&);  // Not implemented.
+  void operator=(const vtkBkProFocusCameraLinkVideoSource&);  // Not implemented.
 };
 
 #endif

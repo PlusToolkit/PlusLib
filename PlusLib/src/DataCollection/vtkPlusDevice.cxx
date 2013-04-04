@@ -748,10 +748,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
       aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration);
-
-
-      this->OutputChannels.push_back(aChannel);
-      aChannel->Register(this);
+      AddOutputChannel(aChannel);
     }
   }
 
@@ -1353,7 +1350,13 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     return 0;
   }
 
-  int extent[6] = {0, aSource->GetBuffer()->GetFrameSize()[0] - 1, 0, aSource->GetBuffer()->GetFrameSize()[1] - 1, 0, 0 };
+  int* frameSize=aSource->GetBuffer()->GetFrameSize();
+  if (frameSize[0]<0||frameSize[1]<0)
+  {
+    // no frame is available yet
+    return 0;
+  }
+  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 };
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
   // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
@@ -1376,10 +1379,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
                                vtkInformationVector *vtkNotUsed(outputVector))
 {
   LOG_TRACE("vtkPlusDevice::RequestData");
-
-  vtkImageData *data = vtkImageData::SafeDownCast(this->AllocateOutputData(this->GetOutputDataObject(0)));
-  unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
-
+  
   // Find a video source and set extent
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
@@ -1427,17 +1427,14 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetBufferPointer();
   int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
 
-  int dimensions[3]={0,0,0};
-  data->GetDimensions(dimensions);
-  int outputSizeInBytes=dimensions[0]*dimensions[1]*dimensions[2]*data->GetScalarSize()*data->GetNumberOfScalarComponents();
-
-  // the actual output size may be smaller than the output available
-  // (e.g., when the rendering window is resized)
-  if (bytesToCopy>outputSizeInBytes)
-  {
-    bytesToCopy=outputSizeInBytes;
-  }
-
+  // The whole image buffer is copied, regardless of the UPDATE_EXTENT value to make the copying implementation simpler
+  // For a more efficient implementation, we should only update the requested part of the image.
+  vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
+  int frameSize[2]={0,0};
+  this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
+  data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+  data->AllocateScalars();
+  unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy);
 
   return 1;
@@ -1803,4 +1800,21 @@ bool vtkPlusDevice::IsTracker() const
 {
   LOG_ERROR("Calling base IsTracker. Override in the derived classes.");
   return false;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddOutputChannel(vtkPlusChannel* aChannel)
+{
+  if (aChannel==NULL)
+  {
+    LOG_ERROR("Cannot add device, aChannel is invalid");
+    return PLUS_FAIL;
+  }
+  if (aChannel->GetOwnerDevice()==NULL)
+  {
+    aChannel->SetOwnerDevice(this);
+  }
+  this->OutputChannels.push_back(aChannel);
+  aChannel->Register(this);
+  return PLUS_SUCCESS;
 }

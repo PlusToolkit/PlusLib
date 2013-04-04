@@ -68,7 +68,7 @@ See License.txt for details.
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
 #include "vtkBkProFocusOemVideoSource.h"
 #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-  #include "vtkBkProFocusVideoSource.h"
+  #include "vtkBkProFocusCameraLinkVideoSource.h"
 #endif
 #endif
 
@@ -141,7 +141,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
   DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusOemVideoSource::New; 
   #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+    DeviceTypes["BkProFocusCameraLink"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New; 
+    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New;  // for backward compatibility only
   #endif 
 #endif 
 #ifdef PLUS_USE_VFW_VIDEO
