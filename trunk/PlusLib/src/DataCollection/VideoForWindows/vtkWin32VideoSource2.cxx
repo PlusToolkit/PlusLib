@@ -19,7 +19,7 @@ Authors include: Danielle Pace
 #include "vtkPlusBuffer.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkWin32VideoSource2.h"
-#include "ConvertYuy2ToRgb.h"
+#include "PixelCodec.h"
 
 #include <ctype.h>
 
@@ -96,10 +96,6 @@ public:
   int BitMapInfoSize;
 };
 
-// VFW compressed formats are listed at http://www.webartz.com/fourcc/
-static const long VTK_BI_UYVY=0x59565955;
-static const long VTK_BI_YUY2=0x32595559;
-
 vtkCxxRevisionMacro(vtkWin32VideoSource2, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkWin32VideoSource2);
 
@@ -114,70 +110,6 @@ vtkStandardNewMacro(vtkWin32VideoSource2);
 #  define vtkSetWindowLong SetWindowLong
 #  define vtkGWL_USERDATA GWL_USERDATA
 #endif // 
-
-//----------------------------------------------------------------------------
-// codecs
-
-static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
-{ 
-  /* 
-  // floating point math (simpler but slower)
-  int Y = yuv[0] - 16;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = 1.164*Y + 1.596*V           + 0.5;
-  int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
-  int B = 1.164*Y           + 2.018*U + 0.5;
-  */
-
-  // integer math (faster but more complex to read)
-
-  int Y = (yuv[0] - 16)*76284;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = Y + 104595*V           ;
-  int G = Y -  53281*V -  25625*U;
-  int B = Y            + 132252*U;
-
-  // round
-  R += 32768;
-  G += 32768;
-  B += 32768;
-
-  // shift
-  R >>= 16;
-  G >>= 16;
-  B >>= 16;
-
-  // clamp
-  if (R < 0) { R = 0; }
-  if (G < 0) { G = 0; }
-  if (B < 0) { B = 0; }
-
-  if (R > 255) { R = 255; };
-  if (G > 255) { G = 255; };
-  if (B > 255) { B = 255; };
-
-  // output
-  rgb[0] = R;
-  rgb[1] = G;
-  rgb[2] = B;
-}
-
-// Note that this method computes the inensity (simple averaging of the RGB components).
-// This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
-static inline void Rgb24ToGray(int width, int height, unsigned char *s,unsigned char *d)
-{
-  int totalLen=width*height;
-  for (int i=0; i<totalLen; i++)
-  {
-    *d=((unsigned short)(s[0])+s[1]+s[2])/3;
-    d++;
-    s+=3;
-  }
-} 
 
 //----------------------------------------------------------------------------
 vtkWin32VideoSource2::vtkWin32VideoSource2()
@@ -554,28 +486,9 @@ void vtkWin32VideoSource2::OnParentWndDestroy()
 PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 {
   int inputCompression = this->Internal->BitMapInfoPtr->bmiHeader.biCompression;
-  switch (inputCompression)
+  if (!PixelCodec::IsConvertToGraySupported(inputCompression))
   {  
-  // supported compression
-  case VTK_BI_YUY2:
-  case BI_RGB:
-    break;
-  // not supported compression
-  case VTK_BI_UYVY:
-  default:
-    char fourcchex[16]={0};
-    char fourcc[8]={0};
-    sprintf(fourcchex,"0x%08x",inputCompression);
-    for (int i = 0; i < 4; i++)
-    {
-      fourcc[i] = (inputCompression >> (8*i)) & 0xff;
-      if (!isprint(fourcc[i]))
-      {
-        fourcc[i] = '?';
-      }
-    }
-    fourcc[4] = '\0';
-    LOG_ERROR("AddFrameToBuffer: video compression mode " << fourcchex << " \"" << fourcc << "\": can't grab");
+    LOG_ERROR("AddFrameToBuffer: video compression mode " << PixelCodec::GetCompressionModeAsString(inputCompression) << ": can't grab");
     return PLUS_FAIL;
   }
 
@@ -600,22 +513,9 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
-  switch (inputCompression)
+  if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr)!=PLUS_SUCCESS)
   {
-  case BI_RGB:
-    // decode the grabbed image to the requested output image type
-    Rgb24ToGray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr);
-    break;
-  case VTK_BI_YUY2:
-    // decode the grabbed image to the requested output image type
-    if (!YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr))
-    {
-      LOG_ERROR("Error while decoding the grabbed image");
-      return PLUS_FAIL;
-    }
-    break;
-  default:
-    LOG_ERROR("Unknown compression type: "<<inputCompression);
+    LOG_ERROR("Error while decoding the grabbed image");
     return PLUS_FAIL;
   }
   

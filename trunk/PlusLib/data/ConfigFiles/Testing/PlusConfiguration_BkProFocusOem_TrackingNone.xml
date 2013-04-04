@@ -1,0 +1,46 @@
+<PlusConfiguration version="2.2">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="BK ProFocus scanner through OEM interface"
+      Description="BK ProFocus ultrasound scanner image acquisition only" 
+    />
+
+    <!-- Bk pro focus must come first for automated tests to pass -->
+    <Device 
+      Id="VideoDevice"
+      Type="BkProFocusOem"
+      IniFileName="BkSettings/IniFile.ini"
+      AcquisitionRate="30"
+      LocalTimeOffsetSec="0"
+      >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF" />
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+  />
+
+</PlusConfiguration>

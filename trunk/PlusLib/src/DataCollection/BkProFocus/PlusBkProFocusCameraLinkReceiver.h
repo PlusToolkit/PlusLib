@@ -2,7 +2,7 @@
 #include "IAcquisitionDataReceiver.h"
 #include "libbmode.h"
 
-#include "vtkBkProFocusVideoSource.h"
+#include "vtkBkProFocusCameraLinkVideoSource.h"
 
 /*!
 \class PlusBkProFocusReceiver 
@@ -17,7 +17,7 @@ public:
   virtual ~PlusBkProFocusReceiver();
 
   /*! Set the video source that will be notified when a new frame is received */
-  virtual void SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource);
+  virtual void SetPlusVideoSource(vtkBkProFocusCameraLinkVideoSource *videoSource);
 
   /*!
     Set what kind of images are sent to the video source. The default is RF mode,
@@ -26,7 +26,7 @@ public:
     brightness conversion and scan conversion internally.
     Other imaging modes are not yet supported.
   */
-  virtual void SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode);
+  virtual void SetImagingMode(vtkBkProFocusCameraLinkVideoSource::ImagingModeType imagingMode);
 
   /*!
     Set decimation value to reduce the amount of processed data.
@@ -57,10 +57,10 @@ public:
 protected:
   
   /*! Video source that is notified about each new frame */
-  vtkBkProFocusVideoSource* m_CallbackVideoSource;
+  vtkBkProFocusCameraLinkVideoSource* m_CallbackVideoSource;
 
   /*! For future use. Now only RF mode is supported. */
-  vtkBkProFocusVideoSource::ImagingModeType m_ImagingMode;
+  vtkBkProFocusCameraLinkVideoSource::ImagingModeType m_ImagingMode;
 
   /*! Buffer storing the RF lines that can be converted to brightness lines, after decimation */
   unsigned char* m_Frame;

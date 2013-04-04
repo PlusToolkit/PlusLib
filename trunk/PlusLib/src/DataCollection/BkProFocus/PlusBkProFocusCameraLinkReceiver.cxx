@@ -1,5 +1,5 @@
-#include "PlusBkProFocusReceiver.h"
-#include "vtkBkProFocusVideoSource.h"
+#include "PlusBkProFocusCameraLinkReceiver.h"
+#include "vtkBkProFocusCameraLinkVideoSource.h"
 
 #include "ResearchInterface.h"
 
@@ -10,9 +10,9 @@ const int BYTES_PER_SAMPLE = 2; // One sample is one I or Q value, stored on 16 
 const int HEADER_SIZE_BYTES = 4; // The header consists of two 16 bit fields
 
 //----------------------------------------------------------------------------
-PlusBkProFocusReceiver::PlusBkProFocusReceiver()
+PlusBkProFocusCameraLinkReceiver::PlusBkProFocusCameraLinkReceiver()
 {
-  m_ImagingMode=vtkBkProFocusVideoSource::RfMode;
+  m_ImagingMode=vtkBkProFocusCameraLinkVideoSource::RfMode;
 
   m_Frame = NULL;
 
@@ -23,12 +23,12 @@ PlusBkProFocusReceiver::PlusBkProFocusReceiver()
 }
 
 //----------------------------------------------------------------------------
-PlusBkProFocusReceiver::~PlusBkProFocusReceiver()
+PlusBkProFocusCameraLinkReceiver::~PlusBkProFocusCameraLinkReceiver()
 {
 }
 
 //----------------------------------------------------------------------------
-bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
+bool PlusBkProFocusCameraLinkReceiver::Prepare(int samples, int lines, int pitch)
 {
   LOG_DEBUG("Prepare: samples"<<samples<<", lines="<<lines<<", pitch="<<pitch);
 
@@ -56,7 +56,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
   m_Frame = reinterpret_cast<unsigned char*>(_aligned_malloc(m_MaxNumberOfLines * m_NumberOfRfSamplesPerLine * BYTES_PER_SAMPLE, 16u));
   if (m_Frame == NULL)
   {
-    LOG_ERROR("PlusBkProFocusReceiver::Prepare: Failed to allocate memory for m_Frame");
+    LOG_ERROR("PlusBkProFocusCameraLinkReceiver::Prepare: Failed to allocate memory for m_Frame");
     return false;
   } 
 
@@ -64,7 +64,7 @@ bool PlusBkProFocusReceiver::Prepare(int samples, int lines, int pitch)
 }
 
 //----------------------------------------------------------------------------
-bool PlusBkProFocusReceiver::Cleanup()
+bool PlusBkProFocusCameraLinkReceiver::Cleanup()
 {
   if (m_Frame != NULL)
   {
@@ -77,7 +77,7 @@ bool PlusBkProFocusReceiver::Cleanup()
 }
 
 //----------------------------------------------------------------------------
-bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* frameData)
+bool PlusBkProFocusCameraLinkReceiver::DataAvailable(int lines, int pitch, void const* frameData)
 {
   if (frameData==NULL)
   {
@@ -168,12 +168,12 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 
   switch (m_ImagingMode)
   {
-  case vtkBkProFocusVideoSource::BMode:
+  case vtkBkProFocusCameraLinkVideoSource::BMode:
     {
       LOG_ERROR("B-mode imaging is not supported");
       break;
     }
-  case vtkBkProFocusVideoSource::RfMode:
+  case vtkBkProFocusCameraLinkVideoSource::RfMode:
     {
       if (m_CallbackVideoSource!=NULL)
       {
@@ -192,19 +192,19 @@ bool PlusBkProFocusReceiver::DataAvailable(int lines, int pitch, void const* fra
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusReceiver::SetPlusVideoSource(vtkBkProFocusVideoSource *videoSource)
+void PlusBkProFocusCameraLinkReceiver::SetPlusVideoSource(vtkBkProFocusCameraLinkVideoSource *videoSource)
 {
   m_CallbackVideoSource = videoSource;
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusReceiver::SetImagingMode(vtkBkProFocusVideoSource::ImagingModeType imagingMode)
+void PlusBkProFocusCameraLinkReceiver::SetImagingMode(vtkBkProFocusCameraLinkVideoSource::ImagingModeType imagingMode)
 {
   m_ImagingMode = imagingMode;
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusReceiver::SetDecimation(int decimation)
+void PlusBkProFocusCameraLinkReceiver::SetDecimation(int decimation)
 {
   m_Decimation = decimation;
 }
