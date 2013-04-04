@@ -139,7 +139,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkSonixPortaVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusOemVideoSource::New; 
   #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
     DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
   #endif 
