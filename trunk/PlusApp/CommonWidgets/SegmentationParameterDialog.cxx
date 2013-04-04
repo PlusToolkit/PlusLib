@@ -1002,6 +1002,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   {
     LOG_ERROR("Unable to initialize the image visualizer.");
   }
+  m_ImageVisualizer->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
   m_ImageVisualizer->AssignResultPolyData(m_CandidatesPolyData);
   m_ImageVisualizer->AssignDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
