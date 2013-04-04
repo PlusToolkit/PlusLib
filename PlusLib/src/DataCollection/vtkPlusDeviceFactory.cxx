@@ -58,16 +58,20 @@ See License.txt for details.
 #ifdef PLUS_USE_VFW_VIDEO
 #include "vtkWin32VideoSource2.h"
 #endif
-
 #endif
+
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
 #include "vtkSonixVideoSource.h"
 #include "vtkSonixPortaVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-#include "vtkBkProFocusVideoSource.h"
+#include "vtkBkProFocusOemVideoSource.h"
+#ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
+  #include "vtkBkProFocusVideoSource.h"
 #endif
+#endif
+
 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
@@ -135,7 +139,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkSonixPortaVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-  DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+  #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
+    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
+  #endif 
 #endif 
 #ifdef PLUS_USE_VFW_VIDEO
   DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 

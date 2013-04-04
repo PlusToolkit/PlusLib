@@ -147,15 +147,29 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
-#***************************  vtkBkProFocusVideoSourceTest.cxx ***************************
+
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
-	ADD_EXECUTABLE(vtkBkProFocusVideoSourceTest vtkBkProFocusVideoSourceTest.cxx )
-	TARGET_LINK_LIBRARIES(vtkBkProFocusVideoSourceTest vtkDataCollection vtkCharts)
-	ADD_TEST(vtkBkProFocusVideoSourceTest 
-	${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusVideoSourceTest
+
+  #***************************  vtkBkProFocusOemVideoSourceTest.cxx ***************************
+	ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )
+	TARGET_LINK_LIBRARIES(vtkBkProFocusOemVideoSourceTest vtkDataCollection vtkCharts)
+	ADD_TEST(vtkBkProFocusOemVideoSourceTest 
+	${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusOemVideoSourceTest
 	 --rendering-off
 	)
-	SET_TESTS_PROPERTIES( vtkBkProFocusVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+	SET_TESTS_PROPERTIES( vtkBkProFocusOemVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+  #***************************  vtkBkProFocusVideoSourceTest.cxx ***************************
+  IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
+    ADD_EXECUTABLE(vtkBkProFocusVideoSourceTest vtkBkProFocusVideoSourceTest.cxx )
+    TARGET_LINK_LIBRARIES(vtkBkProFocusVideoSourceTest vtkDataCollection vtkCharts)
+    ADD_TEST(vtkBkProFocusVideoSourceTest 
+    ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusVideoSourceTest
+     --rendering-off
+    )
+    SET_TESTS_PROPERTIES( vtkBkProFocusVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ENDIF (PLUS_USE_BKPROFOCUS_CAMERALINK)
+  
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************

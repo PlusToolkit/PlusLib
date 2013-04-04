@@ -8,7 +8,8 @@ OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OF
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
-OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners" OFF)
+OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
+OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
@@ -531,19 +532,17 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
 # BK ProFocus support
+
+# OEM interface
 IF (PLUS_USE_BKPROFOCUS_VIDEO)  
-  SET (DataCollection_SRCS
-    ${DataCollection_SRCS}
-    BkProFocus/vtkBkProFocusVideoSource.cxx
-    BkProFocus/PlusBkProFocusReceiver.cxx
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    BkProFocus/vtkBkProFocusOemVideoSource.cxx 
     )
   if (WIN32)  
-    SET (DataCollection_HDRS
-      ${DataCollection_HDRS}
-      BkProFocus/vtkBkProFocusVideoSource.h
-      BkProFocus/PlusBkProFocusReceiver.h
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      BkProFocus/vtkBkProFocusOemVideoSource.h
       )
-  endif (WIN32)  
+  endif (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
     ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
@@ -556,8 +555,25 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     GrabbieLib
+    )  
+
+  # CameraLink interface
+  IF (PLUS_USE_BKPROFOCUS_CAMERALINK)  
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    BkProFocus/vtkBkProFocusVideoSource.cxx
+    BkProFocus/PlusBkProFocusReceiver.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      BkProFocus/vtkBkProFocusVideoSource.h
+      BkProFocus/PlusBkProFocusReceiver.h
+      )
+  endif (WIN32)  
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
+  ENDIF (PLUS_USE_BKPROFOCUS_CAMERALINK)
+
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
 # --------------------------------------------------------------------------
