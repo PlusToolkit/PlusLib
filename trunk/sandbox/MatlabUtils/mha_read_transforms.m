@@ -13,7 +13,7 @@
 %
 %   Example: Plot the y translation component of the ToolToTracker transform in time
 %     [transforms timestamps unfilteredTimestamps] = mha_read_transforms('TrackedImageSequence_20130326_174150-long-raolao.mha');
-%     plot(timestamps, transforms.ToolToTrackerTransformMatrix(3,4,:), '.')
+%     plot(timestamps, squeeze( transforms.ToolToTrackerTransformMatrix(3,4,:) ), '.')
 %
 
 function [transforms timestamps unfilteredTimestamps] = mha_read_transforms(filename)
