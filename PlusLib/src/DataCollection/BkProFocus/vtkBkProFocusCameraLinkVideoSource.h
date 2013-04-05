@@ -11,7 +11,7 @@
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 
-class PlusBkProFocusReceiver;
+class PlusBkProFocusCameraLinkReceiver;
 
 /*!
 \class vtkBkProFocusCameraLinkVideoSource 
@@ -68,7 +68,7 @@ protected:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   void NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType);
-  friend PlusBkProFocusReceiver;
+  friend PlusBkProFocusCameraLinkReceiver;
 
   /*! Called by BK to log information messages */
   static void LogInfoMessageCallback(char *msg);
