@@ -5,16 +5,16 @@
 #include "vtkBkProFocusCameraLinkVideoSource.h"
 
 /*!
-\class PlusBkProFocusReceiver 
+\class PlusBkProFocusCameraLinkReceiver 
 \brief Class for receiving images through the BK ProFocus SDK (Grabbie)
 \ingroup PlusLibImageAcquisition
 */
-class PlusBkProFocusReceiver : public IAcquisitionDataReceiver
+class PlusBkProFocusCameraLinkReceiver : public IAcquisitionDataReceiver
 {
 public:
 
-  PlusBkProFocusReceiver();
-  virtual ~PlusBkProFocusReceiver();
+  PlusBkProFocusCameraLinkReceiver();
+  virtual ~PlusBkProFocusCameraLinkReceiver();
 
   /*! Set the video source that will be notified when a new frame is received */
   virtual void SetPlusVideoSource(vtkBkProFocusCameraLinkVideoSource *videoSource);

@@ -4,7 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusBkProFocusReceiver.h"
+#include "PlusBkProFocusCameraLinkReceiver.h"
 #include "PlusConfigure.h"
 #include "vtkBkProFocusCameraLinkVideoSource.h"
 #include "vtkImageData.h"
@@ -81,7 +81,7 @@ public:
   AcquisitionGrabberSapera BKAcqSapera; // sapera
   BmodeViewDataReceiver BKBModeView; // bmodeView; 
   SaperaViewDataReceiver* pBKSaperaView; // saperaView
-  PlusBkProFocusReceiver PlusReceiver;
+  PlusBkProFocusCameraLinkReceiver PlusReceiver;
 
   CmdCtrlSettings BKcmdCtrlSettings; // cmdCtrlSet
   CommandAndControl* pBKcmdCtrl; // cmdctrl
