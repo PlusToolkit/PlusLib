@@ -229,7 +229,7 @@ protected:
     /*!
     * Activate a certain device
     */
-    void ChannelSelected(vtkPlusDevice* aDevice, vtkPlusChannel* aChannel);
+    void ChannelSelected(vtkPlusChannel* aChannel);
 
     /*!
     * Resize event handler

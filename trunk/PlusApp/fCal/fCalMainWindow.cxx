@@ -499,7 +499,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           return true;
         }
-        menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
+        menu = new QMenu(tr("Orientations"), ui.pushButton_ImageOrientation);
         for( std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it )
         {
           QCustomAction* action = (*it);
@@ -520,7 +520,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           return true;
         }
-        menu = new QMenu(tr("Actions"), ui.pushButton_ShowDevices);
+        menu = new QMenu(tr("Devices"), ui.pushButton_ShowDevices);
 
         for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
         {
@@ -813,13 +813,13 @@ void fCalMainWindow::BuildChannelMenu()
       vtkPlusChannel* aChannel = *channelIter;
       std::stringstream ss;
       ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
-      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, device, aChannel);
+      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
       action->setCheckable(true);
       action->setDisabled(numChannels == 1);
       vtkPlusChannel* currentChannel(NULL);
       action->setChecked(this->GetSelectedChannel() == aChannel);
       connect(action, SIGNAL(triggered()), action, SLOT(activated()));
-      connect(action, SIGNAL(channelSelected(vtkPlusDevice*, vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusDevice*, vtkPlusChannel*)));
+      connect(action, SIGNAL(channelSelected(vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusChannel*)));
       m_3DActionList.push_back(action);
     }
   }
@@ -827,9 +827,15 @@ void fCalMainWindow::BuildChannelMenu()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aChannel )
+void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
 {
-  LOG_TRACE("fCalMainWindow::ChannelSelected(" << aDevice->GetDeviceId() << ", channel: " << aChannel->GetChannelId() << ")");
+  LOG_TRACE("fCalMainWindow::ChannelSelected(channel: " << aChannel->GetChannelId() << ")");
+
+  if( aChannel == this->GetSelectedChannel() )
+  {
+    this->BuildChannelMenu();
+    return;
+  }
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
