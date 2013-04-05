@@ -564,7 +564,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     BkProFocus/vtkBkProFocusCameraLinkVideoSource.cxx
-    BkProFocus/PlusBkProFocusReceiver.cxx
+    BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
     )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
