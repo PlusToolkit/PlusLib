@@ -866,8 +866,6 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
       return PLUS_FAIL; 
     }
 
-    unsigned long frameNumber = videoItem.GetIndex(); 
-
     vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
 
     if ( frame == NULL )
@@ -944,8 +942,6 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video item for frame threshold computation from frame UID: " << bufferIndex); 
       continue; 
     }
-
-    double frameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
 
     vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
     if ( frame == NULL )
