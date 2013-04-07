@@ -113,7 +113,7 @@ PlusStatus vtkUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConversio
     LOG_DEBUG("Unable to write vtkUsScanConvert: XML data element is NULL"); 
     return PLUS_FAIL; 
   }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
+  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion") != 0)
   {
     LOG_ERROR("Cannot write vtkUsScanConvert configuration: ScanConversion element is expected"); 
     return PLUS_FAIL;
