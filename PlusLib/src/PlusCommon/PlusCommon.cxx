@@ -146,6 +146,83 @@ void PlusTransformName::Capitalize(std::string& aString )
   aString[0] = toupper( aString[0] );
 }
 
+//----------------------------------------------------------------------------
+PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
+{
+  aString = "";
+  int maxRetryCount = 50;
+  int tryCount = 0;
+
+#ifdef _WIN32
+  char candidateFilename[MAX_PATH]="";
+#else
+  char candidateFilename[L_tmpnam]="";
+#endif
+
+  while( tryCount < maxRetryCount)
+  {
+    tryCount++;
+
+#ifdef _WIN32
+    UINT uRetVal(0);
+    if( !anOutputDirectory.empty() )
+    {
+      std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
+      uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+    }
+    else
+    {
+      char tempPath[MAX_PATH]="";
+      if( GetTempPath(MAX_PATH, tempPath) == 0 )
+      {
+        LOG_ERROR("Unable to retrieve temp path: " << GetLastError() );
+        return PLUS_FAIL;
+      }
+      uRetVal = GetTempFileName(tempPath, "", 0, candidateFilename);
+    }
+
+
+    if( uRetVal == ERROR_BUFFER_OVERFLOW )
+    {
+      if( vtksys::SystemTools::FileExists(candidateFilename) )
+      {
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+      }
+      LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+      continue;
+    }
+    else if (uRetVal==0)
+    {
+      LOG_ERROR("Failed to generate temporary filename. Error code:" << GetLastError());
+      continue;
+    }
+
+    aString = candidateFilename;
+    return PLUS_SUCCESS;
+#else
+    tmpnam(candidateFilename);
+
+    if( !vtksys::SystemTools::FileExists(candidateFilename) )
+    {
+      ofstream aFile(candidateFilename);
+      if( aFile.is_open() )
+      {
+        aFile.close();
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+        aString = candidateFilename;
+        return PLUS_SUCCESS;
+      }
+      else
+      {
+        LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
+      }
+    }
+#endif
+  }
+
+  return PLUS_FAIL;
+}
+
 //-------------------------------------------------------
 void PlusCommon::Trim(std::string &str)
 {
