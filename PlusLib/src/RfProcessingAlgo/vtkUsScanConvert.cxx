@@ -57,7 +57,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     LOG_ERROR("Unable to configure vtkUsScanConvert! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion")!=NULL)
+  if ( STRCASECMP(scanConversionElement->GetName(), "ScanConversion") != 0)
   {
     LOG_ERROR("Cannot read vtkUsScanConvert configuration: ScanConversion element is expected"); 
     return PLUS_FAIL;
@@ -69,7 +69,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     LOG_ERROR("Cannot read vtkUsScanConvert configuration: TransducerGeometry is unknown"); 
     return PLUS_FAIL;
   }
-  if (STRCASECMP(transducerGeometry, this->GetTransducerGeometry())!=NULL)
+  if (STRCASECMP(transducerGeometry, this->GetTransducerGeometry()) != 0)
   {
     LOG_ERROR("Cannot read vtkUsScanConvert configuration: TransducerGeometry is expected to be "<<this->GetTransducerGeometry()
       <<", but found "<<transducerGeometry<<" instead"); 

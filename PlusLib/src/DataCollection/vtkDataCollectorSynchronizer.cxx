@@ -434,7 +434,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   LOG_TRACE("vtkDataCollectorSynchronizer::ComputeTransformThreshold"); 
   int sizeOfAvgPositons(0); 
   std::vector< vtkSmartPointer<vtkTransform> > avgTransforms; 
-  for ( bufferIndex; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
+  for ( ; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
   {
     StreamBufferItem bufferItem; 
     if ( this->GetTrackerBuffer()->GetStreamBufferItem(bufferIndex, &bufferItem) != ITEM_OK ) 
@@ -549,7 +549,6 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
     if ( bufferItem.GetStatus() == TOOL_OK )
     {
       double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
-      unsigned long frameNumber = bufferItem.GetIndex();
 
       vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
 
@@ -938,7 +937,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
   StreamBufferItem videoItem; 
   const double localTimeOffset(0); 
   std::vector<double> avgFrames; 
-  for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
+  for ( ; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
   {
     if ( this->VideoBuffer->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
     {
