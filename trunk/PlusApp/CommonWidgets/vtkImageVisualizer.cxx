@@ -489,7 +489,7 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
       return PLUS_FAIL;
     }
 
-    if( this->SelectedChannel != NULL )
+    if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
     {
       this->ImageActor->SetInput( this->SelectedChannel->GetBrightnessOutput() );
     }

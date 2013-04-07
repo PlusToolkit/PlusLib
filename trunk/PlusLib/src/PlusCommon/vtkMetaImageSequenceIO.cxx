@@ -1371,16 +1371,30 @@ PlusStatus vtkMetaImageSequenceIO::Close()
     }
   }
 
+  std::string fileName = vtksys::SystemTools::GetFilenameName(this->FileName);
+  std::string path = vtksys::SystemTools::GetFilenamePath(this->FileName);
+  if( path.empty() )
+  {
+    path = vtkPlusConfig::GetInstance()->GetOutputDirectory();
+  }
+  if( *path.rbegin() == '/')
+  {
+    path = path.substr(0, path.length()-1);
+  }
+  std::string finalFileName = path + "/" + fileName;
+
   // Move header to final file
-  MoveDataInFiles(this->TempHeaderFileName, this->FileName, false);
+  MoveDataInFiles(this->TempHeaderFileName, finalFileName.c_str(), false);
   // Copy image to final file (or data file if .mhd)
   if( STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->GetPixelDataFileName()) == 0 )
   {
-    MoveDataInFiles(this->TempImageFileName, this->FileName, true);
+    MoveDataInFiles(this->TempImageFileName, finalFileName.c_str(), true);
   }
   else
   {
-    MoveDataInFiles(this->TempImageFileName, this->GetPixelDataFileName(), false);
+    std::string pixFileName = path + "/" + this->GetPixelDataFileName();
+
+    MoveDataInFiles(this->TempImageFileName, pixFileName.c_str(), false);
   }
 
   return PLUS_SUCCESS;
