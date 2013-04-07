@@ -933,7 +933,6 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
   // Compute frame average 
   int sizeOfAvgFrames(0); 
   StreamBufferItem videoItem; 
-  const double localTimeOffset(0); 
   std::vector<double> avgFrames; 
   for ( ; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
   {
