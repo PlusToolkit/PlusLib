@@ -39,7 +39,7 @@
   </CoordinateDefinitions> 
   
 
-  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
       File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="

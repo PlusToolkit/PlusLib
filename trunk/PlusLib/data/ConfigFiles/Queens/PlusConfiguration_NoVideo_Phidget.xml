@@ -48,7 +48,7 @@
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
   
-  <Rendering WorldCoordinateFrame="Tracker" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+  <Rendering WorldCoordinateFrame="Tracker" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="OrientationSensor" Id="OrientationSensorAxes"/>\
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="TiltSensor" Id="TiltSensorAxes"/>\
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Accelerometer" Id="AccelerometerAxes"/>\

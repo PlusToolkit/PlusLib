@@ -249,6 +249,22 @@ PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("F");
     break;
+  case US_IMG_ORIENT_FM:
+    this->GetHorizontalOrientationTextActor()->SetInput("F");
+    this->GetVerticalOrientationTextActor()->SetInput("M");
+    break;
+  case US_IMG_ORIENT_FU:
+    this->GetHorizontalOrientationTextActor()->SetInput("F");
+    this->GetVerticalOrientationTextActor()->SetInput("U");
+    break;
+  case US_IMG_ORIENT_NM:
+    this->GetHorizontalOrientationTextActor()->SetInput("N");
+    this->GetVerticalOrientationTextActor()->SetInput("M");
+    break;
+  case US_IMG_ORIENT_NU:
+    this->GetHorizontalOrientationTextActor()->SetInput("N");
+    this->GetVerticalOrientationTextActor()->SetInput("U");
+    break;
   }
 
   return PLUS_SUCCESS;
@@ -383,22 +399,7 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
     return PLUS_FAIL;
   }
 
-  const char * orientationValue = "MARKED_RIGHT_FAR_DOWN";
-  switch(CurrentMarkerOrientation)
-  {
-  case US_IMG_ORIENT_MN:
-    orientationValue = "MARKED_RIGHT_FAR_UP";
-    break;
-  case US_IMG_ORIENT_MF:
-    orientationValue = "MARKED_RIGHT_FAR_DOWN";
-    break;
-  case US_IMG_ORIENT_UF:
-    orientationValue = "MARKED_LEFT_FAR_DOWN";
-    break;
-  case US_IMG_ORIENT_UN:
-    orientationValue = "MARKED_LEFT_FAR_UP";
-    break;
-  }
+  const char * orientationValue = PlusVideoFrame::GetStringFromUsImageOrientation(aOrientation);
   renderingParameters->SetAttribute("DisplayedImageOrientation", orientationValue);
 
   return UpdateCameraPose();
@@ -706,29 +707,11 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 
   // Displayed image orientation
   const char* orientation = xmlElement->GetAttribute("DisplayedImageOrientation");
-  US_IMAGE_ORIENTATION orientationValue = US_IMG_ORIENT_MF;
-  if (orientation != NULL)
+  US_IMAGE_ORIENTATION orientationValue = PlusVideoFrame::GetUsImageOrientationFromString(orientation);
+  if( orientationValue == US_IMG_ORIENT_XX )
   {
-    if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_UP") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_MN;
-    }
-    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_UP") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_UN;
-    }
-    else if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_DOWN") == 0 )
-    {
-      // Nothing to do, but don't want to hit else case below
-    }
-    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_DOWN") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_UF;
-    }
-    else
-    {
-      LOG_WARNING("Field in DisplayedImageOrientation does not match any of MARKED_RIGHT_FAR_UP, MARKED_LEFT_FAR_UP, MARKED_RIGHT_FAR_DOWN, MARKED_LEFT_FAR_DOWN.");
-    }
+    LOG_WARNING("Unable to read image orientation from configuration file. Defauting to MF.");
+    orientationValue = US_IMG_ORIENT_MF;
   }
   this->CurrentMarkerOrientation = orientationValue;
 

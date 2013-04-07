@@ -10,7 +10,7 @@
       Error="0.508027" Date="2011.08.19 14:11:53" />
   </CoordinateDefinitions>
   
-  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MARKED_RIGHT_FAR_DOWN">
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
   </Rendering>
   
