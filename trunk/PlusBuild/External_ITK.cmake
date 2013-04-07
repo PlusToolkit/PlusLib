@@ -27,19 +27,20 @@ IF(ITK_DIR)
 ELSE(ITK_DIR)
 
   # ITK has not been built yet, so download and build it as an external project
-  
+  SET (ITKv4_REPOSITORY ${GIT_PROTOCOL}://itk.org/ITK.git)
+  SET (ITKv4_GIT_TAG 1866ef42887df677a6197ad11ed0ef6e9b239567) #2013-04-03 
+
   SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/itk")
   SET (PLUS_ITK_DIR "${CMAKE_BINARY_DIR}/itk-bin" CACHE INTERNAL "Path to store itk binaries")
   ExternalProject_Add( itk
     SOURCE_DIR "${PLUS_ITK_SRC_DIR}"
     BINARY_DIR "${PLUS_ITK_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://itk.org/ITK.git"
-    GIT_TAG "v3.20.1"
-    #SVN_REPOSITORY http://svn.github.com/Kitware/ITK.git/
+    GIT_REPOSITORY "${ITKv4_REPOSITORY}"
+    GIT_TAG "${ITKv4_GIT_TAG}"
     #--Configure step-------------
     CMAKE_ARGS 
-      -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
       -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
       -DBUILD_TESTING:BOOL=OFF 
       -DBUILD_EXAMPLES:BOOL=OFF

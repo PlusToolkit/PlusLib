@@ -161,8 +161,8 @@ bool itkFiducialTransformComputation::computeTransform(std::vector<itk::Point<do
   // set the rotation
   transformVnl.update(movingToFixedT->GetMatrix().GetVnlMatrix(),0,0);
 
-  vnl_vector<double> translation = movingToFixedT->GetTranslation().Get_vnl_vector();
-  //set the tranlation
+  vnl_vector<double> translation = movingToFixedT->GetTranslation().GetVnlVector();
+  //set the translation
   transformVnl(0,3)=translation(0);
   transformVnl(1,3)=translation(1);
   transformVnl(2,3)=translation(2);

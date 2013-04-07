@@ -118,6 +118,7 @@ OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ${ENABL
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension MedSafe Tracker" OFF)
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
+OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 
 # Other
 
@@ -177,9 +178,17 @@ SET(ep_common_args
   -DBUILD_TESTING:BOOL=OFF
   )
 
+IF(${WIN32})
+  #this method adds the necessary compiler flag
+  SET (ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -D\ _WIN32_WINNT=0x0501")
+  #this adds a preprocessor definition to the project
+  ADD_DEFINITIONS(-D _WIN32_WINNT=0x0501)
+ENDIF()
+
+message ("${ADDITIONAL_CXX_FLAGS}")
 SET(ep_common_c_flags "${CMAKE_C_FLAGS_INIT} ${ADDITIONAL_C_FLAGS}")
 SET(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")
-  
+
 # Compute -G arg for configuring external projects with the same CMake generator:
 IF(CMAKE_EXTRA_GENERATOR)
   SET(gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")

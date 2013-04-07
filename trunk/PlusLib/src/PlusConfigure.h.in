@@ -61,6 +61,7 @@
 #cmakedefine PLUS_USE_Ascension3DG
 #cmakedefine PLUS_USE_Ascension3DGm
 #cmakedefine PLUS_USE_PHIDGET_SPATIAL_TRACKER
+#cmakedefine PLUS_USE_3dConnexion_TRACKER
 #cmakedefine PLUS_USE_EPIPHAN
 
 #cmakedefine PLUS_USE_VFW_VIDEO

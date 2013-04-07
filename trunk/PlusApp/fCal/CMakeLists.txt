@@ -79,7 +79,7 @@ SET (fCal_LIBS
     ${QT_LIBRARIES} 
     CommonWidgets
     vtkPlusCommon
-    ITKIO
+    ${ITK_LIBRARIES}
     itkvnl 
     itkvnl_algo 
     vtkCommon 
