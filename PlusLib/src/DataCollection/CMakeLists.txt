@@ -7,6 +7,7 @@ OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
+OPTION (PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
 OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
 OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
@@ -325,17 +326,21 @@ ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 #--------------------------------------------------------------------------
 # 3dConnexion SpaceNavigator and similar 3D mouse devices
 
-if (WIN32)  # the 3D mouse is currently supported on Windows only
-  SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    3dConnexionTracking/vtk3dConnexionTracker.cxx
-    )
-  if (WIN32)  
-    SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
-  endif (WIN32)  
-  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
-    CACHE INTERNAL "" FORCE)
-endif (WIN32)
+IF( PLUS_USE_3dConnexion_TRACKER )
+  message("what what")
+  if (WIN32)  # the 3D mouse is currently supported on Windows only
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      3dConnexionTracking/vtk3dConnexionTracker.cxx
+      )
+    if (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
+    endif (WIN32)  
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
+      CACHE INTERNAL "" FORCE)
+  endif (WIN32)
+  
+ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 #--------------------------------------------------------------------------
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
@@ -689,8 +694,7 @@ SET (DataCollection_LIBS ${DataCollection_LIBS}
   vtkFiltering 
   vtkPlusCommon  
   vtkSignaling
-  ITKIO
-  ITKBasicFilters
+  ${ITK_LIBRARIES}
   vtkUsSimulatorAlgo
   vtkRfProcessingAlgo
   ) 

@@ -29,13 +29,7 @@ SET (PatternLocAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" F
 
 SET(PatternLocAlgo_LIBS
   itkvnl_algo
-  ITKIO
-  ITKCommon
-  ITKBasicFilters
-  ITKAlgorithms
-  ITKNumerics
-  ITKSpatialObject
-  ITKStatistics
+  ${ITK_LIBRARIES}
   vtkPlusCommon 
   vtkCommon )
   
