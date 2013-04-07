@@ -156,7 +156,7 @@ namespace PlusCommon
     char candidateFilename[MAX_PATH]="";
 #else
     char candidateFilename[L_tmpnam]="";
-#endif/
+#endif
 
     while( tryCount < maxRetryCount)
     {
