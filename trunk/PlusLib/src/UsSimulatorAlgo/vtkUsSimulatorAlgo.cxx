@@ -248,7 +248,6 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
     double beamIntensity=50000; // TODO: magic number
-	double intensityToPixelConversionFactor = beamIntensity/256; // num pixel values.
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
