@@ -841,13 +841,15 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
   {
     this->SetSelectedChannel(*aChannel);
   }
-  if( aChannel->GetVideoDataAvailable() )
+  if( aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL )
   {
     this->GetVisualizationController()->SetInput( aChannel->GetBrightnessOutput() );
   }
   else
   {
+    LOG_ERROR("Unable to visualize video data due to missing data or image is not B-mode.");
     this->GetVisualizationController()->DisconnectInput();
+    this->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   }
 
   this->BuildChannelMenu();
