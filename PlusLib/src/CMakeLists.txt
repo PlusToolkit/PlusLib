@@ -78,6 +78,11 @@ SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli b
 # The project library directories.
 SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
+# Library directories should be added automatically by the build system, however GrabbieLib
+# is not found by default (as it does not have a proper USE file), therefore we add
+# the library output directory to the library search path
+LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+
 # --------------------------------------------------------------------------
 # Configure include file
 # 
