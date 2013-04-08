@@ -64,7 +64,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
               OutputImageSizePixel="440 600"
               OutputImageSpacingMmPerPixel="0.1 0.1" />
           </RfProcessing>
-        <OutputChannel/>
+        </OutputChannel>
       </OutputChannels>
     </Device>
 

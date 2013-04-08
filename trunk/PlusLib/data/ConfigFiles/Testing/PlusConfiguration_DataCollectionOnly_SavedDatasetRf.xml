@@ -1,0 +1,53 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="Acquisition of RF image and tracking data from saved files" 
+      Description="For simple testing of RF data acquisition. No RF processing parameters are specified." 
+    />
+
+    <Device
+      Id="TrackerDevice"
+      Type="SavedDataSource"
+      UseData="TRANSFORM"      
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
+      SequenceMetafile="NwirePhantomFreehand.mha" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="200" AveragedItemsForFiltering="20" PortName="0" />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="UltrasonixCurvilinearRfData.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    
+    <Device Id="TrackedVideoDevice" Type="VirtualMixer">
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    
+  </DataCollection>
+
+</PlusConfiguration>
