@@ -42,7 +42,6 @@ vtkVisualizationController::vtkVisualizationController()
 , AcquisitionFrameRate(20)
 , TransformRepository(NULL)
 , SelectedChannel(NULL)
-, InputConnected(true)
 {
   // Create transform repository
   this->ClearTransformRepository();
@@ -221,13 +220,14 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if( !this->InputConnected )
-    {
-      return PLUS_FAIL;
-    }
     if (this->SelectedChannel->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
+      return PLUS_FAIL;
+    }
+    if( this->SelectedChannel->GetBrightnessOutput() == NULL )
+    {
+      LOG_WARNING("No B-mode data available to visualize. Disabling 2D visualization.");
       return PLUS_FAIL;
     }
 
@@ -592,8 +592,6 @@ PlusStatus vtkVisualizationController::DisconnectInput()
     this->GetImageActor()->SetInput(NULL);
   }
 
-  this->InputConnected = false;
-
   return PLUS_SUCCESS;
 }
 
@@ -606,8 +604,6 @@ PlusStatus vtkVisualizationController::ConnectInput()
   {
     this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
   }
-
-  this->InputConnected = true;
 
   return PLUS_SUCCESS;
 }
@@ -917,10 +913,6 @@ void vtkVisualizationController::SetTransformRepository( vtkSmartPointer<vtkTran
 
 void vtkVisualizationController::SetInput( vtkImageData * input )
 {
-  if( input != NULL )
-  {
-    this->InputConnected = true;
-  }
   if( this->ImageVisualizer != NULL )
   {
     this->GetImageVisualizer()->SetInput(input);

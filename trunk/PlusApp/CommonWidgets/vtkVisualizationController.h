@@ -329,8 +329,6 @@ protected:
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
 
   vtkPlusChannel* SelectedChannel;
-
-  bool InputConnected;
 };
 
 #endif  // __vtkVisualizationController_h
