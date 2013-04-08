@@ -13,6 +13,15 @@ SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
 # --------------------------------------------------------------------------
+# System Settings
+IF(${WIN32})
+  #this method adds the necessary compiler flag
+  SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0501")
+  #this adds a preprocessor definition to the project
+  ADD_DEFINITIONS(-D _WIN32_WINNT=0x0501)
+ENDIF()
+
+# --------------------------------------------------------------------------
 # User options
 #
 
