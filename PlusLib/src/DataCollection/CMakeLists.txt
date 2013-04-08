@@ -327,7 +327,7 @@ ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 # 3dConnexion SpaceNavigator and similar 3D mouse devices
 
 IF( PLUS_USE_3dConnexion_TRACKER )
-  message("what what")
+
   if (WIN32)  # the 3D mouse is currently supported on Windows only
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
       3dConnexionTracking/vtk3dConnexionTracker.cxx
