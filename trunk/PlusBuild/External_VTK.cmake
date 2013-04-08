@@ -3,6 +3,8 @@ IF(VTK_DIR)
   # VTK has been built already
   FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
   
+  MESSAGE(STATUS "Using VTK available at: ${VTK_DIR}")
+  
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )

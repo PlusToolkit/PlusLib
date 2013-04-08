@@ -3,6 +3,13 @@ IF(ITK_DIR)
   # ITK has been built already
   FIND_PACKAGE(ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
   
+  MESSAGE(STATUS "Using ITK available at: ${ITK_DIR}")
+  
+  IF ("${ITK_LIBRARY_DIRS}" STREQUAL "")
+    # ITKv4 does not seem to specify ITK_LIBRARY_DIRS any more, so we generate the binary directory from the main ITK directory
+    SET(ITK_LIBRARY_DIRS "${ITK_DIR}/bin")
+  ENDIF()
+  
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY 

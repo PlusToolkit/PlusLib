@@ -3,6 +3,7 @@ IF(OpenIGTLink_DIR)
   # OpenIGTLink has been built already
   FIND_PACKAGE(OpenIGTLink REQUIRED PATHS ${OpenIGTLink_DIR} NO_DEFAULT_PATH)
 
+  MESSAGE(STATUS "Using OpenIGTLink available at: ${OpenIGTLink_DIR}")
   
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
