@@ -847,7 +847,15 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
   }
   else
   {
-    LOG_ERROR("Unable to visualize video data due to missing data or image is not B-mode.");
+    if( !aChannel->GetVideoDataAvailable() )
+    {
+      LOG_ERROR("Unable to visualize video data due to missing data.");
+    }
+    else
+    {
+      LOG_ERROR("Image data is not B-mode format.");
+    }
+    
     this->GetVisualizationController()->DisconnectInput();
     this->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   }
