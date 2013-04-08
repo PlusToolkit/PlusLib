@@ -13,6 +13,11 @@
 #ifndef __PlusConfigure_h
 #define __PlusConfigure_h
 
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT @WINDOWS_VERSION@
+
 // disable warnings for sprintf
 #define _CRT_SECURE_NO_WARNINGS
 // disable warnings for std::copy

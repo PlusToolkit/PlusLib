@@ -81,6 +81,7 @@ SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus
 # --------------------------------------------------------------------------
 # Configure include file
 # 
+message("${WINDOWS_VERSION}")
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
 	${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h

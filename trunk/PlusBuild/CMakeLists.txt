@@ -180,12 +180,11 @@ SET(ep_common_args
 
 IF(${WIN32})
   #this method adds the necessary compiler flag
-  SET (ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -D\ _WIN32_WINNT=0x0501")
+  SET (WINDOWS_VERSION "0x0501")
   #this adds a preprocessor definition to the project
   ADD_DEFINITIONS(-D _WIN32_WINNT=0x0501)
 ENDIF()
 
-message ("${ADDITIONAL_CXX_FLAGS}")
 SET(ep_common_c_flags "${CMAKE_C_FLAGS_INIT} ${ADDITIONAL_C_FLAGS}")
 SET(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")
 
