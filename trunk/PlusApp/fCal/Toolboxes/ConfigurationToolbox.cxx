@@ -420,20 +420,13 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   // Read tracker tool names
   vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
 
-  if (fCalElement == NULL)
+  vtkPlusChannel* aChannel(NULL);
+  if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to find fCal element in XML tree!");
-    vtkPlusChannel* aChannel(NULL);
-    if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to select a channel.");
-      return PLUS_FAIL;
-    }
-
-    this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
-
+    LOG_ERROR("Unable to select a channel.");
     return PLUS_FAIL;
   }
+  this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
 
   // Image coordinate frame
   const char* imageCoordinateFrame = fCalElement->GetAttribute("ImageCoordinateFrame");
@@ -518,14 +511,6 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   m_ParentMainWindow->SetImageObjectId(imageObjectId);
 
-  vtkPlusChannel* aChannel(NULL);
-  if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to select a channel.");
-    return PLUS_FAIL;
-  }
-
-  this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
   return PLUS_SUCCESS;
 }
 
