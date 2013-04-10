@@ -71,7 +71,7 @@ public:
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
   /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
+  PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true);
 
   /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 

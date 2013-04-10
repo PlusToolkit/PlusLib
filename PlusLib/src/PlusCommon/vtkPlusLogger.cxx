@@ -191,12 +191,17 @@ void vtkPlusLogger::SetLogFileName(const char* logfilename)
   m_CriticalSection->Lock(); 
   if ( this->m_FileStream.is_open() )
   {
+    if (m_LogFileName.compare(logfilename)==0)
+    {
+      // the file change has not changed and the log file is already created, so there is nothing to do
+      return;
+    }
     this->m_FileStream.close(); 
   }
 
   if ( logfilename )
   {
-    // set file name and open the file for writting
+    // set file name and open the file for writing
     m_LogFileName=logfilename; 
     this->m_FileStream.open( m_LogFileName.c_str(), ios::out ); 
   }

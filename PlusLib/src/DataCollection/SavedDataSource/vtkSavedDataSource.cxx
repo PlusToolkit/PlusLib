@@ -595,7 +595,7 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( sequenceMetafile != NULL ) 
   {
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindImagePath(sequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
       this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
     }

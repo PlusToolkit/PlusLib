@@ -206,7 +206,8 @@ int main (int argc, char* argv[])
   }
 
   // Compare results
-	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputPath( 
+    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".Calibration.results.xml" );
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
     numberOfFailures++; 

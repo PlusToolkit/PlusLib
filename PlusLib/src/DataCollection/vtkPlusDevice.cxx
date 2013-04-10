@@ -395,9 +395,9 @@ void vtkPlusDevice::Beep(int n)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*= false*/ )
+PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompression /*= false*/ )
 {
-  LOG_TRACE("vtkPlusDevice::WriteToMetafile: " << outputFolder << "/" << metaFileName); 
+  LOG_TRACE("vtkPlusDevice::WriteToMetafile: " << filename); 
 
   if ( this->GetNumberOfTools() == 0 )
   {
@@ -503,7 +503,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* outputFolder, const char*
   }
 
   // Save tracked frames to metafile
-  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  if ( trackedFrameList->SaveToSequenceMetafile(filename, useCompression) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return PLUS_FAIL;
@@ -1246,12 +1246,9 @@ PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkPlusChannel& aChanne
     }
   }
 
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/")
-    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) 
-    + std::string(".DataBufferTimestamps.txt"); 
-
-  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
-  std::string plotBufferTimestampScript = scriptsFolder + std::string("/gnuplot/PlotBufferTimestamp.gnu"); 
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
+    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".DataBufferTimestamps.txt" ); 
+  std::string plotBufferTimestampScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotBufferTimestamp.gnu");
   if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 

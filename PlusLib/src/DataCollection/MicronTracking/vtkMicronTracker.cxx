@@ -82,7 +82,7 @@ PlusStatus vtkMicronTracker::Probe()
     return PLUS_FAIL;
   }
 
-  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
   if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
@@ -227,7 +227,7 @@ PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
   std::vector<std::string> vTemplatesName;
   std::vector<std::string> vTemplatesError;
 
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
   LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
   int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
   for (int i=0; i<vTemplatesName.size(); i++)
@@ -381,7 +381,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
     return PLUS_SUCCESS;
   }
   
-  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
   LOG_INFO("Use MicronTracker ini file: "<<iniFilePath);
   if (this->MT->mtInit(iniFilePath)!=1)
   {

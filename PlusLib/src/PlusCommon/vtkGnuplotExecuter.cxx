@@ -25,23 +25,16 @@ vtkGnuplotExecuter::vtkGnuplotExecuter()
 
   this->HideWindowOff(); 
   this->SetTimeout(15.0);  // seconds
-  
-  std::ostringstream commandpath; 
-  std::string dir=vtkPlusConfig::GetInstance()->GetGnuplotDirectory();
-  if (dir.size()>0)
-  {
-    commandpath << dir << "/"; 
-  }
-  commandpath << "gnuplot"; 
+
+  std::string commandProcessName="gnuplot";
 #ifdef _WIN32
-  commandpath << ".exe"; 
+  commandProcessName+=".exe"; 
 #endif
 
-  this->SetGnuplotCommand(  vtksys::SystemTools::CollapseFullPath(commandpath.str().c_str()).c_str()); 
-
-  std::ostringstream workingDirectory; 
-  workingDirectory << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/Report" << std::ends;
-  this->SetWorkingDirectory( vtksys::SystemTools::CollapseFullPath(workingDirectory.str().c_str()).c_str() );
+  std::string commandpath=vtkPlusConfig::GetInstance()->GetGnuplotPath(commandProcessName.c_str());  
+  this->SetGnuplotCommand(  commandpath.c_str()); 
+  
+  SetWorkingDirectory(vtkPlusConfig::GetInstance()->GetOutputPath("Report").c_str());
 }
 
 //----------------------------------------------------------------------------

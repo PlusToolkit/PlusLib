@@ -220,20 +220,8 @@ PlusStatus vtkVirtualDiscCapture::OpenFile()
   m_Writer->SetTrackedFrameList(m_RecordedFrames);
 
   // Save config file next to the tracked frame list
-  std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
-  if (!path.empty())
-  {
-    path += "/";
-  }
-  else
-  {
-    path = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + "/";
-    std::stringstream ss;
-    ss << path << m_Filename;
-    m_Filename = ss.str();
-  }
-
-  m_Writer->SetFileName(m_Filename.c_str());
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  m_Writer->SetFileName(fullPath.c_str());
 
   return PLUS_SUCCESS;
 }
@@ -263,8 +251,9 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
 
   m_Writer->Close();
 
-  std::string path = vtksys::SystemTools::GetFilenamePath(m_Filename); 
-  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(m_Filename); 
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  std::string path = vtksys::SystemTools::GetFilenamePath(fullPath); 
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
   std::string configFileName = path + "/" + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
@@ -432,23 +421,24 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 PlusStatus vtkVirtualDiscCapture::CompressFile()
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  reader->SetFileName(m_Filename.c_str());
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  reader->SetFileName(fullPath.c_str());
 
-  LOG_DEBUG("Read input sequence metafile: " << m_Filename ); 
+  LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
 
   if (reader->Read() != PLUS_SUCCESS)
   {    
-    LOG_ERROR("Couldn't read sequence metafile: " <<  m_Filename ); 
+    LOG_ERROR("Couldn't read sequence metafile: " <<  fullPath ); 
     return PLUS_FAIL;
   }  
 
   // Now write to disc using compression
   reader->SetUseCompression(true);
-  reader->SetFileName(m_Filename.c_str());
+  reader->SetFileName(fullPath.c_str());
 
   if (reader->Write() != PLUS_SUCCESS)
   {    
-    LOG_ERROR("Couldn't write sequence metafile: " <<  reader->GetFileName() ); 
+    LOG_ERROR("Couldn't write sequence metafile: " <<  fullPath ); 
     return PLUS_FAIL;
   }
 
@@ -481,7 +471,8 @@ PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
 void vtkVirtualDiscCapture::SetFilename( const char* filename )
 {
   m_Filename = std::string(filename);
-  this->m_Writer->SetFileName(m_Filename.c_str());
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  this->m_Writer->SetFileName(fullPath.c_str());
 }
 
 //-----------------------------------------------------------------------------

@@ -1426,7 +1426,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
           LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
           continue;
         }
-        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
+        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(romFileName);
         this->LoadVirtualSROM(portNumber, romFilePath.c_str());
       }
     }

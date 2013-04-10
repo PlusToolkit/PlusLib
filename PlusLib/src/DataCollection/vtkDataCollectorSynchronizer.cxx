@@ -1098,15 +1098,14 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
     return PLUS_FAIL;
   }
 
-  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
-  std::string plotSyncResultScript = scriptsFolder + std::string("/gnuplot/PlotSyncResult.gnu"); 
+  std::string plotSyncResultScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotSyncResult.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotSyncResultScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotSyncResultScript); 
     return PLUS_FAIL; 
   }
 
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/SyncResult.txt"); 
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath("SyncResult.txt");
 
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->SyncReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {

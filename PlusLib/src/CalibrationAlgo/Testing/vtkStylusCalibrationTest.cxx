@@ -223,7 +223,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   
   vtkSmartPointer<vtkMatrix4x4> transformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double currentError(0); 
-  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformCurrent, &currentError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformCurrent, &currentError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
     return ++numberOfFailures;
@@ -239,7 +239,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
   vtkSmartPointer<vtkMatrix4x4> transformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double baselineError(0); 
-  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformBaseline, &baselineError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformBaseline, &baselineError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current stylus calibration result from configuration file!"); 
     return ++numberOfFailures;

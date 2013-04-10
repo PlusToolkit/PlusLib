@@ -68,9 +68,6 @@ vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameLi
 //----------------------------------------------------------------------------
 vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 : TrackedFrameList(vtkTrackedFrameList::New())
-, FileName(NULL)
-, TempHeaderFileName(NULL)
-, TempImageFileName(NULL)
 , UseCompression(false)
 , FileType(itk::ImageIOBase::Binary)
 , PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
@@ -82,7 +79,6 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 , ImageOrientationInMemory(US_IMG_ORIENT_XX)
 , ImageType(US_IMG_TYPE_XX)
 , PixelDataFileOffset(0)
-, PixelDataFileName(NULL)
 { 
   this->Dimensions[0]=0;
   this->Dimensions[1]=0;
@@ -93,10 +89,6 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
 {
   SetTrackedFrameList(NULL);
-  SetFileName(NULL);
-  SetTempHeaderFileName(NULL);
-  SetTempImageFileName(NULL);
-  SetPixelDataFileName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -166,7 +158,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen(&stream, this->FileName, "rb" ) != PLUS_SUCCESS )
+  if ( FileOpen(&stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading");
     return PLUS_FAIL;
@@ -201,7 +193,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       // Arrived to ElementDataFile, this is the last element
       if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE)==0)
       {
-        SetPixelDataFileName(value.c_str());
+        this->PixelDataFileName=value;
         if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL)==0)
         {
           // pixel data stored locally
@@ -550,7 +542,7 @@ bool vtkMetaImageSequenceIO::CanReadFile(const char*)
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen( &stream, this->FileName, "rb" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
     LOG_DEBUG("The file "<<this->FileName<<" could not be opened for reading");
     return false;
@@ -688,7 +680,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
 
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen( &stream, this->TempHeaderFileName, "wb" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "wb" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
@@ -724,7 +716,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen( &stream, this->TempHeaderFileName, "ab+" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
@@ -770,16 +762,16 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
 {
   FILE* stream = NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( FileOpen( &stream, this->TempHeaderFileName, "ab+" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
   }
-  const char* elem = "ElementDataFile = ";
-  fputs(elem, stream);
-  m_TotalBytesWritten += strlen(elem);
-  fputs(this->PixelDataFileName, stream);
-  m_TotalBytesWritten += strlen(this->PixelDataFileName);
+  std::string elem = "ElementDataFile = ";
+  fputs(elem.c_str(), stream);
+  m_TotalBytesWritten += elem.size();
+  fputs(this->PixelDataFileName.c_str(), stream);
+  m_TotalBytesWritten += this->PixelDataFileName.size();
   fputs("\n", stream);
   m_TotalBytesWritten += 1;
 
@@ -810,7 +802,7 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool forceAppend /* = false */)
+PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename, bool forceAppend /* = false */)
 {
   if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
   {
@@ -833,7 +825,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(char * aFilename, bool force
     LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
     return PLUS_FAIL;
   }
-  if ( FileOpen( &stream, aFilename, fileOpenMode.c_str() ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << aFilename << " could not be opened for writing");
     return PLUS_FAIL;
@@ -1158,7 +1150,7 @@ PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusComm
 //----------------------------------------------------------------------------
 std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
 {
-  if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName)==0)
+  if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName.c_str())==0)
   {
     // LOCAL => data is stored in one file
     return this->FileName;
@@ -1176,14 +1168,14 @@ std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 {
-  if (this->TempHeaderFileName==NULL)
+  if (this->TempHeaderFileName.empty())
   {
     LOG_ERROR("Cannot update file header, filename is invalid");
     return PLUS_FAIL;
   }
   FILE *stream=NULL;
   // open in read+write binary mode
-  if ( FileOpen( &stream, this->TempHeaderFileName, "r+b" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "r+b" ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for reading and writing");
     return PLUS_FAIL;
@@ -1301,7 +1293,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
     this->ImageType=this->TrackedFrameList->GetImageType();
   }
 
-  if( this->TempHeaderFileName == NULL )
+  if( this->TempHeaderFileName.empty())
   {
     std::string tempFilename;
     if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
@@ -1309,10 +1301,10 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
       LOG_ERROR("Unable to create temporary header file. Check write access.");
       return PLUS_FAIL;
     }
-    this->SetTempHeaderFileName(tempFilename.c_str());
+    this->TempHeaderFileName=tempFilename;
   }
 
-  if( this->TempImageFileName == NULL )
+  if( this->TempImageFileName.empty() )
   {
     std::string tempFilename;
     if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
@@ -1320,7 +1312,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
       LOG_ERROR("Unable to create temporary image file. Check write access.");
       return PLUS_FAIL;
     }
-    this->SetTempImageFileName(tempFilename.c_str());
+    this->TempImageFileName=tempFilename;
   }
 
   if ( OpenImageHeader() != PLUS_SUCCESS)
@@ -1371,30 +1363,20 @@ PlusStatus vtkMetaImageSequenceIO::Close()
     }
   }
 
-  std::string fileName = vtksys::SystemTools::GetFilenameName(this->FileName);
-  std::string path = vtksys::SystemTools::GetFilenamePath(this->FileName);
-  if( path.empty() )
-  {
-    path = vtkPlusConfig::GetInstance()->GetOutputDirectory();
-  }
-  if( *path.rbegin() == '/')
-  {
-    path = path.substr(0, path.length()-1);
-  }
-  std::string finalFileName = path + "/" + fileName;
+  std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
 
   // Move header to final file
-  MoveDataInFiles(this->TempHeaderFileName, finalFileName.c_str(), false);
+  MoveDataInFiles(this->TempHeaderFileName, headerFullPath.c_str(), false);
   // Copy image to final file (or data file if .mhd)
-  if( STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->GetPixelDataFileName()) == 0 )
+  if( STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName.c_str()) == 0 )
   {
-    MoveDataInFiles(this->TempImageFileName, finalFileName.c_str(), true);
+    MoveDataInFiles(this->TempImageFileName, headerFullPath.c_str(), true);
   }
   else
   {
-    std::string pixFileName = path + "/" + this->GetPixelDataFileName();
+    std::string pixFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->PixelDataFileName);
 
-    MoveDataInFiles(this->TempImageFileName, pixFileName.c_str(), false);
+    MoveDataInFiles(this->TempImageFileName, pixFullPath.c_str(), false);
   }
 
   return PLUS_SUCCESS;
@@ -1403,66 +1385,66 @@ PlusStatus vtkMetaImageSequenceIO::Close()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 {
-  if( this->FileName != NULL )
-  {
-    delete this->FileName;
-  }
-  if( aFilename != NULL )
-  {
-    size_t n = strlen(aFilename) + 1;
-    this->FileName = new char[n];
-    strcpy(this->FileName, aFilename);
-    
-    // Set pixel data filename at the same time
-    std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
-    if (STRCASECMP(fileExt.c_str(),".mha")==0)
-    {
-      this->SetPixelDataFileName(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL);
-    }
-    else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
-    {
-      std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
-      if (this->UseCompression)
-      {
-        pixFileName+=".zraw";
-      }
-      else
-      {
-        pixFileName+=".raw";
-      }
+  this->FileName.clear();
+  this->PixelDataFileName.clear();
 
-      this->SetPixelDataFileName(pixFileName.c_str());
+  if( aFilename == NULL )
+  {
+    LOG_ERROR("Invalid metaimage file name");
+  }
+  
+  this->FileName = aFilename;
+
+  // Set pixel data filename at the same time
+  std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
+  if (STRCASECMP(fileExt.c_str(),".mha")==0)
+  {
+    this->PixelDataFileName=SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL;
+  }
+  else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
+  {
+    std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
+    if (this->UseCompression)
+    {
+      pixFileName+=".zraw";
     }
     else
     {
-      LOG_ERROR("Writing sequence metafile with " << fileExt << " extension is not supported");
-      return PLUS_FAIL;
+      pixFileName+=".raw";
     }
+
+    this->PixelDataFileName=pixFileName;
+  }
+  else
+  {
+    LOG_WARNING("Writing sequence metafile with '" << fileExt << "' extension is not supported. Using mha extension instead.");
+    this->FileName+=".mha";
+    this->PixelDataFileName=SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL;
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, const char* destFilename, bool append )
+PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append)
 {
   size_t len = 0 ;
   const int BUFFER_SIZE = 1024;
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  FILE* in = fopen( srcFilename, "rb" ) ;
+  FILE* in = fopen( sourceFilename.c_str(), "rb" ) ;
   FILE* out = NULL;
   if( !append )
   {
-    out = fopen( destFilename, "wb" ) ;
+    out = fopen( destFilename.c_str(), "wb" ) ;
   }
   else
   {
-    out = fopen( destFilename, "ab+");
+    out = fopen( destFilename.c_str(), "ab+");
   }
   if( in == NULL || out == NULL )
   {
-    LOG_ERROR( "An error occurred while opening files!" ) ;
+    LOG_ERROR( "An error occurred while moving data from "<<sourceFilename<<" to "<<destFilename) ;
     return PLUS_FAIL;
   }
   else
@@ -1474,9 +1456,9 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles( const char* srcFilename, con
     }
     fclose(in) ;
     fclose(out) ;
-    if( !itksys::SystemTools::RemoveFile(srcFilename) )
+    if( !itksys::SystemTools::RemoveFile(sourceFilename.c_str()) )
     {
-      LOG_WARNING("Unable to remove the file: " << srcFilename);
+      LOG_WARNING("Unable to remove the file: " << sourceFilename);
     }
   }
   return PLUS_SUCCESS;

@@ -578,22 +578,15 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
     return PLUS_FAIL; 
   }
 
-  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
-  if ( scriptsFolder == NULL )
-  {
-    LOG_ERROR("Unable to generate report - gnuplot scripts folder is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
   // Check gnuplot scripts 
-  std::string plotCenterOfRotCalcErrorScript = scriptsFolder + std::string("/gnuplot/PlotCenterOfRotationCalculationError.gnu"); 
+  std::string plotCenterOfRotCalcErrorScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotCenterOfRotationCalculationError.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorScript); 
     return PLUS_FAIL; 
   }
 
-  std::string plotCenterOfRotCalcErrorHistogramScript = scriptsFolder + std::string("/gnuplot/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
+  std::string plotCenterOfRotCalcErrorHistogramScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorHistogramScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorHistogramScript); 
@@ -601,9 +594,8 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
   }
 
   // Generate report files from table 
-  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/")
-    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp())
-    + std::string(".CenterOfRotationCalculationError.txt");
+  std::string reportFileName=vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".CenterOfRotationCalculationError.txt";
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(reportFileName);
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile );
