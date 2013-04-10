@@ -1379,6 +1379,9 @@ PlusStatus vtkMetaImageSequenceIO::Close()
     MoveDataInFiles(this->TempImageFileName, pixFullPath.c_str(), false);
   }
 
+  this->TempHeaderFileName.clear();
+  this->TempImageFileName.clear();
+
   return PLUS_SUCCESS;
 }
 
@@ -1444,7 +1447,7 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFile
   }
   if( in == NULL || out == NULL )
   {
-    LOG_ERROR( "An error occurred while moving data from "<<sourceFilename<<" to "<<destFilename) ;
+    LOG_ERROR( "An error occurred while moving data from " << sourceFilename << " to " << destFilename) ;
     return PLUS_FAIL;
   }
   else
