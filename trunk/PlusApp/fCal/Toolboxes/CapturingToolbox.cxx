@@ -81,9 +81,9 @@ void CapturingToolbox::OnActivated()
     disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
     ui.captureWidgetLayout->removeWidget(*it);
     delete *it;
-    m_CaptureWidgets.erase(it);
-    it = m_CaptureWidgets.begin();
   }
+
+  this->m_CaptureWidgets.clear();
 
   if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
