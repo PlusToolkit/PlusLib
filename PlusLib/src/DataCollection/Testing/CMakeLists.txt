@@ -103,7 +103,7 @@ TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkDataCollection )
 ADD_TEST(vtkMetaImageSequenceIOTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
   --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.mhd
-  --output-img-seq-file=_MetaImageSequenceIOTest1.mha
+  --output-img-seq-file=MetaImageSequenceIOTest1Output.mha
   )
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  

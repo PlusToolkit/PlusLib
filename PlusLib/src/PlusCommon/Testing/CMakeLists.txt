@@ -74,7 +74,7 @@ SET_TESTS_PROPERTIES( EditSeqMetaFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ER
 
 ADD_TEST(EditSeqMetaFileTrimCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
+   ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileTrim )
@@ -86,7 +86,7 @@ ADD_TEST(EditSeqMetaFileFillImageRectangle
   --fill-rect-origin 52 25
   --fill-rect-size 260 25
   --fill-gray-level=20
-  --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
+  --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
   --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha 
   --use-compression
   --verbose=3
@@ -96,7 +96,7 @@ SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangle PROPERTIES DEPENDS EditS
 
 ADD_TEST(EditSeqMetaFileFillImageRectangleCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+   ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileFillImageRectangle )
