@@ -76,11 +76,13 @@ void CapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated"); 
 
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end();  )
   {
     disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
     ui.captureWidgetLayout->removeWidget(*it);
     delete *it;
+    m_CaptureWidgets.erase(it);
+    it = m_CaptureWidgets.begin();
   }
 
   if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)

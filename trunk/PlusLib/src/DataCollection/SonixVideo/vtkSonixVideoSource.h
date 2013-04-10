@@ -57,13 +57,14 @@ public:
   Usage:
   sonixGrabber->SetSonixIP("130.15.7.212");
   sonixGrabber->SetImagingMode(0);
-  sonixGrabber->SetAcquisitionDataType(0x00000004);
+  sonixGrabber->SetAcquisitionDataType(udtBPost);
   sonixGrabber->Record();  
   imageviewer->SetInput(sonixGrabber->GetOutput());
   See vtkSonixVideoSourceTest1.cxx for more details
 
   \ingroup PlusLibImageAcquisition
-*/ 
+*/
+
 class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
