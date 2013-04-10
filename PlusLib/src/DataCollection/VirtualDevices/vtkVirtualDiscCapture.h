@@ -50,6 +50,8 @@ public:
 
   virtual PlusStatus Reset();
 
+  virtual PlusStatus TakeSnapshot();
+
   /*! Enables capturing frames. It can be used for pausing the recording. */
   vtkGetMacro(EnableCapturing, bool);
   void SetEnableCapturing(bool aValue);
@@ -76,6 +78,8 @@ protected:
   virtual PlusStatus InternalDisconnect();
 
   virtual bool IsFrameBuffered() const;
+
+  virtual PlusStatus WriteFrames();
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
