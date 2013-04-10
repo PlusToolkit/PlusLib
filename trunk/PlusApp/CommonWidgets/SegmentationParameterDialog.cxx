@@ -1426,17 +1426,16 @@ void SegmentationParameterDialog::FreezeImage(bool aOn)
 void SegmentationParameterDialog::ExportImage()
 {
   LOG_TRACE("SegmentationParameterDialog::ExportImage()");
-
-  std::string metafileName = "SegmentationParameterDialog_ExportedImage_";
-  metafileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
-
+  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   trackedFrameList->AddTrackedFrame(&m_Frame);
 
-  if (trackedFrameList->SaveToSequenceMetafile(vtkPlusConfig::GetInstance()->GetImageDirectory(), metafileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, false) == PLUS_SUCCESS)
+  std::string metafileName = vtkPlusConfig::GetInstance()->GetImagePath(
+    std::string("SegmentationParameterDialog_ExportedImage_")+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S.mha") );
+  if (trackedFrameList->SaveToSequenceMetafile(metafileName.c_str(), false) == PLUS_SUCCESS)
   {
     QMessageBox::information(this, tr("Image exported"),
-      QString("Image exported as metafile as %1\\%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+      QString("Image exported as metafile as %1").arg(metafileName.c_str()));
 
     // Write the current state into the device set configuration XML
     if (m_DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -1446,14 +1445,14 @@ void SegmentationParameterDialog::ExportImage()
     else
     {
       // Save config file next to the tracked frame list
-      std::string configFileName = (std::string)vtkPlusConfig::GetInstance()->GetImageDirectory() + "\\" + metafileName + "_Config.xml";
+      std::string configFileName = vtkPlusConfig::GetInstance()->GetImagePath(metafileName + "_Config.xml");
       PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     }
   }
   else
   {
     QMessageBox::critical(this, tr("Image export failed"),
-      QString("Image export failed to metafile %1\\%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+      QString("Image export failed to metafile %1").arg(metafileName.c_str()));
   }
 }
 

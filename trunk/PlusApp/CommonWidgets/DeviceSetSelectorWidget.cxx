@@ -31,7 +31,7 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
   ui.pushButton_ResetTracker->setVisible(false);
 
-  SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+  SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -329,7 +329,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
-      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName())) == QDir::toNativeSeparators(fileName) )
+      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())) == QDir::toNativeSeparators(fileName) )
       {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
@@ -364,7 +364,7 @@ void DeviceSetSelectorWidget::RefreshFolder()
 {
   LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
-  if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory())) != PLUS_SUCCESS)
+  if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str())) != PLUS_SUCCESS)
   {
     LOG_ERROR("Parsing up configuration files failed in: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
   }

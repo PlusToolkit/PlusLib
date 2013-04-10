@@ -507,7 +507,8 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   // File open dialog for selecting phantom definition xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;

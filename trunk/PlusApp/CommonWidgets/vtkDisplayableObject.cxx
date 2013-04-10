@@ -469,7 +469,7 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   // Find absolute path for the file
   std::string modelFileFullPath;
-  if ( modelFileName != NULL && vtkPlusConfig::GetAbsoluteModelPath(modelFileName, modelFileFullPath) == PLUS_SUCCESS)
+  if ( modelFileName != NULL && vtkPlusConfig::GetInstance()->FindModelPath(modelFileName, modelFileFullPath) == PLUS_SUCCESS)
   {
     this->SetSTLModelFileName(modelFileFullPath.c_str());
   }

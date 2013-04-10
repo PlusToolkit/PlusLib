@@ -73,10 +73,10 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.comboBox_LogLevel->blockSignals(false);
 
   ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
-  ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory())) );
+  ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory().c_str())) );
 
   m_LastEditorLocation = QString("C:");
-  m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory().c_str();
 }
 
 //-----------------------------------------------------------------------------
@@ -627,7 +627,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
       if( aDevice->OutputChannelCount() > 0 )
       {
         aChannel = *(aDevice->GetOutputChannelsStart());
-        LOG_WARNING("No default channel selected, first channel found is now active.");
+        LOG_WARNING("No default channel selected, first channel found is now active: "<<aChannel->GetChannelId());
         return PLUS_SUCCESS;
       }
     }

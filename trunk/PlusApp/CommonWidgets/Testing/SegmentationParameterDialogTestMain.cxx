@@ -58,8 +58,7 @@ int main(int argc, char *argv[])
   // Delete already existing result configuration file so that no overwrite confirmation is needed during the automated GUI test
   if (verifySavedConfigurationFile)
   {
-    std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory();
-    resultConfigFileName.append("/TEST_ConfigFileSaverDialogTest_Result.xml");
+    std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath("TEST_ConfigFileSaverDialogTest_Result.xml");
     QFile::remove(resultConfigFileName.c_str());
   }
 
@@ -71,9 +70,7 @@ int main(int argc, char *argv[])
   // If verification is needed then set the file name to the tester
   if (verifySavedConfigurationFile)
   {
-    std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory();
-    resultConfigFileName.append("/TEST_ConfigFileSaverDialogTest_Result.xml");
-
+    std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath("TEST_ConfigFileSaverDialogTest_Result.xml");
     segmentationParameterDialogTest.SetSavedConfigurationFileVerification(resultConfigFileName);
   }
 

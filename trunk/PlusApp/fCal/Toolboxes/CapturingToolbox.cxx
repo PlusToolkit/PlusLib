@@ -59,7 +59,7 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   ui.pushButton_SaveAll->setEnabled(false);
   ui.pushButton_ClearAll->setEnabled(false);
 
-  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetOutputDirectory();
 }
 
 //-----------------------------------------------------------------------------
@@ -485,13 +485,11 @@ void CapturingToolbox::Save()
 {
   LOG_TRACE("CapturingToolbox::Save"); 
 
-  QString fileName = QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+  // TODO: just for testing
+  std::string defaultFileName = m_LastSaveLocation+"/TrackedImageSequence_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";  
+  WriteToFile(QString(defaultFileName.c_str()));
 
-  m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
-
-  WriteToFile(fileName);
-
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << defaultFileName << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -499,71 +497,61 @@ void CapturingToolbox::SaveAs()
 {
   LOG_TRACE("CapturingToolbox::SaveAs"); 
 
+  std::string defaultFileName = m_LastSaveLocation+"/TrackedImageSequence_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";
   QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
-  QString fileName;
+  QString fileNameQt = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"), QString(defaultFileName.c_str()), filter);
+  std::string fileName = fileNameQt.toLatin1().constData();
+  m_LastSaveLocation = vtksys::SystemTools::GetFilenamePath(fileName.c_str());
 
-  fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
-    QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
-  m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
+  WriteToFile(QString(fileName.c_str()));
 
-  WriteToFile(fileName);
-
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName << "'");
 }
 
 //-----------------------------------------------------------------------------
 void CapturingToolbox::WriteToFile( QString& aFilename )
 {
-  if (! aFilename.isNull() )
+  if (aFilename.isEmpty())
   {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    LOG_ERROR("Writing sequence to metafile failed: output file name is empty");
+    return;
+  }
 
-    // Actual saving
-    std::string filePath(aFilename.toLatin1().constData());
-    std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
-    std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
-    std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-    if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
-    }
-    else
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
-    }
+  // Actual saving
+  if ( m_RecordedFrames->SaveToSequenceMetafile(aFilename.toLatin1().constData(), false) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return;
+  }
 
-    if ( m_RecordedFrames->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return;
-    }
+  QString result = "File saved to\n"+aFilename;
+  ui.plainTextEdit_saveResult->clear();
+  ui.plainTextEdit_saveResult->insertPlainText(result);
 
-    QString result = "File saved to\n";
-    result += aFilename;
-    ui.plainTextEdit_saveResult->clear();
-    ui.plainTextEdit_saveResult->insertPlainText(result);
+  // Add file name to image list in Volume reconstruction toolbox
+  VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
+  if (volumeReconstructionToolbox != NULL)
+  {
+    volumeReconstructionToolbox->AddImageFileName(aFilename);
+  }
 
-    // Add file name to image list in Volume reconstruction toolbox
-    VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
-    if (volumeReconstructionToolbox != NULL)
-    {
-      volumeReconstructionToolbox->AddImageFileName(aFilename);
-    }
+  // Write the current state into the device set configuration XML
+  m_ParentMainWindow->GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-    // Write the current state into the device set configuration XML
-    m_ParentMainWindow->GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  // Save config file next to the tracked frame list
 
-    // Save config file next to the tracked frame list
-    std::string configFileName = path + "/" + filename + "_config.xml";
-    PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  std::string path = vtksys::SystemTools::GetFilenamePath(aFilename.toLatin1().constData()); 
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(aFilename.toLatin1().constData());
+  std::string configFileName = path + "/" + filename + "_config.xml";
+  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-    m_RecordedFrames->Clear(); 
-    SetState(ToolboxState_Idle);
+  m_RecordedFrames->Clear(); 
+  SetState(ToolboxState_Idle);
 
-    QApplication::restoreOverrideCursor();
-  }	
+  QApplication::restoreOverrideCursor();
+  	
 }
 
 

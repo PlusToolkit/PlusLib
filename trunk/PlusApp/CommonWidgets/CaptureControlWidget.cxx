@@ -188,13 +188,12 @@ void CaptureControlWidget::SaveAsButtonPressed()
   if( this->WriteToFile(fileName) != PLUS_FAIL )
   {
     message += "Successfully wrote: ";
-    message += fileName.toLatin1().constData();
   }
   else
   {
     message += "Failed to write: ";
-    message += fileName.toLatin1().constData();
   }
+  message += fileName.toLatin1().constData();;
 
   this->UpdateBasedOnState();
 }
@@ -290,8 +289,8 @@ void CaptureControlWidget::TakeSnapshot()
   list->AddTrackedFrame(&frame);
 
   vtkMetaImageSequenceIO* writer = vtkMetaImageSequenceIO::New();
-  QString fileName = QString("%1/TrackedImageSequence_Snapshot_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
-  writer->SetFileName(fileName.toLatin1().constData());
+  std::string fileName=vtkPlusConfig::GetInstance()->GetOutputPath( std::string("TrackedImageSequence_Snapshot_")+m_Device->GetDeviceId()+"_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha" );
+  writer->SetFileName(fileName.c_str());
   writer->SetTrackedFrameList(list);
   if( writer->Write() != PLUS_SUCCESS )
   {
@@ -331,24 +330,23 @@ void CaptureControlWidget::SaveFile()
   // Stop recording
   m_Device->SetEnableCapturing(false);
 
-  QString fileName = QString("%1/TrackedImageSequence_%2_%3.mha").arg(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str()).arg(m_Device->GetDeviceId()).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
-
-  std::string message("");
-  if( this->WriteToFile(fileName) != PLUS_FAIL )
+  std::string fileName=vtkPlusConfig::GetInstance()->GetOutputPath( std::string("TrackedImageSequence_")+m_Device->GetDeviceId()+"_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha" );
+ 
+  std::string message;
+  if( this->WriteToFile(QString(fileName.c_str())) != PLUS_FAIL )
   {
-    message += "Successfully wrote: ";
-    message += fileName.toLatin1().constData();
+    message += "Successfully wrote: "; 
   }
   else
   {
     message += "Failed to write: ";
-    message += fileName.toLatin1().constData();
   }
+  message += fileName;
 
   this->SendStatusMessage(message);
   this->UpdateBasedOnState();
 
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toLatin1().constData() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName << "'");
 }
 
 //-----------------------------------------------------------------------------

@@ -424,7 +424,8 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
 
   // File open dialog for selecting phantom registration xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;
@@ -487,7 +488,8 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
 
   // File open dialog for selecting calibration configuration xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;
@@ -509,7 +511,7 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Replace USCalibration element with the one in the just read file
-  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
+  vtkPlusConfig::GetInstance()->ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
   SetDisplayAccordingToState();
 

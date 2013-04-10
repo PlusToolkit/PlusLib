@@ -43,7 +43,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
   connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 
-  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory().c_str();
 }
 
 //-----------------------------------------------------------------------------
@@ -255,7 +255,8 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 
   // File open dialog for selecting phantom definition xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;

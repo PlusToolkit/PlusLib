@@ -176,7 +176,7 @@ protected:
   int m_RecordingFirstFrameIndexInThisSegment;
 
   /*! String to hold the last location of data saved */
-  QString m_LastSaveLocation;
+  std::string m_LastSaveLocation;
 
   /* Container holding capture widgets */
   std::vector<CaptureControlWidget*>  m_CaptureWidgets;

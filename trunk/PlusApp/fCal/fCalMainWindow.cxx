@@ -557,7 +557,8 @@ void fCalMainWindow::DumpBuffers()
   LOG_TRACE("fCalMainWindow::DumpBuffers");
 
   // Directory open dialog for selecting directory to save the buffers into 
-  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), 
+    vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
 
   if( dirName == "" )
   {
