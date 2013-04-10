@@ -83,8 +83,8 @@ SET_TESTS_PROPERTIES( EditSeqMetaFileTrimCompareToBaselineTest PROPERTIES DEPEND
 ADD_TEST(EditSeqMetaFileFillImageRectangle
   ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
   --operation=FILL_IMAGE_RECTANGLE
-  --fill-rect-origin 52 25
-  --fill-rect-size 260 25
+  --rect-origin 52 25
+  --rect-size 260 25
   --fill-gray-level=20
   --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
   --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha 
@@ -100,6 +100,27 @@ ADD_TEST(EditSeqMetaFileFillImageRectangleCompareToBaselineTest
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileFillImageRectangle )
+
+#--------------------------------------------------------------------------------------------
+ADD_TEST(EditSeqMetaFileCropImageRectangle
+  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+  --operation=CROP
+  --rect-origin 52 25
+  --rect-size 260 25
+  --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
+  --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha 
+  --use-compression
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangle PROPERTIES DEPENDS EditSeqMetaFileTrim)
+
+ADD_TEST(EditSeqMetaFileCropImageRectangleCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
+   ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangle )
 
 # --------------------------------------------------------------------------
 # Install
